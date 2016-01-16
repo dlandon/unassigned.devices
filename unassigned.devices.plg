@@ -1,0 +1,405 @@
+<?xml version='1.0' standalone='yes'?>
+
+<!DOCTYPE PLUGIN [
+<!ENTITY name      "unassigned.devices">
+<!ENTITY author    "dlandon">
+<!ENTITY version   "2016.01.16">
+<!ENTITY launch    "Main/UnassignedDevices">
+<!ENTITY gitURL    "https://github.com/dlandon/&name;/raw/master">
+<!ENTITY pluginURL "&gitURL;/&name;.plg">
+<!ENTITY packages  "/boot/config/plugins/&name;/packages">
+<!ENTITY MD5		"f2d4cad5a914432454e1094f3ad6ae60">
+]>
+
+<PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
+
+<CHANGES>
+##&name;
+
+###&version;
+- Fix: Revert to 2015.09.19.
+- Fix: Compatibility with unRAID 6.1.7.
+- Fix: Update and remove plugin was messy.
+
+###2015.11.18
+- Fix: better logging
+- Add: force unmount after 5 attempts
+
+###2015.09.28b
+- debug: debug version
+
+###2015.09.25
+- Fix: minor fixes
+
+###2015.09.22b
+- Add: NFS share mount
+
+###2015.09.19
+- Fix: DVD/BluRay drives being included
+
+###2015.09.18e
+- Add: Destructive Mode selection on Settings, allowing users to delete and format disk/partitions.
+- Fix: >2TB partitions not correctly aligned on format.
+- Fix: Areca disks not appearing correctly.
+- Fix: errors appearing on console if a symlinks already exist.
+- Fix: file browser opening a new window.
+
+###2015.09.17d
+- Fix: black CSS conformity
+- Fix: not working on non-tabbed mode
+
+2015.09.17b
+- Fix: UDEV killing long run scripts;
+
+###2015.09.17a
+- Add: Settings Page;
+- Add: SMB security;
+- Add: NFS export;
+- Add: common script that will be executed prior to disk script;
+- Add: format empty disk;
+- Add: log view and upload when Help is on;
+- Fix: "Add SMB mount" not working with hidden shares;
+- Fix: webGui hanging while mounting/unmounting.
+
+###2015.09.07a
+- Fix: SMB mount not working.
+- Fix: mount path change not working.
+- Fix: division by zero if SMB mount fail.
+- Add: search for SMB hosts in the current workgroup.
+- Improvement: better integration with Preclear Disk.
+
+###2015.09.04
+- Fix: 6.1 compatibility.
+- Add: Move unassigned.devices scripts from /usr/local/sbin to usr/local/emhttp/plugins/&name;/scripts.
+- Add: Create symlinks to /usr/local/sbin for backwards compatibility.
+- Fix: Fixed package removal issues.
+
+###2015.08.12
+- Fix: 6.1-rc3 compatibility
+
+###2015.07.21a
+- Fix: unRAID 6.1-rc1 compatibility
+- Add: link to Preclear if the plugin is present
+
+###2015.06.17
+- Fix: mask smb passwords in the log file (thanks ljm42)
+- Fix: adjust ownership of mountpoints to nobody:users
+- Fix: buttons now tabbed/non-tabbed compliant
+- Fix: mono-partitioned disks stats now shows disk size instead of partition size (thanks Freddie) 
+
+###2015.06.16b
+- Fix: Rescan disks button not showing up on non-tabbed view
+- Fix: duplicate hdd entry due to udev's duplicate links
+- Fix: Rescan disks not working
+- Add: Show/hide SMB Mounts/Historical Devices
+
+###2015.06.15a
+- Revert: run scripts in the backgroud (caused race condition issues)
+- Add: "Run in background" option to "Edit Script" page
+- Add: SMB Mounts
+
+###2015.06.11a
+- Fix: mounting/unmounting scripts hanging the webui
+
+###2015.05.18
+- Fix: empty cacheId variable crashing the code
+
+###2015.05.17
+- Improve: detection of SCSI disks
+
+###2015.05.16
+- Fix: drives without partition table not appearing.
+
+###2015.05.15
+- Fix: not removing missing disk configuration
+- Fix: add trim/discard to SSD mount options (XFS/EXT4 only)
+- Add: show preclear status
+- Upgrade: NTFS-3G to 2015.3.14
+
+###2015.04.30
+- Add filesystem check for partitions.
+
+###2015.04.29
+- Fix: exfat mounting permissions
+- Add: exfat-utils-1.1.1-x86_64-1_SBo.tgz
+
+###2015.04.28
+- Fix: a small typo
+- Fix: disks with automount off will not we unmounted on array stop
+
+###2015.04.27
+- Fix: sharing toggle will be applied immediately
+
+###2015.04.26
+- Renamed to Unassigned Devices
+- Add switch do disable SAMBA sharing
+
+###2015.04.24b
+- Show used and free space as bars
+- Fix multiple cache disks support
+
+###2015.04.24a
+- Fix webGui being hammered with update requests
+- Fix mounting all disks if no devide was supplied
+- Set sleep time (15 minutes) to mounted disks
+
+###2015.04.24
+- Fix some css quirks
+
+###2015.04.23a
+- Major revamp, will work with SATA/USB disks. It will presume autostart for USB disks, and not for SATA ones.
+
+###2015.04.13
+- Fix: table color with black theme
+
+###2015.04.07
+- Fix: drive mounting even if automount is off
+
+###2015.03.24
+- Few stylesheet changes
+
+###2015.03.14
+- Add libbsd, required by hfsprogs
+
+###2015.03.13a
+- Change hfsprogs from 32 to 64 bits (my bad).
+
+###2015.03.12b
+- Feature freeze
+
+###2015.03.12a
+- Better file browser on Edit Scripts
+
+###2015.03.12
+- A few bugfixes.
+
+###2015.03.11
+- Better UI management - disks only get listed if usb tab is selected.
+
+###2015.03.10
+- Add the possibility of running scripts
+
+###2015.03.09c
+- Fix some stylesheet
+
+###2015.03.09b
+- Add automount switch
+
+###2015.03.09
+- Better identification name
+
+###2015.03.08c
+- Add exFAT fs support
+
+###2015.03.08a
+- Remove USB Devices tab when no USB disk is plugged in.
+
+###2015.03.08
+- initial release.
+</CHANGES>
+
+<!--
+The 'pre-install' script.
+-->
+<FILE Run="/bin/bash">
+<INLINE>
+# Remove emhttp files so we can re-install.
+rm -rf /usr/local/emhttp/plugins/&name;/* 2>/dev/null
+
+# Remove old 'bundle' files.
+rm -f $(ls &packages;/*.tgz 2>/dev/null | grep -v '&version;')
+</INLINE>
+</FILE>
+
+<!--
+Get the plugin bundle.
+-->
+<FILE Name="&packages;/&name;-&version;.tgz">
+<URL>"https://github.com/dlandon/&name;/raw/master/&name;-&version;.tgz"</URL>
+<MD5>&MD5;</MD5>
+</FILE>
+
+<!--
+ntfs-3g-2015.3.14-x86_64-1.txz
+-->
+<FILE Name="&packages;/ntfs-3g-2015.3.14-x86_64-1.txz" Run="upgradepkg --install-new">
+<URL>http://slackbuilds.org/mirror/slackware/slackware64-current/slackware64/a/ntfs-3g-2015.3.14-x86_64-1.txz</URL>
+<MD5>eb146c115f0272944695f116cfb6105d</MD5>
+</FILE>
+
+<!--
+exfat-utils-1.1.1-x86_64-1_SBo.tgz
+-->
+<FILE Name="&packages;/exfat-utils-1.1.1-x86_64-1_SBo.tgz" Run="upgradepkg --install-new">
+<URL>&gitURL;/packages/exfat-utils-1.1.1-x86_64-1_SBo.tgz</URL>
+<MD5>4fb02d6580694edc762f2493dcb823f3</MD5>
+</FILE>
+
+<!--
+fuse-exfat-1.1.0-x86_64-1_SBo.tgz
+-->
+<FILE Name="&packages;/fuse-exfat-1.1.0-x86_64-1_SBo.tgz" Run="upgradepkg --install-new">
+<URL>&gitURL;/packages/fuse-exfat-1.1.0-x86_64-1_SBo.tgz</URL>
+<MD5>ad8b518169c59eabed73263d36e56575</MD5>
+</FILE>
+
+<!--
+hfsprogs-332.25-x86_64-2sl.txz
+-->
+<FILE Name="&packages;/hfsprogs-332.25-x86_64-2sl.txz" Run="upgradepkg --install-new">
+<URL>http://slackware.org.uk/slacky/slackware64-14.1/system/hfsprogs/332.25/hfsprogs-332.25-x86_64-2sl.txz</URL>
+<MD5>9ddd7cb7e0782e9fb7756b1946808228</MD5>
+</FILE>
+
+<!--
+libbsd-0.6.0-x86_64-1sl.txz
+-->
+<FILE Name="&packages;/libbsd-0.6.0-x86_64-1sl.txz" Run="upgradepkg --install-new">
+<URL>http://slackware.org.uk/slacky/slackware64-14.1/libraries/libbsd/0.6.0/libbsd-0.6.0-x86_64-1sl.txz</URL>
+<MD5>1d403a59c467a37f040de3fde2c23518</MD5>
+</FILE>
+
+<!--
+parted-3.1-x86_64-1.txz
+-->
+<FILE Name="&packages;/parted-3.1-x86_64-1.txz" Run="upgradepkg --install-new">
+<URL>http://slackware.osuosl.org/slackware64-14.1/slackware64/l/parted-3.1-x86_64-1.txz</URL>
+<MD5>140283cca20483fcacd805201b33798a</MD5>
+</FILE>
+
+<!--
+libnl-1.1.4-x86_64-1.txz
+-->
+<FILE Name="&packages;/libnl-1.1.4-x86_64-1.txz" Run="upgradepkg --install-new">
+<URL>http://slackware.osuosl.org/slackware64-14.1/slackware64/l/libnl-1.1.4-x86_64-1.txz</URL>
+<MD5>435837a5bf0401a937d6ec93e458333b</MD5>
+</FILE>
+
+<!--
+nmap-6.40-x86_64-1.txz
+-->
+<FILE Name="&packages;/nmap-6.40-x86_64-1.txz" Run="upgradepkg --install-new">
+<URL>http://slackware.osuosl.org/slackware64-14.1/slackware64/n/nmap-6.40-x86_64-1.txz</URL>
+<MD5>462cf835c4475ddfd2bd15cd10e8349d</MD5>
+</FILE>
+
+<!--
+The 'post-install' script.
+-->
+<FILE Run="/bin/bash">
+<INLINE>
+# Install the plugin bundle.
+# Create plugin directory
+mkdir /boot/config/plugins/&name; 2>/dev/null
+
+# Install the 'bundle'.
+tar -xf &packages;/&name;-&version;.tgz -C /usr/local/emhttp/plugins 2>/dev/null
+
+# move the rules file
+mv /usr/local/emhttp/plugins/&name;/99_persistent_unassigned.rules /etc/udev/rules.d/
+chmod 644 -R /etc/udev/rules.d/99_persistent_unassigned.rules 2>/dev/null
+
+# Adjust plugin permissions.
+chmod 755 -R /usr/local/emhttp/plugins/&name; 2>/dev/null
+
+# Create a symlink to rm.
+ln -sf /bin/rm /usr/local/emhttp/plugins/&name;/scripts/
+
+# Fix permissions of executable files
+chmod +x /usr/local/emhttp/plugins/&name;/scripts/* /usr/local/emhttp/plugins/&name;/event/*
+
+# Create a symlink to unassigned_mount.
+ln -sf /usr/local/emhttp/plugins/&name;/scripts/unassigned_mount /usr/local/sbin
+
+# Create a symlink to unassigned_umount.
+ln -sf /usr/local/emhttp/plugins/&name;/scripts/unassigned_umount /usr/local/sbin
+
+# create mount point
+rm -rf /var/state/&name;
+mkdir -p /mnt/disks /var/state/&name;
+
+# mount disks if array is started
+if [[ -e /proc/mdcmd ]]; then
+  if [[ $(cat /proc/mdcmd|grep mdState|cut -d"=" -f2) == STARTED ]]; then
+    /usr/local/emhttp/plugins/&name;/scripts/unassigned_mount all
+  fi
+fi
+
+# Rename original Dynamix page
+if [[ -e /usr/local/emhttp/plugins/dynamix/OpenDevices.page ]]; then
+  mv -f /usr/local/emhttp/plugins/dynamix/OpenDevices.page /usr/local/emhttp/plugins/dynamix/OpenDevices.page-
+fi
+
+# Cleaning old plugin packages
+find /boot/config/plugins/&name; -maxdepth 1 -type f -iname "*.t*z" -delete
+find &packages; -type f -iname "&name;*.txz" ! -iname "*&version;*" -delete
+find &packages; -type f -iname "&name;*.md5" ! -iname "*&version;*" -delete
+
+# reload udev rules
+udevadm control --reload-rules
+
+echo ""
+echo "-----------------------------------------------------------"
+echo " &name; has been installed."
+echo " This plugin requires Dynamix webGui to operate"
+echo " Copyright 2015, gfjardim"
+echo " Copyright 2016, dlandon"
+echo " Version: &version;"
+echo "-----------------------------------------------------------"
+echo ""
+
+</INLINE>
+</FILE>
+
+<!--
+The 'remove' script.
+-->
+<FILE Run="/bin/bash" Method="remove">
+<INLINE>
+
+# umount disks
+/usr/local/emhttp/plugins/&name;/scripts/unassigned_umount all
+rmdir /mnt/disks
+
+# Remove installed packages
+find "&packages;/" -type f -iname "*.txz" -delete
+
+# Remove possible leftovers
+rm -rf /usr/local/emhttp/plugins/&name; \
+       /var/state/&name; \
+       &packages;
+
+rm -f /tmp/plugins/&name;.plg \
+      /usr/local/sbin/unassigned_mount \
+      /usr/local/sbin/unassigned_umount \
+      /etc/udev/rules.d/99_persistent_unassigned.rules
+
+# reload udev rules
+udevadm control --reload-rules
+
+# Restore original Dynamix page
+mv -f /usr/local/emhttp/plugins/dynamix/OpenDevices.page- /usr/local/emhttp/plugins/dynamix/OpenDevices.page
+
+# Remove all plugin files from emhttp.
+rm -rf /usr/local/emhttp/plugins/&name; 2>/dev/null
+
+# Remove all installed packages.
+removepkg ntfs-3g-2015.3.14-x86_64-1.txz
+removepkg exfat-utils-1.1.1-x86_64-1_SBo.tgz
+removepkg fuse-exfat-1.1.0-x86_64-1_SBo.tgz
+removepkg hfsprogs-332.25-x86_64-2sl.txz
+removepkg libbsd-0.6.0-x86_64-1sl.txz
+removepkg parted-3.1-x86_64-1.txz
+removepkg libnl-1.1.4-x86_64-1.txz
+removepkg nmap-6.40-x86_64-1.txz
+
+echo ""
+echo "-----------------------------------------------------------"
+echo " &name; has been uninstalled."
+echo "-----------------------------------------------------------"
+echo ""
+
+</INLINE>
+</FILE>
+
+</PLUGIN>
