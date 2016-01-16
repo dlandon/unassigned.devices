@@ -1,0 +1,174 @@
+Title="Edit Script"
+---
+<?PHP
+/* Copyright 2016, Dan Landon.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+?>
+
+<?PHP
+$plugin = "unassigned.devices";
+require_once("/usr/local/emhttp/plugins/${plugin}/include/lib.php");
+
+function safe_filename($string) {
+  $string = preg_replace('~[^0-9a-z -_]~i', '', $string);
+  return preg_replace('~[ ]~i', '_', $string);
+}
+
+if (isset($_GET['s'])) {
+  $serial = $_GET['s'];
+  $partition = $_GET['p'];
+  $file = get_config($serial,"command.{$partition}");
+  $background = (get_config($serial,"command_bg.{$partition}") == "true" ) ? "checked" : "";
+  if (! $file ) $file = "/boot/config/plugins/${plugin}/".( preg_replace("%\s+%", "_", urldecode($_GET['l'])) ).".sh";
+} else if (isset($_GET['d'])) {
+  $device = $_GET['d'];
+  $file = get_samba_config($device,"command");
+  $background = (get_samba_config($device,"command_bg") == "true" ) ? "checked" : "";
+  if (! $file ) $file = "/boot/config/plugins/${plugin}/".( preg_replace("%\s+%", "_", urldecode($_GET['l'])) ).".sh";
+}
+
+$text = @file_get_contents($file);
+$default_text = <<<EOT
+#!/bin/bash
+PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin
+## Available variables: 
+# AVAIL      : available space
+# USED       : used space
+# SIZE       : partition size
+# SERIAL     : disk serial number
+# ACTION     : if mounting, ADD; if unmounting, REMOVE
+# MOUNTPOINT : where the partition is mounted
+# FSTYPE     : partition filesystem
+# LABEL      : partition label
+# DEVICE     : partition device, e.g /dev/sda1
+# OWNER      : "udev" if executed by UDEV, otherwise "user"
+
+case \$ACTION in
+  'ADD' )
+    // do your stuff here
+    echo "Added"
+  ;;
+  'REMOVE' )
+    // do your stuff here
+    echo "Removed"
+  ;;
+esac
+EOT;
+
+$remove = is_file($file) ? "<img style='cursor:pointer;' src='/plugins/$plugin/icons/remove.png' height='30px' onclick='rmfile(\"{$file}\");'> " : "";
+
+?>
+
+<?if (is_file("webGui/scripts/jquery.switchButton.js")): # Pre 6.1?>
+<script type="text/javascript" src="/webGui/scripts/jquery.switchButton.js"></script>
+<script type="text/javascript" src="/webGui/scripts/jqueryFileTree.js"></script>
+<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery-ui.min.css">
+<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery.switchButton.css">
+<link type="text/css" rel="stylesheet" href="/webGui/styles/jqueryFileTree.css" >
+
+<?else: # Post 6.1?>
+<script type="text/javascript" src="/webGui/javascript/jquery.switchbutton.js"></script>
+<script type="text/javascript" src="/webGui/javascript/jquery.filetree.js"></script>
+<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery.ui.css">
+<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery.switchbutton.css">
+<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery.filetree.css" >
+<?endif;?>
+
+<style type="text/css">
+  .fileTree {
+    border: solid 1px #BBB;
+    background: #FFF;
+    overflow: scroll;
+    padding: 5px;
+    position:absolute;
+    z-index:100;
+    display:none;
+  }
+  .switch-wrapper {
+    display: inline-block;
+    position: relative;
+    top: 3px;
+    line-height:20px;
+  }
+</style>
+
+<form markdown="1" method="POST" action="/update.php" target="progressFrame">
+<input type="hidden" name="#include" value="/webGui/include/update.file.php">
+
+&nbsp;
+: <input type="text" name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>/','sh',false,true);" autocomplete="off" value="<?=$file;?>"> <?=$remove;?><input type="submit" value="Save"/><input type="reset"/><button type="button" onclick="setDefault(this.form)">Default Script</button><button type="button" onclick="done('/')">Done</button>
+
+&nbsp;
+: <span class="switch-wrapper"><input type="checkbox" name="run_background" <?=$background;?>></span>
+
+Script content:
+: <textarea spellcheck="false" cols="80" rows="22" name="text" style="font-family:bitstream;width:66%"><?=$text;?></textarea>
+
+> Click the **Apply** button to commit the current edits.  Click **Reset** to
+> undo any changes you make (before Saving). Click **Done** to exit this page.
+>
+> Click the **Default** button to initialize the edit box with the
+> factory-default contents.  You still need to click **Apply** in order to
+>commit the change.
+
+</form>
+
+<script>
+  $("input[name=run_background]").each(function(){var checked = $(this).is(":checked");$(this).switchButton({labels_placement: "right", checked:checked,on_label:"Run in background",off_label:"Run in background"});});
+  <?if (isset($_GET['s'])):?>
+  $( "form" ).submit(function( event ) {
+    $.post("/plugins/<?=$plugin;?>/UnassignedDevices.php",{action:"set_command",serial:"<?=$serial;?>",command:$("input[name='#file']").val(),part:"<?=$partition;?>",background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault();},"json");
+  });
+  <?else:?>
+  $( "form" ).submit(function( event ) {
+    $.post("/plugins/<?=$plugin;?>/UnassignedDevices.php",{action:"set_samba_command",device:"<?=$device;?>",command:$("input[name='#file']").val(), background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault()},"json");
+  });  
+  <?endif;?>
+
+  function setDefault(form) {
+    form.elements['text'].value = <?=json_encode($default_text);?>;
+  }
+
+  function load(el) {
+    $.get($( el ).val(),function(data){ $( 'textarea' ).val(data);});
+  }
+
+  function openFileBrowser(el, root, filter, on_folders, on_files) {
+    if (on_folders === undefined) on_folders = true;
+    if (on_files   === undefined) on_files = true;
+    if (! filter && ! on_files)   filter = 'HIDE_FILES_FILTER';
+    p = $(el);
+    // Skip is fileTree is already open
+    if ( p.next().hasClass('fileTree') ){return null;}
+    // create a random id
+    var r = Math.floor((Math.random()*1000)+1);
+    // Add a new span and load fileTree
+    p.after("<span id='fileTree"+r+"' class='textarea fileTree'></span>");
+    var ft = $('#fileTree'+r);
+    ft.fileTree({
+      root: root,
+      filter: filter,
+      allowBrowsing : true
+      },
+      function(file){if(on_files){p.val(file);$(ft).slideUp('fast',function (){$(ft).remove();});load(p);}},
+      function(folder){if(on_folders){p.val(folder);$(ft).slideUp('fast',function (){$(ft).remove();});}}
+    );
+    // Format fileTree according to parent position, height and width
+    ft.css({'left':p.position().left,'top':( p.position().top + p.outerHeight() ),'width':(p.width()+2) });
+    // close if click elsewhere
+    $(document).mouseup(function(e){if(!ft.is(e.target) && ft.has(e.target).length === 0){$(ft).slideUp('fast',function (){$(ft).remove();});}});
+    // Open fileTree
+    ft.slideDown('fast');
+  }
+  function rmfile(file) {
+    $.post("/update.php",{"#command":"/plugins/unassigned.devices/scripts/rm","#arg[1]":file}).done(function(){location.reload();});
+  }
+
+</script>

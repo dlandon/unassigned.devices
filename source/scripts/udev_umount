@@ -1,0 +1,2 @@
+#!/bin/bash
+/usr/local/emhttp/plugins/unassigned.devices/scripts/unassigned_umount >/dev/null 2>&1 & disown

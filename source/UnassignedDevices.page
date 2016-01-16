@@ -1,0 +1,422 @@
+Menu="Main:4"
+Title="Unassigned Devices"
+Markdown="false"
+---
+<?PHP
+/* Copyright 2016, Dan Landon.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+?>
+
+<?PHP
+$plugin = "unassigned.devices";
+require_once("plugins/${plugin}/include/lib.php");
+if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/OpenDevices.page","plugins/dynamix/OpenDevices.page-");
+?>
+<link rel="stylesheet" type="text/css" href="/plugins/<?=$plugin;?>/assets/waitMe.min.css">
+
+<?if (is_file("webGui/scripts/jquery.switchButton.js")): # Pre 6.1?>
+<script type="text/javascript" src="/webGui/scripts/jquery.switchButton.js"></script>
+<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery-ui.min.css">
+<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery.switchButton.css">
+<?else: # Post 6.1?>
+<script type="text/javascript" src="/webGui/javascript/jquery.switchbutton.js"></script>
+<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery.ui.css">
+<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery.switchbutton.css">
+<?endif;?>
+
+<script type="text/javascript" src="/plugins/<?=$plugin;?>/assets/waitMe.min.js"></script>
+<link rel="stylesheet" type="text/css" href="/plugins/<?=$plugin;?>/assets/style-<?=$display['theme'];?>.css">
+
+<script type="text/javascript">
+  var this_tab = $('input[name$="tabs"]').length;
+  var URL = '/plugins/<?=$plugin;?>/UnassignedDevices.php';
+  $(function() {
+    var content= "<div class='switch-wrapper'><input type='checkbox' class='complete-switch'></div><button type='button' onclick='$.post(\""+URL+"\",{\"action\":\"rescan_disks\"});' value='Rescan Disks'>Rescan Disks</button></div>";
+  <?if (!$tabbed):?>
+    $("#unassigned_tabbed").html(content);
+  <?else:?>
+    var last = $('input[name$="tabs"]').length;
+    var elementId = "simpleComplete";
+    $('.tabs').append("<span id='"+elementId+"' class='status vhshift' style='display: none;'>"+content+"&nbsp;</span>");
+    if ($('#tab'+this_tab).is(':checked')) {
+      $('#'+elementId).show();
+    }
+    $('#tab'+this_tab).bind({click:function(){$('#'+elementId).show();}});
+    for (var x=1; x<=last; x++) if(x != this_tab) $('#tab'+x).bind({click:function(){$('#'+elementId).hide();}});
+  <?endif;?>
+    $('.complete-switch').switchButton({ labels_placement: "left", on_label: 'Complete', off_label: 'Simple', checked: $.cookie('unassigned-complete-view') != 'false'});
+    $('.complete-switch').change(function () {
+      $('.show-complete').toggle('slow');
+      $.cookie('unassigned-complete-view', $('.complete-switch').is(':checked') ? 'true' : 'false', { expires: 3650 });
+    });
+  });
+</script>
+<style>
+  table.usb_disks thead tr>td{text-align:left;width:8%;padding-left:12px;}
+  table.usb_disks {padding:0px;margin:-21px 0px 22px 0px;border-collapse:collapse;white-space:nowrap;}
+  table.usb_disks tr>td{text-align:left;width:8%;padding-left:12px;padding-right:0;white-space:nowrap;}
+
+  table.usb_disks tr>td+td+td{min-width:0px;}
+  table.usb_disks tr>td+td+td+td{text-align:center;padding-left:0;padding-right:12px;width:auto;min-width:0px;}
+  table.usb_disks tr>td+td+td+td+td+td{text-align:right;padding-left:0;padding-right:12px;width:auto;}
+  table.usb_disks tr>td+td+td+td+td+td+td+td+td+td{text-align:left;padding:0px 0px 0px 12px;width: 75px;}
+  table.usb_disks tr>td+td+td+td+td+td+td+td+td+td+td+td{text-align:right;padding-left:0;padding-right:12px;}
+
+  table.usb_absent thead tr>td{text-align:left;width:8%;padding-left:12px;}
+  table.usb_absent tr>td{text-align:left;width:8%;padding-left:12px;padding-right:0;white-space:nowrap;}
+  table.usb_absent tr>td+td{text-align:left;width:auto;}
+  table.usb_absent tr>td+td+td+td{text-align:right;padding-left:0;padding-right:12px;width: 5em;}
+
+  table.samba_mounts thead tr>td{text-align:left;width:8%;padding-left:12px;}
+  table.samba_mounts tr>td{text-align:left;width:8%;padding-left:12px;padding-right:0;white-space:nowrap;}
+  table.samba_mounts tr>td+td{text-align:left;width:auto;}
+  table.samba_mounts tr>td+td+td+td+td+td+td+td{text-align:left;padding:0px 0px 0px 12px;width: 75px;}
+  table.samba_mounts tr>td+td+td+td+td+td+td+td+td{text-align:right;padding-left:0;padding-right:12px;}
+
+
+  button[type=button].mount {margin:0px 14px 0 14px;}
+  i.glyphicon{margin:0px 5px 0 5px;}
+  i.hdd{margin:0px; 0px;font-size: 1.1em}
+  i.partition{margin-left: 18px;}
+  .exec{cursor: pointer;}
+  i.glyphicon-append{margin:0px;font-size: 0.8em;position: relative; left:-0.3em;top:0.7em;}
+  .underline{text-decoration: underline;}
+  button.array {padding:2px 7px 2px 7px;}
+
+  .switch-wrapper {
+    display: inline-block;
+    position: relative;
+    top: 3px;
+    vertical-align: middle;
+  }
+</style>
+<script type="text/javascript">
+  var display = <?=json_encode($display);?>;
+  var vars = <?=json_encode($var);?>;
+  var tab_usbdisks = $('input[name$="tabs"]').length;
+  $('#tab'+tab_usbdisks).bind({click:function() {pin_tab(tab_usbdisks); detect_usb_disk_change(tab_usbdisks);}});
+  $(function(){usb_disks(tab_usbdisks);detect_usb_disk_change(tab_usbdisks);});
+
+  function openWindow_fsck(cmd,title,height,width) {
+    var run = cmd;
+    var top = (screen.height-height)/2;
+    var left = (screen.width-width)/2;
+    var options = 'resizeable=yes,scrollbars=yes,height='+height+',width='+width+',top='+top+',left='+left;
+    window.open(run, 'log', options);
+  }
+  function get_preclear(device) {
+    $.post(URL,{action:"get_preclear",device:device},function(data){if(data.preclear){$('#preclear_'+device).html(data.preclear);}},"json").always(function(){setTimeout('get_preclear("'+device+'")',5000);});
+  }
+  function startWaitMe(el) {
+    <?if ($display['theme'] == 'white'):?>
+    $(el).waitMe({effect:'ios',text:' ',bg:'rgba(255,255,255,0.9)',color:'#000',sizeW:'',sizeH:'',source:''});
+    <?else:?>
+    $(el).waitMe({effect:'ios',text:' ',bg:'rgba(0,0,0,0.9)',color:'#FFF',sizeW:'',sizeH:'',source:''});
+    <?endif;?>
+    $('.waitMe_content').css('top','40px');
+  }
+  function disk_op(el, op, device){
+    // add spinning and disable button
+    $(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> "+(op == "mount" ? "Mounting" : "Unmounting")+" ...");
+    $(el).prop("disabled","true");
+    // disable partition buttons
+    td = $(el).closest('td');
+    tr = td.closest('tr');
+    part = tr.is('.toggle-parts');
+    disk = tr.find('span[hdd]').attr("hdd");
+    if (disk) {
+      tr.siblings('tr.toggle-'+disk).find('.mount').html(td.html());
+    } else if (part) {
+      tr.prev('tr.toggle-disk').find('.mount').html(td.html());
+    }
+    $.post(URL,{'action':op,'device':device});
+    // setTimeout('$("#usb_devices_list").waitMe("hide")',15000);
+  }
+  function pin_tab(n) {
+    $.removeCookie('one',{path:'/'});
+    $.cookie('tab','tab'+n,{path:'/'});
+  }
+  function usb_disks(tabnum) {
+    startWaitMe('#usb_devices_list');
+    $.post(URL,{action:"get_content",display:display},function(data) {if (data) $('#usb_devices_list').html(data);});
+  }
+  function detect_usb_disk_change(tabnum) {
+    if ($('#tab'+tabnum).is(':checked')) {
+      clearTimeout(timers.usbdisks);
+      $.post(URL,{action:"detect"},function(data){if(data.reload){usb_disks(tabnum);$.post(URL,{action:"remove_hook"});}},"json").always(function(){timers.usbdisks=setTimeout('detect_usb_disk_change('+tabnum+')',5000);});
+    } else {
+      clearTimeout(timers.usbdisks);
+    }
+    return false;
+  }
+  function remove_disk_config(serial){
+    var title = 'Remove config';
+    $( "#dialog-confirm" ).html(serial);
+    $( "#dialog-confirm" ).append( "<br><br><span style='color: #E80000;'>Are you sure?</span>" );
+    $( "#dialog-confirm" ).dialog({
+      title: title,
+      resizable: false,
+      width: 500,
+      modal: true,
+      show : {effect: 'fade' , duration: 250},
+      hide : {effect: 'fade' , duration: 250},
+      buttons: {
+        "Yes": function() {
+          $( this ).dialog( "close" );
+          $.post(URL,{action:"remove_config",serial:serial},"json");
+          usb_disks(tab_usbdisks);
+        },
+        Cancel: function() {
+          $( this ).dialog( "close" );
+          $( this ).html("");
+        }
+      }
+    });
+  }
+  function remove_samba_config(device){
+    var title = 'Remove SMB mount';
+    $( "#dialog-confirm" ).html("<dl><dt>Source:</dt><dd>"+device+"</dd></dl>");
+    $( "#dialog-confirm" ).append( "<dl><dt><span style='color: #E80000;'>Are you sure?</span></dd></dl>" );
+    $( "#dialog-confirm" ).dialog({
+      title: title,
+      resizable: false,
+      width: 500,
+      modal: true,
+      show : {effect: 'fade' , duration: 250},
+      hide : {effect: 'fade' , duration: 250},
+      buttons: {
+        "Yes": function() {
+          $( this ).dialog( "close" );
+          $.post(URL,{action:"remove_samba_config",device:device},"json");
+          usb_disks(tab_usbdisks);
+        },
+        Cancel: function() {
+          $( this ).dialog( "close" );
+          $( this ).html("");
+        }
+      }
+    });
+  }
+  function showInput(){
+    $(this).off('click');
+    $(this).siblings('input').each(function(){$(this).show();});
+    $(this).siblings('input').focus();
+    $(this).hide();
+  }
+  function hideInput(){
+    $(this).hide();
+    $(this).siblings('span').show();
+    $(this).siblings('span').click(showInput);
+  }
+  function openPreclear(device) {
+    var width=900;
+    var height=600;
+    var top = (screen.height-height)/2;
+    var left = (screen.width-width)/2;
+    var options = 'resizeable=yes,scrollbars=yes,height=600,width=900,top='+top+',left='+left;
+    window.open('/plugins/preclear.disk/Preclear.php?action=show_preclear&device='+device, 'Preclear', options);
+  }
+  function add_samba(){
+    var title = 'Add SMB share';
+    $( "#dialog-samba" ).html($("#add_samba-defaults").html());
+    $( "#dialog-samba" ).find(".switch").switchButton({labels_placement:"right",on_label:'YES',off_label:'NO'});
+    $( "#dialog-samba" ).find(".switch-button-background").css("margin-top", "6px");
+    $( "#dialog-samba" ).dialog({
+      title: title,
+      resizable: false,
+      width: 600,
+      modal: true,
+      show : {effect: 'fade' , duration: 250},
+      hide : {effect: 'fade' , duration: 250},
+      buttons: {
+        "Add": function() {
+          $( this ).dialog( "close" );
+          var opts = new Object();
+          opts["action"] = "add_samba_mount";
+          opts["IP"]    = getVal(this,"IP");
+          opts["USER"]  = getVal(this,"USER");
+          opts["PASS"]  = getVal(this,"PASS");
+          opts["SHARE"] = getVal(this,"SHARE");
+          if (opts.SHARE && opts.IP) {
+            $.post(URL,opts).done(function(){usb_disks(tab_usbdisks);});
+          }
+        },
+        Cancel: function() {
+          $( this ).dialog( "close" );
+        }
+      }
+    });
+  }
+  function load_hosts(el) {
+    old = $(el).html();
+    $(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> Searching ...");
+    $.post(URL,{'action':'list_samba_hosts','var':vars}).done(function(data){
+      $(el).html(old);
+      if (data) {
+        var hosts = data.split('\n');
+        if (hosts.length) {
+          var add = "<select name='IP'>";
+          for(var i = 0;i < hosts.length;i++){
+            if (hosts[i].length) {
+              add += "<option value='"+hosts[i]+"'>"+hosts[i]+"</option>";
+            }
+          }
+          $("#dialog-samba").find(".samba_hosts").html(add+"</select>");
+        }
+      }
+    });
+  }
+  function load_shares(el) {
+    old = $(el).html();
+    $(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> Loading ...");
+    var opts = new Object();
+    opts["action"] = "list_samba_shares";
+    opts["IP"] = getVal("#dialog-samba","IP");
+    opts["USER"] = getVal("#dialog-samba","USER");
+    opts["PASS"] = getVal("#dialog-samba","PASS");
+    if (! opts.IP.length) return false;
+    $.post(URL,opts).done(function(data){
+      $(el).html(old);
+      if (data) {
+        var shares = data.split('\n');
+        if (shares.length) {
+          var add = "<select name='SHARE'>";
+          for(var i = 0;i < shares.length;i++){
+            if (shares[i].length) {
+              add += "<option value='"+shares[i]+"'>"+shares[i]+"</option>";
+            }
+          }
+          $("#dialog-samba").find(".samba_shares").html(add+"</select>");
+        }
+      }
+    });
+  }
+  function getVal(el, name) {
+    el = $(el).find("*[name="+name+"]");
+    return value = ( $(el).attr('type') == 'checkbox' ) ? ($(el).is(':checked') ? "on" : "off") : $(el).val();
+  }
+  function format_disk(bt, type, device){
+    var title = 'Formatting '+type+': '+device;
+    $( "#dialog-confirm" ).html($("#format_disk").html());
+    $( "#dialog-confirm" ).dialog({
+      title: title,
+      resizable: false,
+      width: 600,
+      modal: true,
+      show : {effect: 'fade' , duration: 250},
+      hide : {effect: 'fade' , duration: 250},
+      buttons: {
+        "Format": function() {
+          if (getVal(this,"CONFIRM") != "Yes") {return false;}
+          var bc = $(bt).html();
+          $(bt).prop('disabled',true);
+          $(bt).html("<i class='fa fa-circle-o-notch fa-spin'></i> Formatting ...");
+          $( this ).dialog( "close" );
+          fs = getVal(this,"FS");
+          $.post(URL,{action:"format_"+type,device:device,fs:fs},"json").always(function(data){$(bt).html( data.result ? "Formated" : "Format failed..." ) });
+        },
+        Cancel: function() {
+          $( this ).dialog( "close" );
+          $( this ).html("");
+        }
+      }
+    });
+  }
+  function rm_partition(bt, device, partition){
+    var title = 'Remove partition '+partition+' from disk '+device;
+    $( "#dialog-confirm" ).html($("#rm_partition").html());
+    $( "#dialog-confirm" ).dialog({
+      title: title,
+      resizable: false,
+      width: 600,
+      modal: true,
+      show : {effect: 'fade' , duration: 250},
+      hide : {effect: 'fade' , duration: 250},
+      buttons: {
+        "Remove": function() {
+          if (getVal(this,"CONFIRM") != "Yes") {return false;}
+          var bc = $(bt).html();
+          $(bt).prop('disabled',true);
+          $(bt).html("<i class='fa fa-circle-o-notch fa-spin'></i> Removing ...");
+          $( this ).dialog( "close" );
+          fs = getVal(this,"FS");
+          $.post(URL,{action:"rm_partition",device:device,partition:partition},"json").always(function(){usb_disks(tab_usbdisks);});
+        },
+        Cancel: function() {
+          $( this ).dialog( "close" );
+          $( this ).html("");
+        }
+      }
+    });
+  }
+  function sendLog() {
+    $.post(URL,{'action':'send_log'}).always(function(){notifier();});
+  }
+</script>
+<div style='display: inline; float: right; margin: -58px -14px;' id='unassigned_tabbed'></div>
+<div class="font_preload" style="opacity: 0"><span style="font-family: 'FontAwesome', Arial, sans-serif;"></span></div>
+<form id="formUsbMount" method="POST" action="/update.php" target="progressFrame">
+  <input type="hidden" id="cmdUsbMount" name="#command" value="" />
+</form>
+<div id="dialog-confirm" style="display:none;" title="Dialog Title"></div>
+<div id="dialog-samba" style="display:none;" title=""></div>
+<div id="add_samba-defaults" style="display:none;">
+  <dl>
+    <dt>IP/Host:</dt>
+    <dd><span class="samba_hosts"><input type="text" name="IP"></span></dd>
+    <dt>&nbsp;</dt>
+    <dd>
+      <button type="button" onclick="load_hosts(this);">Search for hosts in <?=$var['WORKGROUP'];?></button>
+    </dd>
+    <dt>Username:</dt>
+    <dd><input type="text" name="USER"></dd>
+    <dt>Password:</dt>
+    <dd><input type="password" name="PASS"></dd>
+    <dt>Share:</dt>
+    <dd><span class="samba_shares"><input type='text' name='SHARE'></span></dd>
+    <dt>&nbsp;</dt>
+    <dd><button type="button" onclick="load_shares();">Load Shares</button></dd>
+  </dl>  
+</div>
+<div id="format_disk" style="display:none;">
+  <dl>
+    <dt>Filesystem:</dt>
+    <dd>
+      <select name="FS">
+        <option value="xfs">XFS</option>
+        <option value="btrfs">BTRFS</option>
+        <option value="ntfs">NTFS</option>
+        <option value="ext4">EXT4</option>
+        <option value="exfat">exFAT</option>
+        <option value="fat32">FAT32</option>
+      </select>
+    </dd>
+    <dt>Type<span class="red">Yes</span>to confirm:</dt>
+    <dd><input type="text" name="CONFIRM" style="width: 60px"></dd>
+  </dl>
+</div>
+<div id="rm_partition" style="display:none;">
+  <dl>
+    <dt>Type<span class="red">Yes</span>to confirm:</dt>
+    <dd><input type="text" name="CONFIRM" style="width: 60px"></dd>
+  </dl>
+</div>
+
+<div id="usb_devices_list">
+  <table class='usb_disks' id='usb_table'>
+    <thead><tr><td>Device</td><td>Identification</td><td></td><td>Temp</td><td>FS</td><td>Size</td><td>Used</td><td>Free</td><td>Open files</td><td>Auto mount</td><td>Script</td></tr></thead>
+    <tbody><tr><td colspan='12' style='text-align:center;font-weight:bold;'></td></tr></tbody>
+  </table>
+</div>
+
+<blockquote class='inline_help'>
+  <p>Click <a class="exec underline" onclick="openWindow('/webGui/scripts/tail_log&arg1=unassigned.devices.log','Log Information',600,900);">here</a> to see the log. Alternatively, you can upload a copy of the log by clicking <a class="underline exec" onclick="sendLog();">here</a>.
+  </p>
+</blockquote>

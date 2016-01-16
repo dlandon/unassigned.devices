@@ -1,0 +1,63 @@
+#!/usr/bin/php
+<?
+$plugin = "unassigned.devices";
+require_once("/usr/local/emhttp/plugins/${plugin}/include/lib.php");
+
+$DEVNAME = (isset($_ENV['DEVNAME'])) ? $_ENV['DEVNAME'] : ( isset($argv[1]) ? $argv[1] : NULL );
+$DEVNAME = (file_exists($DEVNAME)) ? realpath($DEVNAME) : $DEVNAME;
+if (! $DEVNAME) die("Fail: disk device not informed.\n");
+
+# Mount SMB shares
+if (strpos($DEVNAME, "//") === 0 || $DEVNAME == "all") {
+  foreach (get_samba_mounts() as $info) {
+    $device = $info['device'];
+    if ( preg_match("#".$DEVNAME."#i", $device) || $DEVNAME == "all" ) {
+      if (! $info['automount'] && $DEVNAME == "all" ) {
+        debug("SMB mount '${info[device]}' auto mount is disabled, aborting.");
+        continue;
+      }
+      debug("SMB share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))));
+      debug("Mounting SMB share '$drive' ...");
+      @touch(sprintf($paths['unmounting'],basename($info['device'])));
+      if (do_mount( $info )) {
+        execute_script($info, "ADD");
+      }
+      @unlink(sprintf($paths['unmounting'],basename($info['device'])));
+    }
+  }
+}
+
+# Mount local disks
+foreach(get_unasigned_disks() as $name => $disk) {
+  $device = $disk['device'];
+  foreach ($disk['partitions'] as $partition) {
+    if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "all" ) {
+      debug("");
+      $info = get_partition_info($partition,true);
+      if (! $info['automount'] && ( $DEVNAME == "all" || isset($_ENV['DEVNAME']) )) {
+        debug("Disk with serial '${info[serial]}' auto mount is disabled, aborting.");
+        continue;
+      }
+      debug("Drive found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))));
+      debug("Adding disk $drive ...");
+      @touch(sprintf($paths['mounting'],basename($info['device'])));
+      if (do_mount( $info )) {
+        if (config_shared( $info['serial'],  $info['part'])) {
+          add_smb_share($info['mountpoint'], $info['label']);
+          if (get_config("Config", "nfs_export") == "yes") {
+            add_nfs_share($info['mountpoint']);
+          }
+        } else {
+          debug("Partition '{$info[label]}' marked as not sharable, skipping.");
+        }
+        execute_script($info, "ADD");
+        setSleepTime($device);
+      }
+      @unlink(sprintf($paths['mounting'],basename($info['device'])));
+      debug("Disk ${info[label]} shared successfully.");
+    }
+  }
+}
+
+touch($paths['reload']);
+?>

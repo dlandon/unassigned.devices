@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.01.16">
+<!ENTITY version   "2016.01.16a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/dlandon/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"f2d4cad5a914432454e1094f3ad6ae60">
+<!ENTITY MD5		"f4ea65f3cb26009e3566de6cc3a72d3f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -17,6 +17,9 @@
 ##&name;
 
 ###&version;
+- Fix: Several packages downloaded when not necessary.
+
+###2016.01,16
 - Fix: Revert to 2015.09.19.
 - Fix: Compatibility with unRAID 6.1.7.
 - Fix: Update and remove plugin was messy.
@@ -228,18 +231,18 @@ ntfs-3g-2015.3.14-x86_64-1.txz
 </FILE>
 
 <!--
-exfat-utils-1.1.1-x86_64-1_SBo.tgz
+exfat-utils-1.1.1-x86_64-1_SBo.txz
 -->
-<FILE Name="&packages;/exfat-utils-1.1.1-x86_64-1_SBo.tgz" Run="upgradepkg --install-new">
-<URL>&gitURL;/packages/exfat-utils-1.1.1-x86_64-1_SBo.tgz</URL>
+<FILE Name="&packages;/exfat-utils-1.1.1-x86_64-1_SBo.txz" Run="upgradepkg --install-new">
+<URL>&gitURL;/packages/exfat-utils-1.1.1-x86_64-1_SBo.txz</URL>
 <MD5>4fb02d6580694edc762f2493dcb823f3</MD5>
 </FILE>
 
 <!--
-fuse-exfat-1.1.0-x86_64-1_SBo.tgz
+fuse-exfat-1.1.0-x86_64-1_SBo.txz
 -->
-<FILE Name="&packages;/fuse-exfat-1.1.0-x86_64-1_SBo.tgz" Run="upgradepkg --install-new">
-<URL>&gitURL;/packages/fuse-exfat-1.1.0-x86_64-1_SBo.tgz</URL>
+<FILE Name="&packages;/fuse-exfat-1.1.0-x86_64-1_SBo.txz" Run="upgradepkg --install-new">
+<URL>&gitURL;/packages/fuse-exfat-1.1.0-x86_64-1_SBo.txz</URL>
 <MD5>ad8b518169c59eabed73263d36e56575</MD5>
 </FILE>
 

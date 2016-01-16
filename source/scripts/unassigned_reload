@@ -1,0 +1,12 @@
+#!/usr/bin/php
+<?
+$plugin = "unassigned.devices";
+require_once("/usr/local/emhttp/plugins/${plugin}/include/lib.php");
+
+if (isset($_ENV['DEVLINKS'])) {
+  foreach (explode(" ", $_ENV['DEVLINKS']) as $link) {
+    get_udev_info($link, $_ENV, true);
+  }
+}
+touch($paths['reload']);
+?>
