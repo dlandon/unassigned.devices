@@ -40,7 +40,7 @@ foreach(get_unasigned_disks() as $disk) {
   foreach ($disk['partitions'] as $partition) {
     if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "all" || $DEVNAME == "shutdown" ) {
       $info = get_partition_info($partition);
-      if ( $info['automount'] && $DEVNAME != "shutdown" && !isset($_ENV['DEVNAME']) ) {
+      if ( $info['automount'] && $DEVNAME == "all" ) {
         debug("Disk with serial '${info[serial]}' auto mount is enabled, aborting.");
         continue;
       }
