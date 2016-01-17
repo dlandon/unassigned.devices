@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.01.16a">
+<!ENTITY version   "2016.01.16b">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/dlandon/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"f4ea65f3cb26009e3566de6cc3a72d3f">
+<!ENTITY MD5		"791937b0af1fff01efeba4ffc4b4af6c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -17,7 +17,7 @@
 ##&name;
 
 ###&version;
-- Fix: Several packages downloaded when not necessary.
+- Fix: Several packages downloading when not necessary.
 
 ###2016.01,16
 - Fix: Revert to 2015.09.19.
@@ -233,17 +233,31 @@ ntfs-3g-2015.3.14-x86_64-1.txz
 <!--
 exfat-utils-1.1.1-x86_64-1_SBo.txz
 -->
-<FILE Name="&packages;/exfat-utils-1.1.1-x86_64-1_SBo.txz" Run="upgradepkg --install-new">
+<FILE Name="&packages;/exfat-utils-1.1.1-x86_64-1_SBo.txz">
 <URL>&gitURL;/packages/exfat-utils-1.1.1-x86_64-1_SBo.txz</URL>
 <MD5>4fb02d6580694edc762f2493dcb823f3</MD5>
+</FILE>
+
+<FILE Run="/bin/bash">
+<INLINE>
+cp &packages;/exfat-utils-1.1.1-x86_64-1_SBo.txz &packages;/exfat-utils-1.1.1-x86_64-1_SBo.tgz
+upgradepkg --install-new &packages;/exfat-utils-1.1.1-x86_64-1_SBo.tgz
+</INLINE>
 </FILE>
 
 <!--
 fuse-exfat-1.1.0-x86_64-1_SBo.txz
 -->
-<FILE Name="&packages;/fuse-exfat-1.1.0-x86_64-1_SBo.txz" Run="upgradepkg --install-new">
+<FILE Name="&packages;/fuse-exfat-1.1.0-x86_64-1_SBo.txz">
 <URL>&gitURL;/packages/fuse-exfat-1.1.0-x86_64-1_SBo.txz</URL>
 <MD5>ad8b518169c59eabed73263d36e56575</MD5>
+</FILE>
+
+<FILE Run="/bin/bash">
+<INLINE>
+cp &packages;/fuse-exfat-1.1.0-x86_64-1_SBo.txz &packages;/fuse-exfat-1.1.0-x86_64-1_SBo.tgz
+upgradepkg --install-new &packages;/fuse-exfat-1.1.0-x86_64-1_SBo.tgz
+</INLINE>
 </FILE>
 
 <!--
@@ -387,14 +401,14 @@ mv -f /usr/local/emhttp/plugins/dynamix/OpenDevices.page- /usr/local/emhttp/plug
 rm -rf /usr/local/emhttp/plugins/&name; 2>/dev/null
 
 # Remove all installed packages.
-removepkg ntfs-3g-2015.3.14-x86_64-1.txz
-removepkg exfat-utils-1.1.1-x86_64-1_SBo.tgz
-removepkg fuse-exfat-1.1.0-x86_64-1_SBo.tgz
-removepkg hfsprogs-332.25-x86_64-2sl.txz
-removepkg libbsd-0.6.0-x86_64-1sl.txz
-removepkg parted-3.1-x86_64-1.txz
-removepkg libnl-1.1.4-x86_64-1.txz
-removepkg nmap-6.40-x86_64-1.txz
+removepkg ntfs-3g-2015.3.14-x86_64-1
+removepkg exfat-utils-1.1.1-x86_64-1_SBo
+removepkg fuse-exfat-1.1.0-x86_64-1_SBo
+removepkg hfsprogs-332.25-x86_64-2sl
+removepkg libbsd-0.6.0-x86_64-1sl
+removepkg parted-3.1-x86_64-1
+removepkg libnl-1.1.4-x86_64-1
+removepkg nmap-6.40-x86_64-1
 
 echo ""
 echo "-----------------------------------------------------------"
