@@ -276,23 +276,23 @@ switch ($_POST['action']) {
     $serial = urldecode(($_POST['serial']));
     $status = urldecode(($_POST['status']));
     echo json_encode(array( 'automount' => toggle_automount($serial, $status) ));
-  break;
+    break;
   case 'get_command':
     $serial = urldecode(($_POST['serial']));
     $part   = urldecode(($_POST['part']));
     echo json_encode(array( 'command' => get_config($serial, "command.{$part}"), "background" =>  get_config($serial, "command_bg.{$part}") ));
-  break;
+    break;
   case 'set_command':
     $serial = urldecode(($_POST['serial']));
     $part = urldecode(($_POST['part']));
     $cmd = urldecode(($_POST['command']));
     set_config($serial, "command_bg.{$part}", urldecode($_POST['background']));
     echo json_encode(array( 'result' => set_config($serial, "command.{$part}", $cmd)));
-  break;
+    break;
   case 'remove_config':
     $serial = urldecode(($_POST['serial']));
     echo json_encode(array( 'result' => remove_config_disk($serial)));
-  break;
+    break;
   case 'toggle_share':
     $info = json_decode(html_entity_decode($_POST['info']), true);
     $status = urldecode(($_POST['status']));
@@ -303,22 +303,22 @@ switch ($_POST['action']) {
     } else {
       rm_smb_share($info['mountpoint'], $info['label']);
     }
-  break;
+    break;
   case 'mount':
     $device = urldecode($_POST['device']);
     if (file_exists($device) || strpos($device, "//") === 0 ) {
       exec("plugins/${plugin}/scripts/unassigned_mount $device >/dev/null 2>&1 &");
     }
-  break;
+    break;
   case 'umount':
     $device = urldecode($_POST['device']);
     if (file_exists($device) || strpos($device, "//") === 0 ) {
       echo exec("plugins/${plugin}/scripts/unassigned_umount $device >/dev/null 2>&1 &");
     }
-  break;
+    break;
   case 'rescan_disks':
     exec("/sbin/udevadm trigger --action=change 2>&1");
-  break;
+    break;
   case 'format_disk':
     $device = urldecode($_POST['device']);
     $fs = urldecode($_POST['fs']);
@@ -329,14 +329,13 @@ switch ($_POST['action']) {
     $fs = urldecode($_POST['fs']);
     echo json_encode(array( 'result' => format_partition($device, $fs)));
     break;
-
   case 'list_samba_shares':
     $ip = urldecode($_POST['IP']);
     $user = isset($_POST['USER']) ? urlencode($_POST['USER']) : NULL;
     $pass = isset($_POST['PASS']) ? urlencode($_POST['PASS']) : NULL;
     $login = $user ? ($pass ? "-U '{$user}%{$pass}'" : "-U '{$user}' -N") : "-U%";
     echo shell_exec("smbclient -g -L $ip $login 2>&1|awk -F'|' '/Disk/{print $2}'|sort");
-  break;
+    break;
   case 'list_samba_hosts':
     $hosts = array();
     foreach ( explode(PHP_EOL, shell_exec("/usr/bin/nmblookup {$var[WORKGROUP]} 2>/dev/null") ) as $l ) {
@@ -362,23 +361,22 @@ switch ($_POST['action']) {
     set_samba_config("//${ip}/${share}", "user", $user);
     set_samba_config("//${ip}/${share}", "pass", $pass);
     set_samba_config("//${ip}/${share}", "share", $share);
-  break;
+    break;
   case 'remove_samba_config':
     $device = urldecode(($_POST['device']));
     remove_config_samba($device);
-  break;
+    break;
   case 'samba_automount':
     $device = urldecode(($_POST['device']));
     $status = urldecode(($_POST['status']));
     echo json_encode(array( 'automount' => toggle_samba_automount($device, $status) ));
-  break;
+    break;
   case 'set_samba_command':
     $device = urldecode(($_POST['device']));
     $cmd = urldecode(($_POST['command']));
     set_samba_config($device, "command_bg", urldecode($_POST['background'])) ;
     echo json_encode(array( 'result' => set_samba_config($device, "command", $cmd)));
-  break;
-  
+    break;
   case 'get_preclear':
     $device = urldecode($_POST['device']);
     if (is_file("/tmp/preclear_stat_{$device}")) {
@@ -390,11 +388,11 @@ switch ($_POST['action']) {
     } else {
       echo json_encode(array( 'preclear' => " "));
     }
-  break;
+    break;
   case 'rm_preclear':
     $device = urldecode($_POST['device']);
     @unlink("/tmp/preclear_stat_{$device}");
-  break;
+    break;
   case 'send_log':
     return sendLog();
     break;

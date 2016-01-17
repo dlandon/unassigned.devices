@@ -1,2 +1,2 @@
 #!/bin/bash
-/usr/local/emhttp/plugins/unassigned.devices/scripts/unassigned_umount all
+/usr/local/emhttp/plugins/unassigned.devices/scripts/unassigned_umount shutdown

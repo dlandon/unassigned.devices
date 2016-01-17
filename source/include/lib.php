@@ -1,4 +1,16 @@
 <?
+/* Copyright 2016, Dan Landon.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+?>
+
+<?
 $plugin = "unassigned.devices";
 // $VERBOSE=TRUE;
 
@@ -608,6 +620,11 @@ function set_samba_config($source, $var, $val) {
   return (isset($config[$source][$var])) ? $config[$source][$var] : FALSE;
 }
 
+function is_samba_automount($sn) {
+  $auto = get_samba_config($sn, "automount");
+  return ( ($auto) ? ( ($auto == "yes") ? TRUE : FALSE ) : TRUE);
+}
+
 function get_samba_mounts() {
   global $paths;
   $o = array();
@@ -620,6 +637,7 @@ function get_samba_mounts() {
     $mount['size']   = intval(trim(shell_exec("df --output=size,source 2>/dev/null|grep -v 'Filesystem'|grep '${device}'|awk '{print $1}'")))*1024;
     $mount['used']   = intval(trim(shell_exec("df --output=used,source 2>/dev/null|grep -v 'Filesystem'|grep '${device}'|awk '{print $1}'")))*1024;
     $mount['avail']  = $mount['size'] - $mount['used'];
+    $mount['automount'] = is_samba_automount($mount['device']);
     if (! $mount["mountpoint"]) {
       $mount["mountpoint"] = $mount['target'] ? $mount['target'] : preg_replace("%\s+%", "_", "{$paths[usb_mountpoint]}/{$mount[ip]}_{$mount[share]}");
     }

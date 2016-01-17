@@ -9,10 +9,10 @@ $DEVNAME = (file_exists($DEVNAME)) ? realpath($DEVNAME) : $DEVNAME;
 if (! $DEVNAME) die("Fail: disk device not informed.\n");
 
 # Deal with SMB shares
-if (strpos($DEVNAME, "//") === 0 || $DEVNAME == "all") {
+if (strpos($DEVNAME, "//") === 0 || $DEVNAME == "all" || $DEVNAME == "shutdown") {
   foreach (get_samba_mounts() as $info) {
     $device = $info['device'];
-    if ( preg_match("#".$DEVNAME."#i", $device) || $DEVNAME == "all" ) {
+    if ( preg_match("#".$DEVNAME."#i", $device) || $DEVNAME == "all" || $DEVNAME == "shutdown" ) {
       if (! $info['automount'] && $DEVNAME == "all" ) {
         debug("Disk with serial '${info[serial]}' auto mount is disabled, aborting.");
         continue;
@@ -38,7 +38,7 @@ foreach(get_unasigned_disks() as $disk) {
   $device = $disk['device'];
   $PRESENT[] = $device;
   foreach ($disk['partitions'] as $partition) {
-    if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "all" ) {
+    if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "all" || $DEVNAME == "shutdown" ) {
       $info = get_partition_info($partition);
       if (! $info['automount'] && ( $DEVNAME == "all" || isset($_ENV['DEVNAME']) )) {
         debug("Disk with serial '${info[serial]}' auto mount is disabled, aborting.");

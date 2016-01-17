@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.01.16b">
+<!ENTITY version   "2016.01.17">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/dlandon/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"791937b0af1fff01efeba4ffc4b4af6c">
+<!ENTITY MD5		"656bdd2faa80b1b349ffeaf20f0f72a3">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -17,6 +17,10 @@
 ##&name;
 
 ###&version;
+- Fix: Automount toggle on SMB shares not working.
+- Fix: SMB and devices would not unmount when the array was stopping and automount was off.
+
+###2016.01.16b
 - Fix: Several packages downloading when not necessary.
 
 ###2016.01,16
@@ -373,10 +377,9 @@ The 'remove' script.
 -->
 <FILE Run="/bin/bash" Method="remove">
 <INLINE>
-
-# umount disks
-/usr/local/emhttp/plugins/&name;/scripts/unassigned_umount all
-rmdir /mnt/disks
+# umount disks and smb mounts
+/usr/local/emhttp/plugins/&name;/scripts/unassigned_umount shutdown
+rmdir /mnt/disks 2>/dev/null
 
 # Remove installed packages
 find "&packages;/" -type f -iname "*.txz" -delete
