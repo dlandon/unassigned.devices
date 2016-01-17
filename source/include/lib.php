@@ -463,6 +463,7 @@ function toggle_share($serial, $part, $status) {
   set_config($serial, "share.{$part}", $new);
   return ($new == 'yes') ? TRUE:FALSE;
 }
+
 function add_smb_share($dir, $share_name) {
   global $paths;
   $share_name = basename($dir);
@@ -480,7 +481,7 @@ function add_smb_share($dir, $share_name) {
     $valid_users = array_diff($valid_users, $invalid_users);
     if (count($valid_users)) {
       $valid_users = "\nvalid users = ".implode(', ', $valid_users);
-      $write_users = count($write_users) ? "\nwrite users = ".implode(', ', $write_users) : "";
+      $write_users = count($write_users) ? "\nwrite list = ".implode(', ', $write_users) : "";
       $read_users = count($read_users) ? "\nread users = ".implode(', ', $read_users) : "";
       $share_cont =  "[{$share_name}]\npath = {$dir}{$valid_users}{$write_users}{$read_users}";
     } else {

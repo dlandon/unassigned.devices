@@ -13,8 +13,8 @@ if (strpos($DEVNAME, "//") === 0 || $DEVNAME == "all" || $DEVNAME == "shutdown")
   foreach (get_samba_mounts() as $info) {
     $device = $info['device'];
     if ( preg_match("#".$DEVNAME."#i", $device) || $DEVNAME == "all" || $DEVNAME == "shutdown" ) {
-      if (! $info['automount'] && $DEVNAME == "all" ) {
-        debug("Disk with serial '${info[serial]}' auto mount is disabled, aborting.");
+      if ( $info['automount'] && $DEVNAME == "all" ) {
+        debug("Disk with serial '${info[serial]}' auto mount is enabled, aborting.");
         continue;
       }
       debug("SMB share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))));
@@ -40,8 +40,8 @@ foreach(get_unasigned_disks() as $disk) {
   foreach ($disk['partitions'] as $partition) {
     if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "all" || $DEVNAME == "shutdown" ) {
       $info = get_partition_info($partition);
-      if (! $info['automount'] && ( $DEVNAME == "all" || isset($_ENV['DEVNAME']) )) {
-        debug("Disk with serial '${info[serial]}' auto mount is disabled, aborting.");
+      if ( $info['automount'] && ( $DEVNAME == "all" || isset($_ENV['DEVNAME']) )) {
+        debug("Disk with serial '${info[serial]}' auto mount is enabled, aborting.");
         continue;
       }
       debug("Drive found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))));

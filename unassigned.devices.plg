@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.01.17">
+<!ENTITY version   "2016.01.17a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/dlandon/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"656bdd2faa80b1b349ffeaf20f0f72a3">
+<!ENTITY MD5		"b49b299a7fef02174266bde29878fd41">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -17,6 +17,10 @@
 ##&name;
 
 ###&version;
+- Fix: Only devices with auto mount off will be unmounted with the command "unassigned_umount all".  This does not apply to stopping the array.
+- Fix: SMB Security would not allow writing to the share.
+
+###2016.01.17
 - Fix: Automount toggle on SMB shares not working.
 - Fix: SMB and devices would not unmount when the array was stopping and automount was off.
 
