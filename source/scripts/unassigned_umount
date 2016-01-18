@@ -1,4 +1,16 @@
 #!/usr/bin/php
+<?PHP
+/* Copyright 2016, Dan Landon.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+?>
+
 <?
 $plugin = "unassigned.devices";
 require_once("/usr/local/emhttp/plugins/${plugin}/include/lib.php");
@@ -14,7 +26,7 @@ if (strpos($DEVNAME, "//") === 0 || $DEVNAME == "all" || $DEVNAME == "shutdown")
     $device = $info['device'];
     if ( preg_match("#".$DEVNAME."#i", $device) || $DEVNAME == "all" || $DEVNAME == "shutdown" ) {
       if ( $info['automount'] && $DEVNAME == "all" ) {
-        debug("Disk with serial '${info[serial]}' auto mount is enabled, aborting.");
+        debug("Disk with serial '${info[serial]}' auto mount is enabled, not unmounted.");
         continue;
       }
       debug("SMB share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))));
@@ -27,7 +39,7 @@ if (strpos($DEVNAME, "//") === 0 || $DEVNAME == "all" || $DEVNAME == "shutdown")
           @unlink(sprintf($paths['unmounting'],basename($info['device'])));
         }
       } else {
-        debug("SMB share '${info[device]}' not mounted, aborting...");
+        debug("SMB share '${info[device]}' not mounted, cannot unmount...");
       }
     }
   }
@@ -41,7 +53,7 @@ foreach(get_unasigned_disks() as $disk) {
     if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "all" || $DEVNAME == "shutdown" ) {
       $info = get_partition_info($partition);
       if ( $info['automount'] && $DEVNAME == "all" ) {
-        debug("Disk with serial '${info[serial]}' auto mount is enabled, aborting.");
+        debug("Disk with serial '${info[serial]}' auto mount is enabled, not unmounted.");
         continue;
       }
       debug("Drive found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))));
@@ -57,7 +69,7 @@ foreach(get_unasigned_disks() as $disk) {
         }
         @unlink(sprintf($paths['unmounting'],basename($info['device'])));
       } else {
-        debug("Disk '${info[label]}' not mounted, aborting...");
+        debug("Disk '${info[label]}' not mounted, cannot unmount...");
       }
     }
   }

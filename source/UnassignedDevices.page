@@ -38,7 +38,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
   var this_tab = $('input[name$="tabs"]').length;
   var URL = '/plugins/<?=$plugin;?>/UnassignedDevices.php';
   $(function() {
-    var content= "<div class='switch-wrapper'><input type='checkbox' class='complete-switch'></div><button type='button' onclick='$.post(\""+URL+"\",{\"action\":\"rescan_disks\"});' value='Rescan Disks'>Rescan Disks</button></div>";
+    var content = "<div class='switch-wrapper'><input type='checkbox' class='complete-switch'></div><button type='button' onclick='$.post(\""+URL+"\",{\"action\":\"rescan_disks\"});' value='Rescan Disks'>Rescan Disks</button><button type='button' onclick='openWindow(\"/webGui/scripts/tail_log&arg1=unassigned.devices.log\",\"Log Information\",600,900);' value='Log'>Log</button>";
   <?if (!$tabbed):?>
     $("#unassigned_tabbed").html(content);
   <?else:?>
@@ -417,6 +417,16 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 </div>
 
 <blockquote class='inline_help'>
-  <p>Click <a class="exec underline" onclick="openWindow('/webGui/scripts/tail_log&arg1=unassigned.devices.log','Log Information',600,900);">here</a> to see the log. Alternatively, you can upload a copy of the log by clicking <a class="underline exec" onclick="sendLog();">here</a>.
+  <p>You can mount USB, sata drives, and SMB mounts with unassigned devices.  Any devices with the auto mount switch on will be mounted when the array is started.  XFS and EXT4 formatted drives are mounted with discard (trim) for SSD drives.  All drives and SMB Mounts are unmounted when the array is stopped.
+  </p>
+  <p>If you want to share your drive, you can turn on the Share switch.  The default share is public.  In the Unassigned Devices Settings you can set the disk share access.  You can also enable a common script that will be executed on every disk mount.
+  </p>
+  <p>Additional options are available when you click on the device identification.  When the disk is unmounted, the mount name of the device can be changed.  A disk can be formatted and an fsck run to check the disk.
+  </p>
+</blockquote>
+
+<blockquote class='inline_help'>
+  <p><strong>Log:</strong>&nbsp;
+  You can upload a copy of the log by clicking <a class="underline exec" onclick="sendLog();">here</a>.
   </p>
 </blockquote>

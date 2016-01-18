@@ -1,4 +1,16 @@
 #!/usr/bin/php
+<?PHP
+/* Copyright 2016, Dan Landon.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+?>
+
 <?
 $plugin = "unassigned.devices";
 require_once("/usr/local/emhttp/plugins/${plugin}/include/lib.php");
@@ -13,7 +25,7 @@ if (strpos($DEVNAME, "//") === 0 || $DEVNAME == "all") {
     $device = $info['device'];
     if ( preg_match("#".$DEVNAME."#i", $device) || $DEVNAME == "all" ) {
       if (! $info['automount'] && $DEVNAME == "all" ) {
-        debug("SMB mount '${info[device]}' auto mount is disabled, aborting.");
+        debug("SMB mount '${info[device]}' auto mount is disabled, not mounted.");
         continue;
       }
       debug("SMB share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))));
@@ -35,7 +47,7 @@ foreach(get_unasigned_disks() as $name => $disk) {
       debug("");
       $info = get_partition_info($partition,true);
       if (! $info['automount'] && ( $DEVNAME == "all" || isset($_ENV['DEVNAME']) )) {
-        debug("Disk with serial '${info[serial]}' auto mount is disabled, aborting.");
+        debug("Disk with serial '${info[serial]}' auto mount is disabled, not mounted.");
         continue;
       }
       debug("Drive found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))));

@@ -3,20 +3,22 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.01.17c">
+<!ENTITY version   "2016.01.17d">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/dlandon/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"2e543e438d646a9492685435b0ffd639">
+<!ENTITY MD5		"17212a15f4456b2b41f064d298d50322">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
 
 <CHANGES>
 ##&name;
+- Add: Log button on main page.
 
 ###&version;
+2016.01.17c
 - Fix: Only devices with auto mount off will be unmounted with the command "unassigned_umount all".  This does not apply to stopping the array.
 - Fix: SMB Security would not allow writing to the share.
 
