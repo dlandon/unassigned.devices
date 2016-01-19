@@ -3,18 +3,24 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.01.17d">
+<!ENTITY version   "2016.01.18">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/dlandon/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"17212a15f4456b2b41f064d298d50322">
+<!ENTITY MD5		"ca2b1ba30664839abcb882212d1e1b2e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
 
 <CHANGES>
 ##&name;
+- Fix: Updated unassigned_umount log messages.
+- Fix: Another modification to "unassigned_umount all".
+- Fix: NFS sharing not working.
+- Fix: Rearranged buttons on script edit page.
+
+###2016.01.17d
 - Add: Log button on main page.
 
 ###&version;

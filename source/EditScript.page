@@ -103,7 +103,7 @@ $remove = is_file($file) ? "<img style='cursor:pointer;' src='/plugins/$plugin/i
 <input type="hidden" name="#include" value="/webGui/include/update.file.php">
 
 &nbsp;
-: <input type="text" name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>/','sh',false,true);" autocomplete="off" value="<?=$file;?>"> <?=$remove;?><input type="submit" value="Save"/><input type="reset"/><button type="button" onclick="setDefault(this.form)">Default Script</button><button type="button" onclick="done('/')">Done</button>
+: <input type="text" name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>/','sh',false,true);" autocomplete="off" value="<?=$file;?>"> <?=$remove;?><button type="button" onclick="setDefault(this.form)">Default Script</button><input type="reset"/><input type="submit" value="Save"/><button type="button" onclick="done('/')">Done</button>
 
 &nbsp;
 : <span class="switch-wrapper"><input type="checkbox" name="run_background" <?=$background;?>></span>

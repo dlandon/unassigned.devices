@@ -137,7 +137,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
       tr.prev('tr.toggle-disk').find('.mount').html(td.html());
     }
     $.post(URL,{'action':op,'device':device});
-    // setTimeout('$("#usb_devices_list").waitMe("hide")',15000);
   }
   function pin_tab(n) {
     $.removeCookie('one',{path:'/'});

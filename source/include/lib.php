@@ -548,32 +548,31 @@ function rm_smb_share($dir, $share_name) {
 function add_nfs_share($dir) {
   $reload = FALSE;
   foreach (array("/etc/exports","/etc/exports-") as $file) {
-    if (! exist_in_file($file, $dir)) {
+    if (! exist_in_file($file, "\"{$dir}\"")) {
       $c = (is_file($file)) ? @file($file,FILE_IGNORE_NEW_LINES) : array();
       debug("Adding NFS share '$dir' to '$file'.");
-      $fsid = 100 + count(preg_grep("@^\"@", $c));
-      $c[] = ""; $c[] = "\"{$dir}\" -async,no_subtree_check,fsid={$fsid} *(sec=sys,rw,insecure,anongid=100,anonuid=99,all_squash)";
-      $c = preg_replace('/\n\s*\n\s*\n/s', PHP_EOL.PHP_EOL, implode(PHP_EOL, $c));
-      file_put_contents($file, $c);
+      $fsid = 200 + count(preg_grep("@^\"@", $c));
+      $c[] = "\"{$dir}\" -async,no_subtree_check,fsid={$fsid} *(sec=sys,rw,insecure,anongid=100,anonuid=99,all_squash)";
+      $c[] = "";
+      file_put_contents($file, implode(PHP_EOL, $c));
       $reload = TRUE;
     }
   }
-  if ($reload) shell_exec("/usr/sbin/exportfs -ra");
+  if ($reload) shell_exec("/usr/sbin/exportfs -ra | logger");
 }
 
 function rm_nfs_share($dir) {
   $reload = FALSE;
   foreach (array("/etc/exports","/etc/exports-") as $file) {
-    if ( exist_in_file($file, $dir) && strlen($dir)) {
+    if ( exist_in_file($file, "\"{$dir}\"") && strlen($dir)) {
       $c = (is_file($file)) ? @file($file,FILE_IGNORE_NEW_LINES) : array();
       debug("Removing NFS share '$dir' from '$file'.");
       $c = preg_grep("@\"{$dir}\"@i", $c, PREG_GREP_INVERT);
-      $c = preg_replace('/\n\s*\n\s*\n/s', PHP_EOL.PHP_EOL, implode(PHP_EOL, $c));
-      file_put_contents($file, $c);
+      file_put_contents($file, implode(PHP_EOL, $c));
       $reload = TRUE;
     }
   }
-  if ($reload) shell_exec("/usr/sbin/exportfs -ra");
+  if ($reload) shell_exec("/usr/sbin/exportfs -ra | logger");
   return TRUE;
 }
 

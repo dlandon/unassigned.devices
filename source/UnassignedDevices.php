@@ -300,8 +300,10 @@ switch ($_POST['action']) {
     echo json_encode(array( 'result' => $result));
     if ($result && strlen($info['target'])) {
       add_smb_share($info['mountpoint'], $info['label']);
+      add_nfs_share($info['mountpoint']);
     } else {
       rm_smb_share($info['mountpoint'], $info['label']);
+      rm_nfs_share($info['mountpoint']);
     }
     break;
   case 'mount':
