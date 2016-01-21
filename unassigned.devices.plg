@@ -3,18 +3,21 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.01.20">
+<!ENTITY version   "2016.01.21">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/dlandon/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"6a2e55d174cc2432d9e53f13054ffe31">
+<!ENTITY MD5		"9a350aae8a6f1feb3f1b5d062b845aa3">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
 
 <CHANGES>
 ##&name;
+- Fix: Remove nmap package.
+
+###2016.01.20
 - Fix: Rearranged some items on main page for clarity.
 - Fix: Display SSD temperatures.  Only hard disk temps were displayed.
 - Fix: Share 'SMB Share' in unRAID shares with unassigned devices SMB Security settings. 
@@ -318,14 +321,6 @@ libnl-1.1.4-x86_64-1.txz
 </FILE>
 
 <!--
-nmap-6.40-x86_64-1.txz
--->
-<FILE Name="&packages;/nmap-6.40-x86_64-1.txz" Run="upgradepkg --install-new">
-<URL>http://slackware.osuosl.org/slackware64-14.1/slackware64/n/nmap-6.40-x86_64-1.txz</URL>
-<MD5>462cf835c4475ddfd2bd15cd10e8349d</MD5>
-</FILE>
-
-<!--
 The 'post-install' script.
 -->
 <FILE Run="/bin/bash">
@@ -425,14 +420,13 @@ mv -f /usr/local/emhttp/plugins/dynamix/OpenDevices.page- /usr/local/emhttp/plug
 rm -rf /usr/local/emhttp/plugins/&name; 2>/dev/null
 
 # Remove all installed packages.
-removepkg ntfs-3g-2015.3.14-x86_64-1
-removepkg exfat-utils-1.1.1-x86_64-1_SBo
-removepkg fuse-exfat-1.1.0-x86_64-1_SBo
-removepkg hfsprogs-332.25-x86_64-2sl
-removepkg libbsd-0.6.0-x86_64-1sl
-removepkg parted-3.1-x86_64-1
-removepkg libnl-1.1.4-x86_64-1
-removepkg nmap-6.40-x86_64-1
+removepkg ntfs-3g-2015.3.14-x86_64-1 2>/dev/null
+removepkg exfat-utils-1.1.1-x86_64-1_SBo 2>/dev/null
+removepkg fuse-exfat-1.1.0-x86_64-1_SBo 2>/dev/null
+removepkg hfsprogs-332.25-x86_64-2sl 2>/dev/null
+removepkg libbsd-0.6.0-x86_64-1sl 2>/dev/null
+removepkg parted-3.1-x86_64-1 2>/dev/null
+removepkg libnl-1.1.4-x86_64-1 2>/dev/null
 
 echo ""
 echo "-----------------------------------------------------------"

@@ -18,7 +18,7 @@ $PRESENT=array();
 
 $DEVNAME = (isset($_ENV['DEVNAME'])) ? $_ENV['DEVNAME'] : ( isset($argv[1]) ? $argv[1] : NULL );
 $DEVNAME = (file_exists($DEVNAME)) ? realpath($DEVNAME) : $DEVNAME;
-if (! $DEVNAME) die("Fail: disk device not informed.\n");
+if (! $DEVNAME) die("Fail: device not defined.\n");
 
 # Deal with SMB shares
 if (strpos($DEVNAME, "//") === 0 || $DEVNAME == "all" || $DEVNAME == "shutdown") {
