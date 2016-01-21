@@ -21,65 +21,66 @@ $config_file = "/boot/config/plugins/{$plugin}/{$plugin}.cfg";
 
 $cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
 if (count($_POST)) {
-  array_map(function($k, $v) use (&$cfg) { if($k[0] != "#") $cfg["Config"][$k] = $v; }, array_keys($_POST), $_POST );
-  save_ini_file($config_file, $cfg);
-  reload_shares();
+	array_map(function($k, $v) use (&$cfg) { if($k[0] != "#") $cfg["Config"][$k] = $v; }, array_keys($_POST), $_POST );
+	save_ini_file($config_file, $cfg);
+	reload_shares();
 }
 ?>
 <?if (is_file("webGui/scripts/jquery.switchButton.js")): # Pre 6.1?>
-<script type="text/javascript" src="/webGui/scripts/jqueryFileTree.js"></script>
-<link type="text/css" rel="stylesheet" href="/webGui/styles/jqueryFileTree.css" >
+	<script type="text/javascript" src="/webGui/scripts/jqueryFileTree.js"></script>
+	<link type="text/css" rel="stylesheet" href="/webGui/styles/jqueryFileTree.css" >
 <?else: # Post 6.1?>
-<script type="text/javascript" src="/webGui/javascript/jquery.filetree.js"></script>
-<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery.filetree.css" >
+	<script type="text/javascript" src="/webGui/javascript/jquery.filetree.js"></script>
+	<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery.filetree.css" >
 <?endif;?>
+
 <style type="text/css">
-  .fileTree {
-    border: solid 1px #BBB;
-    background: #FFF;
-    overflow: scroll;
-    padding: 5px;
-    position:absolute;
-    z-index:100;
-    display:none;
-  }
+	.fileTree {
+		border: solid 1px #BBB;
+		background: #FFF;
+		overflow: scroll;
+		padding: 5px;
+		position:absolute;
+		z-index:100;
+		display:none;
+	}
 </style>
 
 <script type="text/javascript">
-  function openFileBrowser(el, root, filter, on_folders, on_files, close_on_select) {
-    if (on_folders === undefined) on_folders = true;
-    if (on_files   === undefined) on_files = true;
-    if (! filter && ! on_files)   filter = 'HIDE_FILES_FILTER';
-    if (! root.trim() ) root = '/mnt/user/';
-    var p = $(el);
-    // Skip is fileTree is already open
-    if ( p.next().hasClass('fileTree') ){return null;}
-    // create a random id
-    var r = Math.floor((Math.random()*1000)+1);
-    // Add a new span and load fileTree
-    p.after("<span id='fileTree"+r+"' class='textarea fileTree'></span>");
-    var ft = $('#fileTree'+r);
-    ft.fileTree({
-      root: root,
-      filter: filter,
-      allowBrowsing : true
-      },
-      function(file){if(on_files){p.val(file);if(close_on_select){ft.slideUp('fast',function (){ft.remove();});}};p.trigger('change');},
-      function(folder){if(on_folders){p.val(folder);if(close_on_select){$(ft).slideUp('fast',function (){$(ft).remove();});}};p.trigger('change');}
-    );
-    // Format fileTree according to parent position, height and width
-    ft.css({'left':p.position().left,'top':( p.position().top + p.outerHeight() ),'width':(p.width()) });
-    // close if click elsewhere
-    $(document).mouseup(function(e){if(!ft.is(e.target) && ft.has(e.target).length === 0){ft.slideUp('fast',function (){$(ft).remove();});}});
-    // close if parent changed
-    p.bind('keydown',function(){ft.slideUp('fast',function (){$(ft).remove();});});
-    // Open fileTree
-    ft.slideDown('fast');
-  } 
+	function openFileBrowser(el, root, filter, on_folders, on_files, close_on_select) {
+		if (on_folders === undefined) on_folders = true;
+		if (on_files   === undefined) on_files = true;
+		if (! filter && ! on_files)   filter = 'HIDE_FILES_FILTER';
+		if (! root.trim() ) root = '/mnt/user/';
+		var p = $(el);
+		// Skip is fileTree is already open
+		if ( p.next().hasClass('fileTree') ){return null;}
+		// create a random id
+		var r = Math.floor((Math.random()*1000)+1);
+		// Add a new span and load fileTree
+		p.after("<span id='fileTree"+r+"' class='textarea fileTree'></span>");
+		var ft = $('#fileTree'+r);
+		ft.fileTree({
+			root: root,
+			filter: filter,
+			allowBrowsing : true
+			},
+			function(file){if(on_files){p.val(file);if(close_on_select){ft.slideUp('fast',function (){ft.remove();});}};p.trigger('change');},
+			function(folder){if(on_folders){p.val(folder);if(close_on_select){$(ft).slideUp('fast',function (){$(ft).remove();});}};p.trigger('change');}
+		);
+		// Format fileTree according to parent position, height and width
+		ft.css({'left':p.position().left,'top':( p.position().top + p.outerHeight() ),'width':(p.width()) });
+		// close if click elsewhere
+		$(document).mouseup(function(e){if(!ft.is(e.target) && ft.has(e.target).length === 0){ft.slideUp('fast',function (){$(ft).remove();});}});
+		// close if parent changed
+		p.bind('keydown',function(){ft.slideUp('fast',function (){$(ft).remove();});});
+		// Open fileTree
+		ft.slideDown('fast');
+	} 
 
-  function prepareSecurity(el) {
-    $("#smb_security").css("display", ( $(el).val() == "yes" ? "block" : "none") );
-  }
+	function prepareSecurity(el) {
+		$("#smb_security").css("display", ( $(el).val() == "yes" ? "block" : "none") );
+	}
 </script>
 
 <form markdown="1" name="cache_settings" method="POST">
@@ -104,32 +105,36 @@ Destructive Mode:
 <div id="title" class="nocontrol">SMB Security:</div>
 <form markdown="1" name="cache_settings" method="POST">
 <dl>
-  <dt>Enable SMB Security:</dt>
-  <dd>
-    <select name="smb_security" size="1" onchange="prepareSecurity(this);">
-    <?=mk_option($cfg['Config']["smb_security"], "no", "No")?>
-    <?=mk_option($cfg['Config']["smb_security"], "yes", "Yes")?>
-    </select>
-  </dd>
+	<dt>Enable SMB Security:</dt>
+	<dd>
+		<select name="smb_security" size="1" onchange="prepareSecurity(this);">
+		<?=mk_option($cfg['Config']["smb_security"], "no", "No")?>
+		<?=mk_option($cfg['Config']["smb_security"], "yes", "Yes")?>
+		</select>
+	</dd>
 </dl>
 
-
 <div id="smb_security" style="display: <?=($cfg['Config']["smb_security"] == "yes" ? "block" : "none");?>">
-&nbsp;
-  <?php foreach ($users as $user): ?>
-  <?php if ($user['name'] == "root"): continue; endif;?>
-  <dl>
-    <dt><?=$user['name']?></dt>
-    <dd>
-      <select name="smb_<?=$user['name']?>" size="1">
-      <?=mk_option($cfg["Config"]["smb_{$user[name]}"], "no-access", "No Access")?>
-      <?=mk_option($cfg["Config"]["smb_{$user[name]}"], "read-write", "Read/Write")?>
-      <?=mk_option($cfg["Config"]["smb_{$user[name]}"], "read-only", "Read-only")?>
-      </select>
-    </dd>
-  </dl>
-  <?php endforeach; ?>
+	&nbsp;
+	<?php foreach ($users as $user): ?>
+	<?php if ($user['name'] == "root"): continue; endif;?>
+	<dl>
+		<dt><?=$user['name']?></dt>
+		<dd>
+			<select name="smb_<?=$user['name']?>" size="1">
+			<?=mk_option($cfg["Config"]["smb_{$user[name]}"], "no-access", "No Access")?>
+			<?=mk_option($cfg["Config"]["smb_{$user[name]}"], "read-write", "Read/Write")?>
+			<?=mk_option($cfg["Config"]["smb_{$user[name]}"], "read-only", "Read-only")?>
+			</select>
+		</dd>
+	</dl>
+	<?php endforeach; ?>
 </div>
+
+> Set the user level of SMB Security.
+>
+> + Set to 'Yes' to enable SMB Security omn SMB shares.  Set access by user to allow access and whether or not the user can write to the share.
+> + Set to 'No' will share devices and SMB Mounts Public with read and write access.
 
 &nbsp;
 : <input type="submit" name="#apply" value="Apply"><input type="button" value="Done" onclick="done()">
@@ -139,14 +144,16 @@ Destructive Mode:
 <div id="title" class="nocontrol">NFS Settings:</div>
 <form markdown="1" name="cache_settings" method="POST">
 <dl>
-  <dt>Enable NFS export:</dt>
-  <dd>
-    <select name="nfs_export" size="1">
-    <?=mk_option($cfg['Config']["nfs_export"], "no", "No")?>
-    <?=mk_option($cfg['Config']["nfs_export"], "yes", "Yes")?>
-    </select>
-  </dd>
+	<dt>Enable NFS export:</dt>
+	<dd>
+		<select name="nfs_export" size="1">
+		<?=mk_option($cfg['Config']["nfs_export"], "no", "No")?>
+		<?=mk_option($cfg['Config']["nfs_export"], "yes", "Yes")?>
+		</select>
+	</dd>
 </dl>
+
+> Set to 'Yes' to export NFS shares.  Shares are exported Public with read and write access.
 
 &nbsp;
 : <input type="submit" name="#apply" value="Apply"><input type="button" value="Done" onclick="done()">

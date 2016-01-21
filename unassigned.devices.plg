@@ -3,18 +3,27 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.01.18">
+<!ENTITY version   "2016.01.20">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/dlandon/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"ca2b1ba30664839abcb882212d1e1b2e">
+<!ENTITY MD5		"6a2e55d174cc2432d9e53f13054ffe31">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
 
 <CHANGES>
 ##&name;
+- Fix: Rearranged some items on main page for clarity.
+- Fix: Display SSD temperatures.  Only hard disk temps were displayed.
+- Fix: Share 'SMB Share' in unRAID shares with unassigned devices SMB Security settings. 
+- Add: Download log button in help to download a zip log file.
+- Add: If an ntfs formatted drive cannot be mounted read-write, then mount it read only.
+- Add: Additional help information and tool tips.
+- Add: Added smart report.  unRAID 6.1.7 has some additional disk settings for reporting errors and specific disk settings that will not work for unassigned devices.  You should not use the SDx Settings.
+
+###2016.01.18
 - Fix: Updated unassigned_umount log messages.
 - Fix: Another modification to "unassigned_umount all".
 - Fix: NFS sharing not working.

@@ -17,21 +17,21 @@ $plugin = "unassigned.devices";
 require_once("/usr/local/emhttp/plugins/${plugin}/include/lib.php");
 
 function safe_filename($string) {
-  $string = preg_replace('~[^0-9a-z -_]~i', '', $string);
-  return preg_replace('~[ ]~i', '_', $string);
+	$string = preg_replace('~[^0-9a-z -_]~i', '', $string);
+	return preg_replace('~[ ]~i', '_', $string);
 }
 
 if (isset($_GET['s'])) {
-  $serial = $_GET['s'];
-  $partition = $_GET['p'];
-  $file = get_config($serial,"command.{$partition}");
-  $background = (get_config($serial,"command_bg.{$partition}") == "true" ) ? "checked" : "";
-  if (! $file ) $file = "/boot/config/plugins/${plugin}/".( preg_replace("%\s+%", "_", urldecode($_GET['l'])) ).".sh";
+	$serial = $_GET['s'];
+	$partition = $_GET['p'];
+	$file = get_config($serial,"command.{$partition}");
+	$background = (get_config($serial,"command_bg.{$partition}") == "true" ) ? "checked" : "";
+	if (! $file ) $file = "/boot/config/plugins/${plugin}/".( preg_replace("%\s+%", "_", urldecode($_GET['l'])) ).".sh";
 } else if (isset($_GET['d'])) {
-  $device = $_GET['d'];
-  $file = get_samba_config($device,"command");
-  $background = (get_samba_config($device,"command_bg") == "true" ) ? "checked" : "";
-  if (! $file ) $file = "/boot/config/plugins/${plugin}/".( preg_replace("%\s+%", "_", urldecode($_GET['l'])) ).".sh";
+	$device = $_GET['d'];
+	$file = get_samba_config($device,"command");
+	$background = (get_samba_config($device,"command_bg") == "true" ) ? "checked" : "";
+	if (! $file ) $file = "/boot/config/plugins/${plugin}/".( preg_replace("%\s+%", "_", urldecode($_GET['l'])) ).".sh";
 }
 
 $text = @file_get_contents($file);
@@ -67,36 +67,35 @@ $remove = is_file($file) ? "<img style='cursor:pointer;' src='/plugins/$plugin/i
 ?>
 
 <?if (is_file("webGui/scripts/jquery.switchButton.js")): # Pre 6.1?>
-<script type="text/javascript" src="/webGui/scripts/jquery.switchButton.js"></script>
-<script type="text/javascript" src="/webGui/scripts/jqueryFileTree.js"></script>
-<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery-ui.min.css">
-<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery.switchButton.css">
-<link type="text/css" rel="stylesheet" href="/webGui/styles/jqueryFileTree.css" >
-
+	<script type="text/javascript" src="/webGui/scripts/jquery.switchButton.js"></script>
+	<script type="text/javascript" src="/webGui/scripts/jqueryFileTree.js"></script>
+	<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery-ui.min.css">
+	<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery.switchButton.css">
+	<link type="text/css" rel="stylesheet" href="/webGui/styles/jqueryFileTree.css" >
 <?else: # Post 6.1?>
-<script type="text/javascript" src="/webGui/javascript/jquery.switchbutton.js"></script>
-<script type="text/javascript" src="/webGui/javascript/jquery.filetree.js"></script>
-<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery.ui.css">
-<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery.switchbutton.css">
-<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery.filetree.css" >
+	<script type="text/javascript" src="/webGui/javascript/jquery.switchbutton.js"></script>
+	<script type="text/javascript" src="/webGui/javascript/jquery.filetree.js"></script>
+	<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery.ui.css">
+	<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery.switchbutton.css">
+	<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery.filetree.css" >
 <?endif;?>
 
 <style type="text/css">
-  .fileTree {
-    border: solid 1px #BBB;
-    background: #FFF;
-    overflow: scroll;
-    padding: 5px;
-    position:absolute;
-    z-index:100;
-    display:none;
-  }
-  .switch-wrapper {
-    display: inline-block;
-    position: relative;
-    top: 3px;
-    line-height:20px;
-  }
+	.fileTree {
+		border: solid 1px #BBB;
+		background: #FFF;
+		overflow: scroll;
+		padding: 5px;
+		position:absolute;
+		z-index:100;
+		display:none;
+	}
+	.switch-wrapper {
+		display: inline-block;
+		position: relative;
+		top: 3px;
+		line-height:20px;
+	}
 </style>
 
 <form markdown="1" method="POST" action="/update.php" target="progressFrame">
@@ -116,59 +115,60 @@ Script content:
 >
 > Click the **Default** button to initialize the edit box with the
 > factory-default contents.  You still need to click **Apply** in order to
->commit the change.
+> commit the change.
 
 </form>
 
 <script>
-  $("input[name=run_background]").each(function(){var checked = $(this).is(":checked");$(this).switchButton({labels_placement: "right", checked:checked,on_label:"Run in background",off_label:"Run in background"});});
-  <?if (isset($_GET['s'])):?>
-  $( "form" ).submit(function( event ) {
-    $.post("/plugins/<?=$plugin;?>/UnassignedDevices.php",{action:"set_command",serial:"<?=$serial;?>",command:$("input[name='#file']").val(),part:"<?=$partition;?>",background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault();},"json");
-  });
-  <?else:?>
-  $( "form" ).submit(function( event ) {
-    $.post("/plugins/<?=$plugin;?>/UnassignedDevices.php",{action:"set_samba_command",device:"<?=$device;?>",command:$("input[name='#file']").val(), background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault()},"json");
-  });  
-  <?endif;?>
+	$("input[name=run_background]").each(function(){var checked = $(this).is(":checked");$(this).switchButton({labels_placement: "right", checked:checked,on_label:"Run in background",off_label:"Run in background"});});
+	<?if (isset($_GET['s'])):?>
+		$( "form" ).submit(function( event ) {
+			$.post("/plugins/<?=$plugin;?>/UnassignedDevices.php",{action:"set_command",serial:"<?=$serial;?>",command:$("input[name='#file']").val(),part:"<?=$partition;?>",background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault();},"json");
+		});
+	<?else:?>
+		$( "form" ).submit(function( event ) {
+			$.post("/plugins/<?=$plugin;?>/UnassignedDevices.php",{action:"set_samba_command",device:"<?=$device;?>",command:$("input[name='#file']").val(), background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault()},"json");
+		});  
+	<?endif;?>
 
-  function setDefault(form) {
-    form.elements['text'].value = <?=json_encode($default_text);?>;
-  }
+	function setDefault(form) {
+		form.elements['text'].value = <?=json_encode($default_text);?>;
+	}
 
-  function load(el) {
-    $.get($( el ).val(),function(data){ $( 'textarea' ).val(data);});
-  }
+	function load(el) {
+		$.get($( el ).val(),function(data){ $( 'textarea' ).val(data);});
+	}
 
-  function openFileBrowser(el, root, filter, on_folders, on_files) {
-    if (on_folders === undefined) on_folders = true;
-    if (on_files   === undefined) on_files = true;
-    if (! filter && ! on_files)   filter = 'HIDE_FILES_FILTER';
-    p = $(el);
-    // Skip is fileTree is already open
-    if ( p.next().hasClass('fileTree') ){return null;}
-    // create a random id
-    var r = Math.floor((Math.random()*1000)+1);
-    // Add a new span and load fileTree
-    p.after("<span id='fileTree"+r+"' class='textarea fileTree'></span>");
-    var ft = $('#fileTree'+r);
-    ft.fileTree({
-      root: root,
-      filter: filter,
-      allowBrowsing : true
-      },
-      function(file){if(on_files){p.val(file);$(ft).slideUp('fast',function (){$(ft).remove();});load(p);}},
-      function(folder){if(on_folders){p.val(folder);$(ft).slideUp('fast',function (){$(ft).remove();});}}
-    );
-    // Format fileTree according to parent position, height and width
-    ft.css({'left':p.position().left,'top':( p.position().top + p.outerHeight() ),'width':(p.width()+2) });
-    // close if click elsewhere
-    $(document).mouseup(function(e){if(!ft.is(e.target) && ft.has(e.target).length === 0){$(ft).slideUp('fast',function (){$(ft).remove();});}});
-    // Open fileTree
-    ft.slideDown('fast');
-  }
-  function rmfile(file) {
-    $.post("/update.php",{"#command":"/plugins/unassigned.devices/scripts/rm","#arg[1]":file}).done(function(){location.reload();});
-  }
+	function openFileBrowser(el, root, filter, on_folders, on_files) {
+		if (on_folders === undefined) on_folders = true;
+		if (on_files   === undefined) on_files = true;
+		if (! filter && ! on_files)   filter = 'HIDE_FILES_FILTER';
+		p = $(el);
+		// Skip is fileTree is already open
+		if ( p.next().hasClass('fileTree') ){return null;}
+		// create a random id
+		var r = Math.floor((Math.random()*1000)+1);
+		// Add a new span and load fileTree
+		p.after("<span id='fileTree"+r+"' class='textarea fileTree'></span>");
+		var ft = $('#fileTree'+r);
+		ft.fileTree({
+			root: root,
+			filter: filter,
+			allowBrowsing : true
+			},
+			function(file){if(on_files){p.val(file);$(ft).slideUp('fast',function (){$(ft).remove();});load(p);}},
+			function(folder){if(on_folders){p.val(folder);$(ft).slideUp('fast',function (){$(ft).remove();});}}
+		);
+		// Format fileTree according to parent position, height and width
+		ft.css({'left':p.position().left,'top':( p.position().top + p.outerHeight() ),'width':(p.width()+2) });
+		// close if click elsewhere
+		$(document).mouseup(function(e){if(!ft.is(e.target) && ft.has(e.target).length === 0){$(ft).slideUp('fast',function (){$(ft).remove();});}});
+		// Open fileTree
+		ft.slideDown('fast');
+	}
+
+	function rmfile(file) {
+		$.post("/update.php",{"#command":"/plugins/unassigned.devices/scripts/rm","#arg[1]":file}).done(function(){location.reload();});
+	}
 
 </script>
