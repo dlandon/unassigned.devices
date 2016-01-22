@@ -46,7 +46,7 @@ function render_used_and_free($partition) {
 			$free = $partition['size'] ? round(100*$partition['avail']/$partition['size']) : 0;
 			$used = 100-$free;
 			extract(parse_ini_file('/etc/unraid-version'));
-			if ($version == '6.1.7') {
+			if (version_compare($version, '6.1.7', '>=')) {
 				$o .= "<td><div class='usage-disk'><span style='margin:0;width:{$used}%' class='".usage_color($display,$used,false)."'><span>".my_scale($partition['used'], $unit)." $unit</span></span></div></td>";
 				$o .= "<td><div class='usage-disk'><span style='margin:0;width:{$free}%' class='".usage_color($display,$free,true)."'><span>".my_scale($partition['avail'], $unit)." $unit</span></span></div></td>";
 			} else {
