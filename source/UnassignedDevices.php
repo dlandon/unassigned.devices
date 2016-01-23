@@ -46,7 +46,7 @@ function render_used_and_free($partition) {
 			$free = $partition['size'] ? round(100*$partition['avail']/$partition['size']) : 0;
 			$used = 100-$free;
 			extract(parse_ini_file('/etc/unraid-version'));
-			if ($version == '6.1.7') {
+			if (version_compare($version, '6.1.7', '>=')) {
 				$o .= "<td><div class='usage-disk'><span style='margin:0;width:{$used}%' class='".usage_color($display,$used,false)."'><span>".my_scale($partition['used'], $unit)." $unit</span></span></div></td>";
 				$o .= "<td><div class='usage-disk'><span style='margin:0;width:{$free}%' class='".usage_color($display,$free,true)."'><span>".my_scale($partition['avail'], $unit)." $unit</span></span></div></td>";
 			} else {
@@ -87,7 +87,7 @@ function render_partition($disk, $partition) {
 	$out[] = "<td>-</td>";
 	$out[] = "<td >".$partition['fstype']."</td>";
 	$out[] = "<td><span>".my_scale($partition['size'], $unit)." $unit</span></td>";
-	$out[] = "<td>".(strlen($partition['target']) ? shell_exec("lsof '${partition[target]}' 2>/dev/null|grep -c -v COMMAND") : "-")."</td>";
+	$out[] = "<td>".(strlen($partition['target']) ? shell_exec_debug("lsof '${partition[target]}' 2>/dev/null|grep -c -v COMMAND") : "-")."</td>";
 	$out[] = render_used_and_free($partition);
 	$out[] = "<td>-</td>";
 	$out[] = "<td title='Turn on to Share Device with SMB and/or NFS.'><input type='checkbox' class='toggle_share' info='".htmlentities(json_encode($partition))."' ".(($partition['shared']) ? 'checked':'')."></td>";
@@ -139,6 +139,9 @@ switch ($_POST['action']) {
 			$odd="odd";
 			foreach ($disks as $disk) {
 				$mounted       = in_array(TRUE, array_map(function($ar){return is_mounted($ar['device']);}, $disk['partitions']));
+				if ($mounted) {
+					$disk['temperature'] = get_temp($disk['device']);
+				}
 				$temp          = my_temp($disk['temperature']);
 				$disk_name     = basename($disk['device']);
 				$p             = (count($disk['partitions']) <= 1) ? render_partition($disk, $disk['partitions'][0]) : FALSE;
@@ -164,10 +167,10 @@ switch ($_POST['action']) {
 					$preclear .= "get_preclear('{$disk_name}');";
 				}
 				echo "<tr class='{$odd} toggle-disk'>";
-				echo "<td title='Run Smart Report on {$disk_name}.'><img src='/webGui/images/".(is_disk_running($disk['device']) ? "green-on.png":"green-blink.png" )."'>";
-				if ( $disk['partitions'][0]['fstype'] == "vfat" ) {
-					echo " {$disk_name}</td>";
+				if ( $disk['partitions'][0]['fstype'] == "vfat" || !$mounted ) {
+					echo "<td><img src='/webGui/images/green-blink.png'> {$disk_name}</td>";
 				} else {
+					echo "<td title='Run Smart Report on {$disk_name}.'><img src='/webGui/images/".(is_disk_running($disk['device']) ? "green-on.png":"green-blink.png" )."'>";
 					echo "<a href='/Main/Device?name={$disk_name}&file=/tmp/screen_buffer'> {$disk_name}</a></td>";
 				}
 				echo "<td>{$hdd_serial}</td>";
@@ -346,14 +349,14 @@ switch ($_POST['action']) {
 		$user = isset($_POST['USER']) ? urlencode($_POST['USER']) : NULL;
 		$pass = isset($_POST['PASS']) ? urlencode($_POST['PASS']) : NULL;
 		$login = $user ? ($pass ? "-U '{$user}%{$pass}'" : "-U '{$user}' -N") : "-U%";
-		echo shell_exec("smbclient -g -L $ip $login 2>&1|awk -F'|' '/Disk/{print $2}'|sort");
+		echo shell_exec_debug("smbclient -g -L $ip $login 2>&1|awk -F'|' '/Disk/{print $2}'|sort");
 		break;
 	case 'list_samba_hosts':
 		$hosts = array();
-		foreach ( explode(PHP_EOL, shell_exec("/usr/bin/nmblookup {$var[WORKGROUP]} 2>/dev/null") ) as $l ) {
+		foreach ( explode(PHP_EOL, shell_exec_debug("/usr/bin/nmblookup {$var[WORKGROUP]} 2>/dev/null") ) as $l ) {
 			if (! is_bool( strpos( $l, "<00>") ) ) {
 				$ip = explode(" ", $l)[0];
-				foreach ( explode(PHP_EOL, shell_exec("/usr/bin/nmblookup -r -A $ip 2>&1") ) as $l ) {
+				foreach ( explode(PHP_EOL, shell_exec_debug("/usr/bin/nmblookup -r -A $ip 2>&1") ) as $l ) {
 					if (! is_bool( strpos( $l, "<00>") ) ) {
 						$hosts[] = trim(explode(" ", $l)[0])."\n";
 						break;

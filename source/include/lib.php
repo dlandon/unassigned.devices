@@ -32,7 +32,7 @@ if (! is_dir(dirname($paths["state"])) ) {
 }
 
 if (! isset($var)){
-	if (! is_file("/usr/local/emhttp/state/var.ini")) shell_exec("wget -qO /dev/null localhost:$(ss -napt|grep emhttp|grep -Po ':\K\d+')");
+	if (! is_file("/usr/local/emhttp/state/var.ini")) shell_exec_debug("wget -qO /dev/null localhost:$(ss -napt|grep emhttp|grep -Po ':\K\d+')");
 	$var = @parse_ini_file("/usr/local/emhttp/state/var.ini");
 }
 #########################################################
@@ -62,8 +62,8 @@ function debug($m, $type = "NOTICE"){
 }
 
 function shell_exec_debug($cmd) {
-	debug("cmd: $cmd");
-	debug(shell_exec("$cmd 2>&1"));
+	debug("cmd: $cmd", "DEBUG");
+	return shell_exec("$cmd 2>&1");
 }
 
 function listDir($root) {
@@ -94,12 +94,12 @@ function exist_in_file($file, $val) {
 }
 
 function is_disk_running($dev) {
-	$state = trim(shell_exec("hdparm -C $dev 2>/dev/null| grep -c standby"));
+	$state = trim(shell_exec_debug("hdparm -C $dev 2>/dev/null| grep -c standby"));
 	return ($state == 0) ? TRUE : FALSE;
 }
 
 function lsof($dir) {
-	return intval(trim(shell_exec("lsof '{$dir}' 2>/dev/null|grep -c -v COMMAND")));
+	return intval(trim(shell_exec_debug("lsof '{$dir}' 2>/dev/null|grep -c -v COMMAND")));
 }
 
 function get_temp($dev) {
@@ -108,9 +108,9 @@ function get_temp($dev) {
 	if (isset($temps[$dev]) && (time() - $temps[$dev]['timestamp']) < 120 ) {
 		return $temps[$dev]['temp'];
 	} else if (is_disk_running($dev)) {
-		$temp = trim(shell_exec("smartctl -A -d sat,12 $dev 2>/dev/null| grep -m 1 -i Temperature_Celsius | awk '{print $10}'"));
+		$temp = trim(shell_exec_debug("smartctl -A -d sat,12 $dev 2>/dev/null| grep -m 1 -i Temperature_Celsius | awk '{print $10}'"));
 		if (! is_numeric($temp)) {
-			$temp = trim(shell_exec("smartctl -A -d sat,12 $dev 2>/dev/null| grep -m 1 -i Airflow_Temperature | awk '{print $10}'"));
+			$temp = trim(shell_exec_debug("smartctl -A -d sat,12 $dev 2>/dev/null| grep -m 1 -i Airflow_Temperature | awk '{print $10}'"));
 		}
 		$temp = (is_numeric($temp)) ? $temp : "*";
 		$temps[$dev] = array('timestamp' => time(),
@@ -130,14 +130,14 @@ function verify_precleared($dev) {
 	$pattern        = $over_mbr_size ? array("00000", "00000", "00002", "00000", "00000", "00255", "00255", "00255") : 
 									   array("00000", "00000", "00000", "00000", "00000", "00000", "00000", "00000");
 
-	$b["mbr1"] = trim(shell_exec("dd bs=446 count=1 if=$dev 2>/dev/null        |sum|awk '{print $1}'"));
-	$b["mbr2"] = trim(shell_exec("dd bs=1 count=48 skip=462 if=$dev 2>/dev/null|sum|awk '{print $1}'"));
-	$b["mbr3"] = trim(shell_exec("dd bs=1 count=1  skip=450 if=$dev 2>/dev/null|sum|awk '{print $1}'"));
-	$b["mbr4"] = trim(shell_exec("dd bs=1 count=1  skip=511 if=$dev 2>/dev/null|sum|awk '{print $1}'"));
-	$b["mbr5"] = trim(shell_exec("dd bs=1 count=1  skip=510 if=$dev 2>/dev/null|sum|awk '{print $1}'"));
+	$b["mbr1"] = trim(shell_exec_debug("dd bs=446 count=1 if=$dev 2>/dev/null        |sum|awk '{print $1}'"));
+	$b["mbr2"] = trim(shell_exec_debug("dd bs=1 count=48 skip=462 if=$dev 2>/dev/null|sum|awk '{print $1}'"));
+	$b["mbr3"] = trim(shell_exec_debug("dd bs=1 count=1  skip=450 if=$dev 2>/dev/null|sum|awk '{print $1}'"));
+	$b["mbr4"] = trim(shell_exec_debug("dd bs=1 count=1  skip=511 if=$dev 2>/dev/null|sum|awk '{print $1}'"));
+	$b["mbr5"] = trim(shell_exec_debug("dd bs=1 count=1  skip=510 if=$dev 2>/dev/null|sum|awk '{print $1}'"));
 
 	foreach (range(0,15) as $n) {
-		$b["byte{$n}"] = trim(shell_exec("dd bs=1 count=1 skip=".(446+$n)." if=$dev 2>/dev/null|sum|awk '{print $1}'"));
+		$b["byte{$n}"] = trim(shell_exec_debug("dd bs=1 count=1 skip=".(446+$n)." if=$dev 2>/dev/null|sum|awk '{print $1}'"));
 		$b["byte{$n}h"] = sprintf("%02x",$b["byte{$n}"]);
 	}
 
@@ -212,9 +212,9 @@ function format_partition($partition, $fs) {
 		return NULL;
 	}
 	debug("Formatting partition '{$partition}' with '$fs' filesystem.");
-	shell_exec_debug(get_format_cmd($partition, $fs));
+	shell_exec_debug_debug(get_format_cmd($partition, $fs));
 	$disk = preg_replace("@\d+@", "", $partition);
-	shell_exec_debug("/usr/sbin/hdparm -z {$disk}");
+	shell_exec_debug_debug("/usr/sbin/hdparm -z {$disk}");
 	sleep(3);
 	@touch($GLOBALS['paths']['reload']);
 }
@@ -231,17 +231,17 @@ function format_disk($dev, $fs) {
 	$disk_blocks      = intval(trim(exec("blockdev --getsz $dev  | awk '{ print $1 }'")));
 	$disk_schema      = ( $disk_blocks >= $max_mbr_blocks ) ? "gpt" : "msdos";
 	debug("Clearing partition table of disk '$dev'.");
-	shell_exec_debug("/usr/bin/dd if=/dev/zero of={$dev} bs=2M count=1");
+	shell_exec_debug_debug("/usr/bin/dd if=/dev/zero of={$dev} bs=2M count=1");
 	debug("Reloading disk '{$dev}' partition table.");
-	shell_exec_debug("/usr/sbin/hdparm -z {$dev}");
+	shell_exec_debug_debug("/usr/sbin/hdparm -z {$dev}");
 	debug("Creating a '{$disk_schema}' partition table on disk '{$dev}'.");
-	shell_exec_debug("/usr/sbin/parted {$dev} --script -- mklabel {$disk_schema}");
+	shell_exec_debug_debug("/usr/sbin/parted {$dev} --script -- mklabel {$disk_schema}");
 	debug("Creating a primary partition on disk '{$dev}'.");
-	shell_exec_debug("/usr/sbin/parted -a optimal {$dev} --script -- mkpart primary 0% 100%");
+	shell_exec_debug_debug("/usr/sbin/parted -a optimal {$dev} --script -- mkpart primary 0% 100%");
 	debug("Formatting disk '{$dev}' with '$fs' filesystem.");
-	shell_exec_debug(get_format_cmd("{$dev}1", $fs));
+	shell_exec_debug_debug(get_format_cmd("{$dev}1", $fs));
 	debug("Reloading disk '{$dev}' partition table.");
-	shell_exec_debug("/usr/sbin/hdparm -z {$dev}");
+	shell_exec_debug_debug("/usr/sbin/hdparm -z {$dev}");
 	sleep(3);
 	@touch($GLOBALS['paths']['reload']);
 }
@@ -258,7 +258,7 @@ function remove_partition($dev, $part) {
 		}
 	}
 	debug("Removing partition '{$part}' from disk '{$dev}'.");
-	shell_exec_debug("/usr/sbin/parted {$dev} --script -- rm {$part}");
+	shell_exec_debug_debug("/usr/sbin/parted {$dev} --script -- rm {$part}");
 }
 
 #########################################################
@@ -340,11 +340,11 @@ function remove_config_disk($sn) {
 #########################################################
 
 function is_mounted($dev) {
-	return (shell_exec("mount 2>&1|grep -c '${dev} '") == 0) ? FALSE : TRUE;
+	return (shell_exec_debug("mount 2>&1|grep -c '${dev} '") == 0) ? FALSE : TRUE;
 }
 
 function get_mount_params($fs, $dev) {
-	$discard = trim(shell_exec("cat /sys/block/".preg_replace("#\d+#i", "", basename($dev))."/queue/discard_max_bytes 2>/dev/null")) ? ",discard" : "";
+	$discard = trim(shell_exec_debug("cat /sys/block/".preg_replace("#\d+#i", "", basename($dev))."/queue/discard_max_bytes 2>/dev/null")) ? ",discard" : "";
 	switch ($fs) {
 		case 'hfsplus':
 			return "force,rw,users,async,umask=000";
@@ -386,12 +386,12 @@ function do_mount_local($info) {
 			@mkdir($dir,0777,TRUE);
 			$cmd = "mount -t $fs -o ".get_mount_params($fs, $dev)." '${dev}' '${dir}'";
 			debug("Mounting drive with command: $cmd");
-			$o = shell_exec($cmd." 2>&1");
+			$o = shell_exec_debug($cmd." 2>&1");
 			if ($o != "" && $fs == "ntfs") {
 				debug("Mount failed with error: $o");
 				$cmd = "mount -t $fs -r -o ".get_mount_params($fs, $dev)." '${dev}' '${dir}'";
 				debug("Mounting drive read only with command: $cmd");
-				$o = shell_exec($cmd." 2>&1");
+				$o = shell_exec_debug($cmd." 2>&1");
 			}
 			foreach (range(0,5) as $t) {
 			if (is_mounted($dev)) {
@@ -413,7 +413,7 @@ function do_mount_local($info) {
 function do_unmount($dev, $dir, $force = FALSE) {
 	if (is_mounted($dev) != 0) {
 		debug("Unmounting ${dev}...");
-		$o = shell_exec("umount".($force ? " -f -l" : "")." '${dev}' 2>&1");
+		$o = shell_exec_debug("umount".($force ? " -f -l" : "")." '${dev}' 2>&1");
 		for ($i=0; $i < 10; $i++) {
 			if (! is_mounted($dev)) {
 				if (is_dir($dir)) rmdir($dir);
@@ -436,7 +436,7 @@ function do_unmount($dev, $dir, $force = FALSE) {
 #########################################################
 
 function is_shared($name) {
-	return ( shell_exec("smbclient -g -L localhost -U% 2>&1|awk -F'|' '/Disk/{print $2}'|grep -c '${name}'") == 0 ) ? FALSE : TRUE;
+	return ( shell_exec_debug("smbclient -g -L localhost -U% 2>&1|awk -F'|' '/Disk/{print $2}'|grep -c '${name}'") == 0 ) ? FALSE : TRUE;
 }
 
 function config_shared($sn, $part) {
@@ -494,8 +494,8 @@ function add_smb_share($dir, $share_name) {
 		file_put_contents($paths['smb_extra'], $c);
 	}
 	debug("Reloading Samba configuration. ");
-	shell_exec("killall -s 1 smbd 2>/dev/null && killall -s 1 nmbd 2>/dev/null");
-	shell_exec("/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
+	shell_exec_debug("killall -s 1 smbd 2>/dev/null && killall -s 1 nmbd 2>/dev/null");
+	shell_exec_debug("/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
 	if(is_shared($share_name)) {
 		debug("Directory '${dir}' shared successfully."); return TRUE;
 	} else {
@@ -522,8 +522,8 @@ function rm_smb_share($dir, $share_name) {
 		file_put_contents($paths['smb_extra'], $c);
 	}
 	debug("Reloading Samba configuration. ");
-	shell_exec("/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) close-share '${share_name}' 2>&1");
-	shell_exec("/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
+	shell_exec_debug("/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) close-share '${share_name}' 2>&1");
+	shell_exec_debug("/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
 	if(! is_shared($share_name)) {
 		debug("Successfully removed share '${share_name}'."); return TRUE;
 	} else {
@@ -544,7 +544,7 @@ function add_nfs_share($dir) {
 			$reload = TRUE;
 		}
 	}
-	if ($reload) shell_exec("/usr/sbin/exportfs -ra | logger");
+	if ($reload) shell_exec_debug("/usr/sbin/exportfs -ra | logger");
 }
 
 function rm_nfs_share($dir) {
@@ -558,7 +558,7 @@ function rm_nfs_share($dir) {
 			$reload = TRUE;
 		}
 	}
-	if ($reload) shell_exec("/usr/sbin/exportfs -ra | logger");
+	if ($reload) shell_exec_debug("/usr/sbin/exportfs -ra | logger");
 	return TRUE;
 }
 
@@ -617,10 +617,10 @@ function get_samba_mounts() {
 	$samba_mounts = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
 	foreach ($samba_mounts as $device => $mount) {
 		$mount['device'] = $device;
-		$mount['target'] = trim(shell_exec("cat /proc/mounts 2>&1|grep '".str_replace(" ", '\\\040', $device)."'|awk '{print $2}'"));
+		$mount['target'] = trim(shell_exec_debug("cat /proc/mounts 2>&1|grep '".str_replace(" ", '\\\040', $device)."'|awk '{print $2}'"));
 		$mount['fstype'] = "cifs";
-		$mount['size']   = intval(trim(shell_exec("df --output=size,source 2>/dev/null|grep -v 'Filesystem'|grep '${device}'|awk '{print $1}'")))*1024;
-		$mount['used']   = intval(trim(shell_exec("df --output=used,source 2>/dev/null|grep -v 'Filesystem'|grep '${device}'|awk '{print $1}'")))*1024;
+		$mount['size']   = intval(trim(shell_exec_debug("df --output=size,source 2>/dev/null|grep -v 'Filesystem'|grep '${device}'|awk '{print $1}'")))*1024;
+		$mount['used']   = intval(trim(shell_exec_debug("df --output=used,source 2>/dev/null|grep -v 'Filesystem'|grep '${device}'|awk '{print $1}'")))*1024;
 		$mount['avail']  = $mount['size'] - $mount['used'];
 		$mount['automount'] = is_samba_automount($mount['device']);
 		if (! $mount["mountpoint"]) {
@@ -641,7 +641,7 @@ function do_mount_samba($info) {
 		$cmd = "mount -t $fs -o ".$params." '${dev}' '${dir}'";
 		$params = sprintf(get_mount_params($fs, $dev), ($info['user'] ? $info['user'] : "guest" ), '*******');
 		debug("Mounting share with command: mount -t $fs -o ".$params." '${dev}' '${dir}'");
-		$o = shell_exec($cmd." 2>&1");
+		$o = shell_exec_debug($cmd." 2>&1");
 		foreach (range(0,5) as $t) {
 			if (is_mounted($dev)) {
 				@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
@@ -688,7 +688,7 @@ function get_unasigned_disks() {
 	}
 	natsort($paths);
 	$unraid_flash = realpath("/dev/disk/by-label/UNRAID");
-	foreach (parse_ini_string(shell_exec("/usr/bin/cat /proc/mdcmd 2>/dev/null")) as $k => $v) {
+	foreach (parse_ini_string(shell_exec_debug("/usr/bin/cat /proc/mdcmd 2>/dev/null")) as $k => $v) {
 		if (strpos($k, "rdevName") !== FALSE && strlen($v)) {
 			$unraid_disks[] = realpath("/dev/$v");
 		}
@@ -723,8 +723,8 @@ function get_all_disks_info($bus="all") {
 	$disks = get_unasigned_disks();
 	foreach ($disks as $key => $disk) {
 		if ($disk['type'] != $bus && $bus != "all") continue;
-		$disk['temperature'] = get_temp($key);
-		$disk['size'] = intval(trim(shell_exec("blockdev --getsize64 ${key} 2>/dev/null")));
+		$disk['temperature'] = "*";
+		$disk['size'] = intval(trim(shell_exec_debug("blockdev --getsize64 ${key} 2>/dev/null")));
 		$disk = array_merge($disk, get_disk_info($key));
 		foreach ($disk['partitions'] as $k => $p) {
 			if ($p) $disk['partitions'][$k] = get_partition_info($p);
@@ -747,7 +747,7 @@ function get_udev_info($device, $udev=NULL, $reload) {
 		debug("Using udev cache for '$device'.", "DEBUG");
 		return $state[$device];
 	} else {
-		$state[$device] = parse_ini_string(shell_exec("udevadm info --query=property --path $(udevadm info -q path -n $device 2>/dev/null) 2>/dev/null"));
+		$state[$device] = parse_ini_string(shell_exec_debug("udevadm info --query=property --path $(udevadm info -q path -n $device 2>/dev/null) 2>/dev/null"));
 		save_ini_file($paths['state'], $state);
 		debug("Not using udev cache for '$device'.", "DEBUG");
 		return $state[$device];
@@ -791,9 +791,9 @@ function get_partition_info($device, $reload=FALSE){
 		}
 		$disk['fstype'] = safe_name($attrs['ID_FS_TYPE']);
 		$disk['fstype'] = (! $disk['fstype'] && verify_precleared($disk['disk'])) ? "precleared" : $disk['fstype'];
-		$disk['target'] = str_replace("\\040", " ", trim(shell_exec("cat /proc/mounts 2>&1|grep ${device}|awk '{print $2}'")));
-		$disk['size']   = intval(trim(shell_exec("blockdev --getsize64 ${device} 2>/dev/null")));
-		$disk['used']   = intval(trim(shell_exec("df --output=used,source 2>/dev/null|grep -v 'Filesystem'|grep ${device}|awk '{print $1}'")))*1024;
+		$disk['target'] = str_replace("\\040", " ", trim(shell_exec_debug("cat /proc/mounts 2>&1|grep ${device}|awk '{print $2}'")));
+		$disk['size']   = intval(trim(shell_exec_debug("blockdev --getsize64 ${device} 2>/dev/null")));
+		$disk['used']   = intval(trim(shell_exec_debug("df --output=used,source 2>/dev/null|grep -v 'Filesystem'|grep ${device}|awk '{print $1}'")))*1024;
 		$disk['avail']  = $disk['size'] - $disk['used'];
 		if ( $disk['mountpoint'] = get_config($disk['serial'], "mountpoint.{$disk[part]}") ) {
 			if (! $disk['mountpoint'] ) goto empty_mountpoint;
@@ -845,5 +845,5 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 
 function setSleepTime($device) {
 	$device = preg_replace("/\d+$/", "", $device);
-	shell_exec("hdparm -S180 $device 2>&1");
+	shell_exec_debug("hdparm -S180 $device 2>&1");
 }

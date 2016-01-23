@@ -287,6 +287,27 @@ function getlog() {
 		});
 	}
 
+	function load_hosts(el, action) {
+		var target = $(el).parents("div").find("*[name='IP']");
+		var old = $(el).html();
+		$(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> Searching ...");
+		$.post(URL,{'action':action,'var':vars}).done(function(data){
+			$(el).html(old);
+			if (data) {
+				var hosts = data.split('\n');
+				if (hosts.length) {
+					var add = "<select name='IP'>";
+					for(var i = 0;i < hosts.length;i++){
+						if (hosts[i].length) {
+							add += "<option value='"+hosts[i]+"'>"+hosts[i]+"</option>";
+						}
+					}
+					target.replaceWith(add+"</select>")
+				}
+			}
+		});
+	}
+
 	function load_shares(el) {
 		old = $(el).html();
 		$(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> Loading ...");
@@ -386,10 +407,13 @@ function getlog() {
 </form>
 <div id="dialog-confirm" style="display:none;" title="Dialog Title"></div>
 <div id="dialog-samba" style="display:none;" title=""></div>
+
 <div id="add_samba-defaults" style="display:none;">
 	<dl>
 		<dt>IP/Host:</dt>
 		<dd><span class="samba_hosts"><input type="text" name="IP"></span></dd>
+		<dt>&nbsp;</dt>
+		<dd><button type="button" onclick="load_hosts(this, 'list_samba_hosts');">Search for servers in <?=$var['WORKGROUP'];?></button></dd>
 		<dt>Username:</dt>
 		<dd><input type="text" name="USER"></dd>
 		<dt>Password:</dt>

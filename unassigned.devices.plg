@@ -3,18 +3,22 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.01.21">
+<!ENTITY version   "2016.01.23">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/dlandon/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"9a350aae8a6f1feb3f1b5d062b845aa3">
+<!ENTITY MD5		"ea37cd717fa56bc4a2505c81fbb2cff0">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
 
 <CHANGES>
 ##&name;
+- Fix: Reverted the host lookup in the Add SMB Mount.  The host lookup does not use nmap.
+- Fix: Don't poll unmounted disks for standby status.  Using hdparm on some disks causes them to spin up.
+
+###2016.01.21
 - Fix: Remove nmap package.
 
 ###2016.01.20
