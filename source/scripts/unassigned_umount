@@ -20,21 +20,21 @@ $DEVNAME = (isset($_ENV['DEVNAME'])) ? $_ENV['DEVNAME'] : ( isset($argv[1]) ? $a
 $DEVNAME = (file_exists($DEVNAME)) ? realpath($DEVNAME) : $DEVNAME;
 if (! $DEVNAME) die("Fail: device not defined.\n");
 
-# Deal with SMB shares
+# Deal with Remote SMB mouonts
 if (strpos($DEVNAME, "//") === 0 || $DEVNAME == "all" || $DEVNAME == "shutdown") {
 	foreach (get_samba_mounts() as $info) {
 		$device = $info['device'];
 		if ( preg_match("#".$DEVNAME."#i", $device) || $DEVNAME == "all" || $DEVNAME == "shutdown" ) {
 			if (! $info['automount'] && $DEVNAME == "all" ) {
-				debug("SMB Share '${info[device]}' auto mount is disabled, not unmounted.");
+				debug("Remote SMB Share '${info[device]}' auto mount is disabled, not unmounted.");
 				continue;
 			}
-			debug("SMB share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))));
+			debug("Remote SMB share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))));
 			if ( is_mounted($info['device']) ) {
 				@touch(sprintf($paths['unmounting'],basename($info['device'])));
-				debug("Removing SMB share '${info[device]}' ...");
+				debug("Removing Remote SMB share '${info[device]}' ...");
 				execute_script($info, "REMOVE");
-				debug("Unmounting SMB Share ${info[device]} ..");
+				debug("Unmounting Remote SMB Share ${info[device]} ..");
 				if ( do_unmount($info['device'], $info['mountpoint']) ) {
 					if ( rm_smb_share($info['mountpoint'], $info['device']) ) {
 						debug("Share '${info[device]}' unmount successfull.");
@@ -42,7 +42,7 @@ if (strpos($DEVNAME, "//") === 0 || $DEVNAME == "all" || $DEVNAME == "shutdown")
 					}
 				}
 			} else {
-				debug("SMB share '${info[device]}' not mounted, cannot unmount...");
+				debug("Remote SMB share '${info[device]}' not mounted, cannot unmount...");
 			}
 		}
 	}

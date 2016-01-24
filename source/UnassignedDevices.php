@@ -87,11 +87,11 @@ function render_partition($disk, $partition) {
 	$out[] = "<td>-</td>";
 	$out[] = "<td >".$partition['fstype']."</td>";
 	$out[] = "<td><span>".my_scale($partition['size'], $unit)." $unit</span></td>";
-	$out[] = "<td>".(strlen($partition['target']) ? shell_exec_debug("lsof '${partition[target]}' 2>/dev/null|grep -c -v COMMAND") : "-")."</td>";
+	$out[] = "<td>".(strlen($partition['target']) ? shell_exec("lsof '${partition[target]}' 2>/dev/null|grep -c -v COMMAND") : "-")."</td>";
 	$out[] = render_used_and_free($partition);
 	$out[] = "<td>-</td>";
 	$out[] = "<td title='Turn on to Share Device with SMB and/or NFS.'><input type='checkbox' class='toggle_share' info='".htmlentities(json_encode($partition))."' ".(($partition['shared']) ? 'checked':'')."></td>";
-	$out[] = "<td><a title='Edit Device Script.' href='/Main/EditScript?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><img src='/webGui/images/default.png' style='cursor:pointer;width:16px;".( (get_config($partition['serial'],"command.{$partition[part]}")) ? "":"opacity: 0.4;" )."'></a></td>";
+	$out[] = "<td><a title='Edit Device Script.' href='/Main/EditScript?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><img src='plugins/${plugin}/icons/edit_script.png' style='cursor:pointer;width:16px;".( (get_config($partition['serial'],"command_bg.{$partition[part]}") == "true") ? "":"opacity: 0.4;" )."'></a></td>";
 	$out[] = "<tr>";
 	return $out;
 }
@@ -160,7 +160,7 @@ switch ($_POST['action']) {
 				} elseif($is_precleared) {
 					$hdd_serial = "<span class='toggle-hdd' hdd='{$disk_name}'><i class='glyphicon glyphicon-hdd hdd'></i><span style='margin:4px;'></span>{$disk[serial]}</span>{$preclear_link}<div id='preclear_{$disk_name}'></div>";
 				} else {
-					$hdd_serial = "<span class='exec toggle-hdd' hdd='{$disk_name}'><i class='glyphicon glyphicon-hdd hdd'></i><span style='margin:4px;'></span>{$disk[serial]}</span>{$preclear_link}<div id='preclear_{$disk_name}'></div>";
+					$hdd_serial = "<span title='Click to view partitions/shares.' class='exec toggle-hdd' hdd='{$disk_name}'><i class='glyphicon glyphicon-hdd hdd'></i><i class='glyphicon glyphicon-plus-sign glyphicon-append'></i><span style='margin:4px;'></span>{$disk[serial]}</span>{$preclear_link}<div id='preclear_{$disk_name}'></div>";
 				}
 
 				if ($preclearing) {
@@ -171,7 +171,7 @@ switch ($_POST['action']) {
 					echo "<td><img src='/webGui/images/green-blink.png'> {$disk_name}</td>";
 				} else {
 					echo "<td title='Run Smart Report on {$disk_name}.'><img src='/webGui/images/".(is_disk_running($disk['device']) ? "green-on.png":"green-blink.png" )."'>";
-					echo "<a href='/Main/Device?name={$disk_name}&file=/tmp/screen_buffer'> {$disk_name}</a></td>";
+					echo "<a href='/Main/DeviceAttributes?name={$disk_name}&file=/tmp/screen_buffer'> {$disk_name}</a></td>";
 				}
 				echo "<td>{$hdd_serial}</td>";
 				echo "<td class='mount'>{$mbutton}</td>";
@@ -199,7 +199,7 @@ switch ($_POST['action']) {
 		# SAMBA Mounts
 		$samba_mounts = get_samba_mounts();
 		echo "<div id='smb_tab' class='show-complete'>";
-		echo "<div id='title'><span class='left'><img src='/plugins/dynamix/icons/smbsettings.png' class='icon'>SMB Mounts</span></div>";
+		echo "<div id='title'><span class='left'><img src='/plugins/dynamix/icons/smbsettings.png' class='icon'>Remote SMB Shares</span></div>";
 		echo "<table class='samba_mounts custom_head'><thead><tr><td>Device</td><td>Source</td><td>Mount point</td><td></TD><td>Remove</td><td>Size</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Script</td></tr></thead>";    echo "<tbody>";
 		if (count($samba_mounts)) {
 			$odd="odd";
@@ -210,26 +210,26 @@ switch ($_POST['action']) {
 				printf( "<td><img src='/webGui/images/%s'> smb</td>", ( $is_alive ? "green-on.png":"green-blink.png" ));
 				echo "<td><div><i class='glyphicon glyphicon-globe hdd'></i><span style='margin:4px;'></span>{$mount[device]}</div></td>";
 				if ($mounted) {
-					echo "<td><i class='glyphicon glyphicon-save hdd'></i><span style='margin:4px;'><a title='Browse SMB Mount.' href='/Shares/Browse?dir={$mount[mountpoint]}'>{$mount[mountpoint]}</a></td>";
+					echo "<td><i class='glyphicon glyphicon-save hdd'></i><span style='margin:4px;'><a title='Browse Remote SMB Share.' href='/Shares/Browse?dir={$mount[mountpoint]}'>{$mount[mountpoint]}</a></td>";
 				} else {
-					echo "<td><form title='Click to change SMB Mount Name.' method='POST' action='/plugins/${plugin}/UnassignedDevices.php?action=change_samba_mountpoint&device={$mount[device]}' target='progressFrame' style='display:inline;margin:0;padding:0;'>
+					echo "<td><form title='Click to change Remote SMB Share Name.' method='POST' action='/plugins/${plugin}/UnassignedDevices.php?action=change_samba_mountpoint&device={$mount[device]}' target='progressFrame' style='display:inline;margin:0;padding:0;'>
 					<i class='glyphicon glyphicon-save hdd'></i><span style='margin:4px;'></span><span class='text exec'><a>{$mount[mountpoint]}</a></span>
 					<input class='input' type='text' name='mountpoint' value='{$mount[mountpoint]}' hidden />
 					</form></td>";
 				}
 				echo "<td><span style='width:auto;text-align:right;'>".($mounted ? "<button type='button' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'umount','{$mount[device]}');\"><i class='glyphicon glyphicon-export'></i> Unmount</button>" : "<button type='button' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'mount','{$mount[device]}');\"><i class='glyphicon glyphicon-import'></i>  Mount</button>")."</span></td>";
-				echo $mounted ? "<td><i class='glyphicon glyphicon-remove hdd'></i></td>" : "<td><a class='exec' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount[device]}\");' title='Remove SMB mount.'> <i class='glyphicon glyphicon-remove hdd'></i></a></td>";
+				echo $mounted ? "<td><i class='glyphicon glyphicon-remove hdd'></i></td>" : "<td><a class='exec' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount[device]}\");' title='Remove Remote SMB Share.'> <i class='glyphicon glyphicon-remove hdd'></i></a></td>";
 				echo "<td><span>".my_scale($mount['size'], $unit)." $unit</span></td>";
 				echo render_used_and_free($mount);
 				echo "<td title='Turn on to Mount Device when Array is Started.'><input type='checkbox' class='samba_automount' device='{$mount[device]}' ".(($mount['automount']) ? 'checked':'')."></td>";
-				echo "<td><a title='Edit SMB Mount Script.' href='/Main/EditScript?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><img src='/webGui/images/default.png' style='cursor:pointer;width:16px;".( (get_samba_config($mount['device'],"command")) ? "":"opacity: 0.4;" )."'></a></td>";
+				echo "<td><a title='Edit Remote SMB Share Script.' href='/Main/EditScript?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><img src='plugins/${plugin}/icons/edit_script.png' style='cursor:pointer;width:16px;".( (get_samba_config($mount['device'],"command_bg") == "true") ? "":"opacity: 0.4;" )."'></a></td>";
 				echo "</tr>";
 				$odd = ($odd == "odd") ? "even" : "odd";
 			}
 		} else {
-			echo "<tr><td colspan='12' style='text-align:center;font-weight:bold;'>No SMB mounts configured.</td></tr>";
+			echo "<tr><td colspan='12' style='text-align:center;font-weight:bold;'>No Remote SMB Shares configured.</td></tr>";
 		}
-		echo "</tbody></table><button type='button' onclick='add_samba();'>Add SMB mount</button></div>";
+		echo "</tbody></table><button type='button' onclick='add_samba_share();'>Add Remote SMB Share</button></div>";
 
 		$config_file = $GLOBALS["paths"]["config_file"];
 		$config = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
@@ -285,6 +285,8 @@ switch ($_POST['action']) {
 	case 'remove_hook':
 		@unlink($paths['reload']);
 		break;
+
+	/*  CONFIG  */
 	case 'automount':
 		$serial = urldecode(($_POST['serial']));
 		$status = urldecode(($_POST['status']));
@@ -319,6 +321,8 @@ switch ($_POST['action']) {
 			rm_nfs_share($info['mountpoint']);
 		}
 		break;
+
+	/*  DISK  */
 	case 'mount':
 		$device = urldecode($_POST['device']);
 		if (file_exists($device) || strpos($device, "//") === 0 ) {
@@ -344,19 +348,14 @@ switch ($_POST['action']) {
 		$fs = urldecode($_POST['fs']);
 		echo json_encode(array( 'result' => format_partition($device, $fs)));
 		break;
-	case 'list_samba_shares':
-		$ip = urldecode($_POST['IP']);
-		$user = isset($_POST['USER']) ? urlencode($_POST['USER']) : NULL;
-		$pass = isset($_POST['PASS']) ? urlencode($_POST['PASS']) : NULL;
-		$login = $user ? ($pass ? "-U '{$user}%{$pass}'" : "-U '{$user}' -N") : "-U%";
-		echo shell_exec_debug("smbclient -g -L $ip $login 2>&1|awk -F'|' '/Disk/{print $2}'|sort");
-		break;
+
+	/*  SAMBA  */
 	case 'list_samba_hosts':
 		$hosts = array();
-		foreach ( explode(PHP_EOL, shell_exec_debug("/usr/bin/nmblookup {$var[WORKGROUP]} 2>/dev/null") ) as $l ) {
+		foreach ( explode(PHP_EOL, shell_exec("/usr/bin/nmblookup {$var[WORKGROUP]} 2>/dev/null") ) as $l ) {
 			if (! is_bool( strpos( $l, "<00>") ) ) {
 				$ip = explode(" ", $l)[0];
-				foreach ( explode(PHP_EOL, shell_exec_debug("/usr/bin/nmblookup -r -A $ip 2>&1") ) as $l ) {
+				foreach ( explode(PHP_EOL, shell_exec("/usr/bin/nmblookup -r -A $ip 2>&1") ) as $l ) {
 					if (! is_bool( strpos( $l, "<00>") ) ) {
 						$hosts[] = trim(explode(" ", $l)[0])."\n";
 						break;
@@ -367,7 +366,25 @@ switch ($_POST['action']) {
 		natsort($hosts);
 		echo implode(PHP_EOL, array_unique($hosts));
 		break;
-	case 'add_samba_mount':
+	case 'list_samba_shares':
+		$ip = urldecode($_POST['IP']);
+		$user = isset($_POST['USER']) ? urlencode($_POST['USER']) : NULL;
+		$pass = isset($_POST['PASS']) ? urlencode($_POST['PASS']) : NULL;
+		$login = $user ? ($pass ? "-U '{$user}%{$pass}'" : "-U '{$user}' -N") : "-U%";
+		echo shell_exec("smbclient -g -L $ip $login 2>&1|awk -F'|' '/Disk/{print $2}'|sort");
+		break;
+
+	/*  NFS  */
+	case 'list_nfs_shares':
+		$ip = urldecode($_POST['IP']);
+		foreach ( explode(PHP_EOL, shell_exec("/usr/sbin/showmount --no-headers -e '{$ip}' 2>/dev/null|cut -d' ' -f1|sort")) as $name ) {
+			$name .= "\n";
+			echo basename($name);
+		}
+		break;
+
+	/* SMB SHARES */
+	case 'add_samba_share':
 		$ip = urldecode($_POST['IP']);
 		$user = isset($_POST['USER']) ? urldecode($_POST['USER']) : "";
 		$pass = isset($_POST['PASS']) ? urldecode($_POST['PASS']) : "";
@@ -392,6 +409,8 @@ switch ($_POST['action']) {
 		set_samba_config($device, "command_bg", urldecode($_POST['background'])) ;
 		echo json_encode(array( 'result' => set_samba_config($device, "command", $cmd)));
 		break;
+
+	/*  MISC */
 	case 'get_preclear':
 		$device = urldecode($_POST['device']);
 		if (is_file("/tmp/preclear_stat_{$device}")) {
@@ -407,9 +426,6 @@ switch ($_POST['action']) {
 	case 'rm_preclear':
 		$device = urldecode($_POST['device']);
 		@unlink("/tmp/preclear_stat_{$device}");
-		break;
-	case 'send_log':
-		return sendLog();
 		break;
 	case 'rm_partition':
 		$device = urldecode($_POST['device']);

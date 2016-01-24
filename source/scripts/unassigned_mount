@@ -19,17 +19,17 @@ $DEVNAME = (isset($_ENV['DEVNAME'])) ? $_ENV['DEVNAME'] : ( isset($argv[1]) ? $a
 $DEVNAME = (file_exists($DEVNAME)) ? realpath($DEVNAME) : $DEVNAME;
 if (! $DEVNAME) die("Fail: device not defined.\n");
 
-# Mount SMB shares
+# Mount Remote SMB mounts
 if (strpos($DEVNAME, "//") === 0 || $DEVNAME == "all") {
 	foreach (get_samba_mounts() as $info) {
 		$device = $info['device'];
 		if ( preg_match("#".$DEVNAME."#i", $device) || $DEVNAME == "all" ) {
 			if (! $info['automount'] && $DEVNAME == "all" ) {
-				debug("SMB mount '${info[device]}' auto mount is disabled, not mounted.");
+				debug("Remote SMB mount '${info[device]}' auto mount is disabled, not mounted.");
 				continue;
 			}
-			debug("SMB share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))));
-			debug("Mounting SMB share '${info[device]}' '${info[mountpoint]}'...");
+			debug("Remote SMB share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))));
+			debug("Mounting Remote SMB share '${info[device]}' '${info[mountpoint]}'...");
 			@touch(sprintf($paths['unmounting'],basename($info['device'])));
 			if (do_mount( $info )) {
 				add_smb_share($info['mountpoint'], $info['device']);

@@ -83,7 +83,7 @@ if (count($_POST)) {
 	}
 </script>
 
-<form markdown="1" name="cache_settings" method="POST">
+<form markdown="1" name="common_settings" method="POST">
 Common Script:
 : <input type="text" name="common_cmd" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin?>/','sh',false,true,true);" value="<?=$cfg['Config']['common_cmd'];?>">
 
@@ -103,7 +103,7 @@ Destructive Mode:
 
 &nbsp;
 <div id="title" class="nocontrol">SMB Security:</div>
-<form markdown="1" name="cache_settings" method="POST">
+<form markdown="1" name="smb_settings" method="POST">
 <dl>
 	<dt>Enable SMB Security:</dt>
 	<dd>
@@ -142,11 +142,11 @@ Destructive Mode:
 
 &nbsp;
 <div id="title" class="nocontrol">NFS Settings:</div>
-<form markdown="1" name="cache_settings" method="POST">
+<form markdown="1" name="nfs_settings" method="POST">
 <dl>
 	<dt>Enable NFS export:</dt>
 	<dd>
-		<select name="nfs_export" size="1">
+		<select name="nfs_export" size="1" <?if ($var['shareNFSEnabled']=="no"):?>disabled<?endif;?>>
 		<?=mk_option($cfg['Config']["nfs_export"], "no", "No")?>
 		<?=mk_option($cfg['Config']["nfs_export"], "yes", "Yes")?>
 		</select>

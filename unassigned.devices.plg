@@ -3,18 +3,26 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.01.23">
+<!ENTITY version   "2016.01.24">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/dlandon/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"ea37cd717fa56bc4a2505c81fbb2cff0">
+<!ENTITY MD5		"031174edadd187bed8990d79f7a57f38">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
 
 <CHANGES>
 ##&name;
+###&version;
+- Fix: Changed terminology from 'SMB Mount' to 'Remote SMB Mount'.
+- FIx: Smart Report limited to 'Disk Attributes'.
+- Fix: Cosmetic changes.
+- Add: Capability to mount NFS share as well as SMB share to 'Remote SMB Mount'.
+- Add: Remove script files when the configuration is removed for devices and Remote SMB Mounts.
+
+###2016.01.23
 - Fix: Reverted the host lookup in the Add SMB Mount.  The host lookup does not use nmap.
 - Fix: Don't poll unmounted disks for standby status.  Using hdparm on some disks causes them to spin up.
 
@@ -52,22 +60,10 @@
 - Fix: Several packages downloading when not necessary.
 
 ###2016.01,16
+- First dlandon updated version.
 - Fix: Revert to 2015.09.19.
 - Fix: Compatibility with unRAID 6.1.7.
 - Fix: Update and remove plugin was messy.
-
-###2015.11.18
-- Fix: better logging
-- Add: force unmount after 5 attempts
-
-###2015.09.28b
-- debug: debug version
-
-###2015.09.25
-- Fix: minor fixes
-
-###2015.09.22b
-- Add: NFS share mount
 
 ###2015.09.19
 - Fix: DVD/BluRay drives being included

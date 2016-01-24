@@ -55,6 +55,7 @@ case \$ACTION in
     // do your stuff here
     echo "Added"
   ;;
+
   'REMOVE' )
     // do your stuff here
     echo "Removed"

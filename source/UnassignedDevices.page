@@ -82,7 +82,6 @@ function getlog() {
 	table.usb_disks thead tr>td{text-align:left;width:8%;padding-left:12px;}
 	table.usb_disks {padding:0px;margin:-21px 0px 22px 0px;border-collapse:collapse;white-space:nowrap;}
 	table.usb_disks tr>td{text-align:left;width:8%;padding-left:12px;padding-right:0;white-space:nowrap;}
-
 	table.usb_disks tr>td+td+td{min-width:0px;}
 	table.usb_disks tr>td+td+td+td{text-align:center;padding-left:0;padding-right:12px;width:auto;min-width:0px;}
 	table.usb_disks tr>td+td+td+td+td+td{text-align:right;padding-left:0;padding-right:12px;width:auto;}
@@ -123,7 +122,10 @@ function getlog() {
 	var vars = <?=json_encode($var);?>;
 	var tab_usbdisks = $('input[name$="tabs"]').length;
 	$('#tab'+tab_usbdisks).bind({click:function() {pin_tab(tab_usbdisks); detect_usb_disk_change(tab_usbdisks);}});
-	$(function(){usb_disks(tab_usbdisks);detect_usb_disk_change(tab_usbdisks);});
+	$(function(){
+		usb_disks(tab_usbdisks);
+		detect_usb_disk_change(tab_usbdisks);
+	});
 
 	function openWindow_fsck(cmd,title,height,width) {
 		var run = cmd;
@@ -255,35 +257,36 @@ function getlog() {
 		window.open('/plugins/preclear.disk/Preclear.php?action=show_preclear&device='+device, 'Preclear', options);
 	}
 
-	function add_samba(){
-		var title = 'Add SMB share';
-		$( "#dialog-samba" ).html($("#add_samba-defaults").html());
-		$( "#dialog-samba" ).find(".switch").switchButton({labels_placement:"right",on_label:'YES',off_label:'NO'});
-		$( "#dialog-samba" ).find(".switch-button-background").css("margin-top", "6px");
-		$( "#dialog-samba" ).dialog({
-			title: title,
-			resizable: false,
-			width: 600,
-			modal: true,
-			show : {effect: 'fade' , duration: 250},
-			hide : {effect: 'fade' , duration: 250},
-			buttons: {
-				"Add": function() {
-					$( this ).dialog( "close" );
-					var opts = new Object();
-					opts["action"] = "add_samba_mount";
-					opts["IP"]    = getVal(this,"IP");
-					opts["USER"]  = getVal(this,"USER");
-					opts["PASS"]  = getVal(this,"PASS");
-					opts["SHARE"] = getVal(this,"SHARE");
-					if (opts.SHARE && opts.IP) {
-						$.post(URL,opts).done(function(){usb_disks(tab_usbdisks);});
-					}
-				},
-				Cancel: function() {
-					$( this ).dialog( "close" );
+	function add_samba_share(){
+		var title = 'Add Remote SMB Share';
+		$( "#dialog-confirm" ).html($("#add-remote-defaults").html());
+		$( "#dialog-confirm" ).find(".switch").switchButton({labels_placement:"right",on_label:'YES',off_label:'NO'});
+		$( "#dialog-confirm" ).find(".switch-button-background").css("margin-top", "6px");
+		$( "#dialog-confirm" ).dialog({
+		title: title,
+		resizable: false,
+		width: 600,
+		modal: true,
+		show : {effect: 'fade' , duration: 250},
+		hide : {effect: 'fade' , duration: 250},
+		buttons: {
+			"Add": function() {
+				$( this ).dialog( "close" );
+				var opts = new Object();
+				opts["action"]   = "add_samba_share";
+				opts["PROTOCOL"] = getVal(this,"PROTOCOL");
+				opts["IP"]       = getVal(this,"IP");
+				opts["USER"]     = getVal(this,"USER");
+				opts["PASS"]     = getVal(this,"PASS");
+				opts["SHARE"]    = getVal(this,"SHARE");
+				if (opts.SHARE && opts.IP) {
+					$.post(URL,opts).done(function(){usb_disks(tab_usbdisks);});
 				}
+			},
+			Cancel: function() {
+				$( this ).dialog( "close" );
 			}
+		}
 		});
 	}
 
@@ -308,15 +311,15 @@ function getlog() {
 		});
 	}
 
-	function load_shares(el) {
-		old = $(el).html();
+	function load_shares(el, action) {
+		var old = $(el).html();
+		var target = $(el).parents("div").find("*[name='SHARE']");
 		$(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> Loading ...");
 		var opts = new Object();
-		opts["action"] = "list_samba_shares";
-		opts["IP"] = getVal("#dialog-samba","IP");
-		opts["USER"] = getVal("#dialog-samba","USER");
-		opts["PASS"] = getVal("#dialog-samba","PASS");
-		if (! opts.IP.length) return false;
+		opts["action"] = action;
+		opts["IP"] = getVal("#dialog-confirm","IP");
+		opts["USER"] = getVal("#dialog-confirm","USER");
+		opts["PASS"] = getVal("#dialog-confirm","PASS");
 		$.post(URL,opts).done(function(data){
 			$(el).html(old);
 			if (data) {
@@ -328,7 +331,7 @@ function getlog() {
 							add += "<option value='"+shares[i]+"'>"+shares[i]+"</option>";
 						}
 					}
-					$("#dialog-samba").find(".samba_shares").html(add+"</select>");
+					target.replaceWith(add+"</select>")
 				}
 			}
 		});
@@ -395,6 +398,15 @@ function getlog() {
 		});
 	}
 
+	function load_samba_opts(el) {
+		p = $(el).parents("div").find(".options");
+		if ($(el).val() == "SMB") {
+			p.html($("#add-samba-defaults").html());
+		} else if ($(el).val() == "NFS") {
+			p.html($("#add-nfs-defaults").html());
+		}
+	}
+
 	function sendLog() {
 		$.post(URL,{'action':'send_log'}).always(function(){notifier();});
 	}
@@ -408,12 +420,25 @@ function getlog() {
 <div id="dialog-confirm" style="display:none;" title="Dialog Title"></div>
 <div id="dialog-samba" style="display:none;" title=""></div>
 
-<div id="add_samba-defaults" style="display:none;">
+<div id="add-remote-defaults" style="display:none;">
+	<dl>
+		<dt>Protocol:</dt>
+		<dd>
+			<select name="PROTOCOL" onchange="load_samba_opts(this);">
+			<option>Choose</option>
+			<option value="SMB">SMB</option>
+			<option value="NFS">NFS</option>
+			</select>
+		</dd>
+	</dl>
+	<div class="options"></div>
+</div>
+
+<div id="add-nfs-defaults" style="display:none;">
 	<dl>
 		<dt>IP/Host:</dt>
-		<dd><span class="samba_hosts"><input type="text" name="IP"></span></dd>
-		<dt>&nbsp;</dt>
-		<dd><button type="button" onclick="load_hosts(this, 'list_samba_hosts');">Search for servers in <?=$var['WORKGROUP'];?></button></dd>
+		<dd><span class="samba_hosts"></dd>
+		<dd><input type="text" name="IP"></span></dd>
 		<dt>Username:</dt>
 		<dd><input type="text" name="USER"></dd>
 		<dt>Password:</dt>
@@ -421,9 +446,27 @@ function getlog() {
 		<dt>Share:</dt>
 		<dd><span class="samba_shares"><input type='text' name='SHARE'></span></dd>
 		<dt>&nbsp;</dt>
-		<dd><button type="button" onclick="load_shares();">Load Shares</button></dd>
+		<dd><button type="button" onclick="load_shares(this, 'list_nfs_shares');">Load Shares</button></dd>
+	</dl>
+</div>
+
+<div id="add-samba-defaults" style="display:none;">
+	<dl>
+		<dt>IP/Host:</dt>
+		<dd><input type="text" name="IP"></dd>
+		<dt>&nbsp;</dt>
+		<dd><button type="button" onclick="load_hosts(this, 'list_samba_hosts');">Search for servers in <?=$var['WORKGROUP'];?></button></dd>
+		<dt>Username:</dt>
+		<dd><input type="text" name="USER"></dd>
+		<dt>Password:</dt>
+		<dd><input type="password" name="PASS"></dd>
+		<dt>Share:</dt>
+		<dd><input type='text' name='SHARE'></dd>
+		<dt>&nbsp;</dt>
+		<dd><button type="button" onclick="load_shares(this, 'list_samba_shares');">Load Shares</button></dd>
 	</dl>  
 </div>
+
 
 <div id="format_disk" style="display:none;">
 	<dl>
@@ -458,8 +501,8 @@ function getlog() {
 </div>
 
 <blockquote class='inline_help'>
-	<p>You can mount USB devices, sata drives, and SMB shares with unassigned devices.  Any devices with the auto mount switch on will be mounted when the array is started.  XFS and EXT4 formatted drives are mounted with discard (trim) for SSD drives.  All drives and SMB Mounts are unmounted when the array is stopped on the 'unmounting_disks' event.</p>
-	<p>If you want to share your drive, you can turn on the Share switch.  The default for SMB shares is Public read/write access.  Enable SMB Security by user in the Unassigned Devices Settings.  NFS shares are exported and access is read/write.  The export of NFS devices is enabled in the Unassigned Devices settings.  You can also enable a common script that will be executed on every disk mount.</p>
+	<p>You can mount USB devices, sata drives, and Remote SMB shares with unassigned devices.  Any devices with the auto mount switch on will be mounted when the array is started.  XFS and EXT4 formatted drives are mounted with discard (trim) for SSD drives.  All drives and SMB Mounts are unmounted when the array is stopped on the 'unmounting_disks' event.</p>
+	<p>If you want to share your drive, you can turn on the Share switch.  The default for Remote SMB shares is Public read/write access.  Enable SMB Security by user in the Unassigned Devices Settings.  NFS shares are exported and access is read/write.  The export of NFS devices is enabled in the Unassigned Devices settings.  You can also enable a common script that will be executed on every disk mount.</p>
 	<p>Additional options are available when you click on the device identification.  When the disk is unmounted, the mount name of the device can be changed.  A disk can be formatted and an fsck run to check the disk.</p>
 	<p>Unassigned devices includes scripts that are used for mounting and unmounting devices and SMB mounts.  These scripts can be used from the command line if necessary.
 	<p>Unassigned devices scripts:
