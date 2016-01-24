@@ -506,7 +506,7 @@ function add_smb_share($dir, $share_name) {
 	debug("Reloading Samba configuration. ");
 	shell_exec("killall -s 1 smbd 2>/dev/null && killall -s 1 nmbd 2>/dev/null");
 	shell_exec("/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
-	if(is_shared($share_name)) {
+	if (is_shared($share_name)) {
 		debug("Directory '${dir}' shared successfully."); return TRUE;
 	} else {
 		debug("Sharing directory '${dir}' failed."); return FALSE;
@@ -530,14 +530,17 @@ function rm_smb_share($dir, $share_name) {
 		$c = array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_extra_includes);
 		$c = preg_replace('/\n\s*\n\s*\n/s', PHP_EOL.PHP_EOL, implode(PHP_EOL, $c));
 		file_put_contents($paths['smb_extra'], $c);
-	}
-	debug("Reloading Samba configuration. ");
-	shell_exec("/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) close-share '${share_name}' 2>&1");
-	shell_exec("/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
-	if(! is_shared($share_name)) {
-		debug("Successfully removed SMB share '${share_name}'."); return TRUE;
+
+		debug("Reloading Samba configuration. ");
+		shell_exec("/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) close-share '${share_name}' 2>&1");
+		shell_exec("/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
+		if(! is_shared($share_name)) {
+			debug("Successfully removed SMB share '${share_name}'."); return TRUE;
+		} else {
+			debug("Removal of SMB share '${share_name}' failed."); return FALSE;
+		}
 	} else {
-		debug("Removal of SMB share '${share_name}' failed."); return FALSE;
+		return TRUE;
 	}
 }
 

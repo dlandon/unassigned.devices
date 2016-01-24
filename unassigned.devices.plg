@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.01.24">
+<!ENTITY version   "2016.01.24a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/dlandon/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"031174edadd187bed8990d79f7a57f38">
+<!ENTITY MD5		"6b17b232203ac0f6391a87c0b31b2aef">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Changed the disk spin status check.  If the disk is unmounted and there is no script, then the spin status will not be checked, otherwise it will be checked.
+- Fix: Removed sharing log messages that didn't apply when not sharing the device.
+
+###2016.01.24
 - Fix: Changed terminology from 'SMB Mount' to 'Remote SMB Mount'.
 - FIx: Smart Report limited to 'Disk Attributes'.
 - Fix: Cosmetic changes.

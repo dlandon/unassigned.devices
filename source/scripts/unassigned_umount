@@ -62,7 +62,6 @@ foreach(get_unasigned_disks() as $disk) {
 			debug("Drive found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))));
 			if ( is_mounted($info['device']) ) {
 				@touch(sprintf($paths['unmounting'],basename($info['device'])));
-				debug("Removing disk '${info[label]}' share ...");
 				execute_script($info, "REMOVE");
 				if ( rm_smb_share($info['target'], $info['label']) && rm_nfs_share($info['target']) ) {
 					debug("Unmounting disk ${info[label]} ..");
