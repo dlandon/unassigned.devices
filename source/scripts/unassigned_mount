@@ -25,11 +25,10 @@ if (strpos($DEVNAME, "//") === 0 || $DEVNAME == "all") {
 		$device = $info['device'];
 		if ( preg_match("#".$DEVNAME."#i", $device) || $DEVNAME == "all" ) {
 			if (! $info['automount'] && $DEVNAME == "all" ) {
-				debug("Remote SMB mount '${info[device]}' auto mount is disabled, not mounted.");
+				unassigned_log("Remote SMB mount '${info[device]}' auto mount is disabled, not mounted.");
 				continue;
 			}
-			debug("Remote SMB share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))));
-			debug("Mounting Remote SMB share '${info[device]}' '${info[mountpoint]}'...");
+			unassigned_log("Remote SMB share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
 			@touch(sprintf($paths['unmounting'],basename($info['device'])));
 			if (do_mount( $info )) {
 				add_smb_share($info['mountpoint'], $info['device']);
@@ -47,11 +46,11 @@ foreach(get_unasigned_disks() as $name => $disk) {
 		if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "all" ) {
 			$info = get_partition_info($partition,true);
 			if (! $info['automount'] && ( $DEVNAME == "all" || isset($_ENV['DEVNAME']) )) {
-				debug("Disk with serial '${info[serial]}' auto mount is disabled, not mounted.");
+				unassigned_log("Disk with serial '${info[serial]}' auto mount is disabled, not mounted.");
 				continue;
 			}
-			debug("Drive found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))));
-			debug("Adding disk '${info[device]}' ...");
+			unassigned_log("Drive found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
+			unassigned_log("Adding disk '${info[device]}'...");
 			@touch(sprintf($paths['mounting'],basename($info['device'])));
 			if (do_mount( $info )) {
 				if (config_shared( $info['serial'],  $info['part'])) {
@@ -60,7 +59,7 @@ foreach(get_unasigned_disks() as $name => $disk) {
 						add_nfs_share($info['mountpoint']);
 					}
 				} else {
-					debug("Partition '{$info[label]}' marked as not sharable, skipping.");
+					unassigned_log("Partition '{$info[label]}' marked as not sharable, skipping.");
 				}
 				execute_script($info, "ADD");
 				setSleepTime($device);

@@ -3,7 +3,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.01.24a">
+<!ENTITY version   "2016.01.25">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/dlandon/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
@@ -16,6 +16,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Modified logging to be consistent with unraid format and provide clearer information.
+- Fix: Changed the users lookup for smb security to make it more robust.
+
+###2016.01.24a
 - Fix: Changed the disk spin status check.  If the disk is unmounted and there is no script, then the spin status will not be checked, otherwise it will be checked.
 - Fix: Removed sharing log messages that didn't apply when not sharing the device.
 
