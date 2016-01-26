@@ -462,9 +462,7 @@ function toggle_share($serial, $part, $status) {
 }
 
 function add_smb_share($dir, $share_name) {
-	global $paths;
-	global $var;
-	global $users;
+	global $paths, $var, $users;
 
 	if ( ($var['shareSMBEnabled'] == "yes") ) {
 		$share_name = basename($dir);
@@ -527,8 +525,7 @@ function add_smb_share($dir, $share_name) {
 }
 
 function rm_smb_share($dir, $share_name) {
-	global $paths;
-	global $var;
+	global $paths, $var;
 
 	if ( ($var['shareSMBEnabled'] == "yes") ) {
 		$share_name = basename($dir);
@@ -607,7 +604,7 @@ function reload_shares() {
 	// Disk mounts
 	foreach (get_unasigned_disks() as $name => $disk) {
 		foreach ($disk['partitions'] as $p) {
-			if(is_mounted( realpath($p) )) {
+			if ( is_mounted(realpath($p)) ) {
 				$info = get_partition_info($p);
 				if (is_shared(basename($info['target']))) {
 					if (config_shared( $info['serial'],  $info['part'])) {
@@ -626,10 +623,12 @@ function reload_shares() {
 
 	// SMB Mounts
 	foreach (get_samba_mounts() as $name => $info) {
-		unassigned_log("Reloading shared dir '{$info[mountpoint]}'.");
-		unassigned_log("Removing old config...");
-		rm_smb_share($info['mountpoint'], $info['device']);
-		add_smb_share($info['mountpoint'], $info['device']);
+		if ( is_mounted($info['device']) ) {
+			unassigned_log("Reloading shared dir '{$info[mountpoint]}'.");
+			unassigned_log("Removing old config...");
+			rm_smb_share($info['mountpoint'], $info['device']);
+			add_smb_share($info['mountpoint'], $info['device']);
+		}
 	}
 }
 
@@ -660,6 +659,7 @@ function is_samba_automount($sn) {
 
 function get_samba_mounts() {
 	global $paths;
+
 	$o = array();
 	$config_file = $GLOBALS["paths"]["samba_mount"];
 	$samba_mounts = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
@@ -796,6 +796,7 @@ function get_all_disks_info($bus="all") {
 
 function get_udev_info($device, $udev=NULL, $reload) {
 	global $paths;
+
 	$state = is_file($paths['state']) ? @parse_ini_file($paths['state'], true) : array();
 	if ($udev) {
 		$state[$device] = $udev;
@@ -824,6 +825,7 @@ function get_disk_info($device, $reload=FALSE){
 
 function get_partition_info($device, $reload=FALSE){
 	global $_ENV, $paths;
+
 	$disk = array();
 	$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV, $reload) : get_udev_info($device, NULL, $reload);
 	// $GLOBALS["echo"]($attrs);
