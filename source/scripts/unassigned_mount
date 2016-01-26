@@ -55,9 +55,7 @@ foreach(get_unasigned_disks() as $name => $disk) {
 			if (do_mount( $info )) {
 				if (config_shared( $info['serial'],  $info['part'])) {
 					add_smb_share($info['mountpoint'], $info['label']);
-					if (get_config("Config", "nfs_export") == "yes") {
-						add_nfs_share($info['mountpoint']);
-					}
+					add_nfs_share($info['mountpoint']);
 				} else {
 					unassigned_log("Partition '{$info[label]}' marked as not sharable, skipping.");
 				}

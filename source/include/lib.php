@@ -59,21 +59,10 @@ function save_ini_file($file, $array) {
 	file_put_contents($file, implode(PHP_EOL, $res));
 }
 
-function debug($m, $type = "NOTICE"){
-	if ($type == "DEBUG" && ! $GLOBALS["VERBOSE"]) return NULL;
-	$m = date("D M j G:i:s T Y").": ".print_r($m,true)."\n";
-	file_put_contents($GLOBALS["paths"]["log"], $m, FILE_APPEND);
-}
-
 function unassigned_log($m, $type = "NOTICE"){
 	if ($type == "DEBUG" && ! $GLOBALS["VERBOSE"]) return NULL;
 	$m = date("M j G:i:s")." ".print_r($m,true)."\n";
 	file_put_contents($GLOBALS["paths"]["log"], $m, FILE_APPEND);
-}
-
-function shell_exec_debug($cmd) {
-	unassigned_log("cmd: $cmd", "DEBUG");
-	return shell_exec("$cmd 2>&1");
 }
 
 function listDir($root) {
@@ -474,88 +463,100 @@ function toggle_share($serial, $part, $status) {
 
 function add_smb_share($dir, $share_name) {
 	global $paths;
+	global $var;
 	global $users;
-	$share_name = basename($dir);
-	$config = is_file($paths['config_file']) ? @parse_ini_file($paths['config_file'], true) : array();
-	$config = $config["Config"];
 
-	if ($config["smb_security"] == "yes") {
-		$read_users = $write_users = $valid_users = array();
-		foreach ($users as $key => $user) {
-			if ($user['name'] != "root" ) {
-				$valid_users[] .= $user['name'];
+	if ( ($var['shareSMBEnabled'] == "yes") ) {
+		$share_name = basename($dir);
+		$config = is_file($paths['config_file']) ? @parse_ini_file($paths['config_file'], true) : array();
+		$config = $config["Config"];
+
+		if ($config["smb_security"] == "yes") {
+			$read_users = $write_users = $valid_users = array();
+			foreach ($users as $key => $user) {
+				if ($user['name'] != "root" ) {
+					$valid_users[] .= $user['name'];
+				}
 			}
-		}
-		$invalid_users = array_filter($valid_users, function($v) use($config, &$read_users, &$write_users) { 
-			if ($config["smb_{$v}"] == "read-only") {$read_users[] = $v;}
-			elseif ($config["smb_{$v}"] == "read-write") {$write_users[] = $v;}
-			else {return $v;}
-		});
-		$valid_users = array_diff($valid_users, $invalid_users);
-		if (count($valid_users)) {
-			$valid_users = "\nvalid users = ".implode(', ', $valid_users);
-			$write_users = count($write_users) ? "\nwrite list = ".implode(', ', $write_users) : "";
-			$read_users = count($read_users) ? "\nread users = ".implode(', ', $read_users) : "";
-			$share_cont =  "[{$share_name}]\npath = {$dir}{$valid_users}{$write_users}{$read_users}";
+			$invalid_users = array_filter($valid_users, function($v) use($config, &$read_users, &$write_users) { 
+				if ($config["smb_{$v}"] == "read-only") {$read_users[] = $v;}
+				elseif ($config["smb_{$v}"] == "read-write") {$write_users[] = $v;}
+				else {return $v;}
+			});
+			$valid_users = array_diff($valid_users, $invalid_users);
+			if (count($valid_users)) {
+				$valid_users = "\nvalid users = ".implode(', ', $valid_users);
+				$write_users = count($write_users) ? "\nwrite list = ".implode(', ', $write_users) : "";
+				$read_users = count($read_users) ? "\nread users = ".implode(', ', $read_users) : "";
+				$share_cont =  "[{$share_name}]\npath = {$dir}{$valid_users}{$write_users}{$read_users}";
+			} else {
+				$share_cont =  "[{$share_name}]\npath = {$dir}\ninvalid users = @users";
+				unassigned_log("Error: No valid smb users defined.  Share '{$dir}' cannot be accessed.");
+			}
 		} else {
-			$share_cont =  "[{$share_name}]\npath = {$dir}\ninvalid users = @users";
-			unassigned_log("Error: No valid smb users defined.  Share '{$dir}' cannot be accessed.");
+			$share_cont = "[{$share_name}]\npath = {$dir}\nread only = No\nguest ok = Yes ";
+		}
+
+		if(!is_dir($paths['smb_usb_shares'])) @mkdir($paths['smb_usb_shares'],0755,TRUE);
+		$share_conf = preg_replace("#\s+#", "_", realpath($paths['smb_usb_shares'])."/".$share_name.".conf");
+
+		unassigned_log("Defining share '$share_name' on file '$share_conf'");
+		file_put_contents($share_conf, $share_cont);
+		if (! exist_in_file($paths['smb_extra'], $share_conf)) {
+			unassigned_log("Adding share '$share_name' to '".$paths['smb_extra']."'");
+			$c = (is_file($paths['smb_extra'])) ? @file($paths['smb_extra'],FILE_IGNORE_NEW_LINES) : array();
+			$c[] = ""; $c[] = "include = $share_conf";
+			# Do Cleanup
+			$smb_extra_includes = array_unique(preg_grep("/include/i", $c));
+			foreach($smb_extra_includes as $key => $inc) if( ! is_file(parse_ini_string($inc)['include'])) unset($smb_extra_includes[$key]); 
+			$c = array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_extra_includes);
+			$c = preg_replace('/\n\s*\n\s*\n/s', PHP_EOL.PHP_EOL, implode(PHP_EOL, $c));
+			file_put_contents($paths['smb_extra'], $c);
+		}
+		unassigned_log("Reloading Samba configuration...");
+		shell_exec("killall -s 1 smbd 2>/dev/null && killall -s 1 nmbd 2>/dev/null");
+		shell_exec("/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
+		if (is_shared($share_name)) {
+			unassigned_log("Directory '${dir}' shared successfully."); return TRUE;
+		} else {
+			unassigned_log("Sharing directory '${dir}' failed."); return FALSE;
 		}
 	} else {
-		$share_cont = "[{$share_name}]\npath = {$dir}\nread only = No\nguest ok = Yes ";
-	}
-
-	if(!is_dir($paths['smb_usb_shares'])) @mkdir($paths['smb_usb_shares'],0755,TRUE);
-	$share_conf = preg_replace("#\s+#", "_", realpath($paths['smb_usb_shares'])."/".$share_name.".conf");
-
-	unassigned_log("Defining share '$share_name' on file '$share_conf'");
-	file_put_contents($share_conf, $share_cont);
-	if (! exist_in_file($paths['smb_extra'], $share_conf)) {
-		unassigned_log("Adding share '$share_name' to '".$paths['smb_extra']."'");
-		$c = (is_file($paths['smb_extra'])) ? @file($paths['smb_extra'],FILE_IGNORE_NEW_LINES) : array();
-		$c[] = ""; $c[] = "include = $share_conf";
-		# Do Cleanup
-		$smb_extra_includes = array_unique(preg_grep("/include/i", $c));
-		foreach($smb_extra_includes as $key => $inc) if( ! is_file(parse_ini_string($inc)['include'])) unset($smb_extra_includes[$key]); 
-		$c = array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_extra_includes);
-		$c = preg_replace('/\n\s*\n\s*\n/s', PHP_EOL.PHP_EOL, implode(PHP_EOL, $c));
-		file_put_contents($paths['smb_extra'], $c);
-	}
-	unassigned_log("Reloading Samba configuration...");
-	shell_exec("killall -s 1 smbd 2>/dev/null && killall -s 1 nmbd 2>/dev/null");
-	shell_exec("/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
-	if (is_shared($share_name)) {
-		unassigned_log("Directory '${dir}' shared successfully."); return TRUE;
-	} else {
-		unassigned_log("Sharing directory '${dir}' failed."); return FALSE;
+		return TRUE;
 	}
 }
 
 function rm_smb_share($dir, $share_name) {
 	global $paths;
-	$share_name = basename($dir);
-	$share_conf = preg_replace("#\s+#", "_", realpath($paths['smb_usb_shares'])."/".$share_name.".conf");
-	if (is_file($share_conf)) {
-		@unlink($share_conf);
-		unassigned_log("Removing SMB share file '$share_conf'");
-	}
-	if (exist_in_file($paths['smb_extra'], $share_conf)) {
-		unassigned_log("Removing SMB share definitions from '".$paths['smb_extra']."'");
-		$c = (is_file($paths['smb_extra'])) ? @file($paths['smb_extra'],FILE_IGNORE_NEW_LINES) : array();
-		# Do Cleanup
-		$smb_extra_includes = array_unique(preg_grep("/include/i", $c));
-		foreach($smb_extra_includes as $key => $inc) if(! is_file(parse_ini_string($inc)['include'])) unset($smb_extra_includes[$key]); 
-		$c = array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_extra_includes);
-		$c = preg_replace('/\n\s*\n\s*\n/s', PHP_EOL.PHP_EOL, implode(PHP_EOL, $c));
-		file_put_contents($paths['smb_extra'], $c);
+	global $var;
 
-		unassigned_log("Reloading Samba configuration..");
-		shell_exec("/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) close-share '${share_name}' 2>&1");
-		shell_exec("/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
-		if(! is_shared($share_name)) {
-			unassigned_log("Successfully removed SMB share '${share_name}'."); return TRUE;
+	if ( ($var['shareSMBEnabled'] == "yes") ) {
+		$share_name = basename($dir);
+		$share_conf = preg_replace("#\s+#", "_", realpath($paths['smb_usb_shares'])."/".$share_name.".conf");
+		if (is_file($share_conf)) {
+			@unlink($share_conf);
+			unassigned_log("Removing SMB share file '$share_conf'");
+		}
+		if (exist_in_file($paths['smb_extra'], $share_conf)) {
+			unassigned_log("Removing SMB share definitions from '".$paths['smb_extra']."'");
+			$c = (is_file($paths['smb_extra'])) ? @file($paths['smb_extra'],FILE_IGNORE_NEW_LINES) : array();
+			# Do Cleanup
+			$smb_extra_includes = array_unique(preg_grep("/include/i", $c));
+			foreach($smb_extra_includes as $key => $inc) if(! is_file(parse_ini_string($inc)['include'])) unset($smb_extra_includes[$key]); 
+			$c = array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_extra_includes);
+			$c = preg_replace('/\n\s*\n\s*\n/s', PHP_EOL.PHP_EOL, implode(PHP_EOL, $c));
+			file_put_contents($paths['smb_extra'], $c);
+
+			unassigned_log("Reloading Samba configuration..");
+			shell_exec("/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) close-share '${share_name}' 2>&1");
+			shell_exec("/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
+			if(! is_shared($share_name)) {
+				unassigned_log("Successfully removed SMB share '${share_name}'."); return TRUE;
+			} else {
+				unassigned_log("Removal of SMB share '${share_name}' failed."); return FALSE;
+			}
 		} else {
-			unassigned_log("Removal of SMB share '${share_name}' failed."); return FALSE;
+			return TRUE;
 		}
 	} else {
 		return TRUE;
@@ -563,33 +564,42 @@ function rm_smb_share($dir, $share_name) {
 }
 
 function add_nfs_share($dir) {
-	$reload = FALSE;
-	foreach (array("/etc/exports","/etc/exports-") as $file) {
-		if (! exist_in_file($file, "\"{$dir}\"")) {
-			$c = (is_file($file)) ? @file($file,FILE_IGNORE_NEW_LINES) : array();
-			unassigned_log("Adding NFS share '$dir' to '$file'.");
-			$fsid = 200 + count(preg_grep("@^\"@", $c));
-			$c[] = "\"{$dir}\" -async,no_subtree_check,fsid={$fsid} *(sec=sys,rw,insecure,anongid=100,anonuid=99,all_squash)";
-			$c[] = "";
-			file_put_contents($file, implode(PHP_EOL, $c));
-			$reload = TRUE;
+	global $var;
+
+	if ( ($var['shareNFSEnabled'] == "yes") && (get_config("Config", "nfs_export") == "yes") ) {
+		$reload = FALSE;
+		foreach (array("/etc/exports","/etc/exports-") as $file) {
+			if (! exist_in_file($file, "\"{$dir}\"")) {
+				$c = (is_file($file)) ? @file($file,FILE_IGNORE_NEW_LINES) : array();
+				unassigned_log("Adding NFS share '$dir' to '$file'.");
+				$fsid = 200 + count(preg_grep("@^\"@", $c));
+				$c[] = "\"{$dir}\" -async,no_subtree_check,fsid={$fsid} *(sec=sys,rw,insecure,anongid=100,anonuid=99,all_squash)";
+				$c[] = "";
+				file_put_contents($file, implode(PHP_EOL, $c));
+				$reload = TRUE;
+			}
 		}
+		if ($reload) shell_exec("/usr/sbin/exportfs -ra | logger");
 	}
-	if ($reload) shell_exec("/usr/sbin/exportfs -ra | logger");
+	return TRUE;
 }
 
 function rm_nfs_share($dir) {
-	$reload = FALSE;
-	foreach (array("/etc/exports","/etc/exports-") as $file) {
-		if ( exist_in_file($file, "\"{$dir}\"") && strlen($dir)) {
-			$c = (is_file($file)) ? @file($file,FILE_IGNORE_NEW_LINES) : array();
-			unassigned_log("Removing NFS share '$dir' from '$file'.");
-			$c = preg_grep("@\"{$dir}\"@i", $c, PREG_GREP_INVERT);
-			file_put_contents($file, implode(PHP_EOL, $c));
-			$reload = TRUE;
+	global $var;
+
+	if ( ($var['shareNFSEnabled'] == "yes") && (get_config("Config", "nfs_export") == "yes") ) {
+		$reload = FALSE;
+		foreach (array("/etc/exports","/etc/exports-") as $file) {
+			if ( exist_in_file($file, "\"{$dir}\"") && strlen($dir)) {
+				$c = (is_file($file)) ? @file($file,FILE_IGNORE_NEW_LINES) : array();
+				unassigned_log("Removing NFS share '$dir' from '$file'.");
+				$c = preg_grep("@\"{$dir}\"@i", $c, PREG_GREP_INVERT);
+				file_put_contents($file, implode(PHP_EOL, $c));
+				$reload = TRUE;
+			}
 		}
+		if ($reload) shell_exec("/usr/sbin/exportfs -ra | logger");
 	}
-	if ($reload) shell_exec("/usr/sbin/exportfs -ra | logger");
 	return TRUE;
 }
 
@@ -607,9 +617,7 @@ function reload_shares() {
 						rm_nfs_share($info['target']);
 						unassigned_log("Adding new config...");
 						add_smb_share($info['mountpoint'], $info['label']);
-						if (get_config("Config", "nfs_export") == "yes") {
-						  add_nfs_share($info['mountpoint']);
-						}
+						add_nfs_share($info['mountpoint']);
 					}
 				}
 			}

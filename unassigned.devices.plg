@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.01.25">
+<!ENTITY version   "2016.01.26">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/dlandon/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"0f0876cb9f9252c5d058aca3b7d9b625">
+<!ENTITY MD5		"8586bf573fd81061101080fb9d2e90eb">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Check for NFS sharing enabled before adding or removing NFS share.
+- Fix: Check for SMB sharing enabled before adding or removing SMB share.
+
+###2016.01.25
 - Fix: Modified logging to be consistent with unraid format and provide clearer information.
 - Fix: Changed the users lookup for smb security to make it more robust.
 
