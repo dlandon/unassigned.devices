@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.01.26a">
+<!ENTITY version   "2016.01.28">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/dlandon/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"e819010cab62821862d3ae4f8730b2e5">
+<!ENTITY MD5		"820f469c74cc3e0f02e32ec0ed8b5dcb">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Changed the SMB hosts lookup.
+- Fix: The mount point could be changed from the /mnt/disks/ directory.
+
+###2016.01.26a
 - Fix: Check for NFS sharing enabled before adding or removing NFS share.
 - Fix: Check for SMB sharing enabled before adding or removing SMB share.
 

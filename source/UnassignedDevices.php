@@ -76,7 +76,7 @@ function render_partition($disk, $partition) {
 	if ($mounted) {
 		$mpoint .= "<a title='Browse Share.' href='/Shares/Browse?dir={$partition[mountpoint]}'>{$partition[mountpoint]}</a></div>";
 	} else {
-		$mpoint .= "<form title='Click to Change Share Name.' method='POST' action='/plugins/${plugin}/UnassignedDevices.php?action=change_mountpoint&serial={$partition[serial]}&partition={$partition[part]}' target='progressFrame' style='display:inline;margin:0;padding:0;'><span class='text exec'><a>{$partition[mountpoint]}</a></span><input class='input' type='text' name='mountpoint' value='{$partition[mountpoint]}' hidden /></form> {$rm_partition}</div>";
+		$mpoint .= "<form title='Click to Change Mount Point.' method='POST' action='/plugins/${plugin}/UnassignedDevices.php?action=change_mountpoint&serial={$partition[serial]}&partition={$partition[part]}' target='progressFrame' style='display:inline;margin:0;padding:0;'><span class='text exec'><a>{$partition[mountpoint]}</a></span><input class='input' type='text' name='mountpoint' value='{$partition[mountpoint]}' hidden /></form> {$rm_partition}</div>";
 	}
 	$mbutton = make_mount_button($partition);
   
@@ -160,7 +160,7 @@ switch ($_POST['action']) {
 				} elseif($is_precleared) {
 					$hdd_serial = "<span class='toggle-hdd' hdd='{$disk_name}'><i class='glyphicon glyphicon-hdd hdd'></i><span style='margin:4px;'></span>{$disk[serial]}</span>{$preclear_link}<div id='preclear_{$disk_name}'></div>";
 				} else {
-					$hdd_serial = "<span title='Click to view partitions/shares.' class='exec toggle-hdd' hdd='{$disk_name}'><i class='glyphicon glyphicon-hdd hdd'></i><i class='glyphicon glyphicon-plus-sign glyphicon-append'></i><span style='margin:4px;'></span>{$disk[serial]}</span>{$preclear_link}<div id='preclear_{$disk_name}'></div>";
+					$hdd_serial = "<span title='Click to view partitions/mount points.' class='exec toggle-hdd' hdd='{$disk_name}'><i class='glyphicon glyphicon-hdd hdd'></i><i class='glyphicon glyphicon-plus-sign glyphicon-append'></i><span style='margin:4px;'></span>{$disk[serial]}</span>{$preclear_link}<div id='preclear_{$disk_name}'></div>";
 				}
 
 				if ($preclearing) {
@@ -212,7 +212,7 @@ switch ($_POST['action']) {
 				if ($mounted) {
 					echo "<td><i class='glyphicon glyphicon-save hdd'></i><span style='margin:4px;'><a title='Browse Remote SMB Share.' href='/Shares/Browse?dir={$mount[mountpoint]}'>{$mount[mountpoint]}</a></td>";
 				} else {
-					echo "<td><form title='Click to change Remote SMB Share Name.' method='POST' action='/plugins/${plugin}/UnassignedDevices.php?action=change_samba_mountpoint&device={$mount[device]}' target='progressFrame' style='display:inline;margin:0;padding:0;'>
+					echo "<td><form title='Click to change Remote SMB Mount Point.' method='POST' action='/plugins/${plugin}/UnassignedDevices.php?action=change_samba_mountpoint&device={$mount[device]}' target='progressFrame' style='display:inline;margin:0;padding:0;'>
 					<i class='glyphicon glyphicon-save hdd'></i><span style='margin:4px;'></span><span class='text exec'><a>{$mount[mountpoint]}</a></span>
 					<input class='input' type='text' name='mountpoint' value='{$mount[mountpoint]}' hidden />
 					</form></td>";
@@ -352,15 +352,10 @@ switch ($_POST['action']) {
 	/*  SAMBA  */
 	case 'list_samba_hosts':
 		$hosts = array();
-		foreach ( explode(PHP_EOL, shell_exec("/usr/bin/nmblookup {$var[WORKGROUP]} 2>/dev/null") ) as $l ) {
-			if (! is_bool( strpos( $l, "<00>") ) ) {
-				$ip = explode(" ", $l)[0];
-				foreach ( explode(PHP_EOL, shell_exec("/usr/bin/nmblookup -r -A $ip 2>&1") ) as $l ) {
-					if (! is_bool( strpos( $l, "<00>") ) ) {
-						$hosts[] = trim(explode(" ", $l)[0])."\n";
-						break;
-					}
-				}
+		$ip = shell_exec("nmblookup -M -- - 2>/dev/null | grep -Pom1 '^\S+'");
+		foreach ( explode(PHP_EOL, shell_exec("smbclient -g -p 139 -NL $ip 2>/dev/null") ) as $l ) {
+			if (! is_bool( strpos( $l, "Server") ) ) {
+				$hosts[] = trim(explode("|", $l)[1])."\n";
 			}
 		}
 		natsort($hosts);
@@ -438,14 +433,20 @@ switch ($_POST['action']) {
 		case 'change_mountpoint':
 			$serial = urldecode($_GET['serial']);
 			$partition = urldecode($_GET['partition']);
-			$mountpoint = urldecode($_POST['mountpoint']);
-			set_config($serial, "mountpoint.${partition}", $mountpoint);
+			$mountpoint = basename(urldecode($_POST['mountpoint']));
+			if ($mountpoint != "") {
+				$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
+				set_config($serial, "mountpoint.${partition}", $mountpoint);
+			}
 			require_once("update.htm");
 			break;
 		case 'change_samba_mountpoint':
 			$device = urldecode($_GET['device']);
-			$mountpoint = urldecode($_POST['mountpoint']);
-			set_samba_config($device, "mountpoint", $mountpoint);
+			$mountpoint = basename(urldecode($_POST['mountpoint']));
+			if ($mountpoint != "") {
+				$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
+				set_samba_config($device, "mountpoint", $mountpoint);
+			}
 			require_once("update.htm");
 			break;
 	}

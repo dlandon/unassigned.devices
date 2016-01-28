@@ -473,9 +473,10 @@ function add_smb_share($dir, $share_name) {
 			$read_users = $write_users = $valid_users = array();
 			foreach ($users as $key => $user) {
 				if ($user['name'] != "root" ) {
-					$valid_users[] .= $user['name'];
+					$valid_users[] = $user['name'];
 				}
 			}
+
 			$invalid_users = array_filter($valid_users, function($v) use($config, &$read_users, &$write_users) { 
 				if ($config["smb_{$v}"] == "read-only") {$read_users[] = $v;}
 				elseif ($config["smb_{$v}"] == "read-write") {$write_users[] = $v;}
