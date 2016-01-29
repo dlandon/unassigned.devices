@@ -351,27 +351,15 @@ switch ($_POST['action']) {
 
 	/*  SAMBA  */
 	case 'list_samba_hosts':
-		$hosts = array();
-		foreach ( explode(PHP_EOL, shell_exec("/usr/bin/nmblookup {$var[WORKGROUP]} 2>/dev/null") ) as $l ) {
-			if (! is_bool( strpos( $l, "<00>") ) ) {
-				$ip = explode(" ", $l)[0];
-				foreach ( explode(PHP_EOL, shell_exec("/usr/bin/nmblookup -r -A $ip 2>&1") ) as $l ) {
-					if (! is_bool( strpos( $l, "<00>") ) ) {
-						$hosts[] = trim(explode(" ", $l)[0])."\n";
-						break;
-					}
-				}
-			}
-		}
-		natsort($hosts);
-		echo implode(PHP_EOL, array_unique($hosts));
+		$ip = shell_exec("nmblookup -M -- - 2>/dev/null | grep -Pom1 '^\S+'");
+		echo shell_exec("/usr/bin/smbclient -g -L '$ip' -U% 2>&1|awk -F'|' '/Server/{print $2}'|sort");
 		break;
 	case 'list_samba_shares':
 		$ip = urldecode($_POST['IP']);
 		$user = isset($_POST['USER']) ? urlencode($_POST['USER']) : NULL;
 		$pass = isset($_POST['PASS']) ? urlencode($_POST['PASS']) : NULL;
 		$login = $user ? ($pass ? "-U '{$user}%{$pass}'" : "-U '{$user}' -N") : "-U%";
-		echo shell_exec("smbclient -g -L $ip $login 2>&1|awk -F'|' '/Disk/{print $2}'|sort");
+		echo shell_exec("smbclient -g -L '$ip' $login 2>&1|awk -F'|' '/Disk/{print $2}'|sort");
 		break;
 
 	/*  NFS  */
