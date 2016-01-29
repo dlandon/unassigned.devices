@@ -59,9 +59,9 @@ function save_ini_file($file, $array) {
 	file_put_contents($file, implode(PHP_EOL, $res));
 }
 
-function unassigned_log($m, $type = "NOTICE"){
+function unassigned_log($m, $type = "NOTICE") {
 	if ($type == "DEBUG" && ! $GLOBALS["VERBOSE"]) return NULL;
-	$m = date("M j G:i:s")." ".print_r($m,true)."\n";
+	$m = date("M j H:i:s")." ".print_r($m,true)."\n";
 	file_put_contents($GLOBALS["paths"]["log"], $m, FILE_APPEND);
 }
 
@@ -399,6 +399,9 @@ function do_mount_local($info) {
 				$cmd = "mount -t $fs -r -o ".get_mount_params($fs, $dev)." '${dev}' '${dir}'";
 				unassigned_log("Mount drive ro command: $cmd");
 				$o = shell_exec($cmd." 2>&1");
+				if ($o != "") {
+					unassigned_log("Mount ro failed with error: $o");
+				}
 			}
 			foreach (range(0,5) as $t) {
 				if (is_mounted($dev)) {
@@ -410,6 +413,7 @@ function do_mount_local($info) {
 				}
 			}
 			unassigned_log("Mount of '${dev}' failed. Error message: $o");
+			rmdir($dir);
 			return FALSE;
 		} else {
 			unassigned_log("No filesystem detected, aborting.");
@@ -577,7 +581,7 @@ function add_nfs_share($dir) {
 				$reload = TRUE;
 			}
 		}
-		if ($reload) shell_exec("/usr/sbin/exportfs -ra | logger");
+		if ($reload) shell_exec("/usr/sbin/exportfs -ra");
 	}
 	return TRUE;
 }
@@ -596,7 +600,7 @@ function rm_nfs_share($dir) {
 				$reload = TRUE;
 			}
 		}
-		if ($reload) shell_exec("/usr/sbin/exportfs -ra | logger");
+		if ($reload) shell_exec("/usr/sbin/exportfs -ra");
 	}
 	return TRUE;
 }

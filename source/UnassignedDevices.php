@@ -352,10 +352,15 @@ switch ($_POST['action']) {
 	/*  SAMBA  */
 	case 'list_samba_hosts':
 		$hosts = array();
-		$ip = shell_exec("nmblookup -M -- - 2>/dev/null | grep -Pom1 '^\S+'");
-		foreach ( explode(PHP_EOL, shell_exec("smbclient -g -p 139 -NL $ip 2>/dev/null") ) as $l ) {
-			if (! is_bool( strpos( $l, "Server") ) ) {
-				$hosts[] = trim(explode("|", $l)[1])."\n";
+		foreach ( explode(PHP_EOL, shell_exec("/usr/bin/nmblookup {$var[WORKGROUP]} 2>/dev/null") ) as $l ) {
+			if (! is_bool( strpos( $l, "<00>") ) ) {
+				$ip = explode(" ", $l)[0];
+				foreach ( explode(PHP_EOL, shell_exec("/usr/bin/nmblookup -r -A $ip 2>&1") ) as $l ) {
+					if (! is_bool( strpos( $l, "<00>") ) ) {
+						$hosts[] = trim(explode(" ", $l)[0])."\n";
+						break;
+					}
+				}
 			}
 		}
 		natsort($hosts);

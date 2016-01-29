@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.01.28">
+<!ENTITY version   "2016.01.28a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/dlandon/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"820f469c74cc3e0f02e32ec0ed8b5dcb">
+<!ENTITY MD5		"ce41b7110c17110188a8d7026337e093">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Changed log time to 24 hour format.
+- Fix: Failed mount did not clean up properly.
+- Fix: Revert the SMB hosts lookup because of console messages that could not be suppressed.
+
+###2016.01.28
 - Fix: Changed the SMB hosts lookup.
 - Fix: The mount point could be changed from the /mnt/disks/ directory.
 
