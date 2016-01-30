@@ -63,7 +63,7 @@ case \$ACTION in
 esac
 EOT;
 
-$remove = is_file($file) ? "<img style='cursor:pointer;' src='/plugins/$plugin/icons/remove.png' height='30px' onclick='rmfile(\"{$file}\");'> " : "";
+$remove = is_file($file) ? "<img style='cursor:pointer;' title='Remove Script File.' src='/plugins/$plugin/icons/remove.png' height='30px' onclick='rmfile(\"{$file}\");'> " : "";
 
 ?>
 
@@ -103,13 +103,16 @@ $remove = is_file($file) ? "<img style='cursor:pointer;' src='/plugins/$plugin/i
 <input type="hidden" name="#include" value="/webGui/include/update.file.php">
 
 &nbsp;
-: <input type="text" name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>/','sh',false,true);" autocomplete="off" value="<?=$file;?>"> <?=$remove;?><button type="button" onclick="setDefault(this.form)">Default Script</button><input type="reset"/><input type="submit" value="Save"/><button type="button" onclick="done('/')">Done</button>
+: <input type="text" title="Enter Script File Name." name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>/','sh',false,true);" autocomplete="off" value="<?=$file;?>"><?=$remove;?>
 
 &nbsp;
-: <span class="switch-wrapper"><input type="checkbox" name="run_background" <?=$background;?>></span>
+: <span class="switch-wrapper" title="Turn on to run Script File in the background."><input type="checkbox" name="run_background" <?=$background;?>></span>
 
 Script content:
-: <textarea spellcheck="false" cols="80" rows="22" name="text" style="font-family:bitstream;width:66%"><?=$text;?></textarea>
+: <textarea spellcheck="false" cols="80" rows="22" name="text" title="Enter and Edit the Script that runs when a udev or operator event occurs." style="font-family:bitstream;width:66%"><?=$text;?></textarea>
+
+<button type="button" title="Load the default script." onclick="setDefault(this.form)">Default Script</button>
+: <input type="reset" title="Undo your changes since last Apply."/><input type="submit" title="Apply your changes and save to Script File." value="Apply"/><button type="button" onclick="done('/')">Done</button>
 
 > Click the **Apply** button to commit the current edits.  Click **Reset** to
 > undo any changes you make (before Saving). Click **Done** to exit this page.

@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.01.30">
+<!ENTITY version   "2016.01.30a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/dlandon/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"3821328381a80922696ff4a6de32f33c">
+<!ENTITY MD5		"d3290e47a4e4bd02110d777e9ad6b5c2">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Adjusted layout of script edit page.
+
+###2016.01.30
 - Fix: Combined all scripts into one - rc.unassigned.  This is more consistent with unRaid standards.
 - Add: Changed the sequence of the drive sleep command so a no idle command can be set in the script.
 
