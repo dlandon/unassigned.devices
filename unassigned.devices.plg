@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.01.29">
+<!ENTITY version   "2016.01.30">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/dlandon/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"95fda3e803a918db56d45f529b2be15f">
+<!ENTITY MD5		"3821328381a80922696ff4a6de32f33c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Combined all scripts into one - rc.unassigned.  This is more consistent with unRaid standards.
+- Add: Changed the sequence of the drive sleep command so a no idle command can be set in the script.
+
+###2016.01.29
 - Fix: Changed back to the new SMB hosts lookup.  Fixed the unnecessary console messages.
 - Fix: Combined udev scripts (mount, umount, and reload) into a rc.udev script.
 
@@ -370,11 +374,8 @@ ln -sf /bin/rm /usr/local/emhttp/plugins/&name;/scripts/
 # Fix permissions of executable files
 chmod +x /usr/local/emhttp/plugins/&name;/scripts/* /usr/local/emhttp/plugins/&name;/event/*
 
-# Create a symlink to unassigned_mount.
-ln -sf /usr/local/emhttp/plugins/&name;/scripts/unassigned_mount /usr/local/sbin
-
-# Create a symlink to unassigned_umount.
-ln -sf /usr/local/emhttp/plugins/&name;/scripts/unassigned_umount /usr/local/sbin
+# Create a symlink to unassigned script.
+ln -sf /usr/local/emhttp/plugins/&name;/scripts/rc.unassigned /usr/local/sbin
 
 # create mount point
 rm -rf /var/state/&name;
@@ -383,7 +384,7 @@ mkdir -p /mnt/disks /var/state/&name;
 # mount disks if array is started
 if [[ -e /proc/mdcmd ]]; then
   if [[ $(cat /proc/mdcmd|grep mdState|cut -d"=" -f2) == STARTED ]]; then
-    /usr/local/emhttp/plugins/&name;/scripts/unassigned_mount all
+    /usr/local/emhttp/plugins/&name;/scripts/rc.unassigned mount auto 2>/dev/null
   fi
 fi
 
@@ -419,7 +420,7 @@ The 'remove' script.
 <FILE Run="/bin/bash" Method="remove">
 <INLINE>
 # umount disks and smb mounts
-/usr/local/emhttp/plugins/&name;/scripts/unassigned_umount shutdown
+/usr/local/emhttp/plugins/&name;/scripts/rc.unassigned umount all 2>/dev/null
 rmdir /mnt/disks 2>/dev/null
 
 # Remove installed packages
@@ -431,8 +432,7 @@ rm -rf /usr/local/emhttp/plugins/&name; \
        &packages;
 
 rm -f /tmp/plugins/&name;.plg \
-      /usr/local/sbin/unassigned_mount \
-      /usr/local/sbin/unassigned_umount \
+      /usr/local/sbin/rc.unassigned \
       /etc/udev/rules.d/99_persistent_unassigned.rules
 
 # reload udev rules

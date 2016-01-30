@@ -505,10 +505,10 @@ function getlog() {
 	<p>If you want to share your drive, you can turn on the Share switch.  The default for Remote SMB shares is Public read/write access.  Enable SMB Security by user in the Unassigned Devices Settings.  NFS shares are exported and access is read/write.  The export of NFS devices is enabled in the Unassigned Devices settings.  You can also enable a common script that will be executed on every disk mount.</p>
 	<p>Additional options are available when you click on the device identification.  When the disk is unmounted, the mount name of the device can be changed.  A disk can be formatted and an fsck run to check the disk.</p>
 	<p>Unassigned devices includes scripts that are used for mounting and unmounting devices and SMB mounts.  These scripts can be used from the command line if necessary.
-	<p>Unassigned devices scripts:
-		<li>'/usr/local/sbin/unassigned.mount all' - all devices and SMB mounts set to auto mount will be mounted.</li>
-		<li>'/usr/local/sbin/unassigned.umount all' - all devices and SMB mounts set to auto mount will be unmounted.</li>
-		<li>'/usr/local/sbin/unassigned.umount shutdown' - all devices and SMB mounts are unmounted in preparation for shutting down the array.</li>
+	<p>Unassigned devices script:
+		<li>'/usr/local/sbin/rc.unassigned mount auto' - all devices and SMB mounts set to auto mount will be mounted.</li>
+		<li>'/usr/local/sbin/rc.unassigned umount auto' - all devices and SMB mounts set to auto mount will be unmounted.</li>
+		<li>'/usr/local/sbin/rc.unassigned umount all' - all devices and SMB mounts are unmounted in preparation for shutting down the array.</li>
 	</p>
 </blockquote>
 

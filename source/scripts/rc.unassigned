@@ -1,0 +1,164 @@
+#!/usr/bin/php
+<?PHP
+/* Copyright 2016, Dan Landon.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+?>
+
+<?
+$plugin = "unassigned.devices";
+require_once("/usr/local/emhttp/plugins/${plugin}/include/lib.php");
+
+$COMMAND = $argv[1];
+$DEVNAME = (isset($_ENV['DEVNAME'])) ? $_ENV['DEVNAME'] : ( isset($argv[2]) ? $argv[2] : NULL );
+$DEVNAME = (file_exists($DEVNAME)) ? realpath($DEVNAME) : $DEVNAME;
+if (! $DEVNAME) die("Fail: device not defined.\n");
+
+function unassigned_mount() {
+	global $DEVNAME;
+
+	# Mount Remote SMB mounts
+	if (strpos($DEVNAME, "//") === 0 || $DEVNAME == "auto") {
+		foreach (get_samba_mounts() as $info) {
+			$device = $info['device'];
+			if ( preg_match("#".$DEVNAME."#i", $device) || $DEVNAME == "auto" ) {
+				if (! $info['automount'] && $DEVNAME == "auto" ) {
+					unassigned_log("Remote SMB mount '${info[device]}' auto mount is disabled, not mounted.");
+					continue;
+				}
+				unassigned_log("Remote SMB share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
+				@touch(sprintf($paths['unmounting'],basename($info['device'])));
+				if (do_mount( $info )) {
+					add_smb_share($info['mountpoint'], $info['device']);
+					execute_script($info, "ADD");
+				}
+				@unlink(sprintf($paths['unmounting'],basename($info['device'])));
+			}
+		}
+	}
+
+	# Mount local disks
+	foreach(get_unasigned_disks() as $name => $disk) {
+		$device = $disk['device'];
+		foreach ($disk['partitions'] as $partition) {
+			if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "auto" ) {
+				$info = get_partition_info($partition,true);
+				if (! $info['automount'] && ( $DEVNAME == "auto" || isset($_ENV['DEVNAME']) )) {
+					unassigned_log("Disk with serial '${info[serial]}' auto mount is disabled, not mounted.");
+					continue;
+				}
+				unassigned_log("Drive found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
+				unassigned_log("Adding disk '${info[device]}'...");
+				@touch(sprintf($paths['mounting'],basename($info['device'])));
+				if (do_mount( $info )) {
+					if (config_shared( $info['serial'],  $info['part'])) {
+						add_smb_share($info['mountpoint'], $info['label']);
+						add_nfs_share($info['mountpoint']);
+					} else {
+						unassigned_log("Partition '{$info[label]}' marked as not sharable, skipping.");
+					}
+					setSleepTime($device);
+					execute_script($info, "ADD");
+				}
+				@unlink(sprintf($paths['mounting'],basename($info['device'])));
+			}
+		}
+	}
+}
+
+function unassigned_umount() {
+	global $DEVNAME;
+
+	# Deal with Remote SMB mouonts
+	if (strpos($DEVNAME, "//") === 0 || $DEVNAME == "auto" || $DEVNAME == "all") {
+		foreach (get_samba_mounts() as $info) {
+			$device = $info['device'];
+			if ( preg_match("#".$DEVNAME."#i", $device) || $DEVNAME == "auto" || $DEVNAME == "all" ) {
+				if (! $info['automount'] && $DEVNAME == "auto" ) {
+					unassigned_log("Remote SMB Share '${info[device]}' auto mount is disabled, not unmounted.");
+					continue;
+				}
+				unassigned_log("Remote SMB share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
+				if ( is_mounted($info['device']) ) {
+					@touch(sprintf($paths['unmounting'],basename($info['device'])));
+					unassigned_log("Removing Remote SMB share '${info[device]}'...");
+					execute_script($info, "REMOVE");
+					unassigned_log("Unmounting Remote SMB Share '${info[device]}'...");
+					if ( do_unmount($info['device'], $info['mountpoint']) ) {
+						if ( rm_smb_share($info['mountpoint'], $info['device']) ) {
+							unassigned_log("Share '${info[device]}' unmount successfull.");
+							@unlink(sprintf($paths['unmounting'],basename($info['device'])));
+						}
+					}
+				} else {
+					unassigned_log("Remote SMB share '${info[device]}' not mounted, cannot unmount...");
+				}
+			}
+		}
+	}
+
+	# Deal with local disks
+	foreach(get_unasigned_disks() as $disk) {
+		$device = $disk['device'];
+		foreach ($disk['partitions'] as $partition) {
+			if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "auto" || $DEVNAME == "all" ) {
+				$info = get_partition_info($partition,true);
+				if (! $info['automount'] && $DEVNAME == "auto" ) {
+					unassigned_log("Disk with serial '${info['serial']}' auto mount is disabled, not unmounted.");
+					continue;
+				}
+				unassigned_log("Drive found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
+				if ( is_mounted($info['device']) ) {
+					@touch(sprintf($paths['unmounting'],basename($info['device'])));
+					setSleepTime($device);
+					execute_script($info, "REMOVE");
+					if ( rm_smb_share($info['target'], $info['label']) && rm_nfs_share($info['target']) ) {
+						unassigned_log("Unmounting disk '${info[label]}'...");
+						if ( do_unmount($info['device'], $info['mountpoint']) ) {
+							unassigned_log("Disk '${info[label]}' removed successfully.");
+						}
+					}
+					@unlink(sprintf($paths['unmounting'],basename($info['device'])));
+				} else {
+					unassigned_log("Disk '${info[label]}' not mounted, cannot unmount...");
+				}
+			}
+		}
+	}
+}
+
+function unassigned_reload() {
+	if (isset($_ENV['DEVLINKS'])) {
+	  foreach (explode(" ", $_ENV['DEVLINKS']) as $link) {
+		get_udev_info($link, $_ENV, true);
+	  }
+	}
+}
+
+switch ($COMMAND) {
+	case 'mount':
+		unassigned_mount();
+		break;
+
+	case 'umount':
+		unassigned_umount();
+		break;
+
+	case 'reload':
+		unassigned_reload();
+		break;
+
+	default:
+		unassigned_log("Error: 'rc.unassigned {$argv[1]} {$argv[2]}' not understood");
+		unassigned_log("rc.unassigned usage: 'mount','umount','reload'");
+		break;
+}
+
+touch($paths['reload']);
+?>

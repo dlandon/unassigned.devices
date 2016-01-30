@@ -326,13 +326,13 @@ switch ($_POST['action']) {
 	case 'mount':
 		$device = urldecode($_POST['device']);
 		if (file_exists($device) || strpos($device, "//") === 0 ) {
-			exec("plugins/${plugin}/scripts/unassigned_mount $device >/dev/null 2>&1 &");
+			exec("plugins/${plugin}/scripts/rc.unassigned mount $device >/dev/null 2>&1 &");
 		}
 		break;
 	case 'umount':
 		$device = urldecode($_POST['device']);
 		if (file_exists($device) || strpos($device, "//") === 0 ) {
-			echo exec("plugins/${plugin}/scripts/unassigned_umount $device >/dev/null 2>&1 &");
+			echo exec("plugins/${plugin}/scripts/rc.unassigned umount $device >/dev/null 2>&1 &");
 		}
 		break;
 	case 'rescan_disks':
@@ -433,6 +433,7 @@ switch ($_POST['action']) {
 			}
 			require_once("update.htm");
 			break;
+
 		case 'change_samba_mountpoint':
 			$device = urldecode($_GET['device']);
 			$mountpoint = basename(urldecode($_POST['mountpoint']));
