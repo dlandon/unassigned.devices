@@ -139,14 +139,14 @@ switch ($_POST['action']) {
 			$odd="odd";
 			foreach ($disks as $disk) {
 				$mounted       = in_array(TRUE, array_map(function($ar){return is_mounted($ar['device']);}, $disk['partitions']));
-				if ($mounted || is_file($disk['partitions'][0]['command'])) {
-					$disk['temperature'] = get_temp($disk['device']);
-				}
-				$temp          = my_temp($disk['temperature']);
 				$disk_name     = basename($disk['device']);
 				$p             = (count($disk['partitions']) <= 1) ? render_partition($disk, $disk['partitions'][0]) : FALSE;
 				$preclearing   = is_file("/tmp/preclear_stat_{$disk_name}");
 				$is_precleared = ($disk['partitions'][0]['fstype'] == "precleared") ? true : false;
+				if ($mounted || is_file($disk['partitions'][0]['command']) || $preclearing) {
+					$disk['temperature'] = get_temp($disk['device']);
+				}
+				$temp          = my_temp($disk['temperature']);
 
 				$mbutton = make_mount_button($disk);
 
@@ -167,7 +167,7 @@ switch ($_POST['action']) {
 					$preclear .= "get_preclear('{$disk_name}');";
 				}
 				echo "<tr class='{$odd} toggle-disk'>";
-				if ( $disk['partitions'][0]['fstype'] == "vfat" || (!is_file($disk['partitions'][0]['command']) && !$mounted) ) {
+				if ( $disk['partitions'][0]['fstype'] == "vfat" || (!is_file($disk['partitions'][0]['command']) && !$mounted && !$preclearing) ) {
 					echo "<td><img src='/webGui/images/green-blink.png'> {$disk_name}</td>";
 				} else {
 					echo "<td title='Run Smart Report on {$disk_name}.'><img src='/webGui/images/".(is_disk_running($disk['device']) ? "green-on.png":"green-blink.png" )."'>";

@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.01.30a">
+<!ENTITY version   "2016.01.31">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/dlandon/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"d3290e47a4e4bd02110d777e9ad6b5c2">
+<!ENTITY MD5		"0fd11623a5ad90970e0c47a8bd36af88">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Show spin status and disk temperature when a disk is pre-clearing.
+
+###2016.01.30a
 - Fix: Adjusted layout of script edit page.
 
 ###2016.01.30
