@@ -40,6 +40,10 @@ if (! isset($users)){
 	$users = @parse_ini_file("/usr/local/emhttp/state/users.ini", true);
 }
 
+if (! isset($disks)){
+	$disks = @parse_ini_file("/usr/local/emhttp/state/disks.ini", true);
+}
+
 #########################################################
 #############        MISC FUNCTIONS        ##############
 #########################################################
@@ -742,34 +746,52 @@ function remove_config_samba($source) {
 #########################################################
 
 function get_unasigned_disks() {
-	$disks = $paths = $unraid_disks = $unraid_cache = array();
+	global $disks, $var;
+
+	$ud_disks = $paths = $unraid_disks = $unraid_cache = array();
+
+	// Get all devices by id.
 	foreach (listDir("/dev/disk/by-id") as $p) {
 		$r = realpath($p);
+		// Only /dev/sd* and /dev/hd* devices.
 		if (!is_bool(strpos($r, "/dev/sd")) || !is_bool(strpos($r, "/dev/hd"))) {
 			$paths[$r] = $p;
 		}
 	}
 	natsort($paths);
-	$unraid_flash = realpath("/dev/disk/by-label/UNRAID");
-	foreach (parse_ini_string(shell_exec("/usr/bin/cat /proc/mdcmd 2>/dev/null")) as $k => $v) {
-		if (strpos($k, "rdevName") !== FALSE && strlen($v)) {
-			$unraid_disks[] = realpath("/dev/$v");
-		}
+
+	// Get the flash device.
+	$unraid_disks[] = "/dev/".$disks['flash']['device'];
+
+	// Get the array devices.
+	for ($i = 1; $i < $var['SYS_ARRAY_SLOTS']; $i++) {
+		$dev = $disks["disk".$i]['device'];
+		$unraid_disks[] = "/dev/".$dev;
+	}
+
+	// Get the parity device.
+	if ( $disks['parity']['device'] != "") {
+		$unraid_disks[] = "/dev/".$disks['parity']['device'];
+	}
+
+	// Get all cache devices.
+	if ( $disks['cache']['device'] != "") {
+		$unraid_disks[] = "/dev/".$disks['cache']['device'];
+	}
+	for ($i = 2; $i <= $var['SYS_CACHE_SLOTS']; $i++) {
+		$dev = $disks["cache".$i]['device'];
+		$unraid_disks[] = "/dev/".$dev;
 	}
 	foreach ($unraid_disks as $k) {$o .= "  $k\n";}; unassigned_log("UNRAID DISKS:\n$o", "DEBUG");
-	foreach (parse_ini_file("/boot/config/disk.cfg") as $k => $v) {
-		if (strpos($k, "cacheId") !== FALSE && strlen($v)) {
-			foreach ( preg_grep("#".$v."$#i", $paths) as $c) $unraid_cache[] = realpath($c);
-		}
-	}
-	foreach ($unraid_cache as $k) {$g .= "  $k\n";}; unassigned_log("UNRAID CACHE:\n$g", "DEBUG");
+
+	// Create the array of unassigned devices.
 	foreach ($paths as $path => $d) {
 		if (preg_match("#^(.(?!wwn|part))*$#", $d)) {
-			if (! in_array($path, $unraid_disks) && ! in_array($path, $unraid_cache) && strpos($unraid_flash, $path) === FALSE) {
-				if (in_array($path, array_map(function($ar){return $ar['device'];},$disks)) ) continue;
+			if (! in_array($path, $unraid_disks)) {
+				if (in_array($path, array_map(function($ar){return $ar['device'];},$ud_disks)) ) continue;
 				$m = array_values(preg_grep("#$d.*-part\d+#", $paths));
 				natsort($m);
-				$disks[$d] = array("device"=>$path,"type"=>"ata","partitions"=>$m);
+				$ud_disks[$d] = array("device"=>$path,"type"=>"ata","partitions"=>$m);
 				unassigned_log("Unassigned disk: '$d'.", "DEBUG");
 			} else {
 				unassigned_log("Discarded: => '$d' '($path)'.", "DEBUG");
@@ -777,14 +799,14 @@ function get_unasigned_disks() {
 			}
 		}
 	}
-	return $disks;
+	return $ud_disks;
 }
 
 function get_all_disks_info($bus="all") {
-	unassigned_log("Stating get_all_disks_info.", "DEBUG");
+	unassigned_log("Starting get_all_disks_info.", "DEBUG");
 	$d1 = time();
-	$disks = get_unasigned_disks();
-	foreach ($disks as $key => $disk) {
+	$ud_disks = get_unasigned_disks();
+	foreach ($ud_disks as $key => $disk) {
 		if ($disk['type'] != $bus && $bus != "all") continue;
 		$disk['temperature'] = "*";
 		$disk['size'] = intval(trim(shell_exec("blockdev --getsize64 ${key} 2>/dev/null")));
@@ -792,11 +814,11 @@ function get_all_disks_info($bus="all") {
 		foreach ($disk['partitions'] as $k => $p) {
 			if ($p) $disk['partitions'][$k] = get_partition_info($p);
 		}
-		$disks[$key] = $disk;
+		$ud_disks[$key] = $disk;
 	}
 	unassigned_log("Total time: ".(time() - $d1)."s", "DEBUG");
-	usort($disks, create_function('$a, $b','$key="device";if ($a[$key] == $b[$key]) return 0; return ($a[$key] < $b[$key]) ? -1 : 1;'));
-	return $disks;
+	usort($ud_disks, create_function('$a, $b','$key="device";if ($a[$key] == $b[$key]) return 0; return ($a[$key] < $b[$key]) ? -1 : 1;'));
+	return $ud_disks;
 }
 
 function get_udev_info($device, $udev=NULL, $reload) {
