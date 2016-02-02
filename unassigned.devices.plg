@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.02.01">
+<!ENTITY version   "2016.02.02">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/dlandon/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"796c60b05b3b978a10ad802610ed97e7">
+<!ENTITY MD5		"505825923ac7b67a97bcbedc48de944c">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Script logging.
+
+###2016.02.01
 - Fix: Keep unRaid flash drive from showing up in the unassigned devices when a flash device is plugged in with an 'UNRAID' label,.
 
 ###2016.01.31

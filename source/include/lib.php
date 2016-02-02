@@ -65,7 +65,7 @@ function save_ini_file($file, $array) {
 
 function unassigned_log($m, $type = "NOTICE") {
 	if ($type == "DEBUG" && ! $GLOBALS["VERBOSE"]) return NULL;
-	$m = date("M j H:i:s")." ".print_r($m,true)."\n";
+	$m = date("M d H:i:s")." ".print_r($m,true)."\n";
 	file_put_contents($GLOBALS["paths"]["log"], $m, FILE_APPEND);
 }
 
@@ -306,6 +306,10 @@ function execute_script($info, $action) {
 	$out = ''; 
 	$error = '';
 	putenv("ACTION=${action}");
+	$prog_name = basename($info['command'], ".sh");
+	putenv("PROG_NAME=${prog_name}");
+	$logfile = "/var/log/".$prog_name.".log";
+	putenv("LOGFILE=${logfile}");
 	foreach ($info as $key => $value) putenv(strtoupper($key)."=${value}");
 	$cmd = $info['command'];
 	$bg = ($info['command_bg'] == "true" && $action == "ADD") ? "&" : "";
@@ -315,7 +319,9 @@ function execute_script($info, $action) {
 	}
 	if (! $cmd) {unassigned_log("Command not available, skipping."); return FALSE;}
 	unassigned_log("Running command '${cmd}' with action '${action}'.");
-	@chmod($cmd, 0755);
+	if (! is_executable($cmd) ) {
+		@chmod($cmd, 0755);
+	}
 	$cmd = isset($info['serial']) ? "$cmd > /tmp/${info[serial]}.log 2>&1 $bg" : "$cmd > /tmp/".preg_replace('~[^\w]~i', '', $info['device']).".log 2>&1 $bg";
 	exec($cmd);
 }

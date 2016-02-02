@@ -91,6 +91,7 @@ function render_partition($disk, $partition) {
 	$out[] = render_used_and_free($partition);
 	$out[] = "<td>-</td>";
 	$out[] = "<td title='Turn on to Share Device with SMB and/or NFS.'><input type='checkbox' class='toggle_share' info='".htmlentities(json_encode($partition))."' ".(($partition['shared']) ? 'checked':'')."></td>";
+	$out[] = "<td><a title='View Log.' href='/Main/ViewLog?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><img src='plugins/${plugin}/icons/view_log.png' style='cursor:pointer;width:16px;'></a></td>";
 	$out[] = "<td><a title='Edit Device Script.' href='/Main/EditScript?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><img src='plugins/${plugin}/icons/edit_script.png' style='cursor:pointer;width:16px;".( (get_config($partition['serial'],"command_bg.{$partition[part]}") == "true") ? "":"opacity: 0.4;" )."'></a></td>";
 	$out[] = "<tr>";
 	return $out;
@@ -133,7 +134,7 @@ switch ($_POST['action']) {
 	case 'get_content':
 		$disks = get_all_disks_info();
 		$preclear = "";
-		echo "<table class='usb_disks custom_head'><thead><tr><td>Device</td><td>Identification</td><td></td><td>Temp</td><td>FS</td><td>Size</td><td>Open files</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Share</td><td>Script</td></tr></thead>";
+		echo "<table class='usb_disks custom_head'><thead><tr><td>Device</td><td>Identification</td><td></td><td>Temp</td><td>FS</td><td>Size</td><td>Open files</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Share</td><td>Log</td><td>Script</td></tr></thead>";
 		echo "<tbody>";
 		if ( count($disks) ) {
 			$odd="odd";
@@ -183,6 +184,7 @@ switch ($_POST['action']) {
 				echo "<td title='Turn on to Mount Device when Array is Started.'><input type='checkbox' class='automount' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['automount']) ? 'checked':'')."></td>";
 				echo ($p)?$p[10]:"<td>-</td>";
 				echo ($p)?$p[11]:"<td>-</td>";
+				echo ($p)?$p[12]:"<td>-</td>";
 				echo "</tr>";
 				if (! $is_precleared) {
 					foreach ($disk['partitions'] as $partition) {
@@ -200,7 +202,7 @@ switch ($_POST['action']) {
 		$samba_mounts = get_samba_mounts();
 		echo "<div id='smb_tab' class='show-complete'>";
 		echo "<div id='title'><span class='left'><img src='/plugins/dynamix/icons/smbsettings.png' class='icon'>Remote SMB Shares</span></div>";
-		echo "<table class='samba_mounts custom_head'><thead><tr><td>Device</td><td>Source</td><td>Mount point</td><td></TD><td>Remove</td><td>Size</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Script</td></tr></thead>";    echo "<tbody>";
+		echo "<table class='samba_mounts custom_head'><thead><tr><td>Device</td><td>Source</td><td>Mount point</td><td></TD><td>Remove</td><td>Size</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Log</td><td>Script</td></tr></thead>";    echo "<tbody>";
 		if (count($samba_mounts)) {
 			$odd="odd";
 			foreach ($samba_mounts as $mount) {
@@ -222,6 +224,7 @@ switch ($_POST['action']) {
 				echo "<td><span>".my_scale($mount['size'], $unit)." $unit</span></td>";
 				echo render_used_and_free($mount);
 				echo "<td title='Turn on to Mount Device when Array is Started.'><input type='checkbox' class='samba_automount' device='{$mount[device]}' ".(($mount['automount']) ? 'checked':'')."></td>";
+				echo "<td><a title='View SMB Share Log.' href='/Main/ViewLog?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><img src='plugins/${plugin}/icons/view_log.png' style='cursor:pointer;width:16px;'></a></td>";
 				echo "<td><a title='Edit Remote SMB Share Script.' href='/Main/EditScript?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><img src='plugins/${plugin}/icons/edit_script.png' style='cursor:pointer;width:16px;".( (get_samba_config($mount['device'],"command_bg") == "true") ? "":"opacity: 0.4;" )."'></a></td>";
 				echo "</tr>";
 				$odd = ($odd == "odd") ? "even" : "odd";

@@ -495,7 +495,7 @@ function getlog() {
 
 <div id="usb_devices_list">
 	<table class='usb_disks' id='usb_table'>
-		<thead><tr><td>Device</td><td>Identification</td><td></td><td>Temp</td><td>FS</td><td>Size</td><td>Open files</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Script</td></tr></thead>
+		<thead><tr><td>Device</td><td>Identification</td><td></td><td>Temp</td><td>FS</td><td>Size</td><td>Open files</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Log</td><td>Script</td></tr></thead>
 		<tbody><tr><td colspan='12' style='text-align:center;font-weight:bold;'></td></tr></tbody>
 	</table>
 </div>
