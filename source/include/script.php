@@ -25,17 +25,21 @@ function write_log($string) {
 	@flush();
 }
 
-if ( isset($_GET['device']) && isset($_GET['fs']) ) {
+if ( isset($_GET['device']) && isset($_GET['owner']) ) {
 	$device = trim(urldecode($_GET['device']));
-	$fs   = trim(urldecode($_GET['fs']));
-	$type = isset($_GET['type']) ? trim(urldecode($_GET['type'])) : 'ro';
-	echo $fs;
-	$command = get_fsck_commands($fs, $device, $type)." 2>&1";
-	write_log($command."<br><br>");
-	$proc = popen($command, 'r');
-	while (!feof($proc)) {
-		write_log(fgets($proc));
+	$info = get_partition_info($device, true);
+	$owner = trim(urldecode($_GET['owner']));
+	$command = execute_script($info, 'ADD', TRUE);
+	if ($command != "") {
+		$command = $command." 2>&1";
+		putenv("OWNER=${owner}");
+		write_log($command."<br><br>");
+		$proc = popen($command, 'r');
+		while (!feof($proc)) {
+			write_log(fgets($proc));
+		}
+	} else {
+		echo "No script file to execute!";
 	}
 }
-write_log("<center><button type='button' onclick='document.location=\"/plugins/${plugin}/include/fsck.php?device={$device}&fs={$fs}&type=rw\"'> Run with CORRECT flag</button></center>");
 ?>

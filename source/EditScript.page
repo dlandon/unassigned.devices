@@ -114,13 +114,13 @@ Script content:
 : <textarea spellcheck="false" cols="80" rows="22" name="text" title="Enter and Edit the Script that runs when a udev or operator event occurs." style="font-family:bitstream;width:66%"><?=$text;?></textarea>
 
 <button type="button" title="Load the default script." onclick="setDefault(this.form)">Default Script</button>
-: <input type="reset" title="Undo your changes since last Apply."/><input type="submit" title="Apply your changes and save to Script File." value="Apply"/><button type="button" onclick="done('/')">Done</button>
+: <input type="reset" title="Undo your changes since last Save."/><input type="submit" title="Save your changes and save to Script File." value="Save"/><button type="button" onclick="done('/')">Done</button>
 
-> Click the **Apply** button to commit the current edits.  Click **Reset** to
+> Click the **Save** button to commit the current edits.  Click **Reset** to
 > undo any changes you make (before Saving). Click **Done** to exit this page.
 >
 > Click the **Default** button to initialize the edit box with the
-> factory-default contents.  You still need to click **Apply** in order to
+> factory-default contents.  You still need to click **Save** in order to
 > commit the change.
 
 </form>

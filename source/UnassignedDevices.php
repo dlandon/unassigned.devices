@@ -65,8 +65,10 @@ function render_partition($disk, $partition) {
 	if (! isset($partition['device'])) return array();
 	$out = array();
 	$mounted = is_mounted($partition['device']);
-	if ( (! $mounted &&  $partition['fstype'] != 'btrfs') || ($mounted && $partition['fstype'] == 'btrfs') ) {
-		$fscheck = "<a title='File System Check.' class='exec' onclick='openWindow_fsck(\"/plugins/${plugin}/include/fsck.php?disk={$partition[device]}&fs={$partition[fstype]}&type=ro\",\"Check filesystem\",600,900);'><i class='glyphicon glyphicon-th-large partition'></i>{$partition[part]}</a>";
+	if ( (! $mounted &&  $partition['fstype'] != 'btrfs') ) {
+		$fscheck = "<a title='File System Check.' class='exec' onclick='openWindow_fsck(\"/plugins/${plugin}/include/fsck.php?device={$partition[device]}&fs={$partition[fstype]}&type=ro\",\"Check filesystem\",600,900);'><i class='glyphicon glyphicon-th-large partition'></i>{$partition[part]}</a>";
+	} elseif ($mounted) {
+		$fscheck = "<a title='Execute Script as udev simulating a device being installed.' class='exec' onclick='openWindow_fsck(\"/plugins/${plugin}/include/script.php?device={$partition[device]}&owner=udev\",\"Execute Script\",600,900);'><i class='glyphicon glyphicon-flash partition'></i>{$partition[part]}</a>";
 	} else {
 		$fscheck = "<i class='glyphicon glyphicon-th-large partition'></i>{$partition[part]}";
 	}

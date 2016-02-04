@@ -17,6 +17,7 @@ $plugin = "unassigned.devices";
 $paths =  array("smb_extra"       => "/boot/config/smb-extra.conf",
 				"smb_usb_shares"  => "/etc/samba/unassigned-shares",
 				"usb_mountpoint"  => "/mnt/disks",
+				"device_log"      => "/var/log/",
 				"log"             => "/var/log/{$plugin}.log",
 				"config_file"     => "/boot/config/plugins/{$plugin}/{$plugin}.cfg",
 				"state"           => "/var/state/${plugin}/${plugin}.ini",
@@ -302,15 +303,13 @@ function toggle_automount($sn, $status) {
 	return ($config[$sn]["automount"] == "yes") ? TRUE : FALSE;
 }
 
-function execute_script($info, $action) { 
+function execute_script($info, $action, $testing = FALSE) { 
 	$out = ''; 
 	$error = '';
 	putenv("ACTION=${action}");
-	$prog_name = basename($info['command'], ".sh");
-	putenv("PROG_NAME=${prog_name}");
-	$logfile = "/var/log/".$prog_name.".log";
-	putenv("LOGFILE=${logfile}");
-	foreach ($info as $key => $value) putenv(strtoupper($key)."=${value}");
+	foreach ($info as $key => $value) {
+		putenv(strtoupper($key)."=${value}");
+	}
 	$cmd = $info['command'];
 	$bg = ($info['command_bg'] == "true" && $action == "ADD") ? "&" : "";
 	if ($common_cmd = get_config("Config", "common_cmd")) {
@@ -322,8 +321,12 @@ function execute_script($info, $action) {
 	if (! is_executable($cmd) ) {
 		@chmod($cmd, 0755);
 	}
-	$cmd = isset($info['serial']) ? "$cmd > /tmp/${info[serial]}.log 2>&1 $bg" : "$cmd > /tmp/".preg_replace('~[^\w]~i', '', $info['device']).".log 2>&1 $bg";
-	exec($cmd);
+	if (! $testing) {
+		$cmd = isset($info['serial']) ? "$cmd > /tmp/${info[serial]}.log 2>&1 $bg" : "$cmd > /tmp/".preg_replace('~[^\w]~i', '', $info['device']).".log 2>&1 $bg";
+		exec($cmd);
+	} else {
+		return $cmd;
+	}
 }
 
 function set_command($sn, $cmd) {
@@ -899,6 +902,8 @@ function get_partition_info($device, $reload=FALSE){
 		$disk['shared'] = ($disk['target']) ? is_shared(basename($disk['mountpoint'])) : config_shared($disk['serial'], $disk['part']);
 		$disk['command'] = get_config($disk['serial'], "command.{$disk[part]}");
 		$disk['command_bg'] = get_config($disk['serial'], "command_bg.{$disk[part]}");
+		$disk['prog_name'] = basename($disk['command'], ".sh");
+		$disk['logfile'] = $paths['device_log'].$disk['prog_name'].".log";
 		return $disk;
 	}
 }

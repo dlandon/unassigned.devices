@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.02.02">
+<!ENTITY version   "2016.02.03">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/dlandon/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"505825923ac7b67a97bcbedc48de944c">
+<!ENTITY MD5		"55ae8b0ce0eb92c4de85e0414717f486">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Change 'Apply' to 'Save' button on the script edit page.  It was not working as it should when some changes were made.
+- Add: Run device script in a window to test/debug the script and see the results from the script.
+
+###2016.02.02
 - Add: Script logging.
 
 ###2016.02.01
