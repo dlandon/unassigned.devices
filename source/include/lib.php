@@ -774,8 +774,10 @@ function get_unasigned_disks() {
 
 	// Get the array devices.
 	for ($i = 1; $i < $var['SYS_ARRAY_SLOTS']; $i++) {
-		$dev = $disks["disk".$i]['device'];
-		$unraid_disks[] = "/dev/".$dev;
+		if (isset($disks["disk".$i]['device'])) {
+			$dev = $disks["disk".$i]['device'];
+			$unraid_disks[] = "/dev/".$dev;
+		}
 	}
 
 	// Get the parity device.
@@ -788,8 +790,10 @@ function get_unasigned_disks() {
 		$unraid_disks[] = "/dev/".$disks['cache']['device'];
 	}
 	for ($i = 2; $i <= $var['SYS_CACHE_SLOTS']; $i++) {
-		$dev = $disks["cache".$i]['device'];
-		$unraid_disks[] = "/dev/".$dev;
+		if (isset($disks["cache".$i]['device'])) {
+			$dev = $disks["cache".$i]['device'];
+			$unraid_disks[] = "/dev/".$dev;
+		}
 	}
 	foreach ($unraid_disks as $k) {$o .= "  $k\n";}; unassigned_log("UNRAID DISKS:\n$o", "DEBUG");
 

@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.02.03">
+<!ENTITY version   "2016.02.05">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/dlandon/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"55ae8b0ce0eb92c4de85e0414717f486">
+<!ENTITY MD5		"09c8b4c4af213706ac25054989fafd7e">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Don't show execute script icon if there is no script file.
+- Fix: Minor change for robustness when determining array devices.
+
+###2016.02.03
 - Fix: Change 'Apply' to 'Save' button on the script edit page.  It was not working as it should when some changes were made.
 - Add: Run device script in a window to test/debug the script and see the results from the script.
 
