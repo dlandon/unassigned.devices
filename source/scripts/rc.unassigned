@@ -29,7 +29,7 @@ function unassigned_mount() {
 			$device = $info['device'];
 			if ( preg_match("#".$DEVNAME."#i", $device) || $DEVNAME == "auto" ) {
 				if (! $info['automount'] && $DEVNAME == "auto" ) {
-					unassigned_log("Remote SMB mount '${info[device]}' auto mount is disabled, not mounted.");
+					unassigned_log("Remote SMB mount '${info[device]}' is not set to auto mount and will not be mounted...");
 					continue;
 				}
 				unassigned_log("Remote SMB share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
@@ -50,11 +50,11 @@ function unassigned_mount() {
 			if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "auto" ) {
 				$info = get_partition_info($partition,true);
 				if (! $info['automount'] && ( $DEVNAME == "auto" || isset($_ENV['DEVNAME']) )) {
-					unassigned_log("Disk with serial '${info[serial]}' auto mount is disabled, not mounted.");
+					unassigned_log("Disk with serial '${info[serial]} is not set to auto mount and will not be mounted...'");
 					continue;
 				}
 				if ($info['label'] == "UNRAID") {
-					unassigned_log("Error: Cannot mount device '{$info[device]}' with label 'UNRAID'.");
+					unassigned_log("Error: Cannot mount device '{$info[device]}' with label 'UNRAID'...");
 				} else {
 					unassigned_log("Drive found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
 					unassigned_log("Adding disk '${info[device]}'...");
@@ -64,7 +64,7 @@ function unassigned_mount() {
 							add_smb_share($info['mountpoint'], $info['label']);
 							add_nfs_share($info['mountpoint']);
 						} else {
-							unassigned_log("Partition '{$info[label]}' marked as not sharable, skipping.");
+							unassigned_log("Partition '{$info[label]}' is not set as sharable and will not be shared...");
 						}
 						setSleepTime($device);
 						execute_script($info, "ADD");
@@ -85,7 +85,7 @@ function unassigned_umount() {
 			$device = $info['device'];
 			if ( preg_match("#".$DEVNAME."#i", $device) || $DEVNAME == "auto" || $DEVNAME == "all" ) {
 				if (! $info['automount'] && $DEVNAME == "auto" ) {
-					unassigned_log("Remote SMB Share '${info[device]}' auto mount is disabled, not unmounted.");
+					unassigned_log("Remote SMB Share '${info[device]} is not set to auto mount and will not be unmounted...'");
 					continue;
 				}
 				unassigned_log("Remote SMB share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
@@ -101,7 +101,7 @@ function unassigned_umount() {
 						}
 					}
 				} else {
-					unassigned_log("Remote SMB share '${info[device]}' not mounted, cannot unmount...");
+					unassigned_log("Remote SMB share '${info[device]}' is not mounted and cannot be unmounted...");
 				}
 			}
 		}
@@ -114,12 +114,12 @@ function unassigned_umount() {
 			if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "auto" || $DEVNAME == "all" ) {
 				$info = get_partition_info($partition,true);
 				if (! $info['automount'] && $DEVNAME == "auto" ) {
-					unassigned_log("Disk with serial '${info['serial']}' auto mount is disabled, not unmounted.");
+					unassigned_log("Disk with serial '${info['serial']}' is not set to auto mount and will not be unmounted...");
 					continue;
 				}
 				unassigned_log("Drive found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
 				if ($info['label'] == "UNRAID") {
-					unassigned_log("Error: Cannot unmount device '{$info[device]}' with label 'UNRAID'.");
+					unassigned_log("Error: Cannot unmount device '{$info[device]}' with label 'UNRAID'...");
 				} else {
 					if ( is_mounted($info['device']) ) {
 						@touch(sprintf($paths['unmounting'],basename($info['device'])));
@@ -133,7 +133,7 @@ function unassigned_umount() {
 						}
 						@unlink(sprintf($paths['unmounting'],basename($info['device'])));
 					} else {
-						unassigned_log("Disk '${info[label]}' not mounted, cannot unmount...");
+						unassigned_log("Disk '${info[label]}' is not mounted and cannot be unmounted...");
 					}
 				}
 			}

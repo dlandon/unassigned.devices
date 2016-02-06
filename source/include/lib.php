@@ -316,7 +316,7 @@ function execute_script($info, $action, $testing = FALSE) {
 		unassigned_log("Running common script: '{$common_cmd}'");
 		exec($common_cmd);
 	}
-	if (! $cmd) {unassigned_log("Command not available, skipping."); return FALSE;}
+	if (! $cmd) {unassigned_log("Command not available.  Cannot execute script."); return FALSE;}
 	unassigned_log("Running command '${cmd}' with action '${action}'.");
 	if (! is_executable($cmd) ) {
 		@chmod($cmd, 0755);

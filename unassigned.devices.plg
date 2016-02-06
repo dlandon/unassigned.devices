@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.02.05">
+<!ENTITY version   "2016.02.06">
 <!ENTITY launch    "Main/UnassignedDevices">
-<!ENTITY gitURL    "https://github.com/dlandon/&name;/raw/master">
+<!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"09c8b4c4af213706ac25054989fafd7e">
+<!ENTITY MD5		"06b7adaebe8feeca3dd7806b1c6e7a64">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Update: Updated exfat packages to 1.2.1.
+
+###2016.02.05
 - Fix: Don't show execute script icon if there is no script file.
 - Fix: Minor change for robustness when determining array devices.
 
@@ -96,7 +99,6 @@
 ###2016.01.17d
 - Add: Log button on main page.
 
-###&version;
 2016.01.17c
 - Fix: Only devices with auto mount off will be unmounted with the command "unassigned_umount all".  This does not apply to stopping the array.
 - Fix: SMB Security would not allow writing to the share.
@@ -295,7 +297,7 @@ rm -f $(ls &packages;/*.tgz 2>/dev/null | grep -v '&version;')
 Get the plugin bundle.
 -->
 <FILE Name="&packages;/&name;-&version;.tgz">
-<URL>"https://github.com/dlandon/&name;/raw/master/&name;-&version;.tgz"</URL>
+<URL>"&gitURL;/&name;-&version;.tgz"</URL>
 <MD5>&MD5;</MD5>
 </FILE>
 
@@ -308,33 +310,19 @@ ntfs-3g-2015.3.14-x86_64-1.txz
 </FILE>
 
 <!--
-exfat-utils-1.1.1-x86_64-1_SBo.txz
+exfat-utils-1.2.1-x86_64-1_slack.txz
 -->
-<FILE Name="&packages;/exfat-utils-1.1.1-x86_64-1_SBo.txz">
-<URL>&gitURL;/packages/exfat-utils-1.1.1-x86_64-1_SBo.txz</URL>
-<MD5>4fb02d6580694edc762f2493dcb823f3</MD5>
-</FILE>
-
-<FILE Run="/bin/bash">
-<INLINE>
-cp &packages;/exfat-utils-1.1.1-x86_64-1_SBo.txz &packages;/exfat-utils-1.1.1-x86_64-1_SBo.tgz
-upgradepkg --install-new &packages;/exfat-utils-1.1.1-x86_64-1_SBo.tgz
-</INLINE>
+<FILE Name="&packages;/exfat-utils-1.2.1-x86_64-1_slack.txz" Run="upgradepkg --install-new">
+<URL>http://packages.slackonly.com/pub/packages/14.1-x86_64/system/exfat-utils/exfat-utils-1.2.1-x86_64-1_slack.txz</URL>
+<MD5>23c662237bf9ec0953fd2ddeba02541b</MD5>
 </FILE>
 
 <!--
-fuse-exfat-1.1.0-x86_64-1_SBo.txz
+fuse-exfat-1.2.1-x86_64-1_slack.txz
 -->
-<FILE Name="&packages;/fuse-exfat-1.1.0-x86_64-1_SBo.txz">
-<URL>&gitURL;/packages/fuse-exfat-1.1.0-x86_64-1_SBo.txz</URL>
-<MD5>ad8b518169c59eabed73263d36e56575</MD5>
-</FILE>
-
-<FILE Run="/bin/bash">
-<INLINE>
-cp &packages;/fuse-exfat-1.1.0-x86_64-1_SBo.txz &packages;/fuse-exfat-1.1.0-x86_64-1_SBo.tgz
-upgradepkg --install-new &packages;/fuse-exfat-1.1.0-x86_64-1_SBo.tgz
-</INLINE>
+<FILE Name="&packages;/fuse-exfat-1.2.1-x86_64-1_slack.txz" Run="upgradepkg --install-new">
+<URL>http://packages.slackonly.com/pub/packages/14.1-x86_64/system/fuse-exfat/fuse-exfat-1.2.1-x86_64-1_slack.txz</URL>
+<MD5>088950fe3ccf767b616db6fb550e0ab7</MD5>
 </FILE>
 
 <!--
@@ -426,7 +414,7 @@ echo "-----------------------------------------------------------"
 echo " &name; has been installed."
 echo " This plugin requires Dynamix webGui to operate"
 echo " Copyright 2015, gfjardim"
-echo " Copyright 2016, dlandon"
+echo " Copyright 2016, &author;"
 echo " Version: &version;"
 echo "-----------------------------------------------------------"
 echo ""
@@ -466,8 +454,8 @@ rm -rf /usr/local/emhttp/plugins/&name; 2>/dev/null
 
 # Remove all installed packages.
 removepkg ntfs-3g-2015.3.14-x86_64-1 2>/dev/null
-removepkg exfat-utils-1.1.1-x86_64-1_SBo 2>/dev/null
-removepkg fuse-exfat-1.1.0-x86_64-1_SBo 2>/dev/null
+removepkg exfat-utils-1.2.1-x86_64-1_slack 2>/dev/null
+removepkg fuse-exfat-1.2.1-x86_64-1_slack 2>/dev/null
 removepkg hfsprogs-332.25-x86_64-2sl 2>/dev/null
 removepkg libbsd-0.6.0-x86_64-1sl 2>/dev/null
 removepkg parted-3.1-x86_64-1 2>/dev/null
