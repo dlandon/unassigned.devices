@@ -284,14 +284,9 @@ function set_config($sn, $var, $val) {
 	return (isset($config[$sn][$var])) ? $config[$sn][$var] : FALSE;
 }
 
-function is_automount($sn, $usb=true) {
+function is_automount($sn) {
 	$auto = get_config($sn, "automount");
-	return ( ($auto) ? ( ($auto == "yes") ? TRUE : FALSE ) : TRUE);
-}
-
-function is_automount_2($sn, $usb=FALSE) {
-	$auto = get_config($sn, "automount");
-	return ($auto == "yes" || ( ! $auto && $usb !== FALSE ) ) ? TRUE : FALSE; 
+	return ( ($auto) ? ( ($auto == "yes") ? TRUE : FALSE ) : FALSE);
 }
 
 function toggle_automount($sn, $status) {
@@ -432,7 +427,7 @@ function do_mount_local($info) {
 			unassigned_log("No filesystem detected, aborting.");
 		}
 	} else {
-		unassigned_log("Drive '$dev' already mounted");
+		unassigned_log("Drive '$dev' already mounted...");
 	}
 }
 
@@ -469,7 +464,7 @@ function is_shared($name) {
 
 function config_shared($sn, $part) {
 	$share = get_config($sn, "share.{$part}");
-	return ($share == "yes" || ! $share) ? TRUE : FALSE; 
+	return ( ($share) ? ( ($share == "yes") ? TRUE : FALSE ) : FALSE);
 }
 
 function toggle_share($serial, $part, $status) {
@@ -720,7 +715,7 @@ function do_mount_samba($info) {
 		unassigned_log("Mount of '${dev}' failed. Error message: $o");
 		return FALSE;
 	} else {
-		unassigned_log("Share '$dev' already mounted.");
+		unassigned_log("Share '$dev' already shared...");
 	}
 }
 
@@ -902,7 +897,7 @@ function get_partition_info($device, $reload=FALSE){
 			$disk['mountpoint'] = $disk['target'] ? $disk['target'] : preg_replace("%\s+%", "_", sprintf("%s/%s", $paths['usb_mountpoint'], $disk['label']));
 		}
 		$disk['owner'] = (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
-		$disk['automount'] = is_automount_2($disk['serial'],strpos($attrs['DEVPATH'],"usb"));
+		$disk['automount'] = is_automount($disk['serial']);
 		$disk['shared'] = ($disk['target']) ? is_shared(basename($disk['mountpoint'])) : config_shared($disk['serial'], $disk['part']);
 		$disk['command'] = get_config($disk['serial'], "command.{$disk[part]}");
 		$disk['command_bg'] = get_config($disk['serial'], "command_bg.{$disk[part]}");

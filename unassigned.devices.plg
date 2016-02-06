@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.02.06">
+<!ENTITY version   "2016.02.06a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"06b7adaebe8feeca3dd7806b1c6e7a64">
+<!ENTITY MD5		"bfd4daacd0a123c640f4a9ed5dc15744">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: New devices will not default to auto mount and share.  User must manually set to auto mount and share.
+
+###2016.02.06
 - Update: Updated exfat packages to 1.2.1.
 
 ###2016.02.05
