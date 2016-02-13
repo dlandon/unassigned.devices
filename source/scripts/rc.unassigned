@@ -61,7 +61,8 @@ function unassigned_mount() {
 					unassigned_log("Adding disk '${info[device]}'...");
 					@touch(sprintf($paths['mounting'],basename($info['device'])));
 					if (do_mount( $info )) {
-						if (config_shared( $info['serial'],  $info['part'])) {
+						$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV, $reload) : get_udev_info($device, NULL, $reload);
+						if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'],"usb"))) {
 							add_smb_share($info['mountpoint'], $info['label']);
 							add_nfs_share($info['mountpoint']);
 						} else {

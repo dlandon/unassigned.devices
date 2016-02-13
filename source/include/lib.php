@@ -285,9 +285,10 @@ function set_config($sn, $var, $val) {
 	return (isset($config[$sn][$var])) ? $config[$sn][$var] : FALSE;
 }
 
-function is_automount($sn) {
+function is_automount($sn, $usb=FALSE) {
 	$auto = get_config($sn, "automount");
-	return ( ($auto) ? ( ($auto == "yes") ? TRUE : FALSE ) : FALSE);
+	$auto_usb = get_config("Config", "automount_usb");
+	return ($auto == "yes" || ( ! $auto && $usb !== FALSE && $auto_usb == "yes" ) ) ? TRUE : FALSE;
 }
 
 function toggle_automount($sn, $status) {
@@ -463,9 +464,10 @@ function is_shared($name) {
 	return ( shell_exec("smbclient -g -L localhost -U% 2>&1|awk -F'|' '/Disk/{print $2}'|grep -c '${name}'") == 0 ) ? FALSE : TRUE;
 }
 
-function config_shared($sn, $part) {
+function config_shared($sn, $part, $usb=FALSE) {
 	$share = get_config($sn, "share.{$part}");
-	return ( ($share) ? ( ($share == "yes") ? TRUE : FALSE ) : FALSE);
+	$auto_usb = get_config("Config", "automount_usb");
+	return ($share == "yes" || (! $share && $usb == TRUE && $auto_usb == "yes")) ? TRUE : FALSE; 
 }
 
 function toggle_share($serial, $part, $status) {
@@ -621,7 +623,8 @@ function reload_shares() {
 			if ( is_mounted(realpath($p)) ) {
 				$info = get_partition_info($p);
 				if (is_shared(basename($info['target']))) {
-					if (config_shared( $info['serial'],  $info['part'])) {
+					$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV, $reload) : get_udev_info($device, NULL, $reload);
+					if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'],"usb"))) {
 						unassigned_log("Reloading shared dir '{$info[target]}'.");
 						unassigned_log("Removing old config...");
 						rm_smb_share($info['target'], $info['label']);
@@ -898,8 +901,8 @@ function get_partition_info($device, $reload=FALSE){
 			$disk['mountpoint'] = $disk['target'] ? $disk['target'] : preg_replace("%\s+%", "_", sprintf("%s/%s", $paths['usb_mountpoint'], $disk['label']));
 		}
 		$disk['owner'] = (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
-		$disk['automount'] = is_automount($disk['serial']);
-		$disk['shared'] = ($disk['target']) ? is_shared(basename($disk['mountpoint'])) : config_shared($disk['serial'], $disk['part']);
+		$disk['automount'] = is_automount($disk['serial'], strpos($attrs['DEVPATH'],"usb"));
+		$disk['shared'] = ($disk['target']) ? is_shared(basename($disk['mountpoint'])) : config_shared($disk['serial'], $disk['part'], strpos($attrs['DEVPATH'],"usb"));
 		$disk['command'] = get_config($disk['serial'], "command.{$disk[part]}");
 		$disk['command_bg'] = get_config($disk['serial'], "command_bg.{$disk[part]}");
 		$disk['prog_name'] = basename($disk['command'], ".sh");
