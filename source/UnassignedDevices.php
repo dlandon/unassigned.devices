@@ -117,7 +117,9 @@ function make_mount_button($device) {
 	$is_mounting   = (time() - filemtime($is_mounting) < 300) ? TRUE : FALSE;
 	$is_unmounting = array_values(preg_grep("@/unmounting_".basename($device['device'])."@i", listDir(dirname($paths['mounting']))))[0];
 	$is_unmounting = (time() - filemtime($is_unmounting) < 300) ? TRUE : FALSE;
-	if ($format) {
+	if ($device['size'] == 0) {
+		$button = sprintf($button, $context, 'mount', 'disabled', 'glyphicon glyphicon-erase', 'Insert');
+	} elseif ($format) {
 		$disable = get_config("Config", "destructive_mode") == "enabled" ? "" : "disabled";
 		$button = sprintf($button, $context, 'format', $disable, 'glyphicon glyphicon-erase', 'Format');
 	} elseif ($is_mounting) {

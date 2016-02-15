@@ -199,7 +199,7 @@ function get_format_cmd($dev, $fs) {
 			return "/sbin/mkfs.ext4 {$dev}";
 			break;
 		case 'exfat':
-			return "/sbin/mkfs.exfat {$dev}";
+			return "/usr/sbin/mkfs.exfat {$dev}";
 			break;
 		case 'fat32':
 			return "/sbin/mkfs.fat -s 8 -F 32 {$dev}";
@@ -236,17 +236,17 @@ function format_disk($dev, $fs) {
 	$disk_blocks      = intval(trim(exec("blockdev --getsz $dev  | awk '{ print $1 }'")));
 	$disk_schema      = ( $disk_blocks >= $max_mbr_blocks ) ? "gpt" : "msdos";
 	unassigned_log("Clearing partition table of disk '$dev'.");
-	shell_exec("/usr/bin/dd if=/dev/zero of={$dev} bs=2M count=1");
+	shell_exec("/usr/bin/dd if=/dev/zero of={$dev} bs=2M count=1 2>&1 >/dev/null");
 	unassigned_log("Reloading disk '{$dev}' partition table.");
-	shell_exec("/usr/sbin/hdparm -z {$dev}");
+	shell_exec("/usr/sbin/hdparm -z {$dev} 2>&1 >/dev/null");
 	unassigned_log("Creating a '{$disk_schema}' partition table on disk '{$dev}'.");
-	shell_exec("/usr/sbin/parted {$dev} --script -- mklabel {$disk_schema}");
+	shell_exec("/usr/sbin/parted {$dev} --script -- mklabel {$disk_schema} 2>&1 >/dev/null");
 	unassigned_log("Creating a primary partition on disk '{$dev}'.");
-	shell_exec("/usr/sbin/parted -a optimal {$dev} --script -- mkpart primary 0% 100%");
+	shell_exec("/usr/sbin/parted -a optimal {$dev} --script -- mkpart primary 0% 100% 2>&1 >/dev/null");
 	unassigned_log("Formatting disk '{$dev}' with '$fs' filesystem.");
 	shell_exec(get_format_cmd("{$dev}1", $fs));
 	unassigned_log("Reloading disk '{$dev}' partition table.");
-	shell_exec("/usr/sbin/hdparm -z {$dev}");
+	shell_exec("/usr/sbin/hdparm -z {$dev} 2>&1 >/dev/null");
 	sleep(3);
 	@touch($GLOBALS['paths']['reload']);
 }
@@ -926,7 +926,7 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 			$cmd = array('ro'=>'/sbin/xfs_repair -n %s','rw'=>'/sbin/xfs_repair %s');
 			break;
 		case 'exfat':
-			$cmd = array('ro'=>'/sbin/fsck.exfat %s','rw'=>'/sbin/fsck.exfat %s');
+			$cmd = array('ro'=>'/usr/sbin/fsck.exfat %s','rw'=>'/sbin/fsck.exfat %s');
 			break;
 		case 'btrfs':
 			$cmd = array('ro'=>'/sbin/btrfs scrub start -B -R -d -r %s','rw'=>'/sbin/btrfs scrub start -B -R -d %s');

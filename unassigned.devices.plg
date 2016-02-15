@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.02.13">
+<!ENTITY version   "2016.02.15">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"02c0260d56105dfc117c7eb0266fa094">
+<!ENTITY MD5		"26e91bf5d56db22e6a9668aada38dd01">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Card reader with no device installed will now show 'Insert', not 'Format'.
+- Fix: Elimnate format messages on console.
+- Fix: exfat format and fsck not working properly.
+
+###2016.02.13
 - Add: Configuration setting so USB devices can be auto mounted and shared without user interaction.
 
 ###2016.02.10a
