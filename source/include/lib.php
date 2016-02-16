@@ -926,7 +926,7 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 			$cmd = array('ro'=>'/sbin/xfs_repair -n %s','rw'=>'/sbin/xfs_repair %s');
 			break;
 		case 'exfat':
-			$cmd = array('ro'=>'/usr/sbin/fsck.exfat %s','rw'=>'/sbin/fsck.exfat %s');
+			$cmd = array('ro'=>'/usr/sbin/fsck.exfat %s','rw'=>'/usr/sbin/fsck.exfat %s');
 			break;
 		case 'btrfs':
 			$cmd = array('ro'=>'/sbin/btrfs scrub start -B -R -d -r %s','rw'=>'/sbin/btrfs scrub start -B -R -d %s');

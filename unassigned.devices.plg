@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.02.15">
+<!ENTITY version   "2016.02.16">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"26e91bf5d56db22e6a9668aada38dd01">
+<!ENTITY MD5		"b2d7a0073497bb57e476569393599cd3">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Don't show pre-clear plugin icon when card reader device not installed.
+- Fix: Don't show pre-clear plugin icon when FS is vfat or exfat.
+
+###2016.02.15
 - Fix: Card reader with no device installed will now show 'Insert', not 'Format'.
 - Fix: Elimnate format messages on console.
 - Fix: exfat format and fsck not working properly.

@@ -148,14 +148,15 @@ switch ($_POST['action']) {
 				$p             = (count($disk['partitions']) <= 1) ? render_partition($disk, $disk['partitions'][0]) : FALSE;
 				$preclearing   = is_file("/tmp/preclear_stat_{$disk_name}");
 				$is_precleared = ($disk['partitions'][0]['fstype'] == "precleared") ? true : false;
+				$flash         = ($disk['partitions'][0]['fstype'] == "vfat" || $disk['partitions'][0]['fstype'] == "exfat") ? true : false;
 				if ($mounted || is_file($disk['partitions'][0]['command']) || $preclearing) {
 					$disk['temperature'] = get_temp($disk['device']);
 				}
-				$temp          = my_temp($disk['temperature']);
+				$temp = my_temp($disk['temperature']);
 
 				$mbutton = make_mount_button($disk);
 
-				if (! $mounted && file_exists("plugins/preclear.disk/icons/precleardisk.png")) {
+				if ($disk['size'] !== 0 && ! $flash  && ! $mounted && file_exists("plugins/preclear.disk/icons/precleardisk.png")) {
 					$preclear_link = " <a title='Preclear Disk.' class='exec green' href='/Settings/Preclear?disk={$disk_name}'><img src='/plugins/preclear.disk/icons/precleardisk.png'></a>";
 				} else {
 					$preclear_link = "";
@@ -172,7 +173,7 @@ switch ($_POST['action']) {
 					$preclear .= "get_preclear('{$disk_name}');";
 				}
 				echo "<tr class='{$odd} toggle-disk'>";
-				if ( $disk['partitions'][0]['fstype'] == "vfat" || (!is_file($disk['partitions'][0]['command']) && !$mounted && !$preclearing) ) {
+				if ( $flash || (!is_file($disk['partitions'][0]['command']) && ! $mounted && ! $preclearing) ) {
 					echo "<td><img src='/webGui/images/green-blink.png'> {$disk_name}</td>";
 				} else {
 					echo "<td title='Run Smart Report on {$disk_name}.'><img src='/webGui/images/".(is_disk_running($disk['device']) ? "green-on.png":"green-blink.png" )."'>";
@@ -206,7 +207,8 @@ switch ($_POST['action']) {
 		$samba_mounts = get_samba_mounts();
 		echo "<div id='smb_tab' class='show-complete'>";
 		echo "<div id='title'><span class='left'><img src='/plugins/dynamix/icons/smbsettings.png' class='icon'>Remote SMB Shares</span></div>";
-		echo "<table class='samba_mounts custom_head'><thead><tr><td>Device</td><td>Source</td><td>Mount point</td><td></TD><td>Remove</td><td>Size</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Log</td><td>Script</td></tr></thead>";    echo "<tbody>";
+		echo "<table class='samba_mounts custom_head'><thead><tr><td>Device</td><td>Source</td><td>Mount point</td><td></TD><td>Remove</td><td>Size</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Log</td><td>Script</td></tr></thead>";
+	    echo "<tbody>";
 		if (count($samba_mounts)) {
 			$odd="odd";
 			foreach ($samba_mounts as $mount) {
@@ -278,6 +280,7 @@ switch ($_POST['action']) {
 				});
 			});
 		});
+
 		function rm_preclear(dev) {
 			$.post(URL,{action:"rm_preclear",device:dev}).always(function(){usb_disks(tab_usbdisks)});
 		}

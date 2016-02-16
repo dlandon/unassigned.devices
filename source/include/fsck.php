@@ -30,9 +30,9 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 	$device = trim(urldecode($_GET['device']));
 	$fs   = trim(urldecode($_GET['fs']));
 	$type = isset($_GET['type']) ? trim(urldecode($_GET['type'])) : 'ro';
-	echo $fs;
+	echo "FS: $fs<br /><br />";
 	$command = get_fsck_commands($fs, $device, $type)." 2>&1";
-	write_log($command."<br><br>");
+	write_log($command."<br /><br />");
 	$proc = popen($command, 'r');
 	while (!feof($proc)) {
 		write_log(fgets($proc));
