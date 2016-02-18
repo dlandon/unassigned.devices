@@ -800,10 +800,10 @@ function get_unasigned_disks() {
 	foreach ($paths as $path => $d) {
 		if (preg_match("#^(.(?!wwn|part))*$#", $d)) {
 			if (! in_array($path, $unraid_disks)) {
-				if (in_array($path, array_map(function($ar){return $ar['device'];},$ud_disks)) ) continue;
-				$m = array_values(preg_grep("#$d.*-part\d+#", $paths));
+				if (in_array($path, array_map(function($ar){return $ar['device'];}, $ud_disks)) ) continue;
+				$m = array_values(preg_grep("|$d.*-part\d+|", $paths));
 				natsort($m);
-				$ud_disks[$d] = array("device"=>$path,"type"=>"ata","partitions"=>$m);
+				$ud_disks[$d] = array("device"=>$path,"type"=>"ata", "partitions"=>$m);
 				unassigned_log("Unassigned disk: '$d'.", "DEBUG");
 			} else {
 				unassigned_log("Discarded: => '$d' '($path)'.", "DEBUG");

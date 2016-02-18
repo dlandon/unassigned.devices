@@ -3,7 +3,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.02.16">
+<!ENTITY version   "2016.02.17">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
@@ -16,6 +16,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: php errors when '#' in by-id name.
+
+###2016.02.16
 - Fix: Don't show pre-clear plugin icon when card reader device not installed.
 - Fix: Don't show pre-clear plugin icon when FS is vfat or exfat.
 
