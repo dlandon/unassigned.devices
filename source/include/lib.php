@@ -592,7 +592,7 @@ function add_nfs_share($dir) {
 				$reload = TRUE;
 			}
 		}
-		if ($reload) shell_exec("/usr/sbin/exportfs -ra");
+		if ($reload) shell_exec("/usr/sbin/exportfs -ra 2>/dev/null");
 	}
 	return TRUE;
 }
@@ -611,7 +611,7 @@ function rm_nfs_share($dir) {
 				$reload = TRUE;
 			}
 		}
-		if ($reload) shell_exec("/usr/sbin/exportfs -ra");
+		if ($reload) shell_exec("/usr/sbin/exportfs -ra 2>/dev/null");
 	}
 	return TRUE;
 }
