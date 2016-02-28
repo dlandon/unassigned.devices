@@ -37,6 +37,7 @@ function tmux_is_session($name) {
 
 function render_used_and_free($partition) {
 	global $display;
+
 	$o = "";
 	if (strlen($partition['target'])) {
 		if (!$display['text']) {
@@ -62,6 +63,7 @@ function render_used_and_free($partition) {
 
 function render_partition($disk, $partition) {
 	global $plugin, $paths, $echo;
+
 	if (! isset($partition['device'])) return array();
 	$out = array();
 	$mounted = is_mounted($partition['device']);
@@ -240,6 +242,43 @@ switch ($_POST['action']) {
 		}
 		echo "</tbody></table><button type='button' onclick='add_samba_share();'>Add Remote SMB Share</button></div>";
 
+		# Iso file Mounts
+		$iso_mounts = get_iso_mounts();
+		echo "<div id='iso_tab' class='show-complete'>";
+		echo "<div id='title'><span class='left'><img src='/plugins/dynamix/icons/arraydevices.png' class='icon'>Iso File Shares</span></div>";
+		echo "<table class='iso_mounts custom_head'><thead><tr><td>Device</td><td>Source</td><td>Mount point</td><td></TD><td>Remove</td><td>Size</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Log</td><td>Script</td></tr></thead>";
+	    echo "<tbody>";
+		if (count($iso_mounts)) {
+			$odd="odd";
+			foreach ($iso_mounts as $mount) {
+				$mounted = is_mounted($mount['device']);
+				$is_alive = is_file($mount['file']);
+				echo "<tr class='$odd'>";
+				printf( "<td><img src='/webGui/images/%s'> iso</td>", ( $is_alive ? "green-on.png":"green-blink.png" ));
+				echo "<td><div><i class='glyphicon glyphicon-file'></i><span style='margin:4px;'></span>{$mount[device]}</div></td>";
+				if ($mounted) {
+					echo "<td><i class='glyphicon glyphicon-save hdd'></i><span style='margin:4px;'><a title='Browse Iso File Share.' href='/Shares/Browse?dir={$mount[mountpoint]}'>{$mount[mountpoint]}</a></td>";
+				} else {
+					echo "<td><form title='Click to change Iso File Mount Point.' method='POST' action='/plugins/${plugin}/UnassignedDevices.php?action=change_iso_mountpoint&device={$mount[device]}' target='progressFrame' style='display:inline;margin:0;padding:0;'>
+					<i class='glyphicon glyphicon-save hdd'></i><span style='margin:4px;'></span><span class='text exec'><a>{$mount[mountpoint]}</a></span>
+					<input class='input' type='text' name='mountpoint' value='{$mount[mountpoint]}' hidden />
+					</form></td>";
+				}
+				echo "<td><span style='width:auto;text-align:right;'>".($mounted ? "<button type='button' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'umount','{$mount[device]}');\"><i class='glyphicon glyphicon-export'></i> Unmount</button>" : "<button type='button' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'mount','{$mount[device]}');\"><i class='glyphicon glyphicon-import'></i>  Mount</button>")."</span></td>";
+				echo $mounted ? "<td><i class='glyphicon glyphicon-remove hdd'></i></td>" : "<td><a class='exec' style='color:#CC0000;font-weight:bold;' onclick='remove_iso_config(\"{$mount[device]}\");' title='Remove Iso FIle Share.'> <i class='glyphicon glyphicon-remove hdd'></i></a></td>";
+				echo "<td><span>".my_scale($mount['size'], $unit)." $unit</span></td>";
+				echo render_used_and_free($mount);
+				echo "<td title='Turn on to Mount Device when Array is Started.'><input type='checkbox' class='iso_automount' device='{$mount[device]}' ".(($mount['automount']) ? 'checked':'')."></td>";
+				echo "<td><a title='View Iso File Share Log.' href='/Main/ViewLog?i=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><img src='/plugins/${plugin}/icons/view_log.png' style='cursor:pointer;width:16px;'></a></td>";
+				echo "<td><a title='Edit Iso File Share Script.' href='/Main/EditScript?i=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><img src='/plugins/${plugin}/icons/edit_script.png' style='cursor:pointer;width:16px;".( (get_iso_config($mount['device'],"command_bg") == "true") ? "":"opacity: 0.4;" )."'></a></td>";
+				echo "</tr>";
+				$odd = ($odd == "odd") ? "even" : "odd";
+			}
+		} else {
+			echo "<tr><td colspan='12' style='text-align:center;font-weight:bold;'>No Iso File Shares configured.</td></tr>";
+		}
+		echo "</tbody></table><button type='button' onclick='add_iso_share();'>Add Iso File Share</button></div>";
+
 		$config_file = $GLOBALS["paths"]["config_file"];
 		$config = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
 		$disks_serials = array();
@@ -264,6 +303,9 @@ switch ($_POST['action']) {
 
 		$(".samba_automount").each(function(){var checked = $(this).is(":checked");$(this).switchButton({labels_placement: "right", checked:checked});});
 		$(".samba_automount").change(function(){$.post(URL,{action:"samba_automount",device:$(this).attr("device"),status:$(this).is(":checked")},function(data){$(this).prop("checked",data.automount);},"json");});
+
+		$(".iso_automount").each(function(){var checked = $(this).is(":checked");$(this).switchButton({labels_placement: "right", checked:checked});});
+		$(".iso_automount").change(function(){$.post(URL,{action:"iso_automount",device:$(this).attr("device"),status:$(this).is(":checked")},function(data){$(this).prop("checked",data.automount);},"json");});
 
 		$(".toggle_share").each(function(){var checked = $(this).is(":checked");$(this).switchButton({labels_placement: "right", checked:checked});});
 		$(".toggle_share").change(function(){$.post(URL,{action:"toggle_share",info:$(this).attr("info"),status:$(this).is(":checked")},function(data){$(this).prop("checked",data.result);},"json");});
@@ -335,7 +377,7 @@ switch ($_POST['action']) {
 	/*  DISK  */
 	case 'mount':
 		$device = urldecode($_POST['device']);
-		if (file_exists($device) || strpos($device, "//") === 0 ) {
+		if (file_exists($device) || strpos($device, "//") === 0 || strpos($device, "/mnt") === 0 ) {
 			exec("plugins/${plugin}/scripts/rc.unassigned mount $device >/dev/null 2>&1 &");
 		}
 		break;
@@ -408,6 +450,31 @@ switch ($_POST['action']) {
 		echo json_encode(array( 'result' => set_samba_config($device, "command", $cmd)));
 		break;
 
+	/* ISO FILE SHARES */
+	case 'add_iso_share':
+		$file = isset($_POST['ISO_FILE']) ? urldecode($_POST['ISO_FILE']) : "";
+		if (is_file($file)) {
+			$share = basename($file, ".iso");
+			set_iso_config("${file}", "file", $file);
+			set_iso_config("${file}", "share", $share);
+		}
+		break;
+	case 'remove_iso_config':
+		$device = urldecode(($_POST['device']));
+		remove_config_iso($device);
+		break;
+	case 'iso_automount':
+		$device = urldecode(($_POST['device']));
+		$status = urldecode(($_POST['status']));
+		echo json_encode(array( 'automount' => toggle_iso_automount($device, $status) ));
+		break;
+	case 'set_iso_command':
+		$device = urldecode(($_POST['device']));
+		$cmd = urldecode(($_POST['command']));
+		set_iso_config($device, "command_bg", urldecode($_POST['background'])) ;
+		echo json_encode(array( 'result' => set_iso_config($device, "command", $cmd)));
+		break;
+
 	/*  MISC */
 	case 'get_preclear':
 		$device = urldecode($_POST['device']);
@@ -450,6 +517,16 @@ switch ($_POST['action']) {
 			if ($mountpoint != "") {
 				$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
 				set_samba_config($device, "mountpoint", $mountpoint);
+			}
+			require_once("update.htm");
+			break;
+
+		case 'change_iso_mountpoint':
+			$device = urldecode($_GET['device']);
+			$mountpoint = basename(urldecode($_POST['mountpoint']));
+			if ($mountpoint != "") {
+				$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
+				set_iso_config($device, "mountpoint", $mountpoint);
 			}
 			require_once("update.htm");
 			break;

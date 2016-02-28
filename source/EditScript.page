@@ -33,6 +33,11 @@ if (isset($_GET['s'])) {
 	$file = get_samba_config($device,"command");
 	$background = (get_samba_config($device,"command_bg") == "true" ) ? "checked" : "";
 	if (! $file ) $file = "/boot/config/plugins/${plugin}/".( preg_replace("%\s+%", "_", urldecode($_GET['l'])) ).".sh";
+} else if (isset($_GET['i'])) {
+	$device = $_GET['i'];
+	$file = get_iso_config($device,"command");
+	$background = (get_iso_config($device,"command_bg") == "true" ) ? "checked" : "";
+	if (! $file ) $file = "/boot/config/plugins/${plugin}/".( preg_replace("%\s+%", "_", urldecode($_GET['l'])) ).".sh";
 }
 
 $text = @file_get_contents($file);
@@ -132,9 +137,15 @@ Script content:
 		$( "form" ).submit(function( event ) {
 			$.post("/plugins/<?=$plugin;?>/UnassignedDevices.php",{action:"set_command",serial:"<?=$serial;?>",command:$("input[name='#file']").val(),part:"<?=$partition;?>",background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault();},"json");
 		});
-	<?else:?>
+	<?endif;?>
+	<?if (isset($_GET['d'])):?>
 		$( "form" ).submit(function( event ) {
 			$.post("/plugins/<?=$plugin;?>/UnassignedDevices.php",{action:"set_samba_command",device:"<?=$device;?>",command:$("input[name='#file']").val(), background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault()},"json");
+		});  
+	<?endif;?>
+	<?if (isset($_GET['i'])):?>
+		$( "form" ).submit(function( event ) {
+			$.post("/plugins/<?=$plugin;?>/UnassignedDevices.php",{action:"set_iso_command",device:"<?=$device;?>",command:$("input[name='#file']").val(), background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault()},"json");
 		});  
 	<?endif;?>
 

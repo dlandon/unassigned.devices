@@ -24,6 +24,7 @@ $paths =  array("smb_extra"       => "/boot/config/smb-extra.conf",
 				"state"           => "/var/state/${plugin}/${plugin}.ini",
 				"hdd_temp"        => "/var/state/${plugin}/hdd_temp.json",
 				"samba_mount"     => "/boot/config/plugins/${plugin}/samba_mount.cfg",
+				"iso_mount"       => "/boot/config/plugins/${plugin}/iso_mount.cfg",
 				"reload"          => "/var/state/${plugin}/reload.state",
 				"unmounting"      => "/var/state/${plugin}/unmounting_%s.state",
 				"mounting"        => "/var/state/${plugin}/mounting_%s.state",
@@ -389,6 +390,8 @@ function get_mount_params($fs, $dev) {
 function do_mount($info) {
 	if ($info['fstype'] == "cifs") {
 		return do_mount_samba($info);
+	} else if($info['fstype'] == "loop") {
+		return do_mount_iso($info);
 	} else {
 		return do_mount_local($info);
 	}
@@ -672,7 +675,7 @@ function set_samba_config($source, $var, $val) {
 function is_samba_automount($sn) {
 	$auto = get_samba_config($sn, "automount");
 	return ( ($auto) ? ( ($auto == "yes") ? TRUE : FALSE ) : TRUE);
-	}
+}
 
 function get_samba_mounts() {
 	global $paths;
@@ -691,6 +694,8 @@ function get_samba_mounts() {
 		if (! $mount["mountpoint"]) {
 			$mount["mountpoint"] = $mount['target'] ? $mount['target'] : preg_replace("%\s+%", "_", "{$paths[usb_mountpoint]}/{$mount[ip]}_{$mount[share]}");
 		}
+		$mount['prog_name'] = basename($mount['command'], ".sh");
+		$mount['logfile'] = $paths['device_log'].$mount['prog_name'].".log";
 		$o[] = $mount;
 	}
 	return $o;
@@ -748,6 +753,111 @@ function remove_config_samba($source) {
 	save_ini_file($config_file, $config);
 	return (isset($config[$source])) ? TRUE : FALSE;
 }
+
+#########################################################
+############      ISO FILE FUNCTIONS        #############
+#########################################################
+
+function get_iso_config($source, $var) {
+	$config_file = $GLOBALS["paths"]["iso_mount"];
+	if (! is_file($config_file)) @mkdir(dirname($config_file),0666,TRUE);
+	$config = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
+	return (isset($config[$source][$var])) ? $config[$source][$var] : FALSE;
+}
+
+function set_iso_config($source, $var, $val) {
+	$config_file = $GLOBALS["paths"]["iso_mount"];
+	if (! is_file($config_file)) @mkdir(dirname($config_file),0666,TRUE);
+	$config = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
+	$config[$source][$var] = $val;
+	save_ini_file($config_file, $config);
+	return (isset($config[$source][$var])) ? $config[$source][$var] : FALSE;
+}
+
+function is_iso_automount($sn) {
+	$auto = get_iso_config($sn, "automount");
+	return ( ($auto) ? ( ($auto == "yes") ? TRUE : FALSE ) : TRUE);
+}
+
+function get_iso_mounts() {
+	global $paths;
+
+	$o = array();
+	$config_file = $GLOBALS["paths"]["iso_mount"];
+	$iso_mounts = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
+	foreach ($iso_mounts as $device => $mount) {
+		$mount['device'] = $device;
+		$mount['target'] = $device;
+		$mount['fstype'] = "loop";
+		$mount['automount'] = is_iso_automount($mount['device']);
+		if (! $mount["mountpoint"]) {
+			$mount["mountpoint"] = preg_replace("%\s+%", "_", "{$paths[usb_mountpoint]}/{$mount[share]}");
+		}
+		$mount['size']   = intval(trim(shell_exec("df --output=size,source ${mountpoint} 2>/dev/null|grep -v 'Filesystem'|awk '{print $1}'")))*1024;
+		$mount['used']   = $mount['size'];
+		$mount['avail']  = $mount['size'] - $mount['used'];
+		$mount['prog_name'] = basename($mount['command'], ".sh");
+		$mount['logfile'] = $paths['device_log'].$mount['prog_name'].".log";
+		$o[] = $mount;
+	}
+	return $o;
+}
+
+function do_mount_iso($info) {
+	$dev = $info['device'];
+	$dir = $info['mountpoint'];
+	if (is_file($info['file'])) {
+		if (! is_mounted($dev) || ! is_mounted($dir)) {
+			@mkdir($dir,0777,TRUE);
+			$cmd = "mount -t iso9660 -o loop ${dev} ${dir}";
+			unassigned_log("Mount iso command: mount -t iso9660 -o loop ${dev} ${dir}");
+			$o = shell_exec($cmd." 2>&1");
+			foreach (range(0,5) as $t) {
+				if (is_mounted($dev)) {
+					@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
+					unassigned_log("Successfully mounted '${dev}' on '${dir}'.");
+					return TRUE;
+				} else {
+					sleep(0.5);
+				}
+			}
+			unassigned_log("Mount of '${dev}' failed. Error message: $o");
+			return FALSE;
+		} else {
+			unassigned_log("Share '$dev' already shared...");
+		}
+	} else {
+		unassigned_log("Mount of '${dev}' failed. Iso file '$info[file]' is missing.");
+		return FALSE;
+	}
+}
+
+function toggle_iso_automount($source, $status) {
+	$config_file = $GLOBALS["paths"]["iso_mount"];
+	if (! is_file($config_file)) @mkdir(dirname($config_file),0777,TRUE);
+	$config = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
+	$config[$source]["automount"] = ($status == "true") ? "yes" : "no";
+	save_ini_file($config_file, $config);
+	return ($config[$source]["automount"] == "yes") ? TRUE : FALSE;
+}
+
+function remove_config_iso($source) {
+	$config_file = $GLOBALS["paths"]["iso_mount"];
+	if (! is_file($config_file)) @mkdir(dirname($config_file),0666,TRUE);
+	$config = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
+	if ( isset($config[$source]) ) {
+		unassigned_log("Removing configuration '$source'.");
+	}
+	$command = $config[$source][command];
+	if ( isset($command) && is_file($command) ) {
+		@unlink($command);
+		unassigned_log("Removing script '$command'.");
+	}
+	unset($config[$source]);
+	save_ini_file($config_file, $config);
+	return (isset($config[$source])) ? TRUE : FALSE;
+}
+
 
 #########################################################
 ############         DISK FUNCTIONS         #############

@@ -25,6 +25,9 @@ if (isset($_GET['s'])) {
 } else if (isset($_GET['d'])) {
 	$device = $_GET['d'];
 	$file = get_samba_config($device,"command");
+} else if (isset($_GET['i'])) {
+	$device = $_GET['i'];
+	$file = get_iso_config($device,"command");
 }
 
 $zip_file = "-".basename($file, ".sh")."-";

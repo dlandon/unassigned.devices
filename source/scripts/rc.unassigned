@@ -44,6 +44,26 @@ function unassigned_mount() {
 		}
 	}
 
+	# Mount Iso File mounts
+	if (strpos($DEVNAME, "/mnt") === 0 || $DEVNAME == "auto") {
+		foreach (get_iso_mounts() as $info) {
+			$device = $info['device'];
+			if ( preg_match("#".$DEVNAME."#i", $device) || $DEVNAME == "auto" ) {
+				if (! $info['automount'] && $DEVNAME == "auto" ) {
+					unassigned_log("Iso File mount '${info[device]}' is not set to auto mount and will not be mounted...");
+					continue;
+				}
+				unassigned_log("Iso File share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
+				@touch(sprintf($paths['unmounting'],basename($info['device'])));
+				if (do_mount( $info )) {
+					add_smb_share($info['mountpoint'], $info['device']);
+					execute_script($info, "ADD");
+				}
+				@unlink(sprintf($paths['unmounting'],basename($info['device'])));
+			}
+		}
+	}
+
 	# Mount local disks
 	foreach(get_unasigned_disks() as $name => $disk) {
 		$device = $disk['device'];
@@ -81,7 +101,7 @@ function unassigned_mount() {
 function unassigned_umount() {
 	global $DEVNAME;
 
-	# Deal with Remote SMB mouonts
+	# Deal with Remote SMB mounts
 	if (strpos($DEVNAME, "//") === 0 || $DEVNAME == "auto" || $DEVNAME == "all") {
 		foreach (get_samba_mounts() as $info) {
 			$device = $info['device'];
@@ -104,6 +124,34 @@ function unassigned_umount() {
 					}
 				} else {
 					unassigned_log("Remote SMB share '${info[device]}' is not mounted and cannot be unmounted...");
+				}
+			}
+		}
+	}
+
+	# Deal with Iso File mounts
+	if (strpos($DEVNAME, "/mnt") === 0 || $DEVNAME == "auto" || $DEVNAME == "all") {
+		foreach (get_iso_mounts() as $info) {
+			$device = $info['device'];
+			if ( preg_match("#".$DEVNAME."#i", $device) || $DEVNAME == "auto" || $DEVNAME == "all" ) {
+				if (! $info['automount'] && $DEVNAME == "auto" ) {
+					unassigned_log("Iso File Share '${info[device]} is not set to auto mount and will not be unmounted...'");
+					continue;
+				}
+				unassigned_log("Iso File share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
+				if ( is_mounted($info['device']) ) {
+					@touch(sprintf($paths['unmounting'],basename($info['device'])));
+					unassigned_log("Removing Iso File share '${info[device]}'...");
+					execute_script($info, "REMOVE");
+					unassigned_log("Unmounting Iso File Share '${info[device]}'...");
+					if ( do_unmount($info['device'], $info['mountpoint']) ) {
+						if ( rm_smb_share($info['mountpoint'], $info['device']) ) {
+							unassigned_log("Share '${info[device]}' unmount successfull.");
+							@unlink(sprintf($paths['unmounting'],basename($info['device'])));
+						}
+					}
+				} else {
+					unassigned_log("Remote Iso File share '${info[device]}' is not mounted and cannot be unmounted...");
 				}
 			}
 		}
