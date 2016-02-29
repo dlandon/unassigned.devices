@@ -314,7 +314,7 @@ function execute_script($info, $action, $testing = FALSE) {
 		unassigned_log("Running common script: '{$common_cmd}'");
 		exec($common_cmd);
 	}
-	if (! $cmd) {unassigned_log("Command not available.  Cannot execute script."); return FALSE;}
+	if (! $cmd) {unassigned_log("Device '${info[device]}' script file not found.  '${action}' script not executed."); return FALSE;}
 	unassigned_log("Running command '${cmd}' with action '${action}'.");
 	if (! is_executable($cmd) ) {
 		@chmod($cmd, 0755);
@@ -787,12 +787,12 @@ function get_iso_mounts() {
 	$iso_mounts = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
 	foreach ($iso_mounts as $device => $mount) {
 		$mount['device'] = $device;
-		$mount['target'] = $device;
 		$mount['fstype'] = "loop";
 		$mount['automount'] = is_iso_automount($mount['device']);
 		if (! $mount["mountpoint"]) {
 			$mount["mountpoint"] = preg_replace("%\s+%", "_", "{$paths[usb_mountpoint]}/{$mount[share]}");
 		}
+		$mount['target'] = trim(shell_exec("cat /proc/mounts 2>&1|grep '$mount[mountpoint]'|awk '{print $2}'"));
 		$mount['size']   = intval(trim(shell_exec("df --output=size,source ${mountpoint} 2>/dev/null|grep -v 'Filesystem'|awk '{print $1}'")))*1024;
 		$mount['used']   = $mount['size'];
 		$mount['avail']  = $mount['size'] - $mount['used'];
@@ -809,8 +809,8 @@ function do_mount_iso($info) {
 	if (is_file($info['file'])) {
 		if (! is_mounted($dev) || ! is_mounted($dir)) {
 			@mkdir($dir,0777,TRUE);
-			$cmd = "mount -t iso9660 -o loop ${dev} ${dir}";
-			unassigned_log("Mount iso command: mount -t iso9660 -o loop ${dev} ${dir}");
+			$cmd = "mount -t iso9660 -o loop '${dev}' '${dir}'";
+			unassigned_log("Mount iso command: mount -t iso9660 -o loop '${dev}' '${dir}'");
 			$o = shell_exec($cmd." 2>&1");
 			foreach (range(0,5) as $t) {
 				if (is_mounted($dev)) {

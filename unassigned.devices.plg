@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.02.28">
+<!ENTITY version   "2016.02.29">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"095cde3850e94b61e85972474bce03c9">
+<!ENTITY MD5		"7031c70315002b540951ded5f17e0378">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: iso files with spaces in the name would not mount.
+- Fix: Changed log message about no script to execute.
+
+###2016.02.28
 - Add: Iso file mount.
 
 ###2016.02.28
