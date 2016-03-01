@@ -206,18 +206,19 @@ switch ($_POST['action']) {
 		echo "</tbody></table>";
 
 		# SAMBA Mounts
-		$samba_mounts = get_samba_mounts();
 		echo "<div id='smb_tab' class='show-complete'>";
-		echo "<div id='title'><span class='left'><img src='/plugins/dynamix/icons/smbsettings.png' class='icon'>Remote SMB Shares</span></div>";
+		echo "<div id='title'><span class='left'><img src='/plugins/dynamix/icons/smbsettings.png' class='icon'>Remote SMB Shares</span>&nbsp;/&nbsp;<img src='/plugins/dynamix/icons/arraydevices.png' class='icon'>Iso Shares</span></div>";
 		echo "<table class='samba_mounts custom_head'><thead><tr><td>Device</td><td>Source</td><td>Mount point</td><td></TD><td>Remove</td><td>Size</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Log</td><td>Script</td></tr></thead>";
 	    echo "<tbody>";
+		# SAMBA Mounts
+		$samba_mounts = get_samba_mounts();
 		if (count($samba_mounts)) {
 			$odd="odd";
 			foreach ($samba_mounts as $mount) {
 				$mounted = is_mounted($mount['device']);
 				$is_alive = (trim(exec("ping -c 1 -W 1 {$mount[ip]} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
 				echo "<tr class='$odd'>";
-				printf( "<td><img src='/webGui/images/%s'> smb</td>", ( $is_alive ? "green-on.png":"green-blink.png" ));
+				printf( "<td><img src='/webGui/images/%s'>smb</td>", ( $is_alive ? "green-on.png":"green-blink.png" ));
 				echo "<td><div><i class='glyphicon glyphicon-globe hdd'></i><span style='margin:4px;'></span>{$mount[device]}</div></td>";
 				if ($mounted) {
 					echo "<td><i class='glyphicon glyphicon-save hdd'></i><span style='margin:4px;'><a title='Browse Remote SMB Share.' href='/Shares/Browse?dir={$mount[mountpoint]}'>{$mount[mountpoint]}</a></td>";
@@ -240,22 +241,16 @@ switch ($_POST['action']) {
 		} else {
 			echo "<tr><td colspan='12' style='text-align:center;font-weight:bold;'>No Remote SMB Shares configured.</td></tr>";
 		}
-		echo "</tbody></table><button type='button' onclick='add_samba_share();'>Add Remote SMB Share</button></div>";
 
 		# Iso file Mounts
 		$iso_mounts = get_iso_mounts();
-		echo "<div id='iso_tab' class='show-complete'>";
-		echo "<div id='title'><span class='left'><img src='/plugins/dynamix/icons/arraydevices.png' class='icon'>Iso File Shares</span></div>";
-		echo "<table class='iso_mounts custom_head'><thead><tr><td>Device</td><td>Source</td><td>Mount point</td><td></TD><td>Remove</td><td>Size</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Log</td><td>Script</td></tr></thead>";
-	    echo "<tbody>";
 		if (count($iso_mounts)) {
-			$odd="odd";
 			foreach ($iso_mounts as $mount) {
 				$mounted = is_mounted($mount['device']);
 				$is_alive = is_file($mount['file']);
 				echo "<tr class='$odd'>";
-				printf( "<td><img src='/webGui/images/%s'> iso</td>", ( $is_alive ? "green-on.png":"green-blink.png" ));
-				echo "<td><div><i class='glyphicon glyphicon-cd'></i><span style='margin:4px;'></span>{$mount[device]}</div></td>";
+				printf( "<td><img src='/webGui/images/%s'>iso</td>", ( $is_alive ? "green-on.png":"green-blink.png" ));
+				echo "<td><div><i class='glyphicon glyphicon-cd hdd'></i><span style='margin:4px;'></span>{$mount[device]}</div></td>";
 				if ($mounted) {
 					echo "<td><i class='glyphicon glyphicon-save hdd'></i><span style='margin:4px;'><a title='Browse Iso File Share.' href='/Shares/Browse?dir={$mount[mountpoint]}'>{$mount[mountpoint]}</a></td>";
 				} else {
@@ -277,7 +272,8 @@ switch ($_POST['action']) {
 		} else {
 			echo "<tr><td colspan='12' style='text-align:center;font-weight:bold;'>No Iso File Shares configured.</td></tr>";
 		}
-		echo "</tbody></table><button type='button' onclick='add_iso_share();'>Add Iso File Share</button></div>";
+		echo "</tbody></table><button type='button' onclick='add_samba_share();'>Add Remote SMB Share</button>";
+		echo "<button type='button' onclick='add_iso_share();'>Add Iso File Share</button></div>";
 
 		$config_file = $GLOBALS["paths"]["config_file"];
 		$config = is_file($config_file) ? @parse_ini_file($config_file, true) : array();

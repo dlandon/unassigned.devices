@@ -100,12 +100,6 @@ function getlog() {
 	table.samba_mounts tr>td+td+td+td+td+td+td+td{text-align:left;padding:0px 0px 0px 12px;width: 75px;}
 	table.samba_mounts tr>td+td+td+td+td+td+td+td+td{text-align:right;padding-left:0;padding-right:12px;}
 
-	table.iso_mounts thead tr>td{text-align:left;width:8%;padding-left:12px;}
-	table.iso_mounts tr>td{text-align:left;width:8%;padding-left:12px;padding-right:0;white-space:nowrap;}
-	table.iso_mounts tr>td+td{text-align:left;width:auto;}
-	table.iso_mounts tr>td+td+td+td+td+td+td+td{text-align:left;padding:0px 0px 0px 12px;width: 75px;}
-	table.iso_mounts tr>td+td+td+td+td+td+td+td+td{text-align:right;padding-left:0;padding-right:12px;}
-
 	button[type=button].mount {margin:0px 14px 0 14px;}
 	i.glyphicon{margin:0px 5px 0 5px;}
 	i.hdd{margin:0px; 0px;font-size: 1.1em}
