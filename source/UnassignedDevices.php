@@ -207,7 +207,7 @@ switch ($_POST['action']) {
 
 		# SAMBA Mounts
 		echo "<div id='smb_tab' class='show-complete'>";
-		echo "<div id='title'><span class='left'><img src='/plugins/dynamix/icons/smbsettings.png' class='icon'>Remote SMB Shares</span>&nbsp;/&nbsp;<img src='/plugins/dynamix/icons/arraydevices.png' class='icon'>Iso Shares</span></div>";
+		echo "<div id='title'><span class='left'><img src='/plugins/dynamix/icons/smbsettings.png' class='icon'>Remote SMB</span>&nbsp;/&nbsp;<img src='/plugins/dynamix/icons/arraydevices.png' class='icon'>Iso File Shares</span></div>";
 		echo "<table class='samba_mounts custom_head'><thead><tr><td>Device</td><td>Source</td><td>Mount point</td><td></TD><td>Remove</td><td>Size</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Log</td><td>Script</td></tr></thead>";
 	    echo "<tbody>";
 		# SAMBA Mounts
@@ -238,8 +238,6 @@ switch ($_POST['action']) {
 				echo "</tr>";
 				$odd = ($odd == "odd") ? "even" : "odd";
 			}
-		} else {
-			echo "<tr><td colspan='12' style='text-align:center;font-weight:bold;'>No Remote SMB Shares configured.</td></tr>";
 		}
 
 		# Iso file Mounts
@@ -269,8 +267,9 @@ switch ($_POST['action']) {
 				echo "</tr>";
 				$odd = ($odd == "odd") ? "even" : "odd";
 			}
-		} else {
-			echo "<tr><td colspan='12' style='text-align:center;font-weight:bold;'>No Iso File Shares configured.</td></tr>";
+		}
+		if (! count($samba_mounts) && ! count($iso_mounts)) {
+			echo "<tr><td colspan='12' style='text-align:center;font-weight:bold;'>No Remote SMB / Iso File Shares configured.</td></tr>";
 		}
 		echo "</tbody></table><button type='button' onclick='add_samba_share();'>Add Remote SMB Share</button>";
 		echo "<button type='button' onclick='add_iso_share();'>Add Iso File Share</button></div>";
@@ -453,6 +452,8 @@ switch ($_POST['action']) {
 			$share = basename($file, ".iso");
 			set_iso_config("${file}", "file", $file);
 			set_iso_config("${file}", "share", $share);
+		} else {
+			unassigned_log("Iso File '${file}' not found.");
 		}
 		break;
 	case 'remove_iso_config':
