@@ -358,7 +358,8 @@ function remove_config_disk($sn) {
 #########################################################
 
 function is_mounted($dev) {
-	return (shell_exec("mount 2>&1|grep -c '${dev} '") == 0) ? FALSE : TRUE;
+	$device = $dev." ";
+	return (shell_exec("mount 2>&1|grep -c '${device}'") == 0) ? FALSE : TRUE;
 }
 
 function get_mount_params($fs, $dev) {
@@ -437,7 +438,7 @@ function do_mount_local($info) {
 }
 
 function do_unmount($dev, $dir, $force = FALSE) {
-	if (is_mounted($dev) != 0) {
+	if ( is_mounted($dev) ) {
 		unassigned_log("Unmounting '${dev}'...");
 		$o = shell_exec("umount".($force ? " -f -l" : "")." '${dev}' 2>&1");
 		for ($i=0; $i < 10; $i++) {
@@ -650,6 +651,16 @@ function reload_shares() {
 			add_smb_share($info['mountpoint'], $info['device']);
 		}
 	}
+
+	// Iso File Mounts
+	foreach (get_iso_mounts() as $name => $info) {
+		if ( is_mounted($info['device']) ) {
+			unassigned_log("Reloading shared dir '{$info[mountpoint]}'.");
+			unassigned_log("Removing old config...");
+			rm_smb_share($info['mountpoint'], $info['device']);
+			add_smb_share($info['mountpoint'], $info['device']);
+		}
+	}
 }
 
 #########################################################
@@ -685,7 +696,6 @@ function get_samba_mounts() {
 	$samba_mounts = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
 	foreach ($samba_mounts as $device => $mount) {
 		$mount['device'] = $device;
-		$mount['target'] = trim(shell_exec("cat /proc/mounts 2>&1|grep '".str_replace(" ", '\\\040', $device)."'|awk '{print $2}'"));
 		$mount['fstype'] = "cifs";
 		$mount['size']   = intval(trim(shell_exec("df --output=size,source 2>/dev/null|grep -v 'Filesystem'|grep '${device}'|awk '{print $1}'")))*1024;
 		$mount['used']   = intval(trim(shell_exec("df --output=used,source 2>/dev/null|grep -v 'Filesystem'|grep '${device}'|awk '{print $1}'")))*1024;
@@ -694,6 +704,7 @@ function get_samba_mounts() {
 		if (! $mount["mountpoint"]) {
 			$mount["mountpoint"] = $mount['target'] ? $mount['target'] : preg_replace("%\s+%", "_", "{$paths[usb_mountpoint]}/{$mount[ip]}_{$mount[share]}");
 		}
+		$mount['target'] = trim(shell_exec("cat /proc/mounts 2>&1|grep '$mount[mountpoint] '|awk '{print $2}'"));
 		$mount['prog_name'] = basename($mount['command'], ".sh");
 		$mount['logfile'] = $paths['device_log'].$mount['prog_name'].".log";
 		$o[] = $mount;
@@ -707,9 +718,9 @@ function do_mount_samba($info) {
 	$fs  = $info['fstype'];
 	if (! is_mounted($dev) || ! is_mounted($dir)) {
 		@mkdir($dir,0777,TRUE);
-		$params = sprintf(get_mount_params($fs, $dev), ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
+		$params = sprintf(get_mount_params($fs, '$dev'), ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
 		$cmd = "mount -t $fs -o ".$params." '${dev}' '${dir}'";
-		$params = sprintf(get_mount_params($fs, $dev), ($info['user'] ? $info['user'] : "guest" ), '*******');
+		$params = sprintf(get_mount_params($fs, '$dev'), ($info['user'] ? $info['user'] : "guest" ), '*******');
 		unassigned_log("Mount SMB command: mount -t $fs -o ".$params." '${dev}' '${dir}'");
 		$o = shell_exec($cmd." 2>&1");
 		foreach (range(0,5) as $t) {
@@ -792,9 +803,9 @@ function get_iso_mounts() {
 		if (! $mount["mountpoint"]) {
 			$mount["mountpoint"] = preg_replace("%\s+%", "_", "{$paths[usb_mountpoint]}/{$mount[share]}");
 		}
-		$mount['target'] = trim(shell_exec("cat /proc/mounts 2>&1|grep '$mount[mountpoint]'|awk '{print $2}'"));
-		$mount['size']   = intval(trim(shell_exec("df --output=size,source ${mountpoint} 2>/dev/null|grep -v 'Filesystem'|awk '{print $1}'")))*1024;
-		$mount['used']   = $mount['size'];
+		$mount['target'] = trim(shell_exec("cat /proc/mounts 2>&1|grep '$mount[mountpoint] '|awk '{print $2}'"));
+		$mount['size']   = intval(trim(shell_exec("df --output=size,source '$mount[mountpoint]' 2>/dev/null|grep -v 'Filesystem'|awk '{print $1}'")))*1024;
+		$mount['used']   = intval(trim(shell_exec("df --output=used,source '$mount[mountpoint]' 2>/dev/null|grep -v 'Filesystem'|awk '{print $1}'")))*1024;
 		$mount['avail']  = $mount['size'] - $mount['used'];
 		$mount['prog_name'] = basename($mount['command'], ".sh");
 		$mount['logfile'] = $paths['device_log'].$mount['prog_name'].".log";

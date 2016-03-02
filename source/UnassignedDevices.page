@@ -211,7 +211,7 @@ function getlog() {
 	}
 
 	function remove_samba_config(device){
-		var title = 'Remove SMB mount';
+		var title = 'Remove SMB/NFS mount';
 		$( "#dialog-confirm" ).html("<dl><dt>Source:</dt><dd>"+device+"</dd></dl>");
 		$( "#dialog-confirm" ).append( "<dl><dt><span style='color: #E80000;'>Are you sure?</span></dd></dl>" );
 		$( "#dialog-confirm" ).dialog({
@@ -283,7 +283,7 @@ function getlog() {
 	}
 
 	function add_samba_share(){
-		var title = 'Add Remote SMB Share';
+		var title = 'Add Remote SMB/NFS Share';
 		$( "#dialog-confirm" ).html($("#add-remote-defaults").html());
 		$( "#dialog-confirm" ).find(".switch").switchButton({labels_placement:"right",on_label:'YES',off_label:'NO'});
 		$( "#dialog-confirm" ).find(".switch-button-background").css("margin-top", "6px");
@@ -521,7 +521,6 @@ function getlog() {
 	</dl>  
 </div>
 
-<div id="dialog-confirm" style="display:none;" title="Dialog Title"></div>
 <div id="dialog-iso" style="display:none;" title=""></div>
 
 <div id="add-iso-defaults" style="display:none;">
@@ -564,7 +563,7 @@ function getlog() {
 </div>
 
 <blockquote class='inline_help'>
-	<p>You can mount USB devices, sata drives, Remote SMB shares, and Iso Files with unassigned devices.  Any devices with the auto mount switch on will be mounted when the array is started.  XFS and EXT4 formatted drives are mounted with discard (trim) for SSD drives.  All drives and SMB Mounts are unmounted when the array is stopped on the 'unmounting_disks' event.</p>
+	<p>You can mount USB devices, sata drives, Remote SMB/NFS shares, and Iso Files with unassigned devices.  Any devices with the auto mount switch on will be mounted when the array is started.  XFS and EXT4 formatted drives are mounted with discard (trim) for SSD drives.  All drives and SMB/NFS Mounts are unmounted when the array is stopped on the 'unmounting_disks' event.</p>
 	<p>If you want to share your drive, you can turn on the Share switch.  The default for Remote SMB shares is Public read/write access.  Enable SMB Security by user in the Unassigned Devices Settings.  NFS shares are exported and access is read/write.  The export of NFS devices is enabled in the Unassigned Devices settings.  You can also enable a common script that will be executed on every disk mount.</p>
 	<p>Additional options are available when you click on the device identification.  When the disk is unmounted, the mount name of the device can be changed.  A disk can be formatted and an fsck run to check the disk.</p>
 	<p>Unassigned devices includes scripts that are used for mounting and unmounting devices and SMB mounts.  These scripts can be used from the command line if necessary.
@@ -573,6 +572,7 @@ function getlog() {
 		<li>'/usr/local/sbin/rc.unassigned umount auto' - all devices and SMB mounts set to auto mount will be unmounted.</li>
 		<li>'/usr/local/sbin/rc.unassigned umount all' - all devices and SMB mounts are unmounted in preparation for shutting down the array.</li>
 	</p>
+	<p>Switch the 'Complete' button to change the web page to just show hardware devices.  Switch the 'Simple' switch to switch back to the full web display.</p>
 </blockquote>
 
 <blockquote class='inline_help'>

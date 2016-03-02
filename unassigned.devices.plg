@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.03.01a">
+<!ENTITY version   "2016.03.02">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"3debd30bd246aca42cd8f523da7a1b12">
+<!ENTITY MD5		"35efeabdc35c78b97da3d743e6bfe6f1">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,12 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: SMB/NFS and Iso shares not shared with NFS when enabled.
+- Fix: Similar names causing mounting and display problems.
+- Fix: Changes 'Remote SMB Share' to 'Remote SMB/NFS Share' to minimize confusion.
+- Fix: Shares drop down in add SMB/NFS share did not reliably populate.
+
+###2016.03.01a
 - Fix: Consolidate SMB and Iso shares to minimize vertical scrolling.
 
 ###2016.02.29
