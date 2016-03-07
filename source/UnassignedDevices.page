@@ -485,6 +485,7 @@ function getlog() {
 			</select>
 		</dd>
 	</dl>
+	<p>Note: Dockers will not be able to access any SMB, or Iso file share until you restart the Docker service.  Go to Settings->Docker and disable then enable Docker.</p>
 	<div class="options"></div>
 </div>
 
@@ -524,6 +525,7 @@ function getlog() {
 <div id="dialog-iso" style="display:none;" title=""></div>
 
 <div id="add-iso-defaults" style="display:none;">
+	<p>Note: Dockers will not be able to access any SMB, or Iso file share until you restart the Docker service.  Go to Settings->Docker and disable then enable Docker.</p>
 	<dl>
 		<dt>Iso File:</dt>
 		<dd><span class="iso_file"><input type='text' name='ISO_FILE'></span></dd>

@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.03.02">
+<!ENTITY version   "2016.03.07">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"35efeabdc35c78b97da3d743e6bfe6f1">
+<!ENTITY MD5		"2921c4eff02acbf2c8bced974d3a64be">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Explanation about restarting Docker after configuring SMB or Iso shares.
+- Fix: Issue with 'Done' on edit page not exiting.
+
+###2016.03.02
 - Fix: SMB/NFS and Iso shares not shared with NFS when enabled.
 - Fix: Similar names causing mounting and display problems.
 - Fix: Changes 'Remote SMB Share' to 'Remote SMB/NFS Share' to minimize confusion.

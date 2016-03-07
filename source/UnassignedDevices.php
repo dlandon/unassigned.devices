@@ -449,7 +449,8 @@ switch ($_POST['action']) {
 	case 'add_iso_share':
 		$file = isset($_POST['ISO_FILE']) ? urldecode($_POST['ISO_FILE']) : "";
 		if (is_file($file)) {
-			$share = basename($file, ".iso");
+			$info = pathinfo($file);
+			$share = $info['filename'];
 			set_iso_config("${file}", "file", $file);
 			set_iso_config("${file}", "share", $share);
 		} else {
