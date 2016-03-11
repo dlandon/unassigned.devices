@@ -29,7 +29,7 @@ function is_tmux_executable() {
 
 function tmux_is_session($name) {
 	if (is_tmux_executable()) {
-		exec('/usr/bin/tmux ls 2>/dev/null|cut -d: -f1', $screens);
+		exec('/usr/bin/tmux ls 2>/dev/null|/usr/bin/cut -d: -f1', $screens);
 		return in_array($name, $screens);	} else {
 		return false;
 	}
@@ -178,7 +178,7 @@ switch ($_POST['action']) {
 				if ( $flash || (!is_file($disk['partitions'][0]['command']) && ! $mounted && ! $preclearing) ) {
 					echo "<td><img src='/webGui/images/green-blink.png'> {$disk_name}</td>";
 				} else {
-					echo "<td title='Run Smart Report on {$disk_name}.'><img src='/webGui/images/".(is_disk_running($disk['device']) ? "green-on.png":"green-blink.png" )."'>";
+					echo "<td title='Disk Attributes on {$disk_name}.'><img src='/webGui/images/".(is_disk_running($disk['device']) ? "green-on.png":"green-blink.png" )."'>";
 					echo "<a href='/Main/DeviceAttributes?name={$disk_name}&file=/tmp/screen_buffer'> {$disk_name}</a></td>";
 				}
 				echo "<td>{$hdd_serial}</td>";
@@ -215,10 +215,11 @@ switch ($_POST['action']) {
 		if (count($samba_mounts)) {
 			$odd="odd";
 			foreach ($samba_mounts as $mount) {
-				$mounted = is_mounted($mount['device']." on");
-				$is_alive = (trim(exec("ping -c 1 -W 1 {$mount[ip]} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+				$mounted = is_mounted($mount['device']);
+				$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$mount[ip]} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
 				echo "<tr class='$odd'>";
-				printf( "<td><img src='/webGui/images/%s'>smb</td>", ( $is_alive ? "green-on.png":"green-blink.png" ));
+				$protocol = $mount['protocol'] == "NFS" ? "nfs" : "smb";
+				printf( "<td><img src='/webGui/images/%s'>%s</td>", ( $is_alive ? "green-on.png":"green-blink.png" ), $protocol);
 				echo "<td><div><i class='glyphicon glyphicon-globe hdd'></i><span style='margin:4px;'></span>{$mount[device]}</div></td>";
 				if ($mounted) {
 					echo "<td><i class='glyphicon glyphicon-save hdd'></i><span style='margin:4px;'><a title='Browse Remote SMB/NFS Share.' href='/Shares/Browse?dir={$mount[mountpoint]}'>{$mount[mountpoint]}</a></td>";
@@ -244,7 +245,7 @@ switch ($_POST['action']) {
 		$iso_mounts = get_iso_mounts();
 		if (count($iso_mounts)) {
 			foreach ($iso_mounts as $mount) {
-				$mounted = is_mounted($mount['device']." on");
+				$mounted = is_mounted($mount['device']);
 				$is_alive = is_file($mount['file']);
 				echo "<tr class='$odd'>";
 				printf( "<td><img src='/webGui/images/%s'>iso</td>", ( $is_alive ? "green-on.png":"green-blink.png" ));
@@ -372,15 +373,11 @@ switch ($_POST['action']) {
 	/*  DISK  */
 	case 'mount':
 		$device = urldecode($_POST['device']);
-		if (file_exists($device) || strpos($device, "//") === 0 || strpos($device, "/mnt") === 0 ) {
-			exec("plugins/${plugin}/scripts/rc.unassigned mount '$device' >/dev/null 2>&1 &");
-		}
+		exec("plugins/${plugin}/scripts/rc.unassigned mount '$device' >/dev/null 2>&1 &");
 		break;
 	case 'umount':
 		$device = urldecode($_POST['device']);
-		if (file_exists($device) || strpos($device, "//") === 0 ) {
-			echo exec("plugins/${plugin}/scripts/rc.unassigned umount '$device' >/dev/null 2>&1 &");
-		}
+		exec("plugins/${plugin}/scripts/rc.unassigned umount '$device' >/dev/null 2>&1 &");
 		break;
 	case 'rescan_disks':
 		exec("/sbin/udevadm trigger --action=change 2>&1");
@@ -398,15 +395,15 @@ switch ($_POST['action']) {
 
 	/*  SAMBA  */
 	case 'list_samba_hosts':
-		$ip = shell_exec("nmblookup -M -- - 2>/dev/null | grep -Pom1 '^\S+'");
-		echo shell_exec("/usr/bin/smbclient -g -L '$ip' -U% 2>&1|awk -F'|' '/Server/{print $2}'|sort");
+		$ip = shell_exec("/usr/bin/nmblookup -M -- - 2>/dev/null | /usr/bin/grep -Pom1 '^\S+'");
+		echo shell_exec("/usr/bin/smbclient -g -L '$ip' -U% 2>&1|/usr/bin/awk -F'|' '/Server/{print $2}'|sort");
 		break;
 	case 'list_samba_shares':
 		$ip = urldecode($_POST['IP']);
 		$user = isset($_POST['USER']) ? urlencode($_POST['USER']) : NULL;
 		$pass = isset($_POST['PASS']) ? urlencode($_POST['PASS']) : NULL;
 		$login = $user ? ($pass ? "-U '{$user}%{$pass}'" : "-U '{$user}' -N") : "-U%";
-		echo shell_exec("/usr/bin/smbclient -g -L '$ip' $login 2>&1|awk -F'|' '/Disk/{print $2}'|sort");
+		echo shell_exec("/usr/bin/smbclient -g -L '$ip' $login 2>&1|/usr/bin/awk -F'|' '/Disk/{print $2}'|sort");
 		break;
 
 	/*  NFS  */
@@ -414,20 +411,25 @@ switch ($_POST['action']) {
 		$ip = urldecode($_POST['IP']);
 		foreach ( explode(PHP_EOL, shell_exec("/usr/sbin/showmount --no-headers -e '{$ip}' 2>/dev/null|cut -d'*' -f1|sort")) as $name ) {
 			$name .= "\n";
-			echo basename($name);
+			echo $name;
 		}
 		break;
 
 	/* SMB SHARES */
 	case 'add_samba_share':
 		$ip = urldecode($_POST['IP']);
+		$protocol = urldecode($_POST['PROTOCOL']);
 		$user = isset($_POST['USER']) ? urldecode($_POST['USER']) : "";
 		$pass = isset($_POST['PASS']) ? urldecode($_POST['PASS']) : "";
-		$share = isset($_POST['SHARE']) ? urldecode($_POST['SHARE']) : "";
-		set_samba_config("//${ip}/${share}", "ip", $ip);
-		set_samba_config("//${ip}/${share}", "user", $user);
-		set_samba_config("//${ip}/${share}", "pass", $pass);
-		set_samba_config("//${ip}/${share}", "share", $share);
+		$path = isset($_POST['SHARE']) ? urldecode($_POST['SHARE']) : "";
+		$share = basename($path);
+		$device = ($protocol == "NFS") ? "${ip}:/${path}" : "//${ip}/${share}";
+		set_samba_config("${device}", "protocol", $protocol);
+		set_samba_config("${device}", "ip", $ip);
+		set_samba_config("${device}", "path", $path);
+		set_samba_config("${device}", "user", $user);
+		set_samba_config("${device}", "pass", $pass);
+		set_samba_config("${device}", "share", $share);
 		break;
 	case 'remove_samba_config':
 		$device = urldecode(($_POST['device']));

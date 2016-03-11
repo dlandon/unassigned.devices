@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.03.07">
+<!ENTITY version   "2016.03.11">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"2921c4eff02acbf2c8bced974d3a64be">
+<!ENTITY MD5		"58a280b029c3468e1c001a1c3c15b6bc">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Remote share NFS mount not mounting properly.
+
+###2016.03.07
 - Add: Explanation about restarting Docker after configuring SMB or Iso shares.
 - Fix: Issue with 'Done' on edit page not exiting.
 
