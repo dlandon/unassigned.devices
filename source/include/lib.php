@@ -357,9 +357,10 @@ function remove_config_disk($sn) {
 ############        MOUNT FUNCTIONS        ##############
 #########################################################
 
-function is_mounted($dev) {
+function is_mounted($dev, $dir=FALSE) {
 	$data = shell_exec("/sbin/mount");
-	return strpos($data, $dev." on");
+	$append = ($dir) ? " " : " on";
+	return strpos($data, $dev.$append);
 }
 
 function get_mount_params($fs, $dev) {
@@ -405,7 +406,7 @@ function do_mount_local($info) {
 	$dev = $info['device'];
 	$dir = $info['mountpoint'];
 	$fs  = $info['fstype'];
-	if (! is_mounted($dev) || ! is_mounted($dir)) {
+	if (! is_mounted($dev) || ! is_mounted($dir, true)) {
 		if ($fs){
 			@mkdir($dir,0777,TRUE);
 			$cmd = "/sbin/mount -t $fs -o ".get_mount_params($fs, $dev)." '${dev}' '${dir}'";
@@ -413,17 +414,18 @@ function do_mount_local($info) {
 			$o = shell_exec($cmd." 2>&1");
 			if ($o != "" && $fs == "ntfs") {
 				unassigned_log("Mount failed with error: $o");
+				unassigned_log("Mount ntfs drive read only.");
 				$cmd = "/sbin/mount -t $fs -r -o ".get_mount_params($fs, $dev)." '${dev}' '${dir}'";
 				unassigned_log("Mount drive ro command: $cmd");
 				$o = shell_exec($cmd." 2>&1");
 				if ($o != "") {
-					unassigned_log("Mount ro failed with error: $o");
+					unassigned_log("Mount ntfs drive read only failed with error: $o");
 				}
 			}
 			foreach (range(0,5) as $t) {
 				if (is_mounted($dev)) {
 					@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
-					unassigned_log("Successfully mounted '${dev}' on '${dir}'");
+					unassigned_log("Successfully mounted '${dev}' on '${dir}'.");
 					return TRUE;
 				} else {
 					sleep(0.5);
@@ -627,7 +629,7 @@ function reload_shares() {
 	// Disk mounts
 	foreach (get_unasigned_disks() as $name => $disk) {
 		foreach ($disk['partitions'] as $p) {
-			if ( is_mounted(realpath($p)) ) {
+			if ( is_mounted(realpath($p, true)) ) {
 				$info = get_partition_info($p);
 				if (is_shared(basename($info['target']))) {
 					$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV, $reload) : get_udev_info($device, NULL, $reload);
@@ -726,7 +728,7 @@ function do_mount_samba($info) {
 		$dev = $info['device'];
 		$dir = $info['mountpoint'];
 		$fs  = $info['fstype'];
-		if (! is_mounted($dev) || ! is_mounted($dir)) {
+		if (! is_mounted($dev) || ! is_mounted($dir, true)) {
 			@mkdir($dir,0777,TRUE);
 			if ($fs == "nfs") {
 				$params = get_mount_params($fs, '$dev');
@@ -751,7 +753,7 @@ function do_mount_samba($info) {
 			unassigned_log("Mount of '${dev}' failed. Error message: $o");
 			return FALSE;
 		} else {
-			unassigned_log("Share '${dev}' already shared...");
+			unassigned_log("Share '${dev}' already mounted...");
 			return FALSE;
 		}
 	} else {
@@ -839,7 +841,7 @@ function do_mount_iso($info) {
 	$dev = $info['device'];
 	$dir = $info['mountpoint'];
 	if (is_file($info['file'])) {
-		if (! is_mounted($dev) || ! is_mounted($dir)) {
+		if (! is_mounted($dev) || ! is_mounted($dir, true)) {
 			@mkdir($dir,0777,TRUE);
 			$cmd = "/sbin/mount -t iso9660 -o loop '${dev}' '${dir}'";
 			unassigned_log("Mount iso command: mount -t iso9660 -o loop '${dev}' '${dir}'");
@@ -856,7 +858,7 @@ function do_mount_iso($info) {
 			unassigned_log("Mount of '${dev}' failed. Error message: $o");
 			return FALSE;
 		} else {
-			unassigned_log("Share '$dev' already shared...");
+			unassigned_log("Share '$dev' already mounted...");
 		}
 	} else {
 		unassigned_log("Mount of '${dev}' failed. Iso file '$info[file]' is missing.");
