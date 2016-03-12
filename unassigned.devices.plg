@@ -3,7 +3,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.03.11">
+<!ENTITY version   "2016.03.12">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
@@ -16,6 +16,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Compatibility with V6.2 second parity disk showing up as an unassigned device.
+
+###2016.03.11
 - Fix: Remote share NFS mount not mounting properly.
 
 ###2016.03.07

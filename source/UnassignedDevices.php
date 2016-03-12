@@ -91,7 +91,7 @@ function render_partition($disk, $partition) {
 	$out[] = "<td>-</td>";
 	$out[] = "<td >".$partition['fstype']."</td>";
 	$out[] = "<td><span>".my_scale($partition['size'], $unit)." $unit</span></td>";
-	$out[] = "<td>".(strlen($partition['target']) ? shell_exec("lsof '${partition[target]}' 2>/dev/null|grep -c -v COMMAND") : "-")."</td>";
+	$out[] = "<td>".(strlen($partition['target']) ? shell_exec("/usr/bin/lsof '${partition[target]}' 2>/dev/null|grep -c -v COMMAND") : "-")."</td>";
 	$out[] = render_used_and_free($partition);
 	$out[] = "<td>-</td>";
 	$out[] = "<td title='Turn on to Share Device with SMB and/or NFS.'><input type='checkbox' class='toggle_share' info='".htmlentities(json_encode($partition))."' ".(($partition['shared']) ? 'checked':'')."></td>";
@@ -409,7 +409,7 @@ switch ($_POST['action']) {
 	/*  NFS  */
 	case 'list_nfs_shares':
 		$ip = urldecode($_POST['IP']);
-		foreach ( explode(PHP_EOL, shell_exec("/usr/sbin/showmount --no-headers -e '{$ip}' 2>/dev/null|cut -d'*' -f1|sort")) as $name ) {
+		foreach ( explode(PHP_EOL, shell_exec("/usr/sbin/showmount --no-headers -e '{$ip}' 2>/dev/null|/usr/bin/cut -d'*' -f1|sort")) as $name ) {
 			$name .= "\n";
 			echo $name;
 		}

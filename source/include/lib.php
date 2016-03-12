@@ -921,9 +921,12 @@ function get_unasigned_disks() {
 		}
 	}
 
-	// Get the parity device.
+	// Get the parity devices.
 	if ( $disks['parity']['device'] != "") {
 		$unraid_disks[] = "/dev/".$disks['parity']['device'];
+	}
+	if ( isset($disks['parity2']['device']) && $disks['parity2']['device'] != "") {
+		$unraid_disks[] = "/dev/".$disks['parity2']['device'];
 	}
 
 	// Get all cache devices.
