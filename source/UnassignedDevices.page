@@ -33,6 +33,9 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery.switchbutton.css">
 <?endif;?>
 
+<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery.filetree.css">
+<script src="/webGui/javascript/jquery.filetree.js"></script>
+
 <script type="text/javascript" src="/plugins/<?=$plugin;?>/assets/waitMe.min.js"></script>
 <link rel="stylesheet" type="text/css" href="/plugins/<?=$plugin;?>/assets/style-<?=$display['theme'];?>.css">
 
@@ -70,6 +73,7 @@ function cleanUp() {
     setTimeout(cleanUp,4000);
   }
 }
+
 function getlog() {
   $('input[value="Download"]').val('Downloading...').prop('disabled',true);
   $.post('/webGui/include/Download.php',{cmd:'save',source:'/var/log/unassigned.devices.log',file:'<?=$zip?>'},function(zip) {
@@ -114,6 +118,15 @@ function getlog() {
 		position: relative;
 		top: 3px;
 		vertical-align: middle;
+	}
+
+	.fileTree {
+		width: 305px;
+		max-height: 150px;
+		overflow: scroll;
+		position: absolute;
+		z-index: 100;
+		display: none;
 	}
 </style>
 
@@ -284,10 +297,10 @@ function getlog() {
 
 	function add_samba_share(){
 		var title = 'Add Remote SMB/NFS Share';
-		$( "#dialog-confirm" ).html($("#add-remote-defaults").html());
-		$( "#dialog-confirm" ).find(".switch").switchButton({labels_placement:"right",on_label:'YES',off_label:'NO'});
-		$( "#dialog-confirm" ).find(".switch-button-background").css("margin-top", "6px");
-		$( "#dialog-confirm" ).dialog({
+		$( "#dialog-samba" ).html($("#add-remote-defaults").html());
+		$( "#dialog-samba" ).find(".switch").switchButton({labels_placement:"right",on_label:'YES',off_label:'NO'});
+		$( "#dialog-samba" ).find(".switch-button-background").css("margin-top", "6px");
+		$( "#dialog-samba" ).dialog({
 		title: title,
 		resizable: false,
 		width: 600,
@@ -317,13 +330,14 @@ function getlog() {
 
 	function add_iso_share(){
 		var title = 'Add Iso File Share';
-		$( "#dialog-confirm" ).html($("#add-iso-defaults").html());
-		$( "#dialog-confirm" ).find(".switch").switchButton({labels_placement:"right",on_label:'YES',off_label:'NO'});
-		$( "#dialog-confirm" ).find(".switch-button-background").css("margin-top", "6px");
-		$( "#dialog-confirm" ).dialog({
+		$( "#dialog-iso" ).html($("#add-iso-defaults").html());
+		$( "#dialog-iso" ).find(".switch").switchButton({labels_placement:"right",on_label:'YES',off_label:'NO'});
+		$( "#dialog-iso" ).find(".switch-button-background").css("margin-top", "6px");
+		$( "#dialog-iso" ).dialog({
 		title: title,
 		resizable: false,
 		width: 600,
+		height: 370,
 		modal: true,
 		show : {effect: 'fade' , duration: 250},
 		hide : {effect: 'fade' , duration: 250},
@@ -371,9 +385,9 @@ function getlog() {
 		$(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> Loading ...");
 		var opts = new Object();
 		opts["action"] = action;
-		opts["IP"] = getVal("#dialog-confirm","IP");
-		opts["USER"] = getVal("#dialog-confirm","USER");
-		opts["PASS"] = getVal("#dialog-confirm","PASS");
+		opts["IP"] = getVal("#dialog-samba","IP");
+		opts["USER"] = getVal("#dialog-samba","USER");
+		opts["PASS"] = getVal("#dialog-samba","PASS");
 		$.post(URL,opts).done(function(data){
 			$(el).html(old);
 			if (data) {
@@ -470,9 +484,9 @@ function getlog() {
 <div class="font_preload" style="opacity: 0"><span style="font-family: 'FontAwesome', Arial, sans-serif;"></span></div>
 <form id="formUsbMount" method="POST" action="/update.php" target="progressFrame">
 <input type="hidden" id="cmdUsbMount" name="#command" value="" />
-</form>
-<div id="dialog-confirm" style="display:none;" title="Dialog Title"></div>
+<div id="dialog-confirm" style="display:none;" title=""></div>
 <div id="dialog-samba" style="display:none;" title=""></div>
+<div id="dialog-iso" style="display:none;" title=""></div>
 
 <div id="add-remote-defaults" style="display:none;">
 	<dl>
@@ -522,13 +536,14 @@ function getlog() {
 	</dl>  
 </div>
 
-<div id="dialog-iso" style="display:none;" title=""></div>
-
 <div id="add-iso-defaults" style="display:none;">
+<script>
+	$("input[data-pickroot]").fileTreeAttach();
+</script>
 	<p>Note: Dockers will not be able to access any SMB, or Iso file share until you restart the Docker service.  Go to Settings->Docker and disable then enable Docker.</p>
 	<dl>
 		<dt>Iso File:</dt>
-		<dd><span class="iso_file"><input type='text' name='ISO_FILE'></span></dd>
+		<dd><input id='iso_file' type='text' name='ISO_FILE' placeholder="Click to select iso file" data-pickcloseonfile="true" data-pickfilter="iso" data-pickroot="/mnt/user/" data-pickfolders="true" required="required" /></dd>
 	</dl>
 </div>
 
@@ -581,3 +596,4 @@ function getlog() {
 	<input type="button" value="Download Log" onclick="getlog()">
 	<p>Click on the <strong>'Download Log'</strong> button to download a zip file copy of the unassigned devices log.</p>
 </blockquote>
+</form>

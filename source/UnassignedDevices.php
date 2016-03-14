@@ -249,7 +249,11 @@ switch ($_POST['action']) {
 				$is_alive = is_file($mount['file']);
 				echo "<tr class='$odd'>";
 				printf( "<td><img src='/webGui/images/%s'>iso</td>", ( $is_alive ? "green-on.png":"green-blink.png" ));
-				echo "<td><div><i class='glyphicon glyphicon-cd hdd'></i><span style='margin:4px;'></span>{$mount[device]}</div></td>";
+				$devname = $mount['device'];
+				if (strlen($devname) > 50) {
+					$devname = substr($devname, 0, 10)."<strong>...</strong>".basename($devname);
+				}
+				echo "<td><div><i class='glyphicon glyphicon-cd hdd'></i><span style='margin:4px;'></span>${devname}</div></td>";
 				if ($mounted) {
 					echo "<td><i class='glyphicon glyphicon-save hdd'></i><span style='margin:4px;'><a title='Browse Iso File Share.' href='/Shares/Browse?dir={$mount[mountpoint]}'>{$mount[mountpoint]}</a></td>";
 				} else {
