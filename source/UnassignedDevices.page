@@ -225,7 +225,7 @@ function getlog() {
 
 	function remove_samba_config(device){
 		var title = 'Remove SMB/NFS mount';
-		$( "#dialog-confirm" ).html("<dl><dt>Source:</dt><dd>"+device+"</dd></dl>");
+		$( "#dialog-confirm" ).html("<dl>Source:&nbsp;&nbsp;"+device+"</dl>");
 		$( "#dialog-confirm" ).append( "<dl><dt><span style='color: #E80000;'>Are you sure?</span></dd></dl>" );
 		$( "#dialog-confirm" ).dialog({
 			title: title,
@@ -250,7 +250,7 @@ function getlog() {
 
 	function remove_iso_config(device){
 		var title = 'Remove Iso File mount';
-		$( "#dialog-confirm" ).html("<dl><dt>Source:</dt><dd>"+device+"</dd></dl>");
+		$( "#dialog-confirm" ).html("<dl>Source:&nbsp;&nbsp;"+device+"</dl>");
 		$( "#dialog-confirm" ).append( "<dl><dt><span style='color: #E80000;'>Are you sure?</span></dd></dl>" );
 		$( "#dialog-confirm" ).dialog({
 			title: title,
