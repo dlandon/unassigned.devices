@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.03.13">
+<!ENTITY version   "2016.03.15">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"15539dffbb1646d422c731b082876775">
+<!ENTITY MD5		"28bdef030f7717b786fcd338cdce84a6">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Text adjustments in dialogs.
+- Fix: Preclear status detection for >2TB disks. Thanks gfjardim.
+- Fix: Realpath() only takes one parameter, 2 given. Thanks gfjardim.
+
+###2016.03.13
 - Add: File browse for iso file selection.
 
 ###2016.03.12a
