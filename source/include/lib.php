@@ -168,10 +168,11 @@ function verify_precleared($dev) {
 			$partition_size = $disk_blocks - $sc;
 			break;
 		case 1:
-			if ($over_mbr_size) {
+			if ( ! $over_mbr_size) {
 				unassigned_log("Failed test 3: start sector ($sc) is invalid.", "DEBUG");
 				$cleared = FALSE;
 			}
+			$partition_size = $max_mbr_blocks;
 			break;
 		default:
 			unassigned_log("Failed test 4: start sector ($sc) is invalid.", "DEBUG");
