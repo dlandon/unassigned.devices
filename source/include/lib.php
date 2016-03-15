@@ -630,7 +630,7 @@ function reload_shares() {
 	// Disk mounts
 	foreach (get_unasigned_disks() as $name => $disk) {
 		foreach ($disk['partitions'] as $p) {
-			if ( is_mounted(realpath($p, true)) ) {
+			if ( is_mounted(realpath($p)) ) {
 				$info = get_partition_info($p);
 				if (is_shared(basename($info['target']))) {
 					$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV, $reload) : get_udev_info($device, NULL, $reload);
