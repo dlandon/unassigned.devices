@@ -234,9 +234,17 @@ function format_disk($dev, $fs) {
 			return FALSE;
 		}
 	}
-	$max_mbr_blocks   = hexdec("0xFFFFFFFF");
-	$disk_blocks      = intval(trim(shell_exec("/sbin/blockdev --getsz $dev  | /bin/awk '{ print $1 }'")));
-	$disk_schema      = ( $disk_blocks >= $max_mbr_blocks ) ? "gpt" : "msdos";
+	$max_mbr_blocks = hexdec("0xFFFFFFFF");
+	$disk_blocks    = intval(trim(shell_exec("/sbin/blockdev --getsz $dev  | /bin/awk '{ print $1 }'")));
+	$disk_schema    = ( $disk_blocks >= $max_mbr_blocks ) ? "gpt" : "msdos";
+	switch ($fs) {
+		case 'exfat':
+			$parted_fs = "fat32";
+			break;
+		default:
+			$parted_fs = $fs;
+			break;
+	}
 	unassigned_log("Clearing partition table of disk '$dev'.");
 	shell_exec("/usr/bin/dd if=/dev/zero of={$dev} bs=2M count=1 2>&1 >/dev/null");
 	unassigned_log("Reloading disk '{$dev}' partition table.");
@@ -244,7 +252,7 @@ function format_disk($dev, $fs) {
 	unassigned_log("Creating a '{$disk_schema}' partition table on disk '{$dev}'.");
 	shell_exec("/usr/sbin/parted {$dev} --script -- mklabel {$disk_schema} 2>&1 >/dev/null");
 	unassigned_log("Creating a primary partition on disk '{$dev}'.");
-	shell_exec("/usr/sbin/parted -a optimal {$dev} --script -- mkpart primary 0% 100% 2>&1 >/dev/null");
+	shell_exec("/usr/sbin/parted -a optimal {$dev} --script -- mkpart primary $parted_fs 0% 100% 2>&1 >/dev/null");
 	unassigned_log("Formatting disk '{$dev}' with '$fs' filesystem.");
 	shell_exec(get_format_cmd("{$dev}1", $fs));
 	unassigned_log("Reloading disk '{$dev}' partition table.");
