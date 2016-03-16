@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.03.15">
+<!ENTITY version   "2016.03.16">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"28bdef030f7717b786fcd338cdce84a6">
+<!ENTITY MD5		"7c9e12995399ab0957e29d9eebd34cb9">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: NTFS formatted disk not being recognized by Windows. Thanks gfjardim.
+- Fix: Update parted package. Thanks gfjardim.
+
+###2016.03.15
 - Fix: Text adjustments in dialogs.
 - Fix: Preclear status detection for >2TB disks. Thanks gfjardim.
 - Fix: Realpath() only takes one parameter, 2 given. Thanks gfjardim.
@@ -406,11 +410,11 @@ libbsd-0.6.0-x86_64-1sl.txz
 </FILE>
 
 <!--
-parted-3.1-x86_64-1.txz
+parted-3.2-x86_64-2.txz
 -->
-<FILE Name="&packages;/parted-3.1-x86_64-1.txz" Run="upgradepkg --install-new">
-<URL>http://slackware.osuosl.org/slackware64-14.1/slackware64/l/parted-3.1-x86_64-1.txz</URL>
-<MD5>140283cca20483fcacd805201b33798a</MD5>
+<FILE Name="&packages;/parted-3.2-x86_64-2.txz" Run="upgradepkg --install-new">
+<URL>http://mirrors.slackware.com/slackware/slackware64-current/slackware64/l/parted-3.2-x86_64-2.txz</URL>
+<MD5>1026cb6b665bbeff2d514d6510d00bc5</MD5>
 </FILE>
 
 <!--
@@ -522,7 +526,7 @@ removepkg exfat-utils-1.2.1-x86_64-1_slack 2>/dev/null
 removepkg fuse-exfat-1.2.1-x86_64-1_slack 2>/dev/null
 removepkg hfsprogs-332.25-x86_64-2sl 2>/dev/null
 removepkg libbsd-0.6.0-x86_64-1sl 2>/dev/null
-removepkg parted-3.1-x86_64-1 2>/dev/null
+removepkg parted-3.2-x86_64-2 2>/dev/null
 removepkg libnl-1.1.4-x86_64-1 2>/dev/null
 
 echo ""
