@@ -400,14 +400,14 @@ switch ($_POST['action']) {
 	/*  SAMBA  */
 	case 'list_samba_hosts':
 		$ip = shell_exec("/usr/bin/nmblookup -M -- - 2>/dev/null | /usr/bin/grep -Pom1 '^\S+'");
-		echo shell_exec("/usr/bin/smbclient -g -L '$ip' -U% 2>&1|/usr/bin/awk -F'|' '/Server/{print $2}'|sort");
+		echo shell_exec("/usr/bin/smbclient -g -L '$ip' -U% 2>/dev/null|/usr/bin/awk -F'|' '/Server/{print $2}'|sort");
 		break;
 	case 'list_samba_shares':
 		$ip = urldecode($_POST['IP']);
 		$user = isset($_POST['USER']) ? urlencode($_POST['USER']) : NULL;
 		$pass = isset($_POST['PASS']) ? urlencode($_POST['PASS']) : NULL;
 		$login = $user ? ($pass ? "-U '{$user}%{$pass}'" : "-U '{$user}' -N") : "-U%";
-		echo shell_exec("/usr/bin/smbclient -g -L '$ip' $login 2>&1|/usr/bin/awk -F'|' '/Disk/{print $2}'|sort");
+		echo shell_exec("/usr/bin/smbclient -g -L '$ip' $login 2>/dev/null|/usr/bin/awk -F'|' '/Disk/{print $2}'|sort");
 		break;
 
 	/*  NFS  */

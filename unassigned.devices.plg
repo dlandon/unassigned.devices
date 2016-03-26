@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.03.16">
+<!ENTITY version   "2016.03.26">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"7c9e12995399ab0957e29d9eebd34cb9">
+<!ENTITY MD5		"1758029269e8c1a30e73852d2ec2ab8d">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Update parted package link.
+- Update NTFS-3g package.
+
+###2016.03.16
 - Fix: NTFS formatted disk not being recognized by Windows. Thanks gfjardim.
 - Fix: Update parted package. Thanks gfjardim.
 
@@ -370,11 +374,11 @@ Get the plugin bundle.
 </FILE>
 
 <!--
-ntfs-3g-2015.3.14-x86_64-1.txz
+ntfs-3g-2016.2.22-x86_64-1.txz
 -->
-<FILE Name="&packages;/ntfs-3g-2015.3.14-x86_64-1.txz" Run="upgradepkg --install-new">
-<URL>http://slackbuilds.org/mirror/slackware/slackware64-current/slackware64/a/ntfs-3g-2015.3.14-x86_64-1.txz</URL>
-<MD5>eb146c115f0272944695f116cfb6105d</MD5>
+<FILE Name="&packages;/ntfs-3g-2016.2.22-x86_64-1.txz" Run="upgradepkg --install-new">
+<URL>http://slackbuilds.org/mirror/slackware/slackware64-current/slackware64/a/ntfs-3g-2016.2.22-x86_64-1.txz</URL>
+<MD5>c5574f863853d71549320d099ac59b36</MD5>
 </FILE>
 
 <!--
@@ -413,7 +417,7 @@ libbsd-0.6.0-x86_64-1sl.txz
 parted-3.2-x86_64-2.txz
 -->
 <FILE Name="&packages;/parted-3.2-x86_64-2.txz" Run="upgradepkg --install-new">
-<URL>http://mirrors.slackware.com/slackware/slackware64-current/slackware64/l/parted-3.2-x86_64-2.txz</URL>
+<URL>http://linorg.usp.br/slackware/slackware64-current/slackware64/l/parted-3.2-x86_64-2.txz</URL>
 <MD5>1026cb6b665bbeff2d514d6510d00bc5</MD5>
 </FILE>
 
@@ -521,7 +525,7 @@ mv -f /usr/local/emhttp/plugins/dynamix/OpenDevices.page- /usr/local/emhttp/plug
 rm -rf /usr/local/emhttp/plugins/&name; 2>/dev/null
 
 # Remove all installed packages.
-removepkg ntfs-3g-2015.3.14-x86_64-1 2>/dev/null
+removepkg ntfs-3g-2016.2.22-x86_64-1 2>/dev/null
 removepkg exfat-utils-1.2.1-x86_64-1_slack 2>/dev/null
 removepkg fuse-exfat-1.2.1-x86_64-1_slack 2>/dev/null
 removepkg hfsprogs-332.25-x86_64-2sl 2>/dev/null
