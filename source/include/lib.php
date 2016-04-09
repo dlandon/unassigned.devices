@@ -417,7 +417,7 @@ function do_mount_local($info) {
 	$fs  = $info['fstype'];
 	if (! is_mounted($dev) || ! is_mounted($dir, true)) {
 		if ($fs){
-			@mkdir($dir,0777,TRUE);
+			@mkdir($dir, 0777, TRUE);
 			$cmd = "/sbin/mount -t $fs -o ".get_mount_params($fs, $dev)." '${dev}' '${dir}'";
 			unassigned_log("Mount drive command: $cmd");
 			$o = shell_exec($cmd." 2>&1");
@@ -625,6 +625,7 @@ function rm_nfs_share($dir) {
 				$c = (is_file($file)) ? @file($file,FILE_IGNORE_NEW_LINES) : array();
 				unassigned_log("Removing NFS share '$dir' from '$file'.");
 				$c = preg_grep("@\"{$dir}\"@i", $c, PREG_GREP_INVERT);
+				$c[] = "";
 				file_put_contents($file, implode(PHP_EOL, $c));
 				$reload = TRUE;
 			}
@@ -633,6 +634,7 @@ function rm_nfs_share($dir) {
 	}
 	return TRUE;
 }
+
 
 function reload_shares() {
 	// Disk mounts
@@ -672,7 +674,9 @@ function reload_shares() {
 			unassigned_log("Reloading shared dir '{$info[mountpoint]}'.");
 			unassigned_log("Removing old config...");
 			rm_smb_share($info['mountpoint'], $info['device']);
+			rm_nfs_share($info['mountpoint']);
 			add_smb_share($info['mountpoint'], $info['device']);
+			add_nfs_share($info['mountpoint']);
 		}
 	}
 }
@@ -738,7 +742,7 @@ function do_mount_samba($info) {
 		$dir = $info['mountpoint'];
 		$fs  = $info['fstype'];
 		if (! is_mounted($dev) || ! is_mounted($dir, true)) {
-			@mkdir($dir,0777,TRUE);
+			@mkdir($dir, 0777, TRUE);
 			if ($fs == "nfs") {
 				$params = get_mount_params($fs, '$dev');
 				$cmd = "/sbin/mount -t $fs -o ".$params." '${dev}' '${dir}'";
@@ -851,7 +855,7 @@ function do_mount_iso($info) {
 	$dir = $info['mountpoint'];
 	if (is_file($info['file'])) {
 		if (! is_mounted($dev) || ! is_mounted($dir, true)) {
-			@mkdir($dir,0777,TRUE);
+			@mkdir($dir, 0777, TRUE);
 			$cmd = "/sbin/mount -t iso9660 -o loop '${dev}' '${dir}'";
 			unassigned_log("Mount iso command: mount -t iso9660 -o loop '${dev}' '${dir}'");
 			$o = shell_exec($cmd." 2>&1");
