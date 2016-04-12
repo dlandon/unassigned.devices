@@ -93,7 +93,7 @@ function render_partition($disk, $partition) {
 	$out[] = "<td><span>".my_scale($partition['size'], $unit)." $unit</span></td>";
 	$out[] = "<td>".(strlen($partition['target']) ? shell_exec("/usr/bin/lsof '${partition[target]}' 2>/dev/null|grep -c -v COMMAND") : "-")."</td>";
 	$out[] = render_used_and_free($partition);
-	$out[] = "<td>-</td>";
+	$out[] = "<td title='Turn on to Mount Device when Array is Started.'><input type='checkbox' class='automount' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['automount']) ? 'checked':'')."></td>";
 	$out[] = "<td title='Turn on to Share Device with SMB and/or NFS.'><input type='checkbox' class='toggle_share' info='".htmlentities(json_encode($partition))."' ".(($partition['shared']) ? 'checked':'')."></td>";
 	$out[] = "<td><a title='View Log.' href='/Main/ViewLog?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><img src='/plugins/${plugin}/icons/view_log.png' style='cursor:pointer;width:16px;'></a></td>";
 	$out[] = "<td><a title='Edit Device Script.' href='/Main/EditScript?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><img src='/plugins/${plugin}/icons/edit_script.png' style='cursor:pointer;width:16px;".( (get_config($partition['serial'],"command_bg.{$partition[part]}") == "true") ? "":"opacity: 0.4;" )."'></a></td>";
@@ -119,10 +119,13 @@ function make_mount_button($device) {
 	$is_mounting   = (time() - filemtime($is_mounting) < 300) ? TRUE : FALSE;
 	$is_unmounting = array_values(preg_grep("@/unmounting_".basename($device['device'])."@i", listDir(dirname($paths['mounting']))))[0];
 	$is_unmounting = (time() - filemtime($is_unmounting) < 300) ? TRUE : FALSE;
+	$dev           = basename($device['device']);
+	$preclearing   = is_file("/tmp/preclear_stat_{$dev}");
 	if ($device['size'] == 0) {
 		$button = sprintf($button, $context, 'mount', 'disabled', 'glyphicon glyphicon-erase', 'Insert');
 	} elseif ($format) {
 		$disable = get_config("Config", "destructive_mode") == "enabled" ? "" : "disabled";
+		$disable = $preclearing ? "disabled" : $disable;
 		$button = sprintf($button, $context, 'format', $disable, 'glyphicon glyphicon-erase', 'Format');
 	} elseif ($is_mounting) {
 		$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-circle-o-notch fa-spin', 'Mounting...');
@@ -188,7 +191,7 @@ switch ($_POST['action']) {
 				echo "<td>".my_scale($disk['size'],$unit)." {$unit}</td>";
 				echo ($p)?$p[7]:"<td>-</td>";
 				echo ($p)?$p[8]:"<td>-</td><td>-</td>";
-				echo "<td title='Turn on to Mount Device when Array is Started.'><input type='checkbox' class='automount' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['automount']) ? 'checked':'')."></td>";
+				echo ($p)?$p[9]:"<td>-</td>";
 				echo ($p)?$p[10]:"<td>-</td>";
 				echo ($p)?$p[11]:"<td>-</td>";
 				echo ($p)?$p[12]:"<td>-</td>";
