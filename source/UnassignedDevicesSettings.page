@@ -153,7 +153,7 @@ Auto Mount USB Devices?
 <div id="title" class="nocontrol">NFS Settings:</div>
 <form markdown="1" name="nfs_settings" method="POST">
 <dl>
-	<dt>Enable NFS export?</dt>
+	<dt>Enable NFS export:</dt>
 	<dd>
 		<select name="nfs_export" size="1" <?if ($var['shareNFSEnabled']=="no"):?>disabled<?endif;?>>
 		<?=mk_option($cfg['Config']["nfs_export"], "no", "No")?>

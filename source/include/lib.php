@@ -189,16 +189,16 @@ function verify_precleared($dev) {
 function get_format_cmd($dev, $fs) {
 	switch ($fs) {
 		case 'xfs':
-			return "/sbin/mkfs.xfs {$dev}";
+			return "/sbin/mkfs.xfs -f {$dev}";
 			break;
 		case 'ntfs':
 			return "/sbin/mkfs.ntfs -Q {$dev}";
 			break;
 		case 'btrfs':
-			return "/sbin/mkfs.btrfs {$dev}";
+			return "/sbin/mkfs.btrfs -f {$dev}";
 			break;
 		case 'ext4':
-			return "/sbin/mkfs.ext4 {$dev}";
+			return "/sbin/mkfs.ext4 -F {$dev}";
 			break;
 		case 'exfat':
 			return "/usr/sbin/mkfs.exfat {$dev}";
