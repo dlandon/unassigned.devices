@@ -219,9 +219,18 @@ function format_partition($partition, $fs) {
 		return NULL;
 	}
 	unassigned_log("Formatting partition '{$partition}' with '$fs' filesystem.");
-	shell_exec(get_format_cmd($partition, $fs));
+	$o = trim(shell_exec(get_format_cmd($partition, $fs)));
+	if ($o != "") {
+		unassigned_log("Format partition '{$partition}' with '$fs' filesystem result:\n$o");
+	}
+
+	sleep(3);
 	$disk = preg_replace("@\d+@", "", $partition);
-	shell_exec("/usr/sbin/hdparm -z {$disk}");
+	$o = trim(shell_exec("/usr/sbin/hdparm -z {$disk}"));
+	if ($o != "") {
+		unassigned_log("Reload partition table result:\n$o");
+	}
+
 	sleep(3);
 	@touch($GLOBALS['paths']['reload']);
 }
@@ -245,19 +254,45 @@ function format_disk($dev, $fs) {
 			$parted_fs = $fs;
 			break;
 	}
+	unassigned_log("Device '{$dev}' block size: {$disk_blocks}");
+
 	unassigned_log("Clearing partition table of disk '$dev'.");
-	shell_exec("/usr/bin/dd if=/dev/zero of={$dev} bs=2M count=1 2>&1 >/dev/null");
+	$o = trim(shell_exec("/usr/bin/dd if=/dev/zero of={$dev} bs=2M count=1 2>&1"));
+	if ($o != "") {
+		unassigned_log("Clear partition result:\n$o");
+	}
+
 	unassigned_log("Reloading disk '{$dev}' partition table.");
-	shell_exec("/usr/sbin/hdparm -z {$dev} 2>&1 >/dev/null");
+	$o = trim(shell_exec("/usr/sbin/hdparm -z {$dev} 2>&1"));
+	if ($o != "") {
+		unassigned_log("Reload partition table result:\n$o");
+	}
+
 	unassigned_log("Creating a '{$disk_schema}' partition table on disk '{$dev}'.");
-	shell_exec("/usr/sbin/parted {$dev} --script -- mklabel {$disk_schema} 2>&1 >/dev/null");
+	$o = trim(shell_exec("/usr/sbin/parted {$dev} --script -- mklabel {$disk_schema} 2>&1"));
+	if ($o != "") {
+		unassigned_log("Create '{$disk_schema}' partition table result:\n$o");
+	}
+
 	unassigned_log("Creating a primary partition on disk '{$dev}'.");
-	shell_exec("/usr/sbin/parted -a optimal {$dev} --script -- mkpart primary $parted_fs 0% 100% 2>&1 >/dev/null");
+	$o = trim(shell_exec("/usr/sbin/parted -a optimal {$dev} --script -- mkpart primary $parted_fs 0% 100% 2>&1"));
+	if ($o != "") {
+		unassigned_log("Create primary partition result:\n$o");
+	}
+
 	unassigned_log("Formatting disk '{$dev}' with '$fs' filesystem.");
-	shell_exec(get_format_cmd("{$dev}1", $fs));
-	unassigned_log("Reloading disk '{$dev}' partition table.");
-	shell_exec("/usr/sbin/hdparm -z {$dev} 2>&1 >/dev/null");
+	$o = trim(shell_exec(get_format_cmd("{$dev}1", $fs)));
+	if ($o != "") {
+		unassigned_log("Format disk '{$dev}' with '$fs' filesystem result:\n$o");
+	}
+
 	sleep(3);
+	unassigned_log("Reloading disk '{$dev}' partition table.");
+	$o = trim(shell_exec("/usr/sbin/hdparm -z {$dev} 2>&1"));
+	if ($o != "") {
+		unassigned_log("Reload partition table result:\n$o");
+	}
+
 	@touch($GLOBALS['paths']['reload']);
 }
 

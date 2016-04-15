@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.04.12a">
+<!ENTITY version   "2016.04.15">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"7c1466ed28b09884609db22784479dc9">
+<!ENTITY MD5		"4f0040843ec90ff9d9c6c8dcd66142b4">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,17 +16,20 @@
 <CHANGES>
 ##&name;
 ###&version;
-- Add force flags to xfs, btrfs, and ext4 format commands to prevent formatting failures on SSD drives.
-- Remove 'Auto mount' switch when a disk is not formatted.
-- Grey 'Format' button while pre-clearing a disk.
+- Add: additional format logging.
+
+###2016.04.12a
+- Add: force flags to xfs, btrfs, and ext4 format commands to prevent formatting failures on SSD drives.
+- Fix: Remove 'Auto mount' switch when a disk is not formatted.
+- Fix: Grey 'Format' button while pre-clearing a disk.
 
 ###2016.04.09
-- Fix NFS export issue with managing /etc/exports file.
-- Remove sharing of remote shares with NFS.  NFS does not allow remote shares to be exported on the local machine.
+- Fix: NFS export issue with managing /etc/exports file.
+- Fix: remove sharing of remote shares with NFS.  NFS does not allow remote shares to be exported on the local machine.
 
 ###2016.03.26
-- Update parted package link.
-- Update NTFS-3g package.
+- Add: Update parted package link.
+- Add: Update NTFS-3g package.
 
 ###2016.03.16
 - Fix: NTFS formatted disk not being recognized by Windows. Thanks gfjardim.
