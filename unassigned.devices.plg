@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.04.15">
+<!ENTITY version   "2016.04.16">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"4f0040843ec90ff9d9c6c8dcd66142b4">
+<!ENTITY MD5		"f2e6d078eea1e38e88a007980dd015f4">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Revert parted package back to 3.1 because of package dependency problems in 6.1.9.
+
+##2016.04.15
 - Add: additional format logging.
 
 ###2016.04.12a
@@ -426,11 +429,11 @@ libbsd-0.6.0-x86_64-1sl.txz
 </FILE>
 
 <!--
-parted-3.2-x86_64-2.txz
+parted-3.1-x86_64-1.txz
 -->
-<FILE Name="&packages;/parted-3.2-x86_64-2.txz" Run="upgradepkg --install-new">
-<URL>http://linorg.usp.br/slackware/slackware64-current/slackware64/l/parted-3.2-x86_64-2.txz</URL>
-<MD5>1026cb6b665bbeff2d514d6510d00bc5</MD5>
+<FILE Name="&packages;/parted-3.1-x86_64-1.txz" Run="upgradepkg --install-new">
+<URL>http://slackware.osuosl.org/slackware64-14.1/slackware64/l/parted-3.1-x86_64-1.txz</URL>
+<MD5>140283cca20483fcacd805201b33798a</MD5>
 </FILE>
 
 <!--
@@ -543,7 +546,7 @@ removepkg exfat-utils-1.2.1-x86_64-1_slack 2>/dev/null
 removepkg fuse-exfat-1.2.1-x86_64-1_slack 2>/dev/null
 removepkg hfsprogs-332.25-x86_64-2sl 2>/dev/null
 removepkg libbsd-0.6.0-x86_64-1sl 2>/dev/null
-removepkg parted-3.2-x86_64-2 2>/dev/null
+removepkg parted-3.1-x86_64-1 2>/dev/null
 removepkg libnl-1.1.4-x86_64-1 2>/dev/null
 
 echo ""
