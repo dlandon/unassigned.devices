@@ -293,6 +293,7 @@ function format_disk($dev, $fs) {
 		unassigned_log("Reload partition table result:\n$o");
 	}
 
+	sleep(3);
 	@touch($GLOBALS['paths']['reload']);
 }
 

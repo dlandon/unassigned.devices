@@ -18,6 +18,7 @@ Markdown="false"
 <?PHP
 $plugin = "unassigned.devices";
 $zip = str_replace(' ','_',strtolower($var['NAME']))."-unassigned.devices-".date('Ymd-Hi').".zip";
+$version = parse_ini_file("/etc/unraid-version");
 require_once("plugins/${plugin}/include/lib.php");
 if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/OpenDevices.page","plugins/dynamix/OpenDevices.page-");
 ?>
@@ -553,7 +554,10 @@ function getlog() {
 		<dd>
 			<select name="FS">
 				<option value="xfs">XFS</option>
-				<option value="btrfs">BTRFS</option>
+  
+				<?if (! version_compare($version['version'],"6.1.9", "<=")):?>
+					<option value="btrfs">BTRFS</option>
+				<?endif;?>
 				<option value="ntfs">NTFS</option>
 				<option value="ext4">EXT4</option>
 				<option value="exfat">exFAT</option>

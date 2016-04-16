@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.04.16">
+<!ENTITY version   "2016.04.16a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"f2e6d078eea1e38e88a007980dd015f4">
+<!ENTITY MD5		"8bb6a4126e882aa1d9890c8ecb9bbb82">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Move all packages to github repository for better package management and control.
+- Fix: Install parted 3.1 for unRAID 6.1 and parted 3.2 for unRAID 6.2.
+
+###2016.04.16
 - Fix: Revert parted package back to 3.1 because of package dependency problems in 6.1.9.
 
 ##2016.04.15
@@ -392,7 +396,7 @@ Get the plugin bundle.
 ntfs-3g-2016.2.22-x86_64-1.txz
 -->
 <FILE Name="&packages;/ntfs-3g-2016.2.22-x86_64-1.txz" Run="upgradepkg --install-new">
-<URL>http://slackbuilds.org/mirror/slackware/slackware64-current/slackware64/a/ntfs-3g-2016.2.22-x86_64-1.txz</URL>
+<URL>"&gitURL;/packages/ntfs-3g-2016.2.22-x86_64-1.txz"</URL>
 <MD5>c5574f863853d71549320d099ac59b36</MD5>
 </FILE>
 
@@ -400,7 +404,7 @@ ntfs-3g-2016.2.22-x86_64-1.txz
 exfat-utils-1.2.1-x86_64-1_slack.txz
 -->
 <FILE Name="&packages;/exfat-utils-1.2.1-x86_64-1_slack.txz" Run="upgradepkg --install-new">
-<URL>http://packages.slackonly.com/pub/packages/14.1-x86_64/system/exfat-utils/exfat-utils-1.2.1-x86_64-1_slack.txz</URL>
+<URL>"&gitURL;/packages/exfat-utils-1.2.1-x86_64-1_slack.txz"</URL>
 <MD5>23c662237bf9ec0953fd2ddeba02541b</MD5>
 </FILE>
 
@@ -408,7 +412,7 @@ exfat-utils-1.2.1-x86_64-1_slack.txz
 fuse-exfat-1.2.1-x86_64-1_slack.txz
 -->
 <FILE Name="&packages;/fuse-exfat-1.2.1-x86_64-1_slack.txz" Run="upgradepkg --install-new">
-<URL>http://packages.slackonly.com/pub/packages/14.1-x86_64/system/fuse-exfat/fuse-exfat-1.2.1-x86_64-1_slack.txz</URL>
+<URL>"&gitURL;/packages/fuse-exfat-1.2.1-x86_64-1_slack.txz"</URL>
 <MD5>088950fe3ccf767b616db6fb550e0ab7</MD5>
 </FILE>
 
@@ -416,7 +420,7 @@ fuse-exfat-1.2.1-x86_64-1_slack.txz
 hfsprogs-332.25-x86_64-2sl.txz
 -->
 <FILE Name="&packages;/hfsprogs-332.25-x86_64-2sl.txz" Run="upgradepkg --install-new">
-<URL>http://slackware.org.uk/slacky/slackware64-14.1/system/hfsprogs/332.25/hfsprogs-332.25-x86_64-2sl.txz</URL>
+<URL>"&gitURL;/packages/hfsprogs-332.25-x86_64-2sl.txz"</URL>
 <MD5>9ddd7cb7e0782e9fb7756b1946808228</MD5>
 </FILE>
 
@@ -424,23 +428,56 @@ hfsprogs-332.25-x86_64-2sl.txz
 libbsd-0.6.0-x86_64-1sl.txz
 -->
 <FILE Name="&packages;/libbsd-0.6.0-x86_64-1sl.txz" Run="upgradepkg --install-new">
-<URL>http://slackware.org.uk/slacky/slackware64-14.1/libraries/libbsd/0.6.0/libbsd-0.6.0-x86_64-1sl.txz</URL>
+<URL>"&gitURL;/packages/libbsd-0.6.0-x86_64-1sl.txz"</URL>
 <MD5>1d403a59c467a37f040de3fde2c23518</MD5>
 </FILE>
 
 <!--
-parted-3.1-x86_64-1.txz
+parted-3.1-x86_64-1.txz (for unraid 6.1)
 -->
-<FILE Name="&packages;/parted-3.1-x86_64-1.txz" Run="upgradepkg --install-new">
-<URL>http://slackware.osuosl.org/slackware64-14.1/slackware64/l/parted-3.1-x86_64-1.txz</URL>
+<FILE Name="&packages;/parted-3.1-x86_64-1.txz">
+<URL>"&gitURL;/packages/parted-3.1-x86_64-1.txz"</URL>
 <MD5>140283cca20483fcacd805201b33798a</MD5>
+</FILE>
+
+<!--
+parted-3.2-x86_64-2.txz (for unraid 6.2)
+-->
+<FILE Name="&packages;/parted-3.2-x86_64-2.txz">
+<URL>"&gitURL;/packages/parted-3.2-x86_64-2.txz"</URL>
+<MD5>1026cb6b665bbeff2d514d6510d00bc5</MD5>
+</FILE>
+
+<!-- The 'parted' package install script. -->
+<FILE Run="/usr/bin/php">
+<INLINE>
+<![CDATA[
+<?
+	$version = parse_ini_file("/etc/unraid-version");
+	$plugin = "/boot/config/plugins/unassigned.devices/packages";
+	$command = "upgradepkg --install-new";
+
+	if ( version_compare($version['version'],"6.1.9", "<=") ) {
+		$name = "$plugin/parted-3.1-x86_64-1.txz";
+	} else {
+		$name = "$plugin/parted-3.2-x86_64-2.txz";
+	}
+	shell_exec("logger plugin: running: $name") ;
+	system("$command $name", $retval);
+	if ($retval) {
+		echo "run failed command: $command retval: $retval";
+		exit(1);
+	}
+?>
+]]>
+</INLINE>
 </FILE>
 
 <!--
 libnl-1.1.4-x86_64-1.txz
 -->
 <FILE Name="&packages;/libnl-1.1.4-x86_64-1.txz" Run="upgradepkg --install-new">
-<URL>http://slackware.osuosl.org/slackware64-14.1/slackware64/l/libnl-1.1.4-x86_64-1.txz</URL>
+<URL>"&gitURL;/packages/libnl-1.1.4-x86_64-1.txz"</URL>
 <MD5>435837a5bf0401a937d6ec93e458333b</MD5>
 </FILE>
 
@@ -546,7 +583,12 @@ removepkg exfat-utils-1.2.1-x86_64-1_slack 2>/dev/null
 removepkg fuse-exfat-1.2.1-x86_64-1_slack 2>/dev/null
 removepkg hfsprogs-332.25-x86_64-2sl 2>/dev/null
 removepkg libbsd-0.6.0-x86_64-1sl 2>/dev/null
-removepkg parted-3.1-x86_64-1 2>/dev/null
+if [ -f /var/log/packages/parted-3.1-x86_64-1 ]; then
+	removepkg parted-3.1-x86_64-1 2>/dev/null
+fi
+if [ -f /var/log/packages/parted-3.2-x86_64-2 ]; then
+	removepkg parted-3.2-x86_64-2 2>/dev/null
+fi
 removepkg libnl-1.1.4-x86_64-1 2>/dev/null
 
 echo ""
