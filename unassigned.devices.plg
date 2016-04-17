@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.04.16a">
+<!ENTITY version   "2016.04.17">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"8bb6a4126e882aa1d9890c8ecb9bbb82">
+<!ENTITY MD5		"2f32b78b45fc8433d288185f45edb8a5">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Block mounting smb shares with a '$' in the share path name.
+
+###2016.04.16a
 - Add: Move all packages to github repository for better package management and control.
 - Fix: Install parted 3.1 for unRAID 6.1 and parted 3.2 for unRAID 6.2.
 

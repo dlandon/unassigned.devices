@@ -431,12 +431,16 @@ switch ($_POST['action']) {
 		$path = isset($_POST['SHARE']) ? urldecode($_POST['SHARE']) : "";
 		$share = basename($path);
 		$device = ($protocol == "NFS") ? "${ip}:/${path}" : "//${ip}/${share}";
-		set_samba_config("${device}", "protocol", $protocol);
-		set_samba_config("${device}", "ip", $ip);
-		set_samba_config("${device}", "path", $path);
-		set_samba_config("${device}", "user", $user);
-		set_samba_config("${device}", "pass", $pass);
-		set_samba_config("${device}", "share", $share);
+		if (strpos($path, "$") === FALSE) {
+			set_samba_config("${device}", "protocol", $protocol);
+			set_samba_config("${device}", "ip", $ip);
+			set_samba_config("${device}", "path", $path);
+			set_samba_config("${device}", "user", $user);
+			set_samba_config("${device}", "pass", $pass);
+			set_samba_config("${device}", "share", $share);
+		} else {
+			unassigned_log("Share '{$device}' contains a '$' character.  It cannot be mounted.");
+		}
 		break;
 	case 'remove_samba_config':
 		$device = urldecode(($_POST['device']));
