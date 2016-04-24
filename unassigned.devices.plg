@@ -16,6 +16,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Additional 'Help' text.
+
+###2016.04.17
 - Fix: Block mounting smb shares with a '$' in the share path name.
 
 ###2016.04.16a
