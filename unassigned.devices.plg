@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.04.24">
+<!ENTITY version   "2016.04.30">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"3f2d58769f051998de0d01dc9a392699">
+<!ENTITY MD5		"13cbb5a17c7f3d74637a39bb97af553f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Install proper version of ntfs-3g package for unRAID 6.1.
+
+###2016.04.24
 - Add: Additional 'Help' text.
 
 ###2016.04.17
@@ -399,12 +402,46 @@ Get the plugin bundle.
 </FILE>
 
 <!--
-ntfs-3g-2016.2.22-x86_64-1.txz
+ntfs-3g-2013.1.13-x86_64-1.txz (for unraid 6.1)
 -->
-<FILE Name="&packages;/ntfs-3g-2016.2.22-x86_64-1.txz" Run="upgradepkg --install-new">
+<FILE Name="&packages;/ntfs-3g-2013.1.13-x86_64-1.txz">
+<URL>"&gitURL;/packages/ntfs-3g-2013.1.13-x86_64-1.txz"</URL>
+<MD5>de646f44d881b6c4292e353b717792cd</MD5>
+</FILE>
+
+<!--
+ntfs-3g-2016.2.22-x86_64-1.txz (for unraid 6.2)
+-->
+<FILE Name="&packages;/ntfs-3g-2016.2.22-x86_64-1.txz">
 <URL>"&gitURL;/packages/ntfs-3g-2016.2.22-x86_64-1.txz"</URL>
 <MD5>c5574f863853d71549320d099ac59b36</MD5>
 </FILE>
+
+<!-- The 'ntfs-3g' package install script. -->
+<FILE Run="/usr/bin/php">
+<INLINE>
+<![CDATA[
+<?
+	$version = parse_ini_file("/etc/unraid-version");
+	$plugin = "/boot/config/plugins/unassigned.devices/packages";
+	$command = "upgradepkg --install-new";
+
+	if ( version_compare($version['version'],"6.1.9", "<=") ) {
+		$name = "$plugin/ntfs-3g-2013.1.13-x86_64-1.txz";
+	} else {
+		$name = "$plugin/ntfs-3g-2016.2.22-x86_64-1.txz";
+	}
+	shell_exec("logger plugin: running: $name") ;
+	system("$command $name", $retval);
+	if ($retval) {
+		echo "run failed command: $command retval: $retval";
+		exit(1);
+	}
+?>
+]]>
+</INLINE>
+</FILE>
+
 
 <!--
 exfat-utils-1.2.1-x86_64-1_slack.txz
@@ -584,7 +621,12 @@ mv -f /usr/local/emhttp/plugins/dynamix/OpenDevices.page- /usr/local/emhttp/plug
 rm -rf /usr/local/emhttp/plugins/&name; 2>/dev/null
 
 # Remove all installed packages.
-removepkg ntfs-3g-2016.2.22-x86_64-1 2>/dev/null
+if [ -f /var/log/packages/ntfs-3g-2013.1.13-x86_64-1 ]; then
+	removepkg ntfs-3g-2013.1.13-x86_64-1 2>/dev/null
+fi
+if [ -f /var/log/packages/ntfs-3g-2016.2.22-x86_64-1 ]; then
+	removepkg ntfs-3g-2016.2.22-x86_64-1 2>/dev/null
+fi
 removepkg exfat-utils-1.2.1-x86_64-1_slack 2>/dev/null
 removepkg fuse-exfat-1.2.1-x86_64-1_slack 2>/dev/null
 removepkg hfsprogs-332.25-x86_64-2sl 2>/dev/null
@@ -595,6 +637,7 @@ fi
 if [ -f /var/log/packages/parted-3.2-x86_64-2 ]; then
 	removepkg parted-3.2-x86_64-2 2>/dev/null
 fi
+
 removepkg libnl-1.1.4-x86_64-1 2>/dev/null
 
 echo ""
