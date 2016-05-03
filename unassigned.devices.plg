@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.04.30">
+<!ENTITY version   "2016.05.03">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"13cbb5a17c7f3d74637a39bb97af553f">
+<!ENTITY MD5		"92a30f601aa036c367c235ed4c4bd007">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: nvme devices.  Note: Consider this a beta feature as I have no way to test.
+
+###2016.04.30
 - Fix: Install proper version of ntfs-3g package for unRAID 6.1.
 
 ###2016.04.24
