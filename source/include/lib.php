@@ -538,7 +538,7 @@ function add_smb_share($dir, $share_name) {
 		$config = is_file($paths['config_file']) ? @parse_ini_file($paths['config_file'], true) : array();
 		$config = $config["Config"];
 
-		if ($config["smb_security"] == "yes") {
+		if ($config["smb_security"] != "no") {
 			$read_users = $write_users = $valid_users = array();
 			foreach ($users as $key => $user) {
 				if ($user['name'] != "root" ) {
@@ -553,10 +553,15 @@ function add_smb_share($dir, $share_name) {
 			});
 			$valid_users = array_diff($valid_users, $invalid_users);
 			if (count($valid_users)) {
+				if ($config["smb_security"] == "hidden") {
+					$hidden = "\nbrowseable = no";
+				} else {
+					$hidden = "\nbrowseable = yes";
+				}
 				$valid_users = "\nvalid users = ".implode(', ', $valid_users);
 				$write_users = count($write_users) ? "\nwrite list = ".implode(', ', $write_users) : "";
 				$read_users = count($read_users) ? "\nread users = ".implode(', ', $read_users) : "";
-				$share_cont =  "[{$share_name}]\npath = {$dir}{$valid_users}{$write_users}{$read_users}";
+				$share_cont =  "[{$share_name}]\npath = {$dir}{$hidden}{$valid_users}{$write_users}{$read_users}";
 			} else {
 				$share_cont =  "[{$share_name}]\npath = {$dir}\ninvalid users = @users";
 				unassigned_log("Error: No valid smb users defined.  Share '{$dir}' cannot be accessed.");

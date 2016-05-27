@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.05.03">
+<!ENTITY version   "2016.05.27">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"92a30f601aa036c367c235ed4c4bd007">
+<!ENTITY MD5		"17e88175a5cde22f7cf6e05cee5b6004">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Smb shares hidden.
+
+###2016.05.03
 - Add: nvme devices.  Note: Consider this a beta feature as I have no way to test.
 
 ###2016.04.30

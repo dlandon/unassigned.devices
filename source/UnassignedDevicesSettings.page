@@ -80,7 +80,7 @@ if (count($_POST)) {
 	} 
 
 	function prepareSecurity(el) {
-		$("#smb_security").css("display", ( $(el).val() == "yes" ? "block" : "none") );
+		$("#smb_security").css("display", ( $(el).val() == "no" ? "none" : "block") );
 	}
 </script>
 
@@ -119,11 +119,12 @@ Auto Mount USB Devices?
 		<select name="smb_security" size="1" onchange="prepareSecurity(this);">
 		<?=mk_option($cfg['Config']["smb_security"], "no", "No")?>
 		<?=mk_option($cfg['Config']["smb_security"], "yes", "Yes")?>
+		<?=mk_option($cfg['Config']["smb_security"], "hidden", "Yes (hidden)")?>
 		</select>
 	</dd>
 </dl>
 
-<div id="smb_security" style="display: <?=($cfg['Config']["smb_security"] == "yes" ? "block" : "none");?>">
+<div id="smb_security" style="display: <?=($cfg['Config']["smb_security"] == "no" ? "none" : "block");?>">
 	&nbsp;
 	<?php foreach ($users as $user): ?>
 	<?php if ($user['name'] == "root"): continue; endif;?>
@@ -142,7 +143,8 @@ Auto Mount USB Devices?
 
 > Set the user level of SMB Security.
 >
-> + Set to 'Yes' to enable SMB Security omn SMB shares.  Set access by user to allow access and whether or not the user can write to the share.
+> + Set to 'Yes' to enable SMB Security on SMB shares.  Set access by user to allow access and whether or not the user can write to the share.
+> + Set to 'Yes (hidden)' to enable SMB Security on SMB shares that cannot be browsed.  Set access by user to allow access and whether or not the user can write to the share.
 > + Set to 'No' will share devices and SMB Mounts Public with read and write access.
 
 &nbsp;
