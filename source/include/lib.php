@@ -589,11 +589,7 @@ function add_smb_share($dir, $share_name) {
 		unassigned_log("Reloading Samba configuration...");
 		shell_exec("/bin/killall -s 1 smbd 2>/dev/null && /bin/killall -s 1 nmbd 2>/dev/null");
 		shell_exec("/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
-		if (is_shared($share_name)) {
-			unassigned_log("Directory '${dir}' shared successfully."); return TRUE;
-		} else {
-			unassigned_log("Sharing directory '${dir}' failed."); return FALSE;
-		}
+		unassigned_log("Directory '${dir}' shared successfully."); return TRUE;
 	} else {
 		return TRUE;
 	}
@@ -622,11 +618,7 @@ function rm_smb_share($dir, $share_name) {
 			unassigned_log("Reloading Samba configuration..");
 			shell_exec("/usr/bin/smbcontrol $(/usr/bin/cat /var/run/smbd.pid 2>/dev/null) close-share '${share_name}' 2>&1");
 			shell_exec("/usr/bin/smbcontrol $(/usr/bin/cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
-			if(! is_shared($share_name)) {
-				unassigned_log("Successfully removed SMB share '${share_name}'."); return TRUE;
-			} else {
-				unassigned_log("Removal of SMB share '${share_name}' failed."); return FALSE;
-			}
+			unassigned_log("Successfully removed SMB share '${share_name}'."); return TRUE;
 		} else {
 			return TRUE;
 		}
@@ -683,17 +675,15 @@ function reload_shares() {
 		foreach ($disk['partitions'] as $p) {
 			if ( is_mounted(realpath($p), true) ) {
 				$info = get_partition_info($p);
-				if (is_shared(basename($info['target']))) {
-					$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV, $reload) : get_udev_info($device, NULL, $reload);
-					if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'],"usb"))) {
-						unassigned_log("Reloading shared dir '{$info[target]}'.");
-						unassigned_log("Removing old config...");
-						rm_smb_share($info['target'], $info['label']);
-						rm_nfs_share($info['target']);
-						unassigned_log("Adding new config...");
-						add_smb_share($info['mountpoint'], $info['label']);
-						add_nfs_share($info['mountpoint']);
-					}
+				$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV, $reload) : get_udev_info($device, NULL, $reload);
+				if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'],"usb"))) {
+					unassigned_log("Reloading shared dir '{$info[target]}'.");
+					unassigned_log("Removing old config...");
+					rm_smb_share($info['target'], $info['label']);
+					rm_nfs_share($info['target']);
+					unassigned_log("Adding new config...");
+					add_smb_share($info['mountpoint'], $info['label']);
+					add_nfs_share($info['mountpoint']);
 				}
 			}
 		}
@@ -1103,7 +1093,7 @@ function get_partition_info($device, $reload=FALSE){
 		}
 		$disk['owner'] = (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
 		$disk['automount'] = is_automount($disk['serial'], strpos($attrs['DEVPATH'],"usb"));
-		$disk['shared'] = ($disk['target']) ? is_shared(basename($disk['mountpoint'])) : config_shared($disk['serial'], $disk['part'], strpos($attrs['DEVPATH'],"usb"));
+		$disk['shared'] = config_shared($disk['serial'], $disk['part'], strpos($attrs['DEVPATH'],"usb"));
 		$disk['command'] = get_config($disk['serial'], "command.{$disk[part]}");
 		$disk['command_bg'] = get_config($disk['serial'], "command_bg.{$disk[part]}");
 		$disk['prog_name'] = basename($disk['command'], ".sh");
