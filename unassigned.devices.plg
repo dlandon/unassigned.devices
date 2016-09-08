@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.08.19">
+<!ENTITY version   "2016.09.08">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"361a40f93c0a57fe42821893f3c1d327">
+<!ENTITY MD5		"2cbee7a787d90b902753daea84776ab1">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Removed the installation of the ntfs-3g driver in v6.2.  The driver is built in now.
+
+###2016.08.19
 - Fix: Issues with hidden shares.
 
 ###2016.05.27
@@ -418,33 +421,24 @@ ntfs-3g-2013.1.13-x86_64-1.txz (for unraid 6.1)
 <MD5>de646f44d881b6c4292e353b717792cd</MD5>
 </FILE>
 
-<!--
-ntfs-3g-2016.2.22-x86_64-1.txz (for unraid 6.2)
--->
-<FILE Name="&packages;/ntfs-3g-2016.2.22-x86_64-1.txz">
-<URL>"&gitURL;/packages/ntfs-3g-2016.2.22-x86_64-1.txz"</URL>
-<MD5>c5574f863853d71549320d099ac59b36</MD5>
-</FILE>
-
 <!-- The 'ntfs-3g' package install script. -->
 <FILE Run="/usr/bin/php">
 <INLINE>
 <![CDATA[
 <?
 	$version = parse_ini_file("/etc/unraid-version");
-	$plugin = "/boot/config/plugins/unassigned.devices/packages";
-	$command = "upgradepkg --install-new";
-
 	if ( version_compare($version['version'],"6.1.9", "<=") ) {
+		$version = parse_ini_file("/etc/unraid-version");
+		$plugin = "/boot/config/plugins/unassigned.devices/packages";
+		$command = "upgradepkg --install-new";
+
 		$name = "$plugin/ntfs-3g-2013.1.13-x86_64-1.txz";
-	} else {
-		$name = "$plugin/ntfs-3g-2016.2.22-x86_64-1.txz";
-	}
-	shell_exec("logger plugin: running: $name") ;
-	system("$command $name", $retval);
-	if ($retval) {
-		echo "run failed command: $command retval: $retval";
-		exit(1);
+		shell_exec("logger plugin: running: $name") ;
+		system("$command $name", $retval);
+		if ($retval) {
+			echo "run failed command: $command retval: $retval";
+			exit(1);
+		}
 	}
 ?>
 ]]>
@@ -630,12 +624,6 @@ mv -f /usr/local/emhttp/plugins/dynamix/OpenDevices.page- /usr/local/emhttp/plug
 rm -rf /usr/local/emhttp/plugins/&name; 2>/dev/null
 
 # Remove all installed packages.
-if [ -f /var/log/packages/ntfs-3g-2013.1.13-x86_64-1 ]; then
-	removepkg ntfs-3g-2013.1.13-x86_64-1 2>/dev/null
-fi
-if [ -f /var/log/packages/ntfs-3g-2016.2.22-x86_64-1 ]; then
-	removepkg ntfs-3g-2016.2.22-x86_64-1 2>/dev/null
-fi
 removepkg exfat-utils-1.2.1-x86_64-1_slack 2>/dev/null
 removepkg fuse-exfat-1.2.1-x86_64-1_slack 2>/dev/null
 removepkg hfsprogs-332.25-x86_64-2sl 2>/dev/null
