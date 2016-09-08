@@ -624,6 +624,9 @@ mv -f /usr/local/emhttp/plugins/dynamix/OpenDevices.page- /usr/local/emhttp/plug
 rm -rf /usr/local/emhttp/plugins/&name; 2>/dev/null
 
 # Remove all installed packages.
+if [ -f /var/log/packages/ntfs-3g-2013.1.13-x86_64-1 ]; then
+	removepkg ntfs-3g-2013.1.13-x86_64-1 2>/dev/null
+fi
 removepkg exfat-utils-1.2.1-x86_64-1_slack 2>/dev/null
 removepkg fuse-exfat-1.2.1-x86_64-1_slack 2>/dev/null
 removepkg hfsprogs-332.25-x86_64-2sl 2>/dev/null
