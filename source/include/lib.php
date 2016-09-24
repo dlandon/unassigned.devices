@@ -35,7 +35,7 @@ if (! is_dir(dirname($paths["state"])) ) {
 }
 
 if (! isset($var)){
-	if (! is_file("/usr/local/emhttp/state/var.ini")) shell_exec("/usr/bin/wget -qO /dev/null localhost:$(ss -napt|/bin/grep emhttp|/bin/grep -Po ':\K\d+')");
+	if (! is_file("/usr/local/emhttp/state/var.ini")) shell_exec("/usr/bin/wget -qO /dev/null localhost:$(ss -napt|/bin/grep emhttp|/bin/grep -Po ':\K\d+') >/dev/null");
 	$var = @parse_ini_file("/usr/local/emhttp/state/var.ini");
 }
 
