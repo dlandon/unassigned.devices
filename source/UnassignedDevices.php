@@ -102,7 +102,7 @@ function render_partition($disk, $partition) {
 }
 
 function make_mount_button($device) {
-	global $paths;
+	global $paths, $Preclear;
 	$button = "<span style='width:auto;text-align:right;'><button type='button' device='{$device[device]}' class='array' context='%s' role='%s' %s><i class='%s'></i>  %s</button></span>";
 	if (isset($device['partitions'])) {
 		$mounted = in_array(TRUE, array_map(function($ar){return is_mounted($ar['device']);}, $device['partitions']));
@@ -120,7 +120,7 @@ function make_mount_button($device) {
 	$is_unmounting = array_values(preg_grep("@/unmounting_".basename($device['device'])."@i", listDir(dirname($paths['mounting']))))[0];
 	$is_unmounting = (time() - filemtime($is_unmounting) < 300) ? TRUE : FALSE;
 	$dev           = basename($device['device']);
-	$preclearing   = is_file("/tmp/preclear_stat_{$dev}");
+	$preclearing   = $Preclear ? $Preclear->isRunning(basename($device['device'])) : false;
 	if ($device['size'] == 0) {
 		$button = sprintf($button, $context, 'mount', 'disabled', 'glyphicon glyphicon-erase', 'Insert');
 	} elseif ($format) {
@@ -134,6 +134,7 @@ function make_mount_button($device) {
 	} elseif ($mounted) {
 		$button = sprintf($button, $context, 'umount', '', 'glyphicon glyphicon-export', 'Unmount');
 	} else {
+		$disable = $preclearing ? "disabled" : $disable;
 		$button = sprintf($button, $context, 'mount', $disable, 'glyphicon glyphicon-import', 'Mount');
 	}
 	return $button;
@@ -142,7 +143,6 @@ function make_mount_button($device) {
 switch ($_POST['action']) {
 	case 'get_content':
 		$disks = get_all_disks_info();
-		$preclear = "";
 		echo "<table class='usb_disks custom_head'><thead><tr><td>Device</td><td>Identification</td><td></td><td>Temp</td><td>FS</td><td>Size</td><td>Open files</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Share</td><td>Log</td><td>Script</td></tr></thead>";
 		echo "<tbody>";
 		if ( count($disks) ) {
@@ -151,7 +151,7 @@ switch ($_POST['action']) {
 				$mounted       = in_array(TRUE, array_map(function($ar){return is_mounted($ar['device']);}, $disk['partitions']));
 				$disk_name     = basename($disk['device']);
 				$p             = (count($disk['partitions']) <= 1) ? render_partition($disk, $disk['partitions'][0]) : FALSE;
-				$preclearing   = is_file("/tmp/preclear_stat_{$disk_name}");
+				$preclearing   = $Preclear ? $Preclear->isRunning($disk_name) : false;
 				$is_precleared = ($disk['partitions'][0]['fstype'] == "precleared") ? true : false;
 				$flash         = ($disk['partitions'][0]['fstype'] == "vfat" || $disk['partitions'][0]['fstype'] == "exfat") ? true : false;
 				if ($mounted || is_file($disk['partitions'][0]['command']) || $preclearing) {
@@ -161,22 +161,31 @@ switch ($_POST['action']) {
 
 				$mbutton = make_mount_button($disk);
 
-				if ($disk['size'] !== 0 && ! $flash  && ! $mounted && file_exists("plugins/preclear.disk/icons/precleardisk.png")) {
-					$preclear_link = " <a title='Preclear Disk.' class='exec green' href='/Settings/Preclear?disk={$disk_name}'><img src='/plugins/preclear.disk/icons/precleardisk.png'></a>";
-				} else {
-					$preclear_link = "";
+				$preclear_link = ($disk['size'] !== 0 && ! $flash  && ! $mounted && $Preclear && ! $preclearing) ? "&nbsp;&nbsp;".$Preclear->Link($disk_name, "icon") : "";
+
+				if ( $p  && ! ($is_precleared || $preclearing) )
+				{
+					$add_toggle = TRUE;
+					$hdd_serial = "<span title='Click to view partitions/mount points.' class='exec toggle-hdd' hdd='{$disk_name}'>
+												 	<i class='glyphicon glyphicon-hdd hdd'></i>
+													<i class='glyphicon glyphicon-plus-sign glyphicon-append'></i>
+												</span>
+												{$disk[serial]}
+												{$preclear_link}
+												<div id='preclear_{$disk_name}'></div>";
 				}
-				if ($p === FALSE) {
-					$hdd_serial = "<span class='exec toggle-hdd' hdd='{$disk_name}'><i class='glyphicon glyphicon-hdd hdd'></i><i class='glyphicon glyphicon-plus-sign glyphicon-append'></i>{$disk[serial]}</span>{$preclear_link}<div id='preclear_{$disk_name}'></div>";
-				} elseif($is_precleared) {
-					$hdd_serial = "<span class='toggle-hdd' hdd='{$disk_name}'><i class='glyphicon glyphicon-hdd hdd'></i><span style='margin:4px;'></span>{$disk[serial]}</span>{$preclear_link}<div id='preclear_{$disk_name}'></div>";
-				} else {
-					$hdd_serial = "<span title='Click to view partitions/mount points.' class='exec toggle-hdd' hdd='{$disk_name}'><i class='glyphicon glyphicon-hdd hdd'></i><i class='glyphicon glyphicon-plus-sign glyphicon-append'></i><span style='margin:4px;'></span>{$disk[serial]}</span>{$preclear_link}<div id='preclear_{$disk_name}'></div>";
+				else
+				{
+					$add_toggle = FALSE;
+					$hdd_serial = "<span class='toggle-hdd' hdd='{$disk_name}'>
+												 	<i class='glyphicon glyphicon-hdd hdd'></i>
+												 </span>
+												 <span style='margin:4px;'></span>
+												 {$disk[serial]}
+												 {$preclear_link}
+												 <div id='preclear_{$disk_name}'></div>";
 				}
 
-				if ($preclearing) {
-					$preclear .= "get_preclear('{$disk_name}');";
-				}
 				echo "<tr class='{$odd} toggle-disk'>";
 				if ( $flash || (!is_file($disk['partitions'][0]['command']) && ! $mounted && ! $preclearing) ) {
 					echo "<td><img src='/webGui/images/green-blink.png'> {$disk_name}</td>";
@@ -196,7 +205,8 @@ switch ($_POST['action']) {
 				echo ($p)?$p[11]:"<td>-</td>";
 				echo ($p)?$p[12]:"<td>-</td>";
 				echo "</tr>";
-				if (! $is_precleared) {
+				if ($add_toggle)
+				{
 					foreach ($disk['partitions'] as $partition) {
 						foreach (render_partition($disk, $partition) as $l) echo str_replace("__SHOW__", (count($disk['partitions']) >1 ? "display:none;":"display:none;" ), $l );
 					}
@@ -300,7 +310,6 @@ switch ($_POST['action']) {
 
 		echo 
 		'<script type="text/javascript">
-		'.$preclear.'
 		$(".automount").each(function(){var checked = $(this).is(":checked");$(this).switchButton({labels_placement: "right", checked:checked});});
 		$(".automount").change(function(){$.post(URL,{action:"automount",serial:$(this).attr("serial"),status:$(this).is(":checked")},function(data){$(this).prop("checked",data.automount);},"json");});
 
@@ -487,22 +496,7 @@ switch ($_POST['action']) {
 		break;
 
 	/*  MISC */
-	case 'get_preclear':
-		$device = urldecode($_POST['device']);
-		if (is_file("/tmp/preclear_stat_{$device}")) {
-			$preclear = explode("|", file_get_contents("/tmp/preclear_stat_{$device}"));
-			$status = (count($preclear) > 3) ? ( file_exists( "/proc/".trim($preclear[3])) ? "<span style='color:#478406;'>{$preclear[2]}</span>" : "<span style='color:#CC0000;'>{$preclear[2]} <a class='exec' style='color:#CC0000;font-weight:bold;' onclick='rm_preclear(\"{$device}\");' title='Clear stats.'> <i class='glyphicon glyphicon-remove hdd'></i></a></span>" ) : $preclear[2]." <a class='exec' style='color:#CC0000;font-weight:bold;' onclick='rm_preclear(\"{$device}\");' title='Clear stats.'> <i class='glyphicon glyphicon-remove hdd'></i></a>";
-			$status = str_replace("^n", "<br>" , $status);
-			if (tmux_is_session("preclear_disk_{$device}") && is_file("plugins/preclear.disk/Preclear.php")) $status = "$status<a class='openPreclear exec' onclick='openPreclear(\"{$device}\");' title='Preview.'><i class='glyphicon glyphicon-eye-open'></i></a>";
-			echo json_encode(array( 'preclear' => "<i class='glyphicon glyphicon-dashboard hdd'></i><span style='margin:4px;'></span>".$status ));
-		} else {
-			echo json_encode(array( 'preclear' => " "));
-		}
-		break;
-	case 'rm_preclear':
-		$device = urldecode($_POST['device']);
-		@unlink("/tmp/preclear_stat_{$device}");
-		break;
+
 	case 'rm_partition':
 		$device = urldecode($_POST['device']);
 		$partition = urldecode($_POST['partition']);
