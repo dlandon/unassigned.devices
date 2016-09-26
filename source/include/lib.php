@@ -47,6 +47,16 @@ if (! isset($disks)){
 	$disks = @parse_ini_file("/usr/local/emhttp/state/disks.ini", true);
 }
 
+if ( is_file( "plugins/preclear.disk/assets/lib.php" ) )
+{
+	require_once( "plugins/preclear.disk/assets/lib.php" );
+	$Preclear = new Preclear;
+}
+else
+{
+	$Preclear = null;
+}
+
 #########################################################
 #############        MISC FUNCTIONS        ##############
 #########################################################

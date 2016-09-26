@@ -140,6 +140,7 @@ function getlog() {
 		usb_disks(tab_usbdisks);
 		detect_usb_disk_change(tab_usbdisks);
 	});
+	<?=$Preclear ? $Preclear->Script() : "";?>
 
 	function openWindow_fsck(cmd,title,height,width) {
 		var run = cmd;
@@ -147,10 +148,6 @@ function getlog() {
 		var left = (screen.width-width)/2;
 		var options = 'resizeable=yes,scrollbars=yes,height='+height+',width='+width+',top='+top+',left='+left;
 		window.open(run, 'log', options);
-	}
-
-	function get_preclear(device) {
-		$.post(URL,{action:"get_preclear",device:device},function(data){if(data.preclear){$('#preclear_'+device).html(data.preclear);}},"json").always(function(){setTimeout('get_preclear("'+device+'")',5000);});
 	}
 
 	function startWaitMe(el) {
@@ -285,15 +282,6 @@ function getlog() {
 		$(this).hide();
 		$(this).siblings('span').show();
 		$(this).siblings('span').click(showInput);
-	}
-
-	function openPreclear(device) {
-		var width=900;
-		var height=600;
-		var top = (screen.height-height)/2;
-		var left = (screen.width-width)/2;
-		var options = 'resizeable=yes,scrollbars=yes,height=600,width=900,top='+top+',left='+left;
-		window.open('/plugins/preclear.disk/Preclear.php?action=show_preclear&device='+device, 'Preclear', options);
 	}
 
 	function add_samba_share(){
@@ -488,7 +476,7 @@ function getlog() {
 <div id="dialog-confirm" style="display:none;" title=""></div>
 <div id="dialog-samba" style="display:none;" title=""></div>
 <div id="dialog-iso" style="display:none;" title=""></div>
-
+<?=$Preclear ? $Preclear->html() : "";?>
 <div id="add-remote-defaults" style="display:none;">
 	<dl>
 		<dt>Protocol:</dt>
