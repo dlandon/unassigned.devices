@@ -151,7 +151,7 @@ switch ($_POST['action']) {
 			foreach ($disks as $disk) {
 				$mounted       = in_array(TRUE, array_map(function($ar){return is_mounted($ar['device']);}, $disk['partitions']));
 				$disk_name     = basename($disk['device']);
-				$p             = (count($disk['partitions']) <= 1) ? render_partition($disk, $disk['partitions'][0]) : FALSE;
+				$p             = (count($disk['partitions']) > 0) ? render_partition($disk, $disk['partitions'][0]) : FALSE;
 				$preclearing   = $Preclear ? $Preclear->isRunning($disk_name) : false;
 				$is_precleared = ($disk['partitions'][0]['fstype'] == "precleared") ? true : false;
 				$flash         = ($disk['partitions'][0]['fstype'] == "vfat" || $disk['partitions'][0]['fstype'] == "exfat") ? true : false;
