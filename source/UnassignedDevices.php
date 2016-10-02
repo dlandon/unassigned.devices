@@ -80,7 +80,8 @@ function render_partition($disk, $partition) {
 	if ($mounted) {
 		$mpoint .= "<a title='Browse Share.' href='/Shares/Browse?dir={$partition[mountpoint]}'>{$partition[mountpoint]}</a></div>";
 	} else {
-		$mpoint .= "<form title='Click to Change Mount Point.' method='POST' action='/plugins/${plugin}/UnassignedDevices.php?action=change_mountpoint&serial={$partition[serial]}&partition={$partition[part]}' target='progressFrame' style='display:inline;margin:0;padding:0;'><span class='text exec'><a>{$partition[mountpoint]}</a></span><input class='input' type='text' name='mountpoint' value='{$partition[mountpoint]}' hidden /></form> {$rm_partition}</div>";
+		$mount_point = basename($partition[mountpoint]);
+		$mpoint .= "<form title='Click to Change Mount Point.' method='POST' action='/plugins/${plugin}/UnassignedDevices.php?action=change_mountpoint&serial={$partition[serial]}&partition={$partition[part]}' target='progressFrame' style='display:inline;margin:0;padding:0;'><span class='text exec'><a>{$partition[mountpoint]}</a></span><input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden /></form> {$rm_partition}</div>";
 	}
 	$mbutton = make_mount_button($partition);
   
@@ -237,9 +238,10 @@ switch ($_POST['action']) {
 				if ($mounted) {
 					echo "<td><i class='glyphicon glyphicon-save hdd'></i><span style='margin:4px;'><a title='Browse Remote SMB/NFS Share.' href='/Shares/Browse?dir={$mount[mountpoint]}'>{$mount[mountpoint]}</a></td>";
 				} else {
+					$mount_point = basename($mount[mountpoint]);
 					echo "<td><form title='Click to change Remote SMB/NFS Mount Point.' method='POST' action='/plugins/${plugin}/UnassignedDevices.php?action=change_samba_mountpoint&device={$mount[device]}' target='progressFrame' style='display:inline;margin:0;padding:0;'>
 					<i class='glyphicon glyphicon-save hdd'></i><span style='margin:4px;'></span><span class='text exec'><a>{$mount[mountpoint]}</a></span>
-					<input class='input' type='text' name='mountpoint' value='{$mount[mountpoint]}' hidden />
+					<input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden />
 					</form></td>";
 				}
 				echo "<td><span style='width:auto;text-align:right;'>".($mounted ? "<button type='button' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'umount','{$mount[device]}');\"><i class='glyphicon glyphicon-export'></i> Unmount</button>" : "<button type='button' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'mount','{$mount[device]}');\"><i class='glyphicon glyphicon-import'></i>  Mount</button>")."</span></td>";
@@ -270,9 +272,10 @@ switch ($_POST['action']) {
 				if ($mounted) {
 					echo "<td><i class='glyphicon glyphicon-save hdd'></i><span style='margin:4px;'><a title='Browse Iso File Share.' href='/Shares/Browse?dir={$mount[mountpoint]}'>{$mount[mountpoint]}</a></td>";
 				} else {
+					$mount_point = basename($mount[mountpoint]);
 					echo "<td><form title='Click to change Iso File Mount Point.' method='POST' action='/plugins/${plugin}/UnassignedDevices.php?action=change_iso_mountpoint&device={$mount[device]}' target='progressFrame' style='display:inline;margin:0;padding:0;'>
 					<i class='glyphicon glyphicon-save hdd'></i><span style='margin:4px;'></span><span class='text exec'><a>{$mount[mountpoint]}</a></span>
-					<input class='input' type='text' name='mountpoint' value='{$mount[mountpoint]}' hidden />
+					<input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden />
 					</form></td>";
 				}
 				echo "<td><span style='width:auto;text-align:right;'>".($mounted ? "<button type='button' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'umount','{$mount[device]}');\"><i class='glyphicon glyphicon-export'></i> Unmount</button>" : "<button type='button' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'mount','{$mount[device]}');\"><i class='glyphicon glyphicon-import'></i>  Mount</button>")."</span></td>";
@@ -496,7 +499,6 @@ switch ($_POST['action']) {
 		break;
 
 	/*  MISC */
-
 	case 'rm_partition':
 		$device = urldecode($_POST['device']);
 		$partition = urldecode($_POST['partition']);
