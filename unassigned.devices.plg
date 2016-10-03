@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.09.23">
+<!ENTITY version   "2016.10.02">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"41613e9be6ffba63543ef3f8299176a1">
+<!ENTITY MD5		"f29eee887217cbbb1b4244c99ee203d1">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,9 +16,16 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Remove mount point path when changing the mount point name to minimize confusion.
+- Fix: Fixed a reversion from the preclear plugin integration where a device with more than one partition would not display properly.
+
+###2016.09.26
+- Add: Better Preclear Plugin integration.  Preclears can be started and stopped in UD.  Thanks gfjardim.
+
+###2016.09.23
 - Add: Logging when disks_mounted and unmounting_disks events occur.
 
-2016.09.08
+###2016.09.08
 - Removed the installation of the ntfs-3g driver in v6.2.  The driver is built in now.
 
 ###2016.08.19

@@ -957,7 +957,7 @@ function get_unasigned_disks() {
 	$ud_disks = $paths = $unraid_disks = array();
 
 	// Get all devices by id.
-	foreach (listDir("/dev/disk/by-id") as $p) {
+	foreach (listDir("/dev/disk/by-id/") as $p) {
 		$r = realpath($p);
 		// Only /dev/sd*, /dev/hd* and /dev/nvme* devices.
 		if (!is_bool(strpos($r, "/dev/sd")) || !is_bool(strpos($r, "/dev/hd")) || !is_bool(strpos($r, "/dev/nvme"))) {
