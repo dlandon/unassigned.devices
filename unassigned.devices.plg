@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.10.02">
+<!ENTITY version   "2016.10.20">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"f29eee887217cbbb1b4244c99ee203d1">
+<!ENTITY MD5		"a0278500d31c972166f6fd5de0073a91">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Adjust stop event based on version of unRAID being used.
+- Fix: Inappropriate SMB shares were found when unRAID was the master browser.
+
+###2016.10.02
 - Fix: Remove mount point path when changing the mount point name to minimize confusion.
 - Fix: Fixed a reversion from the preclear plugin integration where a device with more than one partition would not display properly.
 
@@ -549,6 +553,12 @@ mkdir /boot/config/plugins/&name; 2>/dev/null
 # Install the 'bundle'.
 tar -xf &packages;/&name;-&version;.tgz -C /usr/local/emhttp/plugins 2>/dev/null
 
+# Adjust stop event based on version of unRAID.
+source /etc/unraid-version
+if [[ "${version:0:5}" > "6.2.1" ]]; then
+	mv /usr/local/emhttp/plugins/&name;/event/unmounting_disks /usr/local/emhttp/plugins/&name;/event/stopping_svcs
+fi
+
 # move the rules file
 mv /usr/local/emhttp/plugins/&name;/99_persistent_unassigned.rules /etc/udev/rules.d/
 chmod 644 -R /etc/udev/rules.d/99_persistent_unassigned.rules 2>/dev/null
@@ -599,7 +609,6 @@ echo " Copyright 2016, &author;"
 echo " Version: &version;"
 echo "-----------------------------------------------------------"
 echo ""
-
 </INLINE>
 </FILE>
 

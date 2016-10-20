@@ -415,7 +415,7 @@ switch ($_POST['action']) {
 	/*  SAMBA  */
 	case 'list_samba_hosts':
 		$ip = shell_exec("/usr/bin/nmblookup -M -- - 2>/dev/null | /usr/bin/grep -Pom1 '^\S+'");
-		echo shell_exec("/usr/bin/smbclient -g -L '$ip' -U% 2>/dev/null|/usr/bin/awk -F'|' '/Server/{print $2}'|sort");
+		echo shell_exec("/usr/bin/smbclient -g -L '$ip' -U% 2>/dev/null|/usr/bin/awk -F'|' '/Server\|/{print $2}'|sort");
 		break;
 	case 'list_samba_shares':
 		$ip = urldecode($_POST['IP']);
