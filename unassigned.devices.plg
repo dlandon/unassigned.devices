@@ -17,7 +17,7 @@
 ##&name;
 ###&version;
 - Fix: Adjust stop event based on version of unRAID being used.
-- Fix: Inappropriate SMB shares were found when unRAID was the master browser.
+- Fix: Inappropriate SMB servers were found when unRAID was the master browser.
 
 ###2016.10.02
 - Fix: Remove mount point path when changing the mount point name to minimize confusion.
