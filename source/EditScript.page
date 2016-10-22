@@ -15,7 +15,7 @@ Title="Edit Script"
 
 <?PHP
 $plugin = "unassigned.devices";
-require_once("plugins/${plugin}/include/lib.php");
+require_once("/usr/local/emhttp/plugins/${plugin}/include/lib.php");
 
 function safe_filename($string) {
 	$string = preg_replace('~[^0-9a-z -_]~i', '', $string);

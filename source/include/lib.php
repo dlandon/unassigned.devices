@@ -30,23 +30,21 @@ $paths =  array("smb_extra"       => "/boot/config/smb-extra.conf",
 				"mounting"        => "/var/state/${plugin}/mounting_%s.state",
 				);
 
-$docroot = $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-
 if (! is_dir(dirname($paths["state"])) ) {
 	@mkdir(dirname($paths["state"]),0777,TRUE);
 }
 
 if (! isset($var)){
-	if (! is_file("$docroot/state/var.ini")) shell_exec("/usr/bin/wget -qO /dev/null localhost:$(ss -napt|/bin/grep emhttp|/bin/grep -Po ':\K\d+') >/dev/null");
-	$var = @parse_ini_file("$docroot/state/var.ini");
+	if (! is_file("/usr/local/emhttp/state/var.ini")) shell_exec("/usr/bin/wget -qO /dev/null localhost:$(ss -napt|/bin/grep emhttp|/bin/grep -Po ':\K\d+') >/dev/null");
+	$var = @parse_ini_file("/usr/local/emhttp/state/var.ini");
 }
 
 if (! isset($users)){
-	$users = @parse_ini_file("$docroot/state/users.ini", true);
+	$users = @parse_ini_file("/usr/local/emhttp/state/users.ini", true);
 }
 
 if (! isset($disks)){
-	$disks = @parse_ini_file("$docroot/state/disks.ini", true);
+	$disks = @parse_ini_file("/usr/local/emhttp/state/disks.ini", true);
 }
 
 if ( is_file( "plugins/preclear.disk/assets/lib.php" ) )

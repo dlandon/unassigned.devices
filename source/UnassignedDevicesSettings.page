@@ -17,7 +17,7 @@ Icon="unassigned.devices.png"
 
 <?
 $plugin = "unassigned.devices";
-require_once("plugins/${plugin}/include/lib.php");
+require_once("/usr/local/emhttp/plugins/${plugin}/include/lib.php");
 $config_file = "/boot/config/plugins/{$plugin}/{$plugin}.cfg";
 
 $cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
