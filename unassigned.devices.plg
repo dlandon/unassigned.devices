@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.10.20">
+<!ENTITY version   "2016.10.22">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"a0278500d31c972166f6fd5de0073a91">
+<!ENTITY MD5		"a49f32a9d165c6d3412251277c76e5b9">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Updates for compatibility with unRAID 6.2 and later.
+
+###2016.10.20
 - Fix: Adjust stop event based on version of unRAID being used.
 - Fix: Inappropriate SMB servers were found when unRAID was the master browser.
 
