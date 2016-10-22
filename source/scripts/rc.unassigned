@@ -14,7 +14,7 @@
 
 <?
 $plugin = "unassigned.devices";
-$docroot = $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+$docroot = '/usr/local/emhttp';
 require_once("$docroot/plugins/${plugin}/include/lib.php");
 
 $COMMAND = $argv[1];
