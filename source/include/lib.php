@@ -649,7 +649,14 @@ function add_nfs_share($dir) {
 				$c = (is_file($file)) ? @file($file,FILE_IGNORE_NEW_LINES) : array();
 				unassigned_log("Adding NFS share '$dir' to '$file'.");
 				$fsid = 200 + count(preg_grep("@^\"@", $c));
-				$c[] = "\"{$dir}\" -async,no_subtree_check,fsid={$fsid} *(sec=sys,rw,insecure,anongid=100,anonuid=99,all_squash)";
+				$nfs_sec = get_config("Config", "nfs_security");
+				$sec = "";
+				if ( $nfs_sec == "private" ) {
+					$sec = get_config("Config", "nfs_rule");
+				} else {
+					$sec = "*(sec=sys,rw,insecure,anongid=100,anonuid=99,all_squash)";
+				}
+				$c[] = "\"{$dir}\" -async,no_subtree_check,fsid={$fsid} {$sec}";
 				$c[] = "";
 				file_put_contents($file, implode(PHP_EOL, $c));
 				$reload = TRUE;
@@ -681,7 +688,7 @@ function rm_nfs_share($dir) {
 }
 
 
-function reload_shares() {
+function remove_shares() {
 	// Disk mounts
 	foreach (get_unasigned_disks() as $name => $disk) {
 		foreach ($disk['partitions'] as $p) {
@@ -693,9 +700,6 @@ function reload_shares() {
 					unassigned_log("Removing old config...");
 					rm_smb_share($info['target'], $info['label']);
 					rm_nfs_share($info['target']);
-					unassigned_log("Adding new config...");
-					add_smb_share($info['mountpoint'], $info['label']);
-					add_nfs_share($info['mountpoint']);
 				}
 			}
 		}
@@ -707,7 +711,6 @@ function reload_shares() {
 			unassigned_log("Reloading shared dir '{$info[mountpoint]}'.");
 			unassigned_log("Removing old config...");
 			rm_smb_share($info['mountpoint'], $info['device']);
-			add_smb_share($info['mountpoint'], $info['device']);
 		}
 	}
 
@@ -718,6 +721,36 @@ function reload_shares() {
 			unassigned_log("Removing old config...");
 			rm_smb_share($info['mountpoint'], $info['device']);
 			rm_nfs_share($info['mountpoint']);
+		}
+	}
+}
+
+function reload_shares() {
+	// Disk mounts
+	foreach (get_unasigned_disks() as $name => $disk) {
+		foreach ($disk['partitions'] as $p) {
+			if ( is_mounted(realpath($p), true) ) {
+				$info = get_partition_info($p);
+				$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV, $reload) : get_udev_info($device, NULL, $reload);
+				if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'],"usb"))) {
+					unassigned_log("Adding new config...");
+					add_smb_share($info['mountpoint'], $info['label']);
+					add_nfs_share($info['mountpoint']);
+				}
+			}
+		}
+	}
+
+	// SMB Mounts
+	foreach (get_samba_mounts() as $name => $info) {
+		if ( is_mounted($info['device']) ) {
+			add_smb_share($info['mountpoint'], $info['device']);
+		}
+	}
+
+	// Iso File Mounts
+	foreach (get_iso_mounts() as $name => $info) {
+		if ( is_mounted($info['device']) ) {
 			add_smb_share($info['mountpoint'], $info['device']);
 			add_nfs_share($info['mountpoint']);
 		}
