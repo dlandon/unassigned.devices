@@ -432,10 +432,10 @@ function get_mount_params($fs, $dev) {
 		case 'exfat':
 		case 'vfat':
 		case 'ntfs':
-			return "auto,async,nodev,nosuid,umask=000";
+			return "auto,async,noatime,nodiratime,nodev,nosuid,umask=000";
 			break;
 		case 'ext4':
-			return "auto,async,nodev,nosuid{$discard}";
+			return "auto,noatime,nodiratime,async,nodev,nosuid{$discard}";
 			break;
 		case 'cifs':
 			return "rw,nounix,iocharset=utf8,_netdev,file_mode=0777,dir_mode=0777,username=%s,password=%s";
