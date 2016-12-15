@@ -191,8 +191,8 @@ switch ($_POST['action']) {
 				if ( $flash || (!is_file($disk['partitions'][0]['command']) && ! $mounted && ! $preclearing) ) {
 					echo "<td><img src='/webGui/images/green-blink.png'> {$disk_name}</td>";
 				} else {
-					echo "<td title='Disk Attributes on {$disk_name}.'><img src='/webGui/images/".(is_disk_running($disk['device']) ? "green-on.png":"green-blink.png" )."'>";
-					echo "<a href='/Main/DeviceAttributes?name={$disk_name}&file=/tmp/screen_buffer'> {$disk_name}</a></td>";
+					echo "<td title='SMART Attributes on {$disk_name}.'><img src='/webGui/images/".(is_disk_running($disk['device']) ? "green-on.png":"green-blink.png" )."'>";
+					echo "<a href='/Main/New?name={$disk_name}'> {$disk_name}</a></td>";
 				}
 				echo "<td>{$hdd_serial}</td>";
 				echo "<td class='mount'>{$mbutton}</td>";
