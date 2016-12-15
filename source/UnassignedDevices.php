@@ -313,16 +313,16 @@ switch ($_POST['action']) {
 
 		echo 
 		'<script type="text/javascript">
-		$(".automount").each(function(){var checked = $(this).is(":checked");$(this).switchButton({labels_placement: "right", checked:checked});});
+		$(".automount").each(function(){var checked = $(this).is(":checked");$(this).switchButton({show_labels: false, checked:checked});});
 		$(".automount").change(function(){$.post(URL,{action:"automount",serial:$(this).attr("serial"),status:$(this).is(":checked")},function(data){$(this).prop("checked",data.automount);},"json");});
 
-		$(".samba_automount").each(function(){var checked = $(this).is(":checked");$(this).switchButton({labels_placement: "right", checked:checked});});
+		$(".samba_automount").each(function(){var checked = $(this).is(":checked");$(this).switchButton({show_labels: false, checked:checked});});
 		$(".samba_automount").change(function(){$.post(URL,{action:"samba_automount",device:$(this).attr("device"),status:$(this).is(":checked")},function(data){$(this).prop("checked",data.automount);},"json");});
 
-		$(".iso_automount").each(function(){var checked = $(this).is(":checked");$(this).switchButton({labels_placement: "right", checked:checked});});
+		$(".iso_automount").each(function(){var checked = $(this).is(":checked");$(this).switchButton({show_labels: false, checked:checked});});
 		$(".iso_automount").change(function(){$.post(URL,{action:"iso_automount",device:$(this).attr("device"),status:$(this).is(":checked")},function(data){$(this).prop("checked",data.automount);},"json");});
 
-		$(".toggle_share").each(function(){var checked = $(this).is(":checked");$(this).switchButton({labels_placement: "right", checked:checked});});
+		$(".toggle_share").each(function(){var checked = $(this).is(":checked");$(this).switchButton({show_labels: false, checked:checked});});
 		$(".toggle_share").change(function(){$.post(URL,{action:"toggle_share",info:$(this).attr("info"),status:$(this).is(":checked")},function(data){$(this).prop("checked",data.result);},"json");});
 		$(".text").click(showInput);$(".input").blur(hideInput);
 		$(function(){
