@@ -78,7 +78,7 @@ function render_partition($disk, $partition) {
 	$rm_partition = (get_config("Config", "destructive_mode") == "enabled") ? "<span title='Remove Partition.' class='exec' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$disk[device]}\",\"{$partition[part]}\");'><i class='glyphicon glyphicon-remove hdd'></i></span>" : "";
 	$mpoint = "<div>{$fscheck}<i class='glyphicon glyphicon-arrow-right'></i>";
 	if ($mounted) {
-		$mpoint .= "<a title='Browse Share.' href='/Shares/Browse?dir={$partition[mountpoint]}'>{$partition[mountpoint]}</a></div>";
+		$mpoint .= "<a title='Browse Share.' href='/Main/Browse?dir={$partition[mountpoint]}'>{$partition[mountpoint]}</a></div>";
 	} else {
 		$mount_point = basename($partition[mountpoint]);
 		$mpoint .= "<form title='Click to Change Mount Point.' method='POST' action='/plugins/${plugin}/UnassignedDevices.php?action=change_mountpoint&serial={$partition[serial]}&partition={$partition[part]}' target='progressFrame' style='display:inline;margin:0;padding:0;'><span class='text exec'><a>{$partition[mountpoint]}</a></span><input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden /></form> {$rm_partition}</div>";
@@ -313,16 +313,16 @@ switch ($_POST['action']) {
 
 		echo 
 		'<script type="text/javascript">
-		$(".automount").each(function(){var checked = $(this).is(":checked");$(this).switchButton({labels_placement: "right", checked:checked});});
+		$(".automount").each(function(){var checked = $(this).is(":checked");$(this).switchButton({show_labels: false, checked:checked});});
 		$(".automount").change(function(){$.post(URL,{action:"automount",serial:$(this).attr("serial"),status:$(this).is(":checked")},function(data){$(this).prop("checked",data.automount);},"json");});
 
-		$(".samba_automount").each(function(){var checked = $(this).is(":checked");$(this).switchButton({labels_placement: "right", checked:checked});});
+		$(".samba_automount").each(function(){var checked = $(this).is(":checked");$(this).switchButton({show_labels: false, checked:checked});});
 		$(".samba_automount").change(function(){$.post(URL,{action:"samba_automount",device:$(this).attr("device"),status:$(this).is(":checked")},function(data){$(this).prop("checked",data.automount);},"json");});
 
-		$(".iso_automount").each(function(){var checked = $(this).is(":checked");$(this).switchButton({labels_placement: "right", checked:checked});});
+		$(".iso_automount").each(function(){var checked = $(this).is(":checked");$(this).switchButton({show_labels: false, checked:checked});});
 		$(".iso_automount").change(function(){$.post(URL,{action:"iso_automount",device:$(this).attr("device"),status:$(this).is(":checked")},function(data){$(this).prop("checked",data.automount);},"json");});
 
-		$(".toggle_share").each(function(){var checked = $(this).is(":checked");$(this).switchButton({labels_placement: "right", checked:checked});});
+		$(".toggle_share").each(function(){var checked = $(this).is(":checked");$(this).switchButton({show_labels: false, checked:checked});});
 		$(".toggle_share").change(function(){$.post(URL,{action:"toggle_share",info:$(this).attr("info"),status:$(this).is(":checked")},function(data){$(this).prop("checked",data.result);},"json");});
 		$(".text").click(showInput);$(".input").blur(hideInput);
 		$(function(){

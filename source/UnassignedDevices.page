@@ -91,7 +91,7 @@ function getlog() {
 	table.usb_disks tr>td+td+td{min-width:0px;}
 	table.usb_disks tr>td+td+td+td{text-align:center;padding-left:0;padding-right:12px;width:auto;min-width:0px;}
 	table.usb_disks tr>td+td+td+td+td+td{text-align:right;padding-left:0;padding-right:12px;width:auto;}
-	table.usb_disks tr>td+td+td+td+td+td+td+td+td+td{text-align:left;padding:0px 0px 0px 12px;width: 75px;}
+	table.usb_disks tr>td+td+td+td+td+td+td+td+td+td{text-align:left;}
 	table.usb_disks tr>td+td+td+td+td+td+td+td+td+td+td+td{text-align:right;padding-left:0;padding-right:12px;}
 
 	table.usb_absent thead tr>td{text-align:left;width:8%;padding-left:12px;}
@@ -120,6 +120,11 @@ function getlog() {
 		top: 3px;
 		vertical-align: middle;
 	}
+
+  .switch-button-background.checked {
+    background:#0088CC;
+    border:1px solid #0088CC;
+  }
 
 	.fileTree {
 		width: 305px;
