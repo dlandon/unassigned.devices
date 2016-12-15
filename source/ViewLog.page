@@ -39,10 +39,6 @@ echo `{$cmd}`;
 echo "</pre>";
 ?>
 <script>
-var UDTab = $.cookie('tab');
-$(function(){
-	$.cookie('tab',UDTab,{path:'/'});
-});
 function cleanUp() {
   if (document.hasFocus()) {
     $('input[value="Downloading..."]').val('Download').prop('disabled',false);

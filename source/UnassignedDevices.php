@@ -78,7 +78,7 @@ function render_partition($disk, $partition) {
 	$rm_partition = (get_config("Config", "destructive_mode") == "enabled") ? "<span title='Remove Partition.' class='exec' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$disk[device]}\",\"{$partition[part]}\");'><i class='glyphicon glyphicon-remove hdd'></i></span>" : "";
 	$mpoint = "<div>{$fscheck}<i class='glyphicon glyphicon-arrow-right'></i>";
 	if ($mounted) {
-		$mpoint .= "<a title='Browse Share.' href='/Shares/Browse?dir={$partition[mountpoint]}'>{$partition[mountpoint]}</a></div>";
+		$mpoint .= "<a title='Browse Share.' href='/Main/Browse?dir={$partition[mountpoint]}'>{$partition[mountpoint]}</a></div>";
 	} else {
 		$mount_point = basename($partition[mountpoint]);
 		$mpoint .= "<form title='Click to Change Mount Point.' method='POST' action='/plugins/${plugin}/UnassignedDevices.php?action=change_mountpoint&serial={$partition[serial]}&partition={$partition[part]}' target='progressFrame' style='display:inline;margin:0;padding:0;'><span class='text exec'><a>{$partition[mountpoint]}</a></span><input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden /></form> {$rm_partition}</div>";
