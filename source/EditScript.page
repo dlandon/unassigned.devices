@@ -132,6 +132,10 @@ Script content:
 </form>
 
 <script>
+	var UDTab = $.cookie('tab');
+	$(function(){
+		$.cookie('tab',UDTab,{path:'/'});
+	});
 	$("input[name=run_background]").each(function(){var checked = $(this).is(":checked");$(this).switchButton({labels_placement: "right", checked:checked,on_label:"Run in background",off_label:"Run in background"});});
 	<?if (isset($_GET['s'])):?>
 		$( "form" ).submit(function( event ) {
