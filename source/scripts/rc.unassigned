@@ -14,7 +14,8 @@
 
 <?
 $plugin = "unassigned.devices";
-require_once("/usr/local/emhttp/plugins/${plugin}/include/lib.php");
+$docroot = '/usr/local/emhttp';
+require_once("$docroot/plugins/${plugin}/include/lib.php");
 
 $COMMAND = $argv[1];
 $DEVNAME = (isset($_ENV['DEVNAME'])) ? $_ENV['DEVNAME'] : ( isset($argv[2]) ? $argv[2] : NULL );

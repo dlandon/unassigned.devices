@@ -30,21 +30,23 @@ $paths =  array("smb_extra"       => "/boot/config/smb-extra.conf",
 				"mounting"        => "/var/state/${plugin}/mounting_%s.state",
 				);
 
+$docroot = $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+
 if (! is_dir(dirname($paths["state"])) ) {
 	@mkdir(dirname($paths["state"]),0777,TRUE);
 }
 
 if (! isset($var)){
-	if (! is_file("/usr/local/emhttp/state/var.ini")) shell_exec("/usr/bin/wget -qO /dev/null localhost:$(ss -napt|/bin/grep emhttp|/bin/grep -Po ':\K\d+') >/dev/null");
-	$var = @parse_ini_file("/usr/local/emhttp/state/var.ini");
+	if (! is_file("$docroot/state/var.ini")) shell_exec("/usr/bin/wget -qO /dev/null localhost:$(ss -napt|/bin/grep emhttp|/bin/grep -Po ':\K\d+') >/dev/null");
+	$var = @parse_ini_file("$docroot/state/var.ini");
 }
 
 if (! isset($users)){
-	$users = @parse_ini_file("/usr/local/emhttp/state/users.ini", true);
+	$users = @parse_ini_file("$docroot/state/users.ini", true);
 }
 
 if (! isset($disks)){
-	$disks = @parse_ini_file("/usr/local/emhttp/state/disks.ini", true);
+	$disks = @parse_ini_file("$docroot/state/disks.ini", true);
 }
 
 if ( is_file( "plugins/preclear.disk/assets/lib.php" ) )
@@ -430,10 +432,10 @@ function get_mount_params($fs, $dev) {
 		case 'exfat':
 		case 'vfat':
 		case 'ntfs':
-			return "auto,async,nodev,nosuid,umask=000";
+			return "auto,async,noatime,nodiratime,nodev,nosuid,umask=000";
 			break;
 		case 'ext4':
-			return "auto,async,nodev,nosuid{$discard}";
+			return "auto,noatime,nodiratime,async,nodev,nosuid{$discard}";
 			break;
 		case 'cifs':
 			return "rw,nounix,iocharset=utf8,_netdev,file_mode=0777,dir_mode=0777,username=%s,password=%s";
@@ -647,7 +649,14 @@ function add_nfs_share($dir) {
 				$c = (is_file($file)) ? @file($file,FILE_IGNORE_NEW_LINES) : array();
 				unassigned_log("Adding NFS share '$dir' to '$file'.");
 				$fsid = 200 + count(preg_grep("@^\"@", $c));
-				$c[] = "\"{$dir}\" -async,no_subtree_check,fsid={$fsid} *(sec=sys,rw,insecure,anongid=100,anonuid=99,all_squash)";
+				$nfs_sec = get_config("Config", "nfs_security");
+				$sec = "";
+				if ( $nfs_sec == "private" ) {
+					$sec = get_config("Config", "nfs_rule");
+				} else {
+					$sec = "*(sec=sys,rw,insecure,anongid=100,anonuid=99,all_squash)";
+				}
+				$c[] = "\"{$dir}\" -async,no_subtree_check,fsid={$fsid} {$sec}";
 				$c[] = "";
 				file_put_contents($file, implode(PHP_EOL, $c));
 				$reload = TRUE;
@@ -679,7 +688,7 @@ function rm_nfs_share($dir) {
 }
 
 
-function reload_shares() {
+function remove_shares() {
 	// Disk mounts
 	foreach (get_unasigned_disks() as $name => $disk) {
 		foreach ($disk['partitions'] as $p) {
@@ -691,9 +700,6 @@ function reload_shares() {
 					unassigned_log("Removing old config...");
 					rm_smb_share($info['target'], $info['label']);
 					rm_nfs_share($info['target']);
-					unassigned_log("Adding new config...");
-					add_smb_share($info['mountpoint'], $info['label']);
-					add_nfs_share($info['mountpoint']);
 				}
 			}
 		}
@@ -705,7 +711,6 @@ function reload_shares() {
 			unassigned_log("Reloading shared dir '{$info[mountpoint]}'.");
 			unassigned_log("Removing old config...");
 			rm_smb_share($info['mountpoint'], $info['device']);
-			add_smb_share($info['mountpoint'], $info['device']);
 		}
 	}
 
@@ -716,6 +721,36 @@ function reload_shares() {
 			unassigned_log("Removing old config...");
 			rm_smb_share($info['mountpoint'], $info['device']);
 			rm_nfs_share($info['mountpoint']);
+		}
+	}
+}
+
+function reload_shares() {
+	// Disk mounts
+	foreach (get_unasigned_disks() as $name => $disk) {
+		foreach ($disk['partitions'] as $p) {
+			if ( is_mounted(realpath($p), true) ) {
+				$info = get_partition_info($p);
+				$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV, $reload) : get_udev_info($device, NULL, $reload);
+				if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'],"usb"))) {
+					unassigned_log("Adding new config...");
+					add_smb_share($info['mountpoint'], $info['label']);
+					add_nfs_share($info['mountpoint']);
+				}
+			}
+		}
+	}
+
+	// SMB Mounts
+	foreach (get_samba_mounts() as $name => $info) {
+		if ( is_mounted($info['device']) ) {
+			add_smb_share($info['mountpoint'], $info['device']);
+		}
+	}
+
+	// Iso File Mounts
+	foreach (get_iso_mounts() as $name => $info) {
+		if ( is_mounted($info['device']) ) {
 			add_smb_share($info['mountpoint'], $info['device']);
 			add_nfs_share($info['mountpoint']);
 		}

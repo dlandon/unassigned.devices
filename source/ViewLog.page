@@ -16,7 +16,7 @@ Title="Unassigned Device Log"
 
 <?PHP
 $plugin = "unassigned.devices";
-require_once("/usr/local/emhttp/plugins/${plugin}/include/lib.php");
+require_once("plugins/${plugin}/include/lib.php");
 
 if (isset($_GET['s'])) {
 	$serial = $_GET['s'];
@@ -39,6 +39,10 @@ echo `{$cmd}`;
 echo "</pre>";
 ?>
 <script>
+var UDTab = $.cookie('tab');
+$(function(){
+	$.cookie('tab',UDTab,{path:'/'});
+});
 function cleanUp() {
   if (document.hasFocus()) {
     $('input[value="Downloading..."]').val('Download').prop('disabled',false);

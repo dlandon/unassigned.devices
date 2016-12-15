@@ -17,12 +17,13 @@ Icon="unassigned.devices.png"
 
 <?
 $plugin = "unassigned.devices";
-require_once("/usr/local/emhttp/plugins/${plugin}/include/lib.php");
+require_once("plugins/${plugin}/include/lib.php");
 $config_file = "/boot/config/plugins/{$plugin}/{$plugin}.cfg";
 
 $cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
 if (count($_POST)) {
 	array_map(function($k, $v) use (&$cfg) { if($k[0] != "#") $cfg["Config"][$k] = $v; }, array_keys($_POST), $_POST );
+	remove_shares();
 	save_ini_file($config_file, $cfg);
 	reload_shares();
 }
@@ -164,7 +165,28 @@ Auto Mount USB Devices?
 	</dd>
 </dl>
 
-> Set to 'Yes' to export NFS shares.  Shares are exported Public with read and write access.
+<div id="nfs_security" style="display: <?=($cfg['Config']["nfs_export"] == "no" ? "none" : "block");?>">
+<dl>
+	<dt>NFS Security:</dt>
+	<dd>
+		<select name="nfs_security" size="1">
+		<?=mk_option($cfg["Config"]["nfs_security"], "public", "Public")?>
+		<?=mk_option($cfg["Config"]["nfs_security"], "private", "Private")?>
+		</select>
+	</dd>
+</dl>
+
+	<div id="nfs_rule" style="display: <?=($cfg['Config']["nfs_security"] == "public" ? "none" : "block");?>">
+	<dl>
+		<dt>Rule:</dt>
+		<dd>
+			<input type="text" name="nfs_rule" class="wide" maxlength="100" value="<?=$cfg['Config']["nfs_rule"];?>">
+		</dd>
+	</dl>
+	</div>
+</div>
+
+> Set to 'Yes' to export NFS shares.  Shares are exported Public with read and write access or Private with the rule you set.
 
 &nbsp;
 : <input type="submit" name="#apply" value="Apply"><input type="button" value="Done" onclick="done()">
