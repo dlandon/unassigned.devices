@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.01.17">
+<!ENTITY version   "2016.12.15">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"a0a1e4ffd341f0815e469e719dcbefd3">
+<!ENTITY MD5		"2865a70f881e5250340fef2f32b6f1c6">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,12 +16,9 @@
 <CHANGES>
 ##&name;
 ###&version;
-- Fix: Do not allow backslashes in SMB/NFS and iso mounts.
-
-###2016.12.15
 - Add: Additional SMART information.
 - Fix: Clicking 'Done' on dialogs did not return to the "Unassigned Devices" tab.
-- Fix: Removed toggle switch labels to save space.
+- FIx: Removed toggle switch labels to save space.
 
 ###2016.12.09
 - Add: Add noatime and nodiratime mount options to ntfs, vfat, exfat, and ext4.
