@@ -279,7 +279,7 @@ switch ($_POST['action']) {
 					</form></td>";
 				}
 				echo "<td><span style='width:auto;text-align:right;'>".($mounted ? "<button type='button' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'umount','{$mount[device]}');\"><i class='glyphicon glyphicon-export'></i> Unmount</button>" : "<button type='button' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'mount','{$mount[device]}');\"><i class='glyphicon glyphicon-import'></i>  Mount</button>")."</span></td>";
-				echo $mounted ? "<td><i class='glyphicon glyphicon-remove hdd'></i></td>" : "<td><a class='exec' style='color:#CC0000;font-weight:bold;' onclick='remove_iso_config(\"{$mount[device]}\");' title='Remove Iso FIle Share.'> <i class='glyphicon glyphicon-remove hdd'></i></a></td>";
+				echo $mounted ? "<td><i class='glyphicon glyphicon-remove hdd'></i></td>" : "<td><a class='exec' style='color:#CC0000;font-weight:bold;' onclick='remove_iso_config(\"{$mount[device]}\");' title='Remove Iso File Share.'> <i class='glyphicon glyphicon-remove hdd'></i></a></td>";
 				echo "<td><span>".my_scale($mount['size'], $unit)." $unit</span></td>";
 				echo render_used_and_free($mount);
 				echo "<td title='Turn on to Mount Device when Array is Started.'><input type='checkbox' class='iso_automount' device='{$mount[device]}' ".(($mount['automount']) ? 'checked':'')."></td>";
@@ -443,6 +443,8 @@ switch ($_POST['action']) {
 		$path = isset($_POST['SHARE']) ? urldecode($_POST['SHARE']) : "";
 		$share = basename($path);
 		$device = ($protocol == "NFS") ? "${ip}:/${path}" : "//${ip}/${share}";
+		$device = implode("",explode("\\", $device));
+		$device = stripslashes(trim($device));
 		if (strpos($path, "$") === FALSE) {
 			set_samba_config("${device}", "protocol", $protocol);
 			set_samba_config("${device}", "ip", $ip);
@@ -473,6 +475,8 @@ switch ($_POST['action']) {
 	/* ISO FILE SHARES */
 	case 'add_iso_share':
 		$file = isset($_POST['ISO_FILE']) ? urldecode($_POST['ISO_FILE']) : "";
+		$file = implode("",explode("\\", $file));
+		$file = stripslashes(trim($file));
 		if (is_file($file)) {
 			$info = pathinfo($file);
 			$share = $info['filename'];
