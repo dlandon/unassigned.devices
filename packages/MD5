@@ -1,11 +1,13 @@
 4fb02d6580694edc762f2493dcb823f3  exfat-utils-1.1.1-x86_64-1_SBo.txz
 23c662237bf9ec0953fd2ddeba02541b  exfat-utils-1.2.1-x86_64-1_slack.txz
+29ca04e7d38a3cb804a4671fedf9e4f2  exfat-utils-1.2.4-x86_64-1_slonly.txz
 ad8b518169c59eabed73263d36e56575  fuse-exfat-1.1.0-x86_64-1_SBo.txz
 088950fe3ccf767b616db6fb550e0ab7  fuse-exfat-1.2.1-x86_64-1_slack.txz
+f624585b623ecaa5b60be9f680e34df4  fuse-exfat-1.2.4-x86_64-1_slonly.txz
 9ddd7cb7e0782e9fb7756b1946808228  hfsprogs-332.25-x86_64-2sl.txz
 1d403a59c467a37f040de3fde2c23518  libbsd-0.6.0-x86_64-1sl.txz
+81ed59b14fa13c7fd604c53adbe16112  libbsd-0.8.3-x86_64-1_slonly.txz
 435837a5bf0401a937d6ec93e458333b  libnl-1.1.4-x86_64-1.txz
 de646f44d881b6c4292e353b717792cd  ntfs-3g-2013.1.13-x86_64-1.txz
-c5574f863853d71549320d099ac59b36  ntfs-3g-2016.2.22-x86_64-1.txz
 140283cca20483fcacd805201b33798a  parted-3.1-x86_64-1.txz
 1026cb6b665bbeff2d514d6510d00bc5  parted-3.2-x86_64-2.txz
