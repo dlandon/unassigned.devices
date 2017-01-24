@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.01.17">
+<!ENTITY version   "2017.01.24">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"d023feddb3926dfc00a9590f785110be">
+<!ENTITY MD5		"a4024710506d56d2be9c42939327a223">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,12 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Security updates.
+- Fix: Deal with special characters in share name and drive label.
+- Fix: Minor gui changes. 
+- Fix: Updated exfat and libbsd packages.
+
+###2017.01.17
 - Fix: Do not allow backslashes in SMB/NFS and iso mounts.
 
 ###2016.12.15
@@ -478,19 +484,19 @@ ntfs-3g-2013.1.13-x86_64-1.txz (for unraid 6.1)
 
 
 <!--
-exfat-utils-1.2.1-x86_64-1_slack.txz
+exfat-utils-1.2.4-x86_64-1_slonly.txz
 -->
-<FILE Name="&packages;/exfat-utils-1.2.1-x86_64-1_slack.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/exfat-utils-1.2.1-x86_64-1_slack.txz"</URL>
-<MD5>23c662237bf9ec0953fd2ddeba02541b</MD5>
+<FILE Name="&packages;/exfat-utils-1.2.4-x86_64-1_slonly.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/exfat-utils-1.2.4-x86_64-1_slonly.txz"</URL>
+<MD5>29ca04e7d38a3cb804a4671fedf9e4f2</MD5>
 </FILE>
 
 <!--
-fuse-exfat-1.2.1-x86_64-1_slack.txz
+fuse-exfat-1.2.4-x86_64-1_slonly.txz
 -->
-<FILE Name="&packages;/fuse-exfat-1.2.1-x86_64-1_slack.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/fuse-exfat-1.2.1-x86_64-1_slack.txz"</URL>
-<MD5>088950fe3ccf767b616db6fb550e0ab7</MD5>
+<FILE Name="&packages;/fuse-exfat-1.2.4-x86_64-1_slonly.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/fuse-exfat-1.2.4-x86_64-1_slonly.txz"</URL>
+<MD5>f624585b623ecaa5b60be9f680e34df4</MD5>
 </FILE>
 
 <!--
@@ -502,11 +508,11 @@ hfsprogs-332.25-x86_64-2sl.txz
 </FILE>
 
 <!--
-libbsd-0.6.0-x86_64-1sl.txz
+libbsd-0.8.3-x86_64-1_slonly.txz
 -->
-<FILE Name="&packages;/libbsd-0.6.0-x86_64-1sl.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/libbsd-0.6.0-x86_64-1sl.txz"</URL>
-<MD5>1d403a59c467a37f040de3fde2c23518</MD5>
+<FILE Name="&packages;/libbsd-0.8.3-x86_64-1_slonly.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/libbsd-0.8.3-x86_64-1_slonly.txz"</URL>
+<MD5>81ed59b14fa13c7fd604c53adbe16112</MD5>
 </FILE>
 
 <!--
@@ -559,6 +565,20 @@ libnl-1.1.4-x86_64-1.txz
 </FILE>
 
 <!--
+Unassigned devices background start script.
+-->
+<FILE Name="/tmp/&name;/start_unassigned_devices" Mode="0770">
+<INLINE>
+#!/bin/bash
+# Start unassigned devices.
+/usr/local/emhttp/plugins/&name;/scripts/rc.unassigned mount auto 2>/dev/null
+
+# Remove the background start script.
+rm -rf /tmp/&name; 2>/dev/null
+</INLINE>
+</FILE>
+
+<!--
 The 'post-install' script.
 -->
 <FILE Run="/bin/bash">
@@ -600,7 +620,7 @@ chown nobody:users /mnt/disks
 # mount disks if array is started
 if [[ -e /proc/mdcmd ]]; then
   if [[ $(cat /proc/mdcmd|grep mdState|cut -d"=" -f2) == STARTED ]]; then
-    /usr/local/emhttp/plugins/&name;/scripts/rc.unassigned mount auto 2>/dev/null
+    at -M -f /tmp/&name;/start_unassigned_devices now 2>/dev/null
   fi
 fi
 
@@ -622,7 +642,7 @@ echo "-----------------------------------------------------------"
 echo " &name; has been installed."
 echo " This plugin requires Dynamix webGui to operate"
 echo " Copyright 2015, gfjardim"
-echo " Copyright 2016, &author;"
+echo " Copyright 2016-2017, &author;"
 echo " Version: &version;"
 echo "-----------------------------------------------------------"
 echo ""
@@ -663,10 +683,10 @@ rm -rf /usr/local/emhttp/plugins/&name; 2>/dev/null
 if [ -f /var/log/packages/ntfs-3g-2013.1.13-x86_64-1 ]; then
 	removepkg ntfs-3g-2013.1.13-x86_64-1 2>/dev/null
 fi
-removepkg exfat-utils-1.2.1-x86_64-1_slack 2>/dev/null
-removepkg fuse-exfat-1.2.1-x86_64-1_slack 2>/dev/null
+removepkg exfat-utils-1.2.4-x86_64-1_slonly 2>/dev/null
+removepkg fuse-exfat-1.2.4-x86_64-1_slonly.txz 2>/dev/null
 removepkg hfsprogs-332.25-x86_64-2sl 2>/dev/null
-removepkg libbsd-0.6.0-x86_64-1sl 2>/dev/null
+removepkg libbsd-0.8.3-x86_64-1_slonly 2>/dev/null
 if [ -f /var/log/packages/parted-3.1-x86_64-1 ]; then
 	removepkg parted-3.1-x86_64-1 2>/dev/null
 fi

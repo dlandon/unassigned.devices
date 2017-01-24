@@ -1,6 +1,6 @@
 <?PHP
 /* Copyright 2015, Guilherme Jardim
- * Copyright 2016, Dan Landon
+ * Copyright 2016-2017, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -15,6 +15,8 @@
 $plugin = "unassigned.devices";
 require_once("plugins/${plugin}/include/lib.php");
 require_once("webGui/include/Helpers.php");
+$var = parse_ini_file("state/var.ini");
+$csrf_token = $var['csrf_token'];
 
 if (isset($_POST['display'])) $display = $_POST['display'];
 if (isset($_POST['var'])) $var = $_POST['var'];
@@ -62,7 +64,7 @@ function render_used_and_free($partition) {
 }
 
 function render_partition($disk, $partition) {
-	global $plugin, $paths, $echo;
+	global $plugin, $paths, $echo, $csrf_token;
 
 	if (! isset($partition['device'])) return array();
 	$out = array();
@@ -81,7 +83,11 @@ function render_partition($disk, $partition) {
 		$mpoint .= "<a title='Browse Share.' href='/Main/Browse?dir={$partition[mountpoint]}'>{$partition[mountpoint]}</a></div>";
 	} else {
 		$mount_point = basename($partition[mountpoint]);
-		$mpoint .= "<form title='Click to Change Mount Point.' method='POST' action='/plugins/${plugin}/UnassignedDevices.php?action=change_mountpoint&serial={$partition[serial]}&partition={$partition[part]}' target='progressFrame' style='display:inline;margin:0;padding:0;'><span class='text exec'><a>{$partition[mountpoint]}</a></span><input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden /></form> {$rm_partition}</div>";
+		$mpoint .= "<form title='Click to Change Mount Point.' method='POST' action='/plugins/${plugin}/UnassignedDevices.php?action=change_mountpoint&serial={$partition[serial]}&partition={$partition[part]}' target='progressFrame' style='display:inline;margin:0;padding:0;'>";
+		$mpoint .= "<span class='text exec'><a>{$partition[mountpoint]}</a></span>";
+		$mpoint .= "<input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden />";
+		$mpoint .= "<input type='hidden' name='csrf_token' value='{$csrf_token}'/>";
+		$mpoint .= "</form> {$rm_partition}</div>";
 	}
 	$mbutton = make_mount_button($partition);
   
@@ -236,12 +242,13 @@ switch ($_POST['action']) {
 				printf( "<td><img src='/webGui/images/%s'>%s</td>", ( $is_alive ? "green-on.png":"green-blink.png" ), $protocol);
 				echo "<td><div><i class='glyphicon glyphicon-globe hdd'></i><span style='margin:4px;'></span>{$mount[device]}</div></td>";
 				if ($mounted) {
-					echo "<td><i class='glyphicon glyphicon-save hdd'></i><span style='margin:4px;'><a title='Browse Remote SMB/NFS Share.' href='/Shares/Browse?dir={$mount[mountpoint]}'>{$mount[mountpoint]}</a></td>";
+					echo "<td><i class='glyphicon glyphicon-save hdd'></i><span style='margin:4px;'><a title='Browse Remote SMB/NFS Share.' href='/Main/Browse?dir={$mount[mountpoint]}'>{$mount[mountpoint]}</a></td>";
 				} else {
 					$mount_point = basename($mount[mountpoint]);
 					echo "<td><form title='Click to change Remote SMB/NFS Mount Point.' method='POST' action='/plugins/${plugin}/UnassignedDevices.php?action=change_samba_mountpoint&device={$mount[device]}' target='progressFrame' style='display:inline;margin:0;padding:0;'>
 					<i class='glyphicon glyphicon-save hdd'></i><span style='margin:4px;'></span><span class='text exec'><a>{$mount[mountpoint]}</a></span>
 					<input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden />
+					<input type='hidden' name='csrf_token' value='{$csrf_token}'/>
 					</form></td>";
 				}
 				echo "<td><span style='width:auto;text-align:right;'>".($mounted ? "<button type='button' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'umount','{$mount[device]}');\"><i class='glyphicon glyphicon-export'></i> Unmount</button>" : "<button type='button' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'mount','{$mount[device]}');\"><i class='glyphicon glyphicon-import'></i>  Mount</button>")."</span></td>";
@@ -270,12 +277,13 @@ switch ($_POST['action']) {
 				}
 				echo "<td><div><i class='glyphicon glyphicon-cd hdd'></i><span style='margin:4px;'></span>${devname}</div></td>";
 				if ($mounted) {
-					echo "<td><i class='glyphicon glyphicon-save hdd'></i><span style='margin:4px;'><a title='Browse Iso File Share.' href='/Shares/Browse?dir={$mount[mountpoint]}'>{$mount[mountpoint]}</a></td>";
+					echo "<td><i class='glyphicon glyphicon-save hdd'></i><span style='margin:4px;'><a title='Browse Iso File Share.' href='/Main/Browse?dir={$mount[mountpoint]}'>{$mount[mountpoint]}</a></td>";
 				} else {
 					$mount_point = basename($mount[mountpoint]);
 					echo "<td><form title='Click to change Iso File Mount Point.' method='POST' action='/plugins/${plugin}/UnassignedDevices.php?action=change_iso_mountpoint&device={$mount[device]}' target='progressFrame' style='display:inline;margin:0;padding:0;'>
 					<i class='glyphicon glyphicon-save hdd'></i><span style='margin:4px;'></span><span class='text exec'><a>{$mount[mountpoint]}</a></span>
 					<input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden />
+					<input type='hidden' name='csrf_token' value='{$csrf_token}'/>
 					</form></td>";
 				}
 				echo "<td><span style='width:auto;text-align:right;'>".($mounted ? "<button type='button' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'umount','{$mount[device]}');\"><i class='glyphicon glyphicon-export'></i> Unmount</button>" : "<button type='button' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'mount','{$mount[device]}');\"><i class='glyphicon glyphicon-import'></i>  Mount</button>")."</span></td>";
@@ -516,7 +524,7 @@ switch ($_POST['action']) {
 		case 'change_mountpoint':
 			$serial = urldecode($_GET['serial']);
 			$partition = urldecode($_GET['partition']);
-			$mountpoint = basename(urldecode($_POST['mountpoint']));
+			$mountpoint = safe_name(basename(urldecode($_POST['mountpoint'])));
 			if ($mountpoint != "") {
 				$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
 				set_config($serial, "mountpoint.${partition}", $mountpoint);
@@ -526,7 +534,7 @@ switch ($_POST['action']) {
 
 		case 'change_samba_mountpoint':
 			$device = urldecode($_GET['device']);
-			$mountpoint = basename(urldecode($_POST['mountpoint']));
+			$mountpoint = safe_name(basename(urldecode($_POST['mountpoint'])));
 			if ($mountpoint != "") {
 				$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
 				set_samba_config($device, "mountpoint", $mountpoint);
@@ -536,7 +544,7 @@ switch ($_POST['action']) {
 
 		case 'change_iso_mountpoint':
 			$device = urldecode($_GET['device']);
-			$mountpoint = basename(urldecode($_POST['mountpoint']));
+			$mountpoint = safe_name(basename(urldecode($_POST['mountpoint'])));
 			if ($mountpoint != "") {
 				$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
 				set_iso_config($device, "mountpoint", $mountpoint);

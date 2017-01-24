@@ -4,7 +4,7 @@ Markdown="false"
 ---
 <?PHP
 /* Copyright 2015, Guilherme Jardim
- * Copyright 2016, Dan Landon
+ * Copyright 2016-2017, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -44,7 +44,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	var this_tab = $('input[name$="tabs"]').length;
 	var URL = '/plugins/<?=$plugin;?>/UnassignedDevices.php';
 	$(function() {
-		var content = "<div class='switch-wrapper'><input type='checkbox' class='complete-switch'></div><button title='Rescan All Unassigned Disks.' type='button' onclick='$.post(\""+URL+"\",{\"action\":\"rescan_disks\"});' value='Rescan Disks'>Rescan Disks</button><button title='Display the Unassigned Devices Log.' type='button' onclick='openWindow(\"/webGui/scripts/tail_log&arg1=unassigned.devices.log\",\"Log Information\",600,900);' value='Log'>Log</button>";
+		var content = "<div class='switch-wrapper'><input type='checkbox' class='complete-switch'></div><button title='Rescan All Unassigned Disks.' type='button' onclick='$.post(\""+URL+"\",{\"action\":\"rescan_disks\"});' value='Rescan Disks'>Rescan Disks</button><button title='Display the Unassigned Devices Log.' type='button' onclick='ShowLog()' value='Log'>Log</button>";
 		<?if (!$tabbed):?>
 			$("#unassigned_tabbed").html(content);
 		<?else:?>
@@ -73,6 +73,10 @@ function cleanUp() {
   } else {
     setTimeout(cleanUp,4000);
   }
+}
+
+function ShowLog() {
+	openWindow('/webGui/scripts/tail_log&arg1=unassigned.devices.log','Unassigned Devices Log',600,900);
 }
 
 function getlog() {

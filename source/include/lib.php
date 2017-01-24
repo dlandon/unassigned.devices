@@ -1,6 +1,6 @@
 <?PHP
 /* Copyright 2015, Guilherme Jardim
- * Copyright 2016, Dan Landon
+ * Copyright 2016-2017, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -98,7 +98,8 @@ function listDir($root) {
 }
 
 function safe_name($string) {
-	$string = str_replace("\\x20", " ", $string);
+	$string = stripcslashes($string);
+	$string = str_replace(array( "(", ")" ), "", $string);
 	$string = htmlentities($string, ENT_QUOTES, 'UTF-8');
 	$string = preg_replace('~&([a-z]{1,2})(acute|cedil|circ|grave|lig|orn|ring|slash|th|tilde|uml);~i', '$1', $string);
 	$string = html_entity_decode($string, ENT_QUOTES, 'UTF-8');
