@@ -497,7 +497,8 @@ function getlog() {
 			</select>
 		</dd>
 	</dl>
-	<p>Note: Dockers will not be able to access any SMB, or Iso file share until you restart the Docker service.  Go to Settings->Docker and disable then enable Docker.</p>
+	<p>Note: Dockers will not be able to access any SMB or NFS share until you restart the Docker service after the device is mounted.</p>
+	<p>Go to Settings->Docker and disable then enable Docker.</p>
 	<div class="options"></div>
 </div>
 
@@ -538,7 +539,8 @@ function getlog() {
 <script>
 	$("input[data-pickroot]").fileTreeAttach();
 </script>
-	<p>Note: Dockers will not be able to access any SMB, or Iso file share until you restart the Docker service.  Go to Settings->Docker and disable then enable Docker.</p>
+	<p>Note: Dockers will not be able to access any Iso file share until you restart the Docker service after the device is mounted.</p>
+	<p>Go to Settings->Docker and disable then enable Docker.</p>
 	<dl>
 		<dt>Iso File:</dt>
 		<dd><input id='iso_file' type='text' name='ISO_FILE' placeholder="Click to select iso file" data-pickcloseonfile="true" data-pickfilter="iso" data-pickroot="/mnt/user/" data-pickfolders="true" required="required" /></dd>
@@ -581,6 +583,7 @@ function getlog() {
 </div>
 
 <blockquote class='inline_help'>
+	<p><b>The 'Settings->Unassigned Devices' security settings for SMB and NFS must be set correctly for SMB and NFS sharing to work properly.</b></p>
 	<p>Hover your mouse over an any active area on the UD page and a tool tip will show you what clicking that area does.</p>
 	<p>You can mount USB devices, sata drives, Remote SMB/NFS shares, and Iso Files with unassigned devices.  Any devices with the auto mount switch on will be mounted when the array is started.  XFS and EXT4 formatted drives are mounted with discard (trim) for SSD drives.  All drives and SMB/NFS Mounts are unmounted when the array is stopped on the 'unmounting_disks' event.</p>
 	<p>If you want to share your drive, you can turn on the Share switch.  The default for Remote SMB shares is Public read/write access.  Enable SMB Security by user in the Unassigned Devices Settings.  NFS shares are exported and access is read/write.  The export of NFS devices is enabled in the Unassigned Devices settings.  You can also enable a common script that will be executed on every disk mount.  In order to share any UD device, sharing needs to be enabled in the UD Settings and the switch turned on to share the particular device.</p>
@@ -589,11 +592,13 @@ function getlog() {
 		<li>Destructive mode must be enabled.</li>
 		<li>Disk must have all partitions removed.  Unmount disk, click on the serial number, and click on all red-X to delete partitions.</li>
 		<li>If the disk has been precelared and shows a grayed 'Format' button, click on the disk serial number, then click on the red-X to delete the preclear status file.</li>
-	<p>Unassigned devices includes scripts that are used for mounting and unmounting devices and SMB mounts.  These scripts can be used from the command line if necessary.
+	<p>Unassigned devices includes scripts that are used for mounting and unmounting devices and SMB mounts.  These scripts can be used from the command line or in scripts as necessary.
 	<p>Unassigned devices script:
 		<li>'/usr/local/sbin/rc.unassigned mount auto' - all devices and SMB mounts set to auto mount will be mounted.</li>
 		<li>'/usr/local/sbin/rc.unassigned umount auto' - all devices and SMB mounts set to auto mount will be unmounted.</li>
 		<li>'/usr/local/sbin/rc.unassigned umount all' - all devices and SMB mounts are unmounted in preparation for shutting down the array.</li>
+		<li>'/usr/local/sbin/rc.unassigned mount /dev/sdX' - mount device sdX where 'X' is the device designator.</li>
+		<li>'/usr/local/sbin/rc.unassigned umount /dev/sdX' - unmount device sdX where 'X' is the device designator.  You can use this command in a UD script to unmount the device when the script has completed.<li>
 	</p>
 	<p>Switch the 'Complete' button to change the web page to just show hardware devices.  Switch the 'Simple' switch to switch back to the full web display.</p>
 </blockquote>
