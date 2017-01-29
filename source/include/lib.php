@@ -796,8 +796,9 @@ function get_samba_mounts() {
 		} else {
 			$mount['fstype'] = "cifs";
 		}
-		$mount['size']   = intval(trim(shell_exec("/bin/df --output=size,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/grep '${device}'|/bin/awk '{print $1}'")))*1024;
-		$mount['used']   = intval(trim(shell_exec("/bin/df --output=used,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/grep '${device}'|/bin/awk '{print $1}'")))*1024;
+		$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$mount[ip]} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+		$mount['size']   = intval(trim($is_alive ? shell_exec("/bin/df --output=size,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/grep '${device}'|/bin/awk '{print $1}'"):"0"))*1024;
+		$mount['used']   = intval(trim($is_alive ? shell_exec("/bin/df --output=used,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/grep '${device}'|/bin/awk '{print $1}'"):"0"))*1024;
 		$mount['avail']  = $mount['size'] - $mount['used'];
 		$mount['automount'] = is_samba_automount($mount['device']);
 		if (! $mount["mountpoint"]) {

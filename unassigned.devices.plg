@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.01.29">
+<!ENTITY version   "2017.01.29a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"13e3ea31fae9e41badeebdd5c1525320">
+<!ENTITY MD5		"49f6017d810226278f9529e40ab1fd2f">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -18,6 +18,8 @@
 ###&version;
 - Fix: Modified the warning about re-starting Docker before Docker will see UD shares.
 - Fix: Additional help text about using UD script to mount/unmount devices.
+- Add: Added (SMB) and (NFS) to the 'Share' button table header to show the sharing enabled in the UD settings.
+- Fix: Don't calculate size and space on a disconnected SMB of NFS mount.
 
 ###2017.01.24
 - Add: Security updates.
@@ -222,7 +224,7 @@
 
 ###2016.01.24
 - Fix: Changed terminology from 'SMB Mount' to 'Remote SMB Mount'.
-- FIx: Smart Report limited to 'Disk Attributes'.
+- Fix: Smart Report limited to 'Disk Attributes'.
 - Fix: Cosmetic changes.
 - Add: Capability to mount NFS share as well as SMB share to 'Remote SMB Mount'.
 - Add: Remove script files when the configuration is removed for devices and Remote SMB Mounts.

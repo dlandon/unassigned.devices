@@ -15,8 +15,11 @@
 $plugin = "unassigned.devices";
 require_once("plugins/${plugin}/include/lib.php");
 require_once("webGui/include/Helpers.php");
+$config_file = "/boot/config/plugins/{$plugin}/{$plugin}.cfg";
 $var = parse_ini_file("state/var.ini");
 $csrf_token = $var['csrf_token'];
+
+$cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
 
 if (isset($_POST['display'])) $display = $_POST['display'];
 if (isset($_POST['var'])) $var = $_POST['var'];
@@ -150,7 +153,14 @@ function make_mount_button($device) {
 switch ($_POST['action']) {
 	case 'get_content':
 		$disks = get_all_disks_info();
-		echo "<table class='usb_disks custom_head'><thead><tr><td>Device</td><td>Identification</td><td></td><td>Temp</td><td>FS</td><td>Size</td><td>Open files</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Share</td><td>Log</td><td>Script</td></tr></thead>";
+		$sharing = "Share";
+		if ($cfg['Config']["smb_security"] == "yes") {
+			$sharing .= " (SMB)";
+		}
+		if ($cfg['Config']["nfs_export"] == "yes") {
+			$sharing .= " (NFS)";
+		}
+		echo "<table class='usb_disks custom_head'><thead><tr><td>Device</td><td>Identification</td><td></td><td>Temp</td><td>FS</td><td>Size</td><td>Open files</td><td>Used</td><td>Free</td><td>Auto mount</td><td>{$sharing}</td><td>Log</td><td>Script</td></tr></thead>";
 		echo "<tbody>";
 		if ( count($disks) ) {
 			$odd="odd";
@@ -254,7 +264,7 @@ switch ($_POST['action']) {
 				echo "<td><span style='width:auto;text-align:right;'>".($mounted ? "<button type='button' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'umount','{$mount[device]}');\"><i class='glyphicon glyphicon-export'></i> Unmount</button>" : "<button type='button' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'mount','{$mount[device]}');\"><i class='glyphicon glyphicon-import'></i>  Mount</button>")."</span></td>";
 				echo $mounted ? "<td><i class='glyphicon glyphicon-remove hdd'></i></td>" : "<td><a class='exec' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount[device]}\");' title='Remove Remote SMB/NFS Share.'> <i class='glyphicon glyphicon-remove hdd'></i></a></td>";
 				echo "<td><span>".my_scale($mount['size'], $unit)." $unit</span></td>";
-				echo render_used_and_free($mount);
+				echo $is_alive ? render_used_and_free($mount):"<td>offline</td><td>offline</td>";
 				echo "<td title='Turn on to Mount Device when Array is Started.'><input type='checkbox' class='samba_automount' device='{$mount[device]}' ".(($mount['automount']) ? 'checked':'')."></td>";
 				echo "<td><a title='View SMB/NFS Share Log.' href='/Main/ViewLog?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><img src='/plugins/${plugin}/icons/view_log.png' style='cursor:pointer;width:16px;'></a></td>";
 				echo "<td><a title='Edit Remote SMB/NFS Share Script.' href='/Main/EditScript?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><img src='/plugins/${plugin}/icons/edit_script.png' style='cursor:pointer;width:16px;".( (get_samba_config($mount['device'],"command_bg") == "true") ? "":"opacity: 0.4;" )."'></a></td>";
