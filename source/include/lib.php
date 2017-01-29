@@ -796,14 +796,15 @@ function get_samba_mounts() {
 		} else {
 			$mount['fstype'] = "cifs";
 		}
-		$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$mount[ip]} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
-		$mount['size']   = intval(trim($is_alive ? shell_exec("/bin/df --output=size,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/grep '${device}'|/bin/awk '{print $1}'"):"0"))*1024;
-		$mount['used']   = intval(trim($is_alive ? shell_exec("/bin/df --output=used,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/grep '${device}'|/bin/awk '{print $1}'"):"0"))*1024;
-		$mount['avail']  = $mount['size'] - $mount['used'];
+
 		$mount['automount'] = is_samba_automount($mount['device']);
 		if (! $mount["mountpoint"]) {
 			$mount["mountpoint"] = $mount['target'] ? $mount['target'] : preg_replace("%\s+%", "_", "{$paths[usb_mountpoint]}/{$mount[ip]}_{$mount[share]}");
 		}
+		$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$mount[ip]} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+		$mount['size']   = intval(trim($is_alive ? shell_exec("/bin/df '${mount[mountpoint]}' --output=size,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'"):"0"))*1024;
+		$mount['used']   = intval(trim($is_alive ? shell_exec("/bin/df '${mount[mountpoint]}' --output=used,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'"):"0"))*1024;
+		$mount['avail']  = $mount['size'] - $mount['used'];
 		$mount['target'] = trim(shell_exec("/bin/cat /proc/mounts 2>&1|/bin/grep '$mount[mountpoint] '|/bin/awk '{print $2}'"));
 		$mount['prog_name'] = basename($mount['command'], ".sh");
 		$mount['logfile'] = $paths['device_log'].$mount['prog_name'].".log";
@@ -918,8 +919,9 @@ function get_iso_mounts() {
 			$mount["mountpoint"] = preg_replace("%\s+%", "_", "{$paths[usb_mountpoint]}/{$mount[share]}");
 		}
 		$mount['target'] = trim(shell_exec("/bin/cat /proc/mounts 2>&1|/bin/grep '$mount[mountpoint] '|/bin/awk '{print $2}'"));
-		$mount['size']   = intval(trim(shell_exec("/bin/df --output=size,source '$mount[mountpoint]' 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'")))*1024;
-		$mount['used']   = intval(trim(shell_exec("/bin/df --output=used,source '$mount[mountpoint]' 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'")))*1024;
+		$is_alive = is_file($mount['file']);
+		$mount['size']   = intval(trim($is_alive ? shell_exec("/bin/df '$mount[mountpoint]' --output=size,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'"):"0"))*1024;
+		$mount['used']   = intval(trim($is_alive ? shell_exec("/bin/df '$mount[mountpoint]' --output=used,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'"):"0"))*1024;
 		$mount['avail']  = $mount['size'] - $mount['used'];
 		$mount['prog_name'] = basename($mount['command'], ".sh");
 		$mount['logfile'] = $paths['device_log'].$mount['prog_name'].".log";
@@ -1130,7 +1132,7 @@ function get_partition_info($device, $reload=FALSE){
 		$disk['fstype'] = (! $disk['fstype'] && verify_precleared($disk['disk'])) ? "precleared" : $disk['fstype'];
 		$disk['target'] = str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1|/bin/grep ${device}|/bin/awk '{print $2}'")));
 		$disk['size']   = intval(trim(shell_exec("/sbin/blockdev --getsize64 ${device} 2>/dev/null")));
-		$disk['used']   = intval(trim(shell_exec("/bin/df --output=used,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/grep ${device}|/bin/awk '{print $1}'")))*1024;
+		$disk['used']   = intval(trim(shell_exec("/bin/df '${device}' --output=used,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'")))*1024;
 		$disk['avail']  = $disk['size'] - $disk['used'];
 		if ( $disk['mountpoint'] = get_config($disk['serial'], "mountpoint.{$disk[part]}") ) {
 			if (! $disk['mountpoint'] ) goto empty_mountpoint;

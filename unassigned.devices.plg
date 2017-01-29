@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.01.29a">
+<!ENTITY version   "2017.01.29b">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"49f6017d810226278f9529e40ab1fd2f">
+<!ENTITY MD5		"ddc1040b6b9d096cb1ef7dfe31f23018">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -20,6 +20,7 @@
 - Fix: Additional help text about using UD script to mount/unmount devices.
 - Add: Added (SMB) and (NFS) to the 'Share' button table header to show the sharing enabled in the UD settings.
 - Fix: Don't calculate size and space on a disconnected SMB of NFS mount.
+- Fix: Changed 'df' for calculating the size and used space on a device to a device specific call to 'df'.
 
 ###2017.01.24
 - Add: Security updates.
