@@ -816,40 +816,47 @@ function get_samba_mounts() {
 function do_mount_samba($info) {
 	global $var;
 
-	if (!(($info[fstype] == "nfs") && ((strtoupper($var['NAME']) == strtoupper($info['ip'])) || ($var['IPADDR'] == $info['ip'])))) {
-		$dev = $info['device'];
-		$dir = $info['mountpoint'];
-		$fs  = $info['fstype'];
-		if (! is_mounted($dev) || ! is_mounted($dir, true)) {
-			@mkdir($dir, 0777, TRUE);
-			if ($fs == "nfs") {
-				$params = get_mount_params($fs, '$dev');
-				$cmd = "/sbin/mount -t $fs -o ".$params." '${dev}' '${dir}'";
-				$o = shell_exec($cmd." 2>&1");
-			} else {
-				$params = sprintf(get_mount_params($fs, '$dev'), ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
-				$cmd = "/sbin/mount -t $fs -o ".$params." '${dev}' '${dir}'";
-				$o = shell_exec($cmd." 2>&1");
-				$params = sprintf(get_mount_params($fs, '$dev'), ($info['user'] ? $info['user'] : "guest" ), '*******');
-			}
-			unassigned_log("Mount SMB/NFS command: mount -t $fs -o ".$params." '${dev}' '${dir}'");
-			foreach (range(0,5) as $t) {
-				if (is_mounted($dev)) {
-					@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
-					unassigned_log("Successfully mounted '${dev}' on '${dir}'.");
-					return TRUE;
+	$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$info[ip]} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+	if ($is_alive) {
+		if (!(($info[fstype] == "nfs") && ((strtoupper($var['NAME']) == strtoupper($info['ip'])) || ($var['IPADDR'] == $info['ip'])))) {
+			$dev = $info['device'];
+			$dir = $info['mountpoint'];
+			$fs  = $info['fstype'];
+			if (! is_mounted($dev) || ! is_mounted($dir, true)) {
+				@mkdir($dir, 0777, TRUE);
+				if ($fs == "nfs") {
+					$params = get_mount_params($fs, '$dev');
+					$cmd = "/sbin/mount -t $fs -o ".$params." '${dev}' '${dir}'";
+					$o = shell_exec($cmd." 2>&1");
 				} else {
-					sleep(0.5);
+					$params = sprintf(get_mount_params($fs, '$dev'), ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
+					$cmd = "/sbin/mount -t $fs -o ".$params." '${dev}' '${dir}'";
+					$o = shell_exec($cmd." 2>&1");
+					$params = sprintf(get_mount_params($fs, '$dev'), ($info['user'] ? $info['user'] : "guest" ), '*******');
 				}
+				unassigned_log("Mount SMB/NFS command: mount -t $fs -o ".$params." '${dev}' '${dir}'");
+				foreach (range(0,5) as $t) {
+					if (is_mounted($dev)) {
+						@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
+						unassigned_log("Successfully mounted '${dev}' on '${dir}'.");
+						return TRUE;
+					} else {
+						sleep(0.5);
+					}
+				}
+				rmdir($dir);
+				unassigned_log("Mount of '${dev}' failed. Error message: $o");
+				return FALSE;
+			} else {
+				unassigned_log("Share '${dev}' already mounted.");
+				return FALSE;
 			}
-			unassigned_log("Mount of '${dev}' failed. Error message: $o");
-			return FALSE;
 		} else {
-			unassigned_log("Share '${dev}' already mounted...");
+			unassigned_log("Error: Cannot mount remote NFS '${info[device]}' from this server onto this server."); 
 			return FALSE;
 		}
 	} else {
-		unassigned_log("Error: Cannot mount remote NFS '${info[device]}' from this server onto this server."); 
+		unassigned_log("Error: Remote SMB/NFS server '${info[ip]}' is offline and share '${info[device]}' cannot be mounted."); 
 		return FALSE;
 	}
 }
@@ -948,13 +955,14 @@ function do_mount_iso($info) {
 					sleep(0.5);
 				}
 			}
+			rmdir($dir);
 			unassigned_log("Mount of '${dev}' failed. Error message: $o");
 			return FALSE;
 		} else {
 			unassigned_log("Share '$dev' already mounted...");
 		}
 	} else {
-		unassigned_log("Mount of '${dev}' failed. Iso file '$info[file]' is missing.");
+		unassigned_log("Error: Iso file '$info[file]' is missing and cannot be mounted.");
 		return FALSE;
 	}
 }

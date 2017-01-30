@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.01.29c">
+<!ENTITY version   "2017.01.30">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"f8dac47ae442e6f66ac1376212bb522b">
+<!ENTITY MD5		"f25b27bc7e57aba647c2e8969588cc8b">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Remove mount point directory when SMB or NFS mount fails.
+- Add: Additional checks that SMB and NFS remote servers are online before trying to auto mount remote shares.
+
+###2017.01.29c
 - Fix: Modified the warning about re-starting Docker before Docker will see UD shares.
 - Fix: Additional help text about using UD script to mount/unmount devices.
 - Add: Added (SMB) and (NFS) to the 'Share' button table header to show the sharing enabled in the UD settings.
