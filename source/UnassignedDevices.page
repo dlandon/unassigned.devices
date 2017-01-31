@@ -42,24 +42,21 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 <script type="text/javascript">
 	var this_tab = $('input[name$="tabs"]').length;
+	setTimeout('$("div#title *:contains(\'Unassigned Devices\')").closest("div").find("i.toggle").remove();',100);
+	$("input[name$=tabs] + label:contains('Unassigned Devices')").closest("div.tab").find("input[type=radio]").bind({click:function() {$('i.toggle').hide('slow');}});
+
 	var URL = '/plugins/<?=$plugin;?>/UnassignedDevices.php';
 	$(function() {
-		var content = "<div class='switch-wrapper'><input type='checkbox' class='complete-switch'></div><button title='Rescan All Unassigned Disks.' type='button' onclick='$.post(\""+URL+"\",{\"action\":\"rescan_disks\"});' value='Rescan Disks'>Rescan Disks</button><button title='Display the Unassigned Devices Log.' type='button' onclick='ShowLog()' value='Log'>Log</button>";
-		<?if (!$tabbed):?>
-			$("#unassigned_tabbed").html(content);
-		<?else:?>
-			var last = $('input[name$="tabs"]').length;
-			var elementId = "simpleComplete";
-			$('.tabs').append("<span id='"+elementId+"' class='status vhshift' style='display: none;'>"+content+"&nbsp;</span>");
-			if ($('#tab'+this_tab).is(':checked')) {
-				$('#'+elementId).show();
-			}
-			$('#tab'+this_tab).bind({click:function(){$('#'+elementId).show();}});
-			for (var x=1; x<=last; x++) if(x != this_tab) $('#tab'+x).bind({click:function(){$('#'+elementId).hide();}});
-		<?endif;?>
+		addButtonTab('<a style="cursor:pointer" onclick="getlog()" title="Download Log"><i class="fa fa-download"></i></a>', "Unassigned Devices");
+		addButtonTab('<a style="cursor:pointer" onclick="ShowLog()" title="Show Log"><i class="fa fa-file-text-o"></i></a>', "Unassigned Devices");
+		addButtonTab('<a style="cursor:pointer" onclick="$.post(\''+URL+'\',{\'action\':\'rescan_disks\'});" title="Rescan Disks"><i class="fa fa-refresh"></i></a>',"Unassigned Devices");
+		addButtonTab('<div class="switch-wrapper"><a style="cursor:pointer" onclick="getlog()" title="Download Log"><input type="checkbox" class="complete-switch"></a></div>', "Unassigned Devices");
+		if ($('#tab'+this_tab).is(':checked')) {
+			$('#tab'+this_tab).trigger("click")
+		}
 		$('.complete-switch').switchButton({ labels_placement: "left", on_label: 'Complete', off_label: 'Simple', checked: $.cookie('unassigned-complete-view') != 'false'});
 		$('.complete-switch').change(function () {
-			$('.show-complete').toggle('slow');
+			$('.show-complete').slideToggle('slow');
 			$.cookie('unassigned-complete-view', $('.complete-switch').is(':checked') ? 'true' : 'false', { expires: 3650 });
 		});
 	});
@@ -121,8 +118,9 @@ function getlog() {
 	.switch-wrapper {
 		display: inline-block;
 		position: relative;
-		top: 3px;
+		top: 0px;
 		vertical-align: middle;
+		right: -12px;
 	}
 
   .switch-button-background.checked {
@@ -471,6 +469,64 @@ function getlog() {
 		} else if ($(el).val() == "NFS") {
 			p.html($("#add-nfs-defaults").html());
 		}
+	}
+
+	function addButtonTab(Button, Target, autoHide, Append)
+	{
+	  var Tab    = $("input[name$=tabs] + label:contains('"+Target+"')").closest("div.tab");
+	  var Title  = $("div#title *:contains('"+Target+"')").closest("div");
+	  if (typeof(autoHide) == "undefined") autoHide = true;
+	  if (typeof(Append)   == "undefined") Append   = true;
+
+	  if (! Tab.length && Title.length > 0)
+	  {
+	    var element = $("<span class='status'>"+Button+"</span>");
+
+	    if (Append)
+	    {
+	      Title.append(element);
+	    }
+	    else
+	    {
+	      Title.prepend(element);
+	    }
+	  }
+	  else if (Tab.length)
+	  {
+	    var TabId = Tab.find("input[type=radio]").attr("id");
+	    var date = new Date();
+	    var elementId = 'event-' + date.getTime() * Math.floor(Math.random()*100000);
+	    var element = $("<span id='"+elementId+"' class='status' style='display: none;'>"+Button+"</span>");
+
+	    if (Append)
+	    {
+	      $('.tabs').append(element);
+	    }
+	    else
+	    {
+	      $('.tabs').prepend(element);
+	    }
+
+	    $('#'+TabId).bind({click:function(){$('#'+elementId).fadeIn('slow');}});
+
+	    if ($('#'+TabId).is(':checked') || ! autoHide) {
+	      $('#'+elementId).fadeIn('slow');
+	    }
+
+	    $("input[name$=tabs]").each(function()
+	    {
+	      if ( $(this).attr("id") != TabId && autoHide )
+	      {
+	        $(this).bind({click:function(){$('#'+elementId).fadeOut('slow');}});
+	      }
+	    });
+	  }
+
+	  if (element.find("input[type='button']").length)
+	  {
+	    element.addClass("vhshift");
+	    element.find("input[type='button']").prop("style","padding-top: 5px; padding-bottom: 5px;");
+	  }
 	}
 
 	function sendLog() {
