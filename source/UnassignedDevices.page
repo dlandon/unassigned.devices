@@ -50,7 +50,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		addButtonTab('<a style="cursor:pointer" onclick="getlog()" title="Download Log"><i class="fa fa-download"></i></a>', "Unassigned Devices");
 		addButtonTab('<a style="cursor:pointer" onclick="ShowLog()" title="Show Log"><i class="fa fa-file-text-o"></i></a>', "Unassigned Devices");
 		addButtonTab('<a style="cursor:pointer" onclick="$.post(\''+URL+'\',{\'action\':\'rescan_disks\'});" title="Rescan Disks"><i class="fa fa-refresh"></i></a>',"Unassigned Devices");
-		addButtonTab('<div class="switch-wrapper"><a style="cursor:pointer" onclick="getlog()" title="Download Log"><input type="checkbox" class="complete-switch"></a></div>', "Unassigned Devices");
+		addButtonTab('<div class="switch-wrapper"><a style="cursor:pointer" title="Switch Display Mode."><input type="checkbox" class="complete-switch"></a></div>', "Unassigned Devices");
 		if ($('#tab'+this_tab).is(':checked')) {
 			$('#tab'+this_tab).trigger("click")
 		}
