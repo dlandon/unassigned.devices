@@ -40,51 +40,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 <script type="text/javascript" src="/plugins/<?=$plugin;?>/assets/waitMe.min.js"></script>
 <link rel="stylesheet" type="text/css" href="/plugins/<?=$plugin;?>/assets/style-<?=$display['theme'];?>.css">
 
-<script type="text/javascript">
-	var this_tab = $('input[name$="tabs"]').length;
-	setTimeout('$("div#title *:contains(\'Unassigned Devices\')").closest("div").find("i.toggle").remove();',100);
-	$("input[name$=tabs] + label:contains('Unassigned Devices')").closest("div.tab").find("input[type=radio]").bind({click:function() {$('i.toggle').hide('slow');}});
-
-	var URL = '/plugins/<?=$plugin;?>/UnassignedDevices.php';
-	$(function() {
-		addButtonTab('<a style="cursor:pointer" onclick="getlog()" title="Download Log"><i class="fa fa-download"></i></a>', "Unassigned Devices");
-		addButtonTab('<a style="cursor:pointer" onclick="ShowLog()" title="Show Log"><i class="fa fa-file-text-o"></i></a>', "Unassigned Devices");
-		addButtonTab('<a style="cursor:pointer" onclick="$.post(\''+URL+'\',{\'action\':\'rescan_disks\'});" title="Rescan Disks"><i class="fa fa-refresh"></i></a>',"Unassigned Devices");
-		addButtonTab('<div class="switch-wrapper"><a style="cursor:pointer" title="Switch Display Mode."><input type="checkbox" class="complete-switch"></a></div>', "Unassigned Devices");
-		if ($('#tab'+this_tab).is(':checked')) {
-			$('#tab'+this_tab).trigger("click")
-		}
-		$('.complete-switch').switchButton({ labels_placement: "left", on_label: 'Complete', off_label: 'Simple', checked: $.cookie('unassigned-complete-view') != 'false'});
-		$('.complete-switch').change(function () {
-			$('.show-complete').slideToggle('slow');
-			$.cookie('unassigned-complete-view', $('.complete-switch').is(':checked') ? 'true' : 'false', { expires: 3650 });
-		});
-	});
-</script>
-
-<script>
-function cleanUp() {
-  if (document.hasFocus()) {
-    $('input[value="Downloading..."]').val('Download').prop('disabled',false);
-    $.post('/webGui/include/Download.php',{cmd:'delete',file:'<?=$zip?>'});
-  } else {
-    setTimeout(cleanUp,4000);
-  }
-}
-
-function ShowLog() {
-	openWindow('/webGui/scripts/tail_log&arg1=unassigned.devices.log','Unassigned Devices Log',600,900);
-}
-
-function getlog() {
-  $('input[value="Download"]').val('Downloading...').prop('disabled',true);
-  $.post('/webGui/include/Download.php',{cmd:'save',source:'/var/log/unassigned.devices.log',file:'<?=$zip?>'},function(zip) {
-    location = zip;
-    setTimeout(cleanUp,4000);
-  });
-}
-</script>
-
 <style>
 	table.usb_disks thead tr>td{text-align:left;width:8%;padding-left:12px;}
 	table.usb_disks {padding:0px;margin:-21px 0px 22px 0px;border-collapse:collapse;white-space:nowrap;}
@@ -139,14 +94,7 @@ function getlog() {
 </style>
 
 <script type="text/javascript">
-	var display = <?=json_encode($display);?>;
-	var vars = <?=json_encode($var);?>;
-	var tab_usbdisks = $('input[name$="tabs"]').length;
-	$('#tab'+tab_usbdisks).bind({click:function() {pin_tab(tab_usbdisks); detect_usb_disk_change(tab_usbdisks);}});
-	$(function(){
-		usb_disks(tab_usbdisks);
-		detect_usb_disk_change(tab_usbdisks);
-	});
+
 	<?=$Preclear ? $Preclear->Script() : "";?>
 
 	function openWindow_fsck(cmd,title,height,width) {
@@ -471,32 +419,47 @@ function getlog() {
 		}
 	}
 
-	function addButtonTab(Button, Target, autoHide, Append)
+	function get_tab_title_by_name(name) {
+	  var tab    = $("input[name$=tabs] + label").filter(function(){return $(this).text() === name;}).prev();
+	  var title  = $("div#title > span.left"    ).filter(function(){return $(this).text() === name;}).parent();
+	  if (tab.length) {
+	    return tab
+	  } else if (title.length) {
+	    return title
+	  } else {
+	    return $(document)
+	  }
+	}
+
+	function addButtonTab(Button, Name, autoHide, Append)
 	{
-	  var Tab    = $("input[name$=tabs] + label:contains('"+Target+"')").closest("div.tab");
-	  var Title  = $("div#title *:contains('"+Target+"')").closest("div");
 	  if (typeof(autoHide) == "undefined") autoHide = true;
 	  if (typeof(Append)   == "undefined") Append   = true;
 
-	  if (! Tab.length && Title.length > 0)
+	  var Target    = get_tab_title_by_name(Name);
+	  var elementId = 'event-' + new Date().getTime() * Math.floor(Math.random()*100000);
+	  var element   = $("<span id='"+elementId+"' class='status'>"+Button+"</span>");
+	  
+	  if (element.find("input[type='button']").length)
 	  {
-	    var element = $("<span class='status'>"+Button+"</span>");
+	    element.addClass("vhshift");
+	    element.find("input[type='button']").prop("style","padding-top: 5px; padding-bottom: 5px;");
+	  }
 
+	  if (Target.prop('nodeName') === "DIV")
+	  {
 	    if (Append)
 	    {
-	      Title.append(element);
+	      Target.append(element);
 	    }
 	    else
 	    {
-	      Title.prepend(element);
+	      Target.prepend(element);
 	    }
 	  }
-	  else if (Tab.length)
+	  else if (Target.prop('nodeName') === "INPUT")
 	  {
-	    var TabId = Tab.find("input[type=radio]").attr("id");
-	    var date = new Date();
-	    var elementId = 'event-' + date.getTime() * Math.floor(Math.random()*100000);
-	    var element = $("<span id='"+elementId+"' class='status' style='display: none;'>"+Button+"</span>");
+	    element.css("display","none");
 
 	    if (Append)
 	    {
@@ -507,30 +470,51 @@ function getlog() {
 	      $('.tabs').prepend(element);
 	    }
 
-	    $('#'+TabId).bind({click:function(){$('#'+elementId).fadeIn('slow');}});
+	    Target.bind({click:function()
+	    {
+	    	$('#'+elementId).fadeIn('slow');}
+	    });
 
-	    if ($('#'+TabId).is(':checked') || ! autoHide) {
+	    if (Target.is(':checked') || ! autoHide) {
 	      $('#'+elementId).fadeIn('slow');
 	    }
 
 	    $("input[name$=tabs]").each(function()
 	    {
-	      if ( $(this).attr("id") != TabId && autoHide )
+	      if (! $(this).is(Target) && autoHide )
 	      {
-	        $(this).bind({click:function(){$('#'+elementId).fadeOut('slow');}});
+	        $(this).bind({click:function()
+	        {
+	        	$('#'+elementId).fadeOut('slow');}
+	        });
 	      }
 	    });
 	  }
-
-	  if (element.find("input[type='button']").length)
+	  else
 	  {
-	    element.addClass("vhshift");
-	    element.find("input[type='button']").prop("style","padding-top: 5px; padding-bottom: 5px;");
+	    return false;
 	  }
 	}
 
-	function sendLog() {
-		$.post(URL,{'action':'send_log'}).always(function(){notifier();});
+	function cleanUp() {
+	  if (document.hasFocus()) {
+	    $('input[value="Downloading..."]').val('Download').prop('disabled',false);
+	    $.post('/webGui/include/Download.php',{cmd:'delete',file:'<?=$zip?>'});
+	  } else {
+	    setTimeout(cleanUp,4000);
+	  }
+	}
+
+	function ShowLog() {
+		openWindow('/webGui/scripts/tail_log&arg1=unassigned.devices.log','Unassigned Devices Log',600,900);
+	}
+
+	function getlog() {
+	  $('input[value="Download"]').val('Downloading...').prop('disabled',true);
+	  $.post('/webGui/include/Download.php',{cmd:'save',source:'/var/log/unassigned.devices.log',file:'<?=$zip?>'},function(zip) {
+	    location = zip;
+	    setTimeout(cleanUp,4000);
+	  });
 	}
 </script>
 
@@ -658,4 +642,62 @@ function getlog() {
 	</p>
 	<p>Switch the 'Complete' button to change the web page to just show hardware devices.  Switch the 'Simple' switch to switch back to the full web display.</p>
 </blockquote>
+
+<blockquote class='inline_help'>
+	<input type="button" value="Download Log" onclick="getlog()">
+	<p>Click on the <strong>'Download Log'</strong> button to download a zip file copy of the unassigned devices log.</p>
+</blockquote>
 </form>
+
+<script type="text/javascript">
+	var display = <?=json_encode($display);?>;
+	var vars    = <?=json_encode($var);?>;
+	var tab_usbdisks = $('input[name$="tabs"]').length;
+	var URL = '/plugins/<?=$plugin;?>/UnassignedDevices.php';
+
+	$('#tab'+tab_usbdisks).bind({click:function() {pin_tab(tab_usbdisks); detect_usb_disk_change(tab_usbdisks);}});
+
+	// Remove or hide diskio toggle
+	tabElement = get_tab_title_by_name("Unassigned Devices");
+	if (tabElement.prop("nodeName") == "DIV")
+	{
+		tabElement.addClass("disable_diskio");
+	 	$(function()
+	 	{
+	 		tabElement.find("i.toggle").remove();
+	 	});
+	} else if (tabElement.prop("nodeName") == "INPUT")
+	{
+		tabElement.bind({click:function() {$('i.toggle').hide('slow');}});
+	}
+
+	$(function()
+	{
+
+		// Add buttons to Tab/Title bar
+		addButtonTab('<a style="cursor:pointer" onclick="getlog()" title="Download Log"><i class="fa fa-download"></i></a>', "Unassigned Devices");
+		addButtonTab('<a style="cursor:pointer" onclick="ShowLog()" title="Show Log"><i class="fa fa-file-text-o"></i></a>', "Unassigned Devices");
+		addButtonTab('<a style="cursor:pointer" onclick="$.post(\''+URL+'\',{\'action\':\'rescan_disks\'});" title="Rescan Disks"><i class="fa fa-refresh"></i></a>',
+		             "Unassigned Devices");
+		addButtonTab('<div class="switch-wrapper"><a style="cursor:pointer" onclick="getlog()" title="Download Log"><input type="checkbox" class="complete-switch"></a></div>',
+		             "Unassigned Devices");
+
+		// Add switchButton to Tab/Title bar
+		$('.complete-switch').switchButton({ labels_placement: "left", on_label: 'Complete', off_label: 'Simple', checked: $.cookie('unassigned-complete-view') != 'false'});
+		$('.complete-switch').change(function()
+		{
+			$('.show-complete').slideToggle('slow');
+			$.cookie('unassigned-complete-view', $('.complete-switch').is(':checked') ? 'true' : 'false', { expires: 3650 });
+		});
+
+		// Load contents if tab is checked
+		if ($('#tab'+tab_usbdisks).is(':checked')) {
+			$('#tab'+tab_usbdisks).trigger("click")
+		}
+
+		// Load page content
+		usb_disks(tab_usbdisks);
+		detect_usb_disk_change(tab_usbdisks);
+
+	});
+</script>
