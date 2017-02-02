@@ -70,7 +70,7 @@ function unassigned_mount() {
 				unassigned_log("Remote SMB share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
 				@touch(sprintf($paths['unmounting'],basename($info['device'])));
 				if (do_mount( $info )) {
-					add_smb_share($info['mountpoint'], $info['device']);
+					add_smb_share($info['mountpoint'], $info['device'], FALSE);
 					execute_script($info, "ADD");
 				}
 				@unlink(sprintf($paths['unmounting'],basename($info['device'])));
@@ -90,7 +90,7 @@ function unassigned_mount() {
 				unassigned_log("Iso File share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
 				@touch(sprintf($paths['unmounting'],basename($info['device'])));
 				if (do_mount( $info )) {
-					add_smb_share($info['mountpoint'], $info['device']);
+					add_smb_share($info['mountpoint'], $info['device'], FALSE);
 					add_nfs_share($info['mountpoint']);
 					execute_script($info, "ADD");
 				}

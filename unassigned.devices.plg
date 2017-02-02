@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.01.31a">
+<!ENTITY version   "2017.02.01">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"4e56ba42ebb9a298fa38b54921d44ce6">
+<!ENTITY MD5		"7dc24b6d76e7f8ebc47c85426786a440">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Code cleanup.
+- Add: Integrate with 6.3 recycle bin.
+
+###2017.01.31a
 - Add: Change 'Rescan' and 'Log' buttons to icons.  Add log download icon.
 
 ###2017.01.30

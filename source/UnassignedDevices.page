@@ -679,7 +679,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		addButtonTab('<a style="cursor:pointer" onclick="ShowLog()" title="Show Log"><i class="fa fa-file-text-o"></i></a>', "Unassigned Devices");
 		addButtonTab('<a style="cursor:pointer" onclick="$.post(\''+URL+'\',{\'action\':\'rescan_disks\'});" title="Rescan Disks"><i class="fa fa-refresh"></i></a>',
 		             "Unassigned Devices");
-		addButtonTab('<div class="switch-wrapper"><a style="cursor:pointer" onclick="getlog()" title="Download Log"><input type="checkbox" class="complete-switch"></a></div>',
+		addButtonTab('<div class="switch-wrapper"><a style="cursor:pointer" title="Switch Display Mode"><input type="checkbox" class="complete-switch"></a></div>',
 		             "Unassigned Devices");
 
 		// Add switchButton to Tab/Title bar

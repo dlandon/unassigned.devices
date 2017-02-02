@@ -543,7 +543,7 @@ function toggle_share($serial, $part, $status) {
 	return ($new == 'yes') ? TRUE:FALSE;
 }
 
-function add_smb_share($dir, $share_name) {
+function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 	global $paths, $var, $users;
 
 	if ( ($var['shareSMBEnabled'] == "yes") ) {
@@ -567,20 +567,25 @@ function add_smb_share($dir, $share_name) {
 			$valid_users = array_diff($valid_users, $invalid_users);
 			if (count($valid_users)) {
 				if ($config["smb_security"] == "hidden") {
-					$hidden = "\nbrowseable = no";
+					$hidden = "\n\tbrowseable = no";
 				} else {
-					$hidden = "\nbrowseable = yes";
+					$hidden = "\n\tbrowseable = yes";
 				}
-				$valid_users = "\nvalid users = ".implode(', ', $valid_users);
-				$write_users = count($write_users) ? "\nwrite list = ".implode(', ', $write_users) : "";
-				$read_users = count($read_users) ? "\nread users = ".implode(', ', $read_users) : "";
-				$share_cont =  "[{$share_name}]\npath = {$dir}{$hidden}{$valid_users}{$write_users}{$read_users}";
+				$valid_users = "\n\tvalid users = ".implode(', ', $valid_users);
+				$write_users = count($write_users) ? "\n\twrite list = ".implode(', ', $write_users) : "";
+				$read_users = count($read_users) ? "\n\tread users = ".implode(', ', $read_users) : "";
+				if ($recycle_bin) {
+					$vfs_objects = "\n\tvfs objects = ";
+				} else {
+					$vfs_objects = "";
+				}
+				$share_cont =  "[{$share_name}]\n\tpath = {$dir}{$hidden}{$valid_users}{$write_users}{$read_users}{$vfs_objects}";
 			} else {
-				$share_cont =  "[{$share_name}]\npath = {$dir}\ninvalid users = @users";
+				$share_cont =  "[{$share_name}]\n\tpath = {$dir}\n\tinvalid users = @users";
 				unassigned_log("Error: No valid smb users defined.  Share '{$dir}' cannot be accessed.");
 			}
 		} else {
-			$share_cont = "[{$share_name}]\npath = {$dir}\nread only = No\nguest ok = Yes ";
+			$share_cont = "[{$share_name}]\n\tpath = {$dir}\n\tread only = No\n\tguest ok = Yes ";
 		}
 
 		if(!is_dir($paths['smb_usb_shares'])) @mkdir($paths['smb_usb_shares'],0755,TRUE);
@@ -598,7 +603,16 @@ function add_smb_share($dir, $share_name) {
 			$c = array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_extra_includes);
 			$c = preg_replace('/\n\s*\n\s*\n/s', PHP_EOL.PHP_EOL, implode(PHP_EOL, $c));
 			file_put_contents($paths['smb_extra'], $c);
+
+			if ($recycle_bin) {
+				// Add the recycle bin parameters if plugin is installed installed
+				$recycle_script = "/usr/local/emhttp/plugins/recycle.bin/scripts/configure_recycle_bin";
+				if (is_file($recycle_script)) {
+					shell_exec("$recycle_script"." ${share_conf}");
+				}
+			}
 		}
+
 		unassigned_log("Reloading Samba configuration...");
 		shell_exec("/bin/killall -s 1 smbd 2>/dev/null && /bin/killall -s 1 nmbd 2>/dev/null");
 		shell_exec("/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
@@ -745,14 +759,14 @@ function reload_shares() {
 	// SMB Mounts
 	foreach (get_samba_mounts() as $name => $info) {
 		if ( is_mounted($info['device']) ) {
-			add_smb_share($info['mountpoint'], $info['device']);
+			add_smb_share($info['mountpoint'], $info['device'], FALSE);
 		}
 	}
 
 	// Iso File Mounts
 	foreach (get_iso_mounts() as $name => $info) {
 		if ( is_mounted($info['device']) ) {
-			add_smb_share($info['mountpoint'], $info['device']);
+			add_smb_share($info['mountpoint'], $info['device'], FALSE);
 			add_nfs_share($info['mountpoint']);
 		}
 	}
