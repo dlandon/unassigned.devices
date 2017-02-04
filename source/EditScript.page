@@ -1,6 +1,6 @@
 Title="Edit Script"
 ---
-<?PHP
+<?php
 /* Copyright 2015, Guilherme Jardim
  * Copyright 2016, Dan Landon
  *
@@ -11,9 +11,7 @@ Title="Edit Script"
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  */
-?>
 
-<?PHP
 $plugin = "unassigned.devices";
 require_once("plugins/${plugin}/include/lib.php");
 

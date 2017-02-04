@@ -2,7 +2,7 @@ Menu="Main:4"
 Title="Unassigned Devices"
 Markdown="false"
 ---
-<?PHP
+<?php
 /* Copyright 2015, Guilherme Jardim
  * Copyright 2016-2017, Dan Landon
  *
@@ -13,9 +13,7 @@ Markdown="false"
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  */
-?>
 
-<?PHP
 $plugin = "unassigned.devices";
 $zip = str_replace(' ','_',strtolower($var['NAME']))."-unassigned.devices-".date('Ymd-Hi').".zip";
 $version = parse_ini_file("/etc/unraid-version");

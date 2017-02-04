@@ -1,4 +1,4 @@
-<?PHP
+<?php
 /* Copyright 2015, Guilherme Jardim
  * Copyright 2016-2017, Dan Landon
  *
@@ -9,9 +9,7 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  */
-?>
 
-<?
 $plugin = "unassigned.devices";
 require_once("plugins/${plugin}/include/lib.php");
 readfile('logging.htm');

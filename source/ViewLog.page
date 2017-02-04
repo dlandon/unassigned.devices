@@ -1,6 +1,6 @@
 Title="Unassigned Device Log"
 ---
-<?PHP
+<?php
 /* Copyright 2015, Lime Technology
  * Copyright 2015, Bergware International.
  * Copyright 2016-2017, Dan Landon
@@ -12,9 +12,7 @@ Title="Unassigned Device Log"
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  */
-?>
 
-<?PHP
 $plugin = "unassigned.devices";
 require_once("plugins/${plugin}/include/lib.php");
 

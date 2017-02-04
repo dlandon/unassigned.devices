@@ -2,7 +2,7 @@ Menu="Utilities"
 Title="Unassigned Devices"
 Icon="unassigned.devices.png"
 ---
-<?PHP
+<?php
 /* Copyright 2015, Guilherme Jardim
  * Copyright 2016-2017, Dan Landon
  *
@@ -13,9 +13,7 @@ Icon="unassigned.devices.png"
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  */
-?>
 
-<?
 $plugin = "unassigned.devices";
 require_once("plugins/${plugin}/include/lib.php");
 $config_file = "/boot/config/plugins/{$plugin}/{$plugin}.cfg";

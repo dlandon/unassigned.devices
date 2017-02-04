@@ -1,4 +1,4 @@
-<?PHP
+<?php
 /* Copyright 2015, Guilherme Jardim
  * Copyright 2016-2017, Dan Landon
  *
@@ -9,9 +9,7 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  */
-?>
 
-<?
 $plugin = "unassigned.devices";
 // $VERBOSE=TRUE;
 
@@ -551,6 +549,11 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 		$config = is_file($paths['config_file']) ? @parse_ini_file($paths['config_file'], true) : array();
 		$config = $config["Config"];
 
+		if ($recycle_bin) {
+			$vfs_objects = "\n\tvfs objects = ";
+		} else {
+			$vfs_objects = "";
+		}
 		if ($config["smb_security"] != "no") {
 			$read_users = $write_users = $valid_users = array();
 			foreach ($users as $key => $user) {
@@ -574,18 +577,13 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 				$valid_users = "\n\tvalid users = ".implode(', ', $valid_users);
 				$write_users = count($write_users) ? "\n\twrite list = ".implode(', ', $write_users) : "";
 				$read_users = count($read_users) ? "\n\tread users = ".implode(', ', $read_users) : "";
-				if ($recycle_bin) {
-					$vfs_objects = "\n\tvfs objects = ";
-				} else {
-					$vfs_objects = "";
-				}
 				$share_cont =  "[{$share_name}]\n\tpath = {$dir}{$hidden}{$valid_users}{$write_users}{$read_users}{$vfs_objects}";
 			} else {
 				$share_cont =  "[{$share_name}]\n\tpath = {$dir}\n\tinvalid users = @users";
 				unassigned_log("Error: No valid smb users defined.  Share '{$dir}' cannot be accessed.");
 			}
 		} else {
-			$share_cont = "[{$share_name}]\n\tpath = {$dir}\n\tread only = No\n\tguest ok = Yes ";
+			$share_cont = "[{$share_name}]\n\tpath = {$dir}\n\tread only = No\n\tguest ok = Yes{$vfs_objects}";
 		}
 
 		if(!is_dir($paths['smb_usb_shares'])) @mkdir($paths['smb_usb_shares'],0755,TRUE);
@@ -608,6 +606,7 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 				// Add the recycle bin parameters if plugin is installed installed
 				$recycle_script = "/usr/local/emhttp/plugins/recycle.bin/scripts/configure_recycle_bin";
 				if (is_file($recycle_script)) {
+					unassigned_log("Enabling the Recycle Bin on share '$share_name'");
 					shell_exec("$recycle_script"." ${share_conf}");
 				}
 			}

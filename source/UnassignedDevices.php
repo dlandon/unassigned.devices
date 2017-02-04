@@ -1,4 +1,4 @@
-<?PHP
+<?php
 /* Copyright 2015, Guilherme Jardim
  * Copyright 2016-2017, Dan Landon
  *
@@ -9,9 +9,7 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  */
-?>
 
-<?PHP
 $plugin = "unassigned.devices";
 require_once("plugins/${plugin}/include/lib.php");
 require_once("webGui/include/Helpers.php");
@@ -153,14 +151,7 @@ function make_mount_button($device) {
 switch ($_POST['action']) {
 	case 'get_content':
 		$disks = get_all_disks_info();
-		$sharing = "Share";
-		if ($cfg['Config']["smb_security"] == "yes") {
-			$sharing .= " (SMB)";
-		}
-		if ($cfg['Config']["nfs_export"] == "yes") {
-			$sharing .= " (NFS)";
-		}
-		echo "<table class='usb_disks custom_head'><thead><tr><td>Device</td><td>Identification</td><td></td><td>Temp</td><td>FS</td><td>Size</td><td>Open files</td><td>Used</td><td>Free</td><td>Auto mount</td><td>{$sharing}</td><td>Log</td><td>Script</td></tr></thead>";
+		echo "<table class='usb_disks custom_head'><thead><tr><td>Device</td><td>Identification</td><td></td><td>Temp</td><td>FS</td><td>Size</td><td>Open files</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Share</td><td>Log</td><td>Script</td></tr></thead>";
 		echo "<tbody>";
 		if ( count($disks) ) {
 			$odd="odd";

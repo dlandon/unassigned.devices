@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.02.01">
+<!ENTITY version   "2017.02.04">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"7dc24b6d76e7f8ebc47c85426786a440">
+<!ENTITY MD5		"e7e0e2ca734f838f1ff6220e24c108ba">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: More code cleanup.
+
+###2017.02.04
 - Fix: Code cleanup.
 - Add: Integrate with 6.3 recycle bin.
 
