@@ -1,0 +1,333 @@
+<?xml version='1.0' standalone='yes'?>
+
+<!DOCTYPE PLUGIN [
+<!ENTITY name		"recycle.bin">
+<!ENTITY author		"dlandon">
+<!ENTITY version	"2016.11.08">
+<!ENTITY launch		"Settings/RecycleBinSettings">
+<!ENTITY pluginURL	"https://github.com/dlandon/recycle.bin/raw/master/recycle.bin.plg">
+<!ENTITY MD5		"bbc3c8df9fcc8e59eb4e8f636139c6d5">
+]>
+
+<PLUGIN  name="&name;"
+         author="&author;"
+         version="&version;"
+         launch="&launch;"
+         pluginURL="&pluginURL;">
+
+<CHANGES>
+##&name;
+###&version;
+- Fix: Eliminate error message when trying to determine the docroot.
+
+###2016.10.30
+- Fix: Script hanging when plugin is removed keeping the "Done" button from showing.
+
+###2016.10.23
+- Fix: Changed absolute path using $docroot in preparation for moving from emhttp.
+
+###2016.10.22a
+- Fix: Updates for compatibility with unRAID 6.2 and later.
+
+###2016.10.20
+- Fix: Recursion where unmounting_disks event was left in.
+
+###2016.10.18
+- Fix: Syntax in rc.recycle.bin script.
+
+###2016.10.07
+- Fix: Move stop recycle bin event to 'stopping_svcs'.
+
+###2016.10.06
+- Fix: Samba being restarted on a shutdown.
+
+###2016.06.03
+- Fix: Reverted to samba restart.
+
+###2016.05.29
+- Fix: Error when smb-extra.conf file does not exist.
+
+###2016.05.28
+- Fix: Changed samba configuration reload so the samba shares would not go offline briefly.
+- Fix: Unclean shutdown could end up with two entries for the recycle bin in the smb-extra.conf.
+- Fix: Added tool tips.
+
+###2016.04.24
+- Add: Can now exclude disk and cache shares.
+- Fix: Shares with spaces in the share name caused problems with excluding shares.
+- Fix: Don't start recycle bin when plugin is installed.  This started the recycle bin too early on a startup and is not really necessary.  An array event starts the recycle bin at the right time.
+
+###2016.04.23
+- Add: Ability to exclude shares.  A cron is run once an hour to remove deleted files from the share.  Note: Disks may spin up to remove the deleted files.
+
+###2016.01.16
+- Add: Compatibility with unRAID 6.1.7.
+
+###2015.12.31
+- Add: Deleted files log now scrolls in preparation for next release of Dynamix.
+
+###2015.12.18
+- Add: MD5 checksum to bundle file.
+
+###2015.12.14
+- Add: unRaid version check.  Only unRaid 6.1 and higher.
+
+###2015.11.30
+- Fix: Dynamix cron entries not always updated.
+
+###2015.11.29
+- Add: Add Hourly, Daily, and Weekly selections to remove files choices.  You can now set the schedule for the aged files removal.
+
+###2015.10.28
+- Fix: Change to '/usr/local/sbin/update_cron' to update Dynamix crons.
+
+###2015.10.25
+- Fix: Adjust 'syslog only' setting in smb-extra.conf when turning logging on/off.
+
+###2015.10.04
+- Add: Logging of vfs recycle delete file events and viewer to view deleted (unlinked) files.
+
+###2015.10.03
+- Fix: Typo in rc.recycle.bin.
+
+###2015.10.02
+- Fix: Minor changes to rc.recycle.bin for clarity and documentation.
+
+###2015.09.29a
+- Fix: Webgui browsing issues.
+
+###2015.09.27
+- Fix: Use dynamix cron mechanism for weekly removal of aged files.
+
+###2015.09.25
+- Fix: Improved webgui browsing of recycle bin.
+
+###2015.09.24
+- Fix: Minor changes to rc.recycle.bin.
+- Fix: Other very minor tweaks.
+
+###2015.09.23
+- Add: Flash, disk, and unassigned devices shares are now managed in the recycle bin.
+- Fix: Change purge procedure to handle hidden files and directories.
+- FIx: More rc.recycle.bin modifications.
+
+###2015.09.22
+- Fix: rc.recycle.bin script issues.
+
+###2015.09.20
+- Fix: Plugin installation changes.
+
+###2015.09.19f
+- Add: Move /etc/rc.d/rc.recycle.bin to recycle.bin/scripts/rc.recycle.bin.
+- Fix: More script work.
+
+###2015.09.19a
+- Add: "Removing aged files..." message.
+
+###2015.09.19
+- Fix: Clarifications in README.md and help text.
+- Fix: Changed plugin name to 'recycle.bin' to be more consistent with plugin naming.
+- Fix: Made modifications for plugin consistency.
+- Add: Moved recycle bin repository.
+- Add: Cannot manage recycle bin if array is stopped.
+
+###2015.09.17
+- Add: Launch so clicking on plugin icon will take you to the recycle bin.
+
+###2015.09.14
+- Fix: Remove unused functions from rc.recycle.bin.  Better handle config file.
+
+###2015.09.13
+- Added some additional help text.
+
+###2015.09.11
+- Fix: Recycle bin is now by share.  Each share has its own Recycle Bin that can be accessed by any User that has access to the share.
+
+###2015.09.09a
+- Fix: Installation cleanup - /boot/plugins/recycle.bin/config/smb-extra.conf settings were lost on reboot.  Select default and then reapply your configuration settings.
+
+###2015.09.09
+- Add: Excluded files setting.
+- Fix: Modified web page to dynamix standards.
+
+###2015.09.08
+- Fix: Some plugin organization - image files moved to images/.
+- Add: Changed the weekly age to days instead of minutes.
+- Add: Changed weekly age days to 'Age Days to remove files'.  This is used for removing files weekly or when the 'Remove Files' button is clicked.
+- Add: Added a 'Remove Files' button to remove files older that the 'Age Days' setting.
+- Add: Browse the Recycle Bin by clicking on the full trash can.
+- Add: Don't empty the trash when removing the plugin.  Deleted files will have to be removed by emptying the trash or manually.
+
+###2015.09.07a
+- Add: You can add additional Users that can access the Recycle Bin as admin.
+- Add: You can set the Recycle Bin read only or read/write.
+
+###2015.09.07
+- Fix: Remove deleting of the .Recycle.Bin when the plugin is removed.  Removal of .Recycle.Bin is automatic when the Recycle Bin is disabled and the bin is empty.
+- Fix: Typo and minor cleanup of rc.recycle.bin.
+- Fix: Interference with unassigned devices and user entries in the smb-extra.conf file.
+- Add: Parameters for the Recycle Bin file structure are now settable.
+- Add: You can set whether the Recycle Bin is browseable.
+
+###2015.09.06a
+- Add: Notification when weekly empty trash is run.
+
+###2015.09.06
+- Fix: Suppress console error messages.
+- Fix: Weekly empty trash cron settings.
+- Add: Help information.
+
+###2015.09.05
+- Initial unRAID V6.1 release.
+</CHANGES>
+
+<!--
+Copyright 2015-2016, Dan Landon
+VFS Recycle Bin for samba deleted files.  This is the webGUI used to setup and manage
+the vfs recycle functionality in samba on unRAID.
+-->
+
+<!--
+The 'pre-install' script.
+-->
+<FILE Run="/bin/bash">
+<INLINE>
+# Check unRAID version
+source /etc/unraid-version
+if [[ ${version:0:3} == 6.0 ]]; then
+  echo "unRAID version 6.1 or higher is required"
+  exit 1
+fi
+
+# Remove emhttp files so we can re-install.
+rm -rf /usr/local/emhttp/plugins/&name;/* 2>/dev/null
+
+# Remove old 'bundle' files.
+rm -f $(ls /boot/config/plugins/&name;/&name;*.tgz 2>/dev/null | grep -v '&version;')
+</INLINE>
+</FILE>
+
+<!--
+Get the plugin bundle.
+-->
+<FILE Name="/boot/config/plugins/&name;/&name;-&version;.tgz">
+<URL>"https://github.com/dlandon/&name;/raw/master/&name;-&version;.tgz"</URL>
+<MD5>&MD5;</MD5>
+</FILE>
+
+<!--
+Install the plugin bundle.
+-->
+<FILE Run="/bin/bash">
+<INLINE>
+# Install the 'bundle'.
+tar -xf /boot/config/plugins/&name;/&name;-&version;.tgz -C /usr/local/emhttp/plugins 2>/dev/null
+
+# Adjust plugin permissions.
+chmod 755 -R /usr/local/emhttp/plugins/&name; 2>/dev/null
+</INLINE>
+</FILE>
+
+<FILE Name="/boot/config/plugins/&name;/&name;.cfg">
+<INLINE>
+<![CDATA[
+SERVICE="disable"
+PARAMETERS=""
+EXCLUDE="*.tmp"
+SCHEDRUN="no"
+AGE="7"
+NOTIFY="no"
+LOG="no"
+]]>
+</INLINE>
+</FILE>
+
+<FILE Name="/boot/config/plugins/&name;/config/smb-extra.conf">
+<INLINE>
+<![CDATA[
+#vfs_recycle_start
+#Recycle bin configuration
+[global]
+   vfs objects = recycle
+   syslog only = Yes
+   log level = 0 vfs:0
+   recycle:repository = %P/.Recycle.Bin/
+   recycle:directory_mode = 0777
+   recycle:keeptree = Yes
+   recycle:touch = Yes
+   recycle:touch_mtime = Yes
+   recycle:versions = Yes
+   recycle:exclude = *.tmp   
+   recycle:exclude_dir = .Recycle.Bin
+#vfs_recycle_end
+]]>
+</INLINE>
+</FILE>
+
+<!--
+The 'post-install' script.
+-->
+<FILE Run="/bin/bash">
+<INLINE>
+# create recycle.bin-writable directory for pid file
+if [ ! -e /var/run/&name; ]; then
+	mkdir /var/run/&name;
+	chown $RUNAS:root /var/run/&name;
+	chmod 0755 /var/run/&name;
+fi
+
+echo ""
+echo "-----------------------------------------------------------"
+echo " Plugin &name; is installed."
+echo " Copyright 2015-2016 Dan Landon"
+echo " Version: &version;"
+echo "-----------------------------------------------------------"
+echo ""
+</INLINE>
+</FILE>
+
+<!--
+Recycle bin background stop script.
+-->
+<FILE Name="/tmp/&name;/stop_recycle.bin" Mode="0770">
+<INLINE>
+#!/bin/bash
+# Stop recycle bin.
+/usr/local/emhttp/plugins/recycle.bin/scripts/rc.recycle.bin stop 2>/dev/null
+
+# Remove the pid file directory.
+rmdir /var/run/&name; 2>/dev/null
+
+# Remove plugin files.
+rm -rf /usr/local/emhttp/plugins/&name; 2>/dev/null
+
+# Remove the background stop script.
+rm -rf /tmp/&name; 2>/dev/null
+</INLINE>
+</FILE>
+
+<!--
+The 'remove' script.
+-->
+<FILE Run="/bin/bash" Method="remove">
+<INLINE>
+# Run the stop recycle bin script in the background.
+echo "Stopping Recycle Bin..."
+at -M -f /tmp/&name;/stop_recycle.bin now 2>/dev/null
+
+# Remove plugin files from the flash drive.
+rm -rf /boot/config/plugins/&name; 2>/dev/null
+
+# Remove RecycleBin browse symlinks.
+rm -rf /mnt/RecycleBin
+
+echo ""
+echo "-----------------------------------------------------------"
+echo " Plugin &name; has been removed."
+echo " Version: &version;"
+echo "-----------------------------------------------------------"
+echo ""
+</INLINE>
+</FILE>
+
+</PLUGIN>
