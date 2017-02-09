@@ -103,7 +103,7 @@ Auto Mount USB Devices?
   <?=mk_option($cfg["Config"]["automount_usb"], "yes", "Yes");?>
   </select>
 
-> When set to 'Yes', will auto mount a new USB device and share it without user interaction.
+> When set to 'Yes', will auto mount a new USB device and share it without user intervention.
 
 &nbsp;
 : <input type="submit" name="#apply" value="Apply"><input type="button" value="Done" onclick="done()">
@@ -143,8 +143,8 @@ Auto Mount USB Devices?
 > Set the user level of SMB Security.
 >
 > + Set to 'Yes' to enable SMB Security on SMB shares.  Set access by user to allow access and whether or not the user can write to the share.
-> + Set to 'Yes (hidden)' to enable SMB Security on SMB shares that cannot be browsed.  Set access by user to allow access and whether or not the user can write to the share.
-> + Set to 'No' will share devices and SMB Mounts Public with read and write access.
+> + Set to 'Yes (hidden)' to enable SMB Security on SMB shares that will not be visible.  Set access by user to allow access and whether or not the user can write to the share.
+> + Set to 'No' will share devices, SMB/NFS, and iso Mounts Public with read and write access.
 
 &nbsp;
 : <input type="submit" name="#apply" value="Apply"><input type="button" value="Done" onclick="done()">

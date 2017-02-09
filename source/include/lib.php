@@ -613,7 +613,6 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 		}
 
 		unassigned_log("Reloading Samba configuration...");
-		shell_exec("/bin/killall -s 1 smbd 2>/dev/null && /bin/killall -s 1 nmbd 2>/dev/null");
 		shell_exec("/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
 		unassigned_log("Directory '${dir}' shared successfully."); return TRUE;
 	} else {
@@ -1209,3 +1208,4 @@ function setSleepTime($device) {
 	$device = preg_replace("/\d+$/", "", $device);
 	shell_exec("/usr/sbin/hdparm -S180 $device 2>&1");
 }
+?>
