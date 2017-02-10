@@ -123,7 +123,7 @@ Auto Mount USB Devices?
 	</dd>
 </dl>
 
-<div id="smb_security" style="display: <?=($cfg['Config']["smb_security"] == "no" || $cfg['Config']["smb_security"] == "" ? "none" : "block");?>">
+<div id="smb_security" style="display: <?=($cfg['Config']["smb_security"] == "no" ? "none" : "block");?>">
 	&nbsp;
 	<?php foreach ($users as $user): ?>
 	<?php if ($user['name'] == "root"): continue; endif;?>

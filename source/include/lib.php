@@ -554,7 +554,7 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 		} else {
 			$vfs_objects = "";
 		}
-		if ($config["smb_security"] == "yes") {
+		if ($config["smb_security"] != "no") {
 			$read_users = $write_users = $valid_users = array();
 			foreach ($users as $key => $user) {
 				if ($user['name'] != "root" ) {
