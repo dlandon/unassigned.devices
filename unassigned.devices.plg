@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.02.09">
+<!ENTITY version   "2017.02.09a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"5200b9ed6953f2ff4763dcdb78e1991d">
+<!ENTITY MD5		"ca26bc2e1f8ec22ca37e02c62044ce5d">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -17,7 +17,7 @@
 ##&name;
 ###&version;
 - Fix: More code cleanup.
-- Fix: Change to try to fix issue with public SMB shares.
+- Fix: Change to fix issue with public SMB shares when SMB settings have not been set.
 
 ###2017.02.04
 - Fix: Code cleanup.
