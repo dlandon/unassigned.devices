@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.02.09a">
+<!ENTITY version   "2017.02.10">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"ca26bc2e1f8ec22ca37e02c62044ce5d">
+<!ENTITY MD5		"5d3853e7e8d09d2f9515902405cbd5d3">
 ]>
 
 <PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
@@ -16,6 +16,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Some minor webgui changes and enhancements.
+
+###2017.02.09a
 - Fix: More code cleanup.
 - Fix: Change to fix issue with public SMB shares when SMB settings have not been set.
 
