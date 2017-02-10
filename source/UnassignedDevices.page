@@ -690,7 +690,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 		// Load contents if tab is checked
 		if ($('#tab'+tab_usbdisks).is(':checked')) {
-			$('#tab'+tab_usbdisks).trigger("click")
+			$('#tab'+tab_usbdisks).trigger("click");
+			$.removeCookie('one',{path:'/'});
 		}
 
 		// Load page content
