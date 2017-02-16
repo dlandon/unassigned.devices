@@ -180,7 +180,7 @@ switch ($_POST['action']) {
 												</span>
 												{$disk[serial]}
 												{$preclear_link}
-												<div id='preclear_{$disk_name}'></div>";
+												<div id='preclear_{$disk['serial_short']}'></div>";
 				}
 				else
 				{
