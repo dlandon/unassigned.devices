@@ -3,19 +3,26 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.02.16">
+<!ENTITY version   "2017.02.20">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"f86a41254223d6641cf405f8ceaf0fb2">
+<!ENTITY MD5		"47583d5d095619fd05d475349ac9a7e6">
 ]>
 
-<PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
+<PLUGIN name="&name;"
+		author="&author;"
+		launch="&launch;"
+		version="&version;"
+		pluginURL="&pluginURL;">
 
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Remove 'Download' button from help.
+
+###2017.02.16
 - Fix: 	Use serial instead of device name to display Preclear status.
 
 ###2017.02.10
@@ -23,7 +30,7 @@
 
 ###2017.02.09a
 - Fix: More code cleanup.
-- Fix: Change to fix issue with public SMB shares when SMB settings have not been set.
+- Fix: Change to fix issue with public SMB shares when SMB settings have not been saved.
 
 ###2017.02.04
 - Fix: Code cleanup.

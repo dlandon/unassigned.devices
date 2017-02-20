@@ -640,11 +640,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	</p>
 	<p>Switch the 'Complete' button to change the web page to just show hardware devices.  Switch the 'Simple' switch to switch back to the full web display.</p>
 </blockquote>
-
-<blockquote class='inline_help'>
-	<input type="button" value="Download Log" onclick="getlog()">
-	<p>Click on the <strong>'Download Log'</strong> button to download a zip file copy of the unassigned devices log.</p>
-</blockquote>
 </form>
 
 <script type="text/javascript">
@@ -672,7 +667,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	$(function()
 	{
 
-		// Add buttons to Tab/Title bar
+		// Add icons to Tab/Title bar
 		addButtonTab('<a style="cursor:pointer" onclick="getlog()" title="Download Log"><i class="fa fa-download"></i></a>', "Unassigned Devices");
 		addButtonTab('<a style="cursor:pointer" onclick="ShowLog()" title="Show Log"><i class="fa fa-file-text-o"></i></a>', "Unassigned Devices");
 		addButtonTab('<a style="cursor:pointer" onclick="$.post(\''+URL+'\',{\'action\':\'rescan_disks\'});" title="Rescan Disks"><i class="fa fa-refresh"></i></a>',
