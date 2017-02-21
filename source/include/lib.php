@@ -955,7 +955,7 @@ function do_mount_iso($info) {
 	if (is_file($info['file'])) {
 		if (! is_mounted($dev) || ! is_mounted($dir, true)) {
 			@mkdir($dir, 0777, TRUE);
-			$cmd = "/sbin/mount -t iso9660 -o loop '${dev}' '${dir}'";
+			$cmd = "/sbin/mount -o loop '${dev}' '${dir}'";
 			unassigned_log("Mount iso command: mount -t iso9660 -o loop '${dev}' '${dir}'");
 			$o = shell_exec($cmd." 2>&1");
 			foreach (range(0,5) as $t) {
