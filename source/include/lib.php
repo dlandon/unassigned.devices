@@ -471,7 +471,7 @@ function do_mount_local($info) {
 			if ($o != "" && $fs == "ntfs") {
 				unassigned_log("Mount failed with error: $o");
 				unassigned_log("Mount ntfs drive read only.");
-				$cmd = "/sbin/mount -t $fs -r -o ".get_mount_params($fs, $dev)." '${dev}' '${dir}'";
+				$cmd = "/sbin/mount -t $fs -ro ".get_mount_params($fs, $dev)." '${dev}' '${dir}'";
 				unassigned_log("Mount drive ro command: $cmd");
 				$o = shell_exec($cmd." 2>&1");
 				if ($o != "") {
@@ -955,8 +955,8 @@ function do_mount_iso($info) {
 	if (is_file($info['file'])) {
 		if (! is_mounted($dev) || ! is_mounted($dir, true)) {
 			@mkdir($dir, 0777, TRUE);
-			$cmd = "/sbin/mount -o loop '${dev}' '${dir}'";
-			unassigned_log("Mount iso command: mount -t iso9660 -o loop '${dev}' '${dir}'");
+			$cmd = "/sbin/mount -ro loop '${dev}' '${dir}'";
+			unassigned_log("Mount iso command: mount -ro loop '${dev}' '${dir}'");
 			$o = shell_exec($cmd." 2>&1");
 			foreach (range(0,5) as $t) {
 				if (is_mounted($dev)) {

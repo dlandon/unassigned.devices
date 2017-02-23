@@ -315,7 +315,7 @@ switch ($_POST['action']) {
 		foreach ($config as $serial => $value) {
 			if($serial == "Config") continue;
 			if (! preg_grep("#${serial}#", $disks_serials)){
-				$ct .= "<tr><td><img src='/webGui/images/green-blink.png'> missing</td><td>$serial</td><td title='Turn on to Mount Iso File when Array is Started'><input type='checkbox' class='automount' serial='${serial}' ".( is_automount($serial) ? 'checked':'' )."></td><td colspan='7'><a style='cursor:pointer;' onclick='remove_disk_config(\"${serial}\")'>Remove</a></td></tr>";
+				$ct .= "<tr><td><img src='/webGui/images/green-blink.png'> missing</td><td>$serial</td><td title='Turn on to Mount Device when Array is Started'><input type='checkbox' class='automount' serial='${serial}' ".( is_automount($serial) ? 'checked':'' )."></td><td title='Remove Device configuration' colspan='7'><a style='cursor:pointer;' onclick='remove_disk_config(\"${serial}\")'>Remove</a></td></tr>";
 			}
 		}
 		if (strlen($ct)) {
