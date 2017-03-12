@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.02.23">
+<!ENTITY version   "2017.03.12">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"416c5bd213ec4eafc6988363bd6a9fac">
+<!ENTITY MD5		"d77961f5e368681e911ba66c64ef7c7b">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,10 +20,13 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Remove automount switches from partitions to eliminate confusion.  It applies to the disk and not to partitions.
+
+###2017.02.23
 - Fix: All iso files are now mounted read only.
 
 ###2017.02.21
-- Fix: Remove '-t iso9660' from iso mount so other than CD iso files can be mounted.
+- Fix: Remove -t iso9660 from iso mount so other than CD iso files can be mounted.
 
 ###2017.02.20
 - Fix: Remove 'Download' button from help.
