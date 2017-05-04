@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.05.04">
+<!ENTITY version   "2017.05.04a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"d1d2c80fe8f8637caf0705020cefe4b8">
+<!ENTITY MD5		"e4428473e44cbdd68add2eed27c0a171">
 ]>
 
 <PLUGIN name="&name;"
@@ -21,6 +21,7 @@
 ##&name;
 ###&version;
 - Fix: Moved script logs to /tmp/unassigned.devices.
+- Fix: Force unmount SMB/NFS shares and iso mounts when shutting down server.
 
 ###2017.03.23
 - Fix: Restored missing Historical Devices icon.
