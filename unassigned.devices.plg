@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.03.23">
+<!ENTITY version   "2017.05.04">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"12d56e003b73f99b4b588069481c7c84">
+<!ENTITY MD5		"d1d2c80fe8f8637caf0705020cefe4b8">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Moved script logs to /tmp/unassigned.devices.
+
+###2017.03.23
 - Fix: Restored missing Historical Devices icon.
 
 ###2017.03.12
@@ -59,7 +62,7 @@
 - Fix: Modified the warning about re-starting Docker before Docker will see UD shares.
 - Fix: Additional help text about using UD script to mount/unmount devices.
 - Add: Added (SMB) and (NFS) to the 'Share' button table header to show the sharing enabled in the UD settings.
-- Fix: Don't calculate size and space on a disconnected SMB of NFS mount.
+- Fix: Don't calculate size and space on a disconnected SMB or NFS mount.
 - Fix: Changed 'df' for calculating the size and used space on a device to a device specific call to 'df'.
 
 ###2017.01.24
@@ -614,14 +617,14 @@ libnl-1.1.4-x86_64-1.txz
 <!--
 Unassigned devices background start script.
 -->
-<FILE Name="/tmp/&name;/start_unassigned_devices" Mode="0770">
+<FILE Name="/tmp/start_unassigned_devices" Mode="0770">
 <INLINE>
 #!/bin/bash
 # Start unassigned devices.
 /usr/local/emhttp/plugins/&name;/scripts/rc.unassigned mount auto 2>/dev/null
 
 # Remove the background start script.
-rm -rf /tmp/&name; 2>/dev/null
+rm -f /tmp/start_unassigned_devices 2>/dev/null
 </INLINE>
 </FILE>
 
@@ -630,6 +633,9 @@ The 'post-install' script.
 -->
 <FILE Run="/bin/bash">
 <INLINE>
+# Create logs directory.
+mkdir /tmp/&name; 2>/dev/null
+
 # Install the plugin bundle.
 # Create plugin directory
 mkdir /boot/config/plugins/&name; 2>/dev/null
@@ -667,7 +673,7 @@ chown nobody:users /mnt/disks
 # mount disks if array is started
 if [[ -e /proc/mdcmd ]]; then
   if [[ $(cat /proc/mdcmd|grep mdState|cut -d"=" -f2) == STARTED ]]; then
-    at -M -f /tmp/&name;/start_unassigned_devices now 2>/dev/null
+    at -M -f /tmp/start_unassigned_devices now 2>/dev/null
   fi
 fi
 
@@ -742,6 +748,9 @@ if [ -f /var/log/packages/parted-3.2-x86_64-2 ]; then
 fi
 
 removepkg libnl-1.1.4-x86_64-1 2>/dev/null
+
+# Remove the logs directory.
+rm -r /tmp/&name; 2>/dev/null
 
 echo ""
 echo "-----------------------------------------------------------"

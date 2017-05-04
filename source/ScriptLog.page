@@ -30,7 +30,7 @@ if (isset($_GET['s'])) {
 
 $zip_file = "-".basename($file, ".sh")."-";
 $zip = str_replace(' ','_',strtolower($var['NAME'])).$zip_file.date('Ymd-Hi').".zip";
-$file = "/var/log/".basename($file, ".sh").".log";
+$file = "/tmp/$plugin/".basename($file, ".sh").".log";
 $cmd = "cat ".$file." 2>/dev/null";
 echo $display['resize'] ? "<pre class='up' style='display:none'>" : "<pre class='up'>";
 echo `{$cmd}`;

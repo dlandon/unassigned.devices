@@ -16,7 +16,7 @@ $plugin = "unassigned.devices";
 $paths =  array("smb_extra"       => "/boot/config/smb-extra.conf",
 				"smb_usb_shares"  => "/etc/samba/unassigned-shares",
 				"usb_mountpoint"  => "/mnt/disks",
-				"device_log"      => "/var/log/",
+				"device_log"      => "/tmp/{$plugin}/",
 				"log"             => "/var/log/{$plugin}.log",
 				"config_file"     => "/boot/config/plugins/{$plugin}/{$plugin}.cfg",
 				"state"           => "/var/state/${plugin}/${plugin}.ini",
@@ -514,7 +514,7 @@ function do_unmount($dev, $dir, $force = FALSE) {
 		unassigned_log("Unmount of '${dev}' failed. Error message: \n$o"); 
 		sleep(1);
 		if (! lsof($dir) && ! $force) {
-			unassigned_log("Since there aren't open files, try to force unmount.");
+			unassigned_log("Since there aren't open files, will force unmount.");
 			return do_unmount($dev, $dir, true);
 		}
 		return FALSE;
