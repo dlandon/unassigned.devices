@@ -8,7 +8,7 @@
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"e4428473e44cbdd68add2eed27c0a171">
+<!ENTITY MD5		"40ca9ee3e6e865ae07db79bc0868e13b">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Additional help and tool tip text to explain using Enter to save the mount point.
+
+###2017.05.04a
 - Fix: Moved script logs to /tmp/unassigned.devices.
 - Fix: Force unmount SMB/NFS shares and iso mounts when shutting down server.
 
