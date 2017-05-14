@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.05.11">
+<!ENTITY version   "2017.05.14">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"40ca9ee3e6e865ae07db79bc0868e13b">
+<!ENTITY MD5		"a0f11e00c99bf4322dfe1d0e209a0765">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Additional help about formatting disks in UD and installing the disk into the array.
+- Fix: Plugin start script cleanup.
+
+###2017.05.11
 - Add: Additional help and tool tip text to explain using Enter to save the mount point.
 
 ###2017.05.04a
@@ -624,8 +628,12 @@ Unassigned devices background start script.
 <FILE Name="/tmp/start_unassigned_devices" Mode="0770">
 <INLINE>
 #!/bin/bash
-# Start unassigned devices.
-/usr/local/emhttp/plugins/&name;/scripts/rc.unassigned mount auto 2>/dev/null
+# Start unassigned devices if the array is started.
+if [[ -e /proc/mdcmd ]]; then
+  if [[ $(cat /proc/mdcmd|grep mdState|cut -d"=" -f2) == STARTED ]]; then
+    /usr/local/emhttp/plugins/&name;/scripts/rc.unassigned mount auto 2>/dev/null
+  fi
+fi
 
 # Remove the background start script.
 rm -f /tmp/start_unassigned_devices 2>/dev/null
@@ -674,12 +682,8 @@ rm -rf /var/state/&name;
 mkdir -p /mnt/disks /var/state/&name;
 chown nobody:users /mnt/disks
 
-# mount disks if array is started
-if [[ -e /proc/mdcmd ]]; then
-  if [[ $(cat /proc/mdcmd|grep mdState|cut -d"=" -f2) == STARTED ]]; then
-    at -M -f /tmp/start_unassigned_devices now 2>/dev/null
-  fi
-fi
+# mount disks
+at -M -f /tmp/start_unassigned_devices now 2>/dev/null
 
 # Rename original Dynamix page
 if [[ -e /usr/local/emhttp/plugins/dynamix/OpenDevices.page ]]; then
