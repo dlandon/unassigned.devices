@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.05.14">
+<!ENTITY version   "2017.05.21">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"a0f11e00c99bf4322dfe1d0e209a0765">
+<!ENTITY MD5		"0b158ca65575c25794152c45ed7c1e55">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Updated fuse-exfat and exfat-utils packages.
+
+###2017.05.14
 - Add: Additional help about formatting disks in UD and installing the disk into the array.
 - Fix: Plugin start script cleanup.
 
@@ -542,19 +545,19 @@ ntfs-3g-2013.1.13-x86_64-1.txz (for unraid 6.1)
 
 
 <!--
-exfat-utils-1.2.4-x86_64-1_slonly.txz
+exfat-utils-1.2.6-x86_64-1_slonly.txz
 -->
-<FILE Name="&packages;/exfat-utils-1.2.4-x86_64-1_slonly.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/exfat-utils-1.2.4-x86_64-1_slonly.txz"</URL>
-<MD5>29ca04e7d38a3cb804a4671fedf9e4f2</MD5>
+<FILE Name="&packages;/exfat-utils-1.2.6-x86_64-1_slonly.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/exfat-utils-1.2.6-x86_64-1_slonly.txz"</URL>
+<MD5>724a8adbfb85cf848b1dc23f9cf42e37</MD5>
 </FILE>
 
 <!--
-fuse-exfat-1.2.4-x86_64-1_slonly.txz
+fuse-exfat-1.2.6-x86_64-1_slonly.txz
 -->
-<FILE Name="&packages;/fuse-exfat-1.2.4-x86_64-1_slonly.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/fuse-exfat-1.2.4-x86_64-1_slonly.txz"</URL>
-<MD5>f624585b623ecaa5b60be9f680e34df4</MD5>
+<FILE Name="&packages;/fuse-exfat-1.2.6-x86_64-1_slonly.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/fuse-exfat-1.2.6-x86_64-1_slonly.txz"</URL>
+<MD5>cb30ccfdf7a467fe2434bb738925d7e6</MD5>
 </FILE>
 
 <!--
@@ -744,8 +747,8 @@ rm -rf /usr/local/emhttp/plugins/&name; 2>/dev/null
 if [ -f /var/log/packages/ntfs-3g-2013.1.13-x86_64-1 ]; then
 	removepkg ntfs-3g-2013.1.13-x86_64-1 2>/dev/null
 fi
-removepkg exfat-utils-1.2.4-x86_64-1_slonly 2>/dev/null
-removepkg fuse-exfat-1.2.4-x86_64-1_slonly.txz 2>/dev/null
+removepkg exfat-utils-1.2.6-x86_64-1_slonly 2>/dev/null
+removepkg fuse-exfat-1.2.6-x86_64-1_slonly.txz 2>/dev/null
 removepkg hfsprogs-332.25-x86_64-2sl 2>/dev/null
 removepkg libbsd-0.8.3-x86_64-1_slonly 2>/dev/null
 if [ -f /var/log/packages/parted-3.1-x86_64-1 ]; then
