@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.05.21">
+<!ENTITY version   "2017.06.06">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"0b158ca65575c25794152c45ed7c1e55">
+<!ENTITY MD5		"c22cd836082aa2621eb508c325d97495">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Modifications for unRAID 6.4 Azure and Gray themes.
+
+###2017.05.21
 - Add: Updated fuse-exfat and exfat-utils packages.
 
 ###2017.05.14

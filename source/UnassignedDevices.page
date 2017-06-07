@@ -76,10 +76,10 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		right: -12px;
 	}
 
-  .switch-button-background.checked {
-    background:#0088CC;
-    border:1px solid #0088CC;
-  }
+	.switch-button-background.checked {
+		background:#0088CC;
+		border:1px solid #0088CC;
+	}
 
 	.fileTree {
 		width: 305px;
@@ -104,7 +104,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	}
 
 	function startWaitMe(el) {
-		<?if ($display['theme'] == 'white'):?>
+		<?if ($display['theme'] == 'white' || $display['theme'] == 'azure'):?>
 			$(el).waitMe({effect:'ios',text:' ',bg:'rgba(255,255,255,0.9)',color:'#000',sizeW:'',sizeH:'',source:''});
 		<?else:?>
 			$(el).waitMe({effect:'ios',text:' ',bg:'rgba(0,0,0,0.9)',color:'#FFF',sizeW:'',sizeH:'',source:''});
@@ -253,12 +253,12 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			"Add": function() {
 				$( this ).dialog( "close" );
 				var opts = new Object();
-				opts["action"]   = "add_samba_share";
+				opts["action"]	 = "add_samba_share";
 				opts["PROTOCOL"] = getVal(this,"PROTOCOL");
-				opts["IP"]       = getVal(this,"IP");
-				opts["USER"]     = getVal(this,"USER");
-				opts["PASS"]     = getVal(this,"PASS");
-				opts["SHARE"]    = getVal(this,"SHARE");
+				opts["IP"]			 = getVal(this,"IP");
+				opts["USER"]		 = getVal(this,"USER");
+				opts["PASS"]		 = getVal(this,"PASS");
+				opts["SHARE"]		= getVal(this,"SHARE");
 				if (opts.SHARE && opts.IP) {
 					$.post(URL,opts).done(function(){usb_disks(tab_usbdisks);});
 				}
@@ -287,8 +287,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			"Add": function() {
 				$( this ).dialog( "close" );
 				var opts = new Object();
-				opts["action"]   = "add_iso_share";
-				opts["ISO_FILE"]  = getVal(this,"ISO_FILE");
+				opts["action"]	 = "add_iso_share";
+				opts["ISO_FILE"]	= getVal(this,"ISO_FILE");
 				if (opts.ISO_FILE) {
 					$.post(URL,opts).done(function(){usb_disks(tab_usbdisks);});
 				}
@@ -418,89 +418,93 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	}
 
 	function get_tab_title_by_name(name) {
-	  var tab    = $("input[name$=tabs] + label").filter(function(){return $(this).text() === name;}).prev();
-	  var title  = $("div#title > span.left"    ).filter(function(){return $(this).text() === name;}).parent();
-	  if (tab.length) {
-	    return tab
-	  } else if (title.length) {
-	    return title
-	  } else {
-	    return $(document)
-	  }
+		var tab		= $("input[name$=tabs] + label").filter(function(){return $(this).text() === name;}).prev();
+		var title	= $("div#title > span.left"    ).filter(function(){return $(this).text() === name;}).parent();
+		if (tab.length) {
+			return tab
+		} else if (title.length) {
+			return title
+		} else {
+			return $(document)
+		}
 	}
 
 	function addButtonTab(Button, Name, autoHide, Append)
 	{
-	  if (typeof(autoHide) == "undefined") autoHide = true;
-	  if (typeof(Append)   == "undefined") Append   = true;
+		if (typeof(autoHide) == "undefined") autoHide = true;
+		if (typeof(Append)	 == "undefined") Append	 = true;
 
-	  var Target    = get_tab_title_by_name(Name);
-	  var elementId = 'event-' + new Date().getTime() * Math.floor(Math.random()*100000);
-	  var element   = $("<span id='"+elementId+"' class='status'>"+Button+"</span>");
-	  
-	  if (element.find("input[type='button']").length)
-	  {
-	    element.addClass("vhshift");
-	    element.find("input[type='button']").prop("style","padding-top: 5px; padding-bottom: 5px;");
-	  }
+		var Target		= get_tab_title_by_name(Name);
+		var elementId 	= 'event-' + new Date().getTime() * Math.floor(Math.random()*100000);
+		<?if ($display['theme'] == 'white' || $display['theme'] == 'black'):?>
+			var element	= $("<span id='"+elementId+"' class='status'>"+Button+"</span>");
+		<?else:?>
+			var element	= $("<span id='"+elementId+"' class='status'><span style='margin:5px;'></span>"+Button+"</span>");
+		<?endif;?>
 
-	  if (Target.prop('nodeName') === "DIV")
-	  {
-	    if (Append)
-	    {
-	      Target.append(element);
-	    }
-	    else
-	    {
-	      Target.prepend(element);
-	    }
-	  }
-	  else if (Target.prop('nodeName') === "INPUT")
-	  {
-	    element.css("display","none");
+		if (element.find("input[type='button']").length)
+		{
+			element.addClass("vhshift");
+			element.find("input[type='button']").prop("style","padding-top: 5px; padding-bottom: 5px;");
+		}
 
-	    if (Append)
-	    {
-	      $('.tabs').append(element);
-	    }
-	    else
-	    {
-	      $('.tabs').prepend(element);
-	    }
+		if (Target.prop('nodeName') === "DIV")
+		{
+			if (Append)
+			{
+				Target.append(element);
+			}
+			else
+			{
+				Target.prepend(element);
+			}
+		}
+		else if (Target.prop('nodeName') === "INPUT")
+		{
+			element.css("display","none");
 
-	    Target.bind({click:function()
-	    {
-	    	$('#'+elementId).fadeIn('slow');}
-	    });
+			if (Append)
+			{
+				$('.tabs').append(element);
+			}
+			else
+			{
+				$('.tabs').prepend(element);
+			}
 
-	    if (Target.is(':checked') || ! autoHide) {
-	      $('#'+elementId).fadeIn('slow');
-	    }
+			Target.bind({click:function()
+			{
+				$('#'+elementId).fadeIn('slow');}
+			});
 
-	    $("input[name$=tabs]").each(function()
-	    {
-	      if (! $(this).is(Target) && autoHide )
-	      {
-	        $(this).bind({click:function()
-	        {
-	        	$('#'+elementId).fadeOut('slow');}
-	        });
-	      }
-	    });
-	  }
-	  else
-	  {
-	    return false;
-	  }
+			if (Target.is(':checked') || ! autoHide) {
+				$('#'+elementId).fadeIn('slow');
+			}
+
+			$("input[name$=tabs]").each(function()
+			{
+				if (! $(this).is(Target) && autoHide )
+				{
+					$(this).bind({click:function()
+					{
+						$('#'+elementId).fadeOut('slow');}
+					});
+				}
+			});
+		}
+		else
+		{
+			return false;
+		}
 	}
 
 	function cleanUp() {
-	  if (document.hasFocus()) {
-	    $('input[value="Downloading..."]').val('Download').prop('disabled',false);
-	    $.post('/webGui/include/Download.php',{cmd:'delete',file:'<?=$zip?>'});
-	  } else {
-	    setTimeout(cleanUp,4000);
-	  }
+		if (document.hasFocus()) {
+			$('input[value="Downloading..."]').val('Download').prop('disabled',false);
+			$.post('/webGui/include/Download.php',{cmd:'delete',file:'<?=$zip?>'});
+		} else {
+			setTimeout(cleanUp,4000);
+		}
 	}
 
 	function ShowLog() {
@@ -508,11 +512,11 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	}
 
 	function getlog() {
-	  $('input[value="Download"]').val('Downloading...').prop('disabled',true);
-	  $.post('/webGui/include/Download.php',{cmd:'save',source:'/var/log/unassigned.devices.log',file:'<?=$zip?>'},function(zip) {
-	    location = zip;
-	    setTimeout(cleanUp,4000);
-	  });
+		$('input[value="Download"]').val('Downloading...').prop('disabled',true);
+		$.post('/webGui/include/Download.php',{cmd:'save',source:'/var/log/unassigned.devices.log',file:'<?=$zip?>'},function(zip) {
+			location = zip;
+			setTimeout(cleanUp,4000);
+		});
 	}
 </script>
 
@@ -570,7 +574,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		<dd><input type='text' name='SHARE'></dd>
 		<dt>&nbsp;</dt>
 		<dd><button type="button" onclick="load_shares(this, 'list_samba_shares');">Load Shares</button></dd>
-	</dl>  
+	</dl>
 </div>
 
 <div id="add-iso-defaults" style="display:none;">
@@ -591,7 +595,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		<dd>
 			<select name="FS">
 				<option value="xfs">XFS</option>
-  
+	
 				<?if (! version_compare($version['version'],"6.1.9", "<=")):?>
 					<option value="btrfs">BTRFS</option>
 				<?endif;?>
