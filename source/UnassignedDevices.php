@@ -153,8 +153,8 @@ switch ($_POST['action']) {
 		$disks = get_all_disks_info();
 		echo "<table class='usb_disks custom_head'><thead><tr><td>Device</td><td>Identification</td><td></td><td>Temp</td><td>FS</td><td>Size</td><td>Open files</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Share</td><td>Script Log</td><td>Script</td></tr></thead>";
 		echo "<tbody>";
+		$odd="odd";
 		if ( count($disks) ) {
-			$odd="odd";
 			foreach ($disks as $disk) {
 				$mounted       = in_array(TRUE, array_map(function($ar){return is_mounted($ar['device']);}, $disk['partitions']));
 				$disk_name     = basename($disk['device']);
@@ -234,7 +234,6 @@ switch ($_POST['action']) {
 		# SAMBA Mounts
 		$samba_mounts = get_samba_mounts();
 		if (count($samba_mounts)) {
-			$odd="odd";
 			foreach ($samba_mounts as $mount) {
 				$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$mount[ip]} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
 				$mounted = is_mounted($mount['device']);

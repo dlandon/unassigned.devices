@@ -253,11 +253,11 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			"Add": function() {
 				$( this ).dialog( "close" );
 				var opts = new Object();
-				opts["action"]	 = "add_samba_share";
-				opts["PROTOCOL"] = getVal(this,"PROTOCOL");
-				opts["IP"]			 = getVal(this,"IP");
-				opts["USER"]		 = getVal(this,"USER");
-				opts["PASS"]		 = getVal(this,"PASS");
+				opts["action"]		= "add_samba_share";
+				opts["PROTOCOL"]	= getVal(this,"PROTOCOL");
+				opts["IP"]			= getVal(this,"IP");
+				opts["USER"]		= getVal(this,"USER");
+				opts["PASS"]		= getVal(this,"PASS");
 				opts["SHARE"]		= getVal(this,"SHARE");
 				if (opts.SHARE && opts.IP) {
 					$.post(URL,opts).done(function(){usb_disks(tab_usbdisks);});
