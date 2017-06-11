@@ -237,6 +237,7 @@ switch ($_POST['action']) {
 	    echo "<tbody>";
 		# SAMBA Mounts
 		$samba_mounts = get_samba_mounts();
+		$odd="odd";
 		if (count($samba_mounts)) {
 			foreach ($samba_mounts as $mount) {
 				$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$mount[ip]} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
