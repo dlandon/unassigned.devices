@@ -228,7 +228,11 @@ switch ($_POST['action']) {
 
 		# SAMBA Mounts
 		echo "<div id='smb_tab' class='show-complete'>";
-		echo "<div id='title'><span class='left'><img src='/plugins/dynamix/icons/smbsettings.png' class='icon'>Remote SMB/NFS</span>&nbsp;/&nbsp;<img src='/plugins/dynamix/icons/arraydevices.png' class='icon'>Iso File Shares</span></div>";
+		if ($display['theme'] == 'white' || $display['theme'] == 'black') {
+			echo "<div id='title'><span class='left'><img src='/plugins/dynamix/icons/smbsettings.png' class='icon'>Remote SMB/NFS</span>&nbsp;/&nbsp;<img src='/plugins/dynamix/icons/arraydevices.png' class='icon'>Iso File Shares</span></div>";
+		} else {
+			echo "<div id='title'><span class='left'>Remote SMB/NFS / Iso File Shares</span></div>";
+		}
 		echo "<table class='samba_mounts custom_head'><thead><tr><td>Device</td><td>Source</td><td>Mount point</td><td></TD><td>Remove</td><td>Size</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Script Log</td><td>Script</td></tr></thead>";
 	    echo "<tbody>";
 		# SAMBA Mounts
