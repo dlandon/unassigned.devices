@@ -8,7 +8,7 @@
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"c5fcebe87b94a9e85050809fd8c4f288">
+<!ENTITY MD5		"eab0b1346cf9038e1988b6e42a280e6c">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Add timeout to SMART probing commands.
+
+###2017.06.11a
 - Fix: Modifications for unRAID 6.4 Azure and Gray themes.
 
 ###2017.06.10
