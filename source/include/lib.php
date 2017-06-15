@@ -125,9 +125,9 @@ function get_temp($dev) {
 	if (isset($temps[$dev]) && (time() - $temps[$dev]['timestamp']) < 120 ) {
 		return $temps[$dev]['temp'];
 	} else if (is_disk_running($dev)) {
-		$temp = trim(shell_exec("/usr/sbin/smartctl -A -d sat,12 $dev 2>/dev/null| /bin/grep -m 1 -i Temperature_Celsius | /bin/awk '{print $10}'"));
+		$temp = trim(shell_exec("/usr/bin/timeout 20 /usr/sbin/smartctl -A -d sat,12 $dev 2>/dev/null| /bin/grep -m 1 -i Temperature_Celsius | /bin/awk '{print $10}'"));
 		if (! is_numeric($temp)) {
-			$temp = trim(shell_exec("/usr/sbin/smartctl -A -d sat,12 $dev 2>/dev/null| /bin/grep -m 1 -i Airflow_Temperature | /bin/awk '{print $10}'"));
+			$temp = trim(shell_exec("/usr/bin/timeout 20 /usr/sbin/smartctl -A -d sat,12 $dev 2>/dev/null| /bin/grep -m 1 -i Airflow_Temperature | /bin/awk '{print $10}'"));
 		}
 		$temp = (is_numeric($temp)) ? $temp : "*";
 		$temps[$dev] = array('timestamp' => time(),
