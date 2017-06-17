@@ -83,6 +83,7 @@ if (count($_POST)) {
 	}
 </script>
 
+<div id="title" class="nocontrol">Settings:</div>
 <form markdown="1" name="common_settings" method="POST">
 Common Script:
 : <input type="text" name="common_cmd" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin?>/','sh',false,true,true);" value="<?=$cfg['Config']['common_cmd'];?>">
@@ -112,19 +113,14 @@ Auto Mount USB Devices?
 &nbsp;
 <div id="title" class="nocontrol">SMB Security:</div>
 <form markdown="1" name="smb_settings" method="POST">
-<dl>
-	<dt>Enable SMB Security?</dt>
-	<dd>
-		<select name="smb_security" size="1" onchange="prepareSecurity(this);">
-		<?=mk_option($cfg['Config']["smb_security"], "no", "No")?>
-		<?=mk_option($cfg['Config']["smb_security"], "yes", "Yes")?>
-		<?=mk_option($cfg['Config']["smb_security"], "hidden", "Yes (hidden)")?>
-		</select>
-	</dd>
-</dl>
+Enable SMB Security?
+: <select name="smb_security" size="1" onchange="prepareSecurity(this);">
+  <?=mk_option($cfg['Config']["smb_security"], "no", "No")?>
+  <?=mk_option($cfg['Config']["smb_security"], "yes", "Yes")?>
+  <?=mk_option($cfg['Config']["smb_security"], "hidden", "Yes (hidden)")?>
+  </select>
 
 <div id="smb_security" style="display: <?=($cfg['Config']["smb_security"] == "no" || $cfg['Config']["smb_security"] == "" ? "none" : "block");?>">
-	&nbsp;
 	<?php foreach ($users as $user): ?>
 	<?php if ($user['name'] == "root"): continue; endif;?>
 	<dl>
@@ -150,18 +146,13 @@ Auto Mount USB Devices?
 : <input type="submit" name="#apply" value="Apply"><input type="button" value="Done" onclick="done()">
 </form>
 
-&nbsp;
 <div id="title" class="nocontrol">NFS Settings:</div>
 <form markdown="1" name="nfs_settings" method="POST">
-<dl>
-	<dt>Enable NFS export?</dt>
-	<dd>
-		<select name="nfs_export" size="1" <?if ($var['shareNFSEnabled']=="no"):?>disabled<?endif;?>>
-		<?=mk_option($cfg['Config']["nfs_export"], "no", "No")?>
-		<?=mk_option($cfg['Config']["nfs_export"], "yes", "Yes")?>
-		</select>
-	</dd>
-</dl>
+Enable NFS export?
+: <select name="nfs_export" size="1" <?if ($var['shareNFSEnabled']=="no"):?>disabled<?endif;?>>
+  <?=mk_option($cfg['Config']["nfs_export"], "no", "No")?>
+  <?=mk_option($cfg['Config']["nfs_export"], "yes", "Yes")?>
+  </select>
 
 <div id="nfs_security" style="display: <?=($cfg['Config']["nfs_export"] == "no" ? "none" : "block");?>">
 <dl>
@@ -174,7 +165,7 @@ Auto Mount USB Devices?
 	</dd>
 </dl>
 
-	<div id="nfs_rule" style="display: <?=($cfg['Config']["nfs_security"] == "public" ? "none" : "block");?>">
+<div id="nfs_rule" style="display: <?=($cfg['Config']["nfs_security"] == "public" ? "none" : "block");?>">
 	<dl>
 		<dt>Rule:</dt>
 		<dd>
