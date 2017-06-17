@@ -104,8 +104,12 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	}
 
 	function startWaitMe(el) {
-		<?if ($display['theme'] == 'white' || $display['theme'] == 'azure'):?>
+		<?if ($display['theme'] == 'white'):?>
 			$(el).waitMe({effect:'ios',text:' ',bg:'rgba(255,255,255,0.9)',color:'#000',sizeW:'',sizeH:'',source:''});
+		<?elseif ($display['theme'] == 'azure'):?>
+			$(el).waitMe({effect:'ios',text:' ',bg:'rgba(240,255,255,0.0)',color:'#000',sizeW:'',sizeH:'',source:''});
+		<?elseif ($display['theme'] == 'gray'):?>
+			$(el).waitMe({effect:'ios',text:' ',bg:'rgba(105,105,105,0.0)',color:'#FFF',sizeW:'',sizeH:'',source:''});
 		<?else:?>
 			$(el).waitMe({effect:'ios',text:' ',bg:'rgba(0,0,0,0.9)',color:'#FFF',sizeW:'',sizeH:'',source:''});
 		<?endif;?>

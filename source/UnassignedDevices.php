@@ -151,6 +151,9 @@ function make_mount_button($device) {
 switch ($_POST['action']) {
 	case 'get_content':
 		$disks = get_all_disks_info();
+		if ($display['theme'] == 'azure' || $display['theme'] == 'gray') {
+			echo "<div id='title'><span class='left' style='font-size: 10pt'>Unassigned Drives</span></div></br>";
+		}
 		echo "<table class='usb_disks custom_head'><thead><tr><td>Device</td><td>Identification</td><td></td><td>Temp</td><td>FS</td><td>Size</td><td>Open files</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Share</td><td>Script Log</td><td>Script</td></tr></thead>";
 		echo "<tbody>";
 		$odd="odd";
@@ -219,7 +222,9 @@ switch ($_POST['action']) {
 						foreach (render_partition($disk, $partition) as $l) echo str_replace("__SHOW__", (count($disk['partitions']) >1 ? "display:none;":"display:none;" ), $l );
 					}
 				}
-				$odd = ($odd == "odd") ? "even" : "odd";
+				if ($display['theme'] == 'white' || $display['theme'] == 'black') {
+					$odd = ($odd == "odd") ? "even" : "odd";
+				}
 			}
 		} else {
 			echo "<tr><td colspan='12' style='text-align:center;font-weight:bold;'>No unassigned disks available.</td></tr>";
@@ -229,9 +234,9 @@ switch ($_POST['action']) {
 		# SAMBA Mounts
 		echo "<div id='smb_tab' class='show-complete'>";
 		if ($display['theme'] == 'white' || $display['theme'] == 'black') {
-			echo "<div id='title'><span class='left'><img src='/plugins/dynamix/icons/smbsettings.png' class='icon'>Remote SMB/NFS</span>&nbsp;/&nbsp;<img src='/plugins/dynamix/icons/arraydevices.png' class='icon'>Iso File Shares</span></div>";
+			echo "<div id='title'><span class='left' style='font-size: 10pt'><img src='/plugins/dynamix/icons/smbsettings.png' class='icon'>Remote SMB/NFS</span>&nbsp;/&nbsp;<img src='/plugins/dynamix/icons/arraydevices.png' class='icon'>Iso File Shares</span></div>";
 		} else {
-			echo "<div id='title'><span class='left'>Remote SMB/NFS / Iso File Shares</span></div>";
+			echo "<div id='title'><span class='left' style='font-size: 10pt'>Remote SMB/NFS / Iso File Shares</span></div>";
 		}
 		echo "<table class='samba_mounts custom_head'><thead><tr><td>Device</td><td>Source</td><td>Mount point</td><td></TD><td>Remove</td><td>Size</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Script Log</td><td>Script</td></tr></thead>";
 	    echo "<tbody>";
@@ -266,7 +271,9 @@ switch ($_POST['action']) {
 				echo "<td><a title='View Remote SMB/NFS Script Log' href='/Main/ScriptLog?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><img src='/plugins/${plugin}/icons/scriptlog.png' style='cursor:pointer;width:16px;'></a></td>";
 				echo "<td><a title='Edit Remote SMB/NFS Script' href='/Main/EditScript?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><img src='/plugins/${plugin}/icons/editscript.png' style='cursor:pointer;width:16px;".( (get_samba_config($mount['device'],"command_bg") == "true") ? "":"opacity: 0.4;" )."'></a></td>";
 				echo "</tr>";
-				$odd = ($odd == "odd") ? "even" : "odd";
+				if ($display['theme'] == 'white' || $display['theme'] == 'black') {
+					$odd = ($odd == "odd") ? "even" : "odd";
+				}
 			}
 		}
 
@@ -323,7 +330,7 @@ switch ($_POST['action']) {
 			}
 		}
 		if (strlen($ct)) {
-			echo "<div id='smb_tab' class='show-complete'><div id='title'><span class='left'><img src='/plugins/{$plugin}/icons/historical.png' class='icon'>Historical Devices</span></div>";
+			echo "<div id='smb_tab' class='show-complete'><div id='title'><span class='left' style='font-size: 10pt'><img src='/plugins/{$plugin}/icons/historical.png' class='icon'>Historical Devices</span></div>";
 			echo "<table class='usb_absent custom_head'><thead><tr><td>Device</td><td>Serial Number</td><td>Auto mount</td><td colspan='7'>Remove config</td></tr></thead><tbody>${ct}</tbody></table></div>";
 		}
 
