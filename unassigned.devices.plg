@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.06.17a">
+<!ENTITY version   "2017.06.18">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"4bb164e9fd6f1b42bc6c0df757c4ac5b">
+<!ENTITY MD5		"7b81db97bb83c474b82440aa1150fee7">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: More modifications for unRAID 6.4 Azure and Gray Themes.
+
+###2017-06-17a
 - Fix: Additional modifications for unRAID 6.4 Azure and Gray themes.
 
 ###2017.06.15
