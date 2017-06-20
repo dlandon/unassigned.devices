@@ -181,7 +181,7 @@ switch ($_POST['action']) {
 												</span>
 												{$disk[serial]}
 												{$preclear_link}
-												<div id='preclear_{$disk['serial_short']}'></div>";
+												<span id='preclear_{$disk['serial_short']}' style='display:block;'></span>";
 				}
 				else
 				{
@@ -192,7 +192,7 @@ switch ($_POST['action']) {
 												 <span style='margin:4px;'></span>
 												 {$disk[serial]}
 												 {$preclear_link}
-												 <div id='preclear_{$disk['serial_short']}'></div>";
+												 <span id='preclear_{$disk['serial_short']}' style='display:block;'></span>";
 				}
 
 				echo "<tr class='{$odd} toggle-disk'>";
