@@ -2,9 +2,9 @@ Menu="Main:4"
 Title="Unassigned Devices"
 Markdown="false"
 ---
-<?PHP
+<?php
 /* Copyright 2015, Guilherme Jardim
- * Copyright 2016, Dan Landon
+ * Copyright 2016-2017, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -13,9 +13,7 @@ Markdown="false"
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  */
-?>
 
-<?PHP
 $plugin = "unassigned.devices";
 $zip = str_replace(' ','_',strtolower($var['NAME']))."-unassigned.devices-".date('Ymd-Hi').".zip";
 $version = parse_ini_file("/etc/unraid-version");
@@ -41,50 +39,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 <script type="text/javascript" src="/plugins/<?=$plugin;?>/assets/arrive.min.js"></script>
 <link rel="stylesheet" type="text/css" href="/plugins/<?=$plugin;?>/assets/style-<?=$display['theme'];?>.css">
 
-<script type="text/javascript">
-	var this_tab = $('input[name$="tabs"]').length;
-	var URL = '/plugins/<?=$plugin;?>/UnassignedDevices.php';
-	$(function() {
-		var content = "<div class='switch-wrapper'><input type='checkbox' class='complete-switch'></div><button title='Rescan All Unassigned Disks.' type='button' onclick='$.post(\""+URL+"\",{\"action\":\"rescan_disks\"});' value='Rescan Disks'>Rescan Disks</button><button title='Display the Unassigned Devices Log.' type='button' onclick='openWindow(\"/webGui/scripts/tail_log&arg1=unassigned.devices.log\",\"Log Information\",600,900);' value='Log'>Log</button>";
-		<?if (!$tabbed):?>
-			$("#unassigned_tabbed").html(content);
-		<?else:?>
-			var last = $('input[name$="tabs"]').length;
-			var elementId = "simpleComplete";
-			$('.tabs').append("<span id='"+elementId+"' class='status vhshift' style='display: none;'>"+content+"&nbsp;</span>");
-			if ($('#tab'+this_tab).is(':checked')) {
-				$('#'+elementId).show();
-			}
-			$('#tab'+this_tab).bind({click:function(){$('#'+elementId).show();}});
-			for (var x=1; x<=last; x++) if(x != this_tab) $('#tab'+x).bind({click:function(){$('#'+elementId).hide();}});
-		<?endif;?>
-		$('.complete-switch').switchButton({ labels_placement: "left", on_label: 'Complete', off_label: 'Simple', checked: $.cookie('unassigned-complete-view') != 'false'});
-		$('.complete-switch').change(function () {
-			$('.show-complete').toggle('slow');
-			$.cookie('unassigned-complete-view', $('.complete-switch').is(':checked') ? 'true' : 'false', { expires: 3650 });
-		});
-	});
-</script>
-
-<script>
-function cleanUp() {
-  if (document.hasFocus()) {
-    $('input[value="Downloading..."]').val('Download').prop('disabled',false);
-    $.post('/webGui/include/Download.php',{cmd:'delete',file:'<?=$zip?>'});
-  } else {
-    setTimeout(cleanUp,4000);
-  }
-}
-
-function getlog() {
-  $('input[value="Download"]').val('Downloading...').prop('disabled',true);
-  $.post('/webGui/include/Download.php',{cmd:'save',source:'/var/log/unassigned.devices.log',file:'<?=$zip?>'},function(zip) {
-    location = zip;
-    setTimeout(cleanUp,4000);
-  });
-}
-</script>
-
 <style>
 	table.usb_disks {padding: 0px 10px 0px 0px;border-collapse:collapse;white-space:nowrap;}
 	table.usb_disks thead tr>td{text-align:left;width:8%;}
@@ -98,13 +52,12 @@ function getlog() {
 	table.usb_absent thead tr>td{text-align:left;width:8%;}
 	table.usb_absent tr>td{text-align:left;width:8%;padding-right:0;white-space:nowrap;}
 	table.usb_absent tr>td+td{text-align:left;width:auto;}
-	table.usb_absent tr>td+td+td+td{text-align:right;padding-left:0;padding-right:12px;width: 5em;}
+	table.usb_absent tr>td+td+td+td{text-align:right;padding-left:0;padding-right:8px;width: 5em;}
 
 	table.samba_mounts thead tr>td{text-align:left;width:8%;}
 	table.samba_mounts tr>td{text-align:left;width:8%;padding-right:0;white-space:nowrap;}
 	table.samba_mounts tr>td+td{text-align:left;width:auto;}
-	table.samba_mounts tr>td+td+td+td+td+td+td+td{text-align:left;padding:0px 0px 0px 12px;width: 75px;}
-	table.samba_mounts tr>td+td+td+td+td+td+td+td+td{text-align:right;padding-left:0;padding-right:12px;}
+	table.samba_mounts tr>td+td+td+td+td+td+td+td+td+td{text-align:right;padding-left:0;padding-right:8px;}
 
 	button[type=button].mount {margin:0px 14px 0 14px;}
 	i.glyphicon{margin:0px 5px 0 5px;}
@@ -118,14 +71,15 @@ function getlog() {
 	.switch-wrapper {
 		display: inline-block;
 		position: relative;
-		top: 3px;
+		top: 0px;
 		vertical-align: middle;
+		right: -8px;
 	}
 
-  .switch-button-background.checked {
-    background:#0088CC;
-    border:1px solid #0088CC;
-  }
+	.switch-button-background.checked {
+		background:#0088CC;
+		border:1px solid #0088CC;
+	}
 
 	.fileTree {
 		width: 305px;
@@ -138,15 +92,7 @@ function getlog() {
 </style>
 
 <script type="text/javascript">
-	var display = <?=json_encode($display);?>;
-	var vars = <?=json_encode($var);?>;
-	var tab_usbdisks = $('input[name$="tabs"]').length;
-	$('#tab'+tab_usbdisks).bind({click:function() {pin_tab(tab_usbdisks); detect_usb_disk_change(tab_usbdisks);}});
 
-	$(function(){
-		usb_disks(tab_usbdisks);
-		detect_usb_disk_change(tab_usbdisks);
-	});
 	<?=$Preclear ? $Preclear->Script() : "";?>
 
 
@@ -162,6 +108,10 @@ function getlog() {
 	function startWaitMe(el) {
 		<?if ($display['theme'] == 'white'):?>
 			$(el).waitMe({effect:'ios',text:' ',bg:'rgba(255,255,255,0.9)',color:'#000',sizeW:'',sizeH:'',source:''});
+		<?elseif ($display['theme'] == 'azure'):?>
+			$(el).waitMe({effect:'ios',text:' ',bg:'rgba(240,255,255,0.0)',color:'#000',sizeW:'',sizeH:'',source:''});
+		<?elseif ($display['theme'] == 'gray'):?>
+			$(el).waitMe({effect:'ios',text:' ',bg:'rgba(105,105,105,0.0)',color:'#FFF',sizeW:'',sizeH:'',source:''});
 		<?else:?>
 			$(el).waitMe({effect:'ios',text:' ',bg:'rgba(0,0,0,0.9)',color:'#FFF',sizeW:'',sizeH:'',source:''});
 		<?endif;?>
@@ -315,12 +265,12 @@ function getlog() {
 			"Add": function() {
 				$( this ).dialog( "close" );
 				var opts = new Object();
-				opts["action"]   = "add_samba_share";
-				opts["PROTOCOL"] = getVal(this,"PROTOCOL");
-				opts["IP"]       = getVal(this,"IP");
-				opts["USER"]     = getVal(this,"USER");
-				opts["PASS"]     = getVal(this,"PASS");
-				opts["SHARE"]    = getVal(this,"SHARE");
+				opts["action"]		= "add_samba_share";
+				opts["PROTOCOL"]	= getVal(this,"PROTOCOL");
+				opts["IP"]			= getVal(this,"IP");
+				opts["USER"]		= getVal(this,"USER");
+				opts["PASS"]		= getVal(this,"PASS");
+				opts["SHARE"]		= getVal(this,"SHARE");
 				if (opts.SHARE && opts.IP) {
 					$.post(URL,opts).done(function(){usb_disks(tab_usbdisks);});
 				}
@@ -349,8 +299,8 @@ function getlog() {
 			"Add": function() {
 				$( this ).dialog( "close" );
 				var opts = new Object();
-				opts["action"]   = "add_iso_share";
-				opts["ISO_FILE"]  = getVal(this,"ISO_FILE");
+				opts["action"]	 = "add_iso_share";
+				opts["ISO_FILE"]	= getVal(this,"ISO_FILE");
 				if (opts.ISO_FILE) {
 					$.post(URL,opts).done(function(){usb_disks(tab_usbdisks);});
 				}
@@ -479,6 +429,107 @@ function getlog() {
 		}
 	}
 
+	function get_tab_title_by_name(name) {
+		var tab		= $("input[name$=tabs] + label").filter(function(){return $(this).text() === name;}).prev();
+		var title	= $("div#title > span.left"    ).filter(function(){return $(this).text() === name;}).parent();
+		if (tab.length) {
+			return tab
+		} else if (title.length) {
+			return title
+		} else {
+			return $(document)
+		}
+	}
+
+	function addButtonTab(Button, Name, autoHide, Append)
+	{
+		if (typeof(autoHide) == "undefined") autoHide = true;
+		if (typeof(Append)	 == "undefined") Append	 = true;
+
+		var Target		= get_tab_title_by_name(Name);
+		var elementId 	= 'event-' + new Date().getTime() * Math.floor(Math.random()*100000);
+		<?if ($display['theme'] == 'white' || $display['theme'] == 'black'):?>
+			var element	= $("<span id='"+elementId+"' class='status'>"+Button+"</span>");
+		<?else:?>
+			var element	= $("<span id='"+elementId+"' class='status'><span style='margin:5px;'></span>"+Button+"</span>");
+		<?endif;?>
+
+		if (element.find("input[type='button']").length)
+		{
+			element.addClass("vhshift");
+			element.find("input[type='button']").prop("style","padding-top: 5px; padding-bottom: 5px;");
+		}
+
+		if (Target.prop('nodeName') === "DIV")
+		{
+			if (Append)
+			{
+				Target.append(element);
+			}
+			else
+			{
+				Target.prepend(element);
+			}
+		}
+		else if (Target.prop('nodeName') === "INPUT")
+		{
+			element.css("display","none");
+
+			if (Append)
+			{
+				$('.tabs').append(element);
+			}
+			else
+			{
+				$('.tabs').prepend(element);
+			}
+
+			Target.bind({click:function()
+			{
+				$('#'+elementId).fadeIn('slow');}
+			});
+
+			if (Target.is(':checked') || ! autoHide) {
+				$('#'+elementId).fadeIn('slow');
+			}
+
+			$("input[name$=tabs]").each(function()
+			{
+				if (! $(this).is(Target) && autoHide )
+				{
+					$(this).bind({click:function()
+					{
+						$('#'+elementId).fadeOut('slow');}
+					});
+				}
+			});
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	function cleanUp() {
+		if (document.hasFocus()) {
+			$('input[value="Downloading..."]').val('Download').prop('disabled',false);
+			$.post('/webGui/include/Download.php',{cmd:'delete',file:'<?=$zip?>'});
+		} else {
+			setTimeout(cleanUp,4000);
+		}
+	}
+
+	function ShowLog() {
+		openWindow('/webGui/scripts/tail_log&arg1=unassigned.devices.log','Unassigned Devices Log',600,900);
+	}
+
+	function getlog() {
+		$('input[value="Download"]').val('Downloading...').prop('disabled',true);
+		$.post('/webGui/include/Download.php',{cmd:'save',source:'/var/log/unassigned.devices.log',file:'<?=$zip?>'},function(zip) {
+			location = zip;
+			setTimeout(cleanUp,4000);
+		});
+	}
 
 </script>
 
@@ -501,7 +552,8 @@ function getlog() {
 			</select>
 		</dd>
 	</dl>
-	<p>Note: Dockers will not be able to access any SMB, or Iso file share until you restart the Docker service.  Go to Settings->Docker and disable then enable Docker.</p>
+	<p>Note: Dockers will not be able to access any SMB or NFS share until you restart the Docker service after the device is mounted.</p>
+	<p>Go to Settings->Docker and disable then enable Docker.</p>
 	<div class="options"></div>
 </div>
 
@@ -535,14 +587,15 @@ function getlog() {
 		<dd><input type='text' name='SHARE'></dd>
 		<dt>&nbsp;</dt>
 		<dd><button type="button" onclick="load_shares(this, 'list_samba_shares');">Load Shares</button></dd>
-	</dl>  
+	</dl>
 </div>
 
 <div id="add-iso-defaults" style="display:none;">
 <script>
 	$("input[data-pickroot]").fileTreeAttach();
 </script>
-	<p>Note: Dockers will not be able to access any SMB, or Iso file share until you restart the Docker service.  Go to Settings->Docker and disable then enable Docker.</p>
+	<p>Note: Dockers will not be able to access any Iso file share until you restart the Docker service after the device is mounted.</p>
+	<p>Go to Settings->Docker and disable then enable Docker.</p>
 	<dl>
 		<dt>Iso File:</dt>
 		<dd><input id='iso_file' type='text' name='ISO_FILE' placeholder="Click to select iso file" data-pickcloseonfile="true" data-pickfilter="iso" data-pickroot="/mnt/user/" data-pickfolders="true" required="required" /></dd>
@@ -555,7 +608,7 @@ function getlog() {
 		<dd>
 			<select name="FS">
 				<option value="xfs">XFS</option>
-  
+	
 				<?if (! version_compare($version['version'],"6.1.9", "<=")):?>
 					<option value="btrfs">BTRFS</option>
 				<?endif;?>
@@ -578,33 +631,29 @@ function getlog() {
 </div>
 
 <div id="usb_devices_list">
-	<table class='usb_disks' id='usb_table'>
-		<thead><tr><td>Device</td><td>Identification</td><td></td><td>Temp</td><td>FS</td><td>Size</td><td>Open files</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Log</td><td>Script</td></tr></thead>
-		<tbody><tr><td colspan='12' style='text-align:center;font-weight:bold;'></td></tr></tbody>
-	</table>
 </div>
 
 <blockquote class='inline_help'>
+	<p><b>The 'Settings->Unassigned Devices' security settings for SMB and NFS must be set correctly for SMB and NFS sharing to work properly.</b></p>
 	<p>Hover your mouse over an any active area on the UD page and a tool tip will show you what clicking that area does.</p>
 	<p>You can mount USB devices, sata drives, Remote SMB/NFS shares, and Iso Files with unassigned devices.  Any devices with the auto mount switch on will be mounted when the array is started.  XFS and EXT4 formatted drives are mounted with discard (trim) for SSD drives.  All drives and SMB/NFS Mounts are unmounted when the array is stopped on the 'unmounting_disks' event.</p>
 	<p>If you want to share your drive, you can turn on the Share switch.  The default for Remote SMB shares is Public read/write access.  Enable SMB Security by user in the Unassigned Devices Settings.  NFS shares are exported and access is read/write.  The export of NFS devices is enabled in the Unassigned Devices settings.  You can also enable a common script that will be executed on every disk mount.  In order to share any UD device, sharing needs to be enabled in the UD Settings and the switch turned on to share the particular device.</p>
+	<p>After entering a mount point, press Enter to save the change.</p>
 	<p>Additional options are available when you click on the device identification.  When the disk is unmounted, the mount name of the device can be changed.  A disk can be formatted and an fsck run to check the disk.</p>
 	<p>UD has a destructive mode that allows deleting disk partitions and formatting disks.  If Destructive Mode is not turned on in the UD Settings, you WILL NOT be able to format a disk.  Go the the Settings page and scroll to the bottom to see the UD settings.  To format a disk:</p>
 		<li>Destructive mode must be enabled.</li>
 		<li>Disk must have all partitions removed.  Unmount disk, click on the serial number, and click on all red-X to delete partitions.</li>
 		<li>If the disk has been precelared and shows a grayed 'Format' button, click on the disk serial number, then click on the red-X to delete the preclear status file.</li>
-	<p>Unassigned devices includes scripts that are used for mounting and unmounting devices and SMB mounts.  These scripts can be used from the command line if necessary.
+	<p><strong>Note: A disk formatted in UD is not compatible with the array disk format and cannot be added to the array.</strong>
+	<p>Unassigned devices includes scripts that are used for mounting and unmounting devices and SMB/NFS mounts.  These scripts can be used from the command line or in scripts as necessary.
 	<p>Unassigned devices script:
-		<li>'/usr/local/sbin/rc.unassigned mount auto' - all devices and SMB mounts set to auto mount will be mounted.</li>
-		<li>'/usr/local/sbin/rc.unassigned umount auto' - all devices and SMB mounts set to auto mount will be unmounted.</li>
-		<li>'/usr/local/sbin/rc.unassigned umount all' - all devices and SMB mounts are unmounted in preparation for shutting down the array.</li>
+		<li>'/usr/local/sbin/rc.unassigned mount auto' - all devices and SMB/NFS mounts set to auto mount will be mounted.</li>
+		<li>'/usr/local/sbin/rc.unassigned umount auto' - all devices and SMB/NFS mounts set to auto mount will be unmounted.</li>
+		<li>'/usr/local/sbin/rc.unassigned umount all' - all devices and SMB/NFS mounts are unmounted in preparation for shutting down the array.</li>
+		<li>'/usr/local/sbin/rc.unassigned mount /dev/sdX' - mount device sdX where 'X' is the device designator.</li>
+		<li>'/usr/local/sbin/rc.unassigned umount /dev/sdX' - unmount device sdX where 'X' is the device designator.  You can use this command in a UD script to unmount the device when the script has completed.<li>
 	</p>
 	<p>Switch the 'Complete' button to change the web page to just show hardware devices.  Switch the 'Simple' switch to switch back to the full web display.</p>
-</blockquote>
-
-<blockquote class='inline_help'>
-	<input type="button" value="Download Log" onclick="getlog()">
-	<p>Click on the <strong>'Download Log'</strong> button to download a zip file copy of the unassigned devices log.</p>
 </blockquote>
 </form>
 
@@ -658,4 +707,55 @@ function getlog() {
 		maxWidth.push($(this).find("td:nth-child(2) > div").getHiddenDimensions().outerWidth + 10);
 		$(".usb_disks > thead > tr > td:nth-child(2)").css("min-width", Math.max.apply(Math, maxWidth));
 	});
+
+	var display = <?=json_encode($display);?>;
+	var vars    = <?=json_encode($var);?>;
+	var tab_usbdisks = $('input[name$="tabs"]').length;
+	var URL = '/plugins/<?=$plugin;?>/UnassignedDevices.php';
+
+	$('#tab'+tab_usbdisks).bind({click:function() {pin_tab(tab_usbdisks); detect_usb_disk_change(tab_usbdisks);}});
+
+	// Remove or hide diskio toggle
+	tabElement = get_tab_title_by_name("Unassigned Devices");
+	if (tabElement.prop("nodeName") == "DIV")
+	{
+		tabElement.addClass("disable_diskio");
+	 	$(function()
+	 	{
+	 		tabElement.find("i.toggle").remove();
+	 	});
+	} else if (tabElement.prop("nodeName") == "INPUT")
+	{
+		tabElement.bind({click:function() {$('i.toggle').hide('slow');}});
+	}
+
+	$(function()
+	{
+
+		// Add icons to Tab/Title bar
+		addButtonTab('<a style="cursor:pointer" onclick="getlog()" title="Download Log"><i class="fa fa-download"></i></a>', "Unassigned Devices");
+		addButtonTab('<a style="cursor:pointer" onclick="ShowLog()" title="Show Log"><i class="fa fa-file-text-o"></i></a>', "Unassigned Devices");
+		addButtonTab('<a style="cursor:pointer" onclick="$.post(\''+URL+'\',{\'action\':\'rescan_disks\'});" title="Rescan Disks"><i class="fa fa-refresh"></i></a>',
+		             "Unassigned Devices");
+		addButtonTab('<div class="switch-wrapper"><a style="cursor:pointer" title="Switch Display Mode"><input type="checkbox" class="complete-switch"></a></div>',
+		             "Unassigned Devices");
+
+		// Add switchButton to Tab/Title bar
+		$('.complete-switch').switchButton({ labels_placement: "left", on_label: 'Complete', off_label: 'Simple', checked: $.cookie('unassigned-complete-view') != 'false'});
+		$('.complete-switch').change(function()
+		{
+			$('.show-complete').slideToggle('slow');
+			$.cookie('unassigned-complete-view', $('.complete-switch').is(':checked') ? 'true' : 'false', { expires: 3650 });
+		});
+
+		// Load contents if tab is checked
+		if ($('#tab'+tab_usbdisks).is(':checked')) {
+			$('#tab'+tab_usbdisks).trigger("click");
+			$.removeCookie('one',{path:'/'});
+		}
+
+		// Load page content
+		usb_disks(tab_usbdisks);
+		detect_usb_disk_change(tab_usbdisks);
+
 </script>

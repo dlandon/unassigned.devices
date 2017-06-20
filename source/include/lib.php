@@ -1,6 +1,6 @@
-<?PHP
+<?php
 /* Copyright 2015, Guilherme Jardim
- * Copyright 2016, Dan Landon
+ * Copyright 2016-2017, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -9,16 +9,14 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  */
-?>
 
-<?
 $plugin = "unassigned.devices";
 // $VERBOSE=TRUE;
 
 $paths =  array("smb_extra"       => "/boot/config/smb-extra.conf",
 				"smb_usb_shares"  => "/etc/samba/unassigned-shares",
 				"usb_mountpoint"  => "/mnt/disks",
-				"device_log"      => "/var/log/",
+				"device_log"      => "/tmp/{$plugin}/",
 				"log"             => "/var/log/{$plugin}.log",
 				"config_file"     => "/boot/config/plugins/{$plugin}/{$plugin}.cfg",
 				"state"           => "/var/state/${plugin}/${plugin}.ini",
@@ -98,7 +96,8 @@ function listDir($root) {
 }
 
 function safe_name($string) {
-	$string = str_replace("\\x20", " ", $string);
+	$string = stripcslashes($string);
+	$string = str_replace(array( "(", ")" ), "", $string);
 	$string = htmlentities($string, ENT_QUOTES, 'UTF-8');
 	$string = preg_replace('~&([a-z]{1,2})(acute|cedil|circ|grave|lig|orn|ring|slash|th|tilde|uml);~i', '$1', $string);
 	$string = html_entity_decode($string, ENT_QUOTES, 'UTF-8');
@@ -126,9 +125,9 @@ function get_temp($dev) {
 	if (isset($temps[$dev]) && (time() - $temps[$dev]['timestamp']) < 120 ) {
 		return $temps[$dev]['temp'];
 	} else if (is_disk_running($dev)) {
-		$temp = trim(shell_exec("/usr/sbin/smartctl -A -d sat,12 $dev 2>/dev/null| /bin/grep -m 1 -i Temperature_Celsius | /bin/awk '{print $10}'"));
+		$temp = trim(shell_exec("/usr/bin/timeout 20 /usr/sbin/smartctl -A -d sat,12 $dev 2>/dev/null| /bin/grep -m 1 -i Temperature_Celsius | /bin/awk '{print $10}'"));
 		if (! is_numeric($temp)) {
-			$temp = trim(shell_exec("/usr/sbin/smartctl -A -d sat,12 $dev 2>/dev/null| /bin/grep -m 1 -i Airflow_Temperature | /bin/awk '{print $10}'"));
+			$temp = trim(shell_exec("/usr/bin/timeout 20 /usr/sbin/smartctl -A -d sat,12 $dev 2>/dev/null| /bin/grep -m 1 -i Airflow_Temperature | /bin/awk '{print $10}'"));
 		}
 		$temp = (is_numeric($temp)) ? $temp : "*";
 		$temps[$dev] = array('timestamp' => time(),
@@ -472,7 +471,7 @@ function do_mount_local($info) {
 			if ($o != "" && $fs == "ntfs") {
 				unassigned_log("Mount failed with error: $o");
 				unassigned_log("Mount ntfs drive read only.");
-				$cmd = "/sbin/mount -t $fs -r -o ".get_mount_params($fs, $dev)." '${dev}' '${dir}'";
+				$cmd = "/sbin/mount -t $fs -ro ".get_mount_params($fs, $dev)." '${dev}' '${dir}'";
 				unassigned_log("Mount drive ro command: $cmd");
 				$o = shell_exec($cmd." 2>&1");
 				if ($o != "") {
@@ -515,7 +514,7 @@ function do_unmount($dev, $dir, $force = FALSE) {
 		unassigned_log("Unmount of '${dev}' failed. Error message: \n$o"); 
 		sleep(1);
 		if (! lsof($dir) && ! $force) {
-			unassigned_log("Since there aren't open files, try to force unmount.");
+			unassigned_log("Since there aren't open files, will force unmount.");
 			return do_unmount($dev, $dir, true);
 		}
 		return FALSE;
@@ -542,7 +541,7 @@ function toggle_share($serial, $part, $status) {
 	return ($new == 'yes') ? TRUE:FALSE;
 }
 
-function add_smb_share($dir, $share_name) {
+function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 	global $paths, $var, $users;
 
 	if ( ($var['shareSMBEnabled'] == "yes") ) {
@@ -550,7 +549,12 @@ function add_smb_share($dir, $share_name) {
 		$config = is_file($paths['config_file']) ? @parse_ini_file($paths['config_file'], true) : array();
 		$config = $config["Config"];
 
-		if ($config["smb_security"] != "no") {
+		if ($recycle_bin) {
+			$vfs_objects = "\n\tvfs objects = ";
+		} else {
+			$vfs_objects = "";
+		}
+		if (($config["smb_security"] == "yes") || ($config["smb_security"] == "hidden")) {
 			$read_users = $write_users = $valid_users = array();
 			foreach ($users as $key => $user) {
 				if ($user['name'] != "root" ) {
@@ -566,20 +570,20 @@ function add_smb_share($dir, $share_name) {
 			$valid_users = array_diff($valid_users, $invalid_users);
 			if (count($valid_users)) {
 				if ($config["smb_security"] == "hidden") {
-					$hidden = "\nbrowseable = no";
+					$hidden = "\n\tbrowseable = no";
 				} else {
-					$hidden = "\nbrowseable = yes";
+					$hidden = "\n\tbrowseable = yes";
 				}
-				$valid_users = "\nvalid users = ".implode(', ', $valid_users);
-				$write_users = count($write_users) ? "\nwrite list = ".implode(', ', $write_users) : "";
-				$read_users = count($read_users) ? "\nread users = ".implode(', ', $read_users) : "";
-				$share_cont =  "[{$share_name}]\npath = {$dir}{$hidden}{$valid_users}{$write_users}{$read_users}";
+				$valid_users = "\n\tvalid users = ".implode(', ', $valid_users);
+				$write_users = count($write_users) ? "\n\twrite list = ".implode(', ', $write_users) : "";
+				$read_users = count($read_users) ? "\n\tread users = ".implode(', ', $read_users) : "";
+				$share_cont =  "[{$share_name}]\n\tpath = {$dir}{$hidden}{$valid_users}{$write_users}{$read_users}{$vfs_objects}";
 			} else {
-				$share_cont =  "[{$share_name}]\npath = {$dir}\ninvalid users = @users";
+				$share_cont =  "[{$share_name}]\n\tpath = {$dir}\n\tinvalid users = @users";
 				unassigned_log("Error: No valid smb users defined.  Share '{$dir}' cannot be accessed.");
 			}
 		} else {
-			$share_cont = "[{$share_name}]\npath = {$dir}\nread only = No\nguest ok = Yes ";
+			$share_cont = "[{$share_name}]\n\tpath = {$dir}\n\tread only = No\n\tguest ok = Yes{$vfs_objects}";
 		}
 
 		if(!is_dir($paths['smb_usb_shares'])) @mkdir($paths['smb_usb_shares'],0755,TRUE);
@@ -597,9 +601,18 @@ function add_smb_share($dir, $share_name) {
 			$c = array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_extra_includes);
 			$c = preg_replace('/\n\s*\n\s*\n/s', PHP_EOL.PHP_EOL, implode(PHP_EOL, $c));
 			file_put_contents($paths['smb_extra'], $c);
+
+			if ($recycle_bin) {
+				// Add the recycle bin parameters if plugin is installed installed
+				$recycle_script = "/usr/local/emhttp/plugins/recycle.bin/scripts/configure_recycle_bin";
+				if (is_file($recycle_script)) {
+					unassigned_log("Enabling the Recycle Bin on share '$share_name'");
+					shell_exec("$recycle_script"." ${share_conf}");
+				}
+			}
 		}
+
 		unassigned_log("Reloading Samba configuration...");
-		shell_exec("/bin/killall -s 1 smbd 2>/dev/null && /bin/killall -s 1 nmbd 2>/dev/null");
 		shell_exec("/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
 		unassigned_log("Directory '${dir}' shared successfully."); return TRUE;
 	} else {
@@ -744,14 +757,14 @@ function reload_shares() {
 	// SMB Mounts
 	foreach (get_samba_mounts() as $name => $info) {
 		if ( is_mounted($info['device']) ) {
-			add_smb_share($info['mountpoint'], $info['device']);
+			add_smb_share($info['mountpoint'], $info['device'], FALSE);
 		}
 	}
 
 	// Iso File Mounts
 	foreach (get_iso_mounts() as $name => $info) {
 		if ( is_mounted($info['device']) ) {
-			add_smb_share($info['mountpoint'], $info['device']);
+			add_smb_share($info['mountpoint'], $info['device'], FALSE);
 			add_nfs_share($info['mountpoint']);
 		}
 	}
@@ -795,13 +808,15 @@ function get_samba_mounts() {
 		} else {
 			$mount['fstype'] = "cifs";
 		}
-		$mount['size']   = intval(trim(shell_exec("/bin/df --output=size,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/grep '${device}'|/bin/awk '{print $1}'")))*1024;
-		$mount['used']   = intval(trim(shell_exec("/bin/df --output=used,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/grep '${device}'|/bin/awk '{print $1}'")))*1024;
-		$mount['avail']  = $mount['size'] - $mount['used'];
+
 		$mount['automount'] = is_samba_automount($mount['device']);
 		if (! $mount["mountpoint"]) {
 			$mount["mountpoint"] = $mount['target'] ? $mount['target'] : preg_replace("%\s+%", "_", "{$paths[usb_mountpoint]}/{$mount[ip]}_{$mount[share]}");
 		}
+		$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$mount[ip]} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+		$mount['size']   = intval(trim($is_alive ? shell_exec("/bin/df '${mount[mountpoint]}' --output=size,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'"):"0"))*1024;
+		$mount['used']   = intval(trim($is_alive ? shell_exec("/bin/df '${mount[mountpoint]}' --output=used,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'"):"0"))*1024;
+		$mount['avail']  = $mount['size'] - $mount['used'];
 		$mount['target'] = trim(shell_exec("/bin/cat /proc/mounts 2>&1|/bin/grep '$mount[mountpoint] '|/bin/awk '{print $2}'"));
 		$mount['prog_name'] = basename($mount['command'], ".sh");
 		$mount['logfile'] = $paths['device_log'].$mount['prog_name'].".log";
@@ -813,40 +828,47 @@ function get_samba_mounts() {
 function do_mount_samba($info) {
 	global $var;
 
-	if (!(($info[fstype] == "nfs") && ((strtoupper($var['NAME']) == strtoupper($info['ip'])) || ($var['IPADDR'] == $info['ip'])))) {
-		$dev = $info['device'];
-		$dir = $info['mountpoint'];
-		$fs  = $info['fstype'];
-		if (! is_mounted($dev) || ! is_mounted($dir, true)) {
-			@mkdir($dir, 0777, TRUE);
-			if ($fs == "nfs") {
-				$params = get_mount_params($fs, '$dev');
-				$cmd = "/sbin/mount -t $fs -o ".$params." '${dev}' '${dir}'";
-				$o = shell_exec($cmd." 2>&1");
-			} else {
-				$params = sprintf(get_mount_params($fs, '$dev'), ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
-				$cmd = "/sbin/mount -t $fs -o ".$params." '${dev}' '${dir}'";
-				$o = shell_exec($cmd." 2>&1");
-				$params = sprintf(get_mount_params($fs, '$dev'), ($info['user'] ? $info['user'] : "guest" ), '*******');
-			}
-			unassigned_log("Mount SMB/NFS command: mount -t $fs -o ".$params." '${dev}' '${dir}'");
-			foreach (range(0,5) as $t) {
-				if (is_mounted($dev)) {
-					@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
-					unassigned_log("Successfully mounted '${dev}' on '${dir}'.");
-					return TRUE;
+	$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$info[ip]} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+	if ($is_alive) {
+		if (!(($info[fstype] == "nfs") && ((strtoupper($var['NAME']) == strtoupper($info['ip'])) || ($var['IPADDR'] == $info['ip'])))) {
+			$dev = $info['device'];
+			$dir = $info['mountpoint'];
+			$fs  = $info['fstype'];
+			if (! is_mounted($dev) || ! is_mounted($dir, true)) {
+				@mkdir($dir, 0777, TRUE);
+				if ($fs == "nfs") {
+					$params = get_mount_params($fs, '$dev');
+					$cmd = "/sbin/mount -t $fs -o ".$params." '${dev}' '${dir}'";
+					$o = shell_exec($cmd." 2>&1");
 				} else {
-					sleep(0.5);
+					$params = sprintf(get_mount_params($fs, '$dev'), ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
+					$cmd = "/sbin/mount -t $fs -o ".$params." '${dev}' '${dir}'";
+					$o = shell_exec($cmd." 2>&1");
+					$params = sprintf(get_mount_params($fs, '$dev'), ($info['user'] ? $info['user'] : "guest" ), '*******');
 				}
+				unassigned_log("Mount SMB/NFS command: mount -t $fs -o ".$params." '${dev}' '${dir}'");
+				foreach (range(0,5) as $t) {
+					if (is_mounted($dev)) {
+						@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
+						unassigned_log("Successfully mounted '${dev}' on '${dir}'.");
+						return TRUE;
+					} else {
+						sleep(0.5);
+					}
+				}
+				rmdir($dir);
+				unassigned_log("Mount of '${dev}' failed. Error message: $o");
+				return FALSE;
+			} else {
+				unassigned_log("Share '${dev}' already mounted.");
+				return FALSE;
 			}
-			unassigned_log("Mount of '${dev}' failed. Error message: $o");
-			return FALSE;
 		} else {
-			unassigned_log("Share '${dev}' already mounted...");
+			unassigned_log("Error: Cannot mount remote NFS '${info[device]}' from this server onto this server."); 
 			return FALSE;
 		}
 	} else {
-		unassigned_log("Error: Cannot mount remote NFS '${info[device]}' from this server onto this server."); 
+		unassigned_log("Error: Remote SMB/NFS server '${info[ip]}' is offline and share '${info[device]}' cannot be mounted."); 
 		return FALSE;
 	}
 }
@@ -916,8 +938,9 @@ function get_iso_mounts() {
 			$mount["mountpoint"] = preg_replace("%\s+%", "_", "{$paths[usb_mountpoint]}/{$mount[share]}");
 		}
 		$mount['target'] = trim(shell_exec("/bin/cat /proc/mounts 2>&1|/bin/grep '$mount[mountpoint] '|/bin/awk '{print $2}'"));
-		$mount['size']   = intval(trim(shell_exec("/bin/df --output=size,source '$mount[mountpoint]' 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'")))*1024;
-		$mount['used']   = intval(trim(shell_exec("/bin/df --output=used,source '$mount[mountpoint]' 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'")))*1024;
+		$is_alive = is_file($mount['file']);
+		$mount['size']   = intval(trim($is_alive ? shell_exec("/bin/df '$mount[mountpoint]' --output=size,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'"):"0"))*1024;
+		$mount['used']   = intval(trim($is_alive ? shell_exec("/bin/df '$mount[mountpoint]' --output=used,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'"):"0"))*1024;
 		$mount['avail']  = $mount['size'] - $mount['used'];
 		$mount['prog_name'] = basename($mount['command'], ".sh");
 		$mount['logfile'] = $paths['device_log'].$mount['prog_name'].".log";
@@ -932,8 +955,8 @@ function do_mount_iso($info) {
 	if (is_file($info['file'])) {
 		if (! is_mounted($dev) || ! is_mounted($dir, true)) {
 			@mkdir($dir, 0777, TRUE);
-			$cmd = "/sbin/mount -t iso9660 -o loop '${dev}' '${dir}'";
-			unassigned_log("Mount iso command: mount -t iso9660 -o loop '${dev}' '${dir}'");
+			$cmd = "/sbin/mount -ro loop '${dev}' '${dir}'";
+			unassigned_log("Mount iso command: mount -ro loop '${dev}' '${dir}'");
 			$o = shell_exec($cmd." 2>&1");
 			foreach (range(0,5) as $t) {
 				if (is_mounted($dev)) {
@@ -944,13 +967,14 @@ function do_mount_iso($info) {
 					sleep(0.5);
 				}
 			}
+			rmdir($dir);
 			unassigned_log("Mount of '${dev}' failed. Error message: $o");
 			return FALSE;
 		} else {
 			unassigned_log("Share '$dev' already mounted...");
 		}
 	} else {
-		unassigned_log("Mount of '${dev}' failed. Iso file '$info[file]' is missing.");
+		unassigned_log("Error: Iso file '$info[file]' is missing and cannot be mounted.");
 		return FALSE;
 	}
 }
@@ -1128,7 +1152,7 @@ function get_partition_info($device, $reload=FALSE){
 		$disk['fstype'] = (! $disk['fstype'] && verify_precleared($disk['disk'])) ? "precleared" : $disk['fstype'];
 		$disk['target'] = str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1|/bin/grep ${device}|/bin/awk '{print $2}'")));
 		$disk['size']   = intval(trim(shell_exec("/sbin/blockdev --getsize64 ${device} 2>/dev/null")));
-		$disk['used']   = intval(trim(shell_exec("/bin/df --output=used,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/grep ${device}|/bin/awk '{print $1}'")))*1024;
+		$disk['used']   = intval(trim(shell_exec("/bin/df '${device}' --output=used,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'")))*1024;
 		$disk['avail']  = $disk['size'] - $disk['used'];
 		if ( $disk['mountpoint'] = get_config($disk['serial'], "mountpoint.{$disk[part]}") ) {
 			if (! $disk['mountpoint'] ) goto empty_mountpoint;
@@ -1184,3 +1208,4 @@ function setSleepTime($device) {
 	$device = preg_replace("/\d+$/", "", $device);
 	shell_exec("/usr/sbin/hdparm -S180 $device 2>&1");
 }
+?>

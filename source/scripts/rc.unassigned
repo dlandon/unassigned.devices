@@ -1,7 +1,7 @@
 #!/usr/bin/php
-<?PHP
+<?php
 /* Copyright 2015, Guilherme Jardim
- * Copyright 2016, Dan Landon
+ * Copyright 2016-2017, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -10,9 +10,7 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  */
-?>
 
-<?
 $plugin = "unassigned.devices";
 $docroot = '/usr/local/emhttp';
 require_once("$docroot/plugins/${plugin}/include/lib.php");
@@ -70,7 +68,7 @@ function unassigned_mount() {
 				unassigned_log("Remote SMB share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
 				@touch(sprintf($paths['unmounting'],basename($info['device'])));
 				if (do_mount( $info )) {
-					add_smb_share($info['mountpoint'], $info['device']);
+					add_smb_share($info['mountpoint'], $info['device'], FALSE);
 					execute_script($info, "ADD");
 				}
 				@unlink(sprintf($paths['unmounting'],basename($info['device'])));
@@ -90,7 +88,7 @@ function unassigned_mount() {
 				unassigned_log("Iso File share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
 				@touch(sprintf($paths['unmounting'],basename($info['device'])));
 				if (do_mount( $info )) {
-					add_smb_share($info['mountpoint'], $info['device']);
+					add_smb_share($info['mountpoint'], $info['device'], FALSE);
 					add_nfs_share($info['mountpoint']);
 					execute_script($info, "ADD");
 				}
@@ -102,6 +100,8 @@ function unassigned_mount() {
 
 function unassigned_umount() {
 	global $DEVNAME;
+
+	$force = ($DEVNAME == "all") ? TRUE : FALSE;
 
 	# Deal with local disks
 	foreach(get_unasigned_disks() as $disk) {
@@ -123,7 +123,7 @@ function unassigned_umount() {
 						execute_script($info, "REMOVE");
 						if ( rm_smb_share($info['target'], $info['label']) && rm_nfs_share($info['target']) ) {
 							unassigned_log("Unmounting disk '${info[label]}'...");
-							if (  is_mounted($info['device']) && do_unmount($info['device'], $info['mountpoint']) ) {
+							if (  do_unmount($info['device'], $info['mountpoint']) ) {
 								unassigned_log("Disk '${info[label]}' removed successfully.");
 							}
 						}
@@ -151,7 +151,7 @@ function unassigned_umount() {
 					unassigned_log("Removing Remote SMB share '${info[device]}'...");
 					execute_script($info, "REMOVE");
 					unassigned_log("Unmounting Remote SMB Share '${info[device]}'...");
-					if ( do_unmount($info['device'], $info['mountpoint']) ) {
+					if ( do_unmount($info['device'], $info['mountpoint'], $force) ) {
 						if ( rm_smb_share($info['mountpoint'], $info['device']) ) {
 							unassigned_log("Share '${info[device]}' unmount successfull.");
 							@unlink(sprintf($paths['unmounting'],basename($info['device'])));
@@ -179,7 +179,7 @@ function unassigned_umount() {
 					unassigned_log("Removing Iso File share '${info[device]}'...");
 					execute_script($info, "REMOVE");
 					unassigned_log("Unmounting Iso File Share '${info[device]}'...");
-					if ( do_unmount($info['device'], $info['mountpoint']) ) {
+					if ( do_unmount($info['device'], $info['mountpoint'], $force) ) {
 						if ( rm_smb_share($info['mountpoint'], $info['device']) && rm_nfs_share($info['mountpoint']) ) {
 							unassigned_log("Share '${info[device]}' unmount successfull.");
 							@unlink(sprintf($paths['unmounting'],basename($info['device'])));

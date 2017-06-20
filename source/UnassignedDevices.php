@@ -1,6 +1,6 @@
-<?PHP
+<?php
 /* Copyright 2015, Guilherme Jardim
- * Copyright 2016, Dan Landon
+ * Copyright 2016-2017, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -9,12 +9,15 @@
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  */
-?>
 
-<?PHP
 $plugin = "unassigned.devices";
 require_once("plugins/${plugin}/include/lib.php");
 require_once("webGui/include/Helpers.php");
+$config_file = "/boot/config/plugins/{$plugin}/{$plugin}.cfg";
+$var = parse_ini_file("state/var.ini");
+$csrf_token = $var['csrf_token'];
+
+$cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
 
 if (isset($_POST['display'])) $display = $_POST['display'];
 if (isset($_POST['var'])) $var = $_POST['var'];
@@ -62,26 +65,30 @@ function render_used_and_free($partition) {
 }
 
 function render_partition($disk, $partition) {
-	global $plugin, $paths, $echo;
+	global $plugin, $paths, $echo, $csrf_token;
 
 	if (! isset($partition['device'])) return array();
 	$out = array();
 	$mounted = is_mounted($partition['device']);
 	if ($mounted && is_file(get_config($disk[serial],"command.{$partition[part]}"))) {
-		$fscheck = "<a title='Execute Script as udev simulating a device being installed.' class='exec' onclick='openWindow_fsck(\"/plugins/${plugin}/include/script.php?device={$partition[device]}&owner=udev\",\"Execute Script\",600,900);'><i class='glyphicon glyphicon-flash partition'></i>{$partition[part]}</a>";
+		$fscheck = "<a title='Execute Script as udev simulating a device being installed' class='exec' onclick='openWindow_fsck(\"/plugins/${plugin}/include/script.php?device={$partition[device]}&owner=udev\",\"Execute Script\",600,900);'><i class='glyphicon glyphicon-flash partition'></i>{$partition[part]}</a>";
 	} elseif ( (! $mounted &&  $partition['fstype'] != 'btrfs') ) {
-		$fscheck = "<a title='File System Check.' class='exec' onclick='openWindow_fsck(\"/plugins/${plugin}/include/fsck.php?device={$partition[device]}&fs={$partition[fstype]}&type=ro\",\"Check filesystem\",600,900);'><i class='glyphicon glyphicon-th-large partition'></i>{$partition[part]}</a>";
+		$fscheck = "<a title='File System Check' class='exec' onclick='openWindow_fsck(\"/plugins/${plugin}/include/fsck.php?device={$partition[device]}&fs={$partition[fstype]}&type=ro\",\"Check filesystem\",600,900);'><i class='glyphicon glyphicon-th-large partition'></i>{$partition[part]}</a>";
 	} else {
 		$fscheck = "<i class='glyphicon glyphicon-th-large partition'></i>{$partition[part]}";
 	}
 
-	$rm_partition = (get_config("Config", "destructive_mode") == "enabled") ? "<span title='Remove Partition.' class='exec' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$disk[device]}\",\"{$partition[part]}\");'><i class='glyphicon glyphicon-remove hdd'></i></span>" : "";
+	$rm_partition = (get_config("Config", "destructive_mode") == "enabled") ? "<span title='Remove Partition' class='exec' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$disk[device]}\",\"{$partition[part]}\");'><i class='glyphicon glyphicon-remove hdd'></i></span>" : "";
 	$mpoint = "<div>{$fscheck}<i class='glyphicon glyphicon-arrow-right'></i>";
 	if ($mounted) {
-		$mpoint .= "<a title='Browse Share.' href='/Main/Browse?dir={$partition[mountpoint]}'>{$partition[mountpoint]}</a></div>";
+		$mpoint .= "<a title='Browse Share' href='/Main/Browse?dir={$partition[mountpoint]}'>{$partition[mountpoint]}</a></div>";
 	} else {
 		$mount_point = basename($partition[mountpoint]);
-		$mpoint .= "<form title='Click to Change Mount Point.' method='POST' action='/plugins/${plugin}/UnassignedDevices.php?action=change_mountpoint&serial={$partition[serial]}&partition={$partition[part]}' target='progressFrame' style='display:inline;margin:0;padding:0;'><span class='text exec'><a>{$partition[mountpoint]}</a></span><input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden /></form> {$rm_partition}</div>";
+		$mpoint .= "<form title='Click to Change Device Mount Point - Press Enter to save' method='POST' action='/plugins/${plugin}/UnassignedDevices.php?action=change_mountpoint&serial={$partition[serial]}&partition={$partition[part]}' target='progressFrame' style='display:inline;margin:0;padding:0;'>";
+		$mpoint .= "<span class='text exec'><a>{$partition[mountpoint]}</a></span>";
+		$mpoint .= "<input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden />";
+		$mpoint .= "<input type='hidden' name='csrf_token' value='{$csrf_token}'/>";
+		$mpoint .= "</form> {$rm_partition}</div>";
 	}
 	$mbutton = make_mount_button($partition);
   
@@ -94,10 +101,10 @@ function render_partition($disk, $partition) {
 	$out[] = "<td>".my_scale($partition['size'], $unit)." $unit</td>";
 	$out[] = "<td>".(strlen($partition['target']) ? shell_exec("/usr/bin/lsof '${partition[target]}' 2>/dev/null|grep -c -v COMMAND") : "-")."</td>";
 	$out[] = render_used_and_free($partition);
-	$out[] = "<td title='Turn on to Mount Device when Array is Started.'><input type='checkbox' class='automount' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['automount']) ? 'checked':'')."></td>";
-	$out[] = "<td title='Turn on to Share Device with SMB and/or NFS.'><input type='checkbox' class='toggle_share' info='".htmlentities(json_encode($partition))."' ".(($partition['shared']) ? 'checked':'')."></td>";
-	$out[] = "<td><a title='View Log.' href='/Main/ViewLog?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><img src='/plugins/${plugin}/icons/view_log.png' style='cursor:pointer;width:16px;'></a></td>";
-	$out[] = "<td><a title='Edit Device Script.' href='/Main/EditScript?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><img src='/plugins/${plugin}/icons/edit_script.png' style='cursor:pointer;width:16px;".( (get_config($partition['serial'],"command_bg.{$partition[part]}") == "true") ? "":"opacity: 0.4;" )."'></a></td>";
+	$out[] = "<td></td>";
+	$out[] = "<td title='Turn on to Share Device with SMB and/or NFS'><input type='checkbox' class='toggle_share' info='".htmlentities(json_encode($partition))."' ".(($partition['shared']) ? 'checked':'')."></td>";
+	$out[] = "<td><a title='View Device Script Log' href='/Main/ScriptLog?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><img src='/plugins/${plugin}/icons/scriptlog.png' style='cursor:pointer;width:16px;'></a></td>";
+	$out[] = "<td><a title='Edit Device Script' href='/Main/EditScript?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><img src='/plugins/${plugin}/icons/editscript.png' style='cursor:pointer;width:16px;".( (get_config($partition['serial'],"command_bg.{$partition[part]}") == "true") ? "":"opacity: 0.4;" )."'></a></td>";
 	$out[] = "<tr>";
 	return $out;
 }
@@ -144,10 +151,11 @@ function make_mount_button($device) {
 switch ($_POST['action']) {
 	case 'get_content':
 		$disks = get_all_disks_info();
+
 		echo "<table class='disk_status wide usb_disks'><thead><tr><td>Device</td><td>Identification</td><td></td><td>Temp</td><td>FS</td><td>Size</td><td>Open files</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Share</td><td>Log</td><td>Script</td></tr></thead>";
 		echo "<tbody>";
+		$odd="odd";
 		if ( count($disks) ) {
-			$odd="odd";
 			foreach ($disks as $disk) {
 				$mounted       = in_array(TRUE, array_map(function($ar){return is_mounted($ar['device']);}, $disk['partitions']));
 				$disk_name     = basename($disk['device']);
@@ -167,13 +175,13 @@ switch ($_POST['action']) {
 				if ( $p  && ! ($is_precleared || $preclearing) )
 				{
 					$add_toggle = TRUE;
-					$hdd_serial = "<span title='Click to view partitions/mount points.' class='exec toggle-hdd' hdd='{$disk_name}'>
+					$hdd_serial = "<span title='Click to view partitions/mount points' class='exec toggle-hdd' hdd='{$disk_name}'>
 												 	<i class='glyphicon glyphicon-hdd hdd'></i>
 													<i class='glyphicon glyphicon-plus-sign glyphicon-append'></i>
 												</span>
 												{$disk[serial]}
 												{$preclear_link}
-												<div id='preclear_{$disk_name}'></div>";
+												<div id='preclear_{$disk['serial_short']}'></div>";
 				}
 				else
 				{
@@ -184,14 +192,14 @@ switch ($_POST['action']) {
 												 <span style='margin:4px;'></span>
 												 {$disk[serial]}
 												 {$preclear_link}
-												 <div id='preclear_{$disk_name}'></div>";
+												 <div id='preclear_{$disk['serial_short']}'></div>";
 				}
 
 				echo "<tr class='{$odd} toggle-disk'>";
 				if ( $flash || (!is_file($disk['partitions'][0]['command']) && ! $mounted && ! $preclearing) ) {
 					echo "<td><img src='/webGui/images/green-blink.png'> {$disk_name}</td>";
 				} else {
-					echo "<td title='SMART Attributes on {$disk_name}.'><img src='/webGui/images/".(is_disk_running($disk['device']) ? "green-on.png":"green-blink.png" )."'>";
+					echo "<td title='SMART Attributes on {$disk_name}'><img src='/webGui/images/".(is_disk_running($disk['device']) ? "green-on.png":"green-blink.png" )."'>";
 					echo "<a href='/Main/New?name={$disk_name}'> {$disk_name}</a></td>";
 				}
 				echo "<td>{$hdd_serial}</td>";
@@ -201,7 +209,7 @@ switch ($_POST['action']) {
 				echo "<td>".my_scale($disk['size'],$unit)." {$unit}</td>";
 				echo ($p)?$p[7]:"<td>-</td>";
 				echo ($p)?$p[8]:"<td>-</td><td>-</td>";
-				echo ($p)?$p[9]:"<td>-</td>";
+				echo ($p)?"<td title='Turn on to Mount Device when Array is Started'><input type='checkbox' class='automount' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['automount']) ? 'checked':'')."></td>":"<td>-</td>";
 				echo ($p)?$p[10]:"<td>-</td>";
 				echo ($p)?$p[11]:"<td>-</td>";
 				echo ($p)?$p[12]:"<td>-</td>";
@@ -212,7 +220,9 @@ switch ($_POST['action']) {
 						foreach (render_partition($disk, $partition) as $l) echo str_replace("__SHOW__", (count($disk['partitions']) >1 ? "display:none;":"display:none;" ), $l );
 					}
 				}
-				$odd = ($odd == "odd") ? "even" : "odd";
+				if ($display['theme'] == 'white' || $display['theme'] == 'black') {
+					$odd = ($odd == "odd") ? "even" : "odd";
+				}
 			}
 		} else {
 			echo "<tr><td colspan='12' style='text-align:center;font-weight:bold;'>No unassigned disks available.</td></tr>";
@@ -221,38 +231,45 @@ switch ($_POST['action']) {
 
 		# SAMBA Mounts
 		echo "<div id='smb_tab' class='show-complete'>";
+
 		echo "<div id='title'><span class='left'><img src='/plugins/dynamix/icons/smbsettings.png' class='icon'>SMB Shares &nbsp;| &nbsp;<img src='/webGui/icons/nfs.png' class='icon'>NFS Shares &nbsp;| &nbsp;<img src='/plugins/${plugin}/icons/iso.png' class='icon' style='width:16px;'>ISO File Shares</span></div>";
 		echo "<table class='disk_status wide samba_mounts'><thead><tr><td>Device</td><td>Source</td><td>Mount point</td><td></TD><td>Remove</td><td>Size</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Log</td><td>Script</td></tr></thead>";
-	    echo "<tbody>";
+
+	  echo "<tbody>";
 		# SAMBA Mounts
 		$samba_mounts = get_samba_mounts();
+		$odd="odd";
 		if (count($samba_mounts)) {
-			$odd="odd";
 			foreach ($samba_mounts as $mount) {
-				$mounted = is_mounted($mount['device']);
 				$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$mount[ip]} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+				$mounted = is_mounted($mount['device']);
 				echo "<tr class='$odd'>";
 				$protocol = $mount['protocol'] == "NFS" ? "nfs" : "smb";
 				printf( "<td><img src='/webGui/images/%s'>%s</td>", ( $is_alive ? "green-on.png":"green-blink.png" ), $protocol);
 				echo "<td><div><i class='glyphicon glyphicon-globe hdd'></i><span style='margin:4px;'></span>{$mount[device]}</div></td>";
 				if ($mounted) {
-					echo "<td><i class='glyphicon glyphicon-save hdd'></i><span style='margin:4px;'><a title='Browse Remote SMB/NFS Share.' href='/Shares/Browse?dir={$mount[mountpoint]}'>{$mount[mountpoint]}</a></td>";
+					echo "<td><i class='glyphicon glyphicon-save hdd'></i><span style='margin:4px;'><a title='Browse Remote SMB/NFS Share' href='/Main/Browse?dir={$mount[mountpoint]}'>{$mount[mountpoint]}</a></td>";
 				} else {
 					$mount_point = basename($mount[mountpoint]);
-					echo "<td><form title='Click to change Remote SMB/NFS Mount Point.' method='POST' action='/plugins/${plugin}/UnassignedDevices.php?action=change_samba_mountpoint&device={$mount[device]}' target='progressFrame' style='display:inline;margin:0;padding:0;'>
+					echo "<td><form title='Click to change Remote SMB/NFS Mount Point - Press Enter to save' method='POST' action='/plugins/${plugin}/UnassignedDevices.php?action=change_samba_mountpoint&device={$mount[device]}' target='progressFrame' style='display:inline;margin:0;padding:0;'>
 					<i class='glyphicon glyphicon-save hdd'></i><span style='margin:4px;'></span><span class='text exec'><a>{$mount[mountpoint]}</a></span>
 					<input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden />
+					<input type='hidden' name='csrf_token' value='{$csrf_token}'/>
 					</form></td>";
 				}
-				echo "<td><span style='width:auto;text-align:right;'>".($mounted ? "<button type='button' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'umount','{$mount[device]}');\"><i class='glyphicon glyphicon-export'></i> Unmount</button>" : "<button type='button' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'mount','{$mount[device]}');\"><i class='glyphicon glyphicon-import'></i>  Mount</button>")."</span></td>";
-				echo $mounted ? "<td><i class='glyphicon glyphicon-remove hdd'></i></td>" : "<td><a class='exec' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount[device]}\");' title='Remove Remote SMB/NFS Share.'> <i class='glyphicon glyphicon-remove hdd'></i></a></td>";
+
+				$disabled = $is_alive ? "enabled":"disabled";
+				echo "<td><span style='width:auto;text-align:right;'>".($mounted ? "<button type='button' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'umount','{$mount[device]}');\"><i class='glyphicon glyphicon-export'></i> Unmount</button>" : "<button type='button' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'mount','{$mount[device]}');\" {$disabled}><i class='glyphicon glyphicon-import'></i>  Mount</button>")."</span></td>";
+				echo $mounted ? "<td><i class='glyphicon glyphicon-remove hdd'></i></td>" : "<td><a class='exec' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount[device]}\");' title='Remove Remote SMB/NFS Share'> <i class='glyphicon glyphicon-remove hdd'></i></a></td>";
 				echo "<td><span>".my_scale($mount['size'], $unit)." $unit</span></td>";
 				echo render_used_and_free($mount);
-				echo "<td title='Turn on to Mount Device when Array is Started.'><input type='checkbox' class='samba_automount' device='{$mount[device]}' ".(($mount['automount']) ? 'checked':'')."></td>";
-				echo "<td><a title='View SMB/NFS Share Log.' href='/Main/ViewLog?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><img src='/plugins/${plugin}/icons/view_log.png' style='cursor:pointer;width:16px;'></a></td>";
-				echo "<td><a title='Edit Remote SMB/NFS Share Script.' href='/Main/EditScript?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><img src='/plugins/${plugin}/icons/edit_script.png' style='cursor:pointer;width:16px;".( (get_samba_config($mount['device'],"command_bg") == "true") ? "":"opacity: 0.4;" )."'></a></td>";
+				echo "<td title='Turn on to Mount Remote SMB/NFS Share when Array is Started'><input type='checkbox' class='samba_automount' device='{$mount[device]}' ".(($mount['automount']) ? 'checked':'')."></td>";
+				echo "<td><a title='View Remote SMB/NFS Script Log' href='/Main/ScriptLog?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><img src='/plugins/${plugin}/icons/scriptlog.png' style='cursor:pointer;width:16px;'></a></td>";
+				echo "<td><a title='Edit Remote SMB/NFS Script' href='/Main/EditScript?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><img src='/plugins/${plugin}/icons/editscript.png' style='cursor:pointer;width:16px;".( (get_samba_config($mount['device'],"command_bg") == "true") ? "":"opacity: 0.4;" )."'></a></td>";
 				echo "</tr>";
-				$odd = ($odd == "odd") ? "even" : "odd";
+				if ($display['theme'] == 'white' || $display['theme'] == 'black') {
+					$odd = ($odd == "odd") ? "even" : "odd";
+				}
 			}
 		}
 
@@ -270,21 +287,23 @@ switch ($_POST['action']) {
 				}
 				echo "<td><div><i class='glyphicon glyphicon-cd hdd'></i><span style='margin:4px;'></span>${devname}</div></td>";
 				if ($mounted) {
-					echo "<td><i class='glyphicon glyphicon-save hdd'></i><span style='margin:4px;'><a title='Browse Iso File Share.' href='/Shares/Browse?dir={$mount[mountpoint]}'>{$mount[mountpoint]}</a></td>";
+					echo "<td><i class='glyphicon glyphicon-save hdd'></i><span style='margin:4px;'><a title='Browse Iso File Share' href='/Main/Browse?dir={$mount[mountpoint]}'>{$mount[mountpoint]}</a></td>";
 				} else {
 					$mount_point = basename($mount[mountpoint]);
-					echo "<td><form title='Click to change Iso File Mount Point.' method='POST' action='/plugins/${plugin}/UnassignedDevices.php?action=change_iso_mountpoint&device={$mount[device]}' target='progressFrame' style='display:inline;margin:0;padding:0;'>
+					echo "<td><form title='Click to change Iso File Mount Point - Press Enter to save' method='POST' action='/plugins/${plugin}/UnassignedDevices.php?action=change_iso_mountpoint&device={$mount[device]}' target='progressFrame' style='display:inline;margin:0;padding:0;'>
 					<i class='glyphicon glyphicon-save hdd'></i><span style='margin:4px;'></span><span class='text exec'><a>{$mount[mountpoint]}</a></span>
 					<input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden />
+					<input type='hidden' name='csrf_token' value='{$csrf_token}'/>
 					</form></td>";
 				}
-				echo "<td><span style='width:auto;text-align:right;'>".($mounted ? "<button type='button' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'umount','{$mount[device]}');\"><i class='glyphicon glyphicon-export'></i> Unmount</button>" : "<button type='button' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'mount','{$mount[device]}');\"><i class='glyphicon glyphicon-import'></i>  Mount</button>")."</span></td>";
-				echo $mounted ? "<td><i class='glyphicon glyphicon-remove hdd'></i></td>" : "<td><a class='exec' style='color:#CC0000;font-weight:bold;' onclick='remove_iso_config(\"{$mount[device]}\");' title='Remove Iso FIle Share.'> <i class='glyphicon glyphicon-remove hdd'></i></a></td>";
+				$disabled = $is_alive ? "enabled":"disabled";
+				echo "<td><span style='width:auto;text-align:right;'>".($mounted ? "<button type='button' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'umount','{$mount[device]}');\"><i class='glyphicon glyphicon-export'></i> Unmount</button>" : "<button type='button' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'mount','{$mount[device]}');\" {$disabled}><i class='glyphicon glyphicon-import'></i>  Mount</button>")."</span></td>";
+				echo $mounted ? "<td><i class='glyphicon glyphicon-remove hdd'></i></td>" : "<td><a class='exec' style='color:#CC0000;font-weight:bold;' onclick='remove_iso_config(\"{$mount[device]}\");' title='Remove Iso File Share'> <i class='glyphicon glyphicon-remove hdd'></i></a></td>";
 				echo "<td><span>".my_scale($mount['size'], $unit)." $unit</span></td>";
 				echo render_used_and_free($mount);
-				echo "<td title='Turn on to Mount Device when Array is Started.'><input type='checkbox' class='iso_automount' device='{$mount[device]}' ".(($mount['automount']) ? 'checked':'')."></td>";
-				echo "<td><a title='View Iso File Share Log.' href='/Main/ViewLog?i=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><img src='/plugins/${plugin}/icons/view_log.png' style='cursor:pointer;width:16px;'></a></td>";
-				echo "<td><a title='Edit Iso File Share Script.' href='/Main/EditScript?i=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><img src='/plugins/${plugin}/icons/edit_script.png' style='cursor:pointer;width:16px;".( (get_iso_config($mount['device'],"command_bg") == "true") ? "":"opacity: 0.4;" )."'></a></td>";
+				echo "<td title='Turn on to Mount Iso File when Array is Started'><input type='checkbox' class='iso_automount' device='{$mount[device]}' ".(($mount['automount']) ? 'checked':'')."></td>";
+				echo "<td><a title='View Iso File Script Log' href='/Main/ScriptLog?i=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><img src='/plugins/${plugin}/icons/scriptlog.png' style='cursor:pointer;width:16px;'></a></td>";
+				echo "<td><a title='Edit Iso File Script' href='/Main/EditScript?i=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><img src='/plugins/${plugin}/icons/editscript.png' style='cursor:pointer;width:16px;".( (get_iso_config($mount['device'],"command_bg") == "true") ? "":"opacity: 0.4;" )."'></a></td>";
 				echo "</tr>";
 				$odd = ($odd == "odd") ? "even" : "odd";
 			}
@@ -303,7 +322,7 @@ switch ($_POST['action']) {
 		foreach ($config as $serial => $value) {
 			if($serial == "Config") continue;
 			if (! preg_grep("#${serial}#", $disks_serials)){
-				$ct .= "<tr><td><img src='/webGui/images/green-blink.png'> missing</td><td>$serial</td><td title='Turn on to Mount Device when Array is Started.'><input type='checkbox' class='automount' serial='${serial}' ".( is_automount($serial) ? 'checked':'' )."></td><td colspan='7'><a style='cursor:pointer;' onclick='remove_disk_config(\"${serial}\")'>Remove</a></td></tr>";
+				$ct .= "<tr><td><img src='/webGui/images/green-blink.png'> missing</td><td>$serial</td><td title='Turn on to Mount Device when Array is Started'><input type='checkbox' class='automount' serial='${serial}' ".( is_automount($serial) ? 'checked':'' )."></td><td title='Remove Device configuration' colspan='7'><a style='cursor:pointer;' onclick='remove_disk_config(\"${serial}\")'>Remove</a></td></tr>";
 			}
 		}
 		if (strlen($ct)) {
@@ -437,10 +456,14 @@ switch ($_POST['action']) {
 	/* SMB SHARES */
 	case 'add_samba_share':
 		$ip = urldecode($_POST['IP']);
+		$ip = implode("",explode("\\", $ip));
+		$ip = stripslashes(trim($ip));
 		$protocol = urldecode($_POST['PROTOCOL']);
 		$user = isset($_POST['USER']) ? urldecode($_POST['USER']) : "";
 		$pass = isset($_POST['PASS']) ? urldecode($_POST['PASS']) : "";
 		$path = isset($_POST['SHARE']) ? urldecode($_POST['SHARE']) : "";
+		$path = implode("",explode("\\", $path));
+		$path = stripslashes(trim($path));
 		$share = basename($path);
 		$device = ($protocol == "NFS") ? "${ip}:/${path}" : "//${ip}/${share}";
 		if (strpos($path, "$") === FALSE) {
@@ -473,6 +496,8 @@ switch ($_POST['action']) {
 	/* ISO FILE SHARES */
 	case 'add_iso_share':
 		$file = isset($_POST['ISO_FILE']) ? urldecode($_POST['ISO_FILE']) : "";
+		$file = implode("",explode("\\", $file));
+		$file = stripslashes(trim($file));
 		if (is_file($file)) {
 			$info = pathinfo($file);
 			$share = $info['filename'];
@@ -510,7 +535,7 @@ switch ($_POST['action']) {
 		case 'change_mountpoint':
 			$serial = urldecode($_GET['serial']);
 			$partition = urldecode($_GET['partition']);
-			$mountpoint = basename(urldecode($_POST['mountpoint']));
+			$mountpoint = safe_name(basename(urldecode($_POST['mountpoint'])));
 			if ($mountpoint != "") {
 				$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
 				set_config($serial, "mountpoint.${partition}", $mountpoint);
@@ -520,7 +545,7 @@ switch ($_POST['action']) {
 
 		case 'change_samba_mountpoint':
 			$device = urldecode($_GET['device']);
-			$mountpoint = basename(urldecode($_POST['mountpoint']));
+			$mountpoint = safe_name(basename(urldecode($_POST['mountpoint'])));
 			if ($mountpoint != "") {
 				$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
 				set_samba_config($device, "mountpoint", $mountpoint);
@@ -530,7 +555,7 @@ switch ($_POST['action']) {
 
 		case 'change_iso_mountpoint':
 			$device = urldecode($_GET['device']);
-			$mountpoint = basename(urldecode($_POST['mountpoint']));
+			$mountpoint = safe_name(basename(urldecode($_POST['mountpoint'])));
 			if ($mountpoint != "") {
 				$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
 				set_iso_config($device, "mountpoint", $mountpoint);

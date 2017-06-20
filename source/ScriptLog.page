@@ -1,9 +1,9 @@
-Title="Unassigned Device Log"
+Title="Script Log"
 ---
-<?PHP
+<?php
 /* Copyright 2015, Lime Technology
  * Copyright 2015, Bergware International.
- * Copyright 2016, Dan Landon
+ * Copyright 2016-2017, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -12,9 +12,7 @@ Title="Unassigned Device Log"
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
  */
-?>
 
-<?PHP
 $plugin = "unassigned.devices";
 require_once("plugins/${plugin}/include/lib.php");
 
@@ -32,7 +30,7 @@ if (isset($_GET['s'])) {
 
 $zip_file = "-".basename($file, ".sh")."-";
 $zip = str_replace(' ','_',strtolower($var['NAME'])).$zip_file.date('Ymd-Hi').".zip";
-$file = "/var/log/".basename($file, ".sh").".log";
+$file = "/tmp/$plugin/".basename($file, ".sh").".log";
 $cmd = "cat ".$file." 2>/dev/null";
 echo $display['resize'] ? "<pre class='up' style='display:none'>" : "<pre class='up'>";
 echo `{$cmd}`;

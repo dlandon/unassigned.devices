@@ -3,19 +3,109 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2016.12.09">
+<!ENTITY version   "2017.06.18a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"e104c7875c6471aeea7512f70d8bc84f">
+<!ENTITY MD5		"ca694ef5ddde4159d62d0d6a5fde8b3a">
 ]>
 
-<PLUGIN name="&name;" author="&author;" launch="&launch;" version="&version;" pluginURL="&pluginURL;">
+<PLUGIN name="&name;"
+		author="&author;"
+		launch="&launch;"
+		version="&version;"
+		pluginURL="&pluginURL;">
 
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: More modifications for unRAID 6.4 Azure and Gray Themes.
+
+###2017-06-17a
+- Fix: Additional modifications for unRAID 6.4 Azure and Gray themes.
+
+###2017.06.15
+- Add: Add timeout to SMART probing commands.
+
+###2017.06.11a
+- Fix: Modifications for unRAID 6.4 Azure and Gray themes.
+
+###2017.06.10
+- Fix: Modifications for unRAID 6.4 Azure and Gray themes.
+
+###2017.05.21
+- Add: Updated fuse-exfat and exfat-utils packages.
+
+###2017.05.14
+- Add: Additional help about formatting disks in UD and installing the disk into the array.
+- Fix: Plugin start script cleanup.
+
+###2017.05.11
+- Add: Additional help and tool tip text to explain using Enter to save the mount point.
+
+###2017.05.04a
+- Fix: Moved script logs to /tmp/unassigned.devices.
+- Fix: Force unmount SMB/NFS shares and iso mounts when shutting down server.
+
+###2017.03.23
+- Fix: Restored missing Historical Devices icon.
+
+###2017.03.12
+- Fix: Remove automount switches from partitions to eliminate confusion.  It applies to the disk and not to partitions.
+
+###2017.02.23
+- Fix: All iso files are now mounted read only.
+
+###2017.02.21
+- Fix: Remove -t iso9660 from iso mount so other than CD iso files can be mounted.
+
+###2017.02.20
+- Fix: Remove 'Download' button from help.
+
+###2017.02.16
+- Fix: 	Use serial instead of device name to display Preclear status.
+
+###2017.02.10
+- Fix: Some minor webgui changes and enhancements.
+
+###2017.02.09a
+- Fix: More code cleanup.
+- Fix: Change to fix issue with public SMB shares when SMB settings have not been saved.
+
+###2017.02.04
+- Fix: Code cleanup.
+- Add: Integrate with 6.3 recycle bin.
+
+###2017.01.31a
+- Add: Change 'Rescan' and 'Log' buttons to icons.  Add log download icon.
+
+###2017.01.30
+- Fix: Remove mount point directory when SMB or NFS mount fails.
+- Add: Additional checks that SMB and NFS remote servers are online before trying to auto mount remote shares.
+
+###2017.01.29c
+- Fix: Modified the warning about re-starting Docker before Docker will see UD shares.
+- Fix: Additional help text about using UD script to mount/unmount devices.
+- Add: Added (SMB) and (NFS) to the 'Share' button table header to show the sharing enabled in the UD settings.
+- Fix: Don't calculate size and space on a disconnected SMB or NFS mount.
+- Fix: Changed 'df' for calculating the size and used space on a device to a device specific call to 'df'.
+
+###2017.01.24
+- Add: Security updates.
+- Fix: Deal with special characters in share name and drive label.
+- Fix: Minor gui changes. 
+- Fix: Updated exfat and libbsd packages.
+
+###2017.01.17
+- Fix: Do not allow backslashes in SMB/NFS and iso mounts.
+
+###2016.12.15
+- Add: Additional SMART information.
+- Fix: Clicking 'Done' on dialogs did not return to the "Unassigned Devices" tab.
+- Fix: Removed toggle switch labels to save space.
+
+###2016.12.09
 - Add: Add noatime and nodiratime mount options to ntfs, vfat, exfat, and ext4.
 
 ###2016.12.04
@@ -204,7 +294,7 @@
 
 ###2016.01.24
 - Fix: Changed terminology from 'SMB Mount' to 'Remote SMB Mount'.
-- FIx: Smart Report limited to 'Disk Attributes'.
+- Fix: Smart Report limited to 'Disk Attributes'.
 - Fix: Cosmetic changes.
 - Add: Capability to mount NFS share as well as SMB share to 'Remote SMB Mount'.
 - Add: Remove script files when the configuration is removed for devices and Remote SMB Mounts.
@@ -470,19 +560,19 @@ ntfs-3g-2013.1.13-x86_64-1.txz (for unraid 6.1)
 
 
 <!--
-exfat-utils-1.2.1-x86_64-1_slack.txz
+exfat-utils-1.2.6-x86_64-1_slonly.txz
 -->
-<FILE Name="&packages;/exfat-utils-1.2.1-x86_64-1_slack.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/exfat-utils-1.2.1-x86_64-1_slack.txz"</URL>
-<MD5>23c662237bf9ec0953fd2ddeba02541b</MD5>
+<FILE Name="&packages;/exfat-utils-1.2.6-x86_64-1_slonly.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/exfat-utils-1.2.6-x86_64-1_slonly.txz"</URL>
+<MD5>724a8adbfb85cf848b1dc23f9cf42e37</MD5>
 </FILE>
 
 <!--
-fuse-exfat-1.2.1-x86_64-1_slack.txz
+fuse-exfat-1.2.6-x86_64-1_slonly.txz
 -->
-<FILE Name="&packages;/fuse-exfat-1.2.1-x86_64-1_slack.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/fuse-exfat-1.2.1-x86_64-1_slack.txz"</URL>
-<MD5>088950fe3ccf767b616db6fb550e0ab7</MD5>
+<FILE Name="&packages;/fuse-exfat-1.2.6-x86_64-1_slonly.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/fuse-exfat-1.2.6-x86_64-1_slonly.txz"</URL>
+<MD5>cb30ccfdf7a467fe2434bb738925d7e6</MD5>
 </FILE>
 
 <!--
@@ -494,11 +584,11 @@ hfsprogs-332.25-x86_64-2sl.txz
 </FILE>
 
 <!--
-libbsd-0.6.0-x86_64-1sl.txz
+libbsd-0.8.3-x86_64-1_slonly.txz
 -->
-<FILE Name="&packages;/libbsd-0.6.0-x86_64-1sl.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/libbsd-0.6.0-x86_64-1sl.txz"</URL>
-<MD5>1d403a59c467a37f040de3fde2c23518</MD5>
+<FILE Name="&packages;/libbsd-0.8.3-x86_64-1_slonly.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/libbsd-0.8.3-x86_64-1_slonly.txz"</URL>
+<MD5>81ed59b14fa13c7fd604c53adbe16112</MD5>
 </FILE>
 
 <!--
@@ -551,10 +641,31 @@ libnl-1.1.4-x86_64-1.txz
 </FILE>
 
 <!--
+Unassigned devices background start script.
+-->
+<FILE Name="/tmp/start_unassigned_devices" Mode="0770">
+<INLINE>
+#!/bin/bash
+# Start unassigned devices if the array is started.
+if [[ -e /proc/mdcmd ]]; then
+  if [[ $(cat /proc/mdcmd|grep mdState|cut -d"=" -f2) == STARTED ]]; then
+    /usr/local/emhttp/plugins/&name;/scripts/rc.unassigned mount auto 2>/dev/null
+  fi
+fi
+
+# Remove the background start script.
+rm -f /tmp/start_unassigned_devices 2>/dev/null
+</INLINE>
+</FILE>
+
+<!--
 The 'post-install' script.
 -->
 <FILE Run="/bin/bash">
 <INLINE>
+# Create logs directory.
+mkdir /tmp/&name; 2>/dev/null
+
 # Install the plugin bundle.
 # Create plugin directory
 mkdir /boot/config/plugins/&name; 2>/dev/null
@@ -589,12 +700,8 @@ rm -rf /var/state/&name;
 mkdir -p /mnt/disks /var/state/&name;
 chown nobody:users /mnt/disks
 
-# mount disks if array is started
-if [[ -e /proc/mdcmd ]]; then
-  if [[ $(cat /proc/mdcmd|grep mdState|cut -d"=" -f2) == STARTED ]]; then
-    /usr/local/emhttp/plugins/&name;/scripts/rc.unassigned mount auto 2>/dev/null
-  fi
-fi
+# mount disks
+at -M -f /tmp/start_unassigned_devices now 2>/dev/null
 
 # Rename original Dynamix page
 if [[ -e /usr/local/emhttp/plugins/dynamix/OpenDevices.page ]]; then
@@ -614,7 +721,7 @@ echo "-----------------------------------------------------------"
 echo " &name; has been installed."
 echo " This plugin requires Dynamix webGui to operate"
 echo " Copyright 2015, gfjardim"
-echo " Copyright 2016, &author;"
+echo " Copyright 2016-2017, &author;"
 echo " Version: &version;"
 echo "-----------------------------------------------------------"
 echo ""
@@ -655,10 +762,10 @@ rm -rf /usr/local/emhttp/plugins/&name; 2>/dev/null
 if [ -f /var/log/packages/ntfs-3g-2013.1.13-x86_64-1 ]; then
 	removepkg ntfs-3g-2013.1.13-x86_64-1 2>/dev/null
 fi
-removepkg exfat-utils-1.2.1-x86_64-1_slack 2>/dev/null
-removepkg fuse-exfat-1.2.1-x86_64-1_slack 2>/dev/null
+removepkg exfat-utils-1.2.6-x86_64-1_slonly 2>/dev/null
+removepkg fuse-exfat-1.2.6-x86_64-1_slonly.txz 2>/dev/null
 removepkg hfsprogs-332.25-x86_64-2sl 2>/dev/null
-removepkg libbsd-0.6.0-x86_64-1sl 2>/dev/null
+removepkg libbsd-0.8.3-x86_64-1_slonly 2>/dev/null
 if [ -f /var/log/packages/parted-3.1-x86_64-1 ]; then
 	removepkg parted-3.1-x86_64-1 2>/dev/null
 fi
@@ -667,6 +774,9 @@ if [ -f /var/log/packages/parted-3.2-x86_64-2 ]; then
 fi
 
 removepkg libnl-1.1.4-x86_64-1 2>/dev/null
+
+# Remove the logs directory.
+rm -r /tmp/&name; 2>/dev/null
 
 echo ""
 echo "-----------------------------------------------------------"
