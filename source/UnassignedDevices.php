@@ -98,7 +98,7 @@ function render_partition($disk, $partition) {
 	$out[] = "<td class='mount'>{$mbutton}</td>";
 	$out[] = "<td>-</td>";
 	$out[] = "<td >".$partition['fstype']."</td>";
-	$out[] = "<td><span>".my_scale($partition['size'], $unit)." $unit</span></td>";
+	$out[] = "<td>".my_scale($partition['size'], $unit)." $unit</td>";
 	$out[] = "<td>".(strlen($partition['target']) ? shell_exec("/usr/bin/lsof '${partition[target]}' 2>/dev/null|grep -c -v COMMAND") : "-")."</td>";
 	$out[] = render_used_and_free($partition);
 	$out[] = "<td></td>";
@@ -151,10 +151,8 @@ function make_mount_button($device) {
 switch ($_POST['action']) {
 	case 'get_content':
 		$disks = get_all_disks_info();
-		if ($display['theme'] == 'azure' || $display['theme'] == 'gray') {
-			echo "<div id='title'><span class='left' style='font-size: 10pt'>Unassigned Drives</span></div></br>";
-		}
-		echo "<table class='usb_disks custom_head'><thead><tr><td>Device</td><td>Identification</td><td></td><td>Temp</td><td>FS</td><td>Size</td><td>Open files</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Share</td><td>Script Log</td><td>Script</td></tr></thead>";
+
+		echo "<table class='disk_status wide usb_disks'><thead><tr><td>Device</td><td>Identification</td><td></td><td>Temp</td><td>FS</td><td>Size</td><td>Open files</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Share</td><td>Log</td><td>Script</td></tr></thead>";
 		echo "<tbody>";
 		$odd="odd";
 		if ( count($disks) ) {
@@ -233,13 +231,11 @@ switch ($_POST['action']) {
 
 		# SAMBA Mounts
 		echo "<div id='smb_tab' class='show-complete'>";
-		if ($display['theme'] == 'white' || $display['theme'] == 'black') {
-			echo "<div id='title'><span class='left' style='font-size: 10pt'><img src='/plugins/dynamix/icons/smbsettings.png' class='icon'>Remote SMB/NFS</span>&nbsp;/&nbsp;<img src='/plugins/dynamix/icons/arraydevices.png' class='icon'>Iso File Shares</span></div>";
-		} else {
-			echo "<div id='title'><span class='left' style='font-size: 10pt'>Remote SMB/NFS / Iso File Shares</span></div>";
-		}
-		echo "<table class='samba_mounts custom_head'><thead><tr><td>Device</td><td>Source</td><td>Mount point</td><td></TD><td>Remove</td><td>Size</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Script Log</td><td>Script</td></tr></thead>";
-	    echo "<tbody>";
+
+		echo "<div id='title'><span class='left'><img src='/plugins/dynamix/icons/smbsettings.png' class='icon'>SMB Shares &nbsp;| &nbsp;<img src='/webGui/icons/nfs.png' class='icon'>NFS Shares &nbsp;| &nbsp;<img src='/plugins/${plugin}/icons/iso.png' class='icon' style='width:16px;'>ISO File Shares</span></div>";
+		echo "<table class='disk_status wide samba_mounts'><thead><tr><td>Device</td><td>Source</td><td>Mount point</td><td></TD><td>Remove</td><td>Size</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Log</td><td>Script</td></tr></thead>";
+
+	  echo "<tbody>";
 		# SAMBA Mounts
 		$samba_mounts = get_samba_mounts();
 		$odd="odd";
@@ -330,8 +326,8 @@ switch ($_POST['action']) {
 			}
 		}
 		if (strlen($ct)) {
-			echo "<div id='smb_tab' class='show-complete'><div id='title'><span class='left' style='font-size: 10pt'><img src='/plugins/{$plugin}/icons/historical.png' class='icon'>Historical Devices</span></div>";
-			echo "<table class='usb_absent custom_head'><thead><tr><td>Device</td><td>Serial Number</td><td>Auto mount</td><td colspan='7'>Remove config</td></tr></thead><tbody>${ct}</tbody></table></div>";
+			echo "<div id='smb_tab' class='show-complete'><div id='title'><span class='left'><img src='/plugins/{$plugin}/icons/hourglass.png' class='icon'>Historical Devices</span></div>";
+			echo "<table class='disk_status wide usb_absent'><thead><tr><td>Device</td><td>Serial Number</td><td>Auto mount</td><td colspan='7'>Remove config</td></tr></thead><tbody>${ct}</tbody></table></div>";
 		}
 
 		echo 
