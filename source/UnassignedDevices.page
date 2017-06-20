@@ -38,6 +38,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 <script src="/webGui/javascript/jquery.filetree.js"></script>
 
 <script type="text/javascript" src="/plugins/<?=$plugin;?>/assets/waitMe.min.js"></script>
+<script type="text/javascript" src="/plugins/<?=$plugin;?>/assets/arrive.min.js"></script>
 <link rel="stylesheet" type="text/css" href="/plugins/<?=$plugin;?>/assets/style-<?=$display['theme'];?>.css">
 
 <script type="text/javascript">
@@ -85,22 +86,22 @@ function getlog() {
 </script>
 
 <style>
-	table.usb_disks thead tr>td{text-align:left;width:8%;padding-left:12px;}
-	table.usb_disks {padding:0px;margin:-21px 0px 22px 0px;border-collapse:collapse;white-space:nowrap;}
-	table.usb_disks tr>td{text-align:left;width:8%;padding-left:12px;padding-right:0;white-space:nowrap;}
+	table.usb_disks {padding: 0px 10px 0px 0px;border-collapse:collapse;white-space:nowrap;}
+	table.usb_disks thead tr>td{text-align:left;width:8%;}
+	table.usb_disks tr>td{text-align:left;width:8%;padding-right:0;white-space:nowrap;}
 	table.usb_disks tr>td+td+td{min-width:0px;}
 	table.usb_disks tr>td+td+td+td{text-align:center;padding-left:0;padding-right:12px;width:auto;min-width:0px;}
 	table.usb_disks tr>td+td+td+td+td+td{text-align:right;padding-left:0;padding-right:12px;width:auto;}
 	table.usb_disks tr>td+td+td+td+td+td+td+td+td+td{text-align:left;}
 	table.usb_disks tr>td+td+td+td+td+td+td+td+td+td+td+td{text-align:right;padding-left:0;padding-right:12px;}
 
-	table.usb_absent thead tr>td{text-align:left;width:8%;padding-left:12px;}
-	table.usb_absent tr>td{text-align:left;width:8%;padding-left:12px;padding-right:0;white-space:nowrap;}
+	table.usb_absent thead tr>td{text-align:left;width:8%;}
+	table.usb_absent tr>td{text-align:left;width:8%;padding-right:0;white-space:nowrap;}
 	table.usb_absent tr>td+td{text-align:left;width:auto;}
 	table.usb_absent tr>td+td+td+td{text-align:right;padding-left:0;padding-right:12px;width: 5em;}
 
-	table.samba_mounts thead tr>td{text-align:left;width:8%;padding-left:12px;}
-	table.samba_mounts tr>td{text-align:left;width:8%;padding-left:12px;padding-right:0;white-space:nowrap;}
+	table.samba_mounts thead tr>td{text-align:left;width:8%;}
+	table.samba_mounts tr>td{text-align:left;width:8%;padding-right:0;white-space:nowrap;}
 	table.samba_mounts tr>td+td{text-align:left;width:auto;}
 	table.samba_mounts tr>td+td+td+td+td+td+td+td{text-align:left;padding:0px 0px 0px 12px;width: 75px;}
 	table.samba_mounts tr>td+td+td+td+td+td+td+td+td{text-align:right;padding-left:0;padding-right:12px;}
@@ -141,11 +142,14 @@ function getlog() {
 	var vars = <?=json_encode($var);?>;
 	var tab_usbdisks = $('input[name$="tabs"]').length;
 	$('#tab'+tab_usbdisks).bind({click:function() {pin_tab(tab_usbdisks); detect_usb_disk_change(tab_usbdisks);}});
+
 	$(function(){
 		usb_disks(tab_usbdisks);
 		detect_usb_disk_change(tab_usbdisks);
 	});
 	<?=$Preclear ? $Preclear->Script() : "";?>
+
+
 
 	function openWindow_fsck(cmd,title,height,width) {
 		var run = cmd;
@@ -188,7 +192,13 @@ function getlog() {
 
 	function usb_disks(tabnum) {
 		startWaitMe('#usb_devices_list');
-		$.post(URL,{action:"get_content",display:display},function(data) {if (data) $('#usb_devices_list').html(data);});
+		$.post(URL,{action:"get_content",display:display},function(data)
+		  {
+		  	if (data)
+		  	{
+		  		$('#usb_devices_list').html(data);
+		  	}
+		  });
 	}
 
 	function detect_usb_disk_change(tabnum) {
@@ -469,9 +479,7 @@ function getlog() {
 		}
 	}
 
-	function sendLog() {
-		$.post(URL,{'action':'send_log'}).always(function(){notifier();});
-	}
+
 </script>
 
 <div style='display: inline; float: right; margin: -58px -14px;' id='unassigned_tabbed'></div>
@@ -599,3 +607,55 @@ function getlog() {
 	<p>Click on the <strong>'Download Log'</strong> button to download a zip file copy of the unassigned devices log.</p>
 </blockquote>
 </form>
+
+<script type="text/javascript">
+	(function ($) {
+		$.fn.getHiddenDimensions = function (includeMargin) {
+			var $item = this,
+			props = { position: 'absolute', visibility: 'hidden', display: 'block' },
+			dim = { width: 0, height: 0, innerWidth: 0, innerHeight: 0, outerWidth: 0, outerHeight: 0 },
+			$hiddenParents = $item.parents().andSelf().not(':visible'),
+			includeMargin = (includeMargin == null) ? false : includeMargin;
+
+			var oldProps = [];
+			$hiddenParents.each(function ()
+			{
+				var old = {};
+
+				for (var name in props)
+				{
+					old[name] = this.style[name];
+					this.style[name] = props[name];
+				}
+
+				oldProps.push(old);
+			});
+
+			dim.width = $item.width();
+			dim.outerWidth = $item.outerWidth(includeMargin);
+			dim.innerWidth = $item.innerWidth();
+			dim.height = $item.height();
+			dim.innerHeight = $item.innerHeight();
+			dim.outerHeight = $item.outerHeight(includeMargin);
+
+			$hiddenParents.each(function (i)
+			{
+				var old = oldProps[i];
+				for (var name in props)
+				{
+					this.style[name] = old[name];
+				}
+			});
+
+			return dim;
+		}
+	}(jQuery));
+
+	var maxWidth = [];
+
+	$("#usb_devices_list").arrive("tr",{onceOnly:false},function()
+	{
+		maxWidth.push($(this).find("td:nth-child(2) > div").getHiddenDimensions().outerWidth + 10);
+		$(".usb_disks > thead > tr > td:nth-child(2)").css("min-width", Math.max.apply(Math, maxWidth));
+	});
+</script>
