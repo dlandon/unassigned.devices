@@ -757,5 +757,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		// Load page content
 		usb_disks(tab_usbdisks);
 		detect_usb_disk_change(tab_usbdisks);
+	});
 
 </script>
