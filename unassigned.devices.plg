@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.06.20">
+<!ENTITY version   "2017.06.21">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"eb9a51010256b7fd3d4f8f0833125e40">
+<!ENTITY MD5		"bd867b8234ad4564aefcd83961da0d61">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,10 +20,7 @@
 <CHANGES>
 ##&name;
 ###&version;
-- Fix: More modifications for unRAID 6.4 Azure and Gray Themes.
-
-###2017.06.17a
-- Fix: Additional modifications for unRAID 6.4 Azure and Gray themes.
+- Fix: Modifications for unRAID 6.4 Azure and Gray themes.
 
 ###2017.06.15
 - Add: Add timeout to SMART probing commands.

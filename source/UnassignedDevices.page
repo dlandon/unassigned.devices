@@ -49,15 +49,15 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	table.usb_disks tr>td+td+td+td+td+td+td+td+td+td{text-align:left;}
 	table.usb_disks tr>td+td+td+td+td+td+td+td+td+td+td+td{text-align:right;padding-left:0;padding-right:12px;}
 
-	table.usb_absent thead tr>td{text-align:left;width:8%;}
+	table.usb_absent thead tr>td{text-align:left;width:8%;padding-right:12px}
 	table.usb_absent tr>td{text-align:left;width:8%;padding-right:0;white-space:nowrap;}
 	table.usb_absent tr>td+td{text-align:left;width:auto;}
-	table.usb_absent tr>td+td+td+td{text-align:right;padding-left:0;padding-right:8px;width: 5em;}
+	table.usb_absent tr>td+td+td+td{text-align:right;padding-left:0;padding-right:12px;width: 5em;}
 
-	table.samba_mounts thead tr>td{text-align:left;width:8%;}
+	table.samba_mounts thead tr>td{text-align:left;width:8%;padding-right:12px}
 	table.samba_mounts tr>td{text-align:left;width:8%;padding-right:0;white-space:nowrap;}
 	table.samba_mounts tr>td+td{text-align:left;width:auto;}
-	table.samba_mounts tr>td+td+td+td+td+td+td+td+td+td{text-align:right;padding-left:0;padding-right:8px;}
+	table.samba_mounts tr>td+td+td+td+td+td+td+td+td+td{text-align:right;padding-left:0;padding-right:12px;}
 
 	button[type=button].mount {margin:0px 14px 0 14px;}
 	i.glyphicon{margin:0px 5px 0 5px;}
@@ -73,7 +73,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		position: relative;
 		top: 0px;
 		vertical-align: middle;
-		right: -8px;
+		right: -12px;
 	}
 
 	.switch-button-background.checked {
