@@ -111,7 +111,7 @@ function exist_in_file($file, $val) {
 }
 
 function is_disk_running($dev) {
-	$state = trim(shell_exec("/usr/sbin/hdparm -C $dev 2>/dev/null| /bin/grep -c standby"));
+	$state = trim(benchmark("shell_exec", "/usr/sbin/hdparm -C $dev 2>/dev/null| /bin/grep -c standby"));
 	return ($state == 0) ? TRUE : FALSE;
 }
 
@@ -125,9 +125,9 @@ function get_temp($dev) {
 	if (isset($temps[$dev]) && (time() - $temps[$dev]['timestamp']) < 120 ) {
 		return $temps[$dev]['temp'];
 	} else if (is_disk_running($dev)) {
-		$temp = trim(shell_exec("/usr/bin/timeout 20 /usr/sbin/smartctl -A -d sat,12 $dev 2>/dev/null| /bin/grep -m 1 -i Temperature_Celsius | /bin/awk '{print $10}'"));
+		$temp = trim(benchmark("shell_exec", "/usr/bin/timeout 20 /usr/sbin/smartctl -A -d sat,12 $dev 2>/dev/null| /bin/grep -m 1 -i Temperature_Celsius | /bin/awk '{print $10}'"));
 		if (! is_numeric($temp)) {
-			$temp = trim(shell_exec("/usr/bin/timeout 20 /usr/sbin/smartctl -A -d sat,12 $dev 2>/dev/null| /bin/grep -m 1 -i Airflow_Temperature | /bin/awk '{print $10}'"));
+			$temp = trim(benchmark("shell_exec", "/usr/bin/timeout 20 /usr/sbin/smartctl -A -d sat,12 $dev 2>/dev/null| /bin/grep -m 1 -i Airflow_Temperature | /bin/awk '{print $10}'"));
 		}
 		$temp = (is_numeric($temp)) ? $temp : "*";
 		$temps[$dev] = array('timestamp' => time(),
@@ -321,6 +321,19 @@ function remove_partition($dev, $part) {
 	}
 	unassigned_log("Removing partition '{$part}' from disk '{$dev}'.");
 	shell_exec("/usr/sbin/parted {$dev} --script -- rm {$part}");
+}
+
+function benchmark()
+{
+  $params   = func_get_args();
+  $function = $params[0];
+  array_shift($params);
+  $time     = -microtime(true); 
+  $out      = call_user_func_array($function, $params);
+  $time    += microtime(true); 
+  $type     = ($time > 10) ? "INFO" : "DEBUG";
+  unassigned_log("benchmark: $function(".implode(",", $params).") took ".sprintf('%f', $time)."s.", $type);
+  return $out;
 }
 
 #########################################################
@@ -1079,14 +1092,16 @@ function get_all_disks_info($bus="all") {
 	$d1 = time();
 	$ud_disks = get_unasigned_disks();
 	foreach ($ud_disks as $key => $disk) {
+		$dp = time();
 		if ($disk['type'] != $bus && $bus != "all") continue;
 		$disk['temperature'] = "*";
-		$disk['size'] = intval(trim(shell_exec("/sbin/blockdev --getsize64 ${key} 2>/dev/null")));
+		$disk['size'] = intval(trim(benchmark("shell_exec", "/bin/lsblk -nb -o size ${key} 2>/dev/null")));
 		$disk = array_merge($disk, get_disk_info($key));
 		foreach ($disk['partitions'] as $k => $p) {
 			if ($p) $disk['partitions'][$k] = get_partition_info($p);
 		}
 		$ud_disks[$key] = $disk;
+		unassigned_log("Getting [".realpath($key)."] info: ".(time() - $dp)."s", "DEBUG");
 	}
 	unassigned_log("Total time: ".(time() - $d1)."s", "DEBUG");
 	usort($ud_disks, create_function('$a, $b','$key="device";if ($a[$key] == $b[$key]) return 0; return ($a[$key] < $b[$key]) ? -1 : 1;'));
@@ -1105,7 +1120,7 @@ function get_udev_info($device, $udev=NULL, $reload) {
 		unassigned_log("Using udev cache for '$device'.", "DEBUG");
 		return $state[$device];
 	} else {
-		$state[$device] = parse_ini_string(shell_exec("/sbin/udevadm info --query=property --path $(/sbin/udevadm info -q path -n $device 2>/dev/null) 2>/dev/null"));
+		$state[$device] = parse_ini_string(benchmark("shell_exec","/sbin/udevadm info --query=property --path $(/sbin/udevadm info -q path -n $device 2>/dev/null) 2>/dev/null"));
 		save_ini_file($paths['state'], $state);
 		unassigned_log("Not using udev cache for '$device'.", "DEBUG");
 		return $state[$device];
@@ -1151,8 +1166,8 @@ function get_partition_info($device, $reload=FALSE){
 		$disk['fstype'] = safe_name($attrs['ID_FS_TYPE']);
 		$disk['fstype'] = (! $disk['fstype'] && verify_precleared($disk['disk'])) ? "precleared" : $disk['fstype'];
 		$disk['target'] = str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1|/bin/grep ${device}|/bin/awk '{print $2}'")));
-		$disk['size']   = intval(trim(shell_exec("/sbin/blockdev --getsize64 ${device} 2>/dev/null")));
-		$disk['used']   = intval(trim(shell_exec("/bin/df '${device}' --output=used,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'")))*1024;
+		$disk['size']   = intval(trim(benchmark("shell_exec","/bin/lsblk -nb -o size ${device} 2>/dev/null")));
+		$disk['used']   = intval(trim(benchmark("shell_exec","/bin/df '${device}' --output=used,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'")))*1024;
 		$disk['avail']  = $disk['size'] - $disk['used'];
 		if ( $disk['mountpoint'] = get_config($disk['serial'], "mountpoint.{$disk[part]}") ) {
 			if (! $disk['mountpoint'] ) goto empty_mountpoint;
@@ -1206,6 +1221,6 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 
 function setSleepTime($device) {
 	$device = preg_replace("/\d+$/", "", $device);
-	shell_exec("/usr/sbin/hdparm -S180 $device 2>&1");
+	benchmark("shell_exec", "/usr/sbin/hdparm -S180 $device 2>&1");
 }
 ?>

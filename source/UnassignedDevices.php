@@ -237,7 +237,9 @@ switch ($_POST['action']) {
 
 	  echo "<tbody>";
 		# SAMBA Mounts
+		$ds1 = time();
 		$samba_mounts = get_samba_mounts();
+		unassigned_log("get_samba_mounts: ".(time() - $ds1)."s","DEBUG");
 		$odd="odd";
 		if (count($samba_mounts)) {
 			foreach ($samba_mounts as $mount) {
