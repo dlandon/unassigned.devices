@@ -119,12 +119,13 @@ function lsof($dir) {
 	return intval(trim(shell_exec("/usr/bin/lsof '{$dir}' 2>/dev/null|/bin/grep -c -v COMMAND")));
 }
 
-function get_temp($dev) {
-	$tc = $GLOBALS["paths"]["hdd_temp"];
-	$temps = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+function get_temp($dev, $running = null) {
+	$tc      = $GLOBALS["paths"]["hdd_temp"];
+	$temps   = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+	$running = ($running === null) ? is_disk_running($dev) : $running;
 	if (isset($temps[$dev]) && (time() - $temps[$dev]['timestamp']) < 120 ) {
 		return $temps[$dev]['temp'];
-	} else if (is_disk_running($dev)) {
+	} else if ($running) {
 		$temp = trim(benchmark("shell_exec", "/usr/bin/timeout 20 /usr/sbin/smartctl -A -d sat,12 $dev 2>/dev/null| /bin/grep -m 1 -i Temperature_Celsius | /bin/awk '{print $10}'"));
 		if (! is_numeric($temp)) {
 			$temp = trim(benchmark("shell_exec", "/usr/bin/timeout 20 /usr/sbin/smartctl -A -d sat,12 $dev 2>/dev/null| /bin/grep -m 1 -i Airflow_Temperature | /bin/awk '{print $10}'"));

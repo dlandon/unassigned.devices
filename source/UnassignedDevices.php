@@ -163,8 +163,9 @@ switch ($_POST['action']) {
 				$preclearing   = $Preclear ? $Preclear->isRunning($disk_name) : false;
 				$is_precleared = ($disk['partitions'][0]['fstype'] == "precleared") ? true : false;
 				$flash         = ($disk['partitions'][0]['fstype'] == "vfat" || $disk['partitions'][0]['fstype'] == "exfat") ? true : false;
+				$disk_running  = is_disk_running($disk['device']);
 				if ($mounted || is_file($disk['partitions'][0]['command']) || $preclearing) {
-					$disk['temperature'] = get_temp($disk['device']);
+					$disk['temperature'] = get_temp($disk['device'], $disk_running);
 				}
 				$temp = my_temp($disk['temperature']);
 
@@ -199,7 +200,7 @@ switch ($_POST['action']) {
 				if ( $flash || (!is_file($disk['partitions'][0]['command']) && ! $mounted && ! $preclearing) ) {
 					echo "<td><img src='/webGui/images/green-blink.png'> {$disk_name}</td>";
 				} else {
-					echo "<td title='SMART Attributes on {$disk_name}'><img src='/webGui/images/".(is_disk_running($disk['device']) ? "green-on.png":"green-blink.png" )."'>";
+					echo "<td title='SMART Attributes on {$disk_name}'><img src='/webGui/images/".($disk_running ? "green-on.png":"green-blink.png" )."'>";
 					echo "<a href='/Main/New?name={$disk_name}'> {$disk_name}</a></td>";
 				}
 				echo "<td>{$hdd_serial}</td>";
