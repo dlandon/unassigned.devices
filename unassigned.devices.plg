@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.06.21">
+<!ENTITY version   "2017.06.23">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"bd867b8234ad4564aefcd83961da0d61">
+<!ENTITY MD5		"c08e7be6a8c0ddff07bd0b9a711cc21a">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: More debug info about commands.
+- Fix: Changed blockdev to lsblk due to performance issues (blockdev hanging on high disk load).
+
+###2017.06.21
 - Fix: Modifications for unRAID 6.4 Azure and Gray themes.
 
 ###2017.06.15
