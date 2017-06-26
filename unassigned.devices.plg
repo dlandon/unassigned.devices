@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.06.18a">
+<!ENTITY version   "2017.06.23a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"ca694ef5ddde4159d62d0d6a5fde8b3a">
+<!ENTITY MD5		"41f678805a1effb71e8fee9bbff2793c">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,10 +20,12 @@
 <CHANGES>
 ##&name;
 ###&version;
-- Fix: More modifications for unRAID 6.4 Azure and Gray Themes.
+- Add: More debug info about commands.
+- Fix: Changed blockdev to lsblk due to performance issues (blockdev hanging on high disk load).
+- Fix: Avoid hdparm to be invoked twice on each disk.
 
-###2017-06-17a
-- Fix: Additional modifications for unRAID 6.4 Azure and Gray themes.
+###2017.06.21
+- Fix: Modifications for unRAID 6.4 Azure and Gray themes.
 
 ###2017.06.15
 - Add: Add timeout to SMART probing commands.
