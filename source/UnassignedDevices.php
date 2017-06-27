@@ -38,11 +38,11 @@ function tmux_is_session($name) {
 	}
 }
 
-function render_used_and_free($partition) {
+function render_used_and_free($partition, $mounted) {
 	global $display;
 
 	$o = "";
-	if (strlen($partition['target'])) {
+	if (strlen($partition['target']) && $mounted) {
 		if (!$display['text']) {
 			$o .= "<td>".my_scale($partition['used'], $unit)." $unit</td>";
 			$o .= "<td>".my_scale($partition['avail'], $unit)." $unit</td>";
@@ -69,7 +69,7 @@ function render_partition($disk, $partition) {
 
 	if (! isset($partition['device'])) return array();
 	$out = array();
-	$mounted = is_mounted($partition['device']);
+	$mounted =  (isset($partition["mounted"])) ? $partition["mounted"] : is_mounted($partition['device']);
 	if ($mounted && is_file(get_config($disk[serial],"command.{$partition[part]}"))) {
 		$fscheck = "<a title='Execute Script as udev simulating a device being installed' class='exec' onclick='openWindow_fsck(\"/plugins/${plugin}/include/script.php?device={$partition[device]}&owner=udev\",\"Execute Script\",600,900);'><i class='glyphicon glyphicon-flash partition'></i>{$partition[part]}</a>";
 	} elseif ( (! $mounted &&  $partition['fstype'] != 'btrfs') ) {
@@ -78,29 +78,36 @@ function render_partition($disk, $partition) {
 		$fscheck = "<i class='glyphicon glyphicon-th-large partition'></i>{$partition[part]}";
 	}
 
-	$rm_partition = (get_config("Config", "destructive_mode") == "enabled") ? "<span title='Remove Partition' class='exec' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$disk[device]}\",\"{$partition[part]}\");'><i class='glyphicon glyphicon-remove hdd'></i></span>" : "";
-	$mpoint = "<div>{$fscheck}<i class='glyphicon glyphicon-arrow-right'></i>";
+	$rm_partition = (get_config("Config", "destructive_mode") == "enabled") ? "<span title='Remove Partition' device='{$partition[device]}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$disk[device]}\",\"{$partition[part]}\");'><i class='glyphicon glyphicon-remove hdd'></i></span>" : "";
+	$mpoint = "<span>{$fscheck}<i class='glyphicon glyphicon-arrow-right'></i>";
 	if ($mounted) {
-		$mpoint .= "<a title='Browse Share' href='/Main/Browse?dir={$partition[mountpoint]}'>{$partition[mountpoint]}</a></div>";
+		$mpoint .= "<a title='Browse Share' href='/Main/Browse?dir={$partition[mountpoint]}'>{$partition[mountpoint]}</a></span>";
 	} else {
 		$mount_point = basename($partition[mountpoint]);
 		$mpoint .= "<form title='Click to Change Device Mount Point - Press Enter to save' method='POST' action='/plugins/${plugin}/UnassignedDevices.php?action=change_mountpoint&serial={$partition[serial]}&partition={$partition[part]}' target='progressFrame' style='display:inline;margin:0;padding:0;'>";
 		$mpoint .= "<span class='text exec'><a>{$partition[mountpoint]}</a></span>";
 		$mpoint .= "<input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden />";
 		$mpoint .= "<input type='hidden' name='csrf_token' value='{$csrf_token}'/>";
-		$mpoint .= "</form> {$rm_partition}</div>";
+		$mpoint .= "</form> {$rm_partition}</span>";
 	}
 	$mbutton = make_mount_button($partition);
   
-	$out[] = "<tr class='$outdd toggle-parts toggle-".basename($disk['device'])."' style='__SHOW__' >";
+	$out[] = "<tr class='$outdd toggle-parts toggle-".basename($disk['device'])."' id='toggle-".basename($disk['device'])."' style='__SHOW__' >";
 	$out[] = "<td></td>";
 	$out[] = "<td>{$mpoint}</td>";
 	$out[] = "<td class='mount'>{$mbutton}</td>";
 	$out[] = "<td>-</td>";
 	$out[] = "<td >".$partition['fstype']."</td>";
 	$out[] = "<td>".my_scale($partition['size'], $unit)." $unit</td>";
-	$out[] = "<td>".(strlen($partition['target']) ? shell_exec("/usr/bin/lsof '${partition[target]}' 2>/dev/null|grep -c -v COMMAND") : "-")."</td>";
-	$out[] = render_used_and_free($partition);
+	if (! isset($partition['openfiles']))
+	{
+		$out[] = "<td>".(strlen($partition['target']) ? benchmark("shell_exec","/usr/bin/lsof '${partition[target]}' 2>/dev/null|grep -c -v COMMAND") : "-")."</td>";
+	}
+	else
+	{
+		$out[] = "<td>".($partition['openfiles'] ? $partition['openfiles'] : "-")."</td>";
+	}
+	$out[] = render_used_and_free($partition, $mounted);
 	$out[] = "<td></td>";
 	$out[] = "<td title='Turn on to Share Device with SMB and/or NFS'><input type='checkbox' class='toggle_share' info='".htmlentities(json_encode($partition))."' ".(($partition['shared']) ? 'checked':'')."></td>";
 	$out[] = "<td><a title='View Device Script Log' href='/Main/ScriptLog?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><img src='/plugins/${plugin}/icons/scriptlog.png' style='cursor:pointer;width:16px;'></a></td>";
@@ -113,12 +120,12 @@ function make_mount_button($device) {
 	global $paths, $Preclear;
 	$button = "<span style='width:auto;text-align:right;'><button type='button' device='{$device[device]}' class='array' context='%s' role='%s' %s><i class='%s'></i>  %s</button></span>";
 	if (isset($device['partitions'])) {
-		$mounted = in_array(TRUE, array_map(function($ar){return is_mounted($ar['device']);}, $device['partitions']));
+		$mounted = isset($device['mounted']) ? $device['mounted'] : in_array(TRUE, array_map(function($ar){return is_mounted($ar['device']);}, $device['partitions']));
 		$disable = count(array_filter($device['partitions'], function($p){ if (! empty($p['fstype']) && $p['fstype'] != "precleared") return TRUE;})) ? "" : "disabled";
 		$format = (isset($device['partitions']) && ! count($device['partitions'])) || $device['partitions'][0]['fstype'] == "precleared" ? true : false;
 		$context = "disk";
 	} else {
-		$mounted = is_mounted($device['device']);
+		$mounted =  (isset($device["mounted"])) ? $device["mounted"] : is_mounted($device['device']);
 		$disable = (! empty($device['fstype']) && $device['fstype'] != "precleared") ? "" : "disabled";
 		$format = ((isset($device['fstype']) && empty($device['fstype'])) || $device['fstype'] == "precleared") ? true : false;
 		$context = "partition";
@@ -127,6 +134,9 @@ function make_mount_button($device) {
 	$is_mounting   = (time() - filemtime($is_mounting) < 300) ? TRUE : FALSE;
 	$is_unmounting = array_values(preg_grep("@/unmounting_".basename($device['device'])."@i", listDir(dirname($paths['mounting']))))[0];
 	$is_unmounting = (time() - filemtime($is_unmounting) < 300) ? TRUE : FALSE;
+	$is_formatting = array_values(preg_grep("@/formatting_".basename($device['device'])."@i", listDir(dirname($paths['mounting']))))[0];
+	$is_formatting = (time() - filemtime($is_formatting) < 300) ? TRUE : FALSE;
+
 	$dev           = basename($device['device']);
 	$preclearing   = $Preclear ? $Preclear->isRunning(basename($device['device'])) : false;
 	if ($device['size'] == 0) {
@@ -139,6 +149,8 @@ function make_mount_button($device) {
 		$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-circle-o-notch fa-spin', 'Mounting...');
 	} elseif ($is_unmounting) {
 		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-circle-o-notch fa-spin', 'Unmounting...');
+	} elseif ($is_formatting) {
+		$button = sprintf($button, $context, 'format', 'disabled', 'fa fa-circle-o-notch fa-spin', 'Formatting...');
 	} elseif ($mounted) {
 		$button = sprintf($button, $context, 'umount', '', 'glyphicon glyphicon-export', 'Unmount');
 	} else {
@@ -148,8 +160,11 @@ function make_mount_button($device) {
 	return $button;
 }
 
+
 switch ($_POST['action']) {
 	case 'get_content':
+		unassigned_log("Starting page render [get_content]", "DEBUG");
+		$time     = -microtime(true); 
 		$disks = get_all_disks_info();
 
 		echo "<table class='disk_status wide usb_disks'><thead><tr><td>Device</td><td>Identification</td><td></td><td>Temp</td><td>FS</td><td>Size</td><td>Open files</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Share</td><td>Log</td><td>Script</td></tr></thead>";
@@ -157,15 +172,15 @@ switch ($_POST['action']) {
 		$odd="odd";
 		if ( count($disks) ) {
 			foreach ($disks as $disk) {
-				$mounted       = in_array(TRUE, array_map(function($ar){return is_mounted($ar['device']);}, $disk['partitions']));
+				$mounted       = isset($disk['mounted']) ? $disk['mounted'] : in_array(TRUE, array_map(function($ar){return is_mounted($ar['device']);}, $disk['partitions']));
 				$disk_name     = basename($disk['device']);
 				$p             = (count($disk['partitions']) > 0) ? render_partition($disk, $disk['partitions'][0]) : FALSE;
 				$preclearing   = $Preclear ? $Preclear->isRunning($disk_name) : false;
 				$is_precleared = ($disk['partitions'][0]['fstype'] == "precleared") ? true : false;
 				$flash         = ($disk['partitions'][0]['fstype'] == "vfat" || $disk['partitions'][0]['fstype'] == "exfat") ? true : false;
-				$disk_running  = is_disk_running($disk['device']);
+				$disk_running  = array_key_exists("running", $disk) ? $disk["running"] : is_disk_running($disk['device']);
 				if ($mounted || is_file($disk['partitions'][0]['command']) || $preclearing) {
-					$disk['temperature'] = get_temp($disk['device'], $disk_running);
+					$disk['temperature'] = $disk['temperature'] ? $disk['temperature'] : get_temp($disk['device'], $disk_running);
 				}
 				$temp = my_temp($disk['temperature']);
 
@@ -367,7 +382,9 @@ switch ($_POST['action']) {
 		$("button[role=mount]").add("button[role=umount]").click(function(){disk_op(this, $(this).attr("role"), $(this).attr("device"));});
 		$("button[role=format]").click(function(){format_disk(this, $(this).attr("context"), $(this).attr("device"));});
 		</script>';
+		unassigned_log("Total render time: ".($time + microtime(true))."s", "DEBUG");
 		break;
+
 	case 'detect':
 		echo json_encode(array("reload" => is_file($paths['reload'])));
 		break;
@@ -414,24 +431,36 @@ switch ($_POST['action']) {
 	/*  DISK  */
 	case 'mount':
 		$device = urldecode($_POST['device']);
-		exec("plugins/${plugin}/scripts/rc.unassigned mount '$device' >/dev/null 2>&1 &");
+		exec("plugins/${plugin}/scripts/rc.unassigned mount '$device' &>/dev/null", $out, $return);
+		echo json_encode(["status" => $return ? false : true ]);
 		break;
+
 	case 'umount':
 		$device = urldecode($_POST['device']);
-		exec("plugins/${plugin}/scripts/rc.unassigned umount '$device' >/dev/null 2>&1 &");
+		exec("plugins/${plugin}/scripts/rc.unassigned umount '$device' &>/dev/null", $out, $return);
+		echo json_encode(["status" => $return ? false : true ]);
 		break;
+
 	case 'rescan_disks':
 		exec("/sbin/udevadm trigger --action=change 2>&1");
 		break;
+
 	case 'format_disk':
 		$device = urldecode($_POST['device']);
 		$fs = urldecode($_POST['fs']);
-		echo json_encode(array( 'result' => format_disk($device, $fs)));
+		@touch(sprintf($paths['formatting'],basename($device)));
+		echo json_encode(array( 'status' => format_disk($device, $fs)));
+		@unlink(sprintf($paths['formatting'],basename($device)));
+		diskinfoChange();
 		break;
+
 	case 'format_partition':
 		$device = urldecode($_POST['device']);
 		$fs = urldecode($_POST['fs']);
-		echo json_encode(array( 'result' => format_partition($device, $fs)));
+		@touch(sprintf($paths['formatting'],basename($device)));
+		echo json_encode(array( 'status' => format_partition($device, $fs)));
+		@unlink(sprintf($paths['formatting'],basename($device)));
+		diskinfoChange();
 		break;
 
 	/*  SAMBA  */
@@ -439,6 +468,7 @@ switch ($_POST['action']) {
 		$ip = shell_exec("/usr/bin/nmblookup -M -- - 2>/dev/null | /usr/bin/grep -Pom1 '^\S+'");
 		echo shell_exec("/usr/bin/smbclient -g -L '$ip' -U% 2>/dev/null|/usr/bin/awk -F'|' '/Server\|/{print $2}'|sort");
 		break;
+
 	case 'list_samba_shares':
 		$ip = urldecode($_POST['IP']);
 		$user = isset($_POST['USER']) ? urlencode($_POST['USER']) : NULL;
