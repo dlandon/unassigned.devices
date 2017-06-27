@@ -386,7 +386,17 @@ switch ($_POST['action']) {
 		break;
 
 	case 'detect':
-		echo json_encode(array("reload" => is_file($paths['reload'])));
+		$diskinfo = $paths["diskinfo_file"];
+		if (is_file($diskinfo))
+		{
+			echo json_encode(array("reload" => is_file($paths['reload']), "diskinfo" => sha1_file($diskinfo)));
+		}
+		else
+		{
+			echo json_encode(array("reload" => is_file($paths['reload']), "diskinfo" => 0));
+		}
+
+		
 		break;
 	case 'remove_hook':
 		@unlink($paths['reload']);
