@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.06.23a">
+<!ENTITY version   "2017.06.28">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"41f678805a1effb71e8fee9bbff2793c">
+<!ENTITY MD5		"f305335edaf38914672efa7b77fbc192">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,12 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: diskinfo daemon support. Will only work when Preclear Disk plugin is installed.
+- Change: removed waitMe effect from content loading (easier to maintain).
+- Fix: add back some animations on the Mount/Unmount button.
+- Add: Tighter integration with the preclear plugin.
+
+###2017.06.23a
 - Add: More debug info about commands.
 - Fix: Changed blockdev to lsblk due to performance issues (blockdev hanging on high disk load).
 - Fix: Avoid hdparm to be invoked twice on each disk.
