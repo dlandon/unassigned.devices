@@ -13,20 +13,23 @@
 $plugin = "unassigned.devices";
 // $VERBOSE=TRUE;
 
-$paths =  array("smb_extra"       => "/boot/config/smb-extra.conf",
-				"smb_usb_shares"  => "/etc/samba/unassigned-shares",
-				"usb_mountpoint"  => "/mnt/disks",
-				"device_log"      => "/tmp/{$plugin}/",
-				"log"             => "/var/log/{$plugin}.log",
-				"config_file"     => "/boot/config/plugins/{$plugin}/{$plugin}.cfg",
-				"state"           => "/var/state/${plugin}/${plugin}.ini",
-				"hdd_temp"        => "/var/state/${plugin}/hdd_temp.json",
-				"samba_mount"     => "/boot/config/plugins/${plugin}/samba_mount.cfg",
-				"iso_mount"       => "/boot/config/plugins/${plugin}/iso_mount.cfg",
-				"reload"          => "/var/state/${plugin}/reload.state",
-				"unmounting"      => "/var/state/${plugin}/unmounting_%s.state",
-				"mounting"        => "/var/state/${plugin}/mounting_%s.state",
-				);
+$paths = [  "smb_extra"       => "/boot/config/smb-extra.conf",
+						"smb_usb_shares"  => "/etc/samba/unassigned-shares",
+						"usb_mountpoint"  => "/mnt/disks",
+						"device_log"      => "/tmp/{$plugin}/",
+						"log"             => "/var/log/{$plugin}.log",
+						"config_file"     => "/boot/config/plugins/{$plugin}/{$plugin}.cfg",
+						"state"           => "/var/state/${plugin}/${plugin}.ini",
+						"hdd_temp"        => "/var/state/${plugin}/hdd_temp.json",
+						"samba_mount"     => "/boot/config/plugins/${plugin}/samba_mount.cfg",
+						"iso_mount"       => "/boot/config/plugins/${plugin}/iso_mount.cfg",
+						"reload"          => "/var/state/${plugin}/reload.state",
+						"unmounting"      => "/var/state/${plugin}/unmounting_%s.state",
+						"mounting"        => "/var/state/${plugin}/mounting_%s.state",
+						"formatting"      => "/var/state/${plugin}/formatting_%s.state",
+						"diskinfo_file"   => "/var/local/emhttp/plugins/diskinfo/diskinfo.json",
+						"diskinfo_daemon" => "/etc/rc.d/rc.diskinfo"
+				  ];
 
 $docroot = $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 
@@ -60,6 +63,57 @@ else
 #########################################################
 #############        MISC FUNCTIONS        ##############
 #########################################################
+
+class MiscUD
+{
+
+  public function save_json($file, $content)
+  {
+    file_put_contents($file, json_encode($content, JSON_PRETTY_PRINT ));
+  }
+
+
+  public function get_json($file)
+  {
+    return file_exists($file) ? @json_decode(file_get_contents($file), true) : [];
+  }
+
+
+  public function disk_device($disk)
+  {
+    return (file_exists($disk)) ? $disk : "/dev/${disk}";
+  }
+
+
+  public function disk_name($disk)
+  {
+    return (file_exists($disk)) ? basename($disk) : $disk;
+  }
+
+
+  public function array_first_element($arr)
+  {
+    return (is_array($arr) && count($arr)) ? $arr[0] : $arr;
+  }
+}
+
+function diskinfoChange()
+{
+	$diskinfo = $GLOBALS["paths"]["diskinfo_file"];
+	if (is_file($diskinfo))
+	{
+		$init = sha1_file($diskinfo);
+		for ($i=0; $i < 60 ; $i++)
+		{ 
+			if ($init !== sha1_file($diskinfo))
+			{
+				break;
+			}
+			usleep(250000);
+		}
+	}
+	return true;
+}
 
 function _echo($m) { echo "<pre>".print_r($m,TRUE)."</pre>";}; 
 
@@ -231,9 +285,14 @@ function format_partition($partition, $fs) {
 		return NULL;
 	}
 	unassigned_log("Formatting partition '{$partition}' with '$fs' filesystem.");
-	$o = trim(shell_exec(get_format_cmd($partition, $fs)));
-	if ($o != "") {
-		unassigned_log("Format partition '{$partition}' with '$fs' filesystem result:\n$o");
+	exec(get_format_cmd($partition, $fs),$out, $return);
+	if ($out) {
+		unassigned_log("Format partition '{$partition}' with '$fs' filesystem result:\n" . implode(PHP_EOL, $out));
+	}
+	if ($return)
+	{
+		unassigned_log("Format partition '{$partition}' with '$fs' filesystem failed!");
+		return false;
 	}
 
 	sleep(3);
@@ -245,6 +304,7 @@ function format_partition($partition, $fs) {
 
 	sleep(3);
 	@touch($GLOBALS['paths']['reload']);
+	return true;
 }
 
 function format_disk($dev, $fs) {
@@ -293,9 +353,14 @@ function format_disk($dev, $fs) {
 	}
 
 	unassigned_log("Formatting disk '{$dev}' with '$fs' filesystem.");
-	$o = trim(shell_exec(get_format_cmd("{$dev}1", $fs)));
-	if ($o != "") {
-		unassigned_log("Format disk '{$dev}' with '$fs' filesystem result:\n$o");
+	exec(get_format_cmd("{$dev}1", $fs),$out, $return);
+	if ($out) {
+		unassigned_log("Format disk '{$dev}' with '$fs' filesystem result:\n" . implode(PHP_EOL, $out));
+	}
+	if ($return)
+	{
+		unassigned_log("Format disk '{$dev}' with '$fs' filesystem failed!");
+		return false;
 	}
 
 	sleep(3);
@@ -307,6 +372,7 @@ function format_disk($dev, $fs) {
 
 	sleep(3);
 	@touch($GLOBALS['paths']['reload']);
+	return true;
 }
 
 function remove_partition($dev, $part) {
@@ -322,6 +388,7 @@ function remove_partition($dev, $part) {
 	}
 	unassigned_log("Removing partition '{$part}' from disk '{$dev}'.");
 	shell_exec("/usr/sbin/parted {$dev} --script -- rm {$part}");
+	sleep(10);
 }
 
 function benchmark()
@@ -1088,25 +1155,98 @@ function get_unasigned_disks() {
 	return $ud_disks;
 }
 
+
 function get_all_disks_info($bus="all") {
-	unassigned_log("Starting get_all_disks_info.", "DEBUG");
-	$d1 = time();
-	$ud_disks = get_unasigned_disks();
-	foreach ($ud_disks as $key => $disk) {
-		$dp = time();
-		if ($disk['type'] != $bus && $bus != "all") continue;
-		$disk['temperature'] = "*";
-		$disk['size'] = intval(trim(benchmark("shell_exec", "/bin/lsblk -nb -o size ${key} 2>/dev/null")));
-		$disk = array_merge($disk, get_disk_info($key));
-		foreach ($disk['partitions'] as $k => $p) {
-			if ($p) $disk['partitions'][$k] = get_partition_info($p);
+	$diskinfo = $GLOBALS["paths"]["diskinfo_file"];
+	if (is_file($diskinfo))
+	{
+		unassigned_log("Starting get_all_disks_info (using diskinfo)", "DEBUG");
+		$time     = -microtime(true); 
+		$cache = MiscUD::get_json($diskinfo);
+		$cached_disks = [];
+		foreach ($cache as $key => $cached)
+		{
+			$disk = [];
+			if ($cached['BUS'] != $bus && $bus != "all") continue;
+			$disk['bus']          = $cached['BUS'];
+			$disk['temperature']  = $cached['TEMP'] ? $cached['TEMP'] : "*";
+			$disk['size']         = $cached['SIZE'];	
+			$disk['device']       = $cached['DEVICE'];
+			$disk['serial_short'] = $cached['SERIAL_SHORT'];
+			$disk['serial']       = $cached['SERIAL'];
+			$disk['running']      = $cached['RUNNING'];
+			$disk['mounted']      = $cached['MOUNTED'];
+
+			$disk["partitions"] = [];
+			if (is_array($cached['PARTS']))
+			{
+				foreach ($cached['PARTS'] as $part)
+				{
+					$partition['serial_short'] = $cached['SERIAL_SHORT'];
+					$partition['serial'] = $cached['SERIAL'];
+					$partition['device'] = "/dev/${part['NAME']}";
+					$partition['part'] = str_replace($cached['NAME'], "",  $part['NAME']);
+					$partition['disk'] = $cached['DEVICE'];
+					if (isset($cached['ID_FS_LABEL'])){
+						$partition['label'] = safe_name($cached['ID_FS_LABEL_ENC']);
+					} else {
+						if (isset($cached['ID_VENDOR']) && isset($cached['ID_MODEL'])){
+							$partition['label'] = sprintf("%s %s", safe_name($cached['ID_VENDOR']), safe_name($cached['ID_MODEL']));
+						} else {
+							$partition['label'] = safe_name($cached['SERIAL']);
+						}
+					}
+					$partition['fstype']  = $part['FSTYPE'] ? $part['FSTYPE'] : ($cached["PRECLEAR"] ? "precleared" : "");
+					$partition['target']  = $part['MOUNTPOINT'];
+					$partition['mounted'] = is_dir($part['MOUNTPOINT']);
+					$partition['size']    = $part['SIZE'];
+					$partition['used']    = $part['USED'];
+					$partition['avail']   = $partition['size'] - $partition['used'];
+					if ( $partition['mountpoint'] = get_config($partition['serial'], "mountpoint.{$partition[part]}") ) {
+						if (! $partition['mountpoint'] ) goto empty_mountpoint;
+					} else {
+						empty_mountpoint:
+						$partition['mountpoint'] = $partition['target'] ? $partition['target'] : preg_replace("%\s+%", "_", sprintf("%s/%s", $paths['usb_mountpoint'], $partition['label']));
+					}
+					$partition['openfiles']  = $part['OPENFILES'];
+					$partition['owner']      = (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
+					$partition['automount']  = is_automount($partition['serial'], strpos($disk['bus'],"usb"));
+					$partition['shared']     = config_shared($partition['serial'], $partition['part'], strpos($disk['bus'],"usb"));
+					$partition['command']    = get_config($partition['serial'], "command.{$partition[part]}");
+					$partition['command_bg'] = get_config($partition['serial'], "command_bg.{$partition[part]}");
+					$partition['prog_name']  = basename($partition['command'], ".sh");
+					$partition['logfile']    = $GLOBALS["paths"]['device_log'].$partition['prog_name'].".log";
+					$disk["partitions"][]    = $partition;
+				}
+			}
+			$cached_disks[] = $disk;
 		}
-		$ud_disks[$key] = $disk;
-		unassigned_log("Getting [".realpath($key)."] info: ".(time() - $dp)."s", "DEBUG");
+		usort($cached_disks, create_function('$a, $b','$key="device";if ($a[$key] == $b[$key]) return 0; return ($a[$key] < $b[$key]) ? -1 : 1;'));
+    $time += microtime(true);
+		unassigned_log("Total time: ${time}s", "DEBUG");
+		return $cached_disks;
 	}
-	unassigned_log("Total time: ".(time() - $d1)."s", "DEBUG");
-	usort($ud_disks, create_function('$a, $b','$key="device";if ($a[$key] == $b[$key]) return 0; return ($a[$key] < $b[$key]) ? -1 : 1;'));
-	return $ud_disks;
+	else
+	{
+		unassigned_log("Starting get_all_disks_info.", "DEBUG");
+		$d1 = time();
+		$ud_disks = get_unasigned_disks();
+		foreach ($ud_disks as $key => $disk) {
+			$dp = time();
+			if ($disk['type'] != $bus && $bus != "all") continue;
+			$disk['temperature'] = "";
+			$disk['size'] = intval(trim(benchmark("shell_exec", "/bin/lsblk -nb -o size ${key} 2>/dev/null")));
+			$disk = array_merge($disk, get_disk_info($key));
+			foreach ($disk['partitions'] as $k => $p) {
+				if ($p) $disk['partitions'][$k] = get_partition_info($p);
+			}
+			$ud_disks[$key] = $disk;
+			unassigned_log("Getting [".realpath($key)."] info: ".(time() - $dp)."s", "DEBUG");
+		}
+		unassigned_log("Total time: ".(time() - $d1)."s", "DEBUG");
+		usort($ud_disks, create_function('$a, $b','$key="device";if ($a[$key] == $b[$key]) return 0; return ($a[$key] < $b[$key]) ? -1 : 1;'));
+		return $ud_disks;
+	}
 }
 
 function get_udev_info($device, $udev=NULL, $reload) {

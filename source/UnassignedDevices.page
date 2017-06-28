@@ -95,8 +95,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 	<?=$Preclear ? $Preclear->Script() : "";?>
 
-
-
 	function openWindow_fsck(cmd,title,height,width) {
 		var run = cmd;
 		var top = (screen.height-height)/2;
@@ -120,10 +118,10 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 	function disk_op(el, op, device){
 		// add spinning and disable button
-		$(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> "+(op == "mount" ? "Mounting" : "Unmounting")+" ...");
-		$(el).prop("disabled","true");
+		$("button[device='"+device+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> "+(op == "mount" ? "Mounting" : "Unmounting")+" ...");
+		$("button[device='"+device+"']").prop("disabled","true");
 		// disable partition buttons
-		td = $(el).closest('td');
+		td = $("button[device='"+device+"']").closest('td');
 		tr = td.closest('tr');
 		part = tr.is('.toggle-parts');
 		disk = tr.find('span[hdd]').attr("hdd");
@@ -132,7 +130,21 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		} else if (part) {
 			tr.prev('tr.toggle-disk').find('.mount').html(td.html());
 		}
-		$.post(URL,{'action':op,'device':device});
+		$.post(URL,{'action':op,'device':device},function(data)
+		{
+	  	opt = (op == "mount") ? "Mounting" : "Unmounting";
+	  	if (data.status)
+	  	{
+	  		text  = "<i class='glyphicon glyphicon-ok green-text'></i> " + opt + "...";
+	  	}
+	  	else
+	  	{
+	  		text  = "<i class='glyphicon glyphicon-remove red-text'></i> " + opt + "...";
+	  		setTimeout("usb_disks()",1500);
+	  	}
+			$("button[device='"+device+"']").prop('disabled',true);
+			$("button[device='"+device+"']").html( text );
+	  }, "json");
 	}
 
 	function pin_tab(n) {
@@ -140,21 +152,68 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		$.cookie('tab','tab'+n,{path:'/'});
 	}
 
-	function usb_disks(tabnum) {
-		startWaitMe('#usb_devices_list');
+	function usb_disks(tabnum)
+	{
+		// save table widths
+		tableWidths = $("#usb_devices_list > table > thead > tr").children("td").map(function(i,v){return $(this).getHiddenDimensions().outerWidth;});
+		$("#usb_devices_list").html( $("#table_loading").html() );
+		$("#usb_devices_list > table > thead > tr").children("td").each(function(i,v)
+	  {
+	  	if (i in tableWidths)
+	  	{
+	  		$(this).css("width", tableWidths[i]);
+	  	}
+	  });
+
 		$.post(URL,{action:"get_content",display:display},function(data)
 		  {
+      	maxWidth = [];
+      	var toggled = $("tr.toggle-parts").filter(":visible").map(function(){return this.id;}).get();
 		  	if (data)
 		  	{
 		  		$('#usb_devices_list').html(data);
+
 		  	}
+      	$.each(toggled, function(k,v)
+      	  {
+      	  	if(v.length)
+      	  	{
+      	  		$("#"+v).prev().find("i.glyphicon-plus-sign").removeClass("glyphicon-plus-sign").addClass("glyphicon-minus-sign");
+      	  		$("#"+v).css("display", "table-row");
+      	  	}
+      	  });
 		  });
 	}
 
 	function detect_usb_disk_change(tabnum) {
 		if ($('#tab'+tabnum).is(':checked')) {
 			clearTimeout(timers.usbdisks);
-			$.post(URL,{action:"detect"},function(data){if(data.reload){usb_disks(tabnum);$.post(URL,{action:"remove_hook"});}},"json").always(function(){timers.usbdisks=setTimeout('detect_usb_disk_change('+tabnum+')',5000);});
+			if ( $("tr.toggle-parts").find("input[name='mountpoint']:visible").length )
+			{
+				timers.usbdisks=setTimeout('detect_usb_disk_change('+tabnum+')',1000);
+				return false;
+			}
+			$.post(URL,{action:"detect"},function(data)
+			{
+				do_reload = false;
+				if (diskinfo && diskinfo !== data.diskinfo )
+				{
+					do_reload = true;
+				}
+				if(data.reload)
+				{
+					do_reload = true;
+					$.post(URL,{action:"remove_hook"});
+				}
+				diskinfo = data.diskinfo;
+				if (do_reload)
+				{
+					setTimeout(usb_disks, 500, tabnum);
+				}
+			},"json").always(function()
+			{
+				timers.usbdisks=setTimeout('detect_usb_disk_change('+tabnum+')',1000);
+			});
 		} else {
 			clearTimeout(timers.usbdisks);
 		}
@@ -377,12 +436,16 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			buttons: {
 				"Format": function() {
 					if (getVal(this,"CONFIRM") != "Yes") {return false;}
-					var bc = $(bt).html();
-					$(bt).prop('disabled',true);
-					$(bt).html("<i class='fa fa-circle-o-notch fa-spin'></i> Formatting ...");
+					var bc = $("button[device='"+device+"']").html();
+					$("button[device='"+device+"']").prop('disabled',true);
+					$("button[device='"+device+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> Formatting ...");
 					$( this ).dialog( "close" );
 					fs = getVal(this,"FS");
-					$.post(URL,{action:"format_"+type,device:device,fs:fs},"json").always(function(data){$(bt).html( data.result ? "Formated" : "Format failed..." ) });
+					$.post(URL,{action:"format_"+type,device:device,fs:fs}, function(data)
+					  {
+							$("button[device='"+device+"']").prop('disabled',true);
+					  	$("button[device='"+device+"']").html( data.status ? "Formated" : "Format failed..." );
+					  },"json");
 				},
 				Cancel: function() {
 					$( this ).dialog( "close" );
@@ -405,12 +468,15 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			buttons: {
 				"Remove": function() {
 					if (getVal(this,"CONFIRM") != "Yes") {return false;}
-					var bc = $(bt).html();
-					$(bt).prop('disabled',true);
-					$(bt).html("<i class='fa fa-circle-o-notch fa-spin'></i> Removing ...");
+					var bc = $("button[device='"+device+"']").html();
+					$("span[device='"+device+partition+"']").prop('disabled',true);
+					$("span[device='"+device+partition+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> Removing ...");
 					$( this ).dialog( "close" );
 					fs = getVal(this,"FS");
-					$.post(URL,{action:"rm_partition",device:device,partition:partition},"json").always(function(){usb_disks(tab_usbdisks);});
+					$.post(URL,{action:"rm_partition",device:device,partition:partition},"json").always(function(data)
+					  {
+					  	usb_disks(tab_usbdisks);
+					  });
 				},
 				Cancel: function() {
 					$( this ).dialog( "close" );
@@ -630,6 +696,34 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	</dl>
 </div>
 
+<div id="table_loading" style="display: none;">
+	<table class='disk_status wide usb_disks'>
+		<thead>
+			<tr>
+				<td>Device</td>
+				<td>Identification</td>
+				<td>&nbsp;</td>
+				<td>Temp</td>
+				<td>FS</td>
+				<td>Size</td>
+				<td>Open files</td>
+				<td>Used</td>
+				<td>Free</td>
+				<td>Auto mount</td>
+				<td>Share</td>
+				<td>Log</td>
+				<td>Script</td>
+			</tr>
+		</thead>
+		<tbody>
+		<tr>
+			<td colspan="13" style="text-align:center;padding-top:12px">
+				<i class="fa fa-spinner fa-spin icon"></i><em>Please wait, retrieving information ...</em></td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+
 <div id="usb_devices_list">
 </div>
 
@@ -658,6 +752,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 </form>
 
 <script type="text/javascript">
+	var maxWidth    = [];
+	var tableWidths = [];
 	(function ($) {
 		$.fn.getHiddenDimensions = function (includeMargin) {
 			var $item = this,
@@ -700,18 +796,18 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		}
 	}(jQuery));
 
-	var maxWidth = [];
 
 	$("#usb_devices_list").arrive("tr",{onceOnly:false},function()
 	{
-		maxWidth.push($(this).find("td:nth-child(2) > div").getHiddenDimensions().outerWidth + 10);
-		$(".usb_disks > thead > tr > td:nth-child(2)").css("min-width", Math.max.apply(Math, maxWidth));
+		maxWidth.push($(this).find("td:nth-child(2) > span").getHiddenDimensions().width );
+		$(".usb_disks > thead > tr > td:nth-child(2)").css("min-width", Math.max.apply(Math, maxWidth) + 10 );
 	});
 
-	var display = <?=json_encode($display);?>;
-	var vars    = <?=json_encode($var);?>;
+	var display      = <?=json_encode($display);?>;
+	var vars         = <?=json_encode($var);?>;
 	var tab_usbdisks = $('input[name$="tabs"]').length;
-	var URL = '/plugins/<?=$plugin;?>/UnassignedDevices.php';
+	var URL          = '/plugins/<?=$plugin;?>/UnassignedDevices.php';
+	var diskinfo     = "";
 
 	$('#tab'+tab_usbdisks).bind({click:function() {pin_tab(tab_usbdisks); detect_usb_disk_change(tab_usbdisks);}});
 
