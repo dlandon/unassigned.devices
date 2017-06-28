@@ -97,10 +97,10 @@ class MiscUD
   }
 }
 
-function diskinfoChange()
+function diskinfoChange($device = null)
 {
 	$diskinfo = $GLOBALS["paths"]["diskinfo_file"];
-	if (is_file($diskinfo))
+	if (is_file($diskinfo) && (file_exists($device) && filetype($device) == "block"))
 	{
 		$init = sha1_file($diskinfo);
 		for ($i=0; $i < 60 ; $i++)
