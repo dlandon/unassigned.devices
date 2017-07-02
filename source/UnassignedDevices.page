@@ -963,7 +963,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		$('.complete-switch').change(function()
 		{
 			$('.show-complete').slideToggle('slow');
-			$.cookie('unassigned-complete-view', $('.complete-switch').is(':checked') ? 'true' : 'false', { expires: 3650 });
+			$.cookie('unassigned-complete-view', $('.complete-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path: '/' });
 		});
 
 		// Load contents if tab is checked
