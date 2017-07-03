@@ -20,7 +20,6 @@ $version = parse_ini_file("/etc/unraid-version");
 require_once("plugins/${plugin}/include/lib.php");
 if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/OpenDevices.page","plugins/dynamix/OpenDevices.page-");
 ?>
-<link rel="stylesheet" type="text/css" href="/plugins/<?=$plugin;?>/assets/waitMe.min.css">
 
 <?if (is_file("webGui/scripts/jquery.switchButton.js")): # Pre 6.1?>
 	<script type="text/javascript" src="/webGui/scripts/jquery.switchButton.js"></script>
@@ -35,7 +34,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 <link type="text/css" rel="stylesheet" href="/webGui/styles/jquery.filetree.css">
 <script src="/webGui/javascript/jquery.filetree.js"></script>
 
-<script type="text/javascript" src="/plugins/<?=$plugin;?>/assets/waitMe.min.js"></script>
 <script type="text/javascript" src="/plugins/<?=$plugin;?>/assets/arrive.min.js"></script>
 <link rel="stylesheet" type="text/css" href="/plugins/<?=$plugin;?>/assets/style-<?=$display['theme'];?>.css">
 
@@ -59,7 +57,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	table.samba_mounts tr>td+td{text-align:left;width:auto;}
 	table.samba_mounts tr>td+td+td+td+td+td+td+td+td+td{text-align:right;padding-left:0;padding-right:12px;}
 
-  button[type=button].mount {margin:0px 14px 0 14px;}
+	button[type=button].mount {margin:0px 14px 0 14px;}
 	i.glyphicon{margin:0px 5px 0 5px;}
 	i.hdd{margin:0px; 0px;font-size: 1.1em}
 	i.partition{margin-left: 18px;}
@@ -95,72 +93,12 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 	<?=$Preclear ? $Preclear->Script() : "";?>
 
-	function rm_preclear(dev) {
-		$.post(URL,{action:"rm_preclear",device:dev}).always(function(){usb_disks(tab_usbdisks)});
-	}
-
-
-	(function ($) {
-		$.fn.getHiddenDimensions = function (includeMargin) {
-			var $item = this,
-			props = { position: 'absolute', visibility: 'hidden', display: 'block' },
-			dim = { width: 0, height: 0, innerWidth: 0, innerHeight: 0, outerWidth: 0, outerHeight: 0 },
-			$hiddenParents = $item.parents().andSelf().not(':visible'),
-			includeMargin = (includeMargin == null) ? false : includeMargin;
-
-			var oldProps = [];
-			$hiddenParents.each(function ()
-			{
-				var old = {};
-
-				for (var name in props)
-				{
-					old[name] = this.style[name];
-					this.style[name] = props[name];
-				}
-
-				oldProps.push(old);
-			});
-
-			dim.width = $item.width();
-			dim.outerWidth = $item.outerWidth(includeMargin);
-			dim.innerWidth = $item.innerWidth();
-			dim.height = $item.height();
-			dim.innerHeight = $item.innerHeight();
-			dim.outerHeight = $item.outerHeight(includeMargin);
-
-			$hiddenParents.each(function (i)
-			{
-				var old = oldProps[i];
-				for (var name in props)
-				{
-					this.style[name] = old[name];
-				}
-			});
-
-			return dim;
-		}
-	}(jQuery));
-
 	function openWindow_fsck(cmd,title,height,width) {
 		var run = cmd;
 		var top = (screen.height-height)/2;
 		var left = (screen.width-width)/2;
 		var options = 'resizeable=yes,scrollbars=yes,height='+height+',width='+width+',top='+top+',left='+left;
 		window.open(run, 'log', options);
-	}
-
-	function startWaitMe(el) {
-		<?if ($display['theme'] == 'white'):?>
-			$(el).waitMe({effect:'ios',text:' ',bg:'rgba(255,255,255,0.9)',color:'#000',sizeW:'',sizeH:'',source:''});
-		<?elseif ($display['theme'] == 'azure'):?>
-			$(el).waitMe({effect:'ios',text:' ',bg:'rgba(240,255,255,0.0)',color:'#000',sizeW:'',sizeH:'',source:''});
-		<?elseif ($display['theme'] == 'gray'):?>
-			$(el).waitMe({effect:'ios',text:' ',bg:'rgba(105,105,105,0.0)',color:'#FFF',sizeW:'',sizeH:'',source:''});
-		<?else:?>
-			$(el).waitMe({effect:'ios',text:' ',bg:'rgba(0,0,0,0.9)',color:'#FFF',sizeW:'',sizeH:'',source:''});
-		<?endif;?>
-		$('.waitMe_content').css('top','40px');
 	}
 
 	function disk_op(el, op, device){
@@ -177,7 +115,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		} else if (part) {
 			tr.prev('tr.toggle-disk').find('.mount').html(td.html());
 		}
-		// hang_update[op+device] = true;
 		$.post(URL,{'action':op,'device':device},function(data)
 		{
 	  	opt = (op == "mount") ? "Mounting" : "Unmounting";
@@ -188,14 +125,11 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	  	else
 	  	{
 	  		text  = "<i class='glyphicon glyphicon-remove red-text'></i> " + opt + "...";
-	  		setTimeout(usb_disks,1500);
+	  		setTimeout("usb_disks()",1500);
 	  	}
 			$("button[device='"+device+"']").prop('disabled',true);
 			$("button[device='"+device+"']").html( text );
-	  }, "json").always(function()
-	  {
-			delete hang_update[op+device];
-	  });
+	  }, "json");
 	}
 
 	function pin_tab(n) {
@@ -206,7 +140,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	function usb_disks(tabnum)
 	{
 		// save table widths
-		if (Object.keys(hang_update).length) return null;
 		tableWidths = $("#usb_devices_list > table > thead > tr").children("td").map(function(i,v){return $(this).getHiddenDimensions().outerWidth;});
 		$("#usb_devices_list").html( $("#table_loading").html() );
 		$("#usb_devices_list > table > thead > tr").children("td").each(function(i,v)
@@ -427,25 +360,18 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		var target = $(el).parents("div").find("*[name='IP']");
 		var old = $(el).html();
 		$(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> Searching ...");
-		$.post(URL,{'action': action, 'var': vars, network: network}).done(function(data){
+		$.post(URL,{'action':action,'var':vars}).done(function(data){
 			$(el).html(old);
 			if (data) {
 				var hosts = data.split('\n');
-				if (hosts.length)
-				{
+				if (hosts.length) {
 					var add = "<select name='IP'>";
-					for(var i = 0;i < hosts.length;i++)
-					{
-						if (hosts[i].length)
-						{
+					for(var i = 0;i < hosts.length;i++){
+						if (hosts[i].length) {
 							add += "<option value='"+hosts[i]+"'>"+hosts[i]+"</option>";
 						}
 					}
 					target.replaceWith(add+"</select>")
-				}
-				else
-				{
-					target.replaceWith("<input type='text' name='IP'>");
 				}
 			}
 		});
@@ -471,11 +397,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 							add += "<option value='"+shares[i]+"'>"+shares[i]+"</option>";
 						}
 					}
-					target.replaceWith(add+"</select>");
-				}
-				else
-				{
-					target.replaceWith("<input type='text' name='SHARE'>");
+					target.replaceWith(add+"</select>")
 				}
 			}
 		});
@@ -691,12 +613,10 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		<dt>IP/Host:</dt>
 		<dd><span class="samba_hosts"></dd>
 		<dd><input type="text" name="IP"></span></dd>
-		<?if(is_file("/usr/bin/nmap")):?>
-		<dt>&nbsp;</dt>
-		<dd><button type="button" onclick="load_hosts(this, 'list_nfs_hosts');">Search for servers in local network</button></dd>
-		<?endif;?>
-		<dd><input type="hidden" name="USER"></dd>
-		<dd><input type="hidden" name="PASS"></dd>
+		<dt>Username:</dt>
+		<dd><input type="text" name="USER"></dd>
+		<dt>Password:</dt>
+		<dd><input type="password" name="PASS"></dd>
 		<dt>Share:</dt>
 		<dd><span class="samba_shares"><input type='text' name='SHARE'></span></dd>
 		<dt>&nbsp;</dt>
@@ -819,29 +739,57 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 <script type="text/javascript">
 	var maxWidth    = [];
 	var tableWidths = [];
-	var display     = <?=json_encode($display);?>;
-	var vars        = <?=json_encode($var);?>;
-	var network     = [];
-	var workgroup   = "";
-	var hang_update = new Object;
-	<?
-	if (isset($var['WORKGROUP'])) echo "var workgroup = '${var['WORKGROUP']}';\n";
-	for ($i=0; $i < 11; $i++)
-	{ 
-		$_var = "eth{$i}";
-		if (isset($$_var) )
-		{
-			$iface = $$_var;
-			$gateway = array_values(array_flip(preg_grep("/GATEWAY:/", array_flip($iface))));
-			$ipaddr  = array_values(array_flip(preg_grep("/IPADDR:/",  array_flip($iface))));
-			$netmask = array_values(array_flip(preg_grep("/NETMASK/",  array_flip($iface))));
-			for ($z=0; $z < count($ipaddr); $z++)
-			{ 
-				echo "network.push({gateway:'${ipaddr[$z]}', ip:'${ipaddr[$z]}', netmask:'${netmask[$z]}'});\n";
-			}
+	(function ($) {
+		$.fn.getHiddenDimensions = function (includeMargin) {
+			var $item = this,
+			props = { position: 'absolute', visibility: 'hidden', display: 'block' },
+			dim = { width: 0, height: 0, innerWidth: 0, innerHeight: 0, outerWidth: 0, outerHeight: 0 },
+			$hiddenParents = $item.parents().andSelf().not(':visible'),
+			includeMargin = (includeMargin == null) ? false : includeMargin;
+
+			var oldProps = [];
+			$hiddenParents.each(function ()
+			{
+				var old = {};
+
+				for (var name in props)
+				{
+					old[name] = this.style[name];
+					this.style[name] = props[name];
+				}
+
+				oldProps.push(old);
+			});
+
+			dim.width = $item.width();
+			dim.outerWidth = $item.outerWidth(includeMargin);
+			dim.innerWidth = $item.innerWidth();
+			dim.height = $item.height();
+			dim.innerHeight = $item.innerHeight();
+			dim.outerHeight = $item.outerHeight(includeMargin);
+
+			$hiddenParents.each(function (i)
+			{
+				var old = oldProps[i];
+				for (var name in props)
+				{
+					this.style[name] = old[name];
+				}
+			});
+
+			return dim;
 		}
-	}
-	?>
+	}(jQuery));
+
+
+	$("#usb_devices_list").arrive("tr",{onceOnly:false},function()
+	{
+		maxWidth.push($(this).find("td:nth-child(2) > span").getHiddenDimensions().width );
+		$(".usb_disks > thead > tr > td:nth-child(2)").css("min-width", Math.max.apply(Math, maxWidth) + 10 );
+	});
+
+	var display      = <?=json_encode($display);?>;
+	var vars         = <?=json_encode($var);?>;
 	var tab_usbdisks = $('input[name$="tabs"]').length;
 	var URL          = '/plugins/<?=$plugin;?>/UnassignedDevices.php';
 	var diskinfo     = "";
@@ -862,91 +810,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		tabElement.bind({click:function() {$('i.toggle').hide('slow');}});
 	}
 
-
-	// Bind Arrive events 
-	$("#usb_devices_list").arrive("tr",{onceOnly:false},function()
-	{
-		tr = $(this);
-
-		maxWidth.push(tr.find("td:nth-child(2) > span").getHiddenDimensions().width );
-		$(".usb_disks > thead > tr > td:nth-child(2)").css("min-width", Math.max.apply(Math, maxWidth) + 10 );
-
-		tr.find("span.toggle-hdd").click(function(e)
-		{
-			$(this).disableSelection();disk = $(this).attr("hdd");el = $(this);
-			$(".toggle-"+disk).slideToggle(0,function(){
-				if ( $("tr.toggle-"+disk+":first").is(":visible") ){
-					el.find(".glyphicon-append").addClass("glyphicon-minus-sign").removeClass("glyphicon-plus-sign");
-				} else {
-					el.find(".glyphicon-append").removeClass("glyphicon-minus-sign").addClass("glyphicon-plus-sign");
-				}
-			});
-		});
-		tr.find( "span.text" ).click(showInput);
-		tr.find( "input[name='mountpoint']" ).blur(hideInput);
-		tr.find( "button[role$=mount]" ).on( "click", function()
-		{
-			disk_op(this, $(this).attr("role"), $(this).attr("device"));
-		});
-		tr.find("button[role=format]").click(function(){format_disk(this, $(this).attr("context"), $(this).attr("device"));});
-
-	});
-
-
-	$("#usb_devices_list").arrive("input[type='checkbox']",{onceOnly:false},function()
-	{
-		checkbox = $(this);
-		checkbox.each(function(){var checked = $(this).is(":checked");$(this).switchButton({show_labels: false, checked:checked});});
-
-		if (checkbox.hasClass("automount"))
-		{
-			checkbox.change(function()
-			{
-				$.post(URL,{action:"automount",serial:$(this).attr("serial"),status:$(this).is(":checked")},function(data)
-				{
-					$(this).prop("checked",data.automount);
-				},"json");
-			});
-		}
-
-		else if (checkbox.hasClass("samba_automount"))
-		{
-			checkbox.change(function()
-			{
-				$.post(URL,{action:"samba_automount",device:$(this).attr("device"),status:$(this).is(":checked")},function(data)
-				{
-					$(this).prop("checked",data.automount);
-				},"json");
-			});
-		}
-
-		else if (checkbox.hasClass("iso_automount"))
-		{
-			checkbox.change(function()
-			{
-				$.post(URL,{action:"iso_automount",device:$(this).attr("device"),status:$(this).is(":checked")},function(data)
-				{
-					$(this).prop("checked",data.automount);
-				},"json");
-			});
-		}
-		else if (checkbox.hasClass("toggle_share"))
-		{
-			checkbox.change(function()
-			{
-				$.post(URL,{action:"toggle_share",info:$(this).attr("info"),status:$(this).is(":checked")},function(data)
-				{
-					$(this).prop("checked",data.result);
-				},"json");
-			});
-		}
-	});
-
-	$( "#usb_devices_list" ).arrive(".show-complete", {onceOnly:false}, function()
-	{
-		$(this).css("display", $(".complete-switch").is(":checked") ? "block" : "none");
-	});
-
 	$(function()
 	{
 
@@ -963,7 +826,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		$('.complete-switch').change(function()
 		{
 			$('.show-complete').slideToggle('slow');
-			$.cookie('unassigned-complete-view', $('.complete-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path: '/' });
+			$.cookie('unassigned-complete-view', $('.complete-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path:'/' });
 		});
 
 		// Load contents if tab is checked

@@ -38,27 +38,6 @@ function tmux_is_session($name) {
 	}
 }
 
-function netmasks($netmask, $rev = false)
-{
-	$netmasks = [ "255.255.255.252" => "30",
-								"255.255.255.248" => "29",
-								"255.255.255.240" => "28",
-								"255.255.255.224" => "27",
-								"255.255.255.192" => "26",
-								"255.255.255.128" => "25",
-								"255.255.255.0" 	=> "24",
-								"255.255.254.0" 	=> "23",
-								"255.255.252.0" 	=> "22",
-								"255.255.248.0" 	=> "21",
-								"255.255.240.0" 	=> "20",
-								"255.255.224.0" 	=> "19",
-								"255.255.192.0" 	=> "18",
-								"255.255.128.0" 	=> "17",
-								"255.255.0.0"     => "16", 
-							];
-	return $rev ?  array_flip($netmasks)[$netmask] : $netmasks[$netmask];
-}
-
 function render_used_and_free($partition, $mounted) {
 	global $display;
 
@@ -279,14 +258,13 @@ switch ($_POST['action']) {
 		unassigned_log("get_samba_mounts: ".(time() - $ds1)."s","DEBUG");
 		$odd="odd";
 		if (count($samba_mounts)) {
-			foreach ($samba_mounts as $mount)
-			{
-				$is_alive = $mount["is_alive"];
+			foreach ($samba_mounts as $mount) {
+				$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$mount[ip]} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
 				$mounted = is_mounted($mount['device']);
 				echo "<tr class='$odd'>";
 				$protocol = $mount['protocol'] == "NFS" ? "nfs" : "smb";
 				printf( "<td><img src='/webGui/images/%s'>%s</td>", ( $is_alive ? "green-on.png":"green-blink.png" ), $protocol);
-				echo "<td><div><i class='glyphicon glyphicon-globe hdd'></i><span style='margin:4px;'></span>{$mount[name]}</div></td>";
+				echo "<td><div><i class='glyphicon glyphicon-globe hdd'></i><span style='margin:4px;'></span>{$mount[device]}</div></td>";
 				if ($mounted) {
 					echo "<td><i class='glyphicon glyphicon-save hdd'></i><span style='margin:4px;'><a title='Browse Remote SMB/NFS Share' href='/Main/Browse?dir={$mount[mountpoint]}'>{$mount[mountpoint]}</a></td>";
 				} else {
@@ -300,10 +278,10 @@ switch ($_POST['action']) {
 
 				$disabled = $is_alive ? "enabled":"disabled";
 				echo "<td><span style='width:auto;text-align:right;'>".($mounted ? "<button type='button' device ='{$mount[device]}' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'umount','{$mount[device]}');\"><i class='glyphicon glyphicon-export'></i> Unmount</button>" : "<button type='button' device ='{$mount[device]}' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'mount','{$mount[device]}');\" {$disabled}><i class='glyphicon glyphicon-import'></i>  Mount</button>")."</span></td>";
-				echo $mounted ? "<td><i class='glyphicon glyphicon-remove hdd'></i></td>" : "<td><a class='exec' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount[name]}\");' title='Remove Remote SMB/NFS Share'> <i class='glyphicon glyphicon-remove hdd'></i></a></td>";
+				echo $mounted ? "<td><i class='glyphicon glyphicon-remove hdd'></i></td>" : "<td><a class='exec' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount[device]}\");' title='Remove Remote SMB/NFS Share'> <i class='glyphicon glyphicon-remove hdd'></i></a></td>";
 				echo "<td><span>".my_scale($mount['size'], $unit)." $unit</span></td>";
 				echo render_used_and_free($mount, $mounted);
-				echo "<td title='Turn on to Mount Remote SMB/NFS Share when Array is Started'><input type='checkbox' class='samba_automount' device='{$mount[name]}' ".(($mount['automount']) ? 'checked':'')."></td>";
+				echo "<td title='Turn on to Mount Remote SMB/NFS Share when Array is Started'><input type='checkbox' class='samba_automount' device='{$mount[device]}' ".(($mount['automount']) ? 'checked':'')."></td>";
 				echo "<td><a title='View Remote SMB/NFS Script Log' href='/Main/ScriptLog?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><img src='/plugins/${plugin}/icons/scriptlog.png' style='cursor:pointer;width:16px;'></a></td>";
 				echo "<td><a title='Edit Remote SMB/NFS Script' href='/Main/EditScript?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><img src='/plugins/${plugin}/icons/editscript.png' style='cursor:pointer;width:16px;".( (get_samba_config($mount['device'],"command_bg") == "true") ? "":"opacity: 0.4;" )."'></a></td>";
 				echo "</tr>";
@@ -369,6 +347,41 @@ switch ($_POST['action']) {
 			echo "<div id='smb_tab' class='show-complete'><div id='title'><span class='left'><img src='/plugins/{$plugin}/icons/hourglass.png' class='icon'>Historical Devices</span></div>";
 			echo "<table class='disk_status wide usb_absent'><thead><tr><td>Device</td><td>Serial Number</td><td>Auto mount</td><td colspan='7'>Remove config</td></tr></thead><tbody>${ct}</tbody></table></div>";
 		}
+
+		echo 
+		'<script type="text/javascript">
+		$(".automount").each(function(){var checked = $(this).is(":checked");$(this).switchButton({show_labels: false, checked:checked});});
+		$(".automount").change(function(){$.post(URL,{action:"automount",serial:$(this).attr("serial"),status:$(this).is(":checked")},function(data){$(this).prop("checked",data.automount);},"json");});
+
+		$(".samba_automount").each(function(){var checked = $(this).is(":checked");$(this).switchButton({show_labels: false, checked:checked});});
+		$(".samba_automount").change(function(){$.post(URL,{action:"samba_automount",device:$(this).attr("device"),status:$(this).is(":checked")},function(data){$(this).prop("checked",data.automount);},"json");});
+
+		$(".iso_automount").each(function(){var checked = $(this).is(":checked");$(this).switchButton({show_labels: false, checked:checked});});
+		$(".iso_automount").change(function(){$.post(URL,{action:"iso_automount",device:$(this).attr("device"),status:$(this).is(":checked")},function(data){$(this).prop("checked",data.automount);},"json");});
+
+		$(".toggle_share").each(function(){var checked = $(this).is(":checked");$(this).switchButton({show_labels: false, checked:checked});});
+		$(".toggle_share").change(function(){$.post(URL,{action:"toggle_share",info:$(this).attr("info"),status:$(this).is(":checked")},function(data){$(this).prop("checked",data.result);},"json");});
+		$(".text").click(showInput);$(".input").blur(hideInput);
+		$(function(){
+			$(".toggle-hdd").click(function(e) {
+				$(this).disableSelection();disk = $(this).attr("hdd");el = $(this);
+				$(".toggle-"+disk).slideToggle(0,function(){
+					if ( $("tr.toggle-"+disk+":first").is(":visible") ){
+						el.find(".glyphicon-append").addClass("glyphicon-minus-sign").removeClass("glyphicon-plus-sign");
+					} else {
+						el.find(".glyphicon-append").removeClass("glyphicon-minus-sign").addClass("glyphicon-plus-sign");
+					}
+				});
+			});
+		});
+
+		function rm_preclear(dev) {
+			$.post(URL,{action:"rm_preclear",device:dev}).always(function(){usb_disks(tab_usbdisks)});
+		}
+		$(".show-complete").css("display", $(".complete-switch").is(":checked") ? "block" : "none");
+		$("button[role=mount]").add("button[role=umount]").click(function(){disk_op(this, $(this).attr("role"), $(this).attr("device"));});
+		$("button[role=format]").click(function(){format_disk(this, $(this).attr("context"), $(this).attr("device"));});
+		</script>';
 		unassigned_log("Total render time: ".($time + microtime(true))."s", "DEBUG");
 		break;
 
@@ -476,7 +489,6 @@ switch ($_POST['action']) {
 			echo shell_exec("/usr/bin/smbclient -g -L '$ip' $login 2>/dev/null|/usr/bin/awk -F'|' '/Disk/{print $2}'|sort");
 		}
 		break;
-
 
 	/*  NFS  */
 	case 'list_nfs_hosts':

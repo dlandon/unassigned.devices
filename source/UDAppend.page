@@ -2,12 +2,12 @@ Menu="Buttons:10"
 Link="nav-user"
 ---
 <script type="text/javascript">
-  if ( $.inArray( $("body").prop("class") , ["page_scriptlog", "page_editscript", "page_new", "page_browse"]) !== -1)
-  {
-    var InitTab = $.cookie('tab');
-    $.cookie('tab','tab1',{path:'/'});
-    $(window).unload(function() {
-      $.cookie('tab',InitTab,{path:'/'});
-    });
-  }
+	if ( $.inArray( $("body").prop("class") , ["page_scriptlog", "page_editscript", "page_new", "page_browse"]) !== -1)
+	{
+		var InitTab = $.cookie('tab');
+		$.cookie('tab','tab1',{path:'/'});
+		$(window).unload(function() {
+		$.cookie('tab',InitTab,{path:'/'});
+	});
+	}
 </script>

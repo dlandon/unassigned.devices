@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.06.28a">
+<!ENTITY version   "2017.07.03">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"e3d98680993425cd9c74b7b8942f9001">
+<!ENTITY MD5		"ff508327c27e3beeccfc728bf91db0af">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,12 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Removed unused waitMe code.
+- Fix: Revert 2017.06.28a changes causing issues with mount point change on multi partitioned disks.
+- Fix: Disable preclear diskinfo causing issues with displaying correct unassigned disks.
+- Fix: Set simple/complete cookie path to root to prevent conflicts.
+
+###2017.06.28a
 - Fix: will try to use IP address if server can't resolve NETBIOS name.
 - Fix: detect all networks(ip/hostname/gateway).
 - Fix: add back NFS host searching using nmap.
