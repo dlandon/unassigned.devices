@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.06.23a">
+<!ENTITY version   "2017.07.03">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"41f678805a1effb71e8fee9bbff2793c">
+<!ENTITY MD5		"ff508327c27e3beeccfc728bf91db0af">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,24 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Removed unused waitMe code.
+- Fix: Revert 2017.06.28a changes causing issues with mount point change on multi partitioned disks.
+- Fix: Disable preclear diskinfo causing issues with displaying correct unassigned disks.
+- Fix: Set simple/complete cookie path to root to prevent conflicts.
+
+###2017.06.28a
+- Fix: will try to use IP address if server can't resolve NETBIOS name.
+- Fix: detect all networks(ip/hostname/gateway).
+- Fix: add back NFS host searching using nmap.
+- Fix: bind events dynamically instead of running script commands every update.
+
+###2017.06.28
+- Add: diskinfo daemon support. Will only work when Preclear Disk plugin is installed.
+- Change: removed waitMe effect from content loading (easier to maintain).
+- Fix: add back some animations on the Mount/Unmount button.
+- Add: Tighter integration with the preclear plugin.
+
+###2017.06.23a
 - Add: More debug info about commands.
 - Fix: Changed blockdev to lsblk due to performance issues (blockdev hanging on high disk load).
 - Fix: Avoid hdparm to be invoked twice on each disk.
@@ -560,6 +578,37 @@ ntfs-3g-2013.1.13-x86_64-1.txz (for unraid 6.1)
 </INLINE>
 </FILE>
 
+<!--
+nmap-7.12-x86_64-1.txz (for unraid 6.4 and later)
+-->
+<FILE Name="&packages;/nmap-7.12-x86_64-1.txz">
+<URL>"&gitURL;/packages/nmap-7.12-x86_64-1.txz"</URL>
+<MD5>79f5ae8093b85f19c483c0e9ec42e2b4</MD5>
+</FILE>
+
+<!-- The 'nmap' package install script. -->
+<FILE Run="/usr/bin/php">
+<INLINE>
+<![CDATA[
+<?
+	$version = parse_ini_file("/etc/unraid-version");
+	if ( !version_compare($version['version'],"6.3.9", "<=") ) {
+		$version = parse_ini_file("/etc/unraid-version");
+		$plugin = "/boot/config/plugins/unassigned.devices/packages";
+		$command = "upgradepkg --install-new";
+
+		$name = "$plugin/nmap-7.12-x86_64-1.txz";
+		shell_exec("logger plugin: running: $name") ;
+		system("$command $name", $retval);
+		if ($retval) {
+			echo "run failed command: $command retval: $retval";
+			exit(1);
+		}
+	}
+?>
+]]>
+</INLINE>
+</FILE>
 
 <!--
 exfat-utils-1.2.6-x86_64-1_slonly.txz
@@ -763,6 +812,9 @@ rm -rf /usr/local/emhttp/plugins/&name; 2>/dev/null
 # Remove all installed packages.
 if [ -f /var/log/packages/ntfs-3g-2013.1.13-x86_64-1 ]; then
 	removepkg ntfs-3g-2013.1.13-x86_64-1 2>/dev/null
+fi
+if [ -f /var/log/packages/nmap-7.12-x86_64-1 ]; then
+	removepkg nmap-7.12-x86_64-1 2>/dev/null
 fi
 removepkg exfat-utils-1.2.6-x86_64-1_slonly 2>/dev/null
 removepkg fuse-exfat-1.2.6-x86_64-1_slonly.txz 2>/dev/null
