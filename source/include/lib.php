@@ -115,6 +115,10 @@ function diskinfoChange($device = null)
 	return true;
 }
 
+function is_ip($str) {
+	return filter_var($str, FILTER_VALIDATE_IP);
+}
+
 function _echo($m) { echo "<pre>".print_r($m,TRUE)."</pre>";}; 
 
 function save_ini_file($file, $array) {
@@ -884,17 +888,34 @@ function get_samba_mounts() {
 	$samba_mounts = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
 	foreach ($samba_mounts as $device => $mount) {
 		$mount['device'] = $device;
+		$mount['name']   = $device;
+
 		if ($mount['protocol'] == "NFS") {
 			$mount['fstype'] = "nfs";
 		} else {
 			$mount['fstype'] = "cifs";
 		}
 
-		$mount['automount'] = is_samba_automount($mount['device']);
+		$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$mount['ip']} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+		if (! $is_alive && ! is_ip($mount['ip']))
+		{
+			$ip = trim(shell_exec("nmblookup ${mount['ip']} | awk '{print $1}'"));
+			if (is_ip($ip))
+			{
+				$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+				if ($is_alive)
+				{
+					$mount['device'] = ($mount['fstype'] == "nfs") ? "{$ip}:/{$mount['path']}" : "//{$ip}/{$mount['path']}";
+				}	
+			}
+		}
+
+		$mount['is_alive'] = $is_alive;
+
+		$mount['automount'] = is_samba_automount($mount['name']);
 		if (! $mount["mountpoint"]) {
 			$mount["mountpoint"] = $mount['target'] ? $mount['target'] : preg_replace("%\s+%", "_", "{$paths[usb_mountpoint]}/{$mount[ip]}_{$mount[share]}");
 		}
-		$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$mount[ip]} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
 		$mount['size']   = intval(trim($is_alive ? shell_exec("/bin/df '${mount[mountpoint]}' --output=size,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'"):"0"))*1024;
 		$mount['used']   = intval(trim($is_alive ? shell_exec("/bin/df '${mount[mountpoint]}' --output=used,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'"):"0"))*1024;
 		$mount['avail']  = $mount['size'] - $mount['used'];
@@ -909,8 +930,7 @@ function get_samba_mounts() {
 function do_mount_samba($info) {
 	global $var;
 
-	$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$info[ip]} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
-	if ($is_alive) {
+	if ($info['is_alive']) {
 		if (!(($info[fstype] == "nfs") && ((strtoupper($var['NAME']) == strtoupper($info['ip'])) || ($var['IPADDR'] == $info['ip'])))) {
 			$dev = $info['device'];
 			$dir = $info['mountpoint'];
