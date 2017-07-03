@@ -896,6 +896,23 @@ function get_samba_mounts() {
 			$mount['fstype'] = "cifs";
 		}
 
+		$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$mount['ip']} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+		if (! $is_alive && ! is_ip($mount['ip']))
+		{
+			$ip = trim(shell_exec("nmblookup ${mount['ip']} | awk '{print $1}'"));
+			if (is_ip($ip))
+			{
+				$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+				if ($is_alive)
+				{
+					$mount['device'] = ($mount['fstype'] == "nfs") ? "{$ip}:/{$mount['path']}" : "//{$ip}/{$mount['path']}";
+				}	
+			}
+		}
+
+		$mount['is_alive'] = $is_alive;
+
+		$mount['automount'] = is_samba_automount($mount['name']);
 		if (! $mount["mountpoint"]) {
 			$mount["mountpoint"] = $mount['target'] ? $mount['target'] : preg_replace("%\s+%", "_", "{$paths[usb_mountpoint]}/{$mount[ip]}_{$mount[share]}");
 		}
@@ -913,6 +930,7 @@ function get_samba_mounts() {
 function do_mount_samba($info) {
 	global $var;
 
+	if ($info['is_alive']) {
 		if (!(($info[fstype] == "nfs") && ((strtoupper($var['NAME']) == strtoupper($info['ip'])) || ($var['IPADDR'] == $info['ip'])))) {
 			$dev = $info['device'];
 			$dir = $info['mountpoint'];
@@ -1366,3 +1384,4 @@ function setSleepTime($device) {
 	$device = preg_replace("/\d+$/", "", $device);
 	benchmark("shell_exec", "/usr/sbin/hdparm -S180 $device 2>&1");
 }
+?>
