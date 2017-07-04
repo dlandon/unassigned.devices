@@ -166,19 +166,19 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		}
 		$.post(URL,{'action':op,'device':device},function(data)
 		{
-	  	opt = (op == "mount") ? "Mounting" : "Unmounting";
-	  	if (data.status)
-	  	{
-	  		text  = "<i class='glyphicon glyphicon-ok green-text'></i> " + opt + "...";
-	  	}
-	  	else
-	  	{
-	  		text  = "<i class='glyphicon glyphicon-remove red-text'></i> " + opt + "...";
-	  		setTimeout(usb_disks,1500);
-	  	}
+			opt = (op == "mount") ? "Mounting" : "Unmounting";
+			if (data.status)
+			{
+				text	= "<i class='glyphicon glyphicon-ok green-text'></i> " + opt + "...";
+			}
+			else
+			{
+				text	= "<i class='glyphicon glyphicon-remove red-text'></i> " + opt + "...";
+				setTimeout(usb_disks,1500);
+			}
 			$("button[device='"+device+"']").prop('disabled',true);
 			$("button[device='"+device+"']").html( text );
-	  }, "json");
+		}, "json");
 	}
 
 	function pin_tab(n) {
@@ -194,32 +194,32 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			tableWidths = $("#usb_devices_list > table > thead > tr").children("td").map(function(i,v){return $(this).getHiddenDimensions().outerWidth;});
 			$("#usb_devices_list").html( $("#table_loading").html() );
 			$("#usb_devices_list > table > thead > tr").children("td").each(function(i,v)
-		  {
-		  	if (i in tableWidths)
-		  	{
-		  		$(this).css("width", tableWidths[i]);
-		  	}
-		  });
+			{
+				if (i in tableWidths)
+				{
+					$(this).css("width", tableWidths[i]);
+				}
+			});
 		}
 
 		$.post(URL,{action:"get_content",display:display},function(data)
-		  {
-      	maxWidth = [];
-      	var toggled = $("tr.toggle-parts").filter(":visible").map(function(){return $(this).attr("name");}).get();
-		  	if (data)
-		  	{
-		  		$('#usb_devices_list').html(data);
+		{
+			maxWidth = [];
+			var toggled = $("tr.toggle-parts").filter(":visible").map(function(){return $(this).attr("name");}).get();
+			if (data)
+			{
+				$('#usb_devices_list').html(data);
 
-		  	}
-      	$.each(toggled, function(k,v)
-      	  {
-      	  	if(v.length)
-      	  	{
-      	  		$("tr[name='"+v+"']").prev().find("i.glyphicon-plus-sign").removeClass("glyphicon-plus-sign").addClass("glyphicon-minus-sign");
-      	  		$("tr[name='"+v+"']").css("display", "table-row");
-      	  	}
-      	  });
-		  });
+			}
+			$.each(toggled, function(k,v)
+			{
+				if(v.length)
+				{
+					$("tr[name='"+v+"']").prev().find("i.glyphicon-plus-sign").removeClass("glyphicon-plus-sign").addClass("glyphicon-minus-sign");
+					$("tr[name='"+v+"']").css("display", "table-row");
+				}
+			});
+		});
 	}
 
 	function detect_usb_disk_change(tabnum) {
@@ -490,10 +490,10 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 					$( this ).dialog( "close" );
 					fs = getVal(this,"FS");
 					$.post(URL,{action:"format_"+type,device:device,fs:fs}, function(data)
-					  {
+						{
 							$("button[device='"+device+"']").prop('disabled',true);
-					  	$("button[device='"+device+"']").html( data.status ? "Formated" : "Format failed..." );
-					  },"json");
+							$("button[device='"+device+"']").html( data.status ? "Formated" : "Format failed..." );
+						},"json");
 				},
 				Cancel: function() {
 					$( this ).dialog( "close" );
@@ -522,9 +522,9 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 					$( this ).dialog( "close" );
 					fs = getVal(this,"FS");
 					$.post(URL,{action:"rm_partition",device:device,partition:partition},"json").always(function(data)
-					  {
-					  	usb_disks(tab_usbdisks);
-					  });
+						{
+							usb_disks(tab_usbdisks);
+						});
 				},
 				Cancel: function() {
 					$( this ).dialog( "close" );
@@ -545,7 +545,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 	function get_tab_title_by_name(name) {
 		var tab		= $("input[name$=tabs] + label").filter(function(){return $(this).text() === name;}).prev();
-		var title	= $("div#title > span.left"    ).filter(function(){return $(this).text() === name;}).parent();
+		var title	= $("div#title > span.left"		).filter(function(){return $(this).text() === name;}).parent();
 		if (tab.length) {
 			return tab
 		} else if (title.length) {
@@ -663,7 +663,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			</select>
 		</dd>
 	</dl>
-	<p>Note: Dockers will not be able to access any SMB or NFS share until you restart the Docker service after the device is mounted.  Be sure to add a Docker path mapping the SMB or NFS share as 'RW/Slave' or 'RO/Slave'.</p>
+	<p>Note: Dockers will not be able to access any SMB or NFS share until you restart the Docker service after the device is mounted.	Be sure to add a Docker path mapping the SMB or NFS share as 'RW/Slave' or 'RO/Slave'.</p>
 	<p>Go to Settings->Docker and disable then enable Docker.</p>
 	<div class="options"></div>
 </div>
@@ -707,7 +707,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 <script>
 	$("input[data-pickroot]").fileTreeAttach();
 </script>
-	<p>Note: Dockers will not be able to access any ISO file share until you restart the Docker service after the device is mounted.  Be sure to add a Docker path mapping the ISO share as 'RW/Slave' or 'RO/Slave'.</p>
+	<p>Note: Dockers will not be able to access any ISO file share until you restart the Docker service after the device is mounted.	Be sure to add a Docker path mapping the ISO share as 'RW/Slave' or 'RO/Slave'.</p>
 	<p>Go to Settings->Docker and disable then enable Docker.</p>
 	<dl>
 		<dt>ISO File:</dt>
@@ -777,34 +777,34 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 <blockquote class='inline_help'>
 	<p><b>The 'Settings->Unassigned Devices' security settings for SMB and NFS must be set correctly for SMB and NFS sharing to work properly.</b></p>
 	<p>Hover your mouse over an any active area on the UD page and a tool tip will show you what clicking that area does.</p>
-	<p>You can mount USB devices, sata drives, Remote SMB/NFS shares, and ISO Files with unassigned devices.  Any devices with the auto mount switch on will be mounted when the array is started.  XFS and EXT4 formatted drives are mounted with discard (trim) for SSD drives.  All drives and SMB/NFS Mounts are unmounted when the array is stopped on the 'unmounting_disks' event.</p>
-	<p>If you want to share your drive, you can turn on the Share switch.  The default for Remote SMB shares is Public read/write access.  Enable SMB Security by user in the Unassigned Devices Settings.  NFS shares are exported and access is read/write.  The export of NFS devices is enabled in the Unassigned Devices settings.  You can also enable a common script that will be executed on every disk mount.  In order to share any UD device, sharing needs to be enabled in the UD Settings and the switch turned on to share the particular device.</p>
+	<p>You can mount USB devices, sata drives, Remote SMB/NFS shares, and ISO Files with unassigned devices.	Any devices with the auto mount switch on will be mounted when the array is started.	XFS and EXT4 formatted drives are mounted with discard (trim) for SSD drives.	All drives and SMB/NFS Mounts are unmounted when the array is stopped on the 'unmounting_disks' event.</p>
+	<p>If you want to share your drive, you can turn on the Share switch.	The default for Remote SMB shares is Public read/write access.	Enable SMB Security by user in the Unassigned Devices Settings.	NFS shares are exported and access is read/write.	The export of NFS devices is enabled in the Unassigned Devices settings.	You can also enable a common script that will be executed on every disk mount.	In order to share any UD device, sharing needs to be enabled in the UD Settings and the switch turned on to share the particular device.</p>
 	<p>After entering a mount point, press Enter to save the change.</p>
-	<p>Additional options are available when you click on the device identification.  When the disk is unmounted, the mount name of the device can be changed.  A disk can be formatted and an fsck run to check the disk.</p>
-	<p>UD has a destructive mode that allows deleting disk partitions and formatting disks.  If Destructive Mode is not turned on in the UD Settings, you WILL NOT be able to format a disk.  Go the the Settings page and scroll to the bottom to see the UD settings.  To format a disk:</p>
+	<p>Additional options are available when you click on the device identification.	When the disk is unmounted, the mount name of the device can be changed.	A disk can be formatted and an fsck run to check the disk.</p>
+	<p>UD has a destructive mode that allows deleting disk partitions and formatting disks.	If Destructive Mode is not turned on in the UD Settings, you WILL NOT be able to format a disk.	Go the the Settings page and scroll to the bottom to see the UD settings.	To format a disk:</p>
 		<li>Destructive mode must be enabled.</li>
-		<li>Disk must have all partitions removed.  Unmount disk, click on the serial number, and click on all red-X to delete partitions.</li>
+		<li>Disk must have all partitions removed.	Unmount disk, click on the serial number, and click on all red-X to delete partitions.</li>
 		<li>If the disk has been precelared and shows a grayed 'Format' button, click on the disk serial number, then click on the red-X to delete the preclear status file.</li>
 	<p><strong>Note: A disk formatted in UD is not compatible with the array disk format and cannot be added to the array.</strong>
-	<p>Unassigned devices includes scripts that are used for mounting and unmounting devices and SMB/NFS mounts.  These scripts can be used from the command line or in scripts as necessary.
+	<p>Unassigned devices includes scripts that are used for mounting and unmounting devices and SMB/NFS mounts.	These scripts can be used from the command line or in scripts as necessary.
 	<p>Unassigned devices script:
 		<li>'/usr/local/sbin/rc.unassigned mount auto' - all devices and SMB/NFS mounts set to auto mount will be mounted.</li>
 		<li>'/usr/local/sbin/rc.unassigned umount auto' - all devices and SMB/NFS mounts set to auto mount will be unmounted.</li>
 		<li>'/usr/local/sbin/rc.unassigned umount all' - all devices and SMB/NFS mounts are unmounted in preparation for shutting down the array.</li>
 		<li>'/usr/local/sbin/rc.unassigned mount /dev/sdX' - mount device sdX where 'X' is the device designator.</li>
-		<li>'/usr/local/sbin/rc.unassigned umount /dev/sdX' - unmount device sdX where 'X' is the device designator.  You can use this command in a UD script to unmount the device when the script has completed.<li>
+		<li>'/usr/local/sbin/rc.unassigned umount /dev/sdX' - unmount device sdX where 'X' is the device designator.	You can use this command in a UD script to unmount the device when the script has completed.<li>
 	</p>
-	<p>Switch the 'Complete' button to change the web page to just show hardware devices.  Switch the 'Simple' switch to switch back to the full web display.</p>
+	<p>Switch the 'Complete' button to change the web page to just show hardware devices.	Switch the 'Simple' switch to switch back to the full web display.</p>
 </blockquote>
 </form>
 
 <script type="text/javascript">
-	var maxWidth    = [];
+	var maxWidth		= [];
 	var tableWidths = [];
-	var display     = <?=json_encode($display);?>;
-	var vars        = <?=json_encode($var);?>;
-	var network     = [];
-	var workgroup   = "";
+	var display		 = <?=json_encode($display);?>;
+	var vars				= <?=json_encode($var);?>;
+	var network		 = [];
+	var workgroup	 = "";
 	<?
 	if (isset($var['WORKGROUP'])) echo "var workgroup = '${var['WORKGROUP']}';\n";
 	for ($i=0; $i < 11; $i++)
@@ -814,8 +814,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		{
 			$iface = $$_var;
 			$gateway = array_values(array_flip(preg_grep("/GATEWAY:/", array_flip($iface))));
-			$ipaddr  = array_values(array_flip(preg_grep("/IPADDR:/",  array_flip($iface))));
-			$netmask = array_values(array_flip(preg_grep("/NETMASK/",  array_flip($iface))));
+			$ipaddr	= array_values(array_flip(preg_grep("/IPADDR:/",	array_flip($iface))));
+			$netmask = array_values(array_flip(preg_grep("/NETMASK/",	array_flip($iface))));
 			for ($z=0; $z < count($ipaddr); $z++)
 			{ 
 				echo "network.push({gateway:'${ipaddr[$z]}', ip:'${ipaddr[$z]}', netmask:'${netmask[$z]}'});\n";
@@ -824,8 +824,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	}
 	?>
 	var tab_usbdisks = $('input[name$="tabs"]').length;
-	var URL          = '/plugins/<?=$plugin;?>/UnassignedDevices.php';
-	var diskinfo     = "";
+	var URL					= '/plugins/<?=$plugin;?>/UnassignedDevices.php';
+	var diskinfo		 = "";
 
 	$('#tab'+tab_usbdisks).bind({click:function() {pin_tab(tab_usbdisks); detect_usb_disk_change(tab_usbdisks);}});
 
@@ -934,9 +934,9 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		addButtonTab('<a style="cursor:pointer" onclick="getlog()" title="Download Log"><i class="fa fa-download"></i></a>', "Unassigned Devices");
 		addButtonTab('<a style="cursor:pointer" onclick="ShowLog()" title="Show Log"><i class="fa fa-file-text-o"></i></a>', "Unassigned Devices");
 		addButtonTab('<a style="cursor:pointer" onclick="$.post(\''+URL+'\',{\'action\':\'rescan_disks\'});" title="Rescan Disks"><i class="fa fa-refresh"></i></a>',
-		             "Unassigned Devices");
+								 "Unassigned Devices");
 		addButtonTab('<div class="switch-wrapper"><a style="cursor:pointer" title="Switch Display Mode"><input type="checkbox" class="complete-switch"></a></div>',
-		             "Unassigned Devices");
+								 "Unassigned Devices");
 
 		// Add switchButton to Tab/Title bar
 		$('.complete-switch').switchButton({ labels_placement: "left", on_label: 'Complete', off_label: 'Simple', checked: $.cookie('unassigned-complete-view') != 'false'});
