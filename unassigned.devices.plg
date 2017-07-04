@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.07.04">
+<!ENTITY version   "2017.07.04a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"e8e67a34e8231bd8378c077ad5bf05ec">
+<!ENTITY MD5		"937dd9e25c74f674aef67a2eaff9e01e">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,6 +23,8 @@
 - Add: Add back in the fixes from 2017.06.28a.
 - Fix: Change mount point form methods to POST to fix mount point name change issue.
 - Fix: Code changes for better readability.
+- Fix: Toggle status not persistent in disks with more than one partition.
+- Fix: Skip loading message with diskinfo (not necessary).
 
 ###2017.07.03
 - Fix: Removed unused waitMe code.
