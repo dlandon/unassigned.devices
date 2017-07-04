@@ -189,20 +189,23 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	function usb_disks(tabnum)
 	{
 		// save table widths
-		tableWidths = $("#usb_devices_list > table > thead > tr").children("td").map(function(i,v){return $(this).getHiddenDimensions().outerWidth;});
-		$("#usb_devices_list").html( $("#table_loading").html() );
-		$("#usb_devices_list > table > thead > tr").children("td").each(function(i,v)
-	  {
-	  	if (i in tableWidths)
-	  	{
-	  		$(this).css("width", tableWidths[i]);
-	  	}
-	  });
+		if (! diskinfo)
+		{
+			tableWidths = $("#usb_devices_list > table > thead > tr").children("td").map(function(i,v){return $(this).getHiddenDimensions().outerWidth;});
+			$("#usb_devices_list").html( $("#table_loading").html() );
+			$("#usb_devices_list > table > thead > tr").children("td").each(function(i,v)
+		  {
+		  	if (i in tableWidths)
+		  	{
+		  		$(this).css("width", tableWidths[i]);
+		  	}
+		  });
+		}
 
 		$.post(URL,{action:"get_content",display:display},function(data)
 		  {
       	maxWidth = [];
-      	var toggled = $("tr.toggle-parts").filter(":visible").map(function(){return this.id;}).get();
+      	var toggled = $("tr.toggle-parts").filter(":visible").map(function(){return $(this).attr("name");}).get();
 		  	if (data)
 		  	{
 		  		$('#usb_devices_list').html(data);
@@ -212,8 +215,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
       	  {
       	  	if(v.length)
       	  	{
-      	  		$("#"+v).prev().find("i.glyphicon-plus-sign").removeClass("glyphicon-plus-sign").addClass("glyphicon-minus-sign");
-      	  		$("#"+v).css("display", "table-row");
+      	  		$("tr[name='"+v+"']").prev().find("i.glyphicon-plus-sign").removeClass("glyphicon-plus-sign").addClass("glyphicon-minus-sign");
+      	  		$("tr[name='"+v+"']").css("display", "table-row");
       	  	}
       	  });
 		  });
@@ -803,7 +806,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	var vars        = <?=json_encode($var);?>;
 	var network     = [];
 	var workgroup   = "";
-	var hang_update = new Object;
 	<?
 	if (isset($var['WORKGROUP'])) echo "var workgroup = '${var['WORKGROUP']}';\n";
 	for ($i=0; $i < 11; $i++)

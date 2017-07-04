@@ -116,7 +116,7 @@ function render_partition($disk, $partition) {
 	}
 	$mbutton = make_mount_button($partition);
   
-	$out[] = "<tr class='$outdd toggle-parts toggle-".basename($disk['device'])."' id='toggle-".basename($disk['device'])."' style='display:none;' >";
+	$out[] = "<tr class='$outdd toggle-parts toggle-".basename($disk['device'])."' name='toggle-".basename($disk['device'])."' style='display:none;' >";
 	$out[] = "<td></td>";
 	$out[] = "<td>{$mpoint}</td>";
 	$out[] = "<td class='mount'>{$mbutton}</td>";
