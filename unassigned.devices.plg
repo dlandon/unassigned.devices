@@ -24,7 +24,7 @@
 - Fix: Change mount point form methods to POST to fix mount point name change issue.
 - Fix: Code changes for better readability.
 
-2017.07.03
+###2017.07.03
 - Fix: Removed unused waitMe code.
 - Fix: Revert 2017.06.28a changes causing issues with mount point change on multi partitioned disks.
 - Fix: Disable preclear diskinfo causing issues with displaying correct unassigned disks.
