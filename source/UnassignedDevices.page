@@ -66,6 +66,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	.underline{text-decoration: underline;}
 	button.array {padding:2px 7px 2px 7px;}
 
+	form.inline{display:inline;margin:0;padding:0;}
+
 	.switch-wrapper {
 		display: inline-block;
 		position: relative;
@@ -644,8 +646,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 <div style='display: inline; float: right; margin: -58px -14px;' id='unassigned_tabbed'></div>
 <div class="font_preload" style="opacity: 0"><span style="font-family: 'FontAwesome', Arial, sans-serif;"></span></div>
-<form id="formUsbMount" method="POST" action="/update.php" target="progressFrame">
-<input type="hidden" id="cmdUsbMount" name="#command" value="" />
 <div id="dialog-confirm" style="display:none;" title=""></div>
 <div id="dialog-samba" style="display:none;" title=""></div>
 <div id="dialog-iso" style="display:none;" title=""></div>
