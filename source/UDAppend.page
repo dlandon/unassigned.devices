@@ -7,7 +7,7 @@ Link="nav-user"
 		var InitTab = $.cookie('tab');
 		$.cookie('tab','tab1',{path:'/'});
 		$(window).unload(function() {
-		$.cookie('tab',InitTab,{path:'/'});
-	});
+			$.cookie('tab',InitTab,{path:'/'});
+		});
 	}
 </script>

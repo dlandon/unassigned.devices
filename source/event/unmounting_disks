@@ -1,4 +1,4 @@
 #!/bin/bash
 #
-logger "Unmounting Devices..." -t"unassigned.devices"
+logger "Unmounting All Devices..." -t"unassigned.devices"
 /usr/local/emhttp/plugins/unassigned.devices/scripts/rc.unassigned umount all

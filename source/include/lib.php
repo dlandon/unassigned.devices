@@ -13,23 +13,23 @@
 $plugin = "unassigned.devices";
 // $VERBOSE=TRUE;
 
-$paths = [  "smb_extra"       => "/boot/config/smb-extra.conf",
-						"smb_usb_shares"  => "/etc/samba/unassigned-shares",
-						"usb_mountpoint"  => "/mnt/disks",
-						"device_log"      => "/tmp/{$plugin}/",
-						"log"             => "/var/log/{$plugin}.log",
-						"config_file"     => "/boot/config/plugins/{$plugin}/{$plugin}.cfg",
-						"state"           => "/var/state/${plugin}/${plugin}.ini",
-						"hdd_temp"        => "/var/state/${plugin}/hdd_temp.json",
-						"samba_mount"     => "/boot/config/plugins/${plugin}/samba_mount.cfg",
-						"iso_mount"       => "/boot/config/plugins/${plugin}/iso_mount.cfg",
-						"reload"          => "/var/state/${plugin}/reload.state",
-						"unmounting"      => "/var/state/${plugin}/unmounting_%s.state",
-						"mounting"        => "/var/state/${plugin}/mounting_%s.state",
-						"formatting"      => "/var/state/${plugin}/formatting_%s.state",
-						"diskinfo_file"   => "/var/local/emhttp/plugins/diskinfo/diskinfo.json.not_working",
-						"diskinfo_daemon" => "/etc/rc.d/rc.diskinfo"
-				  ];
+$paths = [  "smb_extra"			=> "/boot/config/smb-extra.conf",
+			"smb_usb_shares"	=> "/etc/samba/unassigned-shares",
+			"usb_mountpoint"	=> "/mnt/disks",
+			"device_log"		=> "/tmp/{$plugin}/",
+			"log"				=> "/var/log/{$plugin}.log",
+			"config_file"		=> "/boot/config/plugins/{$plugin}/{$plugin}.cfg",
+			"state"				=> "/var/state/${plugin}/${plugin}.ini",
+			"hdd_temp"			=> "/var/state/${plugin}/hdd_temp.json",
+			"samba_mount"		=> "/boot/config/plugins/${plugin}/samba_mount.cfg",
+			"iso_mount"			=> "/boot/config/plugins/${plugin}/iso_mount.cfg",
+			"reload"			=> "/var/state/${plugin}/reload.state",
+			"unmounting"		=> "/var/state/${plugin}/unmounting_%s.state",
+			"mounting"			=> "/var/state/${plugin}/mounting_%s.state",
+			"formatting"		=> "/var/state/${plugin}/formatting_%s.state",
+			"diskinfo_file"		=> "/var/local/emhttp/plugins/diskinfo/diskinfo.json.not_working",
+			"diskinfo_daemon"	=> "/etc/rc.d/rc.diskinfo"
+		];
 
 $docroot = $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 
@@ -223,6 +223,7 @@ function verify_precleared($dev) {
 		unassigned_log("Failed test 1: MBR signature not valid.", "DEBUG"); 
 		$cleared = FALSE;
 	}
+
 	# verify signature
 	foreach ($pattern as $key => $value) {
 		if ($b["byte{$key}"] != $value) {
@@ -230,6 +231,7 @@ function verify_precleared($dev) {
 			$cleared = FALSE;
 		}
 	}
+
 	$sc = hexdec("0x{$b[byte11h]}{$b[byte10h]}{$b[byte9h]}{$b[byte8h]}");
 	$sl = hexdec("0x{$b[byte15h]}{$b[byte14h]}{$b[byte13h]}{$b[byte12h]}");
 	switch ($sc) {
@@ -237,6 +239,7 @@ function verify_precleared($dev) {
 		case 64:
 			$partition_size = $disk_blocks - $sc;
 			break;
+
 		case 1:
 			if ( ! $over_mbr_size) {
 				unassigned_log("Failed test 3: start sector ($sc) is invalid.", "DEBUG");
@@ -244,11 +247,13 @@ function verify_precleared($dev) {
 			}
 			$partition_size = $max_mbr_blocks;
 			break;
+
 		default:
 			unassigned_log("Failed test 4: start sector ($sc) is invalid.", "DEBUG");
 			$cleared = FALSE;
 			break;
 	}
+
 	if ( $partition_size != $sl ) {
 		unassigned_log("Failed test 5: disk size doesn't match.", "DEBUG");
 		$cleared = FALSE;
@@ -261,21 +266,27 @@ function get_format_cmd($dev, $fs) {
 		case 'xfs':
 			return "/sbin/mkfs.xfs -f {$dev}";
 			break;
+
 		case 'ntfs':
 			return "/sbin/mkfs.ntfs -Q {$dev}";
 			break;
+
 		case 'btrfs':
 			return "/sbin/mkfs.btrfs -f {$dev}";
 			break;
+
 		case 'ext4':
 			return "/sbin/mkfs.ext4 -F {$dev}";
 			break;
+
 		case 'exfat':
 			return "/usr/sbin/mkfs.exfat {$dev}";
 			break;
+
 		case 'fat32':
 			return "/sbin/mkfs.fat -s 8 -F 32 {$dev}";
 			break;
+
 		default:
 			return false;
 			break;
@@ -510,23 +521,29 @@ function get_mount_params($fs, $dev) {
 		case 'hfsplus':
 			return "force,rw,users,async,umask=000";
 			break;
+
 		case 'xfs':
 			return "rw,noatime,nodiratime{$discard}";
 			break;
+
 		case 'exfat':
 		case 'vfat':
 		case 'ntfs':
 			return "auto,async,noatime,nodiratime,nodev,nosuid,umask=000";
 			break;
+
 		case 'ext4':
 			return "auto,noatime,nodiratime,async,nodev,nosuid{$discard}";
 			break;
+
 		case 'cifs':
 			return "rw,nounix,iocharset=utf8,_netdev,file_mode=0777,dir_mode=0777,username=%s,password=%s";
 			break;
+
 		case 'nfs':
 			return "defaults";
 			break;
+
 		default:
 			return "auto,async,noatime,nodiratime";
 			break;
@@ -812,7 +829,7 @@ function remove_shares() {
 		}
 	}
 
-	// Iso File Mounts
+	// ISO File Mounts
 	foreach (get_iso_mounts() as $name => $info) {
 		if ( is_mounted($info['device']) ) {
 			unassigned_log("Reloading shared dir '{$info[mountpoint]}'.");
@@ -846,7 +863,7 @@ function reload_shares() {
 		}
 	}
 
-	// Iso File Mounts
+	// ISO File Mounts
 	foreach (get_iso_mounts() as $name => $info) {
 		if ( is_mounted($info['device']) ) {
 			add_smb_share($info['mountpoint'], $info['device'], FALSE);
@@ -1075,7 +1092,7 @@ function do_mount_iso($info) {
 			unassigned_log("Share '$dev' already mounted...");
 		}
 	} else {
-		unassigned_log("Error: Iso file '$info[file]' is missing and cannot be mounted.");
+		unassigned_log("Error: ISO file '$info[file]' is missing and cannot be mounted.");
 		return FALSE;
 	}
 }
@@ -1352,27 +1369,35 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 		case 'vfat':
 			$cmd = array('ro'=>'/sbin/fsck -n %s','rw'=>'/sbin/fsck -a %s');
 			break;
+
 		case 'ntfs':
 			$cmd = array('ro'=>'/bin/ntfsfix -n %s','rw'=>'/bin/ntfsfix -b -d %s');
 			break;
+
 		case 'hfsplus';
 			$cmd = array('ro'=>'/usr/sbin/fsck.hfsplus -l %s','rw'=>'/usr/sbin/fsck.hfsplus -y %s');
 			break;
+
 		case 'xfs':
 			$cmd = array('ro'=>'/sbin/xfs_repair -n %s','rw'=>'/sbin/xfs_repair %s');
 			break;
+
 		case 'exfat':
 			$cmd = array('ro'=>'/usr/sbin/fsck.exfat %s','rw'=>'/usr/sbin/fsck.exfat %s');
 			break;
+
 		case 'btrfs':
 			$cmd = array('ro'=>'/sbin/btrfs scrub start -B -R -d -r %s','rw'=>'/sbin/btrfs scrub start -B -R -d %s');
 			break;
+
 		case 'ext4':
 			$cmd = array('ro'=>'/sbin/fsck.ext4 -vn %s','rw'=>'/sbin/fsck.ext4 -v -f -p %s');
 			break;
+
 		case 'reiserfs':
 			$cmd = array('ro'=>'/sbin/reiserfsck --check %s','rw'=>'/sbin/reiserfsck --fix-fixable %s');
 			break;
+
 		default:
 			$cmd = array('ro'=>false,'rw'=>false);
 		break;

@@ -40,22 +40,22 @@ function tmux_is_session($name) {
 
 function netmasks($netmask, $rev = false)
 {
-	$netmasks = [ "255.255.255.252" => "30",
-								"255.255.255.248" => "29",
-								"255.255.255.240" => "28",
-								"255.255.255.224" => "27",
-								"255.255.255.192" => "26",
-								"255.255.255.128" => "25",
-								"255.255.255.0" 	=> "24",
-								"255.255.254.0" 	=> "23",
-								"255.255.252.0" 	=> "22",
-								"255.255.248.0" 	=> "21",
-								"255.255.240.0" 	=> "20",
-								"255.255.224.0" 	=> "19",
-								"255.255.192.0" 	=> "18",
-								"255.255.128.0" 	=> "17",
-								"255.255.0.0"     => "16", 
-							];
+	$netmasks = [	"255.255.255.252"	=> "30",
+					"255.255.255.248"	=> "29",
+					"255.255.255.240"	=> "28",
+					"255.255.255.224"	=> "27",
+					"255.255.255.192"	=> "26",
+					"255.255.255.128"	=> "25",
+					"255.255.255.0"  	=> "24",
+					"255.255.254.0"		=> "23",
+					"255.255.252.0"		=> "22",
+					"255.255.248.0"		=> "21",
+					"255.255.240.0" 	=> "20",
+					"255.255.224.0" 	=> "19",
+					"255.255.192.0" 	=> "18",
+					"255.255.128.0" 	=> "17",
+					"255.255.0.0"		=> "16", 
+				];
 	return $rev ?  array_flip($netmasks)[$netmask] : $netmasks[$netmask];
 }
 
@@ -136,7 +136,7 @@ function render_partition($disk, $partition) {
 	$out[] = "<td title='Turn on to Share Device with SMB and/or NFS'><input type='checkbox' class='toggle_share' info='".htmlentities(json_encode($partition))."' ".(($partition['shared']) ? 'checked':'')."></td>";
 	$out[] = "<td><a title='View Device Script Log' href='/Main/ScriptLog?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><img src='/plugins/${plugin}/icons/scriptlog.png' style='cursor:pointer;width:16px;'></a></td>";
 	$out[] = "<td><a title='Edit Device Script' href='/Main/EditScript?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><img src='/plugins/${plugin}/icons/editscript.png' style='cursor:pointer;width:16px;".( (get_config($partition['serial'],"command_bg.{$partition[part]}") == "true") ? "":"opacity: 0.4;" )."'></a></td>";
-	$out[] = "<tr>";
+	$out[] = "</tr>";
 	return $out;
 }
 
@@ -215,24 +215,24 @@ switch ($_POST['action']) {
 				if ( $p  && ! ($is_precleared || $preclearing) )
 				{
 					$add_toggle = TRUE;
-					$hdd_serial = "<span title='Click to view partitions/mount points' class='exec toggle-hdd' hdd='{$disk_name}'>
-												 	<i class='glyphicon glyphicon-hdd hdd'></i>
-													<i class='glyphicon glyphicon-plus-sign glyphicon-append'></i>
-												</span>
-												{$disk[serial]}
-												{$preclear_link}
-												<span id='preclear_{$disk['serial_short']}' style='display:block;'></span>";
+					$hdd_serial ="<span title='Click to view partitions/mount points' class='exec toggle-hdd' hdd='{$disk_name}'>
+									<i class='glyphicon glyphicon-hdd hdd'></i>
+									<i class='glyphicon glyphicon-plus-sign glyphicon-append'></i>
+									</span>
+									{$disk[serial]}
+									{$preclear_link}
+									<span id='preclear_{$disk['serial_short']}' style='display:block;'></span>";
 				}
 				else
 				{
 					$add_toggle = FALSE;
 					$hdd_serial = "<span class='toggle-hdd' hdd='{$disk_name}'>
-												 	<i class='glyphicon glyphicon-hdd hdd'></i>
-												 </span>
-												 <span style='margin:4px;'></span>
-												 {$disk[serial]}
-												 {$preclear_link}
-												 <span id='preclear_{$disk['serial_short']}' style='display:block;'></span>";
+									<i class='glyphicon glyphicon-hdd hdd'></i>
+									</span>
+									<span style='margin:4px;'></span>
+									{$disk[serial]}
+									{$preclear_link}
+									<span id='preclear_{$disk['serial_short']}' style='display:block;'></span>";
 				}
 
 				echo "<tr class='{$odd} toggle-disk'>";
@@ -298,16 +298,16 @@ switch ($_POST['action']) {
 				} else {
 					$mount_point = basename($mount[mountpoint]);
 					echo "<td>
-									<form title='Click to change Remote SMB/NFS Mount Point - Press Enter to save' method='POST' action='/plugins/${plugin}/UnassignedDevices.php' target='progressFrame' class='inline'>
-											<i class='glyphicon glyphicon-save hdd'></i>
-											<span style='margin:4px;'></span>
-											<span class='text exec'><a>{$mount[mountpoint]}</a></span>
-											<input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden />
-											<input type='hidden' name='action' value='change_samba_mountpoint'/>
-											<input type='hidden' name='device' value='{$mount[name]}'/>
-											<input type='hidden' name='csrf_token' value='{$csrf_token}'/>
-									</form>
-								</td>";
+							<form title='Click to change Remote SMB/NFS Mount Point - Press Enter to save' method='POST' action='/plugins/${plugin}/UnassignedDevices.php' target='progressFrame' class='inline'>
+							<i class='glyphicon glyphicon-save hdd'></i>
+							<span style='margin:4px;'></span>
+							<span class='text exec'><a>{$mount[mountpoint]}</a></span>
+							<input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden />
+							<input type='hidden' name='action' value='change_samba_mountpoint'/>
+							<input type='hidden' name='device' value='{$mount[name]}'/>
+							<input type='hidden' name='csrf_token' value='{$csrf_token}'/>
+							</form>
+							</td>";
 				}
 
 				$disabled = $is_alive ? "enabled":"disabled";
@@ -325,7 +325,7 @@ switch ($_POST['action']) {
 			}
 		}
 
-		# Iso file Mounts
+		# ISO file Mounts
 		$iso_mounts = get_iso_mounts();
 		if (count($iso_mounts)) {
 			foreach ($iso_mounts as $mount) {
@@ -343,16 +343,16 @@ switch ($_POST['action']) {
 				} else {
 					$mount_point = basename($mount[mountpoint]);
 					echo "<td>
-									<form title='Click to change ISO File Mount Point - Press Enter to save' method='POST' action='/plugins/${plugin}/UnassignedDevices.php' target='progressFrame' class='inline'>
-										<i class='glyphicon glyphicon-save hdd'></i>
-										<span style='margin:4px;'></span>
-										<span class='text exec'><a>{$mount[mountpoint]}</a></span>
-										<input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden />
-										<input type='hidden' name='action' value='change_iso_mountpoint'/>
-										<input type='hidden' name='device' value='{$mount[device]}'/>
-										<input type='hidden' name='csrf_token' value='{$csrf_token}'/>
-									</form>
-								</td>";
+							<form title='Click to change ISO File Mount Point - Press Enter to save' method='POST' action='/plugins/${plugin}/UnassignedDevices.php' target='progressFrame' class='inline'>
+							<i class='glyphicon glyphicon-save hdd'></i>
+							<span style='margin:4px;'></span>
+							<span class='text exec'><a>{$mount[mountpoint]}</a></span>
+							<input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden />
+							<input type='hidden' name='action' value='change_iso_mountpoint'/>
+							<input type='hidden' name='device' value='{$mount[device]}'/>
+							<input type='hidden' name='csrf_token' value='{$csrf_token}'/>
+							</form>
+							</td>";
 				}
 				$disabled = $is_alive ? "enabled":"disabled";
 				echo "<td><span style='width:auto;text-align:right;'>".($mounted ? "<button type='button' device='{$mount[device]}' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'umount','{$mount[device]}');\"><i class='glyphicon glyphicon-export'></i> Unmount</button>" : "<button type='button' device='{$mount[device]}' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'mount','{$mount[device]}');\" {$disabled}><i class='glyphicon glyphicon-import'></i>  Mount</button>")."</span></td>";
@@ -400,9 +400,8 @@ switch ($_POST['action']) {
 		{
 			echo json_encode(array("reload" => is_file($paths['reload']), "diskinfo" => 0));
 		}
-
-		
 		break;
+
 	case 'remove_hook':
 		@unlink($paths['reload']);
 		break;
@@ -413,11 +412,13 @@ switch ($_POST['action']) {
 		$status = urldecode(($_POST['status']));
 		echo json_encode(array( 'automount' => toggle_automount($serial, $status) ));
 		break;
+
 	case 'get_command':
 		$serial = urldecode(($_POST['serial']));
 		$part   = urldecode(($_POST['part']));
 		echo json_encode(array( 'command' => get_config($serial, "command.{$part}"), "background" =>  get_config($serial, "command_bg.{$part}") ));
 		break;
+
 	case 'set_command':
 		$serial = urldecode(($_POST['serial']));
 		$part = urldecode(($_POST['part']));
@@ -425,10 +426,12 @@ switch ($_POST['action']) {
 		set_config($serial, "command_bg.{$part}", urldecode($_POST['background']));
 		echo json_encode(array( 'result' => set_config($serial, "command.{$part}", $cmd)));
 		break;
+
 	case 'remove_config':
 		$serial = urldecode(($_POST['serial']));
 		echo json_encode(array( 'result' => remove_config_disk($serial)));
 		break;
+
 	case 'toggle_share':
 		$info = json_decode(html_entity_decode($_POST['info']), true);
 		$status = urldecode(($_POST['status']));
@@ -495,7 +498,6 @@ switch ($_POST['action']) {
 		}
 		break;
 
-
 	/*  NFS  */
 	case 'list_nfs_hosts':
 		$network = $_POST['network'];
@@ -539,15 +541,18 @@ switch ($_POST['action']) {
 			unassigned_log("Share '{$device}' contains a '$' character.  It cannot be mounted.");
 		}
 		break;
+
 	case 'remove_samba_config':
 		$device = urldecode(($_POST['device']));
 		remove_config_samba($device);
 		break;
+
 	case 'samba_automount':
 		$device = urldecode(($_POST['device']));
 		$status = urldecode(($_POST['status']));
 		echo json_encode(array( 'automount' => toggle_samba_automount($device, $status) ));
 		break;
+
 	case 'set_samba_command':
 		$device = urldecode(($_POST['device']));
 		$cmd = urldecode(($_POST['command']));
@@ -569,15 +574,18 @@ switch ($_POST['action']) {
 			unassigned_log("ISO File '${file}' not found.");
 		}
 		break;
+
 	case 'remove_iso_config':
 		$device = urldecode(($_POST['device']));
 		remove_config_iso($device);
 		break;
+
 	case 'iso_automount':
 		$device = urldecode(($_POST['device']));
 		$status = urldecode(($_POST['status']));
 		echo json_encode(array( 'automount' => toggle_iso_automount($device, $status) ));
 		break;
+
 	case 'set_iso_command':
 		$device = urldecode(($_POST['device']));
 		$cmd = urldecode(($_POST['command']));
@@ -623,5 +631,4 @@ switch ($_POST['action']) {
 			require_once("update.htm");
 			break;
 	}
-
 ?>
