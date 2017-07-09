@@ -472,7 +472,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	}
 
 	function format_disk(bt, type, device){
-		var title = 'Formatting '+type+': '+device;
+		var title = 'Format and Partition '+type+': '+device;
 		$( "#dialog-confirm" ).html($("#format_disk").html());
 		$( "#dialog-confirm" ).dialog({
 			title: title,
