@@ -23,7 +23,7 @@
 - Add: Re-enabled preclear diskinfo.  This is a background daemon used by the preclear and Unassigned Devices plugins to cut down on the disk queries when doing a disk preclear.
 - Add: Check that the rc.diskinfo daemon is running before using the diskinfo.json file for disk status.
 - Fix: An issue when trying to mount an ntfs disk read only when the first mount was successful but issued an error/warning message.
-- Add: Warning in the format dialog that a UD formatted disk cannot be added to the array.
+- Add: Warning in the format dialog that a UD partitioned disk cannot be added to the array.
 
 ###2017.07.04a
 - Add: Add back in the fixes from 2017.06.28a.
