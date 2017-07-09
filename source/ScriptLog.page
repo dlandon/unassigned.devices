@@ -38,23 +38,23 @@ echo "</pre>";
 ?>
 <script>
 function cleanUp() {
-  if (document.hasFocus()) {
-    $('input[value="Downloading..."]').val('Download').prop('disabled',false);
-    $.post('/webGui/include/Download.php',{cmd:'delete',file:'<?=$zip?>'});
-  } else {
-    setTimeout(cleanUp,4000);
-  }
-}  
+	if (document.hasFocus()) {
+		$('input[value="Downloading..."]').val('Download').prop('disabled',false);
+		$.post('/webGui/include/Download.php',{cmd:'delete',file:'<?=$zip?>'});
+	} else {
+		setTimeout(cleanUp,4000);
+	}
+}	
 function getlog() {
-  $('input[value="Download"]').val('Downloading...').prop('disabled',true);
-  $.post('/webGui/include/Download.php',{cmd:'save',source:'<?=$file?>',file:'<?=$zip?>'},function(zip) {
-    location = zip;
-    setTimeout(cleanUp,4000);
-  });
+	$('input[value="Download"]').val('Downloading...').prop('disabled',true);
+	$.post('/webGui/include/Download.php',{cmd:'save',source:'<?=$file?>',file:'<?=$zip?>'},function(zip) {
+		location = zip;
+		setTimeout(cleanUp,4000);
+	});
 }
 <?if ($display['resize']):?>
 $(function() {
-  $('pre.up').css('height',Math.max(window.innerHeight-280,370)).show();
+	$('pre.up').css('height',Math.max(window.innerHeight-280,370)).show();
 });
 <?endif;?>
 </script>

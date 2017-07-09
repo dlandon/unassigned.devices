@@ -138,12 +138,12 @@ Script content:
 	<?if (isset($_GET['d'])):?>
 		$( "form" ).submit(function( event ) {
 			$.post("/plugins/<?=$plugin;?>/UnassignedDevices.php",{action:"set_samba_command",device:"<?=$device;?>",command:$("input[name='#file']").val(), background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault()},"json");
-		});  
+		});
 	<?endif;?>
 	<?if (isset($_GET['i'])):?>
 		$( "form" ).submit(function( event ) {
 			$.post("/plugins/<?=$plugin;?>/UnassignedDevices.php",{action:"set_iso_command",device:"<?=$device;?>",command:$("input[name='#file']").val(), background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault()},"json");
-		});  
+		});
 	<?endif;?>
 
 	function setDefault(form) {

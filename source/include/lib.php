@@ -27,8 +27,8 @@ $paths = [  "smb_extra"			=> "/boot/config/smb-extra.conf",
 			"unmounting"		=> "/var/state/${plugin}/unmounting_%s.state",
 			"mounting"			=> "/var/state/${plugin}/mounting_%s.state",
 			"formatting"		=> "/var/state/${plugin}/formatting_%s.state",
-			"diskinfo_file"		=> "/var/local/emhttp/plugins/diskinfo/diskinfo.json.not_working",
-			"diskinfo_daemon"	=> "/etc/rc.d/rc.diskinfo"
+			"diskinfo"			=> "/var/local/emhttp/plugins/diskinfo/diskinfo.json",
+			"diskinfo_pid"		=> "/var/run/rc.diskinfo.pid"
 		];
 
 $docroot = $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
@@ -99,8 +99,9 @@ class MiscUD
 
 function diskinfoChange($device = null)
 {
-	$diskinfo = $GLOBALS["paths"]["diskinfo_file"];
-	if (is_file($diskinfo) && (file_exists($device) && filetype($device) == "block"))
+	$diskinfo		= $GLOBALS["paths"]["diskinfo"];
+	$diskinfo_pid	= $GLOBALS["paths"]["diskinfo_pid"];
+	if (file_exists($diskinfo_pid) && is_file($diskinfo) && (file_exists($device) && filetype($device) == "block"))
 	{
 		$init = sha1_file($diskinfo);
 		for ($i=0; $i < 60 ; $i++)
@@ -571,13 +572,14 @@ function do_mount_local($info) {
 			unassigned_log("Mount drive command: $cmd");
 			$o = shell_exec($cmd." 2>&1");
 			if ($o != "" && $fs == "ntfs") {
-				unassigned_log("Mount failed with error: $o");
-				unassigned_log("Mount ntfs drive read only.");
-				$cmd = "/sbin/mount -t $fs -ro ".get_mount_params($fs, $dev)." '${dev}' '${dir}'";
-				unassigned_log("Mount drive ro command: $cmd");
-				$o = shell_exec($cmd." 2>&1");
-				if ($o != "") {
-					unassigned_log("Mount ntfs drive read only failed with error: $o");
+				if (! is_mounted($dev)) {
+					unassigned_log("Mount failed with error: $o");
+					unassigned_log("Mounting ntfs drive read only.");
+					$cmd = "/sbin/mount -t $fs -ro ".get_mount_params($fs, $dev)." '${dev}' '${dir}'";
+					unassigned_log("Mount drive ro command: $cmd");
+					$o = shell_exec($cmd." 2>&1");
+				} else {
+					unassigned_log("Mount error: $o");
 				}
 			}
 			foreach (range(0,5) as $t) {
@@ -705,8 +707,8 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 			file_put_contents($paths['smb_extra'], $c);
 
 			if ($recycle_bin) {
-				// Add the recycle bin parameters if plugin is installed installed
-				$recycle_script = "/usr/local/emhttp/plugins/recycle.bin/scripts/configure_recycle_bin";
+				// Add the recycle bin parameters if plugin is installed
+				$recycle_script = "plugins/recycle.bin/scripts/configure_recycle_bin";
 				if (is_file($recycle_script)) {
 					unassigned_log("Enabling the Recycle Bin on share '$share_name'");
 					shell_exec("$recycle_script"." ${share_conf}");
@@ -1194,12 +1196,13 @@ function get_unasigned_disks() {
 
 
 function get_all_disks_info($bus="all") {
-	$diskinfo = $GLOBALS["paths"]["diskinfo_file"];
-	if (is_file($diskinfo))
+	$diskinfo		= $GLOBALS["paths"]["diskinfo"];
+	$diskinfo_pid	= $GLOBALS["paths"]["diskinfo_pid"];
+	if (file_exists($diskinfo_pid) && is_file($diskinfo))
 	{
 		unassigned_log("Starting get_all_disks_info (using diskinfo)", "DEBUG");
-		$time     = -microtime(true); 
-		$cache = MiscUD::get_json($diskinfo);
+		$time	= -microtime(true); 
+		$cache	= MiscUD::get_json($diskinfo);
 		$cached_disks = [];
 		foreach ($cache as $key => $cached)
 		{
@@ -1259,7 +1262,7 @@ function get_all_disks_info($bus="all") {
 			$cached_disks[] = $disk;
 		}
 		usort($cached_disks, create_function('$a, $b','$key="device";if ($a[$key] == $b[$key]) return 0; return ($a[$key] < $b[$key]) ? -1 : 1;'));
-    $time += microtime(true);
+		$time += microtime(true);
 		unassigned_log("Total time: ${time}s", "DEBUG");
 		return $cached_disks;
 	}

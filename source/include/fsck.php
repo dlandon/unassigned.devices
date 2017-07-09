@@ -26,7 +26,7 @@ function write_log($string) {
 
 if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 	$device = trim(urldecode($_GET['device']));
-	$fs   = trim(urldecode($_GET['fs']));
+	$fs		= trim(urldecode($_GET['fs']));
 	$type = isset($_GET['type']) ? trim(urldecode($_GET['type'])) : 'ro';
 	echo "FS: $fs<br /><br />";
 	$command = get_fsck_commands($fs, $device, $type)." 2>&1";
