@@ -734,7 +734,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		<dt>Type<span class="red">Yes</span>to confirm:</dt>
 		<dd><input type="text" name="CONFIRM" style="width: 60px"></dd>
 	</dl>
-	<p>Note: A disk formatted in UD is not compatible with the array disk format and cannot be added to the array.</p>
+	<p>Note: A disk partitioned in UD is not compatible with the array disk partitioning and cannot be added to the array.</p>
 </div>
 
 <div id="rm_partition" style="display:none;">
@@ -742,6 +742,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		<dt>Type<span class="red">Yes</span>to confirm:</dt>
 		<dd><input type="text" name="CONFIRM" style="width: 60px"></dd>
 	</dl>
+	<p>Note: The data on this disk will be lost!</p>
 </div>
 
 <div id="table_loading" style="display: none;">
@@ -786,7 +787,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		<li>Destructive mode must be enabled.</li>
 		<li>Disk must have all partitions removed.	Unmount disk, click on the serial number, and click on all red-X to delete partitions.</li>
 		<li>If the disk has been precelared and shows a grayed 'Format' button, click on the disk serial number, then click on the red-X to delete the preclear status file.</li>
-	<p><strong>Note: A disk formatted in UD is not compatible with the array disk format and cannot be added to the array.</strong>
+	<p><strong>Note: A disk partitioned in UD is not compatible with the array disk partitioning and cannot be added to the array.</strong>
 	<p>Unassigned devices includes scripts that are used for mounting and unmounting devices and SMB/NFS mounts.	These scripts can be used from the command line or in scripts as necessary.
 	<p>Unassigned devices script:
 		<li>'/usr/local/sbin/rc.unassigned mount auto' - all devices and SMB/NFS mounts set to auto mount will be mounted.</li>
