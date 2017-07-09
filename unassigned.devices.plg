@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.07.09">
+<!ENTITY version   "2017.07.09a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"70ce05eb6670182d37198723fce5cb42">
+<!ENTITY MD5		"04c02937fa5975c311049b1c557dce32">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,6 +23,7 @@
 - Add: Re-enabled preclear diskinfo.  This is a background daemon used by the preclear and Unassigned Devices plugins to cut down on the disk queries when doing a disk preclear.
 - Add: Check that the rc.diskinfo daemon is running before using the diskinfo.json file for disk status.
 - Fix: An issue when trying to mount an ntfs disk read only when the first mount was successful but issued an error/warning message.
+- Add: Warning in the format dialog that a UD formatted disk cannot be added to the array.
 
 ###2017.07.04a
 - Add: Add back in the fixes from 2017.06.28a.

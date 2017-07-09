@@ -734,6 +734,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		<dt>Type<span class="red">Yes</span>to confirm:</dt>
 		<dd><input type="text" name="CONFIRM" style="width: 60px"></dd>
 	</dl>
+	<p>Note: A disk formatted in UD is not compatible with the array disk format and cannot be added to the array.</p>
 </div>
 
 <div id="rm_partition" style="display:none;">
