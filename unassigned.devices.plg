@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.07.09c">
+<!ENTITY version   "2017.09.03">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"ac1ac61539a64ddf9487b17738332fbb">
+<!ENTITY MD5		"8f446e6ddbb02d8efdf735d19c0afe46">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Start partition on XFS and BTRFS disks based on the 'Default Partition Format' setting in Settings->DiskSettings to allow the disk to be included in the array.
+
+###2017-07-09c
 - Add: Re-enabled preclear diskinfo.  This is a background daemon used by the preclear and Unassigned Devices plugins to cut down on the disk queries when doing a disk preclear.
 - Add: Check that the rc.diskinfo daemon is running before using the diskinfo.json file for disk status.
 - Fix: An issue when trying to mount an ntfs disk read only when the first mount was successful but issued an error/warning message.

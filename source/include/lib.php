@@ -19,6 +19,7 @@ $paths = [  "smb_extra"			=> "/boot/config/smb-extra.conf",
 			"device_log"		=> "/tmp/{$plugin}/",
 			"log"				=> "/var/log/{$plugin}.log",
 			"config_file"		=> "/boot/config/plugins/{$plugin}/{$plugin}.cfg",
+			"disk_config_file"	=> "/boot/config/disk.cfg",
 			"state"				=> "/var/state/${plugin}/${plugin}.ini",
 			"hdd_temp"			=> "/var/state/${plugin}/hdd_temp.json",
 			"samba_mount"		=> "/boot/config/plugins/${plugin}/samba_mount.cfg",
@@ -324,6 +325,8 @@ function format_partition($partition, $fs) {
 }
 
 function format_disk($dev, $fs) {
+	global $paths;
+
 	# making sure it doesn't have partitions
 	foreach (get_all_disks_info() as $d) {
 		if ($d['device'] == $dev && count($d['partitions']) && $d['partitions'][0]['fstype'] != "precleared") {
@@ -363,7 +366,20 @@ function format_disk($dev, $fs) {
 	}
 
 	unassigned_log("Creating a primary partition on disk '{$dev}'.");
-	$o = trim(shell_exec("/usr/sbin/parted -a optimal {$dev} --script -- mkpart primary $parted_fs 0% 100% 2>&1"));
+	if ($fs == "xfs" || $fs == "btrfs") {
+		$disk_config = @parse_ini_file($paths[disk_config_file], true);
+		$default_format = $disk_config[defaultFormat];
+
+		// Set the format of xfs and btrfs disks according to the unRAID default partition format setting.
+		if ($default_format == '1') {
+			$start_bytes = "32256";
+		} else {
+			$start_bytes = "32768";
+		}
+		$o = trim(shell_exec("/usr/sbin/parted {$dev} unit b --script -- mkpart primary $parted_fs $start_bytes 100% 2>&1"));
+	} else {
+		$o = trim(shell_exec("/usr/sbin/parted -a optimal {$dev} --script -- mkpart primary $parted_fs 0% 100% 2>&1"));
+	}
 	if ($o != "") {
 		unassigned_log("Create primary partition result:\n$o");
 	}
