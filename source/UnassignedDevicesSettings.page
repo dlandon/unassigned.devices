@@ -106,6 +106,14 @@ Auto Mount USB Devices?
 
 > When set to 'Yes', will auto mount a new USB device and share it without user intervention.
 
+Enable Preclear rc.diskinfo daemon?
+: <select name="preclear_daemon" size="1">
+  <?=mk_option($cfg["Config"]["preclear_daemon"], "no", "No");?>
+  <?=mk_option($cfg["Config"]["preclear_daemon"], "yes", "Yes");?>
+  </select>
+
+> When set to 'Yes', will enable Unassigned Devices to use the Preclear rc.diskinfo daemon for disk status.  This is not normally necessary and can cause some issues with Unassigned Devices recognizing disks properly.  Use the rc.diskinfo daemon when there is too much disk activity on a disk during a preclear operation for the preclear to proceed properly.
+
 &nbsp;
 : <input type="submit" name="#apply" value="Apply"><input type="button" value="Done" onclick="done()">
 </form>

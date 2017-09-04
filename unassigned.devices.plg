@@ -8,7 +8,7 @@
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"8f446e6ddbb02d8efdf735d19c0afe46">
+<!ENTITY MD5		"dbc86b01c7de81c0209b5296daf3f997">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,9 +20,12 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Configurable option to enable/disable the rc.diskinfo background daemon in preclear.  Defaults to off.
+
+###2017.09.03
 - Add: Start partition on XFS and BTRFS disks based on the 'Default Partition Format' setting in Settings->DiskSettings to allow the disk to be included in the array.
 
-###2017-07-09c
+###2017.07.09c
 - Add: Re-enabled preclear diskinfo.  This is a background daemon used by the preclear and Unassigned Devices plugins to cut down on the disk queries when doing a disk preclear.
 - Add: Check that the rc.diskinfo daemon is running before using the diskinfo.json file for disk status.
 - Fix: An issue when trying to mount an ntfs disk read only when the first mount was successful but issued an error/warning message.

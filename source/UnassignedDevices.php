@@ -13,11 +13,8 @@
 $plugin = "unassigned.devices";
 require_once("plugins/${plugin}/include/lib.php");
 require_once("webGui/include/Helpers.php");
-$config_file = "/boot/config/plugins/{$plugin}/{$plugin}.cfg";
 $var = parse_ini_file("state/var.ini");
 $csrf_token = $var['csrf_token'];
-
-$cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
 
 if (isset($_POST['display'])) $display = $_POST['display'];
 if (isset($_POST['var'])) $var = $_POST['var'];

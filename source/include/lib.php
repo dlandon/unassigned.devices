@@ -1214,7 +1214,9 @@ function get_unasigned_disks() {
 function get_all_disks_info($bus="all") {
 	$diskinfo		= $GLOBALS["paths"]["diskinfo"];
 	$diskinfo_pid	= $GLOBALS["paths"]["diskinfo_pid"];
-	if (file_exists($diskinfo_pid) && is_file($diskinfo))
+	$config_file	= $GLOBALS["paths"]["config_file"];
+	$config			= is_file($config_file) ? @parse_ini_file($config_file, true) : array();
+	if ($config['Config']['preclear_daemon'] == "yes" && file_exists($diskinfo_pid) && is_file($diskinfo))
 	{
 		unassigned_log("Starting get_all_disks_info (using diskinfo)", "DEBUG");
 		$time	= -microtime(true); 
