@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.09.09">
+<!ENTITY version   "2017.09.09a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"783d7139bd11def876e4b30720374017">
+<!ENTITY MD5		"c4151c9ed46d091ddae1899f18f12dcb">
 ]>
 
 <PLUGIN name="&name;"

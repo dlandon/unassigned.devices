@@ -361,10 +361,15 @@ function format_disk($dev, $fs) {
 
 	unassigned_log("Creating a primary partition on disk '{$dev}'.");
 	if ($fs == "xfs" || $fs == "btrfs") {
-		unassigned_log("Creating unRAID compatible mbr on disk '{$dev}'.");
-		$o = shell_exec("/usr/local/sbin/mkmbr.sh {$dev}");
-		if ($o != "") {
-			unassigned_log("Create '{$disk_schema}' partition table result:\n$o");
+		if ($disk_schema == "gpt") {
+			shell_exec("/sbin/sgdisk -Z {$dev}");
+			shell_exec("/sbin/sgdisk -o -a 1 -n 1:32K:0 {$dev}");
+		} else {
+			unassigned_log("Creating unRAID compatible mbr on disk '{$dev}'.");
+			$o = shell_exec("/usr/local/sbin/mkmbr.sh {$dev}");
+			if ($o != "") {
+				unassigned_log("Create '{$disk_schema}' partition table result:\n$o");
+			}
 		}
 
 		unassigned_log("Reloading disk '{$dev}' partition table.");
