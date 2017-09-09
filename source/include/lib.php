@@ -359,29 +359,30 @@ function format_disk($dev, $fs) {
 		unassigned_log("Reload partition table result:\n$o");
 	}
 
-	unassigned_log("Creating a '{$disk_schema}' partition table on disk '{$dev}'.");
-	$o = trim(shell_exec("/usr/sbin/parted {$dev} --script -- mklabel {$disk_schema} 2>&1"));
-	if ($o != "") {
-		unassigned_log("Create '{$disk_schema}' partition table result:\n$o");
-	}
-
 	unassigned_log("Creating a primary partition on disk '{$dev}'.");
 	if ($fs == "xfs" || $fs == "btrfs") {
-		$disk_config = @parse_ini_file($paths[disk_config_file], true);
-		$default_format = $disk_config[defaultFormat];
-
-		// Set the format of xfs and btrfs disks according to the unRAID default partition format setting.
-		if ($default_format == '1') {
-			$start_bytes = "32256";
-		} else {
-			$start_bytes = "32768";
+		unassigned_log("Creating unRAID compatible mbr on disk '{$dev}'.");
+		$o = shell_exec("/usr/local/sbin/mkmbr.sh {$dev}");
+		if ($o != "") {
+			unassigned_log("Create '{$disk_schema}' partition table result:\n$o");
 		}
-		$o = trim(shell_exec("/usr/sbin/parted {$dev} unit b --script -- mkpart primary $parted_fs $start_bytes 100% 2>&1"));
+
+		unassigned_log("Reloading disk '{$dev}' partition table.");
+		$o = trim(shell_exec("/usr/sbin/hdparm -z {$dev} 2>&1"));
+		if ($o != "") {
+			unassigned_log("Reload partition table result:\n$o");
+		}
 	} else {
+		unassigned_log("Creating a '{$disk_schema}' partition table on disk '{$dev}'.");
+		$o = trim(shell_exec("/usr/sbin/parted {$dev} --script -- mklabel {$disk_schema} 2>&1"));
+		if ($o != "") {
+			unassigned_log("Create '{$disk_schema}' partition table result:\n$o");
+		}
+
 		$o = trim(shell_exec("/usr/sbin/parted -a optimal {$dev} --script -- mkpart primary $parted_fs 0% 100% 2>&1"));
-	}
-	if ($o != "") {
-		unassigned_log("Create primary partition result:\n$o");
+		if ($o != "") {
+			unassigned_log("Create primary partition result:\n$o");
+		}
 	}
 
 	unassigned_log("Formatting disk '{$dev}' with '$fs' filesystem.");
@@ -688,18 +689,18 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 				else {return $v;}
 			});
 			$valid_users = array_diff($valid_users, $invalid_users);
+			if ($config["smb_security"] == "hidden") {
+				$hidden = "\n\tbrowseable = no";
+			} else {
+				$hidden = "\n\tbrowseable = yes";
+			}
 			if (count($valid_users)) {
-				if ($config["smb_security"] == "hidden") {
-					$hidden = "\n\tbrowseable = no";
-				} else {
-					$hidden = "\n\tbrowseable = yes";
-				}
 				$valid_users = "\n\tvalid users = ".implode(', ', $valid_users);
 				$write_users = count($write_users) ? "\n\twrite list = ".implode(', ', $write_users) : "";
 				$read_users = count($read_users) ? "\n\tread users = ".implode(', ', $read_users) : "";
 				$share_cont =  "[{$share_name}]\n\tpath = {$dir}{$hidden}{$valid_users}{$write_users}{$read_users}{$vfs_objects}";
 			} else {
-				$share_cont =  "[{$share_name}]\n\tpath = {$dir}\n\tinvalid users = @users";
+				$share_cont =  "[{$share_name}]\n\tpath = {$dir}{$hidden}\n\tinvalid users = @users";
 				unassigned_log("Error: No valid smb users defined.  Share '{$dir}' cannot be accessed.");
 			}
 		} else {

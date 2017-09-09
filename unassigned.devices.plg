@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.09.04">
+<!ENTITY version   "2017.09.09">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"dbc86b01c7de81c0209b5296daf3f997">
+<!ENTITY MD5		"783d7139bd11def876e4b30720374017">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Add timeouts to prevent hanging when a remote share (smb or nfs) goes off-line.
+- Fix: Set 'browseable' properly when no smb users are defined.
+- Fix: Create unRAID compatible mbr so disks partitioned in UD can be installed in the array without re-formatting.
+
+###2017.09.04
 - Add: Configurable option to enable/disable the rc.diskinfo background daemon in preclear.  Defaults to off.
 
 ###2017.09.03
@@ -762,8 +767,9 @@ ln -sf /bin/rm /usr/local/emhttp/plugins/&name;/scripts/
 # Fix permissions of executable files
 chmod +x /usr/local/emhttp/plugins/&name;/scripts/* /usr/local/emhttp/plugins/&name;/event/*
 
-# Create a symlink to unassigned script.
+# Create a symlink to unassigned scripts.
 ln -sf /usr/local/emhttp/plugins/&name;/scripts/rc.unassigned /usr/local/sbin
+ln -sf /usr/local/emhttp/plugins/&name;/scripts/mkmbr.sh /usr/local/sbin
 
 # create mount point
 rm -rf /var/state/&name;
@@ -817,6 +823,7 @@ rm -rf /usr/local/emhttp/plugins/&name; \
 
 rm -f /tmp/plugins/&name;.plg \
       /usr/local/sbin/rc.unassigned \
+	  /usr/local/sbin/mkmbr.sh \
       /etc/udev/rules.d/99_persistent_unassigned.rules
 
 # reload udev rules
