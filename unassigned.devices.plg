@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.09.09a">
+<!ENTITY version   "2017.09.10">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"c4151c9ed46d091ddae1899f18f12dcb">
+<!ENTITY MD5		"f1fdb494b2dd3d7e94c558c9faaaa6b3">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Update exfat-utils, fuse-exfat, and libbsd packages.
+
+###2017.09.09a
 - Fix: Add timeouts to prevent hanging when a remote share (smb or nfs) goes off-line.
 - Fix: Set 'browseable' properly when no smb users are defined.
 - Fix: Create unRAID compatible mbr so disks partitioned in UD can be installed in the array without re-formatting.
@@ -635,19 +638,19 @@ nmap-7.12-x86_64-1.txz (for unraid 6.4 and later)
 </FILE>
 
 <!--
-exfat-utils-1.2.6-x86_64-1_slonly.txz
+exfat-utils-1.2.7-x86_64-1_slonly.txz
 -->
-<FILE Name="&packages;/exfat-utils-1.2.6-x86_64-1_slonly.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/exfat-utils-1.2.6-x86_64-1_slonly.txz"</URL>
-<MD5>724a8adbfb85cf848b1dc23f9cf42e37</MD5>
+<FILE Name="&packages;/exfat-utils-1.2.7-x86_64-1_slonly.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/exfat-utils-1.2.7-x86_64-1_slonly.txz"</URL>
+<MD5>51f4deec54d4a25be5bc414f2c8b6932</MD5>
 </FILE>
 
 <!--
-fuse-exfat-1.2.6-x86_64-1_slonly.txz
+fuse-exfat-1.2.7-x86_64-1_slonly.txz
 -->
-<FILE Name="&packages;/fuse-exfat-1.2.6-x86_64-1_slonly.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/fuse-exfat-1.2.6-x86_64-1_slonly.txz"</URL>
-<MD5>cb30ccfdf7a467fe2434bb738925d7e6</MD5>
+<FILE Name="&packages;/fuse-exfat-1.2.7-x86_64-1_slonly.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/fuse-exfat-1.2.7-x86_64-1_slonly.txz"</URL>
+<MD5>aa7fe202a1e29d970170d134883da0a6</MD5>
 </FILE>
 
 <!--
@@ -659,11 +662,11 @@ hfsprogs-332.25-x86_64-2sl.txz
 </FILE>
 
 <!--
-libbsd-0.8.3-x86_64-1_slonly.txz
+libbsd-0.8.6-x86_64-1_slonly.txz
 -->
-<FILE Name="&packages;/libbsd-0.8.3-x86_64-1_slonly.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/libbsd-0.8.3-x86_64-1_slonly.txz"</URL>
-<MD5>81ed59b14fa13c7fd604c53adbe16112</MD5>
+<FILE Name="&packages;/libbsd-0.8.6-x86_64-1_slonly.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/libbsd-0.8.6-x86_64-1_slonly.txz"</URL>
+<MD5>06ac394f16a76fee9faa592df08193cb</MD5>
 </FILE>
 
 <!--
@@ -842,10 +845,10 @@ fi
 if [ -f /var/log/packages/nmap-7.12-x86_64-1 ]; then
 	removepkg nmap-7.12-x86_64-1 2>/dev/null
 fi
-removepkg exfat-utils-1.2.6-x86_64-1_slonly 2>/dev/null
-removepkg fuse-exfat-1.2.6-x86_64-1_slonly.txz 2>/dev/null
+removepkg exfat-utils-1.2.7-x86_64-1_slonly 2>/dev/null
+removepkg fuse-exfat-1.2.7-x86_64-1_slonly.txz 2>/dev/null
 removepkg hfsprogs-332.25-x86_64-2sl 2>/dev/null
-removepkg libbsd-0.8.3-x86_64-1_slonly 2>/dev/null
+removepkg libbsd-0.8.6-x86_64-1_slonly 2>/dev/null
 if [ -f /var/log/packages/parted-3.1-x86_64-1 ]; then
 	removepkg parted-3.1-x86_64-1 2>/dev/null
 fi

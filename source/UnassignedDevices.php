@@ -193,12 +193,12 @@ switch ($_POST['action']) {
 		$odd="odd";
 		if ( count($disks) ) {
 			foreach ($disks as $disk) {
-				$mounted			 = isset($disk['mounted']) ? $disk['mounted'] : in_array(TRUE, array_map(function($ar){return is_mounted($ar['device']);}, $disk['partitions']));
-				$disk_name		 = basename($disk['device']);
-				$p						 = (count($disk['partitions']) > 0) ? render_partition($disk, $disk['partitions'][0]) : FALSE;
-				$preclearing	 = $Preclear ? $Preclear->isRunning($disk_name) : false;
-				$is_precleared = ($disk['partitions'][0]['fstype'] == "precleared") ? true : false;
-				$flash				 = ($disk['partitions'][0]['fstype'] == "vfat" || $disk['partitions'][0]['fstype'] == "exfat") ? true : false;
+				$mounted		= isset($disk['mounted']) ? $disk['mounted'] : in_array(TRUE, array_map(function($ar){return is_mounted($ar['device']);}, $disk['partitions']));
+				$disk_name		= basename($disk['device']);
+				$p				= (count($disk['partitions']) > 0) ? render_partition($disk, $disk['partitions'][0]) : FALSE;
+				$preclearing	= $Preclear ? $Preclear->isRunning($disk_name) : false;
+				$is_precleared	= ($disk['partitions'][0]['fstype'] == "precleared") ? true : false;
+				$flash			= ($disk['partitions'][0]['fstype'] == "vfat" || $disk['partitions'][0]['fstype'] == "exfat") ? true : false;
 				$disk_running	= array_key_exists("running", $disk) ? $disk["running"] : is_disk_running($disk['device']);
 				if ($mounted || is_file($disk['partitions'][0]['command']) || $preclearing) {
 					$disk['temperature'] = $disk['temperature'] ? $disk['temperature'] : get_temp($disk['device'], $disk_running);

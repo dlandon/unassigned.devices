@@ -1,7 +1,5 @@
 #!/bin/bash
 #
-
-#
 # Write an unRAID compatible mbr.
 #
 write_signature() {

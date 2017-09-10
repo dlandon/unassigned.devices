@@ -721,7 +721,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		<dd>
 			<select name="FS">
 				<option value="xfs">XFS</option>
-	
 				<?if (! version_compare($version['version'],"6.1.9", "<=")):?>
 					<option value="btrfs">BTRFS</option>
 				<?endif;?>
@@ -802,12 +801,12 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 </form>
 
 <script type="text/javascript">
-	var maxWidth		= [];
+	var maxWidth	= [];
 	var tableWidths = [];
-	var display		 = <?=json_encode($display);?>;
-	var vars				= <?=json_encode($var);?>;
-	var network		 = [];
-	var workgroup	 = "";
+	var display		= <?=json_encode($display);?>;
+	var vars		= <?=json_encode($var);?>;
+	var network		= [];
+	var workgroup	= "";
 	<?
 	if (isset($var['WORKGROUP'])) echo "var workgroup = '${var['WORKGROUP']}';\n";
 	for ($i=0; $i < 11; $i++)
@@ -826,9 +825,9 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		}
 	}
 	?>
-	var tab_usbdisks = $('input[name$="tabs"]').length;
-	var URL					= '/plugins/<?=$plugin;?>/UnassignedDevices.php';
-	var diskinfo		 = "";
+	var tab_usbdisks	= $('input[name$="tabs"]').length;
+	var URL				= '/plugins/<?=$plugin;?>/UnassignedDevices.php';
+	var diskinfo		= "";
 
 	$('#tab'+tab_usbdisks).bind({click:function() {pin_tab(tab_usbdisks); detect_usb_disk_change(tab_usbdisks);}});
 
