@@ -734,7 +734,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		<dd><input type="text" name="CONFIRM" style="width: 60px"></dd>
 	</dl>
 	<p>Note: An XFS or BTRFS disk partitioned in UD is compatible with the array disk partitioning and can be added to the array.</p>
-	<p>Caution: Consider this a beta feature.</p>
 </div>
 
 <div id="rm_partition" style="display:none;">

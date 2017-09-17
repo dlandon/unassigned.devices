@@ -82,7 +82,35 @@ function render_used_and_free($partition, $mounted) {
 	return $o;
 }
 
-function render_partition($disk, $partition) {
+function render_used_and_free_disk($disk, $mounted) {
+	global $display;
+
+	$o = "";
+	if ($mounted) {
+		$size = 0;
+		$avail = 0;
+		foreach ($disk['partitions'] as $partition) {
+			$size += $partition['size'];
+			$avail += $partition['avail'];
+		}
+		$used = $size - $avail;
+		$free_pct = $size ? round(100*$avail/$size) : 0;
+		$used_pct = 100-$free_pct;
+		extract(parse_ini_file('/etc/unraid-version'));
+		if (version_compare($version, '6.1.7', '>=')) {
+			$o .= "<td><div class='usage-disk'><span style='margin:0;width:{$used_pct}%' class='".usage_color($display,$used,false)."'><span>".my_scale($used, $unit)." $unit</span></span></div></td>";
+			$o .= "<td><div class='usage-disk'><span style='margin:0;width:{$free_pct}%' class='".usage_color($display,$avail,true)."'><span>".my_scale($avail, $unit)." $unit</span></span></div></td>";
+		} else {
+			$o .= "<td><div class='usage-disk'><span style='margin:0;width:{$used_pct}%' class='".usage_color($used,false)."'><span>".my_scale($used, $unit)." $unit</span></span></div></td>";
+			$o .= "<td><div class='usage-disk'><span style='margin:0;width:{$free_pct}%' class='".usage_color($avail,true)."'><span>".my_scale($avail, $unit)." $unit</span></span></div></td>";
+		}
+	} else {
+		$o .= "<td>-</td><td>-</td>";
+	}
+	return $o;
+}
+
+function render_partition($disk, $partition, $total=FALSE) {
 	global $plugin, $paths, $echo, $csrf_token;
 
 	if (! isset($partition['device'])) return array();
@@ -128,7 +156,18 @@ function render_partition($disk, $partition) {
 	{
 		$out[] = "<td>".($partition['openfiles'] ? $partition['openfiles'] : "-")."</td>";
 	}
-	$out[] = render_used_and_free($partition, $mounted);
+	if ($total) {
+		$mounted_disk = FALSE;
+		foreach ($disk['partitions'] as $part) {
+			if (is_mounted($part['device'])) {
+				$mounted_disk = TRUE;
+				break;
+			}
+		}
+		$out[] = render_used_and_free_disk($disk, $mounted_disk);
+	} else {
+		$out[] = render_used_and_free($partition, $mounted);
+	}
 	$out[] = "<td></td>";
 	$out[] = "<td title='Turn on to Share Device with SMB and/or NFS'><input type='checkbox' class='toggle_share' info='".htmlentities(json_encode($partition))."' ".(($partition['shared']) ? 'checked':'')."></td>";
 	$out[] = "<td><a title='View Device Script Log' href='/Main/ScriptLog?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><img src='/plugins/${plugin}/icons/scriptlog.png' style='cursor:pointer;width:16px;'></a></td>";
@@ -195,7 +234,7 @@ switch ($_POST['action']) {
 			foreach ($disks as $disk) {
 				$mounted		= isset($disk['mounted']) ? $disk['mounted'] : in_array(TRUE, array_map(function($ar){return is_mounted($ar['device']);}, $disk['partitions']));
 				$disk_name		= basename($disk['device']);
-				$p				= (count($disk['partitions']) > 0) ? render_partition($disk, $disk['partitions'][0]) : FALSE;
+				$p				= (count($disk['partitions']) > 0) ? render_partition($disk, $disk['partitions'][0], TRUE) : FALSE;
 				$preclearing	= $Preclear ? $Preclear->isRunning($disk_name) : false;
 				$is_precleared	= ($disk['partitions'][0]['fstype'] == "precleared") ? true : false;
 				$flash			= ($disk['partitions'][0]['fstype'] == "vfat" || $disk['partitions'][0]['fstype'] == "exfat") ? true : false;
