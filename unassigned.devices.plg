@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.09.17">
+<!ENTITY version   "2017.09.19">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"c5dd6a3bd3cbb9feb7d3d9ecb40382c9">
+<!ENTITY MD5		"6a7d50e04915367d80cd21987fe01251">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Partitions not mounting when set to auto mount on a disk with multiple partitions and one of the partitions is not formatted.
+- Fix: File type and open files not showing properly on a disk with multiple partitions.
+
+###2017-09-17
 - Fix: Reversion of smb and nfs timeouts.
 - Fix: Disk usage display when the disk has more than one partition.
 - Fix: Remove beta warning from format dialog.

@@ -617,7 +617,7 @@ function do_mount_local($info) {
 			rmdir($dir);
 			return FALSE;
 		} else {
-			unassigned_log("No filesystem detected, aborting.");
+			unassigned_log("No filesystem detected on '${dev}'.");
 		}
 	} else {
 		unassigned_log("Drive '$dev' already mounted...");
