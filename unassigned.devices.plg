@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.09.20">
+<!ENTITY version   "2017.09.30">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"4939e97b47eea5eaf5dfc61723689a8f">
+<!ENTITY MD5		"9ca22b30f79da19af993e34655b62977">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Disk log button to the left of the disk serial number.
+
+###2017-09-20
 - Fix: Partitions not mounting when set to auto mount on a disk with multiple partitions and one of the partitions is not formatted.
 - Fix: File type and open files not showing properly on a disk with multiple partitions.
 - Fix: Colors of usage and free disk indicators.

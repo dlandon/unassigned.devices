@@ -298,7 +298,7 @@ switch ($_POST['action']) {
 					echo "<td title='SMART Attributes on {$disk_name}'><img src='/webGui/images/".($disk_running ? "green-on.png":"green-blink.png" )."'>";
 					echo "<a href='/Main/New?name={$disk_name}'> {$disk_name}</a></td>";
 				}
-				echo "<td><a href="#" title="Disk Log Information" onclick="openBox('/webGui/scripts/disk_log&amp;arg1={$disk_name}','Disk Log Information',600,900,false);return false"><i class="fa fa-hdd-o icon"></i></a>{$hdd_serial}</td>";
+				echo "<td><a href=\"#\" title=\"Disk Log Information\" onclick=\"openBox('/webGui/scripts/disk_log&amp;arg1={$disk_name}','Disk Log Information',600,900,false);return false\"><i class='fa fa-hdd-o icon'></i></a>{$hdd_serial}</td>";
 				echo "<td class='mount'>{$mbutton}</td>";
 				echo "<td>{$temp}</td>";
 				echo ($p)?$p[5]:"<td>-</td>";
