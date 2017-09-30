@@ -8,7 +8,7 @@
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"9ca22b30f79da19af993e34655b62977">
+<!ENTITY MD5		"e8923c77131d49b8635585ae24b25e72">
 ]>
 
 <PLUGIN name="&name;"
