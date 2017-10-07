@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.09.30a">
+<!ENTITY version   "2017.10.07">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"e8923c77131d49b8635585ae24b25e72">
+<!ENTITY MD5		"ea236866d3e9e110580c8ee0aeb598af">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: nvme drive temperature.
+
+###2017.09.30a
 - Add: Disk log button to the left of the disk serial number.
 
 ###2017-09-20
