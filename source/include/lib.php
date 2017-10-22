@@ -940,18 +940,22 @@ function get_samba_mounts() {
 			$mount['fstype'] = "cifs";
 		}
 
-		$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$mount['ip']} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+		$is_alive = (trim(exec("/usr/bin/timeout 10 /bin/ping -c 1 -W 1 {$mount['ip']} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
 		if (! $is_alive && ! is_ip($mount['ip']))
 		{
-			$ip = trim(shell_exec("nmblookup ${mount['ip']} | awk '{print $1}'"));
+			$ip = trim(shell_exec("/usr/bin/timeout 10 nmblookup ${mount['ip']} | awk '{print $1}'"));
 			if (is_ip($ip))
 			{
-				$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+				$is_alive = (trim(exec("/usr/bin/timeout 10 /bin/ping -c 1 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
 				if ($is_alive)
 				{
 					$mount['device'] = ($mount['fstype'] == "nfs") ? "{$ip}:/{$mount['path']}" : "//{$ip}/{$mount['path']}";
 				}	
 			}
+		}
+
+		if (! $is_alive) {
+			unassigned_log("Error: SMB share '$mount[device]' appears to be off-line.");
 		}
 
 		$mount['is_alive'] = $is_alive;
@@ -960,12 +964,12 @@ function get_samba_mounts() {
 		if (! $mount["mountpoint"]) {
 			$mount["mountpoint"] = $mount['target'] ? $mount['target'] : preg_replace("%\s+%", "_", "{$paths[usb_mountpoint]}/{$mount[ip]}_{$mount[share]}");
 		}
-		$mount['size']   = intval(trim($is_alive ? shell_exec("/usr/bin/timeout 20 /bin/df '${mount[mountpoint]}' --output=size,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'"):"0"))*1024;
-		$mount['used']   = intval(trim($is_alive ? shell_exec("/usr/bin/timeout 20 /bin/df '${mount[mountpoint]}' --output=used,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'"):"0"))*1024;
-		$mount['avail']  = $mount['size'] - $mount['used'];
-		$mount['target'] = trim(shell_exec("/bin/cat /proc/mounts 2>&1|/bin/grep '$mount[mountpoint] '|/bin/awk '{print $2}'"));
-		$mount['prog_name'] = basename($mount['command'], ".sh");
-		$mount['logfile'] = $paths['device_log'].$mount['prog_name'].".log";
+		$mount['size']		= intval(trim($is_alive ? shell_exec("/usr/bin/timeout 20 /bin/df '${mount[mountpoint]}' --output=size,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'"):"0"))*1024;
+		$mount['used']		= intval(trim($is_alive ? shell_exec("/usr/bin/timeout 20 /bin/df '${mount[mountpoint]}' --output=used,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'"):"0"))*1024;
+		$mount['avail']		= $mount['size'] - $mount['used'];
+		$mount['target']	= trim(shell_exec("/bin/cat /proc/mounts 2>&1|/bin/grep '$mount[mountpoint] '|/bin/awk '{print $2}'"));
+		$mount['prog_name']	= basename($mount['command'], ".sh");
+		$mount['logfile']	= $paths['device_log'].$mount['prog_name'].".log";
 		$o[] = $mount;
 	}
 	return $o;
@@ -982,14 +986,14 @@ function do_mount_samba($info) {
 			if (! is_mounted($dev) || ! is_mounted($dir, true)) {
 				@mkdir($dir, 0777, TRUE);
 				if ($fs == "nfs") {
-					$params = get_mount_params($fs, '$dev');
-					$cmd = "/sbin/mount -t $fs -o ".$params." '${dev}' '${dir}'";
-					$o = shell_exec($cmd." 2>&1");
+					$params	= get_mount_params($fs, '$dev');
+					$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '${dev}' '${dir}'";
+					$o		= shell_exec($cmd." 2>&1");
 				} else {
-					$params = sprintf(get_mount_params($fs, '$dev'), ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
-					$cmd = "/sbin/mount -t $fs -o ".$params." '${dev}' '${dir}'";
-					$o = shell_exec($cmd." 2>&1");
-					$params = sprintf(get_mount_params($fs, '$dev'), ($info['user'] ? $info['user'] : "guest" ), '*******');
+					$params	= sprintf(get_mount_params($fs, '$dev'), ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
+					$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '${dev}' '${dir}'";
+					$o		= shell_exec($cmd." 2>&1");
+					$params	= sprintf(get_mount_params($fs, '$dev'), ($info['user'] ? $info['user'] : "guest" ), '*******');
 				}
 				unassigned_log("Mount SMB/NFS command: mount -t $fs -o ".$params." '${dev}' '${dir}'");
 				foreach (range(0,5) as $t) {
