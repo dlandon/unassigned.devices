@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.10.28">
+<!ENTITY version   "2017.10.28a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"63e881c35fc911bc004f7e07932e1138">
+<!ENTITY MD5		"445cfbb3c25e2c35bf0032a36ee6175c">
 ]>
 
 <PLUGIN name="&name;"
@@ -21,6 +21,7 @@
 ##&name;
 ###&version;
 - Fix: Host off-line log message showed wrong information for NFS server.
+- Fix: Added a scheme where an SMB share would be mounted with the highest SMB protocol supported by the remote server.
 
 ###2017.10.22
 - Add: Additional checks and a log message if SMB/NFS host is off-line.

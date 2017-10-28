@@ -563,7 +563,7 @@ function get_mount_params($fs, $dev) {
 			break;
 
 		case 'cifs':
-			return "rw,nounix,iocharset=utf8,_netdev,file_mode=0777,dir_mode=0777,username=%s,password=%s";
+			return "rw,nounix,iocharset=utf8,_netdev,file_mode=0777,dir_mode=0777,vers=%s,username=%s,password=%s";
 			break;
 
 		case 'nfs':
@@ -990,10 +990,28 @@ function do_mount_samba($info) {
 					$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '${dev}' '${dir}'";
 					$o		= shell_exec($cmd." 2>&1");
 				} else {
-					$params	= sprintf(get_mount_params($fs, '$dev'), ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
+					$ver	= "3.0";
+					$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
 					$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '${dev}' '${dir}'";
+					unassigned_log("Mount SMB share '$dev' using SMB3 protocol.");
 					$o		= shell_exec($cmd." 2>&1");
-					$params	= sprintf(get_mount_params($fs, '$dev'), ($info['user'] ? $info['user'] : "guest" ), '*******');
+					if ($o != "") {
+						/* If the mount failed, try to mount with samba vers=2.0. */
+						unassigned_log("Warning: SMB share '$dev' did not mount using SMB3 protocol. Trying SMB2 protocol.");
+						$ver	= "2.0";
+						$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
+						$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '${dev}' '${dir}'";
+						$o		= shell_exec($cmd." 2>&1");
+					}
+					if ($o != "") {
+						/* If the mount failed, try to mount with samba vers=1.0. */
+						unassigned_log("Warning: SMB share '$dev' did not mount using SMB2 protocol. Trying SMB1 protocol.");
+						$ver	= "1.0";
+						$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
+						$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '${dev}' '${dir}'";
+						$o		= shell_exec($cmd." 2>&1");
+					}
+					$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), '*******');
 				}
 				unassigned_log("Mount SMB/NFS command: mount -t $fs -o ".$params." '${dev}' '${dir}'");
 				foreach (range(0,5) as $t) {
