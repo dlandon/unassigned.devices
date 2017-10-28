@@ -955,7 +955,7 @@ function get_samba_mounts() {
 		}
 
 		if (! $is_alive) {
-			unassigned_log("Error: SMB share '$mount[device]' appears to be off-line.");
+			unassigned_log("Error: SMB/NFS server '$mount[ip]' appears to be off-line.  Be sure the server responds to a 'ping' so Unassigned Devices can verify the server is on-line.");
 		}
 
 		$mount['is_alive'] = $is_alive;
