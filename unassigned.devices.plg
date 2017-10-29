@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.10.28b">
+<!ENTITY version   "2017.10.28c">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"66777d98f0517bc5c2518099a771e594">
+<!ENTITY MD5		"d6892ac62f00ad4bacc956e42361e43b">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,6 +23,7 @@
 - Fix: Host off-line log message showed wrong information for NFS server.
 - Fix: Added a scheme where an SMB share would be mounted with the highest SMB protocol supported by the remote server.
 - Fix: Drive showed graphic display of used/free when text mode selected.
+- Fix: Change the disk free space value to actual 'df' value rather than calculated from size minus used.
 
 ###2017.10.22
 - Add: Additional checks and a log message if SMB/NFS host is off-line.

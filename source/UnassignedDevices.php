@@ -87,13 +87,14 @@ function render_used_and_free_disk($disk, $mounted) {
 
 	$o = "";
 	if ($mounted) {
-		$size = 0;
-		$avail = 0;
+		$size	= 0;
+		$avail	= 0;
+		$used	= 0;
 		foreach ($disk['partitions'] as $partition) {
-			$size += $partition['size'];
-			$avail += $partition['avail'];
+			$size	+= $partition['size'];
+			$avail	+= $partition['avail'];
+			$used 	+= $partition['used'];
 		}
-		$used = $size - $avail;
 		if (!$display['text']) {
 			$o .= "<td>".my_scale($size-$avail, $unit)." $unit</td>";
 			$o .= "<td>".my_scale($avail, $unit)." $unit</td>";
