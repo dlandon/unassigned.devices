@@ -1402,7 +1402,7 @@ function get_partition_info($device, $reload=FALSE){
 			$disk['avail']  = intval(trim(benchmark("shell_exec","/usr/bin/timeout 20 /bin/df '${device}' --output=avail,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'")))*1024;
 		} else {
 			$disk['used']	= 0;
-			$disk['avail']	= $disk['size'] - $disk['used'];
+			$disk['avail']	= 0;
 		}
 		if ( $disk['mountpoint'] = get_config($disk['serial'], "mountpoint.{$disk[part]}") ) {
 			if (! $disk['mountpoint'] ) goto empty_mountpoint;
