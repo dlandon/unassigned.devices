@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.10.29">
+<!ENTITY version   "2017.10.29a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"d995c71be15c456f928d1ed21738b9bf">
+<!ENTITY MD5		"57703871b09675343638c58a3572ae59">
 ]>
 
 <PLUGIN name="&name;"
@@ -21,6 +21,7 @@
 ##&name;
 ###&version;
 - Fix: Don't add free space of an unmounted partition to the disk total.
+- Fix: Show unique open files from lsof and exclude directory operations.
 
 ###2017.10.28c
 - Fix: Host off-line log message showed wrong information for NFS server.

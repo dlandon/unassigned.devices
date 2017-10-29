@@ -163,22 +163,17 @@ function render_partition($disk, $partition, $total=FALSE) {
 	}
 	$out[] = "<td >".$fstype."</td>";
 	$out[] = "<td>".my_scale($partition['size'], $unit)." $unit</td>";
-	if (! isset($partition['openfiles']))
-	{
-		if ($total) {
-			$mounted_disk = FALSE;
-			$open_files = 0;
-			foreach ($disk['partitions'] as $part) {
-				if (is_mounted($part['device'])) {
-					$open_files += benchmark("shell_exec","/usr/bin/lsof '${part[target]}' 2>/dev/null|grep -c -v COMMAND");
-					$mounted_disk = TRUE;
-				}
+	if ($total) {
+		$mounted_disk = FALSE;
+		$open_files = 0;
+		foreach ($disk['partitions'] as $part) {
+			if (is_mounted($part['device'])) {
+				$open_files		+= $part['openfiles'];
+				$mounted_disk	= TRUE;
 			}
-
-			$out[] = "<td>".($mounted_disk && strlen($open_files) ? ${open_files} : "-")."</td>";
-		} else {
-			$out[] = "<td>".(strlen($partition['target']) ? benchmark("shell_exec","/usr/bin/lsof '${partition[target]}' 2>/dev/null|grep -c -v COMMAND") : "-")."</td>";
 		}
+
+		$out[] = "<td>".($mounted_disk && strlen($open_files) ? ${open_files} : "-")."</td>";
 	} else {
 		$out[] = "<td>".($partition['openfiles'] ? $partition['openfiles'] : "-")."</td>";
 	}

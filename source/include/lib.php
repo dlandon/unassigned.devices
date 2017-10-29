@@ -1410,13 +1410,14 @@ function get_partition_info($device, $reload=FALSE){
 			empty_mountpoint:
 			$disk['mountpoint'] = $disk['target'] ? $disk['target'] : preg_replace("%\s+%", "_", sprintf("%s/%s", $paths['usb_mountpoint'], $disk['label']));
 		}
-		$disk['owner'] = (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
-		$disk['automount'] = is_automount($disk['serial'], strpos($attrs['DEVPATH'],"usb"));
-		$disk['shared'] = config_shared($disk['serial'], $disk['part'], strpos($attrs['DEVPATH'],"usb"));
-		$disk['command'] = get_config($disk['serial'], "command.{$disk[part]}");
-		$disk['command_bg'] = get_config($disk['serial'], "command_bg.{$disk[part]}");
-		$disk['prog_name'] = basename($disk['command'], ".sh");
-		$disk['logfile'] = $paths['device_log'].$disk['prog_name'].".log";
+		$disk['openfiles']	= benchmark("shell_exec","/usr/bin/lsof '${disk[target]}' 2>/dev/null|uniq -f4|grep -v COMMAND|grep -c -v DIR");
+		$disk['owner']		= (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
+		$disk['automount']	= is_automount($disk['serial'], strpos($attrs['DEVPATH'],"usb"));
+		$disk['shared']		= config_shared($disk['serial'], $disk['part'], strpos($attrs['DEVPATH'],"usb"));
+		$disk['command']	= get_config($disk['serial'], "command.{$disk[part]}");
+		$disk['command_bg']	= get_config($disk['serial'], "command_bg.{$disk[part]}");
+		$disk['prog_name']	= basename($disk['command'], ".sh");
+		$disk['logfile']	= $paths['device_log'].$disk['prog_name'].".log";
 		return $disk;
 	}
 }
