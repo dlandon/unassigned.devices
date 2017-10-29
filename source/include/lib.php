@@ -1410,7 +1410,7 @@ function get_partition_info($device, $reload=FALSE){
 			empty_mountpoint:
 			$disk['mountpoint'] = $disk['target'] ? $disk['target'] : preg_replace("%\s+%", "_", sprintf("%s/%s", $paths['usb_mountpoint'], $disk['label']));
 		}
-		$disk['openfiles']	= benchmark("shell_exec","/usr/bin/lsof '${disk[target]}' 2>/dev/null|uniq -f4|grep -v COMMAND|grep -c -v DIR");
+		$disk['openfiles']	= benchmark("shell_exec","/usr/bin/lsof '${disk[target]}' 2>/dev/null|sort -k8|uniq -f7|grep -c -e REG");
 		$disk['owner']		= (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
 		$disk['automount']	= is_automount($disk['serial'], strpos($attrs['DEVPATH'],"usb"));
 		$disk['shared']		= config_shared($disk['serial'], $disk['part'], strpos($attrs['DEVPATH'],"usb"));
