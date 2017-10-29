@@ -1398,7 +1398,7 @@ function get_partition_info($device, $reload=FALSE){
 		$disk['target'] = str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1|/bin/grep ${device}|/bin/awk '{print $2}'")));
 		$disk['size']   = intval(trim(benchmark("shell_exec","/bin/lsblk -nb -o size ${device} 2>/dev/null")));
 		$disk['used']   = intval(trim(benchmark("shell_exec","/usr/bin/timeout 20 /bin/df '${device}' --output=used,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'")))*1024;
-		$disk['avail']  = $disk['size'] - $disk['used'];
+		$disk['avail']  = intval(trim(benchmark("shell_exec","/usr/bin/timeout 20 /bin/df '${device}' --output=avail,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'")))*1024;
 		if ( $disk['mountpoint'] = get_config($disk['serial'], "mountpoint.{$disk[part]}") ) {
 			if (! $disk['mountpoint'] ) goto empty_mountpoint;
 		} else {
