@@ -186,14 +186,9 @@ function get_temp($dev, $running = null) {
 	if (isset($temps[$dev]) && (time() - $temps[$dev]['timestamp']) < 120 ) {
 		return $temps[$dev]['temp'];
 	} else if ($running) {
-		$temp = trim(benchmark("shell_exec", "/usr/bin/timeout 20 /usr/sbin/smartctl -A -d sat,12 $dev 2>/dev/null | /bin/grep -m 1 -i Temperature_Celsius | /bin/awk '{print $10}'"));
-		if (! is_numeric($temp)) {
-			$temp = trim(benchmark("shell_exec", "/usr/bin/timeout 20 /usr/sbin/smartctl -A -d sat,12 $dev 2>/dev/null | /bin/grep -m 1 -i Airflow_Temperature | /bin/awk '{print $10}'"));
-		}
-		if (! is_numeric($temp)) {
-			$temp = trim(benchmark("shell_exec", "/usr/bin/timeout 20 /usr/sbin/smartctl -A -d nvme $dev 2>/dev/null | /bin/grep -m 1 -i Temperature | /bin/awk '{print $2}'"));
-		}
-		$temp = (is_numeric($temp)) ? $temp : "*";
+		$cmd	= "/usr/sbin/smartctl -A $dev | awk 'BEGIN{t=\"**\"} $1==190||$1==194{t=$10;exit};$1==\"Temperature:\"{t=$2;exit} END{print t}'";
+		$temp	= trim(benchmark("shell_exec", "/usr/bin/timeout 20 ${cmd}"));
+		$temp	= ($temp < 128) ? $temp : "-";
 		$temps[$dev] = array('timestamp' => time(),
 							 'temp'      => $temp);
 		file_put_contents($tc, json_encode($temps));
