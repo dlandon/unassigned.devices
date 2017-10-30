@@ -186,9 +186,9 @@ function get_temp($dev, $running = null) {
 	if (isset($temps[$dev]) && (time() - $temps[$dev]['timestamp']) < 120 ) {
 		return $temps[$dev]['temp'];
 	} else if ($running) {
-		$cmd	= "/usr/sbin/smartctl -A $dev | awk 'BEGIN{t=\"**\"} $1==190||$1==194{t=$10;exit};$1==\"Temperature:\"{t=$2;exit} END{print t}'";
+		$cmd	= "/usr/sbin/smartctl -A $dev | awk 'BEGIN{t=\"*\"} $1==190||$1==194{t=$10;exit};$1==\"Temperature:\"{t=$2;exit} END{print t}'";
 		$temp	= trim(benchmark("shell_exec", "/usr/bin/timeout 20 ${cmd}"));
-		$temp	= ($temp < 128) ? $temp : "-";
+		$temp	= ($temp < 128) ? $temp : "*";
 		$temps[$dev] = array('timestamp' => time(),
 							 'temp'      => $temp);
 		file_put_contents($tc, json_encode($temps));
