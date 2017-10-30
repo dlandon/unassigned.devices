@@ -995,17 +995,19 @@ function do_mount_samba($info) {
 					$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '${dev}' '${dir}'";
 					unassigned_log("Mount SMB share '$dev' using SMB3 protocol.");
 					$o		= shell_exec($cmd." 2>&1");
-					if ($o != "") {
+					if ($o != "" && strpos($o, "Permission denied") === FALSE) {
 						/* If the mount failed, try to mount with samba vers=2.0. */
-						unassigned_log("Warning: SMB share '$dev' did not mount using SMB3 protocol. Trying SMB2 protocol.");
+						unassigned_log("SMB3 mount failed: ${o}.");
+						unassigned_log("Mount SMB share '$dev' using SMB2 protocol.");
 						$ver	= "2.0";
 						$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
 						$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '${dev}' '${dir}'";
 						$o		= shell_exec($cmd." 2>&1");
 					}
-					if ($o != "") {
+					if ($o != "" && strpos($o, "Permission denied") === FALSE) {
 						/* If the mount failed, try to mount with samba vers=1.0. */
-						unassigned_log("Warning: SMB share '$dev' did not mount using SMB2 protocol. Trying SMB1 protocol.");
+						unassigned_log("SMB2 mount failed: ${o}.");
+						unassigned_log("Mount SMB share '$dev' using SMB1 protocol.");
 						$ver	= "1.0";
 						$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
 						$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '${dev}' '${dir}'";
