@@ -29,7 +29,8 @@ $paths = [  "smb_extra"			=> "/boot/config/smb-extra.conf",
 			"mounting"			=> "/var/state/${plugin}/mounting_%s.state",
 			"formatting"		=> "/var/state/${plugin}/formatting_%s.state",
 			"diskinfo"			=> "/var/local/emhttp/plugins/diskinfo/diskinfo.json",
-			"diskinfo_pid"		=> "/var/run/rc.diskinfo.pid"
+			"diskinfo_pid"		=> "/var/run/rc.diskinfo.pid",
+			"df_temp"			=> "/tmp/${plugin}/df"
 		];
 
 $docroot = $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
@@ -162,7 +163,6 @@ function safe_name($string) {
 	$string = preg_replace('~&([a-z]{1,2})(acute|cedil|circ|grave|lig|orn|ring|slash|th|tilde|uml);~i', '$1', $string);
 	$string = html_entity_decode($string, ENT_QUOTES, 'UTF-8');
 	$string = preg_replace('~[^0-9a-z -_]~i', '', $string);
-	$string = preg_replace('~[-_]~i', ' ', $string);
 	return trim($string);
 }
 
@@ -935,13 +935,13 @@ function get_samba_mounts() {
 			$mount['fstype'] = "cifs";
 		}
 
-		$is_alive = (trim(exec("/usr/bin/timeout 10 /bin/ping -c 1 -W 1 {$mount['ip']} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+		$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$mount['ip']} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
 		if (! $is_alive && ! is_ip($mount['ip']))
 		{
 			$ip = trim(shell_exec("/usr/bin/timeout 10 nmblookup ${mount['ip']} | awk '{print $1}'"));
 			if (is_ip($ip))
 			{
-				$is_alive = (trim(exec("/usr/bin/timeout 10 /bin/ping -c 1 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+				$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
 				if ($is_alive)
 				{
 					$mount['device'] = ($mount['fstype'] == "nfs") ? "{$ip}:/{$mount['path']}" : "//{$ip}/{$mount['path']}";
@@ -957,11 +957,15 @@ function get_samba_mounts() {
 
 		$mount['automount'] = is_samba_automount($mount['name']);
 		if (! $mount["mountpoint"]) {
-			$mount["mountpoint"] = $mount['target'] ? $mount['target'] : preg_replace("%\s+%", "_", "{$paths[usb_mountpoint]}/{$mount[ip]}_{$mount[share]}");
+			$mount['mountpoint'] = safe_name($mount['target'] ? $mount['target'] : preg_replace("%\s+%", "_", "{$paths[usb_mountpoint]}/{$mount[ip]}_{$mount[share]}"));
 		}
-		$mount['size']		= intval(trim($is_alive ? shell_exec("/usr/bin/timeout 20 /bin/df '${mount[mountpoint]}' --output=size,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'"):"0"))*1024;
-		$mount['used']		= intval(trim($is_alive ? shell_exec("/usr/bin/timeout 20 /bin/df '${mount[mountpoint]}' --output=used,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'"):"0"))*1024;
-		$mount['avail']		= $mount['size'] - $mount['used'];
+		exec("echo '' > ${paths['df_temp']}");
+		if (is_alive) {
+			benchmark("shell_exec","/usr/bin/timeout 20 /bin/df '${mount[mountpoint]}' --output=size,used,avail|/bin/grep -v '1K-blocks' > ${paths['df_temp']} 2>/dev/null");
+		}
+		$mount['size']  	= intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $1}'")))*1024;
+		$mount['used']  	= intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $2}'")))*1024;
+		$mount['avail'] 	= intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $3}'")))*1024;
 		$mount['target']	= trim(shell_exec("/bin/cat /proc/mounts 2>&1|/bin/grep '$mount[mountpoint] '|/bin/awk '{print $2}'"));
 		$mount['prog_name']	= basename($mount['command'], ".sh");
 		$mount['logfile']	= $paths['device_log'].$mount['prog_name'].".log";
@@ -1103,9 +1107,13 @@ function get_iso_mounts() {
 		}
 		$mount['target'] = trim(shell_exec("/bin/cat /proc/mounts 2>&1|/bin/grep '$mount[mountpoint] '|/bin/awk '{print $2}'"));
 		$is_alive = is_file($mount['file']);
-		$mount['size']   = intval(trim($is_alive ? shell_exec("/usr/bin/timeout 20 /bin/df '$mount[mountpoint]' --output=size,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'"):"0"))*1024;
-		$mount['used']   = intval(trim($is_alive ? shell_exec("/usr/bin/timeout 20 /bin/df '$mount[mountpoint]' --output=used,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'"):"0"))*1024;
-		$mount['avail']  = $mount['size'] - $mount['used'];
+		exec("echo '' > ${paths['df_temp']}");
+		if (is_alive) {
+			benchmark("shell_exec","/usr/bin/timeout 20 /bin/df '${mount[mountpoint]}' --output=size,used,avail|/bin/grep -v '1K-blocks' > ${paths['df_temp']} 2>/dev/null");
+		}
+		$mount['size']  = intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $1}'")))*1024;
+		$mount['used']  = intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $2}'")))*1024;
+		$mount['avail'] = intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $3}'")))*1024;
 		$mount['prog_name'] = basename($mount['command'], ".sh");
 		$mount['logfile'] = $paths['device_log'].$mount['prog_name'].".log";
 		$o[] = $mount;
@@ -1393,14 +1401,13 @@ function get_partition_info($device, $reload=FALSE){
 		$disk['fstype'] = safe_name($attrs['ID_FS_TYPE']);
 		$disk['fstype'] = (! $disk['fstype'] && verify_precleared($disk['disk'])) ? "precleared" : $disk['fstype'];
 		$disk['target'] = str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1|/bin/grep ${device}|/bin/awk '{print $2}'")));
-		$disk['size']   = intval(trim(benchmark("shell_exec","/bin/lsblk -nb -o size ${device} 2>/dev/null")));
+		exec("echo '' > ${paths['df_temp']}");
 		if (is_mounted($device)) {
-			$disk['used']   = intval(trim(benchmark("shell_exec","/usr/bin/timeout 20 /bin/df '${device}' --output=used,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'")))*1024;
-			$disk['avail']  = intval(trim(benchmark("shell_exec","/usr/bin/timeout 20 /bin/df '${device}' --output=avail,source 2>/dev/null|/bin/grep -v 'Filesystem'|/bin/awk '{print $1}'")))*1024;
-		} else {
-			$disk['used']	= 0;
-			$disk['avail']	= 0;
+			benchmark("shell_exec","/usr/bin/timeout 20 /bin/df '${device}' --output=size,used,avail|/bin/grep -v '1K-blocks' > ${paths['df_temp']} 2>/dev/null");
 		}
+		$disk['size']   = intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $1}'")))*1024;
+		$disk['used']   = intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $2}'")))*1024;
+		$disk['avail']  = intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $3}'")))*1024;
 		if ( $disk['mountpoint'] = get_config($disk['serial'], "mountpoint.{$disk[part]}") ) {
 			if (! $disk['mountpoint'] ) goto empty_mountpoint;
 		} else {

@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.10.30b">
+<!ENTITY version   "2017.10.31">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"21ec01bab990a207ccdf53c16b287770">
+<!ENTITY MD5		"ee9be8b2afff81871cc0ef563b778892">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Rework size, used, and free space to minimize disk and share probing.  This may help with some of the long waits when viewing the UD webpage.
+- Fix: Remove inappropriate characters from mountpoints for remote SMB and NFS shares.
+
+###2017.10.30b
 - Add: Additional remote SMB share mount logging.
 - Fix: Don't display temperatures over 128 C.
 - Fix: Modify the capture of the drive temperature.
