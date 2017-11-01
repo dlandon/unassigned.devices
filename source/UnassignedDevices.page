@@ -15,7 +15,6 @@ Markdown="false"
  */
 
 $plugin = "unassigned.devices";
-$zip = str_replace(' ','_',strtolower($var['NAME']))."-unassigned.devices-".date('Ymd-Hi').".zip";
 $version = parse_ini_file("/etc/unraid-version");
 require_once("plugins/${plugin}/include/lib.php");
 if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/OpenDevices.page","plugins/dynamix/OpenDevices.page-");
@@ -623,27 +622,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			return false;
 		}
 	}
-
-	function cleanUp() {
-		if (document.hasFocus()) {
-			$('input[value="Downloading..."]').val('Download').prop('disabled',false);
-			$.post('/webGui/include/Download.php',{cmd:'delete',file:'<?=$zip?>'});
-		} else {
-			setTimeout(cleanUp,4000);
-		}
-	}
-
-	function ShowLog() {
-		openWindow('/webGui/scripts/tail_log&arg1=unassigned.devices.log','Unassigned Devices Log',600,900);
-	}
-
-	function getlog() {
-		$('input[value="Download"]').val('Downloading...').prop('disabled',true);
-		$.post('/webGui/include/Download.php',{cmd:'save',source:'/var/log/unassigned.devices.log',file:'<?=$zip?>'},function(zip) {
-			location = zip;
-			setTimeout(cleanUp,4000);
-		});
-	}
 </script>
 
 <div style='display: inline; float: right; margin: -58px -14px;' id='unassigned_tabbed'></div>
@@ -932,8 +910,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	$(function()
 	{
 		// Add icons to Tab/Title bar
-		addButtonTab('<a style="cursor:pointer" onclick="getlog()" title="Download Log"><i class="fa fa-download"></i></a>', "Unassigned Devices");
-		addButtonTab('<a style="cursor:pointer" onclick="ShowLog()" title="Show Log"><i class="fa fa-file-text-o"></i></a>', "Unassigned Devices");
 		addButtonTab('<a style="cursor:pointer" onclick="$.post(\''+URL+'\',{\'action\':\'rescan_disks\'});" title="Rescan Disks"><i class="fa fa-refresh"></i></a>',
 								 "Unassigned Devices");
 		addButtonTab('<div class="switch-wrapper"><a style="cursor:pointer" title="Switch Display Mode"><input type="checkbox" class="complete-switch"></a></div>',

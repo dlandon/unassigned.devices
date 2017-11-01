@@ -17,7 +17,6 @@ $paths = [  "smb_extra"			=> "/boot/config/smb-extra.conf",
 			"smb_usb_shares"	=> "/etc/samba/unassigned-shares",
 			"usb_mountpoint"	=> "/mnt/disks",
 			"device_log"		=> "/tmp/{$plugin}/",
-			"log"				=> "/var/log/{$plugin}.log",
 			"config_file"		=> "/boot/config/plugins/{$plugin}/{$plugin}.cfg",
 			"disk_config_file"	=> "/boot/config/disk.cfg",
 			"state"				=> "/var/state/${plugin}/${plugin}.ini",
@@ -138,9 +137,12 @@ function save_ini_file($file, $array) {
 }
 
 function unassigned_log($m, $type = "NOTICE") {
+	global $plugin;
+
 	if ($type == "DEBUG" && ! $GLOBALS["VERBOSE"]) return NULL;
-	$m = date("M d H:i:s")." ".print_r($m,true)."\n";
-	file_put_contents($GLOBALS["paths"]["log"], $m, FILE_APPEND);
+	$m		= print_r($m,true);
+	$cmd	= "/usr/bin/logger ".${m}." -t".${plugin};
+	exec(${cmd});
 }
 
 function listDir($root) {

@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2017.10.31">
+<!ENTITY version   "2017.11.01">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"ee9be8b2afff81871cc0ef563b778892">
+<!ENTITY MD5		"3ecd37f18972b68c99d2b859742ee046">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Move all logging to syslog.
+
+###2017.10.31
 - Fix: Rework size, used, and free space to minimize disk and share probing.  This may help with some of the long waits when viewing the UD webpage.
 - Fix: Remove inappropriate characters from mountpoints for remote SMB and NFS shares.
 
