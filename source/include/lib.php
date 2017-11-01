@@ -141,7 +141,9 @@ function unassigned_log($m, $type = "NOTICE") {
 
 	if ($type == "DEBUG" && ! $GLOBALS["VERBOSE"]) return NULL;
 	$m		= print_r($m,true);
-	$cmd	= "/usr/bin/logger ".${m}." -t".${plugin};
+	$m		= str_replace("\n", " ", $m);
+	$m		= str_replace('"', "'", $m);
+	$cmd	= "/usr/bin/logger ".'"'.${m}.'"'." -t".${plugin};
 	exec(${cmd});
 }
 
