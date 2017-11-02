@@ -717,7 +717,7 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 		if(!is_dir($paths['smb_usb_shares'])) @mkdir($paths['smb_usb_shares'],0755,TRUE);
 		$share_conf = preg_replace("#\s+#", "_", realpath($paths['smb_usb_shares'])."/".$share_name.".conf");
 
-		unassigned_log("Defining share '$share_name' on file '$share_conf'");
+		unassigned_log("Defining share '$share_name' with file '$share_conf'");
 		file_put_contents($share_conf, $share_cont);
 		if (! exist_in_file($paths['smb_extra'], $share_conf)) {
 			unassigned_log("Adding share '$share_name' to '".$paths['smb_extra']."'");
@@ -964,7 +964,7 @@ function get_samba_mounts() {
 			$mount['mountpoint'] = safe_name($mount['target'] ? $mount['target'] : preg_replace("%\s+%", "_", "{$paths[usb_mountpoint]}/{$mount[ip]}_{$mount[share]}"));
 		}
 		exec("echo '' > ${paths['df_temp']}");
-		if (is_alive) {
+		if (is_alive && file_exists($mount['mountpoint'])) {
 			benchmark("shell_exec","/usr/bin/timeout 20 /bin/df '${mount[mountpoint]}' --output=size,used,avail|/bin/grep -v '1K-blocks' > ${paths['df_temp']} 2>/dev/null");
 		}
 		$mount['size']  	= intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $1}'")))*1024;
@@ -1112,7 +1112,7 @@ function get_iso_mounts() {
 		$mount['target'] = trim(shell_exec("/bin/cat /proc/mounts 2>&1|/bin/grep '$mount[mountpoint] '|/bin/awk '{print $2}'"));
 		$is_alive = is_file($mount['file']);
 		exec("echo '' > ${paths['df_temp']}");
-		if (is_alive) {
+		if (is_alive && file_exists($mount['mountpoint'])) {
 			benchmark("shell_exec","/usr/bin/timeout 20 /bin/df '${mount[mountpoint]}' --output=size,used,avail|/bin/grep -v '1K-blocks' > ${paths['df_temp']} 2>/dev/null");
 		}
 		$mount['size']  = intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $1}'")))*1024;
