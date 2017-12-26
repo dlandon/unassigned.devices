@@ -233,7 +233,11 @@ function make_mount_button($device) {
 	} elseif ($is_formatting) {
 		$button = sprintf($button, $context, 'format', 'disabled', 'fa fa-circle-o-notch fa-spin', 'Formatting...');
 	} elseif ($mounted) {
-		$button = sprintf($button, $context, 'umount', '', 'glyphicon glyphicon-export', 'Unmount');
+		if ($device['fstype'] == "crypto_LUKS") {
+			$button = sprintf($button, $context, 'umount', 'disabled', 'glyphicon glyphicon-export', 'Unmount');
+		} else {
+			$button = sprintf($button, $context, 'umount', '', 'glyphicon glyphicon-export', 'Unmount');
+		}
 	} else {
 		$disable = $preclearing ? "disabled" : $disable;
 		$button = sprintf($button, $context, 'mount', $disable, 'glyphicon glyphicon-import', 'Mount');

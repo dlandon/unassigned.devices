@@ -132,6 +132,9 @@ function unassigned_umount() {
 						if ( rm_smb_share($info['target'], $info['label']) && rm_nfs_share($info['target']) ) {
 							unassigned_log("Unmounting disk '${info[label]}'...");
 							if ( do_unmount($info['device'], $info['mountpoint']) ) {
+								if ($info['fstype'] == "crypto_LUKS" ) {
+									shell_exec("/sbin/cryptsetup luksClose ".basename($info['device']));
+								}
 								unassigned_log("Disk with serial '${info[serial]}', mountpoint '".basename($info[mountpoint])."' removed successfully.");
 							}
 							else

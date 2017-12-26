@@ -557,6 +557,10 @@ function get_mount_params($fs, $dev) {
 			return "auto,async,noatime,nodiratime,nodev,nosuid,umask=000";
 			break;
 
+		case 'crypto_LUKS':
+			return "";
+			break;
+
 		case 'ext4':
 			return "auto,noatime,nodiratime,async,nodev,nosuid{$discard}";
 			break;
@@ -576,10 +580,25 @@ function get_mount_params($fs, $dev) {
 }
 
 function do_mount($info) {
+	global $var;
+
 	if ($info['fstype'] == "cifs" || $info['fstype'] == "nfs") {
 		return do_mount_samba($info);
 	} else if($info['fstype'] == "loop") {
 		return do_mount_iso($info);
+	} else if ($info['fstype'] == "crypto_LUKS") {
+		if (file_exists($var['luksKeyfile'])) {
+			$luks	= basename($info[device]);
+			$cmd	= "/sbin/cryptsetup luksOpen ${info[luks]} ${luks} -d ${var[luksKeyfile]} 2>&1";
+			$o		= shell_exec($cmd);
+			if ($o != "") {
+				unassigned_log("luksOpen error: ".$o);
+			} else {
+				return do_mount_local($info);
+			}
+		} else {
+			unassigned_log("luksOpen error: key file not found.");
+		}
 	} else {
 		return do_mount_local($info);
 	}
@@ -592,7 +611,11 @@ function do_mount_local($info) {
 	if (! is_mounted($dev) || ! is_mounted($dir, true)) {
 		if ($fs){
 			@mkdir($dir, 0777, TRUE);
-			$cmd = "/sbin/mount -t $fs -o ".get_mount_params($fs, $dev)." '${dev}' '${dir}'";
+			if ($fs != "crypto_LUKS") {
+				$cmd = "/sbin/mount -t $fs -o ".get_mount_params($fs, $dev)." '${dev}' '${dir}'";
+			} else {
+				$cmd = "/sbin/mount ".get_mount_params($fs, $dev)." '${dev}' '${dir}'";
+			}
 			unassigned_log("Mount drive command: $cmd");
 			$o = shell_exec($cmd." 2>&1");
 			if ($o != "" && $fs == "ntfs") {
@@ -614,6 +637,9 @@ function do_mount_local($info) {
 				} else {
 					sleep(0.5);
 				}
+			}
+			if ($info['fstype'] == "crypto_LUKS" ) {
+				shell_exec("/sbin/cryptsetup luksClose ".basename($info[luks]));
 			}
 			unassigned_log("Mount of '${dev}' failed. Error message: $o");
 			rmdir($dir);
@@ -995,7 +1021,6 @@ function do_mount_samba($info) {
 					$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '${dev}' '${dir}'";
 					$o		= shell_exec($cmd." 2>&1");
 				} else {
-//dfl
 					if ($config['Config']['samba_v1'] != "yes") {
 						$ver	= "3.0";
 						$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
@@ -1392,7 +1417,6 @@ function get_partition_info($device, $reload=FALSE){
 
 	$disk = array();
 	$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV, $reload) : get_udev_info($device, NULL, $reload);
-	// $GLOBALS["echo"]($attrs);
 	$device = realpath($device);
 	if ($attrs['DEVTYPE'] == "partition") {
 		$disk['serial_short'] = isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
@@ -1415,20 +1439,24 @@ function get_partition_info($device, $reload=FALSE){
 		}
 		$disk['fstype'] = safe_name($attrs['ID_FS_TYPE']);
 		$disk['fstype'] = (! $disk['fstype'] && verify_precleared($disk['disk'])) ? "precleared" : $disk['fstype'];
-		$disk['target'] = str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1|/bin/grep ${device}|/bin/awk '{print $2}'")));
-		exec("echo '' > ${paths['df_temp']}");
-		if (is_mounted($device)) {
-			benchmark("shell_exec","/usr/bin/timeout 20 /bin/df '${device}' --output=size,used,avail|/bin/grep -v '1K-blocks' > ${paths['df_temp']} 2>/dev/null");
-		}
-		$disk['size']   = intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $1}'")))*1024;
-		$disk['used']   = intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $2}'")))*1024;
-		$disk['avail']  = intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $3}'")))*1024;
 		if ( $disk['mountpoint'] = get_config($disk['serial'], "mountpoint.{$disk[part]}") ) {
 			if (! $disk['mountpoint'] ) goto empty_mountpoint;
 		} else {
 			empty_mountpoint:
 			$disk['mountpoint'] = $disk['target'] ? $disk['target'] : preg_replace("%\s+%", "_", sprintf("%s/%s", $paths['usb_mountpoint'], $disk['label']));
 		}
+		$disk['luks']	= $disk['device'];
+		if ($disk['fstype'] == "crypto_LUKS") {
+			$disk['device'] = "/dev/mapper/".basename($disk['mountpoint']);
+		}
+		$disk['target'] = str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1|/bin/grep ${disk[device]}|/bin/awk '{print $2}'")));
+		exec("echo '' > ${paths['df_temp']}");
+		if (is_mounted($disk['device'])) {
+			benchmark("shell_exec","/usr/bin/timeout 20 /bin/df '${disk[device]}' --output=size,used,avail|/bin/grep -v '1K-blocks' > ${paths['df_temp']} 2>/dev/null");
+		}
+		$disk['size']		= intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $1}'")))*1024;
+		$disk['used']		= intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $2}'")))*1024;
+		$disk['avail']		= intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $3}'")))*1024;
 		$disk['openfiles']	= benchmark("shell_exec","/usr/bin/lsof '${disk[target]}' 2>/dev/null|sort -k8|uniq -f7|grep -c -e REG");
 		$disk['owner']		= (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
 		$disk['automount']	= is_automount($disk['serial'], strpos($attrs['DEVPATH'],"usb"));
@@ -1473,6 +1501,10 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 
 		case 'reiserfs':
 			$cmd = array('ro'=>'/sbin/reiserfsck --check %s','rw'=>'/sbin/reiserfsck --fix-fixable %s');
+			break;
+
+		case 'crypto_LUKS':
+			$cmd = array('ro'=>'/sbin/fsck -vy %s','rw'=>'/sbin/fsck %s');
 			break;
 
 		default:
