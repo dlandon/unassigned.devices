@@ -1330,12 +1330,13 @@ function get_all_disks_info($bus="all") {
 							$partition['label'] = safe_name($cached['SERIAL']);
 						}
 					}
-					$partition['fstype']  = $part['FSTYPE'] ? $part['FSTYPE'] : ($cached["PRECLEAR"] ? "precleared" : "");
-					$partition['target']  = $part['MOUNTPOINT'];
-					$partition['mounted'] = is_dir($part['MOUNTPOINT']);
-					$partition['size']    = $part['SIZE'];
-					$partition['used']    = $part['USED'];
-					$partition['avail']   = $partition['size'] - $partition['used'];
+					$partition['fstype']	= $part['FSTYPE'] ? $part['FSTYPE'] : ($cached["PRECLEAR"] ? "precleared" : "");
+					$partition['target']	= $part['MOUNTPOINT'];
+					$partition['mounted']	= is_dir($part['MOUNTPOINT']);
+					$partition['luks']		= $part['luks'];
+					$partition['size']		= $part['SIZE'];
+					$partition['used']		= $part['USED'];
+					$partition['avail']		= $partition['size'] - $partition['used'];
 					if ( $partition['mountpoint'] = get_config($partition['serial'], "mountpoint.{$partition[part]}") ) {
 						if (! $partition['mountpoint'] ) goto empty_mountpoint;
 					} else {
