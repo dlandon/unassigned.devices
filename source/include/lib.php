@@ -1,6 +1,6 @@
 <?php
 /* Copyright 2015, Guilherme Jardim
- * Copyright 2016-2017, Dan Landon
+ * Copyright 2016-2018, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -541,6 +541,7 @@ function is_mounted($dev, $dir=FALSE) {
 }
 
 function get_mount_params($fs, $dev) {
+
 	$discard = trim(shell_exec("/usr/bin/cat /sys/block/".preg_replace("#\d+#i", "", basename($dev))."/queue/discard_max_bytes 2>/dev/null")) ? ",discard" : "";
 	switch ($fs) {
 		case 'hfsplus':
@@ -566,7 +567,12 @@ function get_mount_params($fs, $dev) {
 			break;
 
 		case 'cifs':
-			return "rw,nounix,iocharset=utf8,_netdev,file_mode=0777,dir_mode=0777,vers=%s,username=%s,password=%s";
+			if (get_config("Config", "samba_v1") == "yes") {
+				$sec = "ntlm";
+			} else {
+				$sec = "ntlmv2";
+			}
+			return "rw,nounix,iocharset=utf8,_netdev,file_mode=0777,dir_mode=0777,sec=$sec,vers=%s,username=%s,password=%s";
 			break;
 
 		case 'nfs':
