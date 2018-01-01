@@ -541,7 +541,6 @@ function is_mounted($dev, $dir=FALSE) {
 }
 
 function get_mount_params($fs, $dev) {
-
 	$discard = trim(shell_exec("/usr/bin/cat /sys/block/".preg_replace("#\d+#i", "", basename($dev))."/queue/discard_max_bytes 2>/dev/null")) ? ",discard" : "";
 	switch ($fs) {
 		case 'hfsplus':
@@ -567,12 +566,11 @@ function get_mount_params($fs, $dev) {
 			break;
 
 		case 'cifs':
+			$sec = "";
 			if (get_config("Config", "samba_v1") == "yes") {
-				$sec = "ntlm";
-			} else {
-				$sec = "ntlmv2";
+				$sec = "sec=ntlm";
 			}
-			return "rw,nounix,iocharset=utf8,_netdev,file_mode=0777,dir_mode=0777,sec=$sec,vers=%s,username=%s,password=%s";
+			return "rw,nounix,iocharset=utf8,_netdev,file_mode=0777,dir_mode=0777,$sec,vers=%s,username=%s,password=%s";
 			break;
 
 		case 'nfs':
