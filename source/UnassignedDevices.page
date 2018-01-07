@@ -17,6 +17,7 @@ Markdown="false"
 $plugin = "unassigned.devices";
 $version = parse_ini_file("/etc/unraid-version");
 require_once("plugins/${plugin}/include/lib.php");
+
 if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/OpenDevices.page","plugins/dynamix/OpenDevices.page-");
 ?>
 
@@ -386,7 +387,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		title: title,
 		resizable: false,
 		width: 600,
-		height: 370,
+		height: 470,
 		modal: true,
 		show : {effect: 'fade' , duration: 250},
 		hide : {effect: 'fade' , duration: 250},

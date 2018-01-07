@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2018.01.01a">
+<!ENTITY version   "2018.01.07">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"46e8a54ec4d927c6ae7d65d08e9b46eb">
+<!ENTITY MD5		"66d21fce1642621abbce39a3ab3b2fb8">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,7 +20,11 @@
 <CHANGES>
 ##&name;
 ###&version;
-- Add: Set the security level for CIFS mounts to 'ntlm' when mounting SMB v1 remote SMB mounts.
+- Fix: Remove the preclear rc.diskinfo for disk status in UD.  It's not really necessary and is causing too many support issues.
+- Fix: Some code improvements.
+
+2018.01.01a
+- Add: Set the security level for CIFS mounts to 'ntlm' when mounting SMB remotes with SMB v1 only.
 
 ###2017.12.30
 - Fix: Changes to support rc.diskinfo for encrypted disks.
@@ -796,6 +800,13 @@ rm -f /tmp/start_unassigned_devices 2>/dev/null
 </INLINE>
 </FILE>
 
+<FILE Name="/boot/config/plugins/&name;/&name;.cfg">
+<INLINE>
+<![CDATA[
+]]>
+</INLINE>
+</FILE>
+
 <!--
 The 'post-install' script.
 -->
@@ -838,6 +849,7 @@ ln -sf /usr/local/emhttp/plugins/&name;/scripts/mkmbr.sh /usr/local/sbin
 rm -rf /var/state/&name;
 mkdir -p /mnt/disks /var/state/&name;
 chown nobody:users /mnt/disks
+chmod 777 /var/state/&name;/&name;
 
 # mount disks
 at -M -f /tmp/start_unassigned_devices now 2>/dev/null
@@ -847,7 +859,7 @@ if [[ -e /usr/local/emhttp/plugins/dynamix/OpenDevices.page ]]; then
   mv -f /usr/local/emhttp/plugins/dynamix/OpenDevices.page /usr/local/emhttp/plugins/dynamix/OpenDevices.page-
 fi
 
-# Cleaning old plugin packages
+# Clean out old plugin packages
 find /boot/config/plugins/&name; -maxdepth 1 -type f -iname "*.t*z" -delete
 find &packages; -type f -iname "&name;*.txz" ! -iname "*&version;*" -delete
 find &packages; -type f -iname "&name;*.md5" ! -iname "*&version;*" -delete

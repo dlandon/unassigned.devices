@@ -13,7 +13,6 @@
 $plugin = "unassigned.devices";
 require_once("plugins/${plugin}/include/lib.php");
 require_once("webGui/include/Helpers.php");
-$var = parse_ini_file("state/var.ini");
 $csrf_token = $var['csrf_token'];
 
 if (isset($_POST['display'])) $display = $_POST['display'];
@@ -454,15 +453,7 @@ switch ($_POST['action']) {
 		break;
 
 	case 'detect':
-		$diskinfo = $paths["diskinfo_file"];
-		if (is_file($diskinfo))
-		{
-			echo json_encode(array("reload" => is_file($paths['reload']), "diskinfo" => sha1_file($diskinfo)));
-		}
-		else
-		{
-			echo json_encode(array("reload" => is_file($paths['reload']), "diskinfo" => 0));
-		}
+		echo json_encode(array("reload" => is_file($paths['reload']), "diskinfo" => 0));
 		break;
 
 	case 'remove_hook':
@@ -532,7 +523,6 @@ switch ($_POST['action']) {
 		@touch(sprintf($paths['formatting'],basename($device)));
 		echo json_encode(array( 'status' => format_disk($device, $fs)));
 		@unlink(sprintf($paths['formatting'],basename($device)));
-		diskinfoChange();
 		break;
 
 	case 'format_partition':
@@ -541,7 +531,6 @@ switch ($_POST['action']) {
 		@touch(sprintf($paths['formatting'],basename($device)));
 		echo json_encode(array( 'status' => format_partition($device, $fs)));
 		@unlink(sprintf($paths['formatting'],basename($device)));
-		diskinfoChange();
 		break;
 
 	/*	SAMBA	*/

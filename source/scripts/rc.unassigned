@@ -56,7 +56,6 @@ function unassigned_mount() {
 					else
 					{
 						unassigned_log("Partition '{$info[label]}' could not be mounted...");
-						diskinfoChange($DEVNAME);
 						array_map(function($f){@unlink($f);}, $remove);
 						touch($paths['reload']);
 					}
@@ -140,7 +139,6 @@ function unassigned_umount() {
 							else
 							{
 								unassigned_log("Disk '${info[label]}' could not be unmounted...");
-								diskinfoChange($DEVNAME);
 								array_map(function($f){@unlink($f);}, $remove);
 								touch($paths['reload']);
 								exit(1);
@@ -244,7 +242,6 @@ switch ($COMMAND) {
 		break;
 }
 
-diskinfoChange($DEVNAME);
 array_map(function($f){@unlink($f);}, $remove);
 touch($paths['reload']);
 ?>
