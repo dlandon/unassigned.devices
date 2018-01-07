@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2018.01.07a">
+<!ENTITY version   "2018.01.07b">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"5fa1b3b42ba333db686e344ee5514688">
+<!ENTITY MD5		"1745675f19010ce96b200382cb4efd02">
 ]>
 
 <PLUGIN name="&name;"
@@ -801,6 +801,20 @@ rm -f /tmp/start_unassigned_devices 2>/dev/null
 </FILE>
 
 <FILE Name="/boot/config/plugins/&name;/&name;.cfg">
+<INLINE>
+<![CDATA[
+]]>
+</INLINE>
+</FILE>
+
+<FILE Name="/boot/config/plugins/&name;/samba_mount.cfg">
+<INLINE>
+<![CDATA[
+]]>
+</INLINE>
+</FILE>
+
+<FILE Name="/boot/config/plugins/&name;/iso_mount.cfg">
 <INLINE>
 <![CDATA[
 ]]>
