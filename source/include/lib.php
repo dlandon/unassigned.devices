@@ -33,7 +33,11 @@ $paths = [  "smb_extra"			=> "/boot/config/smb-extra.conf",
 $docroot = $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $users = @parse_ini_file("$docroot/state/users.ini", true);
 $disks = @parse_ini_file("$docroot/state/disks.ini", true);
-$var = @parse_ini_file("$docroot/state/var.ini", true);
+
+if (! isset($var)){
+	if (! is_file("$docroot/state/var.ini")) shell_exec("/usr/bin/wget -qO /dev/null localhost:$(ss -napt|/bin/grep emhttp|/bin/grep -Po ':\K\d+') >/dev/null");
+	$var = @parse_ini_file("$docroot/state/var.ini");
+}
 
 if ( is_file( "plugins/preclear.disk/assets/lib.php" ) )
 {
