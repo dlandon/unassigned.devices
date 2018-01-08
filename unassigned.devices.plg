@@ -8,7 +8,7 @@
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"1745675f19010ce96b200382cb4efd02">
+<!ENTITY MD5		"5e0717ccceb91321111a04379430486c">
 ]>
 
 <PLUGIN name="&name;"
@@ -863,7 +863,7 @@ ln -sf /usr/local/emhttp/plugins/&name;/scripts/mkmbr.sh /usr/local/sbin
 rm -rf /var/state/&name;
 mkdir -p /mnt/disks /var/state/&name;
 chown nobody:users /mnt/disks
-chmod 777 /var/state/&name;/&name;
+chmod 777 /var/state/&name;
 
 # mount disks
 at -M -f /tmp/start_unassigned_devices now 2>/dev/null
@@ -886,7 +886,7 @@ echo "-----------------------------------------------------------"
 echo " &name; has been installed."
 echo " This plugin requires Dynamix webGui to operate"
 echo " Copyright 2015, gfjardim"
-echo " Copyright 2016-2017, &author;"
+echo " Copyright 2016-2018, &author;"
 echo " Version: &version;"
 echo "-----------------------------------------------------------"
 echo ""
