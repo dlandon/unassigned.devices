@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2018.01.07c">
+<!ENTITY version   "2018.01.08">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"5e0717ccceb91321111a04379430486c">
+<!ENTITY MD5		"e4f1053e1931c9f2a7b6fdaa354dce3a">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,10 +20,13 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Detection for an attempt to mount a null device.
+
+###2018.01.07c
 - Fix: Remove the preclear rc.diskinfo for disk status in UD.  It's not really necessary and is causing too many support issues.
 - Fix: Some code improvements.
 
-2018.01.01a
+###2018.01.01a
 - Add: Set the security level for CIFS mounts to 'ntlm' when mounting SMB remotes with SMB v1 only.
 
 ###2017.12.30

@@ -37,8 +37,8 @@ function unassigned_mount() {
 				}
 				if ($info['label'] == "UNRAID") {
 					unassigned_log("Error: Cannot mount device '{$info[device]}' with label 'UNRAID'...");
-				} else {
-					unassigned_log("Drive found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
+				} elseif ($info['device'] != "") {
+					unassigned_log("Disk found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
 					unassigned_log("Adding disk '${info[device]}'...");
 					addFile(sprintf($paths['mounting'],basename($info['device'])));
 					if (do_mount( $info )) 
@@ -59,6 +59,8 @@ function unassigned_mount() {
 						array_map(function($f){@unlink($f);}, $remove);
 						touch($paths['reload']);
 					}
+				} else {
+					unassigned_log("Error: Cannot mount null device with serial '${info[serial]}'...");
 				}
 			}
 		}
