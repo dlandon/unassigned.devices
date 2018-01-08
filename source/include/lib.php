@@ -33,6 +33,7 @@ $paths = [  "smb_extra"			=> "/boot/config/smb-extra.conf",
 $docroot = $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $users = @parse_ini_file("$docroot/state/users.ini", true);
 $disks = @parse_ini_file("$docroot/state/disks.ini", true);
+$var = @parse_ini_file("$docroot/state/var.ini", true);
 
 if ( is_file( "plugins/preclear.disk/assets/lib.php" ) )
 {
@@ -1226,7 +1227,7 @@ function get_unasigned_disks() {
 
 	// Create the array of unassigned devices.
 	foreach ($paths as $path => $d) {
-		if (preg_match("#^(.(?!wwn|part))*$#", $d)) {
+		if (($d != "") && (preg_match("#^(.(?!wwn|part))*$#", $d))) {
 			if (! in_array($path, $unraid_disks)) {
 				if (in_array($path, array_map(function($ar){return $ar['device'];}, $ud_disks)) ) continue;
 				$m = array_values(preg_grep("|$d.*-part\d+|", $paths));

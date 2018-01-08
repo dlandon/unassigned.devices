@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2018.01.08">
+<!ENTITY version   "2018.01.08a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"e4f1053e1931c9f2a7b6fdaa354dce3a">
+<!ENTITY MD5		"1d02107a39c9f1dc2f92eb13b8550a52">
 ]>
 
 <PLUGIN name="&name;"
@@ -21,6 +21,7 @@
 ##&name;
 ###&version;
 - Add: Detection for an attempt to mount a null device.
+- Fix: Don't add null devices to the unassigned devces list.
 
 ###2018.01.07c
 - Fix: Remove the preclear rc.diskinfo for disk status in UD.  It's not really necessary and is causing too many support issues.
