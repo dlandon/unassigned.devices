@@ -1306,12 +1306,15 @@ function get_partition_info($device, $reload=FALSE){
 	$device = realpath($device);
 	if ($attrs['DEVTYPE'] == "partition") {
 		$disk['serial_short'] = isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
-		$disk['serial']       = "{$attrs[ID_MODEL]}_{$disk[serial_short]}";
-		$disk['device']       = $device;
+		$disk['serial'] = "{$attrs[ID_MODEL]}_{$disk[serial_short]}";
+		$disk['device'] = $device;
 		// Grab partition number
 		preg_match_all("#(.*?)(\d+$)#", $device, $matches);
-		$disk['part']   =  $matches[2][0];
-		$disk['disk']   =  rtrim($matches[1][0], "p");
+		$disk['part'] = $matches[2][0];
+		$disk['disk'] = $matches[1][0];
+		if (strpos($disk['disk'], "nvme") !== false) {
+			$disk['disk']=  rtrim($disk['disk'], "p");
+		}
 		if (isset($attrs['ID_FS_LABEL'])){
 			$disk['label'] = safe_name($attrs['ID_FS_LABEL_ENC']);
 		} else {
