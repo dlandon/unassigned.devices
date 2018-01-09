@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2018.01.08b">
+<!ENTITY version   "2018.01.09">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"d82c8985b97981492f28f6f44506b9cd">
+<!ENTITY MD5		"740a3b7a017f219124b1c640ace70c40">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Adjust device name for a nvme device to remove the partition marker.
+
+###2018.01.08b
 - Add: Detection for an attempt to mount a null device.
 - Fix: Don't add null devices to the unassigned devces list.
 

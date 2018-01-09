@@ -173,7 +173,7 @@ function get_temp($dev, $running = null) {
 
 function verify_precleared($dev) {
 	$cleared        = TRUE;
-	$disk_blocks    = intval(trim(shell_exec("/sbin/blockdev --getsz $dev  | /bin/awk '{ print $1 }'")));
+	$disk_blocks    = intval(trim(shell_exec("/sbin/blockdev --getsz $dev  | /bin/awk '{ print $1 }' 2>/dev/null")));
 	$max_mbr_blocks = hexdec("0xFFFFFFFF");
 	$over_mbr_size  = ( $disk_blocks >= $max_mbr_blocks ) ? TRUE : FALSE;
 	$pattern        = $over_mbr_size ? array("00000", "00000", "00002", "00000", "00000", "00255", "00255", "00255") : 
@@ -306,7 +306,7 @@ function format_disk($dev, $fs) {
 		}
 	}
 	$max_mbr_blocks = hexdec("0xFFFFFFFF");
-	$disk_blocks    = intval(trim(shell_exec("/sbin/blockdev --getsz $dev  | /bin/awk '{ print $1 }'")));
+	$disk_blocks    = intval(trim(shell_exec("/sbin/blockdev --getsz $dev  | /bin/awk '{ print $1 }' 2>/dev/null")));
 	$disk_schema    = ( $disk_blocks >= $max_mbr_blocks ) ? "gpt" : "msdos";
 	switch ($fs) {
 		case 'exfat':
@@ -1311,7 +1311,7 @@ function get_partition_info($device, $reload=FALSE){
 		// Grab partition number
 		preg_match_all("#(.*?)(\d+$)#", $device, $matches);
 		$disk['part']   =  $matches[2][0];
-		$disk['disk']   =  $matches[1][0];
+		$disk['disk']   =  rtrim($matches[1][0], "p");
 		if (isset($attrs['ID_FS_LABEL'])){
 			$disk['label'] = safe_name($attrs['ID_FS_LABEL_ENC']);
 		} else {
