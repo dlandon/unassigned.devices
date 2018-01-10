@@ -275,11 +275,11 @@ function format_partition($partition, $fs) {
 	unassigned_log("Formatting partition '{$partition}' with '$fs' filesystem.");
 	exec(get_format_cmd($partition, $fs),$out, $return);
 	if ($out) {
-		unassigned_log("Format partition '{$partition}' with '$fs' filesystem result:\n" . implode(PHP_EOL, $out));
+		unassigned_log("Format partition '{$partition}' with '$fs' filesystem result:\n".implode(PHP_EOL, $out));
 	}
 	if ($return)
 	{
-		unassigned_log("Format partition '{$partition}' with '$fs' filesystem failed!");
+		unassigned_log("Format partition '{$partition}' with '$fs' filesystem failed!  Result:\n".implode(PHP_EOL, $return));
 		return false;
 	}
 
@@ -362,13 +362,17 @@ function format_disk($dev, $fs) {
 	}
 
 	unassigned_log("Formatting disk '{$dev}' with '$fs' filesystem.");
-	exec(get_format_cmd("{$dev}1", $fs),$out, $return);
+	if (strpos($dev, "nvme") !== false) {
+		exec(get_format_cmd("{$dev}p1", $fs),$out, $return);
+	} else {
+		exec(get_format_cmd("{$dev}1", $fs),$out, $return);
+	}
 	if ($out) {
-		unassigned_log("Format disk '{$dev}' with '$fs' filesystem result:\n" . implode(PHP_EOL, $out));
+		unassigned_log("Format disk '{$dev}' with '$fs' filesystem result:\n".implode(PHP_EOL, $out));
 	}
 	if ($return)
 	{
-		unassigned_log("Format disk '{$dev}' with '$fs' filesystem failed!");
+		unassigned_log("Format disk '{$dev}' with '$fs' filesystem failed!  Result:\n".implode(PHP_EOL, $return));
 		return false;
 	}
 
