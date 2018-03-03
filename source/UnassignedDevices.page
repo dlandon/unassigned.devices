@@ -16,7 +16,7 @@ Markdown="false"
 
 $plugin = "unassigned.devices";
 $version = parse_ini_file("/etc/unraid-version");
-require_once("plugins/${plugin}/include/lib.php");
+require_once("plugins/{$plugin}/include/lib.php");
 
 if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/OpenDevices.page","plugins/dynamix/OpenDevices.page-");
 ?>
@@ -793,7 +793,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	var network		= [];
 	var workgroup	= "";
 	<?
-	if (isset($var['WORKGROUP'])) echo "var workgroup = '${var['WORKGROUP']}';\n";
+	if (isset($var['WORKGROUP'])) echo "var workgroup = '{$var['WORKGROUP']}';\n";
 	for ($i=0; $i < 11; $i++)
 	{ 
 		$_var = "eth{$i}";
@@ -805,7 +805,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			$netmask = array_values(array_flip(preg_grep("/NETMASK/",	array_flip($iface))));
 			for ($z=0; $z < count($ipaddr); $z++)
 			{ 
-				echo "network.push({gateway:'${ipaddr[$z]}', ip:'${ipaddr[$z]}', netmask:'${netmask[$z]}'});\n";
+				echo "network.push({gateway:'{$ipaddr[$z]}', ip:'{$ipaddr[$z]}', netmask:'{$netmask[$z]}'});\n";
 			}
 		}
 	}

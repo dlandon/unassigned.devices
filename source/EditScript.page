@@ -13,7 +13,7 @@ Title="Edit Script"
  */
 
 $plugin = "unassigned.devices";
-require_once("plugins/${plugin}/include/lib.php");
+require_once("plugins/{$plugin}/include/lib.php");
 
 function safe_filename($string) {
 	$string = preg_replace('~[^0-9a-z -_]~i', '', $string);
@@ -25,17 +25,17 @@ if (isset($_GET['s'])) {
 	$partition = $_GET['p'];
 	$file = get_config($serial,"command.{$partition}");
 	$background = (get_config($serial,"command_bg.{$partition}") == "true" ) ? "checked" : "";
-	if (! $file ) $file = "/boot/config/plugins/${plugin}/".( preg_replace("%\s+%", "_", urldecode($_GET['l'])) ).".sh";
+	if (! $file ) $file = "/boot/config/plugins/{$plugin}/".( preg_replace("%\s+%", "_", urldecode($_GET['l'])) ).".sh";
 } else if (isset($_GET['d'])) {
 	$device = $_GET['d'];
 	$file = get_samba_config($device,"command");
 	$background = (get_samba_config($device,"command_bg") == "true" ) ? "checked" : "";
-	if (! $file ) $file = "/boot/config/plugins/${plugin}/".( preg_replace("%\s+%", "_", urldecode($_GET['l'])) ).".sh";
+	if (! $file ) $file = "/boot/config/plugins/{$plugin}/".( preg_replace("%\s+%", "_", urldecode($_GET['l'])) ).".sh";
 } else if (isset($_GET['i'])) {
 	$device = $_GET['i'];
 	$file = get_iso_config($device,"command");
 	$background = (get_iso_config($device,"command_bg") == "true" ) ? "checked" : "";
-	if (! $file ) $file = "/boot/config/plugins/${plugin}/".( preg_replace("%\s+%", "_", urldecode($_GET['l'])) ).".sh";
+	if (! $file ) $file = "/boot/config/plugins/{$plugin}/".( preg_replace("%\s+%", "_", urldecode($_GET['l'])) ).".sh";
 }
 
 $text = @file_get_contents($file);

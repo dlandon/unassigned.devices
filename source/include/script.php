@@ -10,7 +10,7 @@
  */
 
 $plugin = "unassigned.devices";
-require_once("plugins/${plugin}/include/lib.php");
+require_once("plugins/{$plugin}/include/lib.php");
 readfile('logging.htm');
 
 function write_log($string) {
@@ -30,7 +30,7 @@ if ( isset($_GET['device']) && isset($_GET['owner']) ) {
 	$command = execute_script($info, 'ADD', TRUE);
 	if ($command != "") {
 		$command = $command." 2>&1";
-		putenv("OWNER=${owner}");
+		putenv("OWNER={$owner}");
 		write_log($command."<br><br>");
 		$proc = popen($command, 'r');
 		while (!feof($proc)) {

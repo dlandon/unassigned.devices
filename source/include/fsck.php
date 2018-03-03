@@ -11,7 +11,7 @@
  */
 
 $plugin = "unassigned.devices";
-require_once("plugins/${plugin}/include/lib.php");
+require_once("plugins/{$plugin}/include/lib.php");
 readfile('logging.htm');
 
 function write_log($string) {
@@ -36,5 +36,5 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 		write_log(fgets($proc));
 	}
 }
-write_log("<center><button type='button' onclick='document.location=\"/plugins/${plugin}/include/fsck.php?device={$device}&fs={$fs}&type=rw\"'> Run with CORRECT flag</button></center>");
+write_log("<center><button type='button' onclick='document.location=\"/plugins/{$plugin}/include/fsck.php?device={$device}&fs={$fs}&type=rw\"'> Run with CORRECT flag</button></center>");
 ?>

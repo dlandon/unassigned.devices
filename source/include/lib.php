@@ -19,15 +19,15 @@ $paths = [  "smb_extra"			=> "/boot/config/smb-extra.conf",
 			"device_log"		=> "/tmp/{$plugin}/",
 			"config_file"		=> "/boot/config/plugins/{$plugin}/{$plugin}.cfg",
 			"disk_config_file"	=> "/boot/config/disk.cfg",
-			"state"				=> "/var/state/${plugin}/${plugin}.ini",
-			"hdd_temp"			=> "/var/state/${plugin}/hdd_temp.json",
-			"samba_mount"		=> "/boot/config/plugins/${plugin}/samba_mount.cfg",
-			"iso_mount"			=> "/boot/config/plugins/${plugin}/iso_mount.cfg",
-			"reload"			=> "/var/state/${plugin}/reload.state",
-			"unmounting"		=> "/var/state/${plugin}/unmounting_%s.state",
-			"mounting"			=> "/var/state/${plugin}/mounting_%s.state",
-			"formatting"		=> "/var/state/${plugin}/formatting_%s.state",
-			"df_temp"			=> "/tmp/${plugin}/df"
+			"state"				=> "/var/state/{$plugin}/{$plugin}.ini",
+			"hdd_temp"			=> "/var/state/{$plugin}/hdd_temp.json",
+			"samba_mount"		=> "/boot/config/plugins/{$plugin}/samba_mount.cfg",
+			"iso_mount"			=> "/boot/config/plugins/{$plugin}/iso_mount.cfg",
+			"reload"			=> "/var/state/{$plugin}/reload.state",
+			"unmounting"		=> "/var/state/{$plugin}/unmounting_%s.state",
+			"mounting"			=> "/var/state/{$plugin}/mounting_%s.state",
+			"formatting"		=> "/var/state/{$plugin}/formatting_%s.state",
+			"df_temp"			=> "/tmp/{$plugin}/df"
 		];
 
 $docroot = $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
@@ -70,7 +70,7 @@ class MiscUD
 
   public function disk_device($disk)
   {
-    return (file_exists($disk)) ? $disk : "/dev/${disk}";
+    return (file_exists($disk)) ? $disk : "/dev/{$disk}";
   }
 
 
@@ -140,7 +140,7 @@ function safe_name($string) {
 }
 
 function exist_in_file($file, $val) {
-	return (preg_grep("%${val}%", @file($file))) ? TRUE : FALSE;
+	return (preg_grep("%{$val}%", @file($file))) ? TRUE : FALSE;
 }
 
 function is_disk_running($dev) {
@@ -160,7 +160,7 @@ function get_temp($dev, $running = null) {
 		return $temps[$dev]['temp'];
 	} else if ($running) {
 		$cmd	= "/usr/sbin/smartctl -A $dev | awk 'BEGIN{t=\"*\"} $1==190||$1==194{t=$10;exit};$1==\"Temperature:\"{t=$2;exit} END{print t}'";
-		$temp	= trim(benchmark("shell_exec", "/usr/bin/timeout 20 ${cmd}"));
+		$temp	= trim(benchmark("shell_exec", "/usr/bin/timeout 20 {$cmd}"));
 		$temp	= ($temp < 128) ? $temp : "*";
 		$temps[$dev] = array('timestamp' => time(),
 							 'temp'      => $temp);
@@ -452,9 +452,9 @@ function toggle_automount($sn, $status) {
 function execute_script($info, $action, $testing = FALSE) { 
 	$out = ''; 
 	$error = '';
-	putenv("ACTION=${action}");
+	putenv("ACTION={$action}");
 	foreach ($info as $key => $value) {
-		putenv(strtoupper($key)."=${value}");
+		putenv(strtoupper($key)."={$value}");
 	}
 	$cmd = $info['command'];
 	$bg = ($info['command_bg'] == "true" && $action == "ADD") ? "&" : "";
@@ -462,13 +462,13 @@ function execute_script($info, $action, $testing = FALSE) {
 		unassigned_log("Running common script: '{$common_cmd}'");
 		exec($common_cmd);
 	}
-	if (! $cmd) {unassigned_log("Device '${info['device']}' script file not found.  '${action}' script not executed."); return FALSE;}
-	unassigned_log("Running command '${cmd}' with action '${action}'.");
+	if (! $cmd) {unassigned_log("Device '{$info['device']}' script file not found.  '{$action}' script not executed."); return FALSE;}
+	unassigned_log("Running command '{$cmd}' with action '{$action}'.");
 	if (! is_executable($cmd) ) {
 		@chmod($cmd, 0755);
 	}
 	if (! $testing) {
-		$cmd = isset($info['serial']) ? "$cmd > /tmp/${info[serial]}.log 2>&1 $bg" : "$cmd > /tmp/".preg_replace('~[^\w]~i', '', $info['device']).".log 2>&1 $bg";
+		$cmd = isset($info['serial']) ? "$cmd > /tmp/{$info['serial']}.log 2>&1 $bg" : "$cmd > /tmp/".preg_replace('~[^\w]~i', '', $info['device']).".log 2>&1 $bg";
 		exec($cmd);
 	} else {
 		return $cmd;
@@ -562,7 +562,7 @@ function do_mount($info) {
 	} else if ($info['fstype'] == "crypto_LUKS") {
 		if (file_exists($var['luksKeyfile'])) {
 			$luks	= basename($info['device']);
-			$cmd	= "/sbin/cryptsetup luksOpen ${info[luks]} ${luks} -d ${var[luksKeyfile]} 2>&1";
+			$cmd	= "/sbin/cryptsetup luksOpen {$info[luks]} {$luks} -d {$var[luksKeyfile]} 2>&1";
 			$o		= shell_exec($cmd);
 			if ($o != "") {
 				unassigned_log("luksOpen error: ".$o);
@@ -585,9 +585,9 @@ function do_mount_local($info) {
 		if ($fs){
 			@mkdir($dir, 0777, TRUE);
 			if ($fs != "crypto_LUKS") {
-				$cmd = "/sbin/mount -t $fs -o ".get_mount_params($fs, $dev)." '${dev}' '${dir}'";
+				$cmd = "/sbin/mount -t $fs -o ".get_mount_params($fs, $dev)." '{$dev}' '{$dir}'";
 			} else {
-				$cmd = "/sbin/mount ".get_mount_params($fs, $dev)." '${dev}' '${dir}'";
+				$cmd = "/sbin/mount ".get_mount_params($fs, $dev)." '{$dev}' '{$dir}'";
 			}
 			unassigned_log("Mount drive command: $cmd");
 			$o = shell_exec($cmd." 2>&1");
@@ -595,7 +595,7 @@ function do_mount_local($info) {
 				if (! is_mounted($dev)) {
 					unassigned_log("Mount failed with error: $o");
 					unassigned_log("Mounting ntfs drive read only.");
-					$cmd = "/sbin/mount -t $fs -ro ".get_mount_params($fs, $dev)." '${dev}' '${dir}'";
+					$cmd = "/sbin/mount -t $fs -ro ".get_mount_params($fs, $dev)." '{$dev}' '{$dir}'";
 					unassigned_log("Mount drive ro command: $cmd");
 					$o = shell_exec($cmd." 2>&1");
 				} else {
@@ -605,7 +605,7 @@ function do_mount_local($info) {
 			foreach (range(0,5) as $t) {
 				if (is_mounted($dev)) {
 					@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
-					unassigned_log("Successfully mounted '${dev}' on '${dir}'.");
+					unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
 					return TRUE;
 				} else {
 					sleep(0.5);
@@ -614,11 +614,11 @@ function do_mount_local($info) {
 			if ($info['fstype'] == "crypto_LUKS" ) {
 				shell_exec("/sbin/cryptsetup luksClose ".basename($info[luks]));
 			}
-			unassigned_log("Mount of '${dev}' failed. Error message: $o");
+			unassigned_log("Mount of '{$dev}' failed. Error message: $o");
 			rmdir($dir);
 			return FALSE;
 		} else {
-			unassigned_log("No filesystem detected on '${dev}'.");
+			unassigned_log("No filesystem detected on '{$dev}'.");
 		}
 	} else {
 		unassigned_log("Drive '$dev' already mounted...");
@@ -627,8 +627,8 @@ function do_mount_local($info) {
 
 function do_unmount($dev, $dir, $force = FALSE) {
 	if ( is_mounted($dev) ) {
-		unassigned_log("Unmounting '${dev}'...");
-		$o = shell_exec("/bin/umount".($force ? " -f -l" : "")." '${dev}' 2>&1");
+		unassigned_log("Unmounting '{$dev}'...");
+		$o = shell_exec("/bin/umount".($force ? " -f -l" : "")." '{$dev}' 2>&1");
 		for ($i=0; $i < 10; $i++) {
 			if (! is_mounted($dev)) {
 				if (is_dir($dir)) rmdir($dir);
@@ -638,7 +638,7 @@ function do_unmount($dev, $dir, $force = FALSE) {
 				sleep(0.5);
 			}
 		}
-		unassigned_log("Unmount of '${dev}' failed. Error message: \n$o"); 
+		unassigned_log("Unmount of '{$dev}' failed. Error message: \n$o"); 
 		sleep(1);
 		if (! lsof($dir) && ! $force) {
 			unassigned_log("Since there aren't open files, will force unmount.");
@@ -653,7 +653,7 @@ function do_unmount($dev, $dir, $force = FALSE) {
 #########################################################
 
 function is_shared($name) {
-	return ( shell_exec("/usr/bin/smbclient -g -L localhost -U% 2>&1|/bin/awk -F'|' '/Disk/{print $2}'|/bin/grep -c '${name}'") == 0 ) ? FALSE : TRUE;
+	return ( shell_exec("/usr/bin/smbclient -g -L localhost -U% 2>&1|/bin/awk -F'|' '/Disk/{print $2}'|/bin/grep -c '{$name}'") == 0 ) ? FALSE : TRUE;
 }
 
 function config_shared($sn, $part, $usb=FALSE) {
@@ -734,14 +734,14 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 				$recycle_script = "plugins/recycle.bin/scripts/configure_recycle_bin";
 				if (is_file($recycle_script)) {
 					unassigned_log("Enabling the Recycle Bin on share '$share_name'");
-					shell_exec("$recycle_script"." ${share_conf}");
+					shell_exec("$recycle_script"." {$share_conf}");
 				}
 			}
 		}
 
 		unassigned_log("Reloading Samba configuration...");
 		shell_exec("/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
-		unassigned_log("Directory '${dir}' shared successfully."); return TRUE;
+		unassigned_log("Directory '{$dir}' shared successfully."); return TRUE;
 	} else {
 		return TRUE;
 	}
@@ -768,9 +768,9 @@ function rm_smb_share($dir, $share_name) {
 			file_put_contents($paths['smb_extra'], $c);
 
 			unassigned_log("Reloading Samba configuration..");
-			shell_exec("/usr/bin/smbcontrol $(/usr/bin/cat /var/run/smbd.pid 2>/dev/null) close-share '${share_name}' 2>&1");
+			shell_exec("/usr/bin/smbcontrol $(/usr/bin/cat /var/run/smbd.pid 2>/dev/null) close-share '{$share_name}' 2>&1");
 			shell_exec("/usr/bin/smbcontrol $(/usr/bin/cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
-			unassigned_log("Successfully removed SMB share '${share_name}'."); return TRUE;
+			unassigned_log("Successfully removed SMB share '{$share_name}'."); return TRUE;
 		} else {
 			return TRUE;
 		}
@@ -939,7 +939,7 @@ function get_samba_mounts() {
 		$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$mount['ip']} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
 		if (! $is_alive && ! is_ip($mount['ip']))
 		{
-			$ip = trim(shell_exec("/usr/bin/timeout 10 nmblookup ${mount['ip']} | awk '{print $1}'"));
+			$ip = trim(shell_exec("/usr/bin/timeout 10 nmblookup {$mount['ip']} | awk '{print $1}'"));
 			if (is_ip($ip))
 			{
 				$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
@@ -960,13 +960,13 @@ function get_samba_mounts() {
 		if (! $mount["mountpoint"]) {
 			$mount['mountpoint'] = safe_name($mount['target'] ? $mount['target'] : preg_replace("%\s+%", "_", "{$paths['usb_mountpoint']}/{$mount['ip']}_{$mount['share']}"));
 		}
-		exec("echo '' > ${paths['df_temp']}");
+		exec("echo '' > {$paths['df_temp']}");
 		if ($is_alive && file_exists($mount['mountpoint'])) {
-			benchmark("shell_exec","/usr/bin/timeout 20 /bin/df '${mount['mountpoint']}' --output=size,used,avail|/bin/grep -v '1K-blocks' > ${paths['df_temp']} 2>/dev/null");
+			benchmark("shell_exec","/usr/bin/timeout 20 /bin/df '{$mount['mountpoint']}' --output=size,used,avail|/bin/grep -v '1K-blocks' > {$paths['df_temp']} 2>/dev/null");
 		}
-		$mount['size']  	= intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $1}'")))*1024;
-		$mount['used']  	= intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $2}'")))*1024;
-		$mount['avail'] 	= intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $3}'")))*1024;
+		$mount['size']  	= intval(trim(shell_exec("/bin/cat {$paths['df_temp']}|/bin/awk '{print $1}'")))*1024;
+		$mount['used']  	= intval(trim(shell_exec("/bin/cat {$paths['df_temp']}|/bin/awk '{print $2}'")))*1024;
+		$mount['avail'] 	= intval(trim(shell_exec("/bin/cat {$paths['df_temp']}|/bin/awk '{print $3}'")))*1024;
 		$mount['target']	= trim(shell_exec("/bin/cat /proc/mounts 2>&1|/bin/grep '$mount[mountpoint] '|/bin/awk '{print $2}'"));
 		$mount['prog_name']	= basename($mount['command'], ".sh");
 		$mount['logfile']	= $paths['device_log'].$mount['prog_name'].".log";
@@ -989,65 +989,65 @@ function do_mount_samba($info) {
 				@mkdir($dir, 0777, TRUE);
 				if ($fs == "nfs") {
 					$params	= get_mount_params($fs, '$dev');
-					$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '${dev}' '${dir}'";
+					$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 					$o		= shell_exec($cmd." 2>&1");
 				} else {
 					if ($config['Config']['samba_v1'] != "yes") {
 						$ver	= "3.0";
 						$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
-						$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '${dev}' '${dir}'";
+						$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 						unassigned_log("Mount SMB share '$dev' using SMB3 protocol.");
 						$o		= shell_exec($cmd." 2>&1");
 						if ($o != "" && strpos($o, "Permission denied") === FALSE) {
 							/* If the mount failed, try to mount with samba vers=2.0. */
-							unassigned_log("SMB3 mount failed: ${o}.");
+							unassigned_log("SMB3 mount failed: {$o}.");
 							unassigned_log("Mount SMB share '$dev' using SMB2 protocol.");
 							$ver	= "2.0";
 							$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
-							$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '${dev}' '${dir}'";
+							$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 							$o		= shell_exec($cmd." 2>&1");
 						}
 						if ($o != "" && strpos($o, "Permission denied") === FALSE) {
 							/* If the mount failed, try to mount with samba vers=1.0. */
-							unassigned_log("SMB2 mount failed: ${o}.");
+							unassigned_log("SMB2 mount failed: {$o}.");
 							unassigned_log("Mount SMB share '$dev' using SMB1 protocol.");
 							$ver	= "1.0";
 							$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
-							$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '${dev}' '${dir}'";
+							$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 							$o		= shell_exec($cmd." 2>&1");
 						}
 					} else {
 						unassigned_log("Mount SMB share '$dev' using SMB1 protocol.");
 						$ver	= "1.0";
 						$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
-						$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '${dev}' '${dir}'";
+						$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 						$o		= shell_exec($cmd." 2>&1");
 					}
 					$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), '*******');
 				}
-				unassigned_log("Mount SMB/NFS command: mount -t $fs -o ".$params." '${dev}' '${dir}'");
+				unassigned_log("Mount SMB/NFS command: mount -t $fs -o ".$params." '{$dev}' '{$dir}'");
 				foreach (range(0,5) as $t) {
 					if (is_mounted($dev)) {
 						@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
-						unassigned_log("Successfully mounted '${dev}' on '${dir}'.");
+						unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
 						return TRUE;
 					} else {
 						sleep(0.5);
 					}
 				}
 				rmdir($dir);
-				unassigned_log("Mount of '${dev}' failed. Error message: $o");
+				unassigned_log("Mount of '{$dev}' failed. Error message: $o");
 				return FALSE;
 			} else {
-				unassigned_log("Share '${dev}' already mounted.");
+				unassigned_log("Share '{$dev}' already mounted.");
 				return FALSE;
 			}
 		} else {
-			unassigned_log("Error: Cannot mount remote NFS '${info['device']}' from this server onto this server."); 
+			unassigned_log("Error: Cannot mount remote NFS '{$info['device']}' from this server onto this server."); 
 			return FALSE;
 		}
 	} else {
-		unassigned_log("Error: Remote SMB/NFS server '${info[ip]}' is offline and share '${info['device']}' cannot be mounted."); 
+		unassigned_log("Error: Remote SMB/NFS server '{$info[ip]}' is offline and share '{$info['device']}' cannot be mounted."); 
 		return FALSE;
 	}
 }
@@ -1114,13 +1114,13 @@ function get_iso_mounts() {
 		}
 		$mount['target'] = trim(shell_exec("/bin/cat /proc/mounts 2>&1|/bin/grep '$mount[mountpoint] '|/bin/awk '{print $2}'"));
 		$is_alive = is_file($mount['file']);
-		exec("echo '' > ${paths['df_temp']}");
+		exec("echo '' > {$paths['df_temp']}");
 		if ($is_alive && file_exists($mount['mountpoint'])) {
-			benchmark("shell_exec","/usr/bin/timeout 20 /bin/df '${mount['mountpoint']}' --output=size,used,avail|/bin/grep -v '1K-blocks' > ${paths['df_temp']} 2>/dev/null");
+			benchmark("shell_exec","/usr/bin/timeout 20 /bin/df '{$mount['mountpoint']}' --output=size,used,avail|/bin/grep -v '1K-blocks' > {$paths['df_temp']} 2>/dev/null");
 		}
-		$mount['size']  = intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $1}'")))*1024;
-		$mount['used']  = intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $2}'")))*1024;
-		$mount['avail'] = intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $3}'")))*1024;
+		$mount['size']  = intval(trim(shell_exec("/bin/cat {$paths['df_temp']}|/bin/awk '{print $1}'")))*1024;
+		$mount['used']  = intval(trim(shell_exec("/bin/cat {$paths['df_temp']}|/bin/awk '{print $2}'")))*1024;
+		$mount['avail'] = intval(trim(shell_exec("/bin/cat {$paths['df_temp']}|/bin/awk '{print $3}'")))*1024;
 		$mount['prog_name'] = basename($mount['command'], ".sh");
 		$mount['logfile'] = $paths['device_log'].$mount['prog_name'].".log";
 		$o[] = $mount;
@@ -1134,20 +1134,20 @@ function do_mount_iso($info) {
 	if (is_file($info['file'])) {
 		if (! is_mounted($dev) || ! is_mounted($dir, true)) {
 			@mkdir($dir, 0777, TRUE);
-			$cmd = "/sbin/mount -ro loop '${dev}' '${dir}'";
-			unassigned_log("Mount iso command: mount -ro loop '${dev}' '${dir}'");
+			$cmd = "/sbin/mount -ro loop '{$dev}' '{$dir}'";
+			unassigned_log("Mount iso command: mount -ro loop '{$dev}' '{$dir}'");
 			$o = shell_exec($cmd." 2>&1");
 			foreach (range(0,5) as $t) {
 				if (is_mounted($dev)) {
 					@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
-					unassigned_log("Successfully mounted '${dev}' on '${dir}'.");
+					unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
 					return TRUE;
 				} else {
 					sleep(0.5);
 				}
 			}
 			rmdir($dir);
-			unassigned_log("Mount of '${dev}' failed. Error message: $o");
+			unassigned_log("Mount of '{$dev}' failed. Error message: $o");
 			return FALSE;
 		} else {
 			unassigned_log("Share '$dev' already mounted...");
@@ -1260,7 +1260,7 @@ function get_all_disks_info($bus="all") {
 		$dp = time();
 		if ($disk['type'] != $bus && $bus != "all") continue;
 		$disk['temperature'] = "";
-		$disk['size'] = intval(trim(benchmark("shell_exec", "/bin/lsblk -nb -o size ${key} 2>/dev/null")));
+		$disk['size'] = intval(trim(benchmark("shell_exec", "/bin/lsblk -nb -o size {$key} 2>/dev/null")));
 		$disk = array_merge($disk, get_disk_info($key));
 		foreach ($disk['partitions'] as $k => $p) {
 			if ($p) $disk['partitions'][$k] = get_partition_info($p);
@@ -1342,15 +1342,15 @@ function get_partition_info($device, $reload=FALSE){
 		if ($disk['fstype'] == "crypto_LUKS") {
 			$disk['device'] = "/dev/mapper/".basename($disk['mountpoint']);
 		}
-		$disk['target'] = str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1|/bin/grep ${disk['device']}|/bin/awk '{print $2}'")));
-		exec("echo '' > ${paths['df_temp']}");
+		$disk['target'] = str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1|/bin/grep {$disk['device']}|/bin/awk '{print $2}'")));
+		exec("echo '' > {$paths['df_temp']}");
 		if (is_mounted($disk['device'])) {
-			benchmark("shell_exec","/usr/bin/timeout 20 /bin/df '${disk['device']}' --output=size,used,avail|/bin/grep -v '1K-blocks' > ${paths['df_temp']} 2>/dev/null");
+			benchmark("shell_exec","/usr/bin/timeout 20 /bin/df '{$disk['device']}' --output=size,used,avail|/bin/grep -v '1K-blocks' > {$paths['df_temp']} 2>/dev/null");
 		}
-		$disk['size']		= intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $1}'")))*1024;
-		$disk['used']		= intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $2}'")))*1024;
-		$disk['avail']		= intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $3}'")))*1024;
-		$disk['openfiles']	= benchmark("shell_exec","/usr/bin/lsof '${disk['target']}' 2>/dev/null|sort -k8|uniq -f7|grep -c -e REG");
+		$disk['size']		= intval(trim(shell_exec("/bin/cat {$paths['df_temp']}|/bin/awk '{print $1}'")))*1024;
+		$disk['used']		= intval(trim(shell_exec("/bin/cat {$paths['df_temp']}|/bin/awk '{print $2}'")))*1024;
+		$disk['avail']		= intval(trim(shell_exec("/bin/cat {$paths['df_temp']}|/bin/awk '{print $3}'")))*1024;
+		$disk['openfiles']	= benchmark("shell_exec","/usr/bin/lsof '{$disk['target']}' 2>/dev/null|sort -k8|uniq -f7|grep -c -e REG");
 		$disk['owner']		= (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
 		$disk['automount']	= is_automount($disk['serial'], strpos($attrs['DEVPATH'],"usb"));
 		$disk['shared']		= config_shared($disk['serial'], $disk['part'], strpos($attrs['DEVPATH'],"usb"));

@@ -14,7 +14,7 @@ Title="Script Log"
  */
 
 $plugin = "unassigned.devices";
-require_once("plugins/${plugin}/include/lib.php");
+require_once("plugins/{$plugin}/include/lib.php");
 
 if (isset($_GET['s'])) {
 	$serial = $_GET['s'];
