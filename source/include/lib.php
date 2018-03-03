@@ -462,7 +462,7 @@ function execute_script($info, $action, $testing = FALSE) {
 		unassigned_log("Running common script: '{$common_cmd}'");
 		exec($common_cmd);
 	}
-	if (! $cmd) {unassigned_log("Device '${info[device]}' script file not found.  '${action}' script not executed."); return FALSE;}
+	if (! $cmd) {unassigned_log("Device '${info['device']}' script file not found.  '${action}' script not executed."); return FALSE;}
 	unassigned_log("Running command '${cmd}' with action '${action}'.");
 	if (! is_executable($cmd) ) {
 		@chmod($cmd, 0755);
@@ -561,7 +561,7 @@ function do_mount($info) {
 		return do_mount_iso($info);
 	} else if ($info['fstype'] == "crypto_LUKS") {
 		if (file_exists($var['luksKeyfile'])) {
-			$luks	= basename($info[device]);
+			$luks	= basename($info['device']);
 			$cmd	= "/sbin/cryptsetup luksOpen ${info[luks]} ${luks} -d ${var[luksKeyfile]} 2>&1";
 			$o		= shell_exec($cmd);
 			if ($o != "") {
@@ -848,7 +848,7 @@ function remove_shares() {
 	// SMB Mounts
 	foreach (get_samba_mounts() as $name => $info) {
 		if ( is_mounted($info['device']) ) {
-			unassigned_log("Reloading shared dir '{$info[mountpoint]}'.");
+			unassigned_log("Reloading shared dir '{$info['mountpoint']}'.");
 			unassigned_log("Removing old config...");
 			rm_smb_share($info['mountpoint'], $info['device']);
 		}
@@ -857,7 +857,7 @@ function remove_shares() {
 	// ISO File Mounts
 	foreach (get_iso_mounts() as $name => $info) {
 		if ( is_mounted($info['device']) ) {
-			unassigned_log("Reloading shared dir '{$info[mountpoint]}'.");
+			unassigned_log("Reloading shared dir '{$info['mountpoint']}'.");
 			unassigned_log("Removing old config...");
 			rm_smb_share($info['mountpoint'], $info['device']);
 			rm_nfs_share($info['mountpoint']);
@@ -958,11 +958,11 @@ function get_samba_mounts() {
 
 		$mount['automount'] = is_samba_automount($mount['name']);
 		if (! $mount["mountpoint"]) {
-			$mount['mountpoint'] = safe_name($mount['target'] ? $mount['target'] : preg_replace("%\s+%", "_", "{$paths[usb_mountpoint]}/{$mount[ip]}_{$mount[share]}"));
+			$mount['mountpoint'] = safe_name($mount['target'] ? $mount['target'] : preg_replace("%\s+%", "_", "{$paths['usb_mountpoint']}/{$mount['ip']}_{$mount['share']}"));
 		}
 		exec("echo '' > ${paths['df_temp']}");
-		if (is_alive && file_exists($mount['mountpoint'])) {
-			benchmark("shell_exec","/usr/bin/timeout 20 /bin/df '${mount[mountpoint]}' --output=size,used,avail|/bin/grep -v '1K-blocks' > ${paths['df_temp']} 2>/dev/null");
+		if ($is_alive && file_exists($mount['mountpoint'])) {
+			benchmark("shell_exec","/usr/bin/timeout 20 /bin/df '${mount['mountpoint']}' --output=size,used,avail|/bin/grep -v '1K-blocks' > ${paths['df_temp']} 2>/dev/null");
 		}
 		$mount['size']  	= intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $1}'")))*1024;
 		$mount['used']  	= intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $2}'")))*1024;
@@ -1043,11 +1043,11 @@ function do_mount_samba($info) {
 				return FALSE;
 			}
 		} else {
-			unassigned_log("Error: Cannot mount remote NFS '${info[device]}' from this server onto this server."); 
+			unassigned_log("Error: Cannot mount remote NFS '${info['device']}' from this server onto this server."); 
 			return FALSE;
 		}
 	} else {
-		unassigned_log("Error: Remote SMB/NFS server '${info[ip]}' is offline and share '${info[device]}' cannot be mounted."); 
+		unassigned_log("Error: Remote SMB/NFS server '${info[ip]}' is offline and share '${info['device']}' cannot be mounted."); 
 		return FALSE;
 	}
 }
@@ -1110,13 +1110,13 @@ function get_iso_mounts() {
 		$mount['fstype'] = "loop";
 		$mount['automount'] = is_iso_automount($mount['device']);
 		if (! $mount["mountpoint"]) {
-			$mount["mountpoint"] = preg_replace("%\s+%", "_", "{$paths[usb_mountpoint]}/{$mount[share]}");
+			$mount["mountpoint"] = preg_replace("%\s+%", "_", "{$paths['usb_mountpoint']}/{$mount['share']}");
 		}
 		$mount['target'] = trim(shell_exec("/bin/cat /proc/mounts 2>&1|/bin/grep '$mount[mountpoint] '|/bin/awk '{print $2}'"));
 		$is_alive = is_file($mount['file']);
 		exec("echo '' > ${paths['df_temp']}");
-		if (is_alive && file_exists($mount['mountpoint'])) {
-			benchmark("shell_exec","/usr/bin/timeout 20 /bin/df '${mount[mountpoint]}' --output=size,used,avail|/bin/grep -v '1K-blocks' > ${paths['df_temp']} 2>/dev/null");
+		if ($is_alive && file_exists($mount['mountpoint'])) {
+			benchmark("shell_exec","/usr/bin/timeout 20 /bin/df '${mount['mountpoint']}' --output=size,used,avail|/bin/grep -v '1K-blocks' > ${paths['df_temp']} 2>/dev/null");
 		}
 		$mount['size']  = intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $1}'")))*1024;
 		$mount['used']  = intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $2}'")))*1024;
@@ -1297,7 +1297,7 @@ function get_disk_info($device, $reload=FALSE){
 	$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV, $reload) : get_udev_info($device, NULL, $reload);
 	$device = realpath($device);
 	$disk['serial_short'] = isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
-	$disk['serial']       = "{$attrs[ID_MODEL]}_{$disk[serial_short]}";
+	$disk['serial']       = "{$attrs['ID_MODEL']}_{$disk['serial_short']}";
 	$disk['device']       = $device;
 	return $disk;
 }
@@ -1310,7 +1310,7 @@ function get_partition_info($device, $reload=FALSE){
 	$device = realpath($device);
 	if ($attrs['DEVTYPE'] == "partition") {
 		$disk['serial_short'] = isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
-		$disk['serial'] = "{$attrs[ID_MODEL]}_{$disk[serial_short]}";
+		$disk['serial'] = "{$attrs['ID_MODEL']}_{$disk['serial_short']}";
 		$disk['device'] = $device;
 		// Grab partition number
 		preg_match_all("#(.*?)(\d+$)#", $device, $matches);
@@ -1332,7 +1332,7 @@ function get_partition_info($device, $reload=FALSE){
 		}
 		$disk['fstype'] = safe_name($attrs['ID_FS_TYPE']);
 		$disk['fstype'] = (! $disk['fstype'] && verify_precleared($disk['disk'])) ? "precleared" : $disk['fstype'];
-		if ( $disk['mountpoint'] = get_config($disk['serial'], "mountpoint.{$disk[part]}") ) {
+		if ( $disk['mountpoint'] = get_config($disk['serial'], "mountpoint.{$disk['part']}") ) {
 			if (! $disk['mountpoint'] ) goto empty_mountpoint;
 		} else {
 			empty_mountpoint:
@@ -1342,20 +1342,20 @@ function get_partition_info($device, $reload=FALSE){
 		if ($disk['fstype'] == "crypto_LUKS") {
 			$disk['device'] = "/dev/mapper/".basename($disk['mountpoint']);
 		}
-		$disk['target'] = str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1|/bin/grep ${disk[device]}|/bin/awk '{print $2}'")));
+		$disk['target'] = str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1|/bin/grep ${disk['device']}|/bin/awk '{print $2}'")));
 		exec("echo '' > ${paths['df_temp']}");
 		if (is_mounted($disk['device'])) {
-			benchmark("shell_exec","/usr/bin/timeout 20 /bin/df '${disk[device]}' --output=size,used,avail|/bin/grep -v '1K-blocks' > ${paths['df_temp']} 2>/dev/null");
+			benchmark("shell_exec","/usr/bin/timeout 20 /bin/df '${disk['device']}' --output=size,used,avail|/bin/grep -v '1K-blocks' > ${paths['df_temp']} 2>/dev/null");
 		}
 		$disk['size']		= intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $1}'")))*1024;
 		$disk['used']		= intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $2}'")))*1024;
 		$disk['avail']		= intval(trim(shell_exec("/bin/cat ${paths['df_temp']}|/bin/awk '{print $3}'")))*1024;
-		$disk['openfiles']	= benchmark("shell_exec","/usr/bin/lsof '${disk[target]}' 2>/dev/null|sort -k8|uniq -f7|grep -c -e REG");
+		$disk['openfiles']	= benchmark("shell_exec","/usr/bin/lsof '${disk['target']}' 2>/dev/null|sort -k8|uniq -f7|grep -c -e REG");
 		$disk['owner']		= (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
 		$disk['automount']	= is_automount($disk['serial'], strpos($attrs['DEVPATH'],"usb"));
 		$disk['shared']		= config_shared($disk['serial'], $disk['part'], strpos($attrs['DEVPATH'],"usb"));
-		$disk['command']	= get_config($disk['serial'], "command.{$disk[part]}");
-		$disk['command_bg']	= get_config($disk['serial'], "command_bg.{$disk[part]}");
+		$disk['command']	= get_config($disk['serial'], "command.{$disk['part']}");
+		$disk['command_bg']	= get_config($disk['serial'], "command_bg.{$disk['part']}");
 		$disk['prog_name']	= basename($disk['command'], ".sh");
 		$disk['logfile']	= $paths['device_log'].$disk['prog_name'].".log";
 		return $disk;
