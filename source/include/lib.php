@@ -112,8 +112,8 @@ function unassigned_log($m, $type = "NOTICE") {
 	$m		= print_r($m,true);
 	$m		= str_replace("\n", " ", $m);
 	$m		= str_replace('"', "'", $m);
-	$cmd	= "/usr/bin/logger ".'"'.${m}.'"'." -t".${plugin};
-	exec(${cmd});
+	$cmd	= "/usr/bin/logger ".'"'.$m.'"'." -t".$plugin;
+	exec($cmd);
 }
 
 function listDir($root) {
@@ -269,7 +269,7 @@ function get_format_cmd($dev, $fs) {
 function format_partition($partition, $fs) {
 	$part = get_partition_info($partition);
 	if ( $part['fstype'] && $part['fstype'] != "precleared" ) {
-		unassigned_log("Aborting format: partition '{$partition}' is already formatted with '{$part[fstype]}' filesystem.");
+		unassigned_log("Aborting format: partition '{$partition}' is already formatted with '{$part['fstype']}' filesystem.");
 		return NULL;
 	}
 	unassigned_log("Formatting partition '{$partition}' with '$fs' filesystem.");
@@ -981,7 +981,7 @@ function do_mount_samba($info) {
 	$config_file	= $GLOBALS["paths"]["config_file"];
 	$config			= @parse_ini_file($config_file, true);
 	if ($info['is_alive']) {
-		if (!(($info[fstype] == "nfs") && ((strtoupper($var['NAME']) == strtoupper($info['ip'])) || ($var['IPADDR'] == $info['ip'])))) {
+		if (!(($info['fstype'] == "nfs") && ((strtoupper($var['NAME']) == strtoupper($info['ip'])) || ($var['IPADDR'] == $info['ip'])))) {
 			$dev = $info['device'];
 			$dir = $info['mountpoint'];
 			$fs  = $info['fstype'];
