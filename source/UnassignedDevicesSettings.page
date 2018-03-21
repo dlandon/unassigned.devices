@@ -26,13 +26,8 @@ if (count($_POST)) {
 	reload_shares();
 }
 ?>
-<?if (is_file("webGui/scripts/jquery.switchButton.js")): # Pre 6.1?>
-	<script type="text/javascript" src="/webGui/scripts/jqueryFileTree.js"></script>
-	<link type="text/css" rel="stylesheet" href="/webGui/styles/jqueryFileTree.css" >
-<?else: # Post 6.1?>
-	<script type="text/javascript" src="/webGui/javascript/jquery.filetree.js"></script>
-	<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery.filetree.css" >
-<?endif;?>
+<script type="text/javascript" src="/webGui/javascript/jquery.filetree.js"></script>
+<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery.filetree.css" >
 
 <style type="text/css">
 	.fileTree {

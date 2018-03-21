@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2018.03.03b">
+<!ENTITY version   "2018.03.21">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"ed6a06a75988f1a5e2801b19aa688887">
+<!ENTITY MD5		"81d6c2e2dc8effee7466974a2b90ce27">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Remove unRAID 6.1, 6.2, and 6.3 compatibility hacks.  The minimum supported unRAID version is now 6.4.
+
+###2018.03.03b
 - Fix: Php warnings in unRAID 6.5.
 
 ###2018.01.09b
@@ -626,6 +629,27 @@
 - initial release.
 </CHANGES>
 
+<!-- The 'version-check' script. -->
+<FILE Run="/usr/bin/php">
+<INLINE>
+<![CDATA[
+<?
+  $version = parse_ini_file("/etc/unraid-version");
+  
+  if ( version_compare($version['version'],"6.4", "<") )
+  {
+    echo "*****************************************************************\n";
+    echo "\n";
+    echo "Unassigned Devices Requires unRAID version 6.4 or greater to run.\n";
+    echo "\n";
+    echo "*****************************************************************\n";
+    exit(1);
+  }
+?>
+]]>
+</INLINE>
+</FILE>
+
 <!--
 The 'pre-install' script.
 -->
@@ -648,67 +672,11 @@ Get the plugin bundle.
 </FILE>
 
 <!--
-ntfs-3g-2013.1.13-x86_64-1.txz (for unraid 6.1)
+nmap-7.12-x86_64-1.txz
 -->
-<FILE Name="&packages;/ntfs-3g-2013.1.13-x86_64-1.txz">
-<URL>"&gitURL;/packages/ntfs-3g-2013.1.13-x86_64-1.txz"</URL>
-<MD5>de646f44d881b6c4292e353b717792cd</MD5>
-</FILE>
-
-<!-- The 'ntfs-3g' package install script. -->
-<FILE Run="/usr/bin/php">
-<INLINE>
-<![CDATA[
-<?
-	$version = parse_ini_file("/etc/unraid-version");
-	if ( version_compare($version['version'],"6.1.9", "<=") ) {
-		$version = parse_ini_file("/etc/unraid-version");
-		$plugin = "/boot/config/plugins/unassigned.devices/packages";
-		$command = "upgradepkg --install-new";
-
-		$name = "$plugin/ntfs-3g-2013.1.13-x86_64-1.txz";
-		shell_exec("logger plugin: running: $name") ;
-		system("$command $name", $retval);
-		if ($retval) {
-			echo "run failed command: $command retval: $retval";
-			exit(1);
-		}
-	}
-?>
-]]>
-</INLINE>
-</FILE>
-
-<!--
-nmap-7.12-x86_64-1.txz (for unraid 6.4 and later)
--->
-<FILE Name="&packages;/nmap-7.12-x86_64-1.txz">
+<FILE Name="&packages;/nmap-7.12-x86_64-1.txz" Run="upgradepkg --install-new">
 <URL>"&gitURL;/packages/nmap-7.12-x86_64-1.txz"</URL>
 <MD5>79f5ae8093b85f19c483c0e9ec42e2b4</MD5>
-</FILE>
-
-<!-- The 'nmap' package install script. -->
-<FILE Run="/usr/bin/php">
-<INLINE>
-<![CDATA[
-<?
-	$version = parse_ini_file("/etc/unraid-version");
-	if ( !version_compare($version['version'],"6.3.9", "<=") ) {
-		$version = parse_ini_file("/etc/unraid-version");
-		$plugin = "/boot/config/plugins/unassigned.devices/packages";
-		$command = "upgradepkg --install-new";
-
-		$name = "$plugin/nmap-7.12-x86_64-1.txz";
-		shell_exec("logger plugin: running: $name") ;
-		system("$command $name", $retval);
-		if ($retval) {
-			echo "run failed command: $command retval: $retval";
-			exit(1);
-		}
-	}
-?>
-]]>
-</INLINE>
 </FILE>
 
 <!--
@@ -744,44 +712,11 @@ libbsd-0.8.6-x86_64-1_slonly.txz
 </FILE>
 
 <!--
-parted-3.1-x86_64-1.txz (for unraid 6.1)
+parted-3.2-x86_64-2.txz
 -->
-<FILE Name="&packages;/parted-3.1-x86_64-1.txz">
-<URL>"&gitURL;/packages/parted-3.1-x86_64-1.txz"</URL>
-<MD5>140283cca20483fcacd805201b33798a</MD5>
-</FILE>
-
-<!--
-parted-3.2-x86_64-2.txz (for unraid 6.2)
--->
-<FILE Name="&packages;/parted-3.2-x86_64-2.txz">
+<FILE Name="&packages;/parted-3.2-x86_64-2.txz" Run="upgradepkg --install-new">
 <URL>"&gitURL;/packages/parted-3.2-x86_64-2.txz"</URL>
 <MD5>1026cb6b665bbeff2d514d6510d00bc5</MD5>
-</FILE>
-
-<!-- The 'parted' package install script. -->
-<FILE Run="/usr/bin/php">
-<INLINE>
-<![CDATA[
-<?
-	$version = parse_ini_file("/etc/unraid-version");
-	$plugin = "/boot/config/plugins/unassigned.devices/packages";
-	$command = "upgradepkg --install-new";
-
-	if ( version_compare($version['version'],"6.1.9", "<=") ) {
-		$name = "$plugin/parted-3.1-x86_64-1.txz";
-	} else {
-		$name = "$plugin/parted-3.2-x86_64-2.txz";
-	}
-	shell_exec("logger plugin: running: $name") ;
-	system("$command $name", $retval);
-	if ($retval) {
-		echo "run failed command: $command retval: $retval";
-		exit(1);
-	}
-?>
-]]>
-</INLINE>
 </FILE>
 
 <!--
@@ -845,12 +780,6 @@ mkdir /boot/config/plugins/&name; 2>/dev/null
 
 # Install the 'bundle'.
 tar -xf &packages;/&name;-&version;.tgz -C /usr/local/emhttp/plugins 2>/dev/null
-
-# Adjust stop event based on version of unRAID.
-source /etc/unraid-version
-if [[ "${version:0:5}" > "6.2.1" ]]; then
-	mv /usr/local/emhttp/plugins/&name;/event/unmounting_disks /usr/local/emhttp/plugins/&name;/event/stopping_svcs
-fi
 
 # move the rules file
 mv /usr/local/emhttp/plugins/&name;/99_persistent_unassigned.rules /etc/udev/rules.d/
@@ -935,23 +864,12 @@ mv -f /usr/local/emhttp/plugins/dynamix/OpenDevices.page- /usr/local/emhttp/plug
 rm -rf /usr/local/emhttp/plugins/&name; 2>/dev/null
 
 # Remove all installed packages.
-if [ -f /var/log/packages/ntfs-3g-2013.1.13-x86_64-1 ]; then
-	removepkg ntfs-3g-2013.1.13-x86_64-1 2>/dev/null
-fi
-if [ -f /var/log/packages/nmap-7.12-x86_64-1 ]; then
-	removepkg nmap-7.12-x86_64-1 2>/dev/null
-fi
+removepkg nmap-7.12-x86_64-1 2>/dev/null
 removepkg exfat-utils-1.2.7-x86_64-1_slonly 2>/dev/null
 removepkg fuse-exfat-1.2.7-x86_64-1_slonly.txz 2>/dev/null
 removepkg hfsprogs-332.25-x86_64-2sl 2>/dev/null
 removepkg libbsd-0.8.6-x86_64-1_slonly 2>/dev/null
-if [ -f /var/log/packages/parted-3.1-x86_64-1 ]; then
-	removepkg parted-3.1-x86_64-1 2>/dev/null
-fi
-if [ -f /var/log/packages/parted-3.2-x86_64-2 ]; then
-	removepkg parted-3.2-x86_64-2 2>/dev/null
-fi
-
+removepkg parted-3.2-x86_64-2 2>/dev/null
 removepkg libnl-1.1.4-x86_64-1 2>/dev/null
 
 # Remove the logs directory.
