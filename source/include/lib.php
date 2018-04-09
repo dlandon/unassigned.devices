@@ -1207,26 +1207,26 @@ function get_unasigned_disks() {
 
 	// Get the array devices.
 	for ($i = 1; $i < $var['SYS_ARRAY_SLOTS']; $i++) {
-		if (isset($disks["disk".$i]['device'])) {
+		if (isset($disks["disk".$i]['device']) && $disks["disk".$i]['device'] != "") {
 			$dev = $disks["disk".$i]['device'];
 			$unraid_disks[] = "/dev/".$dev;
 		}
 	}
 
 	// Get the parity devices.
-	if ( $disks['parity']['device'] != "") {
+	if (isset($disks['parity']['device']) && $disks['parity']['device'] != "") {
 		$unraid_disks[] = "/dev/".$disks['parity']['device'];
 	}
-	if ( isset($disks['parity2']['device']) && $disks['parity2']['device'] != "") {
+	if (isset($disks['parity2']['device']) && $disks['parity2']['device'] != "") {
 		$unraid_disks[] = "/dev/".$disks['parity2']['device'];
 	}
 
 	// Get all cache devices.
-	if ( $disks['cache']['device'] != "") {
+	if (isset($disks['cache']['device']) && $disks['cache']['device'] != "") {
 		$unraid_disks[] = "/dev/".$disks['cache']['device'];
 	}
 	for ($i = 2; $i <= $var['SYS_CACHE_SLOTS']; $i++) {
-		if (isset($disks["cache".$i]['device'])) {
+		if (isset($disks["cache".$i]['device']) && $disks["cache".$i]['device'] != "") {
 			$dev = $disks["cache".$i]['device'];
 			$unraid_disks[] = "/dev/".$dev;
 		}

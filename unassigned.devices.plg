@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2018.03.21">
+<!ENTITY version   "2018.04.09">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"81d6c2e2dc8effee7466974a2b90ce27">
+<!ENTITY MD5		"e92cfb409d12bf7620c6cb8e3996e3aa">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Detection of unRAID array disks when more slots that disks are assigned.
+
+###2018.03.21
 - Fix: Remove unRAID 6.1, 6.2, and 6.3 compatibility hacks.  The minimum supported unRAID version is now 6.4.
 
 ###2018.03.03b
