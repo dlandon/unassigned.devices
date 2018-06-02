@@ -967,7 +967,7 @@ function get_samba_mounts() {
 		$mount['size']  	= intval(trim(shell_exec("/bin/cat {$paths['df_temp']}|/bin/awk '{print $1}'")))*1024;
 		$mount['used']  	= intval(trim(shell_exec("/bin/cat {$paths['df_temp']}|/bin/awk '{print $2}'")))*1024;
 		$mount['avail'] 	= intval(trim(shell_exec("/bin/cat {$paths['df_temp']}|/bin/awk '{print $3}'")))*1024;
-		$mount['target']	= trim(shell_exec("/bin/cat /proc/mounts 2>&1|/bin/grep '$mount[mountpoint] '|/bin/awk '{print $2}'"));
+		$mount['target']	= $mount['mountpoint'];
 		$mount['prog_name']	= basename($mount['command'], ".sh");
 		$mount['logfile']	= $paths['device_log'].$mount['prog_name'].".log";
 		$o[] = $mount;
@@ -1112,7 +1112,7 @@ function get_iso_mounts() {
 		if (! $mount["mountpoint"]) {
 			$mount["mountpoint"] = preg_replace("%\s+%", "_", "{$paths['usb_mountpoint']}/{$mount['share']}");
 		}
-		$mount['target'] = trim(shell_exec("/bin/cat /proc/mounts 2>&1|/bin/grep '$mount[mountpoint] '|/bin/awk '{print $2}'"));
+		$mount['target'] = $mount['mountpoint'];
 		$is_alive = is_file($mount['file']);
 		exec("echo '' > {$paths['df_temp']}");
 		if ($is_alive && file_exists($mount['mountpoint'])) {

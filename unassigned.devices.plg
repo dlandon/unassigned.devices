@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2018.04.09">
+<!ENTITY version   "2018.06.01">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"1862f84e81cd79235f51cd0628b2e4c5">
+<!ENTITY MD5		"5832e3be145966e6381e2c45cdd5242f">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Used a free space detection for nfs, smb, and iso mount point with spaces.
+
+###2018.04.09
 - Fix: Detection of unRAID array disks when more slots that disks are assigned.
 
 ###2018.03.21
