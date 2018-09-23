@@ -24,7 +24,7 @@
 - Fix: Situation where "Load Shares" would not show properly when no shares were found.
 - Fix: Update packages: exfat-utils, fuse-exfat, and libbsd.
 
-2018.06.01a
+###2018.06.01a
 - Fix: Used and free space display for nfs, smb, and iso mount point with spaces.
 
 ###2018.04.09
