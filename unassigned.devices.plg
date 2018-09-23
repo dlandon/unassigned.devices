@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2018.06.01a">
+<!ENTITY version   "2018.09.23">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"e16273127fbf95ba24a69b936f7e5a77">
+<!ENTITY MD5		"238c9184f513330ef15fb55a3d90c7c0">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Changed search for server text on SMB/NFS share button for Black and White themes for smaller button size.
+- Fix: Situation where "Load Shares" would not show properly when no shares were found.
+- Fix: Update packages: exfat-utils, fuse-exfat, and libbsd.
+
+2018.06.01a
 - Fix: Used and free space display for nfs, smb, and iso mount point with spaces.
 
 ###2018.04.09
@@ -686,19 +691,19 @@ nmap-7.12-x86_64-1.txz
 </FILE>
 
 <!--
-exfat-utils-1.2.7-x86_64-1_slonly.txz
+exfat-utils-1.2.8-x86_64-1_slonly.txz
 -->
-<FILE Name="&packages;/exfat-utils-1.2.7-x86_64-1_slonly.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/exfat-utils-1.2.7-x86_64-1_slonly.txz"</URL>
-<MD5>51f4deec54d4a25be5bc414f2c8b6932</MD5>
+<FILE Name="&packages;/exfat-utils-1.2.8-x86_64-1_slonly.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/exfat-utils-1.2.8-x86_64-1_slonly.txz"</URL>
+<MD5>dd92c74adbefa546545471cae04f6501</MD5>
 </FILE>
 
 <!--
-fuse-exfat-1.2.7-x86_64-1_slonly.txz
+fuse-exfat-1.2.8-x86_64-1_slonly.txz
 -->
-<FILE Name="&packages;/fuse-exfat-1.2.7-x86_64-1_slonly.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/fuse-exfat-1.2.7-x86_64-1_slonly.txz"</URL>
-<MD5>aa7fe202a1e29d970170d134883da0a6</MD5>
+<FILE Name="&packages;/fuse-exfat-1.2.8-x86_64-1_slonly.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/fuse-exfat-1.2.8-x86_64-1_slonly.txz"</URL>
+<MD5>76335e187ab513c96967b36e0d01d6d4</MD5>
 </FILE>
 
 <!--
@@ -710,11 +715,11 @@ hfsprogs-332.25-x86_64-2sl.txz
 </FILE>
 
 <!--
-libbsd-0.8.6-x86_64-1_slonly.txz
+libbsd-0.8.7-x86_64-1_slonly.txz
 -->
-<FILE Name="&packages;/libbsd-0.8.6-x86_64-1_slonly.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/libbsd-0.8.6-x86_64-1_slonly.txz"</URL>
-<MD5>06ac394f16a76fee9faa592df08193cb</MD5>
+<FILE Name="&packages;/libbsd-0.8.7-x86_64-1_slonly.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/libbsd-0.8.7-x86_64-1_slonly.txz"</URL>
+<MD5>42b559543f2c1a9fe42d6aabfc18ac8a</MD5>
 </FILE>
 
 <!--
@@ -871,10 +876,10 @@ rm -rf /usr/local/emhttp/plugins/&name; 2>/dev/null
 
 # Remove all installed packages.
 removepkg nmap-7.12-x86_64-1 2>/dev/null
-removepkg exfat-utils-1.2.7-x86_64-1_slonly 2>/dev/null
-removepkg fuse-exfat-1.2.7-x86_64-1_slonly.txz 2>/dev/null
+removepkg exfat-utils-1.2.8-x86_64-1_slonly 2>/dev/null
+removepkg fuse-exfat-1.2.8-x86_64-1_slonly.txz 2>/dev/null
 removepkg hfsprogs-332.25-x86_64-2sl 2>/dev/null
-removepkg libbsd-0.8.6-x86_64-1_slonly 2>/dev/null
+removepkg libbsd-0.8.7-x86_64-1_slonly 2>/dev/null
 removepkg parted-3.2-x86_64-2 2>/dev/null
 removepkg libnl-1.1.4-x86_64-1 2>/dev/null
 

@@ -534,7 +534,8 @@ switch ($_POST['action']) {
 		$login = $user ? ($pass ? "-U '{$user}%{$pass}'" : "-U '{$user}' -N") : "-U%";
 		if ($ip)
 		{
-			echo shell_exec("/usr/bin/smbclient -g -L '$ip' $login 2>/dev/null|/usr/bin/awk -F'|' '/Disk/{print $2}'|sort");
+			$rc = shell_exec("/usr/bin/smbclient -g -L '$ip' $login 2>/dev/null|/usr/bin/awk -F'|' '/Disk/{print $2}'|sort");
+			echo $rc ? $rc : " ";
 		}
 		break;
 
@@ -554,7 +555,8 @@ switch ($_POST['action']) {
 
 	case 'list_nfs_shares':
 		$ip = urldecode($_POST['IP']);
-		echo shell_exec("showmount --no-headers -e '{$ip}' 2>/dev/null | rev | cut -d' ' -f2- | rev | sort");
+		$rc = shell_exec("showmount --no-headers -e '{$ip}' 2>/dev/null | rev | cut -d' ' -f2- | rev | sort");
+		echo $rc ? $rc : " ";
 		break;
 
 	/* SMB SHARES */
