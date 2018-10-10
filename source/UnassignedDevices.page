@@ -1,5 +1,6 @@
 Menu="Main:4"
 Title="Unassigned Devices"
+Tag="unlink"
 Markdown="false"
 ---
 <?php
@@ -564,11 +565,12 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		if (element.find("input[type='button']").length)
 		{
 			element.addClass("vhshift");
-			element.find("input[type='button']").prop("style","padding-top: 5px; padding-bottom: 5px;");
+			element.find("input[type='button']").prop("style","padding-top: 5px; padding-bottom: 5px; margin-top:-3px; margin-bottom:0;");
 		}
 
 		if (Target.prop('nodeName') === "DIV")
 		{
+			element.addClass("vhshift");
 			if (Append)
 			{
 				Target.append(element);
