@@ -252,7 +252,7 @@ switch ($_POST['action']) {
 				$flash			= ($disk['partitions'][0]['fstype'] == "vfat" || $disk['partitions'][0]['fstype'] == "exfat") ? true : false;
 				$disk_running	= array_key_exists("running", $disk) ? $disk["running"] : is_disk_running($disk['device']);
 				if ($mounted || is_file($disk['partitions'][0]['command']) || $preclearing) {
-					$disk['temperature'] = $disk['temperature'] ? $disk['temperature'] : get_temp($disk['device'], $disk_running);
+					$disk['temperature'] = $disk['temperature'] ? $disk['temperature'] : get_temp(substr($disk['device'],0,10), $disk_running);
 				}
 				$temp = my_temp($disk['temperature']);
 
