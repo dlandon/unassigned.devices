@@ -21,7 +21,7 @@
 ##&name;
 ###&version;
 - Fix: Unmount SMB shares as file type cifs to try to help with remote server off-line.
-- Fix: Do not allow '&' character in mount point name.
+- Fix: Do not allow ampersand character in mount point name.
 
 ###2018.10.11a
 - Fix: Text alignment on Unraid 6.6.
