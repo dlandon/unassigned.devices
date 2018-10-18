@@ -131,7 +131,7 @@ function listDir($root) {
 
 function safe_name($string) {
 	$string = stripcslashes($string);
-	$string = str_replace(array( "(", ")" ), "", $string);
+	$string = str_replace(array( "(", ")", "&" ), "", $string);
 	$string = htmlentities($string, ENT_QUOTES, 'UTF-8');
 	$string = preg_replace('~&([a-z]{1,2})(acute|cedil|circ|grave|lig|orn|ring|slash|th|tilde|uml);~i', '$1', $string);
 	$string = html_entity_decode($string, ENT_QUOTES, 'UTF-8');
@@ -625,10 +625,12 @@ function do_mount_local($info) {
 	}
 }
 
-function do_unmount($dev, $dir, $force = FALSE) {
+function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE) {
 	if ( is_mounted($dev) ) {
 		unassigned_log("Unmounting '{$dev}'...");
-		$o = shell_exec("/bin/umount".($force ? " -f -l" : "")." '{$dev}' 2>&1");
+		$cmd = "/bin/umount".($smb ? " -t cifs" : "").($force ? " -f -l" : "")." '{$dev}' 2>&1";
+		unassigned_log("Unmount cmd: $cmd");
+		$o = shell_exec($cmd);
 		for ($i=0; $i < 10; $i++) {
 			if (! is_mounted($dev)) {
 				if (is_dir($dir)) rmdir($dir);
