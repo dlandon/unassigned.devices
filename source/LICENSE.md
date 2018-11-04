@@ -1,4 +1,4 @@
-### Unassigned Devices plugin for unRAID
+### Unassigned Devices plugin for Unraid
 
 Copyright (C) 2015 Guilherme Jardim
 Copyright (C) 2016-2018 Dan Landon
