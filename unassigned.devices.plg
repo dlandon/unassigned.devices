@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2018.10.18">
+<!ENTITY version   "2018.11.04">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"51eff337192d3ec777fe85b4c4c72f27">
+<!ENTITY MD5		"3eea27d52d225f242283c2fcd58e0d78">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Unraid capitalization.
+
+###2018.10.18
 - Fix: Unmount SMB shares as file type cifs to try to help with remote server off-line.
 - Fix: Do not allow ampersand character in mount point name.
 
@@ -36,13 +39,13 @@
 - Fix: Used and free space display for nfs, smb, and iso mount point with spaces.
 
 ###2018.04.09
-- Fix: Detection of unRAID array disks when more slots that disks are assigned.
+- Fix: Detection of Unraid array disks when more slots that disks are assigned.
 
 ###2018.03.21
-- Fix: Remove unRAID 6.1, 6.2, and 6.3 compatibility hacks.  The minimum supported unRAID version is now 6.4.
+- Fix: Remove Unraid 6.1, 6.2, and 6.3 compatibility hacks.  The minimum supported Unraid version is now 6.4.
 
 ###2018.03.03b
-- Fix: Php warnings in unRAID 6.5.
+- Fix: Php warnings in Unraid 6.5.
 
 ###2018.01.09b
 - Fix: Adjust device name for a nvme device to remove the partition marker and add it back for formatting the disk.
@@ -121,7 +124,7 @@
 ###2017.09.09a
 - Fix: Add timeouts to prevent hanging when a remote share (smb or nfs) goes off-line.
 - Fix: Set 'browseable' properly when no smb users are defined.
-- Fix: Create unRAID compatible mbr so disks partitioned in UD can be installed in the array without re-formatting.
+- Fix: Create Unraid compatible mbr so disks partitioned in UD can be installed in the array without re-formatting.
 
 ###2017.09.04
 - Add: Configurable option to enable/disable the rc.diskinfo background daemon in preclear.  Defaults to off.
@@ -166,16 +169,16 @@
 - Fix: Avoid hdparm to be invoked twice on each disk.
 
 ###2017.06.21
-- Fix: Modifications for unRAID 6.4 Azure and Gray themes.
+- Fix: Modifications for Unraid 6.4 Azure and Gray themes.
 
 ###2017.06.15
 - Add: Add timeout to SMART probing commands.
 
 ###2017.06.11a
-- Fix: Modifications for unRAID 6.4 Azure and Gray themes.
+- Fix: Modifications for Unraid 6.4 Azure and Gray themes.
 
 ###2017.06.10
-- Fix: Modifications for unRAID 6.4 Azure and Gray themes.
+- Fix: Modifications for Unraid 6.4 Azure and Gray themes.
 
 ###2017.05.21
 - Add: Updated fuse-exfat and exfat-utils packages.
@@ -255,11 +258,11 @@
 - Add: Ability to make NFS shares private.
 
 ###2016.10.22b
-- Fix: Updates for compatibility with unRAID 6.2 and later.
+- Fix: Updates for compatibility with Unraid 6.2 and later.
 
 ###2016.10.20
-- Fix: Adjust stop event based on version of unRAID being used.
-- Fix: Inappropriate SMB servers were found when unRAID was the master browser.
+- Fix: Adjust stop event based on version of Unraid being used.
+- Fix: Inappropriate SMB servers were found when Unraid was the master browser.
 
 ###2016.10.02
 - Fix: Remove mount point path when changing the mount point name to minimize confusion.
@@ -284,7 +287,7 @@
 - Add: nvme devices.  Note: Consider this a beta feature as I have no way to test.
 
 ###2016.04.30
-- Fix: Install proper version of ntfs-3g package for unRAID 6.1.
+- Fix: Install proper version of ntfs-3g package for Unraid 6.1.
 
 ###2016.04.24
 - Add: Additional 'Help' text.
@@ -294,7 +297,7 @@
 
 ###2016.04.16a
 - Add: Move all packages to github repository for better package management and control.
-- Fix: Install parted 3.1 for unRAID 6.1 and parted 3.2 for unRAID 6.2.
+- Fix: Install parted 3.1 for Unraid 6.1 and parted 3.2 for Unraid 6.2.
 
 ###2016.04.16
 - Fix: Revert parted package back to 3.1 because of package dependency problems in 6.1.9.
@@ -398,7 +401,7 @@
 - Add: Script logging.
 
 ###2016.02.01
-- Fix: Keep unRaid flash drive from showing up in the unassigned devices when a flash device is plugged in with an 'UNRAID' label,.
+- Fix: Keep Unraid flash drive from showing up in the unassigned devices when a flash device is plugged in with an 'Unraid' label,.
 
 ###2016.01.31
 - Fix: Show spin status and disk temperature when a disk is pre-clearing.
@@ -407,7 +410,7 @@
 - Fix: Adjusted layout of script edit page.
 
 ###2016.01.30
-- Fix: Combined all scripts into one - rc.unassigned.  This is more consistent with unRaid standards.
+- Fix: Combined all scripts into one - rc.unassigned.  This is more consistent with Unraid standards.
 - Add: Changed the sequence of the drive sleep command so a no idle command can be set in the script.
 
 ###2016.01.29
@@ -428,7 +431,7 @@
 - Fix: Check for SMB sharing enabled before adding or removing SMB share.
 
 ###2016.01.25
-- Fix: Modified logging to be consistent with unraid format and provide clearer information.
+- Fix: Modified logging to be consistent with Unraid format and provide clearer information.
 - Fix: Changed the users lookup for smb security to make it more robust.
 
 ###2016.01.24a
@@ -452,11 +455,11 @@
 ###2016.01.20
 - Fix: Rearranged some items on main page for clarity.
 - Fix: Display SSD temperatures.  Only hard disk temps were displayed.
-- Fix: Share 'SMB Share' in unRAID shares with unassigned devices SMB Security settings. 
+- Fix: Share 'SMB Share' in Unraid shares with unassigned devices SMB Security settings. 
 - Add: Download log button in help to download a zip log file.
 - Add: If an ntfs formatted drive cannot be mounted read-write, then mount it read only.
 - Add: Additional help information and tool tips.
-- Add: Added smart report.  unRAID 6.1.7 has some additional disk settings for reporting errors and specific disk settings that will not work for unassigned devices.  You should not use the SDx Settings.
+- Add: Added smart report.  Unraid 6.1.7 has some additional disk settings for reporting errors and specific disk settings that will not work for unassigned devices.  You should not use the SDx Settings.
 
 ###2016.01.18
 - Fix: Updated unassigned_umount log messages.
@@ -481,7 +484,7 @@
 ###2016.01,16
 - First dlandon updated version.
 - Fix: Revert to 2015.09.19.
-- Fix: Compatibility with unRAID 6.1.7.
+- Fix: Compatibility with Unraid 6.1.7.
 - Fix: Update and remove plugin was messy.
 
 ###2015.09.19
@@ -528,7 +531,7 @@
 - Fix: 6.1-rc3 compatibility
 
 ###2015.07.21a
-- Fix: unRAID 6.1-rc1 compatibility
+- Fix: Unraid 6.1-rc1 compatibility
 - Add: link to Preclear if the plugin is present
 
 ###2015.06.17
@@ -659,7 +662,7 @@
   {
     echo "*****************************************************************\n";
     echo "\n";
-    echo "Unassigned Devices Requires unRAID version 6.4 or greater to run.\n";
+    echo "Unassigned Devices Requires Unraid version 6.4 or greater to run.\n";
     echo "\n";
     echo "*****************************************************************\n";
     exit(1);
