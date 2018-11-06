@@ -38,6 +38,7 @@ if (count($_POST)) {
 		position:absolute;
 		z-index:100;
 		display:none;
+		color:initial;
 	}
 </style>
 

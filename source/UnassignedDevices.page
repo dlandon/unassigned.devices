@@ -82,6 +82,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		position: absolute;
 		z-index: 100;
 		display: none;
+		color:initial;
 	}
 </style>
 
