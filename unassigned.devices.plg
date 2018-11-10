@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2018.11.05">
+<!ENTITY version   "2018.11.10">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"5196f43587564f8b2ca438ebc77de60f">
+<!ENTITY MD5		"f11bf9d519dd9c4c2ffae68f683d74cb">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: autov() wrapper for css/js calls for faster webui loading.
+
+###2018.11.05
 - Fix: Dropdown color for Unraid 6.6.
 
 ###2018.11.04
