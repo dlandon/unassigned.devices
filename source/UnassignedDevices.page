@@ -21,15 +21,15 @@ require_once("plugins/{$plugin}/include/lib.php");
 if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/OpenDevices.page","plugins/dynamix/OpenDevices.page-");
 ?>
 
-<script type="text/javascript" src="/webGui/javascript/jquery.switchbutton.js"></script>
-<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery.ui.css">
-<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery.switchbutton.css">
+<script type="text/javascript" src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
+<link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.ui.css')?>">
+<link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.switchbutton.css')?>">
 
-<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery.filetree.css">
-<script src="/webGui/javascript/jquery.filetree.js"></script>
+<link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.filetree.css')?>">
+<script src="<?autov('/webGui/javascript/jquery.filetree.js')?>"></script>
 
-<script type="text/javascript" src="/plugins/<?=$plugin;?>/assets/arrive.min.js"></script>
-<link rel="stylesheet" type="text/css" href="/plugins/<?=$plugin;?>/assets/style-<?=$display['theme'];?>.css">
+<script type="text/javascript" src="<?autov('/plugins/'.$plugin.'/assets/arrive.min.js')?>"></script>
+<link rel="stylesheet" type="text/css" href="<?autov('/plugins/'.$plugin.'/assets/style-'.$display['theme'].'.css')?>">
 
 <style>
 	table.usb_disks {padding: 0px 10px 0px 0px;border-collapse:collapse;white-space:nowrap;}

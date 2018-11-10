@@ -72,11 +72,11 @@ EOT;
 $remove = is_file($file) ? "<img style='cursor:pointer;' title='Remove Script File.' src='/plugins/$plugin/icons/remove.png' height='30px' onclick='rmfile(\"{$file}\");'> " : "";
 ?>
 
-<script type="text/javascript" src="/webGui/javascript/jquery.switchbutton.js"></script>
-<script type="text/javascript" src="/webGui/javascript/jquery.filetree.js"></script>
-<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery.ui.css">
-<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery.switchbutton.css">
-<link type="text/css" rel="stylesheet" href="/webGui/styles/jquery.filetree.css" >
+<script type="text/javascript" src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
+<script type="text/javascript" src="<?autov('/webGui/javascript/jquery.filetree.js')?>"></script>
+<link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.ui.css')?>">
+<link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.switchbutton.css')?>">
+<link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.filetree.css')?>" >
 
 <style type="text/css">
 	.fileTree {
