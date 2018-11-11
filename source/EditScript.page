@@ -87,6 +87,7 @@ $remove = is_file($file) ? "<img style='cursor:pointer;' title='Remove Script Fi
 		position:absolute;
 		z-index:100;
 		display:none;
+		color:initial;
 	}
 	.switch-wrapper {
 		display: inline-block;
