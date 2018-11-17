@@ -941,7 +941,7 @@ function get_samba_mounts() {
 		$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$mount['ip']} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
 		if (! $is_alive && ! is_ip($mount['ip']))
 		{
-			$ip = trim(shell_exec("/usr/bin/timeout 10 nmblookup {$mount['ip']} | awk '{print $1}'"));
+			$ip = trim(shell_exec("/usr/bin/timeout 10 nmblookup {$mount['ip']} | head -n1 | awk '{print $1}'"));
 			if (is_ip($ip))
 			{
 				$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
@@ -949,11 +949,13 @@ function get_samba_mounts() {
 				{
 					$mount['device'] = ($mount['fstype'] == "nfs") ? "{$ip}:/{$mount['path']}" : "//{$ip}/{$mount['path']}";
 				}	
+			} else {
+				unassigned_log("Error: Cannot get IP address for '{$mount['ip']}' from nmblookup.");
 			}
 		}
 
 		if (! $is_alive && is_mounted($device)) {
-			unassigned_log("Error: SMB/NFS server '$mount[ip]' is not responding to a ping and appears to be off-line.");
+			unassigned_log("Error: SMB/NFS server '{$mount['ip']}' is not responding to a ping and appears to be off-line.");
 		}
 
 		$mount['is_alive'] = $is_alive;
@@ -1049,7 +1051,7 @@ function do_mount_samba($info) {
 			return FALSE;
 		}
 	} else {
-		unassigned_log("Error: Remote SMB/NFS server '{$info[ip]}' is offline and share '{$info['device']}' cannot be mounted."); 
+		unassigned_log("Error: Remote SMB/NFS server '{$info['ip']}' is offline and share '{$info['device']}' cannot be mounted."); 
 		return FALSE;
 	}
 }

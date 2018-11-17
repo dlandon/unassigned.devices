@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2018.11.10a">
+<!ENTITY version   "2018.11.17">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"c2bde4178af9aa1b356d642c10b3c7b4">
+<!ENTITY MD5		"bd41ea120883ef48f67286c9c7ea3d77">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Situation where remote SMB server status check would fail.
+
+###2018.11.10a
 - Add: autov() wrapper for css/js calls for faster webui loading.
 
 ###2018.11.05
