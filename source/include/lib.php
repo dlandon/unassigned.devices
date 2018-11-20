@@ -949,8 +949,6 @@ function get_samba_mounts() {
 				{
 					$mount['device'] = ($mount['fstype'] == "nfs") ? "{$ip}:/{$mount['path']}" : "//{$ip}/{$mount['path']}";
 				}	
-			} else {
-				unassigned_log("Error: Cannot get IP address for '{$mount['ip']}' from nmblookup.");
 			}
 		}
 

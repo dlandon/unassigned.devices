@@ -8,7 +8,7 @@
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"bd41ea120883ef48f67286c9c7ea3d77">
+<!ENTITY MD5		"9ce6f20082caec9d719e0525b4c99c9c">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Remove log message about nmblookup failure.
+
+###2018.11.17
 - Fix: Situation where remote SMB server status check would fail.
 
 ###2018.11.10a
