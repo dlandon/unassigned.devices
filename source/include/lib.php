@@ -504,9 +504,13 @@ function remove_config_disk($sn) {
 #########################################################
 
 function is_mounted($dev, $dir=FALSE) {
-	$data = shell_exec("/sbin/mount");
-	$append = ($dir) ? " " : " on";
-	return strpos($data, $dev.$append);
+	if ($dev != "") {
+		$data = shell_exec("/sbin/mount");
+		$append = ($dir) ? " " : " on";
+		return strpos($data, $dev.$append);
+	} else {
+		return(FALSE);
+	}
 }
 
 function get_mount_params($fs, $dev) {

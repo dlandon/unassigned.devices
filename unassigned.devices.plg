@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2018.11.18">
+<!ENTITY version   "2018.11.23">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"9ce6f20082caec9d719e0525b4c99c9c">
+<!ENTITY MD5		"c829c99f0249c16bff70b9a5aab4e1c8">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Device was showing as mounted when it was not.
+
+###2018.11.18
 - Fix: Remove log message about nmblookup failure.
 
 ###2018.11.17
