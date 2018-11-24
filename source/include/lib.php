@@ -450,8 +450,6 @@ function toggle_automount($sn, $status) {
 }
 
 function execute_script($info, $action, $testing = FALSE) { 
-	$out = ''; 
-	$error = '';
 	putenv("ACTION={$action}");
 	foreach ($info as $key => $value) {
 		putenv(strtoupper($key)."={$value}");
@@ -459,6 +457,9 @@ function execute_script($info, $action, $testing = FALSE) {
 	$cmd = $info['command'];
 	$bg = ($info['command_bg'] == "true" && $action == "ADD") ? "&" : "";
 	if ($common_cmd = get_config("Config", "common_cmd")) {
+		if (! is_executable($common_cmd) ) {
+			@chmod($common_cmd, 0755);
+		}
 		unassigned_log("Running common script: '{$common_cmd}'");
 		exec($common_cmd);
 	}

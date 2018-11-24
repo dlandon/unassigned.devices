@@ -84,7 +84,7 @@ if (count($_POST)) {
 Common Script:
 : <input type="text" name="common_cmd" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin?>/','sh',false,true,true);" value="<?=$cfg['Config']['common_cmd'];?>">
 
-> If set, this script will run<span class="red" style="font-weight: bold">before</span>any other defined script.
+> If set, this script will run<span class="red" style="font-weight: bold">before</span>the device script.  The action is in the environment variable '$ACTION'.  Be sure you reference all commands with their full path.
 
 Destructive Mode:
 : <select name="destructive_mode" size="1">
