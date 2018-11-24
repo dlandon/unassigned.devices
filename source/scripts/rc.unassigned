@@ -58,6 +58,7 @@ function unassigned_mount() {
 						unassigned_log("Partition '{$info['label']}' could not be mounted...");
 						array_map(function($f){@unlink($f);}, $remove);
 						touch($paths['reload']);
+						execute_script($info, "ERROR_MOUNT");
 					}
 				} else {
 					unassigned_log("Error: Cannot mount null device with serial '{$info['serial']}'...");
@@ -80,6 +81,8 @@ function unassigned_mount() {
 				if (do_mount( $info )) {
 					add_smb_share($info['mountpoint'], $info['device'], FALSE);
 					execute_script($info, "ADD");
+				} else {
+					execute_script($info, "ERROR_MOUNT");
 				}
 			}
 		}
@@ -100,6 +103,8 @@ function unassigned_mount() {
 					add_smb_share($info['mountpoint'], $info['device'], FALSE);
 					add_nfs_share($info['mountpoint']);
 					execute_script($info, "ADD");
+				} else {
+					execute_script($info, "ERROR_MOUNT");
 				}
 			}
 		}
@@ -129,7 +134,7 @@ function unassigned_umount() {
 					{
 						addFile(sprintf($paths['unmounting'],basename($info['device'])));
 						setSleepTime($device);
-						execute_script($info, "REMOVE");
+						execute_script($info, "UNMOUNT");
 						if ( rm_smb_share($info['target'], $info['label']) && rm_nfs_share($info['target']) ) {
 							unassigned_log("Unmounting disk '{$info['label']}'...");
 							if ( do_unmount($info['device'], $info['mountpoint']) ) {
@@ -137,12 +142,14 @@ function unassigned_umount() {
 									shell_exec("/sbin/cryptsetup luksClose ".basename($info['device']));
 								}
 								unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' removed successfully.");
+								execute_script($info, "REMOVE");
 							}
 							else
 							{
 								unassigned_log("Disk '{$info['label']}' could not be unmounted...");
 								array_map(function($f){@unlink($f);}, $remove);
 								touch($paths['reload']);
+								execute_script($info, "ERROR_UNMOUNT");
 								exit(1);
 							}
 						}
@@ -167,13 +174,16 @@ function unassigned_umount() {
 				if ( is_mounted($info['device']) ) {
 					addFile(sprintf($paths['unmounting'],basename($info['device'])));
 					unassigned_log("Removing Remote SMB share '{$info['device']}'...");
-					execute_script($info, "REMOVE");
+					execute_script($info, "UNMOUNT");
 					unassigned_log("Unmounting Remote SMB Share '{$info['device']}'...");
 					$smb = $info['fstype'] == "cifs" ? TRUE : FALSE;
 					if ( do_unmount($info['device'], $info['mountpoint'], $force, $smb) ) {
 						if ( rm_smb_share($info['mountpoint'], $info['device']) ) {
 							unassigned_log("Share '{$info['device']}' unmount successfull.");
+							execute_script($info, "REMOVE");
 						}
+					} else {
+						execute_script($info, "ERROR_UNMOUNT");
 					}
 				} else {
 					unassigned_log("Remote SMB share '{$info['device']}' is not mounted and cannot be unmounted...");
@@ -195,12 +205,15 @@ function unassigned_umount() {
 				if ( is_mounted($info['device']) ) {
 					addFile(sprintf($paths['unmounting'],basename($info['device'])));
 					unassigned_log("Removing ISO File share '{$info['device']}'...");
-					execute_script($info, "REMOVE");
+					execute_script($info, "UNMOUNT");
 					unassigned_log("Unmounting ISO File Share '{$info['device']}'...");
 					if ( do_unmount($info['device'], $info['mountpoint'], $force) ) {
 						if ( rm_smb_share($info['mountpoint'], $info['device']) && rm_nfs_share($info['mountpoint']) ) {
 							unassigned_log("Share '{$info['device']}' unmount successfull.");
+							execute_script($info, "REMOVE");
 						}
+					} else {
+						execute_script($info, "ERROR_UNMOUNT");
 					}
 				} else {
 					unassigned_log("Remote ISO File share '{$info['device']}' is not mounted and cannot be unmounted...");

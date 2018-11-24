@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2018.11.23">
+<!ENTITY version   "2018.11.24">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"c829c99f0249c16bff70b9a5aab4e1c8">
+<!ENTITY MD5		"35db0e60fc62b63d0a7283cb7d9ae810">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Additional actions to execute_script to allow detection of unmounting progress and detection of errors.
+
+###2018.11.23
 - Fix: Device was showing as mounted when it was not.
 
 ###2018.11.18

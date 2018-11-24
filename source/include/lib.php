@@ -462,8 +462,11 @@ function execute_script($info, $action, $testing = FALSE) {
 		unassigned_log("Running common script: '{$common_cmd}'");
 		exec($common_cmd);
 	}
-	if (! $cmd) {unassigned_log("Device '{$info['device']}' script file not found.  '{$action}' script not executed."); return FALSE;}
-	unassigned_log("Running command '{$cmd}' with action '{$action}'.");
+	if ($cmd) {
+		unassigned_log("Running command '{$cmd}' with action '{$action}'.");
+	} else {
+		return(FALSE);
+	}
 	if (! is_executable($cmd) ) {
 		@chmod($cmd, 0755);
 	}

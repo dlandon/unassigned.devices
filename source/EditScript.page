@@ -47,7 +47,7 @@ PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin
 # USED       : used space
 # SIZE       : partition size
 # SERIAL     : disk serial number
-# ACTION     : if mounting, ADD; if unmounting, REMOVE
+# ACTION     : if mounting, ADD; if unmounting, UNMOUNT; if unmounted, REMOVE; if error, ERROR_MOUNT, ERROR_UNMOUNT
 # MOUNTPOINT : where the partition is mounted
 # FSTYPE     : partition filesystem
 # LABEL      : partition label
@@ -59,12 +59,32 @@ PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin
 case \$ACTION in
   'ADD' )
     // do your stuff here
-    echo "Added"
+	sleep 1
+	/usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Device added" -i "normal"
+  ;;
+
+  'UNMOUNT' )
+    // do your stuff here
+	sleep 1
+	/usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Device unmounting" -i "normal"
   ;;
 
   'REMOVE' )
     // do your stuff here
-    echo "Removed"
+	sleep 1
+	/usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Device can be removed" -i "normal"
+  ;;
+
+  'ERROR_MOUNT' )
+    // do your stuff here
+	sleep 1
+	/usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Error mounting device" -i "normal"
+  ;;
+
+  'ERROR_UNMOUNT' )
+    // do your stuff here
+	sleep 1
+	/usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Error unmounting device" -i "normal"
   ;;
 esac
 EOT;
@@ -109,15 +129,15 @@ $remove = is_file($file) ? "<img style='cursor:pointer;' title='Remove Script Fi
 Script content:
 : <textarea spellcheck="false" cols="80" rows="22" name="text" title="Enter and Edit the Script that runs when a udev or operator event occurs." style="font-family:bitstream;width:66%"><?=$text;?></textarea>
 
-<button type="button" title="Load the default script." onclick="setDefault(this.form)">Default Script</button>
-: <input type="reset" title="Undo your changes since last Save."/><input type="submit" title="Save your changes and save to Script File." value="Save"/><button type="button" onclick="done()">Done</button>
-
 > Click the **Save** button to commit the current edits.  Click **Reset** to
 > undo any changes you make (before Saving). Click **Done** to exit this page.
 >
 > Click the **Default** button to initialize the edit box with the
 > factory-default contents.  You still need to click **Save** in order to
 > commit the change.
+
+<button type="button" title="Load the default script." onclick="setDefault(this.form)">Default Script</button>
+: <input type="reset" title="Undo your changes since last Save."/><input type="submit" title="Save your changes and save to Script File." value="Save"/><button type="button" onclick="done()">Done</button>
 
 </form>
 
