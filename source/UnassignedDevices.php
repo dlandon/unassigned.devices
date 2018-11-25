@@ -179,7 +179,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 	$out[] = "<td></td>";
 	$out[] = "<td title='Turn on to Share Device with SMB and/or NFS'><input type='checkbox' class='toggle_share' info='".htmlentities(json_encode($partition))."' ".(($partition['shared']) ? 'checked':'')."></td>";
 	$out[] = "<td><a title='View Device Script Log' href='/Main/ScriptLog?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><img src='/plugins/{$plugin}/icons/scriptlog.png' style='cursor:pointer;width:16px;'></a></td>";
-	$out[] = "<td><a title='Edit Device Script' href='/Main/EditScript?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><img src='/plugins/{$plugin}/icons/editscript.png' style='cursor:pointer;width:16px;".( (get_config($partition['serial'],"command_bg.{$partition['part']}") == "true") ? "":"opacity: 0.4;" )."'></a></td>";
+	$out[] = "<td><a title='Edit Device Script' href='/Main/EditScript?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><img src='/plugins/{$plugin}/icons/editscript.png' style='cursor:pointer;width:16px;".( file_exists(get_config($partition['serial'],"command.1")) ? "":"opacity: 0.4;" )."'></a></td>";
 	$out[] = "</tr>";
 	return $out;
 }
@@ -367,7 +367,7 @@ switch ($_POST['action']) {
 				echo render_used_and_free($mount, $mounted);
 				echo "<td title='Turn on to Mount Remote SMB/NFS Share when Array is Started'><input type='checkbox' class='samba_automount' device='{$mount['name']}' ".(($mount['automount']) ? 'checked':'')."></td>";
 				echo "<td><a title='View Remote SMB/NFS Script Log' href='/Main/ScriptLog?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><img src='/plugins/{$plugin}/icons/scriptlog.png' style='cursor:pointer;width:16px;'></a></td>";
-				echo "<td><a title='Edit Remote SMB/NFS Script' href='/Main/EditScript?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><img src='/plugins/{$plugin}/icons/editscript.png' style='cursor:pointer;width:16px;".( (get_samba_config($mount['device'],"command_bg") == "true") ? "":"opacity: 0.4;" )."'></a></td>";
+				echo "<td><a title='Edit Remote SMB/NFS Script' href='/Main/EditScript?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><img src='/plugins/{$plugin}/icons/editscript.png' style='cursor:pointer;width:16px;".( file_exists(get_samba_config($mount['device'],"command")) ? "":"opacity: 0.4;" )."'></a></td>";
 				echo "</tr>";
 				if ($display['theme'] == 'white' || $display['theme'] == 'black') {
 					$odd = ($odd == "odd") ? "even" : "odd";
@@ -411,7 +411,7 @@ switch ($_POST['action']) {
 				echo render_used_and_free($mount, $mounted);
 				echo "<td title='Turn on to Mount ISO File when Array is Started'><input type='checkbox' class='iso_automount' device='{$mount['device']}' ".(($mount['automount']) ? 'checked':'')."></td>";
 				echo "<td><a title='View ISO File Script Log' href='/Main/ScriptLog?i=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><img src='/plugins/{$plugin}/icons/scriptlog.png' style='cursor:pointer;width:16px;'></a></td>";
-				echo "<td><a title='Edit ISO File Script' href='/Main/EditScript?i=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><img src='/plugins/{$plugin}/icons/editscript.png' style='cursor:pointer;width:16px;".( (get_iso_config($mount['device'],"command_bg") == "true") ? "":"opacity: 0.4;" )."'></a></td>";
+				echo "<td><a title='Edit ISO File Script' href='/Main/EditScript?i=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><img src='/plugins/{$plugin}/icons/editscript.png' style='cursor:pointer;width:16px;".( file_exists(get_iso_config($mount['device'],"command")) ? "":"opacity: 0.4;" )."'></a></td>";
 				echo "</tr>";
 				$odd = ($odd == "odd") ? "even" : "odd";
 			}
@@ -524,7 +524,7 @@ switch ($_POST['action']) {
 	/*	SAMBA	*/
 	case 'list_samba_hosts':
 		$workgroup = urldecode($_POST['workgroup']);
-		echo shell_exec("smbtree --servers | grep -v -P '^\w+' | tr -d '\\' | awk '{print $1}' | sort");
+		echo shell_exec("/usr/bin/smbtree --servers | grep -v -P '^\w+' | tr -d '\\' | awk '{print $1}' | sort");
 		break;
 
 	case 'list_samba_shares':
@@ -532,6 +532,7 @@ switch ($_POST['action']) {
 		$user = isset($_POST['USER']) ? urlencode($_POST['USER']) : NULL;
 		$pass = isset($_POST['PASS']) ? urlencode($_POST['PASS']) : NULL;
 		$login = $user ? ($pass ? "-U '{$user}%{$pass}'" : "-U '{$user}' -N") : "-U%";
+		$ip = trim(shell_exec("/usr/bin/nmblookup {$ip} | head -n1 | awk '{print $1}'"));
 		if ($ip)
 		{
 			$rc = shell_exec("/usr/bin/smbclient -g -L '$ip' $login 2>/dev/null|/usr/bin/awk -F'|' '/Disk/{print $2}'|sort");
@@ -549,13 +550,13 @@ switch ($_POST['action']) {
 			$net = implode(".", $net);
 			$mask = netmasks($iface["netmask"]);
 			$net = "{$net}/{$mask}"; 
-			echo shell_exec("nmap {$net} -p111,2049 --open -oG - | grep -e '111/open' -e	'2049/open'| awk '{print $2}' | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4");
+			echo shell_exec("/usr/bin/nmap {$net} -p111,2049 --open -oG - | grep -e '111/open' -e	'2049/open'| awk '{print $2}' | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4");
 		}
 		break;
 
 	case 'list_nfs_shares':
 		$ip = urldecode($_POST['IP']);
-		$rc = shell_exec("showmount --no-headers -e '{$ip}' 2>/dev/null | rev | cut -d' ' -f2- | rev | sort");
+		$rc = shell_exec("/usr/sbin/showmount --no-headers -e '{$ip}' 2>/dev/null | rev | cut -d' ' -f2- | rev | sort");
 		echo $rc ? $rc : " ";
 		break;
 

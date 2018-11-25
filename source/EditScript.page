@@ -59,31 +59,26 @@ PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin
 case \$ACTION in
   'ADD' )
     // do your stuff here
-	sleep 1
 	/usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Device added" -i "normal"
   ;;
 
   'UNMOUNT' )
     // do your stuff here
-	sleep 1
 	/usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Device unmounting" -i "normal"
   ;;
 
   'REMOVE' )
     // do your stuff here
-	sleep 1
 	/usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Device can be removed" -i "normal"
   ;;
 
   'ERROR_MOUNT' )
     // do your stuff here
-	sleep 1
 	/usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Error mounting device" -i "normal"
   ;;
 
   'ERROR_UNMOUNT' )
     // do your stuff here
-	sleep 1
 	/usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Error unmounting device" -i "normal"
   ;;
 esac
