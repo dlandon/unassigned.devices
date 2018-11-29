@@ -690,7 +690,7 @@ function toggle_share($serial, $part, $status) {
 function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 	global $paths, $var, $users;
 
-	if ( ($var['shareSMBEnabled'] == "yes") ) {
+	if ( ($var['shareSMBEnabled'] != "no") ) {
 		$share_name = basename($dir);
 		$config = @parse_ini_file($paths['config_file'], true);
 		$config = $config["Config"];
@@ -769,7 +769,7 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 function rm_smb_share($dir, $share_name) {
 	global $paths, $var;
 
-	if ( ($var['shareSMBEnabled'] == "yes") ) {
+	if ( ($var['shareSMBEnabled'] != "no") ) {
 		$share_name = basename($dir);
 		$share_conf = preg_replace("#\s+#", "_", realpath($paths['smb_usb_shares'])."/".$share_name.".conf");
 		if (is_file($share_conf)) {
