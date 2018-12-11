@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2018.11.29">
+<!ENTITY version   "2018.12.11">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY packages  "/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"0738d7e11b9dcf12efc94fbd4459381f">
+<!ENTITY MD5		"bb03bb619c4f594ae6b0db842e1e2953">
 ]>
 
 <PLUGIN name="&name;"
@@ -20,6 +20,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Update nmap package.
+
+###2018.11.29
 - Fix: Share UD mounted devices when Active Directory sharing is enabled.
 
 ###2018.11.25
@@ -720,11 +723,11 @@ Get the plugin bundle.
 </FILE>
 
 <!--
-nmap-7.12-x86_64-1.txz
+nmap-7.70-x86_64-3.txz
 -->
-<FILE Name="&packages;/nmap-7.12-x86_64-1.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/nmap-7.12-x86_64-1.txz"</URL>
-<MD5>79f5ae8093b85f19c483c0e9ec42e2b4</MD5>
+<FILE Name="&packages;/nmap-7.70-x86_64-3.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/nmap-7.70-x86_64-3.txz"</URL>
+<MD5>2917b9c1db64491ba1b09d38db468f20</MD5>
 </FILE>
 
 <!--
@@ -912,7 +915,7 @@ mv -f /usr/local/emhttp/plugins/dynamix/OpenDevices.page- /usr/local/emhttp/plug
 rm -rf /usr/local/emhttp/plugins/&name; 2>/dev/null
 
 # Remove all installed packages.
-removepkg nmap-7.12-x86_64-1 2>/dev/null
+removepkg nmap-7.70-x86_64-3 2>/dev/null
 removepkg exfat-utils-1.2.8-x86_64-1_slonly 2>/dev/null
 removepkg fuse-exfat-1.2.8-x86_64-1_slonly.txz 2>/dev/null
 removepkg hfsprogs-332.25-x86_64-2sl 2>/dev/null
