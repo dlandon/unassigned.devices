@@ -412,7 +412,7 @@ function benchmark()
   $time     = -microtime(true); 
   $out      = call_user_func_array($function, $params);
   $time    += microtime(true); 
-  $type     = ($time > 10) ? "INFO" : "DEBUG";
+  $type     = ($time > 5) ? "INFO" : "DEBUG";
   unassigned_log("benchmark: $function(".implode(",", $params).") took ".sprintf('%f', $time)."s.", $type);
   return $out;
 }
@@ -518,13 +518,9 @@ function remove_config_disk($sn) {
 
 function is_mounted($dev, $dir=FALSE) {
 	if ($dev != "") {
-		$data = shell_exec("/usr/bin/timeout 2 /sbin/mount");
-		if ($data != "") {
-			$append = ($dir) ? " " : " on";
-			return strpos($data, $dev.$append);
-		} else {
-			return(FALSE);
-		}
+		$data = shell_exec("/sbin/mount");
+		$append = ($dir) ? " " : " on";
+		return strpos($data, $dev.$append);
 	} else {
 		return(FALSE);
 	}
@@ -1012,13 +1008,13 @@ function do_mount_samba($info) {
 				@mkdir($dir, 0777, TRUE);
 				if ($fs == "nfs") {
 					$params	= get_mount_params($fs, '$dev');
-					$cmd	= "/usr/bin/timeout 10 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
+					$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 					$o		= shell_exec($cmd." 2>&1");
 				} else {
 					if ($config['Config']['samba_v1'] != "yes") {
 						$ver	= "3.0";
 						$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
-						$cmd	= "/usr/bin/timeout 10 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
+						$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 						unassigned_log("Mount SMB share '$dev' using SMB3 protocol.");
 						$o		= shell_exec($cmd." 2>&1");
 						if ($o != "" && strpos($o, "Permission denied") === FALSE) {
@@ -1027,7 +1023,7 @@ function do_mount_samba($info) {
 							unassigned_log("Mount SMB share '$dev' using SMB2 protocol.");
 							$ver	= "2.0";
 							$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
-							$cmd	= "/usr/bin/timeout 10 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
+							$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 							$o		= shell_exec($cmd." 2>&1");
 						}
 						if ($o != "" && strpos($o, "Permission denied") === FALSE) {
@@ -1036,14 +1032,14 @@ function do_mount_samba($info) {
 							unassigned_log("Mount SMB share '$dev' using SMB1 protocol.");
 							$ver	= "1.0";
 							$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
-							$cmd	= "/usr/bin/timeout 10 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
+							$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 							$o		= shell_exec($cmd." 2>&1");
 						}
 					} else {
 						unassigned_log("Mount SMB share '$dev' using SMB1 protocol.");
 						$ver	= "1.0";
 						$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
-						$cmd	= "/usr/bin/timeout 10 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
+						$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 						$o		= shell_exec($cmd." 2>&1");
 					}
 					$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), '*******');
@@ -1373,7 +1369,11 @@ function get_partition_info($device, $reload=FALSE){
 		$disk['size']		= intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $1}'")))*1024;
 		$disk['used']		= intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $2}'")))*1024;
 		$disk['avail']		= intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $3}'")))*1024;
-		$disk['openfiles']	= benchmark("shell_exec","/usr/bin/lsof '{$disk['target']}' 2>/dev/null | /bin/sort -k8 | /bin/uniq -f7 | /bin/grep -c -e REG");
+		if ($disk['target'] != "" && is_mounted($disk['device'])) {
+			$disk['openfiles']	= shell_exec("/usr/bin/timeout 2 /usr/bin/lsof '{$disk['target']}' 2>/dev/null | /bin/sort -k8 | /bin/uniq -f7 | /bin/grep -c -e REG");
+		} else {
+			$disk['openfiles'] = 0;
+		}
 		$disk['owner']		= (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
 		$disk['automount']	= is_automount($disk['serial'], strpos($attrs['DEVPATH'],"usb"));
 		$disk['shared']		= config_shared($disk['serial'], $disk['part'], strpos($attrs['DEVPATH'],"usb"));
