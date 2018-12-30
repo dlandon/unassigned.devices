@@ -518,9 +518,13 @@ function remove_config_disk($sn) {
 
 function is_mounted($dev, $dir=FALSE) {
 	if ($dev != "") {
-		$data = shell_exec("/sbin/mount");
-		$append = ($dir) ? " " : " on";
-		return strpos($data, $dev.$append);
+		$data = shell_exec("/usr/bin/timeout 2 /sbin/mount");
+		if ($data != "") {
+			$append = ($dir) ? " " : " on";
+			return strpos($data, $dev.$append);
+		} else {
+			return(FALSE);
+		}
 	} else {
 		return(FALSE);
 	}
@@ -1008,13 +1012,13 @@ function do_mount_samba($info) {
 				@mkdir($dir, 0777, TRUE);
 				if ($fs == "nfs") {
 					$params	= get_mount_params($fs, '$dev');
-					$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
+					$cmd	= "/usr/bin/timeout 10 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 					$o		= shell_exec($cmd." 2>&1");
 				} else {
 					if ($config['Config']['samba_v1'] != "yes") {
 						$ver	= "3.0";
 						$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
-						$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
+						$cmd	= "/usr/bin/timeout 10 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 						unassigned_log("Mount SMB share '$dev' using SMB3 protocol.");
 						$o		= shell_exec($cmd." 2>&1");
 						if ($o != "" && strpos($o, "Permission denied") === FALSE) {
@@ -1023,7 +1027,7 @@ function do_mount_samba($info) {
 							unassigned_log("Mount SMB share '$dev' using SMB2 protocol.");
 							$ver	= "2.0";
 							$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
-							$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
+							$cmd	= "/usr/bin/timeout 10 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 							$o		= shell_exec($cmd." 2>&1");
 						}
 						if ($o != "" && strpos($o, "Permission denied") === FALSE) {
@@ -1032,14 +1036,14 @@ function do_mount_samba($info) {
 							unassigned_log("Mount SMB share '$dev' using SMB1 protocol.");
 							$ver	= "1.0";
 							$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
-							$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
+							$cmd	= "/usr/bin/timeout 10 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 							$o		= shell_exec($cmd." 2>&1");
 						}
 					} else {
 						unassigned_log("Mount SMB share '$dev' using SMB1 protocol.");
 						$ver	= "1.0";
 						$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
-						$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
+						$cmd	= "/usr/bin/timeout 10 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 						$o		= shell_exec($cmd." 2>&1");
 					}
 					$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), '*******');
