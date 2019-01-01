@@ -412,7 +412,7 @@ function benchmark()
   $time     = -microtime(true); 
   $out      = call_user_func_array($function, $params);
   $time    += microtime(true); 
-  $type     = ($time > 5) ? "INFO" : "DEBUG";
+  $type     = ($time > 10) ? "INFO" : "DEBUG";
   unassigned_log("benchmark: $function(".implode(",", $params).") took ".sprintf('%f', $time)."s.", $type);
   return $out;
 }
@@ -560,7 +560,7 @@ function get_mount_params($fs, $dev) {
 			break;
 
 		case 'nfs':
-			return "defaults";
+			return "rw,hard,timeo=600,retrans=10";
 			break;
 
 		default:
