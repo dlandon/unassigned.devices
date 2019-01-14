@@ -1,6 +1,6 @@
 Menu="Utilities"
 Title="Unassigned Devices"
-Icon="unassigned.devices.png"
+Icon="unlock-alt"
 ---
 <?php
 /* Copyright 2015, Guilherme Jardim
