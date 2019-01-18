@@ -695,11 +695,15 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 		$config = @parse_ini_file($paths['config_file'], true);
 		$config = $config["Config"];
 
-		if ($recycle_bin) {
-			$vfs_objects = "\n\tvfs objects = ";
-		} else {
-			$vfs_objects = "";
+		$vfs_objects = "";
+		if (($recycle_bin) || ($var['enableFruit']) == 'yes') {
+			$vfs_objects .= "\n\tvfs objects = ";
+			if ($var['enableFruit'] == 'yes') {
+				$vfs_objects .= "catia fruit streams_xattr";
+			}
 		}
+		$vfs_objects .= "\n";
+
 		if (($config["smb_security"] == "yes") || ($config["smb_security"] == "hidden")) {
 			$read_users = $write_users = $valid_users = array();
 			foreach ($users as $key => $user) {
@@ -855,7 +859,7 @@ function remove_shares() {
 				$info = get_partition_info($p);
 				$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV, $reload) : get_udev_info($device, NULL, $reload);
 				if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'],"usb"))) {
-					unassigned_log("Reloading shared dir '{$info[target]}'.");
+					unassigned_log("Reloading shared dir '{$info['target']}'.");
 					unassigned_log("Removing old config...");
 					rm_smb_share($info['target'], $info['label']);
 					rm_nfs_share($info['target']);
