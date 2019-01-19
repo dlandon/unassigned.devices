@@ -6,4 +6,4 @@ if [ -z ${DOCROOT} ];then
 fi
 
 logger "Mounting 'Auto Mount' Devices..." -t"unassigned.devices"
-${DOCROOT}/plugins/unassigned.devices/scripts/rc.unassigned mount auto
+${DOCROOT}/plugins/unassigned.devices/scripts/rc.unassigned mount autodevices
