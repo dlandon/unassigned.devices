@@ -31,7 +31,7 @@ function unassigned_mount() {
 		{
 			if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "auto" || $DEVNAME == "autodevices") {
 				$info = get_partition_info($partition, true);
-				if (! $info['automount'] && ( $DEVNAME == "auto" || isset($_ENV['DEVNAME']) )) {
+				if (! $info['automount'] && ( $DEVNAME == "auto" || $DEVNAME == "autodevices" || isset($_ENV['DEVNAME']) )) {
 					unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' is not set to auto mount and will not be mounted...");
 					continue;
 				}
@@ -72,7 +72,7 @@ function unassigned_mount() {
 		foreach (get_samba_mounts() as $info) {
 			$device = $info['device'];
 			if ( $DEVNAME == $device || $DEVNAME == "auto" || $DEVNAME == "autoshares") {
-				if (! $info['automount'] && $DEVNAME == "auto" ) {
+				if (! $info['automount'] && ($DEVNAME == "auto" || $DEVNAME == "autoshares")) {
 					unassigned_log("Remote SMB mount '{$info['device']}' is not set to auto mount and will not be mounted...");
 					continue;
 				}
@@ -93,7 +93,7 @@ function unassigned_mount() {
 		foreach (get_iso_mounts() as $info) {
 			$device = $info['device'];
 			if ( $DEVNAME == $device || $DEVNAME == "auto" || $DEVNAME == "autodevices") {
-				if (! $info['automount'] && $DEVNAME == "auto" ) {
+				if (! $info['automount'] && ($DEVNAME == "auto" || $DEVNAME == "autodevices")) {
 					unassigned_log("ISO File mount '{$info['device']}' is not set to auto mount and will not be mounted...");
 					continue;
 				}
