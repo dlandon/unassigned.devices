@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2019.01.19a">
+<!ENTITY version   "2019.01.20">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"3d6cf43afee18bdf12b9d8c3db5eb755">
+<!ENTITY MD5		"243dc18b249118bdf6240d89d6745a6b">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Remove unused style sheets and change icons to font awesome.
+
+###2019.01.19a
 - Fix: Change event for mounting remote shares so network is ready and remote shares will mount.
 
 ###2019.01.17

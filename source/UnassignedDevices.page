@@ -29,7 +29,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 <script src="<?autov('/webGui/javascript/jquery.filetree.js')?>"></script>
 
 <script type="text/javascript" src="<?autov('/plugins/'.$plugin.'/assets/arrive.min.js')?>"></script>
-<link rel="stylesheet" type="text/css" href="<?autov('/plugins/'.$plugin.'/assets/style-'.$display['theme'].'.css')?>">
 
 <style>
 	table.usb_disks {padding: 0px 10px 0px 0px;border-collapse:collapse;white-space:nowrap;}
@@ -52,11 +51,11 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	table.samba_mounts tr>td+td+td+td+td+td+td+td+td+td{text-align:right;padding-left:0;padding-right:12px;}
 
 	button[type=button].mount {margin:0px 14px 0 14px;}
-	i.glyphicon{margin:0px 5px 0 5px;}
+	i.fa{margin:0px 5px 0 5px;}
 	i.hdd{margin:0px; 0px;font-size: 1.1em}
 	i.partition{margin-left: 18px;}
 	.exec{cursor: pointer;}
-	i.glyphicon-append{margin:0px;font-size: 0.8em;position: relative; left:-0.3em;top:0.7em;}
+	i.fa-append{margin:0px;font-size: 0.8em;position: relative; left:-0.3em;top:0.7em;}
 	.underline{text-decoration: underline;}
 	button.array {padding:2px 7px 2px 7px;}
 
@@ -164,11 +163,11 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			opt = (op == "mount") ? "Mounting" : "Unmounting";
 			if (data.status)
 			{
-				text	= "<i class='glyphicon glyphicon-ok green-text'></i> " + opt + "...";
+				text	= "<i class='fa fa-ok green-text'></i> " + opt + "...";
 			}
 			else
 			{
-				text	= "<i class='glyphicon glyphicon-remove red-text'></i> " + opt + "...";
+				text	= "<i class='fa fa-remove red-text'></i> " + opt + "...";
 				setTimeout(usb_disks,1500);
 			}
 			$("button[device='"+device+"']").prop('disabled',true);
@@ -210,7 +209,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			{
 				if(v.length)
 				{
-					$("tr[name='"+v+"']").prev().find("i.glyphicon-plus-sign").removeClass("glyphicon-plus-sign").addClass("glyphicon-minus-sign");
+					$("tr[name='"+v+"']").prev().find("i.fa-plus-sign").removeClass("fa-plus-sign").addClass("fa-minus-sign");
 					$("tr[name='"+v+"']").css("display", "table-row");
 				}
 			});
@@ -838,9 +837,9 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			$(this).disableSelection();disk = $(this).attr("hdd");el = $(this);
 			$(".toggle-"+disk).slideToggle(0,function(){
 				if ( $("tr.toggle-"+disk+":first").is(":visible") ){
-					el.find(".glyphicon-append").addClass("glyphicon-minus-sign").removeClass("glyphicon-plus-sign");
+					el.find(".fa-append").addClass("fa-minus-sign").removeClass("fa-plus-sign");
 				} else {
-					el.find(".glyphicon-append").removeClass("glyphicon-minus-sign").addClass("glyphicon-plus-sign");
+					el.find(".fa-append").removeClass("fa-minus-sign").addClass("fa-plus-sign");
 				}
 			});
 		});
