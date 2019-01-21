@@ -2,7 +2,7 @@ Title="Edit Script"
 ---
 <?php
 /* Copyright 2015, Guilherme Jardim
- * Copyright 2016-2018, Dan Landon
+ * Copyright 2016-2019, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -20,22 +20,42 @@ function safe_filename($string) {
 	return preg_replace('~[ ]~i', '_', $string);
 }
 
+$background = "checked";
+
 if (isset($_GET['s'])) {
 	$serial = $_GET['s'];
 	$partition = $_GET['p'];
 	$file = get_config($serial,"command.{$partition}");
-	$background = (get_config($serial,"command_bg.{$partition}") == "true" ) ? "checked" : "";
-	if (! $file ) $file = "/boot/config/plugins/{$plugin}/".( preg_replace("%\s+%", "_", urldecode($_GET['l'])) ).".sh";
+	if (! file_exists($file)) {
+		set_config($serial,"command.{$partition}","");
+	}
+	if (! $file ) {
+		$file = "/boot/config/plugins/{$plugin}/".( preg_replace("%\s+%", "_", urldecode($_GET['l'])) ).".sh";
+	} else {
+		$background = (get_config($serial,"command_bg.{$partition}") == "true" ) ? "checked" : "";
+	}
 } else if (isset($_GET['d'])) {
 	$device = $_GET['d'];
 	$file = get_samba_config($device,"command");
-	$background = (get_samba_config($device,"command_bg") == "true" ) ? "checked" : "";
-	if (! $file ) $file = "/boot/config/plugins/{$plugin}/".( preg_replace("%\s+%", "_", urldecode($_GET['l'])) ).".sh";
+	if (! file_exists($file)) {
+		set_samba_config($device,"command","");
+	}
+	if (! $file ) {
+		$file = "/boot/config/plugins/{$plugin}/".( preg_replace("%\s+%", "_", urldecode($_GET['l'])) ).".sh";
+	} else {
+		$background = (get_samba_config($device,"command_bg") == "true" ) ? "checked" : "";
+	}
 } else if (isset($_GET['i'])) {
 	$device = $_GET['i'];
 	$file = get_iso_config($device,"command");
-	$background = (get_iso_config($device,"command_bg") == "true" ) ? "checked" : "";
-	if (! $file ) $file = "/boot/config/plugins/{$plugin}/".( preg_replace("%\s+%", "_", urldecode($_GET['l'])) ).".sh";
+	if (! file_exists($file)) {
+		set_iso_config($device,"command","");
+	}
+	if (! $file ) {
+		$file = "/boot/config/plugins/{$plugin}/".( preg_replace("%\s+%", "_", urldecode($_GET['l'])) ).".sh";
+	} else {
+		$background = (get_iso_config($device,"command_bg") == "true" ) ? "checked" : "";
+	}
 }
 
 $text = @file_get_contents($file);
@@ -84,7 +104,7 @@ case \$ACTION in
 esac
 EOT;
 
-$remove = is_file($file) ? "<img style='cursor:pointer;' title='Remove Script File.' src='/plugins/$plugin/icons/remove.png' height='30px' onclick='rmfile(\"{$file}\");'> " : "";
+$remove = is_file($file) ? "<a title='Remove Script File.' class='exec' onclick='rmfile(\"{$file}\");'><i class='fa fa-times-circle' style='color:red;font-size: 25px;'></i></a> " : "";
 ?>
 
 <script type="text/javascript" src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
@@ -104,6 +124,10 @@ $remove = is_file($file) ? "<img style='cursor:pointer;' title='Remove Script Fi
 		display:none;
 		color:initial;
 	}
+	.switch-button-background.checked {
+		background:#0088CC;
+		border:1px solid #0088CC;
+	}
 	.switch-wrapper {
 		display: inline-block;
 		position: relative;
@@ -115,24 +139,30 @@ $remove = is_file($file) ? "<img style='cursor:pointer;' title='Remove Script Fi
 <form markdown="1" method="POST" action="/update.php" target="progressFrame">
 <input type="hidden" name="#include" value="/webGui/include/update.file.php">
 
-&nbsp;
-: <input type="text" title="Enter Script File Name." name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>/','sh',false,true);" autocomplete="off" value="<?=$file;?>"><?=$remove;?>
 
-&nbsp;
-: <span class="switch-wrapper" title="Turn on to run Script File in the background."><input type="checkbox" name="run_background" <?=$background;?>></span>
+<input type="text" title="Enter Script File Name." name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>/','sh',false,true);" autocomplete="off" value="<?=$file;?>"><?=$remove;?>
 
-Script content:
-: <textarea spellcheck="false" cols="80" rows="22" name="text" title="Enter and Edit the Script that runs when a udev or operator event occurs." style="font-family:bitstream;width:66%"><?=$text;?></textarea>
+> Choose your script name from the file selection dropdown, or enter your desired script name.
 
-> Click the **Save** button to commit the current edits.  Click **Reset** to
-> undo any changes you make (before Saving). Click **Done** to exit this page.
+<span class="switch-wrapper" title="Turn on to run Script File in the background."><input type="checkbox" name="run_background" <?=$background;?>></span>
+
+> Turn on the **Run in Background** to have the script run as a background task.  This can keep the Unassigned Devices UI from hanging when the script is run from the UI.
+
+<br />
+<strong>Script content:</strong>
+<br />
+
+<textarea spellcheck="false" cols="80" rows="22" name="text" title="Enter and Edit the Script that runs when a udev or operator event occurs." style="font-family:bitstream;width:80%"><?=$text;?></textarea>
+
+> Click the **Save** button to commit the current edits.  Click **Reset** to undo any changes you make (before Saving). Click **Done** to exit this page.
 >
-> Click the **Default** button to initialize the edit box with the
-> factory-default contents.  You still need to click **Save** in order to
-> commit the change.
+> Click the **Default Script** button to initialize the edit box with a default script.
+> You still need to click **Save** in order to commit the change.
 
 <button type="button" title="Load the default script." onclick="setDefault(this.form)">Default Script</button>
-: <input type="reset" title="Undo your changes since last Save."/><input type="submit" title="Save your changes and save to Script File." value="Save"/><button type="button" onclick="done()">Done</button>
+<input type="reset" title="Undo your changes since last Save."/>
+<input type="submit" title="Save your changes and save to Script File." value="Save"/>
+<button type="button" onclick="done()">Done</button>
 
 </form>
 

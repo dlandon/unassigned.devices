@@ -1,6 +1,6 @@
 <?php
 /* Copyright 2015, Guilherme Jardim
- * Copyright 2016-2018, Dan Landon
+ * Copyright 2016-2019, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -18,7 +18,6 @@ $paths = [  "smb_extra"			=> "/boot/config/smb-extra.conf",
 			"usb_mountpoint"	=> "/mnt/disks",
 			"device_log"		=> "/tmp/{$plugin}/",
 			"config_file"		=> "/boot/config/plugins/{$plugin}/{$plugin}.cfg",
-			"disk_config_file"	=> "/boot/config/disk.cfg",
 			"state"				=> "/var/state/{$plugin}/{$plugin}.ini",
 			"hdd_temp"			=> "/var/state/{$plugin}/hdd_temp.json",
 			"samba_mount"		=> "/boot/config/plugins/{$plugin}/samba_mount.cfg",
