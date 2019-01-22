@@ -66,8 +66,8 @@ function render_used_and_free($partition, $mounted) {
 		} else {
 			$free_pct = $partition['size'] ? round(100*$partition['avail']/$partition['size']) : 0;
 			$used_pct = 100-$free_pct;
-			$o .= "<td><div class='usage-disk'><span style='margin:0;width:{$used_pct}%' class='".usage_color($display,$used_pct,false)."'><span>".my_scale($partition['used'], $unit)." $unit</span></span></div></td>";
-			$o .= "<td><div class='usage-disk'><span style='margin:0;width:{$free_pct}%' class='".usage_color($display,$free_pct,true)."'><span>".my_scale($partition['avail'], $unit)." $unit</span></span></div></td>";
+			$o .= "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'></span><span>".my_scale($partition['used'], $unit)." $unit</span></div></td>";
+			$o .= "<td><div class='usage-disk'><span style='margin:0;width:$free_pct%' class='".usage_color($display,$free_pct,true)."'></span><span>".my_scale($partition['avail'], $unit)." $unit</span></div></td>";
 		}
 	} else {
 		$o .= "<td>-</td><td>-</td>";
@@ -94,8 +94,8 @@ function render_used_and_free_disk($disk, $mounted) {
 		} else {
 			$free_pct = $size ? round(100*$avail/$size) : 0;
 			$used_pct = 100-$free_pct;
-			$o .= "<td><div class='usage-disk'><span style='margin:0;width:{$used_pct}%' class='".usage_color($display,$used_pct,false)."'><span>".my_scale($used, $unit)." $unit</span></span></div></td>";
-			$o .= "<td><div class='usage-disk'><span style='margin:0;width:{$free_pct}%' class='".usage_color($display,$free_pct,true)."'><span>".my_scale($avail, $unit)." $unit</span></span></div></td>";
+			$o .= "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'></span><span>".my_scale($used*1024, $unit)." $unit</span></div></td>";
+			$o .= "<td><div class='usage-disk'><span style='margin:0;width:$free_pct%' class='".usage_color($display,$free_pct,true)."'></span><span>".my_scale($avail*1024, $unit)." $unit</span></div></td>";
 		}
 	} else {
 		$o .= "<td>-</td><td>-</td>";

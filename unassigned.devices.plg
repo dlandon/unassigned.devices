@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2019.01.21">
+<!ENTITY version   "2019.01.21a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"678c693226d7a075761161eeaa6fb9dd">
+<!ENTITY MD5		"63ffe1d606144313d0cc699204f70784">
 ]>
 
 <PLUGIN name="&name;"
@@ -25,6 +25,7 @@
 ##&name;
 ###&version;
 - Fix: Changes in Edit Script for a cleaner layout.  Added highlight for 'Run in Background' selected.
+- Fix: Used and free bar graphs.
 
 ###2019.01.20
 - Fix: Remove unused style sheets and change icons to font awesome.
