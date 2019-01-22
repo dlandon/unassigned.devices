@@ -60,15 +60,19 @@ function render_used_and_free($partition, $mounted) {
 
 	$o = "";
 	if (strlen($partition['target']) && $mounted) {
-		if (!$display['text']) {
+		$free_pct = $partition['size'] ? round(100*$partition['avail']/$partition['size']) : 0;
+		$used_pct = 100-$free_pct;
+	    if ($display['text'] % 10 == 0) {
 			$o .= "<td>".my_scale($partition['used'], $unit)." $unit</td>";
+		} else {
+			$o .= "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'></span><span>".my_scale($partition['used'], $unit)." $unit</span></div></td>";
+		}
+	    if ($display['text'] < 10 ? $display['text'] % 10 == 0 : $display['text'] % 10 != 0) {
 			$o .= "<td>".my_scale($partition['avail'], $unit)." $unit</td>";
 		} else {
-			$free_pct = $partition['size'] ? round(100*$partition['avail']/$partition['size']) : 0;
-			$used_pct = 100-$free_pct;
-			$o .= "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'></span><span>".my_scale($partition['used'], $unit)." $unit</span></div></td>";
 			$o .= "<td><div class='usage-disk'><span style='margin:0;width:$free_pct%' class='".usage_color($display,$free_pct,true)."'></span><span>".my_scale($partition['avail'], $unit)." $unit</span></div></td>";
 		}
+
 	} else {
 		$o .= "<td>-</td><td>-</td>";
 	}
@@ -88,14 +92,17 @@ function render_used_and_free_disk($disk, $mounted) {
 			$avail	+= $partition['avail'];
 			$used 	+= $partition['used'];
 		}
-		if (!$display['text']) {
+		$free_pct = $size ? round(100*$avail/$size) : 0;
+		$used_pct = 100-$free_pct;
+	    if ($display['text'] % 10 == 0) {
 			$o .= "<td>".my_scale($used, $unit)." $unit</td>";
+		} else {
+			$o .= "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'></span><span>".my_scale($used, $unit)." $unit</span></div></td>";
+		}
+	    if ($display['text'] < 10 ? $display['text'] % 10 == 0 : $display['text'] % 10 != 0) {
 			$o .= "<td>".my_scale($avail, $unit)." $unit</td>";
 		} else {
-			$free_pct = $size ? round(100*$avail/$size) : 0;
-			$used_pct = 100-$free_pct;
-			$o .= "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'></span><span>".my_scale($used*1024, $unit)." $unit</span></div></td>";
-			$o .= "<td><div class='usage-disk'><span style='margin:0;width:$free_pct%' class='".usage_color($display,$free_pct,true)."'></span><span>".my_scale($avail*1024, $unit)." $unit</span></div></td>";
+			$o .= "<td><div class='usage-disk'><span style='margin:0;width:$free_pct%' class='".usage_color($display,$free_pct,true)."'></span><span>".my_scale($avail, $unit)." $unit</span></div></td>";
 		}
 	} else {
 		$o .= "<td>-</td><td>-</td>";
@@ -381,7 +388,7 @@ switch ($_POST['action']) {
 				if (strlen($devname) > 50) {
 					$devname = substr($devname, 0, 10)."<strong>...</strong>".basename($devname);
 				}
-				echo "<td><div><i class='fa fa-folder-open hdd'></i><span style='margin:4px;'></span>{$devname}</div></td>";
+				echo "<td><div><img src='/plugins/{$plugin}/icons/cd.png' style='icon'><span style='margin:4px;'></span>{$devname}</div></td>";
 				if ($mounted) {
 					echo "<td><i class='fa fa-download hdd'></i><span style='margin:4px;'><a title='Browse ISO File Share' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount['mountpoint']}</a></td>";
 				} else {
@@ -411,7 +418,7 @@ switch ($_POST['action']) {
 			}
 		}
 		if (! count($samba_mounts) && ! count($iso_mounts)) {
-			echo "<tr><td colspan='12' style='text-align:center;font-weight:bold;'>No Remote SMB/NFS or ISO File Shares configured.</td></tr>";
+			echo "<tr><td colspan='12' style='text-align:center;'>No Remote SMB/NFS or ISO File Shares configured.</td></tr>";
 		}
 		echo "</tbody></table><button type='button' onclick='add_samba_share();'>Add Remote SMB/NFS Share</button>";
 		echo "<button type='button' onclick='add_iso_share();'>Add ISO File Share</button></div>";
