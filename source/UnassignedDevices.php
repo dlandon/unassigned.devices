@@ -14,6 +14,7 @@ $plugin = "unassigned.devices";
 require_once("plugins/{$plugin}/include/lib.php");
 require_once("webGui/include/Helpers.php");
 $csrf_token = $var['csrf_token'];
+$version = parse_ini_file("/etc/unraid-version");
 
 if (isset($_POST['display'])) $display = $_POST['display'];
 if (isset($_POST['var'])) $var = $_POST['var'];
@@ -56,7 +57,7 @@ function netmasks($netmask, $rev = false)
 }
 
 function render_used_and_free($partition, $mounted) {
-	global $display;
+	global $display, $version;
 
 	$o = "";
 	if (strlen($partition['target']) && $mounted) {
@@ -65,12 +66,22 @@ function render_used_and_free($partition, $mounted) {
 	    if ($display['text'] % 10 == 0) {
 			$o .= "<td>".my_scale($partition['used'], $unit)." $unit</td>";
 		} else {
-			$o .= "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'></span><span>".my_scale($partition['used'], $unit)." $unit</span></div></td>";
+			if ( version_compare($version['version'],"6.7", "<") )
+			{
+				$o .= "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'><span>".my_scale($partition['used'], $unit)." $unit</span></span></div></td>";
+			} else {
+				$o .= "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'></span><span>".my_scale($partition['used'], $unit)." $unit</span></div></td>";
+			}
 		}
 	    if ($display['text'] < 10 ? $display['text'] % 10 == 0 : $display['text'] % 10 != 0) {
 			$o .= "<td>".my_scale($partition['avail'], $unit)." $unit</td>";
 		} else {
-			$o .= "<td><div class='usage-disk'><span style='margin:0;width:$free_pct%' class='".usage_color($display,$free_pct,true)."'></span><span>".my_scale($partition['avail'], $unit)." $unit</span></div></td>";
+			if ( version_compare($version['version'],"6.7", "<") )
+			{
+				$o .= "<td><div class='usage-disk'><span style='margin:0;width:$free_pct%' class='".usage_color($display,$free_pct,true)."'><span>".my_scale($partition['avail'], $unit)." $unit</span></span></div></td>";
+			} else {
+				$o .= "<td><div class='usage-disk'><span style='margin:0;width:$free_pct%' class='".usage_color($display,$free_pct,true)."'></span><span>".my_scale($partition['avail'], $unit)." $unit</span></div></td>";
+			}
 		}
 
 	} else {
@@ -80,7 +91,7 @@ function render_used_and_free($partition, $mounted) {
 }
 
 function render_used_and_free_disk($disk, $mounted) {
-	global $display;
+	global $display, $version;
 
 	$o = "";
 	if ($mounted) {
@@ -97,12 +108,22 @@ function render_used_and_free_disk($disk, $mounted) {
 	    if ($display['text'] % 10 == 0) {
 			$o .= "<td>".my_scale($used, $unit)." $unit</td>";
 		} else {
-			$o .= "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'></span><span>".my_scale($used, $unit)." $unit</span></div></td>";
+			if ( version_compare($version['version'],"6.7", "<") )
+			{
+				$o .= "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'><span>".my_scale($used, $unit)." $unit</span></span></div></td>";
+			} else {
+				$o .= "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'></span><span>".my_scale($used, $unit)." $unit</span></div></td>";
+			}
 		}
 	    if ($display['text'] < 10 ? $display['text'] % 10 == 0 : $display['text'] % 10 != 0) {
 			$o .= "<td>".my_scale($avail, $unit)." $unit</td>";
 		} else {
-			$o .= "<td><div class='usage-disk'><span style='margin:0;width:$free_pct%' class='".usage_color($display,$free_pct,true)."'></span><span>".my_scale($avail, $unit)." $unit</span></div></td>";
+			if ( version_compare($version['version'],"6.7", "<") )
+			{
+				$o .= "<td><div class='usage-disk'><span style='margin:0;width:$free_pct%' class='".usage_color($display,$free_pct,true)."'><span>".my_scale($avail, $unit)." $unit</span></span></div></td>";
+			} else {
+				$o .= "<td><div class='usage-disk'><span style='margin:0;width:$free_pct%' class='".usage_color($display,$free_pct,true)."'></span><span>".my_scale($avail, $unit)." $unit</span></div></td>";
+			}
 		}
 	} else {
 		$o .= "<td>-</td><td>-</td>";
