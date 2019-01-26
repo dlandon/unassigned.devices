@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2019.01.22a">
+<!ENTITY version   "2019.01.26">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"40f7d6ddb835233771c89a07c4347253">
+<!ENTITY MD5		"9c705844fa79bd4681b7fe3281d79ed0">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Added the '--allow-discards' option to LUKS open for SSD drives.
+
+###2019.01.22a
 - Fix: Add cd icon for iso shares.
 - Fix: Disk used and free display to conform to the Display Used/Free Columns setting.
 - Fix: Used/free differences for 6.4 through 6.6 and 6.7.

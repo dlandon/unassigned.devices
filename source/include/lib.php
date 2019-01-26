@@ -578,7 +578,7 @@ function do_mount($info) {
 	} else if ($info['fstype'] == "crypto_LUKS") {
 		if (file_exists($var['luksKeyfile'])) {
 			$luks	= basename($info['device']);
-			$cmd	= "/sbin/cryptsetup luksOpen {$info[luks]} {$luks} -d {$var[luksKeyfile]} 2>&1";
+			$cmd	= "/sbin/cryptsetup luksOpen {$info[luks]} {$luks} -d {$var[luksKeyfile]} --allow-discards 2>&1";
 			$o		= shell_exec($cmd);
 			if ($o != "") {
 				unassigned_log("luksOpen error: ".$o);

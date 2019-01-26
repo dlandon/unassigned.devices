@@ -340,7 +340,7 @@ switch ($_POST['action']) {
 				}
 			}
 		} else {
-			echo "<tr><td colspan='12' style='text-align:center;font-weight:bold;'>No unassigned disks available.</td></tr>";
+			echo "<tr><td colspan='12' style='text-align:center;'>No unassigned disks available.</td></tr>";
 		}
 		echo "</tbody></table>";
 
