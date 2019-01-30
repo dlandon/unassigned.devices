@@ -147,12 +147,13 @@ function render_partition($disk, $partition, $total=FALSE) {
 
 	$rm_partition = (get_config("Config", "destructive_mode") == "enabled") ? "<span title='Remove Partition' device='{$partition['device']}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i></span>" : "";
 	$mpoint = "<span>{$fscheck}<i class='fa fa-arrow-right'></i>";
+	$mount_point = basename($partition['mountpoint']);
 	if ($mounted) {
-		$mpoint .= "<a title='Browse Share' href='/Main/Browse?dir={$partition['mountpoint']}'>{$partition['mountpoint']}</a></span>";
+		$mpoint .= "<a title='Browse Share' href='/Main/Browse?dir={$partition['mountpoint']}'>{$mount_point}</a></span>";
 	} else {
 		$mount_point = basename($partition['mountpoint']);
 		$mpoint .= "<form title='Click to Change Device Mount Point - Press Enter to save' method='POST' action='/plugins/{$plugin}/UnassignedDevices.php' target='progressFrame' class='inline'>";
-		$mpoint .= "<span class='text exec'><a>{$partition['mountpoint']}</a></span>";
+		$mpoint .= "<span class='text exec'><a>{$mount_point}</a></span>";
 		$mpoint .= "<input type='hidden' name='action' value='change_mountpoint'/>";
 		$mpoint .= "<input type='hidden' name='serial' value='{$partition['serial']}'/>";
 		$mpoint .= "<input type='hidden' name='partition' value='{$partition['part']}'/>";
@@ -348,7 +349,7 @@ switch ($_POST['action']) {
 		echo "<div id='smb_tab' class='show-complete'>";
 
 		echo "<div id='title'><span class='left'><img src='/plugins/dynamix/icons/smbsettings.png' class='icon'>SMB Shares &nbsp;| &nbsp;<img src='/webGui/icons/nfs.png' class='icon'>NFS Shares &nbsp;| &nbsp;<img src='/plugins/{$plugin}/icons/iso.png' class='icon' style='width:16px;'>ISO File Shares</span></div>";
-		echo "<table class='disk_status wide samba_mounts'><thead><tr><td>Device</td><td>Source</td><td>Mount point</td><td></TD><td>Remove</td><td>Size</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Log</td><td>Script</td></tr></thead>";
+		echo "<table class='disk_status wide samba_mounts'><thead><tr><td>Device</td><td>Source</td><td>Mount point</td><td></td><td>Remove</td><td>Size</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Log</td><td>Script</td></tr></thead>";
 
 		echo "<tbody>";
 		# SAMBA Mounts
@@ -364,22 +365,21 @@ switch ($_POST['action']) {
 				echo "<tr class='$odd'>";
 				$protocol = $mount['protocol'] == "NFS" ? "nfs" : "smb";
 				printf( "<td><img src='/webGui/images/%s'>%s</td>", ( $is_alive ? "green-on.png":"green-blink.png" ), $protocol);
-				echo "<td><div><i class='fa fa-globe hdd'></i><span style='margin:4px;'></span>{$mount['name']}</div></td>";
+				echo "<td><div><i class='fa fa-globe hdd'></i><span style='margin:3px;'></span>{$mount['name']}</div></td>";
+				$mount_point = basename($mount['mountpoint']);
 				if ($mounted) {
-					echo "<td><i class='fa fa-download hdd'></i><span style='margin:4px;'><a title='Browse Remote SMB/NFS Share' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount['mountpoint']}</a></td>";
+					echo "<td><i class='fa fa-download hdd'></i><span style='margin:2px;'></span><a title='Browse Remote SMB/NFS Share' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
 				} else {
-					$mount_point = basename($mount['mountpoint']);
 					echo "<td>
-							<form title='Click to change Remote SMB/NFS Mount Point - Press Enter to save' method='POST' action='/plugins/{$plugin}/UnassignedDevices.php' target='progressFrame' class='inline'>
-							<i class='fa fa-download hdd'></i>
-							<span style='margin:4px;'></span>
-							<span class='text exec'><a>{$mount['mountpoint']}</a></span>
-							<input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden />
-							<input type='hidden' name='action' value='change_samba_mountpoint'/>
-							<input type='hidden' name='device' value='{$mount['name']}'/>
-							<input type='hidden' name='csrf_token' value='{$csrf_token}'/>
-							</form>
-							</td>";
+						<form title='Click to change Remote SMB/NFS Mount Point - Press Enter to save' method='POST' action='/plugins/{$plugin}/UnassignedDevices.php' target='progressFrame' class='inline'>
+						<i class='fa fa-download hdd'></i>
+						<span style='margin:1px;' class='text exec'><a>{$mount_point}</a></span>
+						<input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden />
+						<input type='hidden' name='action' value='change_samba_mountpoint'/>
+						<input type='hidden' name='device' value='{$mount['name']}'/>
+						<input type='hidden' name='csrf_token' value='{$csrf_token}'/>
+						</form>
+						</td>";
 				}
 
 				$disabled = $is_alive ? "enabled":"disabled";
@@ -405,29 +405,25 @@ switch ($_POST['action']) {
 				$is_alive = is_file($mount['file']);
 				echo "<tr class='$odd'>";
 				printf( "<td><img src='/webGui/images/%s'>iso</td>", ( $is_alive ? "green-on.png":"green-blink.png" ));
-				$devname = $mount['device'];
-				if (strlen($devname) > 50) {
-					$devname = substr($devname, 0, 10)."<strong>...</strong>".basename($devname);
-				}
-				echo "<td><div><img src='/plugins/{$plugin}/icons/cd.png' style='icon'><span style='margin:4px;'></span>{$devname}</div></td>";
+				$devname = basename($mount['device']);
+				echo "<td><i class='fa fa-bullseye'></i><span style='margin:0px;'></span>{$mount['device']}</td>";
+				$mount_point = basename($mount['mountpoint']);
 				if ($mounted) {
-					echo "<td><i class='fa fa-download hdd'></i><span style='margin:4px;'><a title='Browse ISO File Share' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount['mountpoint']}</a></td>";
+					echo "<td><i class='fa fa-download'></i><span style='margin:0px;'></span><a title='Browse ISO File Share' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
 				} else {
-					$mount_point = basename($mount['mountpoint']);
 					echo "<td>
-							<form title='Click to change ISO File Mount Point - Press Enter to save' method='POST' action='/plugins/{$plugin}/UnassignedDevices.php' target='progressFrame' class='inline'>
-							<i class='fa fa-download hdd'></i>
-							<span style='margin:4px;'></span>
-							<span class='text exec'><a>{$mount['mountpoint']}</a></span>
-							<input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden />
-							<input type='hidden' name='action' value='change_iso_mountpoint'/>
-							<input type='hidden' name='device' value='{$mount['device']}'/>
-							<input type='hidden' name='csrf_token' value='{$csrf_token}'/>
-							</form>
-							</td>";
+						<form title='Click to change ISO File Mount Point - Press Enter to save' method='POST' action='/plugins/{$plugin}/UnassignedDevices.php' target='progressFrame' class='inline'>
+						<i class='fa fa-download hdd'></i>
+						<span style='margin:0px;' class='text exec'><a>{$mount_point}</a></span>
+						<input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden />
+						<input type='hidden' name='action' value='change_iso_mountpoint'/>
+						<input type='hidden' name='device' value='{$mount['device']}'/>
+						<input type='hidden' name='csrf_token' value='{$csrf_token}'/>
+						</form>
+						</td>";
 				}
 				$disabled = $is_alive ? "enabled":"disabled";
-				echo "<td><span style='width:auto;text-align:right;'>".($mounted ? "<button type='button' device='{$mount['device']}' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i> Unmount</button>" : "<button type='button' device='{$mount['device']}' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>	Mount</button>")."</span></td>";
+				echo "<td><span style='width:auto;text-align:right;'>".($mounted ? "<button type='button' device='{$mount['device']}' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i> Unmount</button>" : "<button type='button' device='{$mount['device']}' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i> Mount</button>")."</span></td>";
 				echo $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec' style='color:#CC0000;font-weight:bold;' onclick='remove_iso_config(\"{$mount['device']}\");' title='Remove ISO File Share'> <i class='fa fa-remove hdd'></i></a></td>";
 				echo "<td><span>".my_scale($mount['size'], $unit)." $unit</span></td>";
 				echo render_used_and_free($mount, $mounted);
