@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2019.01.30">
+<!ENTITY version   "2019.02.04">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"fea3d762369c033f0219c19868b5bf48">
+<!ENTITY MD5		"f3c18d01cd692225de787233a3781dc6">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Don't allow some additional special characters in mount point names.
+- Fix: Convert single quote character to underscore in mount point names.
+
+###2019.01.30
 - Fix: Issues with color schemes not displaying dialogs properly.
 - Fix: Change cd icon to a font awesome icon.
 - Fix: Remove extraneous mount information from mount points.

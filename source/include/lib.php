@@ -130,11 +130,10 @@ function listDir($root) {
 
 function safe_name($string) {
 	$string = stripcslashes($string);
-	$string = str_replace(array( "(", ")", "&" ), "", $string);
+	$string = str_replace(array( "'", " " ), "_", $string);
 	$string = htmlentities($string, ENT_QUOTES, 'UTF-8');
-	$string = preg_replace('~&([a-z]{1,2})(acute|cedil|circ|grave|lig|orn|ring|slash|th|tilde|uml);~i', '$1', $string);
 	$string = html_entity_decode($string, ENT_QUOTES, 'UTF-8');
-	$string = preg_replace('~[^0-9a-z -_]~i', '', $string);
+	$string = preg_replace('/[^A-Za-z0-9\-_]/', '', $string);
 	return trim($string);
 }
 
