@@ -979,7 +979,7 @@ function get_samba_mounts() {
 
 		$mount['automount'] = is_samba_automount($mount['name']);
 		if (! $mount["mountpoint"]) {
-			$mount['mountpoint'] = safe_name($mount['target'] ? $mount['target'] : preg_replace("%\s+%", "_", "{$paths['usb_mountpoint']}/{$mount['ip']}_{$mount['share']}"));
+			$mount['mountpoint'] = $mount['target'] ? $mount['target'] : preg_replace("%\s+%", "_", "{$paths['usb_mountpoint']}/{$mount['ip']}_{$mount['share']}");
 		}
 		exec("echo '' > {$paths['df_temp']}");
 		if ($is_alive && file_exists($mount['mountpoint'])) {
