@@ -2,12 +2,13 @@ Menu="Buttons:10"
 Link="nav-user"
 ---
 <script type="text/javascript">
-	if ( $.inArray( $("body").prop("class") , ["page_scriptlog", "page_editscript", "page_new", "page_browse"]) !== -1)
+	url = location.pathname.split('/');
+	if (url[1] == "Main" && url.length > 2)
 	{
 		var InitTab = $.cookie('tab');
 		$.cookie('tab','tab1',{path:'/'});
 		$(window).unload(function() {
-			$.cookie('tab',InitTab,{path:'/'});
+			$.cookie('one',InitTab,{path:'/'});
 		});
 	}
 </script>
