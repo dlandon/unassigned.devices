@@ -192,7 +192,9 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 <?if (version_compare($version['version'],"6.6", "<")):?>
 			$("#usb_devices_list").html( $("#table_loading").html() );
 <?else:?>
-			$('#spinner').html("<tr><td colspan='8'><div class='spinner'></div></td></tr>");
+			if ( !$('#spin_div').length ) {
+				$('#spinner').html("<tr><td colspan='8'><div id='spin_div' class='spinner'></div></td></tr>");
+			}
 			$("#usb_devices_list").html( $('div.spinner').html(unraid_logo) );
 <?endif;?>
 			$("#usb_devices_list > table > thead > tr").children("td").each(function(i,v)
