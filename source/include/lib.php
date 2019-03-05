@@ -636,14 +636,14 @@ function do_mount_local($info) {
 			unassigned_log("No filesystem detected on '{$dev}'.");
 		}
 	} else {
-		unassigned_log("Drive '$dev' already mounted...");
+		unassigned_log("Drive '{$dev}' already mounted...");
 	}
 }
 
 function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE) {
 	if ( is_mounted($dev) ) {
 		unassigned_log("Unmounting '{$dev}'...");
-		$cmd = "/bin/umount".($smb ? " -t cifs" : "").($force ? " -f -l" : "")." '{$dev}' 2>&1";
+		$cmd = "/bin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : "")." '{$dev}' 2>&1";
 		unassigned_log("Unmount cmd: $cmd");
 		$o = shell_exec($cmd);
 		for ($i=0; $i < 10; $i++) {
@@ -983,7 +983,7 @@ function get_samba_mounts() {
 		}
 		exec("echo '' > {$paths['df_temp']}");
 		if ($is_alive && file_exists($mount['mountpoint'])) {
-			benchmark("shell_exec","/usr/bin/timeout 20 /bin/df '{$mount['mountpoint']}' --output=size,used,avail | /bin/grep -v '1K-blocks' > {$paths['df_temp']} 2>/dev/null");
+			benchmark("shell_exec","/usr/bin/timeout 1 /bin/df '{$mount['mountpoint']}' --output=size,used,avail | /bin/grep -v '1K-blocks' > {$paths['df_temp']} 2>/dev/null");
 		}
 		$mount['size']  	= intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $1}'")))*1024;
 		$mount['used']  	= intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $2}'")))*1024;
@@ -1068,7 +1068,7 @@ function do_mount_samba($info) {
 			return FALSE;
 		}
 	} else {
-		unassigned_log("Error: Remote SMB/NFS server '{$info['ip']}' is offline and share '{$info['device']}' cannot be mounted."); 
+		unassigned_log("Error: Remote SMB/NFS server '{$info['ip']}' is off-line and share '{$info['device']}' cannot be mounted."); 
 		return FALSE;
 	}
 }
@@ -1137,7 +1137,7 @@ function get_iso_mounts() {
 		$is_alive = is_file($mount['file']);
 		exec("echo '' > {$paths['df_temp']}");
 		if ($is_alive && file_exists($mount['mountpoint'])) {
-			benchmark("shell_exec","/usr/bin/timeout 20 /bin/df '{$mount['mountpoint']}' --output=size,used,avail | /bin/grep -v '1K-blocks' > {$paths['df_temp']} 2>/dev/null");
+			benchmark("shell_exec","/usr/bin/timeout 1 /bin/df '{$mount['mountpoint']}' --output=size,used,avail | /bin/grep -v '1K-blocks' > {$paths['df_temp']} 2>/dev/null");
 		}
 		$mount['size']  = intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $1}'")))*1024;
 		$mount['used']  = intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $2}'")))*1024;
@@ -1366,7 +1366,7 @@ function get_partition_info($device, $reload=FALSE){
 		$disk['target'] = str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep {$disk['device']} | /bin/awk '{print $2}'")));
 		exec("echo '' > {$paths['df_temp']}");
 		if (is_mounted($disk['device'])) {
-			benchmark("shell_exec","/usr/bin/timeout 20 /bin/df '{$disk['device']}' --output=size,used,avail | /bin/grep -v '1K-blocks' > {$paths['df_temp']} 2>/dev/null");
+			benchmark("shell_exec","/usr/bin/timeout 1 /bin/df '{$disk['device']}' --output=size,used,avail | /bin/grep -v '1K-blocks' > {$paths['df_temp']} 2>/dev/null");
 		}
 		$disk['size']		= intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $1}'")))*1024;
 		$disk['used']		= intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $2}'")))*1024;

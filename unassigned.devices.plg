@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2019.02.12">
+<!ENTITY version   "2019.03.05">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"fb2a0e9b3ed1c437a7d1701a2fe217e9">
+<!ENTITY MD5		"d555f6724f98e634367342ebc9e748e8">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Adjust timeouts when determining device sizes to keep UD from 'hanging'.
+
+###2019.02.12
 - Fix: Implement Unraid logo spinner for 6.6 and 6.7.
 - Fix: Duplicate Unraid logo spinners when rescanning disks.
 
