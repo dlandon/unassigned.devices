@@ -13,7 +13,7 @@
 $plugin = "unassigned.devices";
 // $VERBOSE=TRUE;
 
-$paths = [  "smb_extra"			=> "/boot/config/smb-extra.conf",
+$paths = [  "smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"smb_usb_shares"	=> "/etc/samba/unassigned-shares",
 			"usb_mountpoint"	=> "/mnt/disks",
 			"device_log"		=> "/tmp/{$plugin}/",
@@ -981,7 +981,7 @@ function get_samba_mounts() {
 		if (! $mount["mountpoint"]) {
 			$mount['mountpoint'] = $mount['target'] ? $mount['target'] : preg_replace("%\s+%", "_", "{$paths['usb_mountpoint']}/{$mount['ip']}_{$mount['share']}");
 		}
-		exec("echo '' > {$paths['df_temp']}");
+		file_put_contents("{$paths['df_temp']}", "");
 		if ($is_alive && file_exists($mount['mountpoint'])) {
 			benchmark("shell_exec","/usr/bin/timeout 1 /bin/df '{$mount['mountpoint']}' --output=size,used,avail | /bin/grep -v '1K-blocks' > {$paths['df_temp']} 2>/dev/null");
 		}
@@ -1135,7 +1135,7 @@ function get_iso_mounts() {
 		}
 		$mount['target'] = $mount['mountpoint'];
 		$is_alive = is_file($mount['file']);
-		exec("echo '' > {$paths['df_temp']}");
+		file_put_contents("{$paths['df_temp']}", "");
 		if ($is_alive && file_exists($mount['mountpoint'])) {
 			benchmark("shell_exec","/usr/bin/timeout 1 /bin/df '{$mount['mountpoint']}' --output=size,used,avail | /bin/grep -v '1K-blocks' > {$paths['df_temp']} 2>/dev/null");
 		}
@@ -1364,8 +1364,8 @@ function get_partition_info($device, $reload=FALSE){
 			$disk['device'] = "/dev/mapper/".basename($disk['mountpoint']);
 		}
 		$disk['target'] = str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep {$disk['device']} | /bin/awk '{print $2}'")));
-		exec("echo '' > {$paths['df_temp']}");
-		if (is_mounted($disk['device'])) {
+		file_put_contents("{$paths['df_temp']}", "");
+		if (file_exists($disk['mountpoint'])) {
 			benchmark("shell_exec","/usr/bin/timeout 1 /bin/df '{$disk['device']}' --output=size,used,avail | /bin/grep -v '1K-blocks' > {$paths['df_temp']} 2>/dev/null");
 		}
 		$disk['size']		= intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $1}'")))*1024;

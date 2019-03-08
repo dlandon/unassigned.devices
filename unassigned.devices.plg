@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2019.03.05">
+<!ENTITY version   "2019.03.07">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"d555f6724f98e634367342ebc9e748e8">
+<!ENTITY MD5		"5620d591fdb1791ea86d4c082f336e3a">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Cut down on writes of smb-extra.conf on flash drive.
+
+###2019.03.05
 - Fix: Adjust timeouts when determining device sizes to keep UD from 'hanging'.
 
 ###2019.02.12
@@ -850,6 +853,57 @@ rm -f /tmp/start_unassigned_devices 2>/dev/null
 </INLINE>
 </FILE>
 
+<FILE Name="/tmp/&name;/smb-settings.conf">
+<INLINE>
+<![CDATA[
+]]>
+</INLINE>
+</FILE>
+
+<FILE Name="/tmp/&name;/config/smb-extra.conf">
+<INLINE>
+<![CDATA[
+#unassigned_devices_start
+#Unassigned devices share includes
+   include = /tmp/unassigned.devices/smb-settings.conf
+#unassigned_devices_end
+]]>
+</INLINE>
+</FILE>
+
+<!--
+Add smb-extra parameters.
+-->
+<FILE Name="/tmp/&name;/add-smb-extra" Mode="0770">
+<INLINE>
+<![CDATA[
+#!/bin/bash
+if [[ `grep '#unassigned_devices' /boot/config/smb-extra.conf` = "" ]]; then
+	cat /boot/config/smb-extra.conf | grep 'include = /etc/samba/unassigned-shares/' > /tmp/unassigned.devices/smb-settings.conf
+	sed -i "/include = \/etc\/samba\/unassigned-shares/d" /boot/config/smb-extra.conf
+	sed -i '/^\s*$/d' /boot/config/smb-extra.conf
+	printf "\n" >> /boot/config/smb-extra.conf
+	cat /tmp/unassigned.devices/config/smb-extra.conf >> /boot/config/smb-extra.conf
+	/usr/bin/smbcontrol $(/usr/bin/cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1
+fi
+]]>
+</INLINE>
+</FILE>
+
+<!--
+Remove smb-extra parameters.
+-->
+<FILE Name="/tmp/&name;/remove-smb-extra" Mode="0770">
+<INLINE>
+<![CDATA[
+#!/bin/bash
+sed '/#unassigned_devices_start/,/#unassigned_devices_end/d' /boot/config/smb-extra.conf >> smb.tmp
+printf %s "$(< smb.tmp)" > /boot/config/smb-extra.conf
+rm -f smb.tmp
+]]>
+</INLINE>
+</FILE>
+
 <!--
 The 'post-install' script.
 -->
@@ -887,6 +941,9 @@ rm -rf /var/state/&name;
 mkdir -p /mnt/disks /var/state/&name;
 chown nobody:users /mnt/disks
 chmod 777 /var/state/&name;
+
+# Add unassigned_devices to smb-extra.conf.
+at -M -f /tmp/&name;/add-smb-extra now 2>/dev/null
 
 # mount disks
 at -M -f /tmp/start_unassigned_devices now 2>/dev/null
@@ -956,7 +1013,10 @@ removepkg libbsd-0.8.7-x86_64-1_slonly 2>/dev/null
 removepkg parted-3.2-x86_64-2 2>/dev/null
 removepkg libnl-1.1.4-x86_64-1 2>/dev/null
 
-# Remove the logs directory.
+# Remove unassigned_devices from smb-extra.conf.
+at -M -f /tmp/&name;/remove-smb-extra now 2>/dev/null
+
+# Remove the tmp directory.
 rm -r /tmp/&name; 2>/dev/null
 
 echo ""
