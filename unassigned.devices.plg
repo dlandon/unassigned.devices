@@ -9,7 +9,7 @@
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"5620d591fdb1791ea86d4c082f336e3a">
+<!ENTITY MD5		"311cc8ccda2a82a3c925143a7b533bd8">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Don't check for disk running to try to keep the disk from spinning up when there is no script defined.
+
+###2019.03.07
 - Fix: Cut down on writes of smb-extra.conf on flash drive.
 
 ###2019.03.05
