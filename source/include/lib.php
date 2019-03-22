@@ -554,7 +554,7 @@ function get_mount_params($fs, $dev) {
 			if (get_config("Config", "samba_v1") == "yes") {
 				$sec = "sec=ntlm";
 			}
-			return "rw,nounix,iocharset=utf8,_netdev,file_mode=0777,dir_mode=0777,$sec,vers=%s,username=%s,password=%s";
+			return "rw,nounix,iocharset=utf8,_netdev,file_mode=0777,dir_mode=0777,$sec,vers=%s,username=%s,domain=%s,password=%s";
 			break;
 
 		case 'nfs':
@@ -1015,7 +1015,7 @@ function do_mount_samba($info) {
 				} else {
 					if ($config['Config']['samba_v1'] != "yes") {
 						$ver	= "3.0";
-						$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
+						$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), $info['domain'], $info['pass']);
 						$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 						unassigned_log("Mount SMB share '$dev' using SMB3 protocol.");
 						$o		= shell_exec($cmd." 2>&1");
@@ -1024,7 +1024,7 @@ function do_mount_samba($info) {
 							unassigned_log("SMB3 mount failed: {$o}.");
 							unassigned_log("Mount SMB share '$dev' using SMB2 protocol.");
 							$ver	= "2.0";
-							$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
+							$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), $info['domain'], $info['pass']);
 							$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 							$o		= shell_exec($cmd." 2>&1");
 						}
@@ -1033,7 +1033,7 @@ function do_mount_samba($info) {
 							unassigned_log("SMB2 mount failed: {$o}.");
 							unassigned_log("Mount SMB share '$dev' using SMB1 protocol.");
 							$ver	= "1.0";
-							$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), $info['pass']);
+							$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), $info['domain'], $info['pass']);
 							$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 							$o		= shell_exec($cmd." 2>&1");
 						}

@@ -585,6 +585,12 @@ switch ($_POST['action']) {
 		$ip = stripslashes(trim($ip));
 		$protocol = urldecode($_POST['PROTOCOL']);
 		$user = isset($_POST['USER']) ? urldecode($_POST['USER']) : "";
+		$n = strpos($user, "@");
+		$domain = "";
+		if ($n != 0) {
+			$domain = substr($user, $n+1);
+			$user = substr($user, 0, $n);
+		}
 		$pass = isset($_POST['PASS']) ? urldecode($_POST['PASS']) : "";
 		$path = isset($_POST['SHARE']) ? urldecode($_POST['SHARE']) : "";
 		$path = implode("",explode("\\", $path));
@@ -596,6 +602,7 @@ switch ($_POST['action']) {
 			set_samba_config("{$device}", "ip", $ip);
 			set_samba_config("{$device}", "path", $path);
 			set_samba_config("{$device}", "user", $user);
+			set_samba_config("{$device}", "domain", $domain);
 			set_samba_config("{$device}", "pass", $pass);
 			set_samba_config("{$device}", "share", $share);
 		} else {
