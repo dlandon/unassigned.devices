@@ -26,7 +26,8 @@ $paths = [  "smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"unmounting"		=> "/var/state/{$plugin}/unmounting_%s.state",
 			"mounting"			=> "/var/state/{$plugin}/mounting_%s.state",
 			"formatting"		=> "/var/state/{$plugin}/formatting_%s.state",
-			"df_temp"			=> "/tmp/{$plugin}/df"
+			"df_temp"			=> "/tmp/{$plugin}/df",
+			"scripts"			=> "/tmp/{$plugin}/scripts/"
 		];
 
 $docroot = $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
@@ -448,6 +449,8 @@ function toggle_automount($sn, $status) {
 }
 
 function execute_script($info, $action, $testing = FALSE) { 
+global $paths;
+
 	putenv("ACTION={$action}");
 	foreach ($info as $key => $value) {
 		putenv(strtoupper($key)."={$value}");
@@ -455,28 +458,29 @@ function execute_script($info, $action, $testing = FALSE) {
 	$cmd = $info['command'];
 	$bg = ($info['command_bg'] == "true" && $action == "ADD") ? "&" : "";
 	if ($common_cmd = get_config("Config", "common_cmd")) {
-		if (! is_executable($common_cmd) ) {
-			@chmod($common_cmd, 0755);
-		}
-		unassigned_log("Running common script: '{$common_cmd}'");
-		exec($common_cmd, $out, $return);
+		$common_script = $paths['scripts'].basename($common_cmd);
+		copy($common_cmd, $common_script);
+		@chmod($common_script, 0755);
+		unassigned_log("Running common script: '".basename($common_script)."'");
+		exec($common_script, $out, $return);
 		if ($return) {
 			unassigned_log("Error: common script failed with return '{$return}'");
 		}
 	}
 	if ($cmd) {
-		unassigned_log("Running device script: '{$cmd}' with action '{$action}'.");
+		$command_script = $paths['scripts'].basename($cmd);
+		copy($cmd, $command_script);
+		@chmod($command_script, 0755);
+		unassigned_log("Running device script: '".basename($cmd)."' with action '{$action}'.");
 	} else {
 		return(FALSE);
 	}
-	if (! is_executable($cmd) ) {
-		@chmod($cmd, 0755);
-	}
+
 	if (! $testing) {
 		if ($action == "REMOVE") {
 			sleep(1);
 		}
-		$cmd = isset($info['serial']) ? "$cmd > /tmp/{$info['serial']}.log 2>&1 $bg" : "$cmd > /tmp/".preg_replace('~[^\w]~i', '', $info['device']).".log 2>&1 $bg";
+		$cmd = isset($info['serial']) ? "$command_script > /tmp/{$info['serial']}.log 2>&1 $bg" : "$command_script /tmp/".preg_replace('~[^\w]~i', '', $info['device']).".log 2>&1 $bg";
 		exec($cmd, $out, $return);
 		if ($return) {
 			unassigned_log("Error: device script failed with return '{$return}'");

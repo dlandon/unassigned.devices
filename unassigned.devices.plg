@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2019.03.26">
+<!ENTITY version   "2019.03.28">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"82dd847c59584abc713afd71267d5f95">
+<!ENTITY MD5		"e24ae20f32acb4c6e7278bd34c45d372">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Move scripts from flash to /tmp to execute them.
+
+###2019-03-25
 - Fix: Mount Windows SMB share error.
 
 ###209.03.22
@@ -941,7 +944,7 @@ ln -sf /bin/rm /usr/local/emhttp/plugins/&name;/scripts/
 # Fix permissions of executable files
 chmod +x /usr/local/emhttp/plugins/&name;/scripts/* /usr/local/emhttp/plugins/&name;/event/*
 
-# Create a symlink to unassigned scripts.
+# Create a symlink to unassigned devices scripts.
 ln -sf /usr/local/emhttp/plugins/&name;/scripts/rc.unassigned /usr/local/sbin
 ln -sf /usr/local/emhttp/plugins/&name;/scripts/mkmbr.sh /usr/local/sbin
 
@@ -953,6 +956,9 @@ chmod 777 /var/state/&name;
 
 # Add unassigned_devices to smb-extra.conf.
 at -M -f /tmp/&name;/add-smb-extra now 2>/dev/null
+
+# Create a scripts directory to run UD device scripts
+mkdir - /tmp/&name;/scripts
 
 # mount disks
 at -M -f /tmp/start_unassigned_devices now 2>/dev/null
