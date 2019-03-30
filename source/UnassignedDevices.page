@@ -369,6 +369,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 				opts["PROTOCOL"]	= getVal(this,"PROTOCOL");
 				opts["IP"]			= getVal(this,"IP");
 				opts["USER"]		= getVal(this,"USER");
+				opts["DOMAIN"]		= getVal(this,"DOMAIN");
 				opts["PASS"]		= getVal(this,"PASS");
 				opts["SHARE"]		= getVal(this,"SHARE");
 				if (opts.SHARE && opts.IP) {
@@ -647,7 +648,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		</dd>
 	</dl>
 	<p>Note: Dockers will not be able to access any SMB or NFS share until you restart the Docker service after the device is mounted.	Be sure to add a Docker path mapping the SMB or NFS share as 'RW/Slave' or 'RO/Slave'.</p>
-	<p>Go to Settings->Docker and disable then enable Docker.</p>
+	<p>Go to Settings->Docker and disable then re-enable Docker.</p>
 	<div class="options"></div>
 </div>
 
@@ -677,6 +678,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		<dd><button type="button" onclick="load_hosts(this, 'list_samba_hosts');">Search for servers</button></dd>
 		<dt>Username:</dt>
 		<dd><input type="text" name="USER"></dd>
+		<dt>Domain:</dt>
+		<dd><input type="text" name="DOMAIN"></dd>
 		<dt>Password:</dt>
 		<dd><input type="password" name="PASS"></dd>
 		<dt>Share:</dt>
@@ -691,7 +694,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	$("input[data-pickroot]").fileTreeAttach();
 </script>
 	<p>Note: Dockers will not be able to access any ISO file share until you restart the Docker service after the device is mounted.	Be sure to add a Docker path mapping the ISO share as 'RW/Slave' or 'RO/Slave'.</p>
-	<p>Go to Settings->Docker and disable then enable Docker.</p>
+	<p>Go to Settings->Docker and disable then re-enable Docker.</p>
 	<dl>
 		<dt>ISO File:</dt>
 		<dd><input id='iso_file' type='text' name='ISO_FILE' placeholder="Click to select ISO file" data-pickcloseonfile="true" data-pickfilter="iso" data-pickroot="/mnt/user/" data-pickfolders="true" required="required" /></dd>
