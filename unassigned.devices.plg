@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2019.03.30">
+<!ENTITY version   "2019.03.31">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"114a2ca6909109c2ab362b254b7cee96">
+<!ENTITY MD5		"1797a59c3b7a4e00fc99a88f85cdf86b">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,12 +24,15 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Mounting issue when the username is blank.
+
+###2019.03.30
 - Add: Separate line for domain in add SMB share.
 
-###2019-03-28
+###2019.03.28
 - Add: Move scripts from flash to /tmp to execute them.
 
-###2019-03-25
+###2019.03.25
 - Fix: Mount Windows SMB share error.
 
 ###209.03.22
