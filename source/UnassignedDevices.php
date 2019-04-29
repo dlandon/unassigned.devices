@@ -550,7 +550,10 @@ switch ($_POST['action']) {
 		$user = isset($_POST['USER']) ? urlencode($_POST['USER']) : NULL;
 		$pass = isset($_POST['PASS']) ? urlencode($_POST['PASS']) : NULL;
 		$login = $user ? ($pass ? "-U '{$user}%{$pass}'" : "-U '{$user}' -N") : "-U%";
-		$ip = trim(shell_exec("/usr/bin/nmblookup {$ip} | head -n1 | awk '{print $1}'"));
+		if(!filter_var($ip, FILTER_VALIDATE_IP))
+		{
+			$ip = trim(shell_exec("/usr/bin/nmblookup {$ip} | head -n1 | awk '{print $1}'"));
+		}
 		if ($ip)
 		{
 			$rc = shell_exec("/usr/bin/smbclient -g -L '$ip' $login 2>/dev/null|/usr/bin/awk -F'|' '/Disk/{print $2}'|sort");
