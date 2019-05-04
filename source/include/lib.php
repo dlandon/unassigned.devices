@@ -486,6 +486,7 @@ global $paths;
 			unassigned_log("Error: device script failed with return '{$return}'");
 		}
 	} else {
+		$cmd = isset($info['serial']) ? "$command_script > /tmp/{$info['serial']}.log 2>&1 $bg" : "$command_script /tmp/".preg_replace('~[^\w]~i', '', $info['device']).".log 2>&1 $bg";
 		return $cmd;
 	}
 }
@@ -1010,12 +1011,8 @@ function do_mount_samba($info) {
 			$dev = $info['device'];
 			$dir = $info['mountpoint'];
 			$fs  = $info['fstype'];
-			if ($info['user'] != "") {
-				$info['user'] = "'".$info['user']."'";
-			}
-			if ($info['pass'] != "") {
-				$info['pass'] = "'".$info['pass']."'";
-			}
+			$info['user'] = "'".$info['user']."'";
+			$info['pass'] = "'".$info['pass']."'";
 			if (! is_mounted($dev) || ! is_mounted($dir, true)) {
 				@mkdir($dir, 0777, TRUE);
 				if ($fs == "nfs") {

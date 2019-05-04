@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2019.03.31">
+<!ENTITY version   "2019.05.04">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"1797a59c3b7a4e00fc99a88f85cdf86b">
+<!ENTITY MD5		"6bf0870ad6e3de7ebe5e4f9d4a049854">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Don't run nmblookup if user passed in an IP address.
+- Fix: Execute script from /tmp when manually executing the script.
+
+###2019.03.31
 - Fix: Mounting issue when the username is blank.
 
 ###2019.03.30
