@@ -486,8 +486,7 @@ global $paths;
 			unassigned_log("Error: device script failed with return '{$return}'");
 		}
 	} else {
-		$cmd = isset($info['serial']) ? "$command_script > /tmp/{$info['serial']}.log 2>&1 $bg" : "$command_script /tmp/".preg_replace('~[^\w]~i', '', $info['device']).".log 2>&1 $bg";
-		return $cmd;
+		return $command_script;
 	}
 }
 
