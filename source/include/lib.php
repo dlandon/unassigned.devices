@@ -1010,8 +1010,12 @@ function do_mount_samba($info) {
 			$dev = $info['device'];
 			$dir = $info['mountpoint'];
 			$fs  = $info['fstype'];
-			$info['user'] = "'".$info['user']."'";
-			$info['pass'] = "'".$info['pass']."'";
+			if ($info['user'] != "") {
+				$info['user'] = "'".$info['user']."'";
+			}
+			if ($info['pass'] != "") {
+				$info['pass'] = "'".$info['pass']."'";
+			}
 			if (! is_mounted($dev) || ! is_mounted($dir, true)) {
 				@mkdir($dir, 0777, TRUE);
 				if ($fs == "nfs") {
