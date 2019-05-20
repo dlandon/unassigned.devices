@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2019.05.04b">
+<!ENTITY version   "2019.05.20">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"8a97e0fd26f78633054ef390e9937c68">
+<!ENTITY MD5		"d8d181aba03974a62d478d03098065e6">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Modifications to add SMB/NFS share dialog to make it easier to use and more intuitive.
+- Fix: Don't add a blank SMB/NFS share
+
+###2019.05.04b
 - Fix: Don't run nmblookup if user passed in an IP address.
 - Fix: Execute script from /tmp when manually executing the script.
 - Fix: Change comments in default script.

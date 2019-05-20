@@ -452,7 +452,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		opts["PASS"] = getVal("#dialog-samba","PASS");
 		$.post(URL,opts).done(function(data){
 			$(el).html(old);
-			if (data) {
+			if (data != " ") {
 				var shares = data.split('\n');
 				if (shares.length) {
 					var add = "<select name='SHARE'>";
@@ -467,6 +467,10 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 				{
 					target.replaceWith("<input type='text' name='SHARE'>");
 				}
+			}
+			else
+			{
+				target.replaceWith("<input type='text' name='SHARE'>");
 			}
 		});
 	}

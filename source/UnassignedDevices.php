@@ -558,6 +558,8 @@ switch ($_POST['action']) {
 		{
 			$rc = shell_exec("/usr/bin/smbclient -g -L '$ip' $login 2>/dev/null|/usr/bin/awk -F'|' '/Disk/{print $2}'|sort");
 			echo $rc ? $rc : " ";
+		} else {
+			echo " ";
 		}
 		break;
 
@@ -594,17 +596,19 @@ switch ($_POST['action']) {
 		$path = implode("",explode("\\", $path));
 		$path = stripslashes(trim($path));
 		$share = basename($path);
-		$device = ($protocol == "NFS") ? "{$ip}:/{$path}" : "//{$ip}/{$share}";
-		if (strpos($path, "$") === FALSE) {
-			set_samba_config("{$device}", "protocol", $protocol);
-			set_samba_config("{$device}", "ip", $ip);
-			set_samba_config("{$device}", "path", $path);
-			set_samba_config("{$device}", "user", $user);
-			set_samba_config("{$device}", "domain", $domain);
-			set_samba_config("{$device}", "pass", $pass);
-			set_samba_config("{$device}", "share", $share);
-		} else {
-			unassigned_log("Share '{$device}' contains a '$' character.	It cannot be mounted.");
+		if ($share) {
+			$device = ($protocol == "NFS") ? "{$ip}:/{$path}" : "//{$ip}/{$share}";
+			if (strpos($path, "$") === FALSE) {
+				set_samba_config("{$device}", "protocol", $protocol);
+				set_samba_config("{$device}", "ip", $ip);
+				set_samba_config("{$device}", "path", $path);
+				set_samba_config("{$device}", "user", $user);
+				set_samba_config("{$device}", "domain", $domain);
+				set_samba_config("{$device}", "pass", $pass);
+				set_samba_config("{$device}", "share", $share);
+			} else {
+				unassigned_log("Share '{$device}' contains a '$' character.	It cannot be mounted.");
+			}
 		}
 		break;
 
