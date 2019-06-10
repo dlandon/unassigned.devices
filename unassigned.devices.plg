@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2019.05.20">
+<!ENTITY version   "2019.06.10">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"d8d181aba03974a62d478d03098065e6">
+<!ENTITY MD5		"a3692ed1cb375a019dfd049da19f84b6">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: adds an action that returns a json encoded list of unassigned devices, so it's easier to parse by third-party components.
+
+###2019.05.20
 - Fix: Modifications to add SMB/NFS share dialog to make it easier to use and more intuitive.
 - Fix: Don't add a blank SMB/NFS share
 
