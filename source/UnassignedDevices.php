@@ -465,6 +465,14 @@ switch ($_POST['action']) {
 	case 'remove_hook':
 		@unlink($paths['reload']);
 		break;
+		
+	case 'get_content_json':
+		unassigned_log("Starting json reply action [get_content_json]", "DEBUG");
+		$time		 = -microtime(true); 
+		$disks = get_all_disks_info();
+		echo json_encode($disks);
+		unassigned_log("Total render time: ".($time + microtime(true))."s", "DEBUG");
+		break;
 
 	/*	CONFIG	*/
 	case 'automount':
