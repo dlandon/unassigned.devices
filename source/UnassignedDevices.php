@@ -310,9 +310,9 @@ switch ($_POST['action']) {
 
 				echo "<tr class='{$odd} toggle-disk'>";
 				if ( $flash || (!is_file($disk['partitions'][0]['command']) && ! $mounted && ! $preclearing) ) {
-					echo "<td><img src='/webGui/images/green-blink.png'> {$disk_name}</td>";
+					echo "<td><img src='/plugins/{$plugin}/images/green-blink.png'> {$disk_name}</td>";
 				} else {
-					echo "<td title='SMART Attributes on {$disk_name}'><img src='/webGui/images/".($disk_running ? "green-on.png":"green-blink.png" )."'>";
+					echo "<td title='SMART Attributes on {$disk_name}'><img src='/plugins/{$plugin}/images/".($disk_running ? "green-on.png":"green-blink.png" )."'>";
 					echo "<a href='/Main/New?name={$disk_name}'> {$disk_name}</a></td>";
 				}
 				echo "<td>{$hdd_serial}</td>";
@@ -348,7 +348,7 @@ switch ($_POST['action']) {
 		# SAMBA Mounts
 		echo "<div id='smb_tab' class='show-complete'>";
 
-		echo "<div id='title'><span class='left'><img src='/plugins/dynamix/icons/smbsettings.png' class='icon'>SMB Shares &nbsp;| &nbsp;<img src='/webGui/icons/nfs.png' class='icon'>NFS Shares &nbsp;| &nbsp;<img src='/plugins/{$plugin}/icons/iso.png' class='icon' style='width:16px;'>ISO File Shares</span></div>";
+		echo "<div id='title'><span class='left'><img src='/plugins/{$plugin}/icons/smbsettings.png' class='icon'>SMB Shares &nbsp;| &nbsp;<img src='/plugins/{$plugin}/icons/nfs.png' class='icon'>NFS Shares &nbsp;| &nbsp;<img src='/plugins/{$plugin}/icons/iso.png' class='icon' style='width:16px;'>ISO File Shares</span></div>";
 		echo "<table class='disk_status wide samba_mounts'><thead><tr><td>Device</td><td>Source</td><td>Mount point</td><td></td><td>Remove</td><td>Size</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Log</td><td>Script</td></tr></thead>";
 
 		echo "<tbody>";
@@ -364,7 +364,7 @@ switch ($_POST['action']) {
 				$mounted = is_mounted($mount['device']);
 				echo "<tr class='$odd'>";
 				$protocol = $mount['protocol'] == "NFS" ? "nfs" : "smb";
-				printf( "<td><img src='/webGui/images/%s'>%s</td>", ( $is_alive ? "green-on.png":"green-blink.png" ), $protocol);
+				printf( "<td><img src='/plugins/{$plugin}/images/%s'>%s</td>", ( $is_alive ? "green-on.png":"green-blink.png" ), $protocol);
 				echo "<td><div><i class='fa fa-globe hdd'></i><span style='margin:3px;'></span>{$mount['name']}</div></td>";
 				$mount_point = basename($mount['mountpoint']);
 				if ($mounted) {
@@ -404,7 +404,7 @@ switch ($_POST['action']) {
 				$mounted = is_mounted($mount['device']);
 				$is_alive = is_file($mount['file']);
 				echo "<tr class='$odd'>";
-				printf( "<td><img src='/webGui/images/%s'>iso</td>", ( $is_alive ? "green-on.png":"green-blink.png" ));
+				printf( "<td><img src='/plugins/{$plugin}/images/%s'>iso</td>", ( $is_alive ? "green-on.png":"green-blink.png" ));
 				$devname = basename($mount['device']);
 				echo "<td><i class='fa fa-bullseye'></i><span style='margin:0px;'></span>{$mount['device']}</td>";
 				$mount_point = basename($mount['mountpoint']);
@@ -448,7 +448,7 @@ switch ($_POST['action']) {
 		foreach ($config as $serial => $value) {
 			if($serial == "Config") continue;
 			if (! preg_grep("#{$serial}#", $disks_serials)){
-				$ct .= "<tr><td><img src='/webGui/images/green-blink.png'> missing</td><td>$serial</td><td title='Turn on to Mount Device when Array is Started'><input type='checkbox' class='automount' serial='{$serial}' ".( is_automount($serial) ? 'checked':'' )."></td><td title='Remove Device configuration' colspan='7'><a style='cursor:pointer;' onclick='remove_disk_config(\"{$serial}\")'>Remove</a></td></tr>";
+				$ct .= "<tr><td><img src='/plugins/{$plugin}/images/green-blink.png'> missing</td><td>$serial</td><td title='Turn on to Mount Device when Array is Started'><input type='checkbox' class='automount' serial='{$serial}' ".( is_automount($serial) ? 'checked':'' )."></td><td title='Remove Device configuration' colspan='7'><a style='cursor:pointer;' onclick='remove_disk_config(\"{$serial}\")'>Remove</a></td></tr>";
 			}
 		}
 		if (strlen($ct)) {
