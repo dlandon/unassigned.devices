@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2019.08.29">
+<!ENTITY version   "2019.09.14">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"e9195d399fae6e0a1a06d16fb7229b3f">
+<!ENTITY MD5		"4c0de4aff60727fca6d056b0540f7b32">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Mounting encrypted disks with Unraid 6.8 because of different keyfile handling.
+
+###2019.08.29
 - Fix: Icon modifications for Unraid 6.8.
 
 ###2019.06.18
