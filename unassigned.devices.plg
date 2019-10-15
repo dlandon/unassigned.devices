@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2019.09.14">
+<!ENTITY version   "2019.10.15">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"4c0de4aff60727fca6d056b0540f7b32">
+<!ENTITY MD5		"7de7c24fdb1ea8f92725bc37953d355a">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Debug code to troubleshoot luksOpen with no keyfile on 6.8.
+
+###2019.09.14
 - Fix: Mounting encrypted disks with Unraid 6.8 because of different keyfile handling.
 
 ###2019.08.29

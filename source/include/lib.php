@@ -585,8 +585,8 @@ function do_mount($info) {
 			$cmd	= $cmd." -d {$var['luksKeyfile']}";
 			$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
 		} else {
-			unassigned_log("luksOpen: key file not found - using emcmd to mount.");
-			$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
+			unassigned_log("luksOpen: key file not found - using emcmd to open: "."'cmdCryptsetup={$cmd}'");
+			$o		= benchmark(shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1"));
 		}
 		if ($o != "") {
 			unassigned_log("luksOpen error: ".$o);
