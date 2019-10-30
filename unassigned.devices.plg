@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2019.10.15">
+<!ENTITY version   "2019.10.30">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"7de7c24fdb1ea8f92725bc37953d355a">
+<!ENTITY MD5		"2556f80dcdeca9ed3fe0a39ae45bfb72">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Revert 6.8 keyfile handling.  You have to use a keyfile when mounting encrypted UD drives on 6.8.
+- Add: Edit script on Historical devices.
+- Add: Mountpoint designation to Historical devices.
+
+###2019.10.15
 - Add: Debug code to troubleshoot luksOpen with no keyfile on 6.8.
 
 ###2019.09.14

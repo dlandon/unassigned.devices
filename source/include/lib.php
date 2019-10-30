@@ -584,14 +584,13 @@ function do_mount($info) {
 		if (file_exists($var['luksKeyfile'])) {
 			$cmd	= $cmd." -d {$var['luksKeyfile']}";
 			$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+			if ($o != "") {
+				unassigned_log("luksOpen error: ".$o);
+			} else {
+				return do_mount_local($info);
+			}
 		} else {
-			unassigned_log("luksOpen: key file not found - using emcmd to open: "."'cmdCryptsetup={$cmd}'");
-			$o		= benchmark(shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1"));
-		}
-		if ($o != "") {
-			unassigned_log("luksOpen error: ".$o);
-		} else {
-			return do_mount_local($info);
+			unassigned_log("luksOpen: key file not found.");
 		}
 	} else {
 		return do_mount_local($info);

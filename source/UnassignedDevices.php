@@ -448,12 +448,18 @@ switch ($_POST['action']) {
 		foreach ($config as $serial => $value) {
 			if($serial == "Config") continue;
 			if (! preg_grep("#{$serial}#", $disks_serials)){
-				$ct .= "<tr><td><img src='/plugins/{$plugin}/images/green-blink.png'> missing</td><td>$serial</td><td title='Turn on to Mount Device when Array is Started'><input type='checkbox' class='automount' serial='{$serial}' ".( is_automount($serial) ? 'checked':'' )."></td><td title='Remove Device configuration' colspan='7'><a style='cursor:pointer;' onclick='remove_disk_config(\"{$serial}\")'>Remove</a></td></tr>";
+				$partition	= get_config($serial, "partition");
+				$mountpoint	= basename(get_config($serial, "mountpoint.1"));
+				$shared		= get_config($serial, "shared");
+				$ct .= "<tr><td><img src='/plugins/{$plugin}/images/green-blink.png'> missing</td><td>$serial"."   ($mountpoint)</td>";
+				$ct .= "<td title='Turn on to Mount Device when Array is Started'><input type='checkbox' class='automount' serial='{$serial}' ".( is_automount($serial) ? 'checked':'' )."></td>";
+				$ct .= "<td><a title='Edit Device Script' href='/Main/EditScript?s=".urlencode($serial)."&l=".urlencode(basename($mountpoint))."&p=".urlencode("1")."'><i class=".( file_exists(get_config($serial,"command.1")) ? "'fa fa-code'":"'fa fa-minus-square-o'" )."'></i></a></td>";
+				$ct .= "<td title='Remove Device configuration' colspan='7'><a style='cursor:pointer;' onclick='remove_disk_config(\"{$serial}\")'>Remove</a></td></tr>";
 			}
 		}
 		if (strlen($ct)) {
 			echo "<div id='smb_tab' class='show-complete'><div id='title'><span class='left'><img src='/plugins/{$plugin}/icons/historical.png' class='icon'>Historical Devices</span></div>";
-			echo "<table class='disk_status wide usb_absent'><thead><tr><td>Device</td><td>Serial Number</td><td>Auto mount</td><td colspan='7'>Remove config</td></tr></thead><tbody>{$ct}</tbody></table></div>";
+			echo "<table class='disk_status wide usb_absent'><thead><tr><td>Device</td><td>Serial Number (Mountpoint)</td><td>Auto mount</td><td>Script</td><td colspan='7'>Config</td></tr></thead><tbody>{$ct}</tbody></table></div>";
 		}
 		unassigned_log("Total render time: ".($time + microtime(true))."s", "DEBUG");
 		break;
