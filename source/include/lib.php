@@ -632,7 +632,7 @@ function do_mount_local($info) {
 				}
 			}
 			if ($fs == "crypto_LUKS" ) {
-				shell_exec("/sbin/cryptsetup luksClose ".basename($info['luks']));
+				shell_exec("/sbin/cryptsetup luksClose ".basename($info['device']));
 			}
 			unassigned_log("Mount of '{$dev}' failed. Error message: $o");
 			rmdir($dir);
