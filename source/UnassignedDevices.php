@@ -140,7 +140,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 	if ($mounted && is_file(get_config($disk['serial'],"command.{$partition['part']}"))) {
 		$fscheck = "<a title='Execute Script as udev simulating a device being installed' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/script.php?device={$partition['device']}&owner=udev\",\"Execute Script\",600,900);'><i class='fa fa-flash partition'></i>{$partition['part']}</a>";
 	} elseif ( (! $mounted &&	$partition['fstype'] != 'btrfs') ) {
-		$fscheck = "<a title='File System Check' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&type=ro\",\"Check filesystem\",600,900);'><i class='fa fa-th-large partition'></i>{$partition['part']}</a>";
+		$fscheck = "<a title='File System Check' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&type=ro&mapper={$partition['luks']}\",\"Check filesystem\",600,900);'><i class='fa fa-th-large partition'></i>{$partition['part']}</a>";
 	} else {
 		$fscheck = "<i class='fa fa-th-large partition'></i>{$partition['part']}";
 	}
