@@ -586,7 +586,6 @@ function do_mount($info) {
 			$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
 			if ($o != "") {
 				unassigned_log("luksOpen error: ".$o);
-				shell_exec("/sbin/cryptsetup luksClose ".basename($info['luks']));
 			} else {
 				return do_mount_local($info);
 			}
@@ -603,7 +602,7 @@ function do_mount_local($info) {
 	$dir = $info['mountpoint'];
 	$fs  = $info['fstype'];
 	if (! is_mounted($dev) || ! is_mounted($dir, true)) {
-		if ($fs){
+		if ($fs) {
 			@mkdir($dir, 0777, TRUE);
 			if ($fs != "crypto_LUKS") {
 				$cmd = "/sbin/mount -t $fs -o ".get_mount_params($fs, $dev)." '{$dev}' '{$dir}'";
@@ -632,7 +631,7 @@ function do_mount_local($info) {
 					sleep(0.5);
 				}
 			}
-			if ($info['fstype'] == "crypto_LUKS" ) {
+			if ($fs == "crypto_LUKS" ) {
 				shell_exec("/sbin/cryptsetup luksClose ".basename($info['luks']));
 			}
 			unassigned_log("Mount of '{$dev}' failed. Error message: $o");
