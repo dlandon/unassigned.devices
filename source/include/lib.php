@@ -586,6 +586,7 @@ function do_mount($info) {
 			$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
 			if ($o != "") {
 				unassigned_log("luksOpen error: ".$o);
+				shell_exec("/sbin/cryptsetup luksClose ".basename($info['luks']));
 			} else {
 				return do_mount_local($info);
 			}
