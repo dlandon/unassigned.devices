@@ -47,7 +47,18 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 			return;
 		}
 	}
-	$command = get_fsck_commands($fs, $device, $type)." 2>&1";
+	$file_system = $fs;
+	if ($fs == "crypto_LUKS") {
+		$o = shell_exec("/sbin/fsck -vy {$device} 2>&1");
+		if (strpos($o, 'XFS') !== false) {
+			$file_system = "xfs";
+		} elseif (strpos($o, 'REISERFS') !== false) {
+			$file_system = "resierfs";
+		} elseif (strpos($o, 'BTRFS') !== false) {
+			$file_system = "btrfs";
+		}
+	}
+	$command = get_fsck_commands($file_system, $device, $type)." 2>&1";
 	write_log($command."<br /><br />");
 	$proc = popen($command, 'r');
 	while (!feof($proc)) {

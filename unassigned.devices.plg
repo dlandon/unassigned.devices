@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2019.11.05">
+<!ENTITY version   "2019.11.05a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"dbe89e62746ac0c7fba0b6ef8dd5d162">
+<!ENTITY MD5		"8ed6a267a47e60a90971390720cdd7de">
 ]>
 
 <PLUGIN name="&name;"
@@ -25,6 +25,7 @@
 ##&name;
 ###&version;
 - Fix: Close luks device if mount fails.
+- Fix: Do proper file system check based on the file system type.
 
 ###2019.11.04b
 - Fix: File system check on encrypted disk.
