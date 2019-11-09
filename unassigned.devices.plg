@@ -3,7 +3,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2019.11.09">
+<!ENTITY version   "2019.11.09a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
@@ -27,7 +27,7 @@
 - Fix: Mounting encrypted disks with Unraid 6.8 because of different keyfile handling.
 - Fix: Update nmap, parted, and libnl packages.
 
-2019.11.05a
+###2019.11.05a
 - Fix: Close luks device if mount fails.
 - Fix: Do proper file system check based on the file system type.
 
