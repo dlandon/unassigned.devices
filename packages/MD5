@@ -2,6 +2,6 @@ dd92c74adbefa546545471cae04f6501  exfat-utils-1.2.8-x86_64-1_slonly.txz
 76335e187ab513c96967b36e0d01d6d4  fuse-exfat-1.2.8-x86_64-1_slonly.txz
 9ddd7cb7e0782e9fb7756b1946808228  hfsprogs-332.25-x86_64-2sl.txz
 42b559543f2c1a9fe42d6aabfc18ac8a  libbsd-0.8.7-x86_64-1_slonly.txz
-435837a5bf0401a937d6ec93e458333b  libnl-1.1.4-x86_64-1.txz
-2917b9c1db64491ba1b09d38db468f20  nmap-7.70-x86_64-3.txz
-1026cb6b665bbeff2d514d6510d00bc5  parted-3.2-x86_64-2.txz
+d84d8545760ed7d71bce77b7ef5a86aa  libnl-1.1.4-x86_64-2.txz
+ba87afc200890097c7fc95345370725c  nmap-7.80-x86_64-3.txz
+0f298896be48094a690a19cdc5e0c1e6  parted-3.3-x86_64-1.txz

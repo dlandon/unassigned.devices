@@ -38,12 +38,11 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 		if (file_exists($var['luksKeyfile'])) {
 			$cmd	= $cmd." -d {$var['luksKeyfile']}";
 			$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
-			if ($o != "") {
-				echo("luksOpen error: ".$o."<br />");
-				return;
-			}
 		} else {
-			echo("luksOpen: key file not found.<br /");
+			$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
+		}
+		if ($o != "") {
+			echo("luksOpen error: ".$o."<br />");
 			return;
 		}
 	}

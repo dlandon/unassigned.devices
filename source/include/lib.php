@@ -579,18 +579,25 @@ function do_mount($info) {
 	} else if($info['fstype'] == "loop") {
 		return do_mount_iso($info);
 	} else if ($info['fstype'] == "crypto_LUKS") {
-		$luks	= basename($info['device']);
-		$cmd	= "luksOpen {$info['luks']} {$luks} --allow-discards";
-		if (file_exists($var['luksKeyfile'])) {
-			$cmd	= $cmd." -d {$var['luksKeyfile']}";
-			$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+		if (! is_mounted($info['device']) || ! is_mounted($info['mountpoint'], true)) {
+			$luks	= basename($info['device']);
+			$cmd	= "luksOpen {$info['luks']} {$luks} --allow-discards";
+			if (file_exists($var['luksKeyfile'])) {
+				$cmd	= $cmd." -d {$var['luksKeyfile']}";
+				$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+			} else {
+				unassigned_log("luksOpen: key file not found - using emcmd to open.");
+				$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
+			
+			}
 			if ($o != "") {
 				unassigned_log("luksOpen error: ".$o);
 			} else {
 				return do_mount_local($info);
 			}
 		} else {
-			unassigned_log("luksOpen: key file not found.");
+			unassigned_log("Drive '{$info['device']}' already mounted...");
+			return FALSE;
 		}
 	} else {
 		return do_mount_local($info);

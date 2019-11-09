@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2019.11.05a">
+<!ENTITY version   "2019.11.09">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"8ed6a267a47e60a90971390720cdd7de">
+<!ENTITY MD5		"3c1975cb187eec69d6355dbacb4a60fe">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Mounting encrypted disks with Unraid 6.8 because of different keyfile handling.
+- Fix: Update nmap, parted, and libnl packages.
+
+2019.11.05a
 - Fix: Close luks device if mount fails.
 - Fix: Do proper file system check based on the file system type.
 
@@ -813,10 +817,10 @@ Get the plugin bundle.
 </FILE>
 
 <!--
-nmap-7.70-x86_64-3.txz
+nmap-7.80-x86_64-3.txz
 -->
-<FILE Name="&packages;/nmap-7.70-x86_64-3.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/nmap-7.70-x86_64-3.txz"</URL>
+<FILE Name="&packages;/nmap-7.80-x86_64-3.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/nmap-7.80-x86_64-3.txz"</URL>
 <MD5>2917b9c1db64491ba1b09d38db468f20</MD5>
 </FILE>
 
@@ -853,18 +857,18 @@ libbsd-0.8.7-x86_64-1_slonly.txz
 </FILE>
 
 <!--
-parted-3.2-x86_64-2.txz
+parted-3.3-x86_64-1.txz
 -->
-<FILE Name="&packages;/parted-3.2-x86_64-2.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/parted-3.2-x86_64-2.txz"</URL>
+<FILE Name="&packages;/parted-3.3-x86_64-1.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/parted-3.3-x86_64-1.txz"</URL>
 <MD5>1026cb6b665bbeff2d514d6510d00bc5</MD5>
 </FILE>
 
 <!--
-libnl-1.1.4-x86_64-1.txz
+libnl-1.1.4-x86_64-2.txz
 -->
-<FILE Name="&packages;/libnl-1.1.4-x86_64-1.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/libnl-1.1.4-x86_64-1.txz"</URL>
+<FILE Name="&packages;/libnl-1.1.4-x86_64-2.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/libnl-1.1.4-x86_64-2.txz"</URL>
 <MD5>435837a5bf0401a937d6ec93e458333b</MD5>
 </FILE>
 
@@ -1062,13 +1066,13 @@ mv -f /usr/local/emhttp/plugins/dynamix/OpenDevices.page- /usr/local/emhttp/plug
 rm -rf /usr/local/emhttp/plugins/&name; 2>/dev/null
 
 # Remove all installed packages.
-removepkg nmap-7.70-x86_64-3 2>/dev/null
+removepkg nmap-7.80-x86_64-3 2>/dev/null
 removepkg exfat-utils-1.2.8-x86_64-1_slonly 2>/dev/null
 removepkg fuse-exfat-1.2.8-x86_64-1_slonly.txz 2>/dev/null
 removepkg hfsprogs-332.25-x86_64-2sl 2>/dev/null
 removepkg libbsd-0.8.7-x86_64-1_slonly 2>/dev/null
-removepkg parted-3.2-x86_64-2 2>/dev/null
-removepkg libnl-1.1.4-x86_64-1 2>/dev/null
+removepkg parted-3.3-x86_64-1 2>/dev/null
+removepkg libnl-1.1.4-x86_64-2 2>/dev/null
 
 # Remove unassigned_devices from smb-extra.conf.
 at -M -f /tmp/&name;/remove-smb-extra now 2>/dev/null
