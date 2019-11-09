@@ -821,7 +821,7 @@ nmap-7.80-x86_64-3.txz
 -->
 <FILE Name="&packages;/nmap-7.80-x86_64-3.txz" Run="upgradepkg --install-new">
 <URL>"&gitURL;/packages/nmap-7.80-x86_64-3.txz"</URL>
-<MD5>2917b9c1db64491ba1b09d38db468f20</MD5>
+<MD5>ba87afc200890097c7fc95345370725c</MD5>
 </FILE>
 
 <!--
@@ -861,7 +861,7 @@ parted-3.3-x86_64-1.txz
 -->
 <FILE Name="&packages;/parted-3.3-x86_64-1.txz" Run="upgradepkg --install-new">
 <URL>"&gitURL;/packages/parted-3.3-x86_64-1.txz"</URL>
-<MD5>1026cb6b665bbeff2d514d6510d00bc5</MD5>
+<MD5>0f298896be48094a690a19cdc5e0c1e6</MD5>
 </FILE>
 
 <!--
@@ -869,7 +869,7 @@ libnl-1.1.4-x86_64-2.txz
 -->
 <FILE Name="&packages;/libnl-1.1.4-x86_64-2.txz" Run="upgradepkg --install-new">
 <URL>"&gitURL;/packages/libnl-1.1.4-x86_64-2.txz"</URL>
-<MD5>435837a5bf0401a937d6ec93e458333b</MD5>
+<MD5>d84d8545760ed7d71bce77b7ef5a86aa</MD5>
 </FILE>
 
 <!--
