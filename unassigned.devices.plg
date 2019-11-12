@@ -888,6 +888,9 @@ if [[ -e /proc/mdcmd ]]; then
   fi
 fi
 
+# Remove nmap package if user sets configuration parameter.
+/usr/local/emhttp/plugins/&name;/scripts/remove_nmap 2>/dev/null
+
 # Remove the background start script.
 rm -f /tmp/start_unassigned_devices 2>/dev/null
 </INLINE>
