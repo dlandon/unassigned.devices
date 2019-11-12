@@ -1,0 +1,21 @@
+#!/usr/bin/php
+<?php
+ /* Copyright 2019, Dan Landon
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+
+$plugin = "unassigned.devices";
+$config_file = "/boot/config/plugins/{$plugin}/{$plugin}.cfg";
+$config = @parse_ini_file($config_file, true);
+
+if ($config['Config']['remove_nmap_pkg'] == "yes") {
+	exec('logger "Removing nmap package..." -t"unassigned.devices"');
+	exec("removepkg '/var/log/packages/nmap-*'");
+}
+?>

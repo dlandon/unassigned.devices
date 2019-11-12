@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2019.11.09a">
+<!ENTITY version   "2019.11.11">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"3c1975cb187eec69d6355dbacb4a60fe">
+<!ENTITY MD5		"fdcaece2c98c46ccea073e222d759183">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Parameter to UD settings to optionally remove nmap package.
+
+###2019.11.09a
 - Fix: Mounting encrypted disks with Unraid 6.8 because of different keyfile handling.
 - Fix: Update nmap, parted, and libnl packages.
 

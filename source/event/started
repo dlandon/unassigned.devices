@@ -7,3 +7,5 @@ fi
 
 logger "Mounting 'Auto Mount' Remote Shares..." -t"unassigned.devices"
 ${DOCROOT}/plugins/unassigned.devices/scripts/rc.unassigned mount autoshares &
+
+${DOCROOT}/plugins/unassigned.devices/scripts/remove_nmap &

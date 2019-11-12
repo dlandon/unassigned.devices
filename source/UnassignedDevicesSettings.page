@@ -110,6 +110,14 @@ Force all SMB remote shares to SMB v1?
 
 > Normally a SMB remote share will be mounted with the highest version of SMB that the remote server will support.  When set to 'Yes', all SMB remote shares will be forced to mount with SMB v1.  Some remote shares will give errors when mounted with SMB v2.  SMB v1 has security issues and should not be used unless absolutely necessary.
 
+Remove nmap package (used to scan for NFS servers)?
+: <select name="remove_nmap_pkg" size="1">
+  <?=mk_option($cfg["Config"]["remove_nmap_pkg"], "no", "No");?>
+  <?=mk_option($cfg["Config"]["remove_nmap_pkg"], "yes", "Yes");?>
+  </select>
+
+> The nmap package is used to scan for NFS servers on your LAN.  Some have expressed a security concern about having the nmap package installed on the LAN.  You can remove the nmap package if you are concerned about this potential security issue.  You need to reboot the server for the changes to take effect.
+
 &nbsp;
 : <input type="submit" name="#apply" value="Apply"><input type="button" value="Done" onclick="done()">
 </form>
