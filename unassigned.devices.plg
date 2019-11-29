@@ -9,7 +9,7 @@
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"fc6f30a2f824f5b56e367ed73edea275">
+<!ENTITY MD5		"8796A7B713B0D121385F1452EB7880B1">
 ]>
 
 <PLUGIN name="&name;"
