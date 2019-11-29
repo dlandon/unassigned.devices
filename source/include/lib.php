@@ -143,12 +143,12 @@ function exist_in_file($file, $val) {
 }
 
 function is_disk_running($dev) {
-	$state = trim(benchmark("shell_exec", "/usr/sbin/hdparm -C $dev 2>/dev/null | /bin/grep -c standby"));
+	$state = trim(benchmark("shell_exec", "/usr/bin/timeout 10 /usr/sbin/hdparm -C $dev 2>/dev/null | /bin/grep -c standby"));
 	return ($state == 0) ? TRUE : FALSE;
 }
 
 function lsof($dir) {
-	return intval(trim(shell_exec("/usr/bin/lsof '{$dir}' 2>/dev/null | /bin/grep -c -v COMMAND")));
+	return intval(trim(benchmark("shell_exec", "/usr/bin/timeout 2 /usr/bin/lsof '{$dir}' 2>/dev/null | /bin/grep -c -v COMMAND")));
 }
 
 function get_temp($dev, $running = null) {
@@ -172,20 +172,20 @@ function get_temp($dev, $running = null) {
 
 function verify_precleared($dev) {
 	$cleared        = TRUE;
-	$disk_blocks    = intval(trim(shell_exec("/sbin/blockdev --getsz $dev  | /bin/awk '{ print $1 }' 2>/dev/null")));
+	$disk_blocks    = intval(trim(benchmark("shell_exec", "/usr/bin/timeout 2 /sbin/blockdev --getsz $dev | /bin/awk '{ print $1 }' 2>/dev/null")));
 	$max_mbr_blocks = hexdec("0xFFFFFFFF");
 	$over_mbr_size  = ( $disk_blocks >= $max_mbr_blocks ) ? TRUE : FALSE;
 	$pattern        = $over_mbr_size ? array("00000", "00000", "00002", "00000", "00000", "00255", "00255", "00255") : 
 									   array("00000", "00000", "00000", "00000", "00000", "00000", "00000", "00000");
 
-	$b["mbr1"] = trim(shell_exec("/usr/bin/dd bs=446 count=1 if=$dev 2>/dev/null         | /bin/sum | /bin/awk '{print $1}'"));
-	$b["mbr2"] = trim(shell_exec("/usr/bin/dd bs=1 count=48 skip=462 if=$dev 2>/dev/null | /bin/sum | /bin/awk '{print $1}'"));
-	$b["mbr3"] = trim(shell_exec("/usr/bin/dd bs=1 count=1  skip=450 if=$dev 2>/dev/null | /bin/sum | /bin/awk '{print $1}'"));
-	$b["mbr4"] = trim(shell_exec("/usr/bin/dd bs=1 count=1  skip=511 if=$dev 2>/dev/null | /bin/sum | /bin/awk '{print $1}'"));
-	$b["mbr5"] = trim(shell_exec("/usr/bin/dd bs=1 count=1  skip=510 if=$dev 2>/dev/null | /bin/sum | /bin/awk '{print $1}'"));
+	$b["mbr1"] = trim(benchmark("shell_exec", "/usr/bin/timeout 2 /usr/bin/dd bs=446 count=1 if={$dev} 2>/dev/null | /bin/sum | /bin/awk '{print $1}'"));
+	$b["mbr2"] = trim(benchmark("shell_exec", "/usr/bin/timeout 2 /usr/bin/dd bs=1 count=48 skip=462 if={$dev} 2>/dev/null | /bin/sum | /bin/awk '{print $1}'"));
+	$b["mbr3"] = trim(benchmark("shell_exec", "/usr/bin/timeout 2 /usr/bin/dd bs=1 count=1  skip=450 if={$dev} 2>/dev/null | /bin/sum | /bin/awk '{print $1}'"));
+	$b["mbr4"] = trim(benchmark("shell_exec", "/usr/bin/timeout 2 /usr/bin/dd bs=1 count=1  skip=511 if={$dev} 2>/dev/null | /bin/sum | /bin/awk '{print $1}'"));
+	$b["mbr5"] = trim(benchmark("shell_exec", "/usr/bin/timeout 2 /usr/bin/dd bs=1 count=1  skip=510 if={$dev} 2>/dev/null | /bin/sum | /bin/awk '{print $1}'"));
 
 	foreach (range(0,15) as $n) {
-		$b["byte{$n}"] = trim(shell_exec("/usr/bin/dd bs=1 count=1 skip=".(446+$n)." if=$dev 2>/dev/null | /bin/sum | /bin/awk '{print $1}'"));
+		$b["byte{$n}"] = trim(benchmark("shell_exec", "/usr/bin/timeout 2 /usr/bin/dd bs=1 count=1 skip=".(446+$n)." if={$dev} 2>/dev/null | /bin/sum | /bin/awk '{print $1}'"));
 		$b["byte{$n}h"] = sprintf("%02x",$b["byte{$n}"]);
 	}
 
@@ -405,15 +405,18 @@ function remove_partition($dev, $part) {
 
 function benchmark()
 {
-  $params   = func_get_args();
-  $function = $params[0];
-  array_shift($params);
-  $time     = -microtime(true); 
-  $out      = call_user_func_array($function, $params);
-  $time    += microtime(true); 
-  $type     = ($time > 10) ? "INFO" : "DEBUG";
-  unassigned_log("benchmark: $function(".implode(",", $params).") took ".sprintf('%f', $time)."s.", $type);
-  return $out;
+	$params		= func_get_args();
+	$p			= explode(" ", $params[1]);
+	$timeout	= $p[1];
+	$function	= $params[0];
+	array_shift($params);
+	$time		= -microtime(true); 
+	$out		= call_user_func_array($function, $params);
+	$time		+= microtime(true);
+	if ($time > $timeout) {
+		unassigned_log("Error: $function(".implode(",", $params).") took too long - ".sprintf('%f', $time)."s.");
+	}
+	return $out;
 }
 
 #########################################################
@@ -520,7 +523,7 @@ function remove_config_disk($sn) {
 
 function is_mounted($dev, $dir=FALSE) {
 	if ($dev != "") {
-		$data = shell_exec("/sbin/mount");
+		$data = benchmark("shell_exec", "/usr/bin/timeout 2 /sbin/mount");
 		$append = ($dir) ? " " : " on";
 		return strpos($data, $dev.$append);
 	} else {
@@ -617,14 +620,14 @@ function do_mount_local($info) {
 				$cmd = "/sbin/mount ".get_mount_params($fs, $dev)." '{$dev}' '{$dir}'";
 			}
 			unassigned_log("Mount drive command: $cmd");
-			$o = shell_exec($cmd." 2>&1");
+			$o = benchmark("shell_exec", "/usr/bin/timeout 10 {$cmd} 2>&1");
 			if ($o != "" && $fs == "ntfs") {
 				if (! is_mounted($dev)) {
 					unassigned_log("Mount failed with error: $o");
 					unassigned_log("Mounting ntfs drive read only.");
 					$cmd = "/sbin/mount -t $fs -ro ".get_mount_params($fs, $dev)." '{$dev}' '{$dir}'";
 					unassigned_log("Mount drive ro command: $cmd");
-					$o = shell_exec($cmd." 2>&1");
+					$o = benchmark("shell_exec", "/usr/bin/timeout 10 {$cmd} 2>&1");
 				} else {
 					unassigned_log("Mount error: $o");
 				}
@@ -657,7 +660,7 @@ function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE) {
 		unassigned_log("Unmounting '{$dev}'...");
 		$cmd = "/bin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : "")." '{$dev}' 2>&1";
 		unassigned_log("Unmount cmd: $cmd");
-		$o = shell_exec($cmd);
+		$o = benchmark("shell_exec", "/usr/bin/timeout 10 {$cmd}");
 		for ($i=0; $i < 10; $i++) {
 			if (! is_mounted($dev)) {
 				if (is_dir($dir)) rmdir($dir);
@@ -667,7 +670,10 @@ function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE) {
 				sleep(0.5);
 			}
 		}
-		unassigned_log("Unmount of '{$dev}' failed. Error message: \n$o"); 
+		if ($o != "") {
+			$o = "timed out";
+		}
+		unassigned_log("Unmount of '{$dev}' failed. Error message: $o"); 
 		sleep(1);
 		if (! lsof($dir) && ! $force) {
 			unassigned_log("Since there aren't open files, will force unmount.");
@@ -682,7 +688,7 @@ function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE) {
 #########################################################
 
 function is_shared($name) {
-	return ( shell_exec("/usr/bin/smbclient -g -L localhost -U% 2>&1 | /bin/awk -F'|' '/Disk/{print $2}' | /bin/grep -c '{$name}'") == 0 ) ? FALSE : TRUE;
+	return ( benchmark("shell_exec", "/usr/bin/timeout 5 /usr/bin/smbclient -g -L localhost -U% 2>&1 | /bin/awk -F'|' '/Disk/{print $2}' | /bin/grep -c '{$name}'") == 0 ) ? FALSE : TRUE;
 }
 
 function config_shared($sn, $part, $usb=FALSE) {
@@ -767,13 +773,13 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 				$recycle_script = "plugins/recycle.bin/scripts/configure_recycle_bin";
 				if (is_file($recycle_script)) {
 					unassigned_log("Enabling the Recycle Bin on share '$share_name'");
-					shell_exec("$recycle_script"." {$share_conf}");
+					benchmark("shell_exec", "/usr/bin/timeout 5 {$recycle_script} {$share_conf}");
 				}
 			}
 		}
 
 		unassigned_log("Reloading Samba configuration...");
-		shell_exec("/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
+		benchmark("shell_exec", "/usr/bin/timeout 5 $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
 		unassigned_log("Directory '{$dir}' shared successfully."); return TRUE;
 	} else {
 		return TRUE;
@@ -801,8 +807,8 @@ function rm_smb_share($dir, $share_name) {
 			file_put_contents($paths['smb_extra'], $c);
 
 			unassigned_log("Reloading Samba configuration..");
-			shell_exec("/usr/bin/smbcontrol $(/usr/bin/cat /var/run/smbd.pid 2>/dev/null) close-share '{$share_name}' 2>&1");
-			shell_exec("/usr/bin/smbcontrol $(/usr/bin/cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
+			benchmark("shell_exec", "/usr/bin/timeout 5 /usr/bin/smbcontrol $(/usr/bin/cat /var/run/smbd.pid 2>/dev/null) close-share '{$share_name}' 2>&1");
+			benchmark("shell_exec", "/usr/bin/timeout 5 /usr/bin/smbcontrol $(/usr/bin/cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
 			unassigned_log("Successfully removed SMB share '{$share_name}'."); return TRUE;
 		} else {
 			return TRUE;
@@ -972,7 +978,7 @@ function get_samba_mounts() {
 		$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$mount['ip']} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
 		if (! $is_alive && ! is_ip($mount['ip']))
 		{
-			$ip = trim(shell_exec("/usr/bin/nmblookup {$mount['ip']} | /bin/head -n1 | /bin/awk '{print $1}'"));
+			$ip = trim(benchmark("shell_exec", "/usr/bin/timeout 5 /usr/bin/nmblookup {$mount['ip']} | /bin/head -n1 | /bin/awk '{print $1}'"));
 			if (is_ip($ip))
 			{
 				$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
@@ -995,7 +1001,7 @@ function get_samba_mounts() {
 		}
 		file_put_contents("{$paths['df_temp']}", "");
 		if ($is_alive && file_exists($mount['mountpoint'])) {
-			benchmark("shell_exec","/usr/bin/timeout 1 /bin/df '{$mount['mountpoint']}' --output=size,used,avail | /bin/grep -v '1K-blocks' > {$paths['df_temp']} 2>/dev/null");
+			benchmark("shell_exec","/usr/bin/timeout 2 /bin/df '{$mount['mountpoint']}' --output=size,used,avail | /bin/grep -v '1K-blocks' > {$paths['df_temp']} 2>/dev/null");
 		}
 		$mount['size']  	= intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $1}'")))*1024;
 		$mount['used']  	= intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $2}'")))*1024;
@@ -1029,7 +1035,7 @@ function do_mount_samba($info) {
 				if ($fs == "nfs") {
 					$params	= get_mount_params($fs, '$dev');
 					$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
-					$o		= shell_exec($cmd." 2>&1");
+					$o		= benchmark("shell_exec", "/usr/bin/timeout 10 {$cmd} 2>&1");
 				} else {
 					if ($config['Config']['samba_v1'] != "yes") {
 						$ver	= "3.0";
@@ -1037,7 +1043,7 @@ function do_mount_samba($info) {
 						$params = str_replace('domain=,', '', $params);
 						$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 						unassigned_log("Mount SMB share '$dev' using SMB3 protocol.");
-						$o		= shell_exec($cmd." 2>&1");
+						$o		= benchmark("shell_exec", "/usr/bin/timeout 10 {$cmd} 2>&1");
 						if ($o != "" && strpos($o, "Permission denied") === FALSE) {
 							/* If the mount failed, try to mount with samba vers=2.0. */
 							unassigned_log("SMB3 mount failed: {$o}.");
@@ -1046,7 +1052,7 @@ function do_mount_samba($info) {
 							$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), $info['domain'], $info['pass']);
 							$params = str_replace('domain=,', '', $params);
 							$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
-							$o		= shell_exec($cmd." 2>&1");
+							$o		= benchmark("shell_exec", "/usr/bin/timeout 10 {$cmd} 2>&1");
 						}
 						if ($o != "" && strpos($o, "Permission denied") === FALSE) {
 							/* If the mount failed, try to mount with samba vers=1.0. */
@@ -1056,7 +1062,7 @@ function do_mount_samba($info) {
 							$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), $info['domain'],  $info['pass']);
 							$params = str_replace('domain=,', '', $params);
 							$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
-							$o		= shell_exec($cmd." 2>&1");
+							$o		= benchmark("shell_exec", "/usr/bin/timeout 10 {$cmd} 2>&1");
 						}
 					} else {
 						unassigned_log("Mount SMB share '$dev' using SMB1 protocol.");
@@ -1064,7 +1070,7 @@ function do_mount_samba($info) {
 						$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ), $info['domain'], $info['pass']);
 						$params = str_replace('domain=,', '', $params);
 						$cmd	= "/usr/bin/timeout 20 /sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
-						$o		= shell_exec($cmd." 2>&1");
+						$o		= benchmark("shell_exec", "/usr/bin/timeout 10 {$cmd} 2>&1");
 					}
 					$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ),  $info['domain'], '*******');
 					$params = str_replace('domain=,', '', $params);
@@ -1160,7 +1166,7 @@ function get_iso_mounts() {
 		$is_alive = is_file($mount['file']);
 		file_put_contents("{$paths['df_temp']}", "");
 		if ($is_alive && file_exists($mount['mountpoint'])) {
-			benchmark("shell_exec","/usr/bin/timeout 1 /bin/df '{$mount['mountpoint']}' --output=size,used,avail | /bin/grep -v '1K-blocks' > {$paths['df_temp']} 2>/dev/null");
+			benchmark("shell_exec","/usr/bin/timeout 2 /bin/df '{$mount['mountpoint']}' --output=size,used,avail | /bin/grep -v '1K-blocks' > {$paths['df_temp']} 2>/dev/null");
 		}
 		$mount['size']  = intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $1}'")))*1024;
 		$mount['used']  = intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $2}'")))*1024;
@@ -1180,7 +1186,7 @@ function do_mount_iso($info) {
 			@mkdir($dir, 0777, TRUE);
 			$cmd = "/sbin/mount -ro loop '{$dev}' '{$dir}'";
 			unassigned_log("Mount iso command: mount -ro loop '{$dev}' '{$dir}'");
-			$o = shell_exec($cmd." 2>&1");
+			$o = benchmark("shell_exec", "/usr/bin/timeout 10 {$cmd} 2>&1");
 			foreach (range(0,5) as $t) {
 				if (is_mounted($dev)) {
 					@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
@@ -1304,7 +1310,7 @@ function get_all_disks_info($bus="all") {
 		$dp = time();
 		if ($disk['type'] != $bus && $bus != "all") continue;
 		$disk['temperature'] = "";
-		$disk['size'] = intval(trim(benchmark("shell_exec", "/bin/lsblk -nb -o size {$key} 2>/dev/null")));
+		$disk['size'] = intval(trim(benchmark("shell_exec", "/usr/bin/timeout 5 /bin/lsblk -nb -o size {$key} 2>/dev/null")));
 		$disk = array_merge($disk, get_disk_info($key));
 		foreach ($disk['partitions'] as $k => $p) {
 			if ($p) $disk['partitions'][$k] = get_partition_info($p);
@@ -1329,7 +1335,7 @@ function get_udev_info($device, $udev=NULL, $reload) {
 		unassigned_log("Using udev cache for '$device'.", "DEBUG");
 		return $state[$device];
 	} else {
-		$state[$device] = parse_ini_string(benchmark("shell_exec","/sbin/udevadm info --query=property --path $(/sbin/udevadm info -q path -n $device 2>/dev/null) 2>/dev/null"));
+		$state[$device] = parse_ini_string(benchmark("shell_exec","/usr/bin/timeout 5 /sbin/udevadm info --query=property --path $(/sbin/udevadm info -q path -n $device 2>/dev/null) 2>/dev/null"));
 		save_ini_file($paths['state'], $state);
 		unassigned_log("Not using udev cache for '$device'.", "DEBUG");
 		return $state[$device];
@@ -1389,13 +1395,13 @@ function get_partition_info($device, $reload=FALSE){
 		$disk['target'] = str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep {$disk['device']} | /bin/awk '{print $2}'")));
 		file_put_contents("{$paths['df_temp']}", "");
 		if (file_exists($disk['mountpoint'])) {
-			benchmark("shell_exec","/usr/bin/timeout 1 /bin/df '{$disk['device']}' --output=size,used,avail | /bin/grep -v '1K-blocks' > {$paths['df_temp']} 2>/dev/null");
+			benchmark("shell_exec","/usr/bin/timeout 2 /bin/df '{$disk['device']}' --output=size,used,avail | /bin/grep -v '1K-blocks' > {$paths['df_temp']} 2>/dev/null");
 		}
 		$disk['size']		= intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $1}'")))*1024;
 		$disk['used']		= intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $2}'")))*1024;
 		$disk['avail']		= intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $3}'")))*1024;
 		if ($disk['target'] != "" && is_mounted($disk['device'])) {
-			$disk['openfiles']	= shell_exec("/usr/bin/timeout 2 /usr/bin/lsof '{$disk['target']}' 2>/dev/null | /bin/sort -k8 | /bin/uniq -f7 | /bin/grep -c -e REG");
+			$disk['openfiles']	= benchmark("shell_exec", "/usr/bin/timeout 2 /usr/bin/lsof '{$disk['target']}' 2>/dev/null | /bin/sort -k8 | /bin/uniq -f7 | /bin/grep -c -e REG");
 		} else {
 			$disk['openfiles'] = 0;
 		}
