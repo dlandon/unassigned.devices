@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2019.11.29a">
+<!ENTITY version   "2019.11.30">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"8796a7b713b0d121385f1452eb7880b1">
+<!ENTITY MD5		"70b69602a29c8a1d7c68463300fa1535">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Additional work on timeouts and hang up prevention.
+
+###2019.11.29a
 - Add: Additional timeouts to help prevent UD hangs.
 
 ###2019.11.11
