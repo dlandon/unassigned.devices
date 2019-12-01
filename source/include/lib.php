@@ -782,13 +782,13 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 				$recycle_script = "plugins/recycle.bin/scripts/configure_recycle_bin";
 				if (is_file($recycle_script)) {
 					unassigned_log("Enabling the Recycle Bin on share '$share_name'");
-					benchmark("shell_exec", "/usr/bin/timeout 5 {$recycle_script} {$share_conf}");
+					timed_exec(5, "{$recycle_script} {$share_conf}");
 				}
 			}
 		}
 
 		unassigned_log("Reloading Samba configuration...");
-		benchmark("shell_exec", "/usr/bin/timeout 5 $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
+		timed_exec(5, "$(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
 		unassigned_log("Directory '{$dir}' shared successfully."); return TRUE;
 	} else {
 		return TRUE;
@@ -816,8 +816,8 @@ function rm_smb_share($dir, $share_name) {
 			file_put_contents($paths['smb_extra'], $c);
 
 			unassigned_log("Reloading Samba configuration..");
-			benchmark("shell_exec", "/usr/bin/timeout 5 /usr/bin/smbcontrol $(/usr/bin/cat /var/run/smbd.pid 2>/dev/null) close-share '{$share_name}' 2>&1");
-			benchmark("shell_exec", "/usr/bin/timeout 5 /usr/bin/smbcontrol $(/usr/bin/cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
+			timed_exec(5, "/usr/bin/smbcontrol $(/usr/bin/cat /var/run/smbd.pid 2>/dev/null) close-share '{$share_name}' 2>&1");
+			timed_exec(5, "/usr/bin/smbcontrol $(/usr/bin/cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
 			unassigned_log("Successfully removed SMB share '{$share_name}'."); return TRUE;
 		} else {
 			return TRUE;
