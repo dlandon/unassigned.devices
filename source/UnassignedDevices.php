@@ -555,22 +555,19 @@ switch ($_POST['action']) {
 
 	/*	SAMBA	*/
 	case 'list_samba_hosts':
-		$workgroup = urldecode($_POST['workgroup']);
-		echo shell_exec("/usr/bin/smbtree --servers | grep -v -P '^\w+' | tr -d '\\' | awk '{print $1}' | sort");
+		echo timed_exec(10, "/usr/bin/smbtree --servers --no-pass | grep -v -P '^\w+' | tr -d '\\' | awk '{print $1}' | sort");
 		break;
 
 	case 'list_samba_shares':
 		$ip = urldecode($_POST['IP']);
-		$user = isset($_POST['USER']) ? urlencode($_POST['USER']) : NULL;
-		$pass = isset($_POST['PASS']) ? urlencode($_POST['PASS']) : NULL;
+		$user = isset($_POST['USER']) ? $_POST['USER'] : NULL;
+		$pass = isset($_POST['PASS']) ? $_POST['PASS'] : NULL;
 		$login = $user ? ($pass ? "-U '{$user}%{$pass}'" : "-U '{$user}' -N") : "-U%";
-		if(!filter_var($ip, FILTER_VALIDATE_IP))
-		{
-			$ip = trim(shell_exec("/usr/bin/nmblookup {$ip} | head -n1 | awk '{print $1}'"));
+		if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+			$ip = trim(timed_exec(10, "/usr/bin/nmblookup {$ip} | head -n1 | awk '{print $1}'"));
 		}
-		if ($ip)
-		{
-			$rc = shell_exec("/usr/bin/smbclient -g -L '$ip' $login 2>/dev/null|/usr/bin/awk -F'|' '/Disk/{print $2}'|sort");
+		if ($ip) {
+			$rc = timed_exec(10, "/usr/bin/smbclient -g -L '$ip' $login 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}'|sort");
 			echo $rc ? $rc : " ";
 		} else {
 			echo " ";
@@ -587,13 +584,13 @@ switch ($_POST['action']) {
 			$net = implode(".", $net);
 			$mask = netmasks($iface["netmask"]);
 			$net = "{$net}/{$mask}"; 
-			echo shell_exec("/usr/bin/nmap {$net} -p111,2049 --open -oG - | grep -e '111/open' -e	'2049/open'| awk '{print $2}' | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4");
+			echo timed_exec(20, "/usr/bin/nmap {$net} -p111,2049 --open -oG - | grep -e '111/open' -e	'2049/open'| awk '{print $2}' | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4");
 		}
 		break;
 
 	case 'list_nfs_shares':
 		$ip = urldecode($_POST['IP']);
-		$rc = shell_exec("/usr/sbin/showmount --no-headers -e '{$ip}' 2>/dev/null | rev | cut -d' ' -f2- | rev | sort");
+		$rc = timed_exec(10, "/usr/sbin/showmount --no-headers -e '{$ip}' 2>/dev/null | rev | cut -d' ' -f2- | rev | sort");
 		echo $rc ? $rc : " ";
 		break;
 

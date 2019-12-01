@@ -696,10 +696,6 @@ function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE) {
 ############        SHARE FUNCTIONS         #############
 #########################################################
 
-function is_shared($name) {
-	return ( timed_exec(5, "/usr/bin/smbclient -g -L localhost -U% 2>&1 | /bin/awk -F'|' '/Disk/{print $2}' | /bin/grep -c '{$name}'") == 0 ) ? FALSE : TRUE;
-}
-
 function config_shared($sn, $part, $usb=FALSE) {
 	$share = get_config($sn, "share.{$part}");
 	$auto_usb = get_config("Config", "automount_usb");
@@ -1029,78 +1025,81 @@ function do_mount_samba($info) {
 	$config_file	= $GLOBALS["paths"]["config_file"];
 	$config			= @parse_ini_file($config_file, true);
 	if ($info['is_alive']) {
-		if (!(($info['fstype'] == "nfs") && ((strtoupper($var['NAME']) == strtoupper($info['ip'])) || ($var['IPADDR'] == $info['ip'])))) {
-			$dev = $info['device'];
-			$dir = $info['mountpoint'];
-			$fs  = $info['fstype'];
-			if (! is_mounted($dev) || ! is_mounted($dir, true)) {
-				@mkdir($dir, 0777, TRUE);
-				if ($fs == "nfs") {
-					$params	= get_mount_params($fs, '$dev');
+		$dev = $info['device'];
+		$dir = $info['mountpoint'];
+		$fs  = $info['fstype'];
+		if (! is_mounted($dev) || ! is_mounted($dir, true)) {
+			@mkdir($dir, 0777, TRUE);
+			if ($fs == "nfs") {
+				$params	= get_mount_params($fs, '$dev');
+				$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
+				unassigned_log("Mount NFS command: '$cmd'");
+				$o		= timed_exec(10, $cmd." 2>&1");
+				if ($o != "") {
+					unassigned_log("NFS mount failed: {$o}.");
+				}
+			} else {
+				file_put_contents("{$paths['credentials']}", "username=".($info['user'] ? $info['user'] : 'guest')."\n", FILE_APPEND);
+				file_put_contents("{$paths['credentials']}", "password=".$info['pass']."\n", FILE_APPEND);
+				file_put_contents("{$paths['credentials']}", "domain=".$info['domain']."\n", FILE_APPEND);
+				if ($config['Config']['samba_v1'] != "yes") {
+					$ver	= "3.0";
+					$params	= sprintf(get_mount_params($fs, '$dev'), $ver);
+					$params = str_replace('domain=,', '', $params);
 					$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
+					unassigned_log("Mount SMB share '$dev' using SMB3 protocol.");
+					unassigned_log("Mount SMB command: '$cmd'");
 					$o		= timed_exec(10, $cmd." 2>&1");
-				} else {
-					file_put_contents("{$paths['credentials']}", "username=".($info['user'] ? $info['user'] : 'guest')."\n", FILE_APPEND);
-					file_put_contents("{$paths['credentials']}", "password=".$info['pass']."\n", FILE_APPEND);
-					file_put_contents("{$paths['credentials']}", "domain=".$info['domain']."\n", FILE_APPEND);
-					if ($config['Config']['samba_v1'] != "yes") {
-						$ver	= "3.0";
+					if ($o != "" && strpos($o, "Permission denied") === FALSE) {
+						unassigned_log("SMB3 mount failed: {$o}.");
+						/* If the mount failed, try to mount with samba vers=2.0. */
+						$ver	= "2.0";
 						$params	= sprintf(get_mount_params($fs, '$dev'), $ver);
 						$params = str_replace('domain=,', '', $params);
 						$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
-						unassigned_log("Mount SMB share '$dev' using SMB3 protocol.");
+						unassigned_log("Mount SMB share '$dev' using SMB2 protocol.");
+						unassigned_log("Mount SMB command: '$cmd'");
 						$o		= timed_exec(10, $cmd." 2>&1");
-						if ($o != "" && strpos($o, "Permission denied") === FALSE) {
-							/* If the mount failed, try to mount with samba vers=2.0. */
-							unassigned_log("SMB3 mount failed: {$o}.");
-							unassigned_log("Mount SMB share '$dev' using SMB2 protocol.");
-							$ver	= "2.0";
-							$params	= sprintf(get_mount_params($fs, '$dev'), $ver);
-							$params = str_replace('domain=,', '', $params);
-							$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
-							$o		= timed_exec(10, $cmd." 2>&1");
-						}
-						if ($o != "" && strpos($o, "Permission denied") === FALSE) {
-							/* If the mount failed, try to mount with samba vers=1.0. */
-							unassigned_log("SMB2 mount failed: {$o}.");
-							unassigned_log("Mount SMB share '$dev' using SMB1 protocol.");
-							$ver	= "1.0";
-							$params	= sprintf(get_mount_params($fs, '$dev'), $ver);
-							$params = str_replace('domain=,', '', $params);
-							$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
-							$o		= timed_exec(10, $cmd." 2>&1");
-						}
-					} else {
-						unassigned_log("Mount SMB share '$dev' using SMB1 protocol.");
+					}
+					if ($o != "" && strpos($o, "Permission denied") === FALSE) {
+						unassigned_log("SMB2 mount failed: {$o}.");
+						/* If the mount failed, try to mount with samba vers=1.0. */
 						$ver	= "1.0";
 						$params	= sprintf(get_mount_params($fs, '$dev'), $ver);
 						$params = str_replace('domain=,', '', $params);
 						$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
+						unassigned_log("Mount SMB share '$dev' using SMB1 protocol.");
+						unassigned_log("Mount SMB command: '$cmd'");
 						$o		= timed_exec(10, $cmd." 2>&1");
+						if ($o != "") {
+							unassigned_log("SMB1 mount failed: {$o}.");
+						}
 					}
-//					$params	= sprintf(get_mount_params($fs, '$dev'), $ver, ($info['user'] ? $info['user'] : "guest" ),  $info['domain'], '*******');
-//					$params = str_replace('domain=,', '', $params);
+				} else {
+					$ver	= "1.0";
+					$params	= sprintf(get_mount_params($fs, '$dev'), $ver);
+					$params = str_replace('domain=,', '', $params);
+					$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
+					unassigned_log("Mount SMB share '$dev' using SMB1 protocol.");
+					unassigned_log("Mount SMB command: '$cmd'");
+					$o		= timed_exec(10, $cmd." 2>&1");
 				}
-				unlink("{$paths['credentials']}");
-				unassigned_log("Mount SMB/NFS command: mount -t $fs -o ".$params." '{$dev}' '{$dir}'");
-				foreach (range(0,5) as $t) {
-					if (is_mounted($dev)) {
-						@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
-						unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
-						return TRUE;
-					} else {
-						sleep(0.5);
-					}
-				}
-				rmdir($dir);
-				unassigned_log("Mount of '{$dev}' failed. Error message: $o");
-				return FALSE;
-			} else {
-				unassigned_log("Share '{$dev}' already mounted.");
-				return FALSE;
 			}
+			unlink("{$paths['credentials']}");
+			foreach (range(0,5) as $t) {
+				if (is_mounted($dev)) {
+					@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
+					unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
+					return TRUE;
+				} else {
+					sleep(0.5);
+				}
+			}
+			rmdir($dir);
+			unassigned_log("Mount of '{$dev}' failed. Error message: $o");
+			return FALSE;
 		} else {
-			unassigned_log("Error: Cannot mount remote NFS '{$info['device']}' from this server onto this server."); 
+			unassigned_log("Share '{$dev}' already mounted.");
 			return FALSE;
 		}
 	} else {
