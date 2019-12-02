@@ -1015,6 +1015,21 @@ mkdir -p /mnt/disks /var/state/&name;
 chown nobody:users /mnt/disks
 chmod 777 /var/state/&name;
 
+# create a tmpfs mountpoint at /mnt/disks
+# to make sure that a CIFS connection dropout doesn't fill all RAMFS
+# ps: tmpfs mountpoint will only be created if no disks are mounted yet
+mounted_disks=n
+for dir in /mnt/disks/*; do 
+  if mountpoint -q "$dir" 2>/dev/null; then 
+    mounted_disks=y 
+  fi
+done
+if [ $mounted_disks == "n" ]; then
+  mount -t tmpfs -o size=1M tmpfs /mnt/disks
+else
+  touch /var/state/&name;/reboot_required
+fi
+
 # Add unassigned_devices to smb-extra.conf.
 at -M -f /tmp/&name;/add-smb-extra now 2>/dev/null
 
@@ -1044,6 +1059,11 @@ echo " This plugin requires Dynamix webGui to operate"
 echo " Copyright 2015, gfjardim"
 echo " Copyright 2016-2019, &author;"
 echo " Version: &version;"
+if [ $mounted_disks == "y" ]; then
+  echo ""
+  echo " PLEASE REBOOT YOUR SERVER "
+  echo ""
+fi
 echo "-----------------------------------------------------------"
 echo ""
 </INLINE>
