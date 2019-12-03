@@ -1,6 +1,7 @@
 Menu="Buttons:10"
 Link="nav-user"
 ---
+<?$plugin = "unassigned.devices";?>
 <script type="text/javascript">
 	url = location.pathname.split('/');
 	if (url[1] == "Main" && url.length > 2)
@@ -11,4 +12,7 @@ Link="nav-user"
 			$.cookie('one',InitTab,{path:'/'});
 		});
 	}
+<?if (is_file("/var/state/${plugin}/reboot_required")):?>
+	showUpgrade('<b>Reboot required</b> to apply Unassigned Devices update');
+<?endif;?>
 </script>
