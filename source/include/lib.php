@@ -1085,8 +1085,8 @@ function do_mount_samba($info) {
 					unassigned_log("Mount SMB command: '$cmd'");
 					$o		= timed_exec(10, $cmd." 2>&1");
 				}
+				unlink("{$paths['credentials']}");
 			}
-			unlink("{$paths['credentials']}");
 			foreach (range(0,5) as $t) {
 				if (is_mounted($dev)) {
 					@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
