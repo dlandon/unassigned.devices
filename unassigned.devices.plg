@@ -1076,6 +1076,9 @@ The 'remove' script.
 <INLINE>
 # umount disks and smb mounts
 /usr/local/emhttp/plugins/&name;/scripts/rc.unassigned umount all 2>/dev/null
+if mountpoint -q "/mnt/disks"; then
+  umount "/mnt/disks"
+fi
 rmdir /mnt/disks 2>/dev/null
 
 # Remove installed packages
