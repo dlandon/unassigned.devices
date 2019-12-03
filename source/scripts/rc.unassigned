@@ -52,6 +52,7 @@ function unassigned_mount() {
 						}
 						setSleepTime($device);
 						execute_script($info, "ADD");
+						export_disk($info, true);
 					}
 					else
 					{
@@ -81,6 +82,7 @@ function unassigned_mount() {
 				if (do_mount( $info )) {
 					add_smb_share($info['mountpoint'], $info['device'], FALSE);
 					execute_script($info, "ADD");
+					export_disk($info, true);
 				} else {
 					execute_script($info, "ERROR_MOUNT");
 				}
@@ -103,6 +105,7 @@ function unassigned_mount() {
 					add_smb_share($info['mountpoint'], $info['device'], FALSE);
 					add_nfs_share($info['mountpoint']);
 					execute_script($info, "ADD");
+					export_disk($info, true);
 				} else {
 					execute_script($info, "ERROR_MOUNT");
 				}
@@ -143,6 +146,7 @@ function unassigned_umount() {
 								}
 								unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' removed successfully.");
 								execute_script($info, "REMOVE");
+								export_disk($info, false);
 							}
 							else
 							{
@@ -182,6 +186,7 @@ function unassigned_umount() {
 							if ( rm_smb_share($info['mountpoint'], $info['device']) ) {
 								unassigned_log("Share '{$info['device']}' unmount successfull.");
 								execute_script($info, "REMOVE");
+								export_disk($info, false);
 							}
 						} else {
 							execute_script($info, "ERROR_UNMOUNT");
@@ -215,6 +220,7 @@ function unassigned_umount() {
 						if ( rm_smb_share($info['mountpoint'], $info['device']) && rm_nfs_share($info['mountpoint']) ) {
 							unassigned_log("Share '{$info['device']}' unmount successfull.");
 							execute_script($info, "REMOVE");
+							export_disk($info, false);
 						}
 					} else {
 						execute_script($info, "ERROR_UNMOUNT");
@@ -240,6 +246,24 @@ function addFile($file)
 	global $remove;
 	@touch($file);
 	$remove[] = $file;
+}
+
+function export_disk($disk, $add) {
+	global $paths;
+	$info = MiscUD::get_json($paths["mounted"]);
+	$dev  = $disk['device'];
+	if ($add)
+	{
+		if (isset($disk["pass"])) {
+			unset($disk["pass"]);
+		}
+		$info[$dev] = $disk;
+	}
+	else
+	{
+		unset($info[$dev]);
+	}
+	$info = MiscUD::save_json($paths["mounted"], $info);	
 }
 
 switch ($COMMAND) {
