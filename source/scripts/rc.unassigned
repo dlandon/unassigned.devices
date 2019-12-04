@@ -250,6 +250,7 @@ function addFile($file)
 
 function export_disk($disk, $add) {
 	global $paths;
+
 	$info = MiscUD::get_json($paths["mounted"]);
 	$dev  = $disk['device'];
 	if ($add)
