@@ -562,7 +562,7 @@ function get_mount_params($fs, $dev) {
 			break;
 
 		case 'crypto_LUKS':
-			return "";
+			return "rw,noatime,nodiratime{$discard}";
 			break;
 
 		case 'ext4':
@@ -582,7 +582,7 @@ function get_mount_params($fs, $dev) {
 			break;
 
 		default:
-			return "auto,async,noatime,nodiratime";
+			return "auto,async,noatime,nodiratime{$discard}";
 			break;
 	}
 }
@@ -630,7 +630,7 @@ function do_mount_local($info) {
 			if ($fs != "crypto_LUKS") {
 				$cmd = "/sbin/mount -t $fs -o ".get_mount_params($fs, $dev)." '{$dev}' '{$dir}'";
 			} else {
-				$cmd = "/sbin/mount ".get_mount_params($fs, $dev)." '{$dev}' '{$dir}'";
+				$cmd = "/sbin/mount -o ".get_mount_params($fs, $dev)." '{$dev}' '{$dir}'";
 			}
 			unassigned_log("Mount drive command: $cmd");
 			$o = timed_exec(10, $cmd." 2>&1");
