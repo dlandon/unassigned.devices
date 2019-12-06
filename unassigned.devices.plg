@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2019.12.03">
+<!ENTITY version   "2019.12.06">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"280db294df58bcefd87d948c298fe4a7">
+<!ENTITY MD5		"d1c68ea1c111b8f75618ba04830cc33a">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Luks mount parameters.
+- Fix: Add discard parameter to btrfs and luks mount.
+
+###2019.12.03
 - Add: Export mounted disks info so other applications can use them.
 
 ###2019.12.02a
