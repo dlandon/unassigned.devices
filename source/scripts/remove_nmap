@@ -17,5 +17,6 @@ $config = @parse_ini_file($config_file, true);
 if ($config['Config']['remove_nmap_pkg'] == "yes") {
 	exec('logger "Removing nmap package..." -t"unassigned.devices"');
 	exec("removepkg '/var/log/packages/nmap-*'");
+	exec("removepkg '/var/log/packages/libnl-*'");
 }
 ?>

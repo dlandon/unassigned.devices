@@ -563,15 +563,7 @@ switch ($_POST['action']) {
 		$user = isset($_POST['USER']) ? $_POST['USER'] : NULL;
 		$pass = isset($_POST['PASS']) ? $_POST['PASS'] : NULL;
 		$login = $user ? ($pass ? "-U '{$user}%{$pass}'" : "-U '{$user}' -N") : "-U%";
-		if (!filter_var($ip, FILTER_VALIDATE_IP)) {
-			$ip = trim(timed_exec(10, "/usr/bin/nmblookup {$ip} | head -n1 | awk '{print $1}'"));
-		}
-		if ($ip) {
-			$rc = timed_exec(10, "/usr/bin/smbclient -g -L '$ip' $login 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}'|sort");
-			echo $rc ? $rc : " ";
-		} else {
-			echo " ";
-		}
+		echo timed_exec(10, "/usr/bin/smbclient -g -L '$ip' $login 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}'|sort");
 		break;
 
 	/*	NFS	*/
@@ -584,7 +576,7 @@ switch ($_POST['action']) {
 			$net = implode(".", $net);
 			$mask = netmasks($iface["netmask"]);
 			$net = "{$net}/{$mask}"; 
-			echo timed_exec(20, "/usr/bin/nmap {$net} -p111,2049 --open -oG - | grep -e '111/open' -e	'2049/open'| awk '{print $2}' | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4");
+			echo timed_exec(20, "/usr/bin/nmap {$net} -p2049 --open -n | grep -e 'Nmap scan report for' | sed -e 's/Nmap scan report for //g' | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4");
 		}
 		break;
 

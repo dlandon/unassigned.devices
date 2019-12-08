@@ -555,6 +555,10 @@ function get_mount_params($fs, $dev) {
 			return "rw,noatime,nodiratime{$discard}";
 			break;
 
+		case 'btrfs':
+			return "auto,async,noatime,nodiratime{$discard}";
+			break;
+
 		case 'exfat':
 		case 'vfat':
 		case 'ntfs':
@@ -582,7 +586,7 @@ function get_mount_params($fs, $dev) {
 			break;
 
 		default:
-			return "auto,async,noatime,nodiratime{$discard}";
+			return "auto,async,noatime,nodiratime";
 			break;
 	}
 }
@@ -633,14 +637,14 @@ function do_mount_local($info) {
 				$cmd = "/sbin/mount -o ".get_mount_params($fs, $dev)." '{$dev}' '{$dir}'";
 			}
 			unassigned_log("Mount drive command: $cmd");
-			$o = timed_exec(10, $cmd." 2>&1");
+			$o = timed_exec(20, $cmd." 2>&1");
 			if ($o != "" && $fs == "ntfs") {
 				if (! is_mounted($dev)) {
 					unassigned_log("Mount failed with error: $o");
 					unassigned_log("Mounting ntfs drive read only.");
 					$cmd = "/sbin/mount -t $fs -ro ".get_mount_params($fs, $dev)." '{$dev}' '{$dir}'";
 					unassigned_log("Mount drive ro command: $cmd");
-					$o = timed_exec(10, $cmd." 2>&1");
+					$o = timed_exec(20, $cmd." 2>&1");
 				} else {
 					unassigned_log("Mount error: $o");
 				}
@@ -1085,7 +1089,7 @@ function do_mount_samba($info) {
 					unassigned_log("Mount SMB command: '$cmd'");
 					$o		= timed_exec(10, $cmd." 2>&1");
 				}
-				unlink("{$paths['credentials']}");
+				@unlink("{$paths['credentials']}");
 			}
 			foreach (range(0,5) as $t) {
 				if (is_mounted($dev)) {
