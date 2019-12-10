@@ -643,7 +643,7 @@
 ###2016.01.17d
 - Add: Log button on main page.
 
-2016.01.17c
+###2016.01.17c
 - Fix: Only devices with auto mount off will be unmounted with the command "unassigned_umount all".  This does not apply to stopping the array.
 - Fix: SMB Security would not allow writing to the share.
 
@@ -674,7 +674,7 @@
 - Fix: black CSS conformity
 - Fix: not working on non-tabbed mode
 
-2015.09.17b
+###2015.09.17b
 - Fix: UDEV killing long run scripts;
 
 ###2015.09.17a
