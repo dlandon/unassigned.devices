@@ -637,14 +637,14 @@ function do_mount_local($info) {
 				$cmd = "/sbin/mount -o ".get_mount_params($fs, $dev)." '{$dev}' '{$dir}'";
 			}
 			unassigned_log("Mount drive command: $cmd");
-			$o = timed_exec(20, $cmd." 2>&1");
+			$o = timed_exec(25, $cmd." 2>&1");
 			if ($o != "" && $fs == "ntfs") {
 				if (! is_mounted($dev)) {
 					unassigned_log("Mount failed with error: $o");
 					unassigned_log("Mounting ntfs drive read only.");
 					$cmd = "/sbin/mount -t $fs -ro ".get_mount_params($fs, $dev)." '{$dev}' '{$dir}'";
 					unassigned_log("Mount drive ro command: $cmd");
-					$o = timed_exec(20, $cmd." 2>&1");
+					$o = timed_exec(25, $cmd." 2>&1");
 				} else {
 					unassigned_log("Mount error: $o");
 				}
@@ -675,9 +675,9 @@ function do_mount_local($info) {
 function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE) {
 	if ( is_mounted($dev) ) {
 		unassigned_log("Unmounting '{$dev}'...");
-		$cmd = "/bin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : "")." '{$dev}' 2>&1";
+		$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : "")." '{$dev}' 2>&1";
 		unassigned_log("Unmount cmd: $cmd");
-		$o = timed_exec(20, $cmd);
+		$o = timed_exec(45, $cmd);
 		for ($i=0; $i < 10; $i++) {
 			if (! is_mounted($dev)) {
 				if (is_dir($dir)) rmdir($dir);
@@ -690,7 +690,7 @@ function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE) {
 		unassigned_log("Unmount of '{$dev}' failed. Error message: $o"); 
 		sleep(1);
 		if (! lsof($dir) && ! $force) {
-			unassigned_log("Since there aren't open files, will force unmount.");
+			unassigned_log("Since there aren't any open files, will force unmount.");
 			return do_unmount($dev, $dir, true);
 		}
 		return FALSE;
