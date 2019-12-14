@@ -313,6 +313,7 @@ function format_disk($dev, $fs) {
 		case 'exfat':
 			$parted_fs = "fat32";
 			break;
+
 		default:
 			$parted_fs = $fs;
 			break;
@@ -616,7 +617,7 @@ function do_mount($info) {
 				return do_mount_local($info);
 			}
 		} else {
-			unassigned_log("Drive '{$info['device']}' already mounted...");
+			unassigned_log("Drive '{$info['device']}' already mounted.");
 			return FALSE;
 		}
 	} else {
@@ -637,14 +638,14 @@ function do_mount_local($info) {
 				$cmd = "/sbin/mount -o ".get_mount_params($fs, $dev)." '{$dev}' '{$dir}'";
 			}
 			unassigned_log("Mount drive command: $cmd");
-			$o = timed_exec(25, $cmd." 2>&1");
+			$o = timed_exec(60, $cmd." 2>&1");
 			if ($o != "" && $fs == "ntfs") {
 				if (! is_mounted($dev)) {
 					unassigned_log("Mount failed with error: $o");
 					unassigned_log("Mounting ntfs drive read only.");
 					$cmd = "/sbin/mount -t $fs -ro ".get_mount_params($fs, $dev)." '{$dev}' '{$dir}'";
 					unassigned_log("Mount drive ro command: $cmd");
-					$o = timed_exec(25, $cmd." 2>&1");
+					$o = timed_exec(60, $cmd." 2>&1");
 				} else {
 					unassigned_log("Mount error: $o");
 				}
@@ -668,19 +669,22 @@ function do_mount_local($info) {
 			unassigned_log("No filesystem detected on '{$dev}'.");
 		}
 	} else {
-		unassigned_log("Drive '{$dev}' already mounted...");
+		unassigned_log("Drive '{$dev}' already mounted.");
 	}
 }
 
 function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE) {
 	if ( is_mounted($dev) ) {
 		unassigned_log("Unmounting '{$dev}'...");
-		$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : "")." '{$dev}' 2>&1";
+		$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : "")." '{$dev}'";
+		$timeout = $smb ? 10 : 90;
 		unassigned_log("Unmount cmd: $cmd");
-		$o = timed_exec(45, $cmd);
+		$o = timed_exec($timeout, $cmd);
 		for ($i=0; $i < 10; $i++) {
 			if (! is_mounted($dev)) {
-				if (is_dir($dir)) rmdir($dir);
+				if (is_dir($dir)) {
+					rmdir($dir);
+				}
 				unassigned_log("Successfully unmounted '{$dev}'");
 				return TRUE;
 			} else {
@@ -765,10 +769,9 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 		if(!is_dir($paths['smb_usb_shares'])) @mkdir($paths['smb_usb_shares'],0755,TRUE);
 		$share_conf = preg_replace("#\s+#", "_", realpath($paths['smb_usb_shares'])."/".$share_name.".conf");
 
-		unassigned_log("Defining share '$share_name' with file '$share_conf'");
+		unassigned_log("Adding SMB share '$share_name'.'");
 		file_put_contents($share_conf, $share_cont);
 		if (! exist_in_file($paths['smb_extra'], $share_conf)) {
-			unassigned_log("Adding share '$share_name' to '".$paths['smb_extra']."'");
 			$c = (is_file($paths['smb_extra'])) ? @file($paths['smb_extra'],FILE_IGNORE_NEW_LINES) : array();
 			$c[] = ""; $c[] = "include = $share_conf";
 			# Do Cleanup
@@ -788,12 +791,10 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 			}
 		}
 
-		unassigned_log("Reloading Samba configuration...");
 		timed_exec(5, "$(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
-		unassigned_log("Directory '{$dir}' shared successfully."); return TRUE;
-	} else {
-		return TRUE;
 	}
+
+	return TRUE;
 }
 
 function rm_smb_share($dir, $share_name) {
@@ -804,10 +805,9 @@ function rm_smb_share($dir, $share_name) {
 		$share_conf = preg_replace("#\s+#", "_", realpath($paths['smb_usb_shares'])."/".$share_name.".conf");
 		if (is_file($share_conf)) {
 			@unlink($share_conf);
-			unassigned_log("Removing SMB share file '$share_conf'");
+			unassigned_log("Removing SMB share '$share_conf'");
 		}
 		if (exist_in_file($paths['smb_extra'], $share_conf)) {
-			unassigned_log("Removing SMB share definitions from '".$paths['smb_extra']."'");
 			$c = (is_file($paths['smb_extra'])) ? @file($paths['smb_extra'],FILE_IGNORE_NEW_LINES) : array();
 			# Do Cleanup
 			$smb_extra_includes = array_unique(preg_grep("/include/i", $c));
@@ -815,17 +815,12 @@ function rm_smb_share($dir, $share_name) {
 			$c = array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_extra_includes);
 			$c = preg_replace('/\n\s*\n\s*\n/s', PHP_EOL.PHP_EOL, implode(PHP_EOL, $c));
 			file_put_contents($paths['smb_extra'], $c);
-
-			unassigned_log("Reloading Samba configuration..");
 			timed_exec(5, "/usr/bin/smbcontrol $(/usr/bin/cat /var/run/smbd.pid 2>/dev/null) close-share '{$share_name}' 2>&1");
 			timed_exec(5, "/usr/bin/smbcontrol $(/usr/bin/cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
-			unassigned_log("Successfully removed SMB share '{$share_name}'."); return TRUE;
-		} else {
-			return TRUE;
 		}
-	} else {
-		return TRUE;
 	}
+
+	return TRUE;
 }
 
 function add_nfs_share($dir) {
@@ -833,10 +828,10 @@ function add_nfs_share($dir) {
 
 	if ( ($var['shareNFSEnabled'] == "yes") && (get_config("Config", "nfs_export") == "yes") ) {
 		$reload = FALSE;
+		unassigned_log("Adding NFS share '$dir'.");
 		foreach (array("/etc/exports","/etc/exports-") as $file) {
 			if (! exist_in_file($file, "\"{$dir}\"")) {
 				$c = (is_file($file)) ? @file($file,FILE_IGNORE_NEW_LINES) : array();
-				unassigned_log("Adding NFS share '$dir' to '$file'.");
 				$fsid = 200 + count(preg_grep("@^\"@", $c));
 				$nfs_sec = get_config("Config", "nfs_security");
 				$sec = "";
@@ -861,10 +856,10 @@ function rm_nfs_share($dir) {
 
 	if ( ($var['shareNFSEnabled'] == "yes") && (get_config("Config", "nfs_export") == "yes") ) {
 		$reload = FALSE;
+		unassigned_log("Removing NFS share '$dir'.");
 		foreach (array("/etc/exports","/etc/exports-") as $file) {
 			if ( exist_in_file($file, "\"{$dir}\"") && strlen($dir)) {
 				$c = (is_file($file)) ? @file($file,FILE_IGNORE_NEW_LINES) : array();
-				unassigned_log("Removing NFS share '$dir' from '$file'.");
 				$c = preg_grep("@\"{$dir}\"@i", $c, PREG_GREP_INVERT);
 				$c[] = "";
 				file_put_contents($file, implode(PHP_EOL, $c));
@@ -1042,6 +1037,7 @@ function do_mount_samba($info) {
 				$o		= timed_exec(10, $cmd." 2>&1");
 				if ($o != "") {
 					unassigned_log("NFS mount failed: {$o}.");
+					return FALSE;
 				}
 			} else {
 				file_put_contents("{$paths['credentials']}", "username=".($info['user'] ? $info['user'] : 'guest')."\n", FILE_APPEND);
@@ -1078,6 +1074,7 @@ function do_mount_samba($info) {
 						$o		= timed_exec(10, $cmd." 2>&1");
 						if ($o != "") {
 							unassigned_log("SMB1 mount failed: {$o}.");
+							return FALSE;
 						}
 					}
 				} else {
@@ -1112,6 +1109,7 @@ function do_mount_samba($info) {
 		return FALSE;
 	}
 }
+
 
 function toggle_samba_automount($source, $status) {
 	$config_file = $GLOBALS["paths"]["samba_mount"];
@@ -1211,7 +1209,7 @@ function do_mount_iso($info) {
 			unassigned_log("Mount of '{$dev}' failed. Error message: $o");
 			return FALSE;
 		} else {
-			unassigned_log("Share '$dev' already mounted...");
+			unassigned_log("Share '$dev' already mounted.");
 		}
 	} else {
 		unassigned_log("Error: ISO file '$info[file]' is missing and cannot be mounted.");

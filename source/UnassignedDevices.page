@@ -189,14 +189,14 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		{
 			tableWidths = $("#usb_devices_list > table > thead > tr").children("td").map(function(i,v){return $(this).getHiddenDimensions().outerWidth;});
 
-<?if (version_compare($version['version'],"6.6", "<")):?>
+			<?if (version_compare($version['version'],"6.6", "<")):?>
 			$("#usb_devices_list").html( $("#table_loading").html() );
-<?else:?>
+			<?else:?>
 			if ( !$('#spin_div').length ) {
 				$('#spinner').html("<tr><td colspan='8'><div id='spin_div' class='spinner'></div></td></tr>");
 			}
 			$("#usb_devices_list").html( $('div.spinner').html(unraid_logo) );
-<?endif;?>
+			<?endif;?>
 			$("#usb_devices_list > table > thead > tr").children("td").each(function(i,v)
 			{
 				if (i in tableWidths)
@@ -678,10 +678,10 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	<dl>
 		<dt>IP/Host:</dt>
 		<dd><input type="text" name="IP"></dd>
-<?if (version_compare($version['version'],"6.8", "<")):?>
+		<?if (version_compare($version['version'],"6.8", "<")):?>
 		<dt>&nbsp;</dt>
 		<dd><button type="button" onclick="load_hosts(this, 'list_samba_hosts');">Search for servers</button></dd>
-<?endif;?>
+		<?endif;?>
 		<dt>Username:</dt>
 		<dd><input type="text" name="USER"></dd>
 		<dt>Password:</dt>

@@ -32,11 +32,13 @@ function unassigned_mount() {
 			if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "auto" || $DEVNAME == "autodevices") {
 				$info = get_partition_info($partition, true);
 				if (! $info['automount'] && ( $DEVNAME == "auto" || $DEVNAME == "autodevices" || isset($_ENV['DEVNAME']) )) {
-					unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' is not set to auto mount and will not be mounted...");
+					unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' is not set to auto mount and will not be mounted.");
 					continue;
 				}
 				if ($info['label'] == "UNRAID") {
-					unassigned_log("Error: Cannot mount device '{$info['device']}' with label 'UNRAID'...");
+					unassigned_log("Error: Cannot mount device '{$info['device']}' with label 'UNRAID'.");
+				} elseif ($info['serial'] == "") {
+					unassigned_log("Disk '{$device}' does not have a serial number and cannot be mounted.");
 				} elseif ($info['device'] != "") {
 					unassigned_log("Disk found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
 					unassigned_log("Adding disk '{$info['device']}'...");
@@ -47,22 +49,18 @@ function unassigned_mount() {
 						if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'],"usb"))) {
 							add_smb_share($info['mountpoint'], $info['label']);
 							add_nfs_share($info['mountpoint']);
-						} else {
-							unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' is not set as sharable and will not be shared...");
 						}
 						setSleepTime($device);
 						execute_script($info, "ADD");
 						export_disk($info, true);
-					}
-					else
-					{
-						unassigned_log("Partition '{$info['label']}' could not be mounted...");
+					} elseif ( $DEVNAME != "auto" && $DEVNAME != "autodevices" ) {
+						unassigned_log("Partition '{$info['label']}' could not be mounted.");
 						array_map(function($f){@unlink($f);}, $remove);
 						touch($paths['reload']);
 						execute_script($info, "ERROR_MOUNT");
 					}
 				} else {
-					unassigned_log("Error: Cannot mount null device with serial '{$info['serial']}'...");
+					unassigned_log("Error: Cannot mount null device with serial '{$info['serial']}'.");
 				}
 			}
 		}
@@ -72,9 +70,9 @@ function unassigned_mount() {
 	if (strpos($DEVNAME, "//") === 0 || strpos($DEVNAME, "://") || $DEVNAME == "auto" || $DEVNAME == "autoshares") {
 		foreach (get_samba_mounts() as $info) {
 			$device = $info['device'];
-			if ( $DEVNAME == $device || $DEVNAME == "auto" || $DEVNAME == "autoshares") {
+			if ( $DEVNAME == $device || $DEVNAME == "auto" || $DEVNAME == "autoshares" ) {
 				if (! $info['automount'] && ($DEVNAME == "auto" || $DEVNAME == "autoshares")) {
-					unassigned_log("Remote SMB mount '{$info['device']}' is not set to auto mount and will not be mounted...");
+					unassigned_log("Remote SMB mount '{$info['device']}' is not set to auto mount and will not be mounted.");
 					continue;
 				}
 				unassigned_log("Remote SMB share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
@@ -83,7 +81,7 @@ function unassigned_mount() {
 					add_smb_share($info['mountpoint'], $info['device'], FALSE);
 					execute_script($info, "ADD");
 					export_disk($info, true);
-				} else {
+				} elseif ( $DEVNAME != "auto" && $DEVNAME != "autoshares" ) {
 					execute_script($info, "ERROR_MOUNT");
 				}
 			}
@@ -96,7 +94,7 @@ function unassigned_mount() {
 			$device = $info['device'];
 			if ( $DEVNAME == $device || $DEVNAME == "auto" || $DEVNAME == "autodevices") {
 				if (! $info['automount'] && ($DEVNAME == "auto" || $DEVNAME == "autodevices")) {
-					unassigned_log("ISO File mount '{$info['device']}' is not set to auto mount and will not be mounted...");
+					unassigned_log("ISO File mount '{$info['device']}' is not set to auto mount and will not be mounted.");
 					continue;
 				}
 				unassigned_log("ISO File share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
@@ -126,19 +124,18 @@ function unassigned_umount() {
 			if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "auto" || $DEVNAME == "all" ) {
 				$info = get_partition_info($partition, true);
 				if (! $info['automount'] && $DEVNAME == "auto" ) {
-					unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' is not set to auto mount and will not be unmounted...");
 					continue;
 				}
 				unassigned_log("Drive found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
 				if ($info['label'] == "UNRAID") {
-					unassigned_log("Error: Cannot unmount device '{$info['device']}' with label 'UNRAID'...");
+					unassigned_log("Error: Cannot unmount device '{$info['device']}' with label 'UNRAID'.");
 				} else {
 					if ( is_mounted($info['device']) )
 					{
 						addFile(sprintf($paths['unmounting'],basename($info['device'])));
 						setSleepTime($device);
-						execute_script($info, "UNMOUNT");
 						if ( rm_smb_share($info['target'], $info['label']) && rm_nfs_share($info['target']) ) {
+							execute_script($info, "UNMOUNT");
 							unassigned_log("Unmounting disk '{$info['label']}'...");
 							if ( do_unmount($info['device'], $info['mountpoint']) ) {
 								if ($info['fstype'] == "crypto_LUKS" ) {
@@ -150,15 +147,13 @@ function unassigned_umount() {
 							}
 							else
 							{
-								unassigned_log("Disk '{$info['label']}' could not be unmounted...");
+								unassigned_log("Disk '{$info['label']}' could not be unmounted.");
 								array_map(function($f){@unlink($f);}, $remove);
 								touch($paths['reload']);
 								execute_script($info, "ERROR_UNMOUNT");
 								exit(1);
 							}
 						}
-					} else {
-						unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' is not mounted and cannot be unmounted...");
 					}
 				}
 			}
@@ -171,7 +166,6 @@ function unassigned_umount() {
 			$device = $info['device'];
 			if ( $DEVNAME == $device || $DEVNAME == "auto" || $DEVNAME == "all" ) {
 				if (! $info['automount'] && $DEVNAME == "auto" ) {
-					unassigned_log("Remote SMB Share '{$info['device']} is not set to auto mount and will not be unmounted...'");
 					continue;
 				}
 				unassigned_log("Remote SMB share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
@@ -192,7 +186,7 @@ function unassigned_umount() {
 							execute_script($info, "ERROR_UNMOUNT");
 						}
 					} else {
-						unassigned_log("Remote SMB share '{$info['device']}' is not mounted and cannot be unmounted...");
+						unassigned_log("Remote SMB share '{$info['device']}' is not mounted and cannot be unmounted.");
 					}
 				} else {
 					unassigned_log("Error: Cannot unmount '{$info['device']}'.  The server is offline.");
@@ -207,7 +201,6 @@ function unassigned_umount() {
 			$device = $info['device'];
 			if ( $DEVNAME == $device || $DEVNAME == "auto" || $DEVNAME == "all" ) {
 				if (! $info['automount'] && $DEVNAME == "auto" ) {
-					unassigned_log("ISO File Share '{$info['device']} is not set to auto mount and will not be unmounted...'");
 					continue;
 				}
 				unassigned_log("ISO File share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
@@ -222,11 +215,11 @@ function unassigned_umount() {
 							execute_script($info, "REMOVE");
 							export_disk($info, false);
 						}
-					} else {
+					} elseif ($DEVNAME != "auto" && $DEVNAME != "all") {
 						execute_script($info, "ERROR_UNMOUNT");
 					}
 				} else {
-					unassigned_log("Remote ISO File share '{$info['device']}' is not mounted and cannot be unmounted...");
+					unassigned_log("Remote ISO File share '{$info['device']}' is not mounted and cannot be unmounted.");
 				}
 			}
 		}
