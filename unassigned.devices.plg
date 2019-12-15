@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2019.12.14">
+<!ENTITY version   "2019.12.15">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"e294c8c35984dc9edc0dfe907dceae26">
+<!ENTITY MD5		"33e987e20e52112259a897bb23e7730e">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: 'gid=99,uid=100' to smb cifs mount.
+- Fix: Do not use SMB1 if netbios is disabled.
+
+###2019.12.14
 - Fix: Extend mount and umount command time outs.
 - Fix: Cut down on event logging.
 - FIx: Intermittent issue with disks not unmounting.

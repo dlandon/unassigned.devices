@@ -41,6 +41,12 @@ if (! isset($var)){
 	$var = @parse_ini_file("$docroot/state/var.ini");
 }
 
+if ((!isset($var['USE_NETBIOS']) || ((isset($var['USE_NETBIOS'])) && ($var['USE_NETBIOS'] == "yes")))) {
+	$use_netbios = "yes";
+} else {
+	$use_netbios = "no";
+}
+
 if ( is_file( "plugins/preclear.disk/assets/lib.php" ) )
 {
 	require_once( "plugins/preclear.disk/assets/lib.php" );
@@ -544,7 +550,7 @@ function is_mounted($dev, $dir=FALSE) {
 }
 
 function get_mount_params($fs, $dev) {
-	global $paths;
+	global $paths, $use_netbios;
 
 	$discard = trim(shell_exec("/usr/bin/cat /sys/block/".preg_replace("#\d+#i", "", basename($dev))."/queue/discard_max_bytes 2>/dev/null")) ? ",discard" : "";
 	switch ($fs) {
@@ -576,10 +582,10 @@ function get_mount_params($fs, $dev) {
 
 		case 'cifs':
 			$sec = "";
-			if (get_config("Config", "samba_v1") == "yes") {
+			if (($use_netbios == "yes") && (get_config("Config", "samba_v1") == "yes")) {
 				$sec = "sec=ntlm";
 			}
-			return "rw,nounix,iocharset=utf8,_netdev,file_mode=0777,dir_mode=0777,$sec,vers=%s,credentials='{$paths['credentials']}'";
+			return "rw,nounix,iocharset=utf8,_netdev,file_mode=0777,dir_mode=0777,uid=99,gid=100,$sec,vers=%s,credentials='{$paths['credentials']}'";
 			break;
 
 		case 'nfs':
@@ -609,10 +615,10 @@ function do_mount($info) {
 			} else {
 				unassigned_log("luksOpen: key file not found - using emcmd to open.");
 				$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
-			
 			}
 			if ($o != "") {
 				unassigned_log("luksOpen error: ".$o);
+				shell_exec("/sbin/cryptsetup luksClose ".basename($info['device']));
 			} else {
 				return do_mount_local($info);
 			}
@@ -1020,7 +1026,7 @@ function get_samba_mounts() {
 }
 
 function do_mount_samba($info) {
-	global $var, $paths;
+	global $use_netbios, $paths;
 
 	$config_file	= $GLOBALS["paths"]["config_file"];
 	$config			= @parse_ini_file($config_file, true);
@@ -1043,7 +1049,7 @@ function do_mount_samba($info) {
 				file_put_contents("{$paths['credentials']}", "username=".($info['user'] ? $info['user'] : 'guest')."\n", FILE_APPEND);
 				file_put_contents("{$paths['credentials']}", "password=".$info['pass']."\n", FILE_APPEND);
 				file_put_contents("{$paths['credentials']}", "domain=".$info['domain']."\n", FILE_APPEND);
-				if ($config['Config']['samba_v1'] != "yes") {
+				if (($use_netbios != "yes") || ($config['Config']['samba_v1'] != "yes")) {
 					$ver	= "3.0";
 					$params	= sprintf(get_mount_params($fs, '$dev'), $ver);
 					$params = str_replace('domain=,', '', $params);
@@ -1062,7 +1068,7 @@ function do_mount_samba($info) {
 						unassigned_log("Mount SMB command: '$cmd'");
 						$o		= timed_exec(10, $cmd." 2>&1");
 					}
-					if ($o != "" && strpos($o, "Permission denied") === FALSE) {
+					if (($use_netbios == 'yes') && ($o != "" && strpos($o, "Permission denied") === FALSE)) {
 						unassigned_log("SMB2 mount failed: {$o}.");
 						/* If the mount failed, try to mount with samba vers=1.0. */
 						$ver	= "1.0";
