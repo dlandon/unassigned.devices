@@ -180,6 +180,7 @@ function get_temp($dev, $running = null) {
 }
 
 function verify_precleared($dev) {
+
 	$cleared        = TRUE;
 	$disk_blocks    = intval(trim(timed_exec(2, "/sbin/blockdev --getsz $dev | /bin/awk '{ print $1 }' 2>/dev/null")));
 	$max_mbr_blocks = hexdec("0xFFFFFFFF");
@@ -187,11 +188,11 @@ function verify_precleared($dev) {
 	$pattern        = $over_mbr_size ? array("00000", "00000", "00002", "00000", "00000", "00255", "00255", "00255") : 
 									   array("00000", "00000", "00000", "00000", "00000", "00000", "00000", "00000");
 
-	$b["mbr1"] = trim(timed_exec(2, "/usr/bin/dd bs=446 count=1 if={$dev} 2>/dev/null | /bin/sum | /bin/awk '{print $1}'"));
-	$b["mbr2"] = trim(timed_exec(2, "/usr/bin/dd bs=1 count=48 skip=462 if={$dev} 2>/dev/null | /bin/sum | /bin/awk '{print $1}'"));
-	$b["mbr3"] = trim(timed_exec(2, "/usr/bin/dd bs=1 count=1  skip=450 if={$dev} 2>/dev/null | /bin/sum | /bin/awk '{print $1}'"));
-	$b["mbr4"] = trim(timed_exec(2, "/usr/bin/dd bs=1 count=1  skip=511 if={$dev} 2>/dev/null | /bin/sum | /bin/awk '{print $1}'"));
-	$b["mbr5"] = trim(timed_exec(2, "/usr/bin/dd bs=1 count=1  skip=510 if={$dev} 2>/dev/null | /bin/sum | /bin/awk '{print $1}'"));
+	$b["mbr1"] = trim(timed_exec(5, "/usr/bin/dd bs=446 count=1 if={$dev} 2>/dev/null | /bin/sum | /bin/awk '{print $1}'"));
+	$b["mbr2"] = trim(timed_exec(5, "/usr/bin/dd bs=1 count=48 skip=462 if={$dev} 2>/dev/null | /bin/sum | /bin/awk '{print $1}'"));
+	$b["mbr3"] = trim(timed_exec(5, "/usr/bin/dd bs=1 count=1  skip=450 if={$dev} 2>/dev/null | /bin/sum | /bin/awk '{print $1}'"));
+	$b["mbr4"] = trim(timed_exec(5, "/usr/bin/dd bs=1 count=1  skip=511 if={$dev} 2>/dev/null | /bin/sum | /bin/awk '{print $1}'"));
+	$b["mbr5"] = trim(timed_exec(5, "/usr/bin/dd bs=1 count=1  skip=510 if={$dev} 2>/dev/null | /bin/sum | /bin/awk '{print $1}'"));
 
 	foreach (range(0,15) as $n) {
 		$b["byte{$n}"] = trim(timed_exec(2, "/usr/bin/dd bs=1 count=1 skip=".(446+$n)." if={$dev} 2>/dev/null | /bin/sum | /bin/awk '{print $1}'"));
@@ -650,7 +651,7 @@ function do_mount_local($info) {
 				$cmd = "/sbin/mount -o ".get_mount_params($fs, $dev)." '{$dev}' '{$dir}'";
 			}
 			unassigned_log("Mount drive command: $cmd");
-			$o = timed_exec(180, $cmd." 2>&1");
+			$o = shell_exec($cmd." 2>&1");
 			if ($o != "" && $fs == "ntfs" && is_mounted($dev)) {
 				unassigned_log("Mount warning: $o");
 			}
