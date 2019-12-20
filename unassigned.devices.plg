@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2019.12.15">
+<!ENTITY version   "2019.12.20">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"33e987e20e52112259a897bb23e7730e">
+<!ENTITY MD5		"20f7fa11bd111d0e8e28aee19a2283e7">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,12 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Samba mount procedure.
+- Fix: Code cleanup - procedure return codes.
+- Add: 'Force User = nobody' to all UD SMB shares.
+- Fix: Clean up logging.
+
+###2019.12.15
 - Add: 'gid=99,uid=100' to smb cifs mount.
 - Fix: Do not use SMB1 if netbios is disabled.
 
