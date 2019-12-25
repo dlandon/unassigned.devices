@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2019.12.20a">
+<!ENTITY version   "2019.12.25">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"ffe17f69624890de034f037da3a9dda0">
+<!ENTITY MD5		"98bd41bd5d7c56f65314ab7012856c1d">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Unmount issues with cifs mounts when off-line.
+
+###2019.12.20a
 - Fix: Samba mount procedure.
 - Fix: Code cleanup - procedure return codes.
 - Add: 'Force User = nobody' to all UD SMB shares.

@@ -678,8 +678,9 @@ function do_mount_local($info) {
 function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE) {
 	if ( is_mounted($dev) ) {
 		unassigned_log("Unmounting '{$dev}'...");
-		$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : "")." '{$dev}'";
-		$timeout = $smb ? 10 : 90;
+		$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : "")." '{$dev}' 2>&1";
+		$timeout = $smb ? ($force ? 60 : 10) : 90;
+unassigned_log("**** timeout ".$timeout);
 		unassigned_log("Unmount cmd: $cmd");
 		$o = timed_exec($timeout, $cmd);
 		for ($i=0; $i < 5; $i++) {
@@ -699,7 +700,7 @@ function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE) {
 			sleep(1);
 			if (! lsof($dir) && ! $force) {
 				unassigned_log("Since there aren't any open files, will force unmount.");
-				$rc = do_unmount($dev, $dir, true);
+				$rc = do_unmount($dev, $dir, TRUE, $smb);
 			}
 		}
 	}
