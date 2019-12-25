@@ -970,7 +970,7 @@ rm -f /tmp/start_unassigned_devices 2>/dev/null
 <INLINE>
 <![CDATA[
 #unassigned_devices_start
-#Unassigned devices share includes
+#unassigned devices share includes
    include = /tmp/unassigned.devices/smb-settings.conf
 #unassigned_devices_end
 ]]>
