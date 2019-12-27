@@ -16,7 +16,7 @@ Icon="unlock-alt"
 
 $plugin = "unassigned.devices";
 require_once("plugins/{$plugin}/include/lib.php");
-$config_file = "/boot/config/plugins/{$plugin}/{$plugin}.cfg";
+$config_file = "/tmp/{$plugin}/config/{$plugin}.cfg";
 
 $cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
 if (count($_POST)) {
@@ -109,6 +109,14 @@ Force all SMB remote shares to SMB v1?
   </select>
 
 > Normally a SMB remote share will be mounted with the highest version of SMB that the remote server will support.  When set to 'Yes', all SMB remote shares will be forced to mount with SMB v1.  Some remote shares will give errors when mounted with SMB v2.  SMB v1 has security issues and should not be used unless absolutely necessary.  This cannot be enabled if NetBIOS is disabled.
+
+Mount SSDs with 'discard' option?
+: <select name="discard" size="1">
+  <?=mk_option($cfg["Config"]["discard"], "yes", "Yes");?>
+  <?=mk_option($cfg["Config"]["discard"], "no", "No");?>
+  </select>
+
+> Mount SSDs that support discard with 'discard' option.  If you are using the SSD Trim Settings to do a periodic trim of SSDs you can set this to 'No'.
 
 Remove nmap package (used to scan for NFS servers)?
 : <select name="remove_nmap_pkg" size="1">

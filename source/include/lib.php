@@ -17,12 +17,12 @@ $paths = [  "smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"smb_usb_shares"	=> "/etc/samba/unassigned-shares",
 			"usb_mountpoint"	=> "/mnt/disks",
 			"device_log"		=> "/tmp/{$plugin}/",
-			"config_file"		=> "/boot/config/plugins/{$plugin}/{$plugin}.cfg",
+			"config_file"		=> "/tmp/{$plugin}/config/{$plugin}.cfg",
 			"state"				=> "/var/state/{$plugin}/{$plugin}.ini",
-			"mounted"		=> "/var/state/{$plugin}/{$plugin}.json",
+			"mounted"			=> "/var/state/{$plugin}/{$plugin}.json",
 			"hdd_temp"			=> "/var/state/{$plugin}/hdd_temp.json",
-			"samba_mount"		=> "/boot/config/plugins/{$plugin}/samba_mount.cfg",
-			"iso_mount"			=> "/boot/config/plugins/{$plugin}/iso_mount.cfg",
+			"samba_mount"		=> "/tmp/{$plugin}/config/samba_mount.cfg",
+			"iso_mount"			=> "/tmp/{$plugin}/config/iso_mount.cfg",
 			"reload"			=> "/var/state/{$plugin}/reload.state",
 			"unmounting"		=> "/var/state/{$plugin}/unmounting_%s.state",
 			"mounting"			=> "/var/state/{$plugin}/mounting_%s.state",
@@ -101,6 +101,8 @@ function is_ip($str) {
 function _echo($m) { echo "<pre>".print_r($m,TRUE)."</pre>";}; 
 
 function save_ini_file($file, $array) {
+	global $plugin;
+
 	$res = array();
 	foreach($array as $key => $val) {
 		if(is_array($val)) {
@@ -110,7 +112,14 @@ function save_ini_file($file, $array) {
 			$res[] = "$key = ".(is_numeric($val) ? $val : '"'.$val.'"');
 		}
 	}
+	/* Write changes to tmp file. */
 	file_put_contents($file, implode(PHP_EOL, $res));
+
+	/* Write changes to flash. */
+	$file_path = pathinfo($file);
+	if ($file_path['extension'] == "cfg") {
+		file_put_contents("/boot/config/plugins/".$plugin."/".basename($file), implode(PHP_EOL, $res));
+	}
 }
 
 function unassigned_log($m, $type = "NOTICE") {
@@ -556,7 +565,13 @@ function is_mounted($dev, $dir=FALSE) {
 function get_mount_params($fs, $dev) {
 	global $paths, $use_netbios;
 
-	$discard = trim(shell_exec("/usr/bin/cat /sys/block/".preg_replace("#\d+#i", "", basename($dev))."/queue/discard_max_bytes 2>/dev/null")) ? ",discard" : "";
+	$config_file	= $GLOBALS["paths"]["config_file"];
+	$config			= @parse_ini_file($config_file, true);
+	if ($config['Config']['discard'] != "no") {
+		$discard = trim(shell_exec("/usr/bin/cat /sys/block/".preg_replace("#\d+#i", "", basename($dev))."/queue/discard_max_bytes 2>/dev/null")) ? ",discard" : "";
+	} else {
+		$discard = "";
+	}
 	switch ($fs) {
 		case 'hfsplus':
 			return "force,rw,users,async,umask=000";
@@ -680,7 +695,6 @@ function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE) {
 		unassigned_log("Unmounting '{$dev}'...");
 		$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : "")." '{$dev}' 2>&1";
 		$timeout = $smb ? ($force ? 60 : 10) : 90;
-unassigned_log("**** timeout ".$timeout);
 		unassigned_log("Unmount cmd: $cmd");
 		$o = timed_exec($timeout, $cmd);
 		for ($i=0; $i < 5; $i++) {

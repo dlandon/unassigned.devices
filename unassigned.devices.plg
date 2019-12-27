@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2019.12.25">
+<!ENTITY version   "2019.12.27">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"98bd41bd5d7c56f65314ab7012856c1d">
+<!ENTITY MD5		"b71393847cda9078e46a10f24bbc60ba">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Add option to add 'discard' to disk mount options.
+- Add: Move configuration files to ram files.
+
+###2019.12.25
 - Fix: Unmount issues with cifs mounts when off-line.
 
 ###2019.12.20a
@@ -926,12 +930,8 @@ Unassigned devices background start script.
 <FILE Name="/tmp/start_unassigned_devices" Mode="0770">
 <INLINE>
 #!/bin/bash
-# Start unassigned devices if the array is started.
-if [[ -e /proc/mdcmd ]]; then
-  if [[ $(cat /proc/mdcmd|grep mdState|cut -d"=" -f2) == STARTED ]]; then
-    /usr/local/emhttp/plugins/&name;/scripts/rc.unassigned mount auto 2>/dev/null
-  fi
-fi
+# Copy configuration files to tmp file system.
+/usr/local/emhttp/plugins/&name;/scripts/copy_config.sh 2>/dev/null
 
 # Remove nmap package if user sets configuration parameter.
 /usr/local/emhttp/plugins/&name;/scripts/remove_nmap 2>/dev/null
