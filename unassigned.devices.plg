@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2019.12.27">
+<!ENTITY version   "2019.12.27a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"b71393847cda9078e46a10f24bbc60ba">
+<!ENTITY MD5		"0489fb3e4a7b823d36e1169bbe1c3e01">
 ]>
 
 <PLUGIN name="&name;"
@@ -26,6 +26,8 @@
 ###&version;
 - Add: Add option to add 'discard' to disk mount options.
 - Add: Move configuration files to ram files.
+- Fix: Adjust unmount timing for nfs mounts.
+- Fix: Log error from removing partition.
 
 ###2019.12.25
 - Fix: Unmount issues with cifs mounts when off-line.

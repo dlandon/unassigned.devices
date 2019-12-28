@@ -419,12 +419,15 @@ function remove_partition($dev, $part) {
 		}
 	}
 	unassigned_log("Removing partition '{$part}' from disk '{$dev}'.");
-	shell_exec("/usr/sbin/parted {$dev} --script -- rm {$part}");
+	$out = shell_exec("/usr/sbin/parted {$dev} --script -- rm {$part}");
+	if ($out != "") {
+		unassigned_log("Remove parition failed result '{$out}'");
+	}
 	sleep(10);
+	return TRUE;
 }
 
-function benchmark()
-{
+function benchmark() {
 	$params   = func_get_args();
 	$function = $params[0];
 	array_shift($params);
@@ -436,8 +439,7 @@ function benchmark()
 	return $out;
 }
 
-function timed_exec($timeout=10, $cmd)
-{
+function timed_exec($timeout=10, $cmd) {
 	$time		= -microtime(true); 
 	$out		= shell_exec("/usr/bin/timeout ".$timeout." ".$cmd);
 	$time		+= microtime(true);
@@ -690,11 +692,11 @@ function do_mount_local($info) {
 	return $rc;
 }
 
-function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE) {
+function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE, $nfs = FALSE) {
 	if ( is_mounted($dev) ) {
 		unassigned_log("Unmounting '{$dev}'...");
 		$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : "")." '{$dev}' 2>&1";
-		$timeout = $smb ? ($force ? 60 : 10) : 90;
+		$timeout = ($smb || $nfs) ? ($force ? 30 : 10) : 90;
 		unassigned_log("Unmount cmd: $cmd");
 		$o = timed_exec($timeout, $cmd);
 		for ($i=0; $i < 5; $i++) {
@@ -714,7 +716,7 @@ function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE) {
 			sleep(1);
 			if (! lsof($dir) && ! $force) {
 				unassigned_log("Since there aren't any open files, will force unmount.");
-				$rc = do_unmount($dev, $dir, TRUE, $smb);
+				$rc = do_unmount($dev, $dir, TRUE, $smb, $nfs);
 			}
 		}
 	}
