@@ -1,0 +1,100 @@
+<?xml version='1.0' standalone='yes'?>
+
+<!DOCTYPE PLUGIN [
+<!ENTITY name      "unassigned.devices-plus">
+<!ENTITY author    "dlandon">
+<!ENTITY version   "2019.12.28">
+<!ENTITY launch    "Main/UnassignedDevices">
+<!ENTITY gitURL    "https://github.com/&author;/unassigned.devices/raw/master">
+<!ENTITY pluginURL "&gitURL;/&name;.plg">
+<!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
+<!ENTITY packages	"/boot/config/plugins/unassigned.devices/packages">
+<!ENTITY MD5		"0489fb3e4a7b823d36e1169bbe1c3e01">
+]>
+
+<PLUGIN name="&name;"
+		author="&author;"
+		launch="&launch;"
+		version="&version;"
+		pluginURL="&pluginURL;"
+		support="&supportURL;"
+		icon="unlock-alt"
+		min="6.4.0">
+
+<CHANGES>
+##&name;
+###&version;
+- First release.
+</CHANGES>
+
+<!--
+exfat-utils-1.2.8-x86_64-1_slonly.txz
+-->
+<FILE Name="&packages;/exfat-utils-1.2.8-x86_64-1_slonly.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/exfat-utils-1.2.8-x86_64-1_slonly.txz"</URL>
+<MD5>dd92c74adbefa546545471cae04f6501</MD5>
+</FILE>
+
+<!--
+fuse-exfat-1.2.8-x86_64-1_slonly.txz
+-->
+<FILE Name="&packages;/fuse-exfat-1.2.8-x86_64-1_slonly.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/fuse-exfat-1.2.8-x86_64-1_slonly.txz"</URL>
+<MD5>76335e187ab513c96967b36e0d01d6d4</MD5>
+</FILE>
+
+<!--
+hfsprogs-332.25-x86_64-2sl.txz
+-->
+<FILE Name="&packages;/hfsprogs-332.25-x86_64-2sl.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/hfsprogs-332.25-x86_64-2sl.txz"</URL>
+<MD5>9ddd7cb7e0782e9fb7756b1946808228</MD5>
+</FILE>
+
+<!--
+libbsd-0.8.7-x86_64-1_slonly.txz
+-->
+<FILE Name="&packages;/libbsd-0.8.7-x86_64-1_slonly.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/libbsd-0.8.7-x86_64-1_slonly.txz"</URL>
+<MD5>42b559543f2c1a9fe42d6aabfc18ac8a</MD5>
+</FILE>
+
+<!--
+The 'post-install' script.
+-->
+<FILE Run="/bin/bash">
+<INLINE>
+echo ""
+echo "-----------------------------------------------------------"
+echo " &name; has been installed."
+echo " This plugin requires Dynamix webGui to operate"
+echo " Copyright 2015, gfjardim"
+echo " Copyright 2016-2019, &author;"
+echo " Version: &version;"
+echo "-----------------------------------------------------------"
+echo ""
+</INLINE>
+</FILE>
+
+<!--
+The 'remove' script.
+-->
+<FILE Run="/bin/bash" Method="remove">
+<INLINE>
+
+# Remove all installed packages.
+removepkg exfat-utils-1.2.8-x86_64-1_slonly 2>/dev/null
+removepkg fuse-exfat-1.2.8-x86_64-1_slonly.txz 2>/dev/null
+removepkg hfsprogs-332.25-x86_64-2sl 2>/dev/null
+removepkg libbsd-0.8.7-x86_64-1_slonly 2>/dev/null
+
+echo ""
+echo "-----------------------------------------------------------"
+echo " &name; has been uninstalled."
+echo "-----------------------------------------------------------"
+echo ""
+
+</INLINE>
+</FILE>
+
+</PLUGIN>
