@@ -8,7 +8,7 @@
 <!ENTITY gitURL    "https://github.com/&author;/unassigned.devices/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
-<!ENTITY packages	"/boot/config/plugins/unassigned.devices/packages">
+<!ENTITY packages	"/boot/config/plugins/&name;/packages">
 ]>
 
 <PLUGIN name="&name;"
@@ -25,6 +25,30 @@
 ###&version;
 - First release.
 </CHANGES>
+
+<!--
+nmap-7.80-x86_64-3.txz
+-->
+<FILE Name="&packages;/nmap-7.80-x86_64-3.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/nmap-7.80-x86_64-3.txz"</URL>
+<MD5>ba87afc200890097c7fc95345370725c</MD5>
+</FILE>
+
+<!--
+libnl-1.1.4-x86_64-2.txz
+-->
+<FILE Name="&packages;/libnl-1.1.4-x86_64-2.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/libnl-1.1.4-x86_64-2.txz"</URL>
+<MD5>d84d8545760ed7d71bce77b7ef5a86aa</MD5>
+</FILE>
+
+<!--
+parted-3.3-x86_64-1.txz
+-->
+<FILE Name="&packages;/parted-3.3-x86_64-1.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/parted-3.3-x86_64-1.txz"</URL>
+<MD5>0f298896be48094a690a19cdc5e0c1e6</MD5>
+</FILE>
 
 <!--
 exfat-utils-1.2.8-x86_64-1_slonly.txz
@@ -63,6 +87,9 @@ The 'post-install' script.
 -->
 <FILE Run="/bin/bash">
 <INLINE>
+# Remove nmap package if user sets configuration parameter.
+/usr/local/emhttp/plugins/&name;/scripts/remove_nmap 2>/dev/null
+
 echo ""
 echo "-----------------------------------------------------------"
 echo " &name; has been installed."
@@ -82,10 +109,16 @@ The 'remove' script.
 <INLINE>
 
 # Remove all installed packages.
+removepkg nmap-7.80-x86_64-3 2>/dev/null
+removepkg libnl-1.1.4-x86_64-2 2>/dev/null
+removepkg parted-3.3-x86_64-1 2>/dev/null
 removepkg exfat-utils-1.2.8-x86_64-1_slonly 2>/dev/null
 removepkg fuse-exfat-1.2.8-x86_64-1_slonly.txz 2>/dev/null
 removepkg hfsprogs-332.25-x86_64-2sl 2>/dev/null
 removepkg libbsd-0.8.7-x86_64-1_slonly 2>/dev/null
+
+# Remove possible leftovers
+rm -rf /boot/config/plugins/&name;
 
 echo ""
 echo "-----------------------------------------------------------"
