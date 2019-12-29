@@ -83,12 +83,23 @@ libbsd-0.8.7-x86_64-1_slonly.txz
 </FILE>
 
 <!--
+README.md
+-->
+<FILE Name="/usr/local/emhttp/plugins/&name;/README.md">
+<INLINE>
+<![CDATA[
+Unassigned Devices support for HFS+ and exFAT disk formats, and NFS server lookups using Nmap.
+]]>
+</INLINE>
+</FILE>
+
+<!--
 The 'post-install' script.
 -->
 <FILE Run="/bin/bash">
 <INLINE>
 # Remove nmap package if user sets configuration parameter.
-/usr/local/emhttp/plugins/&name;/scripts/remove_nmap 2>/dev/null
+/usr/local/emhttp/plugins/unassigned.devices/scripts/remove_nmap 2>/dev/null
 
 echo ""
 echo "-----------------------------------------------------------"
