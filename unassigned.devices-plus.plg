@@ -83,6 +83,16 @@ libbsd-0.8.7-x86_64-1_slonly.txz
 </FILE>
 
 <!--
+The 'pre-install' script.
+-->
+<FILE Run="/bin/bash">
+<INLINE>
+# Remove emhttp files so we can re-install.
+rm -rf /usr/local/emhttp/plugins/&name;/* 2>/dev/null
+</INLINE>
+</FILE>
+
+<!--
 README.md
 -->
 <FILE Name="/usr/local/emhttp/plugins/&name;/README.md">
