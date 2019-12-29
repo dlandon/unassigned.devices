@@ -794,6 +794,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		<li>'/usr/local/sbin/rc.unassigned umount /dev/sdX' - unmount device sdX where 'X' is the device designator.	You can use this command in a UD script to unmount the device when the script has completed.<li>
 	</p>
 	<p>Switch the 'Complete' button to change the web page to just show hardware devices.	Switch the 'Simple' switch to switch back to the full web display.</p>
+	<p>Click on <u>Settings</u> to go to the UD Settings.</p>
 </blockquote>
 </form>
 
@@ -930,6 +931,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	$(function()
 	{
 		// Add icons to Tab/Title bar
+		addButtonTab('<a title="Unassigned Devices Settings" target="_blank" href="/Settimgs/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>',
+								 "Unassigned Devices");
 		addButtonTab('<a style="cursor:pointer" onclick="$.post(\''+URL+'\',{\'action\':\'rescan_disks\'});" title="Rescan Disks"><i class="fa fa-refresh"></i></a>',
 								 "Unassigned Devices");
 		addButtonTab('<div class="switch-wrapper"><a style="cursor:pointer" title="Switch Display Mode"><input type="checkbox" class="complete-switch"></a></div>',
