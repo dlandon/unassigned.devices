@@ -88,6 +88,8 @@ README.md
 <FILE Name="/usr/local/emhttp/plugins/&name;/README.md">
 <INLINE>
 <![CDATA[
+**Unassigned Devices Plus**
+
 Unassigned Devices support for HFS+ and exFAT disk formats, and NFS server lookups using Nmap.
 ]]>
 </INLINE>
@@ -129,7 +131,8 @@ removepkg hfsprogs-332.25-x86_64-2sl 2>/dev/null
 removepkg libbsd-0.8.7-x86_64-1_slonly 2>/dev/null
 
 # Remove possible leftovers
-rm -rf /boot/config/plugins/&name;
+rm -rf /usr/local/emhttp/plugins/&name; \
+       /boot/config/plugins/&name;
 
 echo ""
 echo "-----------------------------------------------------------"
