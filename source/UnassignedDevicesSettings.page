@@ -17,13 +17,26 @@ Icon="unlock-alt"
 $plugin = "unassigned.devices";
 require_once("plugins/{$plugin}/include/lib.php");
 $config_file = "/tmp/{$plugin}/config/{$plugin}.cfg";
-
 $cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
+
 if (count($_POST)) {
 	array_map(function($k, $v) use (&$cfg) { if($k[0] != "#") $cfg["Config"][$k] = $v; }, array_keys($_POST), $_POST );
 	remove_shares();
 	save_ini_file($config_file, $cfg);
 	reload_shares();
+}
+
+$use_netbios = ($var['USE_NETBIOS']=='yes') ? TRUE : FALSE;
+$parted = file_exists("/usr/sbin/parted");
+
+if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/usr/sbin/parted") && $cfg['Config']['destructive_mode'] == "enabled")) {
+	if (! $use_netbios) {
+		$cfg['Config']['samba_v1'] = "no";
+	}
+	if (! $parted) {
+		$cfg['Config']['destructive_mode'] = "disabled";
+	}
+	save_ini_file($config_file, $cfg);
 }
 ?>
 <script type="text/javascript" src="<?autov('/webGui/javascript/jquery.filetree.js')?>"></script>
@@ -81,16 +94,21 @@ if (count($_POST)) {
 
 <div id="title" class="nocontrol">Settings:</div>
 <form markdown="1" name="common_settings" method="POST">
+
+<?if (! $parted):?>
+> <span class="red" style="font-weight: bold">Note:</span> The <span class="red" style="font-weight: bold">'Unassigned Devices Plus'</span> plugin must be installed in order to mount HFS+ and exFAT disk formats, and scan for NFS servers using Nmap.
+<?endif;?>
+
 Common Script:
 : <input type="text" name="common_cmd" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin?>/','sh',false,true,true);" value="<?=$cfg['Config']['common_cmd'];?>">
 
 > If set, this script will run<span class="red" style="font-weight: bold">before</span>the device script.  The action is in the environment variable '$ACTION'.  Be sure you reference all commands with their full path.
 
 Destructive Mode:
-: <select name="destructive_mode" size="1">
+: <select name="destructive_mode" size="1" <?if (! $parted):?>disabled<?endif;?>>
   <?=mk_option($cfg["Config"]["destructive_mode"], "disabled", "Disabled");?>
   <?=mk_option($cfg["Config"]["destructive_mode"], "enabled", "Enabled");?>
-  </select>
+  </select><?if (! $parted):?>&nbsp;<span style="font-weight: bold">'Unassigned Devices Plus'</span> plugin must be installed to enable Destructive Mode.<?endif;?>
 
 > If enabled, this will allow users to<span class="red" style="font-weight: bold">erase and format partitions</span>using Unassigned Devices. Be careful.
 
@@ -103,10 +121,10 @@ Auto Mount USB Devices?
 > When set to 'Yes', will auto mount a new USB device and share it without user intervention.
 
 Force all SMB remote shares to SMB v1?
-: <select name="samba_v1" size="1" <?if ($var['USE_NETBIOS']=="no"):?>disabled<?endif;?>>
+: <select name="samba_v1" size="1" <?if (! $use_netbios):?>disabled<?endif;?>>
   <?=mk_option($cfg["Config"]["samba_v1"], "no", "No");?>
   <?=mk_option($cfg["Config"]["samba_v1"], "yes", "Yes");?>
-  </select>
+  </select><?if (! $use_netbios):?>&nbsp;<span style="font-weight: bold">NetBIOS</span> must be enabled in SMB Settings to enable SMB v1.<?endif;?>
 
 > Normally a SMB remote share will be mounted with the highest version of SMB that the remote server will support.  When set to 'Yes', all SMB remote shares will be forced to mount with SMB v1.  Some remote shares will give errors when mounted with SMB v2.  SMB v1 has security issues and should not be used unless absolutely necessary.  This cannot be enabled if NetBIOS is disabled.
 
@@ -118,13 +136,13 @@ Mount SSDs with 'discard' option?
 
 > Mount SSDs that support discard with 'discard' option.  If you are using the SSD Trim Settings to do a periodic trim of SSDs you can set this to 'No'.
 
-Remove nmap package (used to scan for NFS servers)?
+Remove Nmap package (used to scan for NFS servers)?
 : <select name="remove_nmap_pkg" size="1">
   <?=mk_option($cfg["Config"]["remove_nmap_pkg"], "no", "No");?>
   <?=mk_option($cfg["Config"]["remove_nmap_pkg"], "yes", "Yes");?>
   </select>
 
-> The nmap package is used to scan for NFS servers on your LAN.  Some have expressed a security concern about having the nmap package installed on the LAN.  You can remove the nmap package if you are concerned about this potential security issue.  You need to reboot the server for the changes to take effect.
+> The Nmap package is used to scan for NFS servers on your LAN.  Some have expressed a security concern about having the Nmap package installed on the LAN.  You can remove the Nmap package if you are concerned about this potential security issue.  You need to reboot the server for the changes to take effect.  Nmap will also be removed when Unassigned Devices is re-installed or updated
 
 &nbsp;
 : <input type="submit" name="#apply" value="Apply"><input type="button" value="Done" onclick="done()">
@@ -172,7 +190,7 @@ Enable NFS export?
 : <select name="nfs_export" size="1" <?if ($var['shareNFSEnabled']=="no"):?>disabled<?endif;?>>
   <?=mk_option($cfg['Config']["nfs_export"], "no", "No")?>
   <?=mk_option($cfg['Config']["nfs_export"], "yes", "Yes")?>
-  </select>
+  </select><?if ($var['shareNFSEnabled']=="no"):?>&nbsp;<span style="font-weight: bold">NFS</span> must be enabled in NFS Settings to enable NFS Export.<?endif;?>
 
 <div id="nfs_security" style="display: <?=($cfg['Config']["nfs_export"] == "no" ? "none" : "block");?>">
 <dl>

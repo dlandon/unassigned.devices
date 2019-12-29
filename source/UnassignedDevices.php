@@ -145,7 +145,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 		$fscheck = "<i class='fa fa-th-large partition'></i>{$partition['part']}";
 	}
 
-	$rm_partition = (get_config("Config", "destructive_mode") == "enabled") ? "<span title='Remove Partition' device='{$partition['device']}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i></span>" : "";
+	$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled") ? "<span title='Remove Partition' device='{$partition['device']}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i></span>" : "";
 	$mpoint = "<span>{$fscheck}<i class='fa fa-arrow-right'></i>";
 	$mount_point = basename($partition['mountpoint']);
 	if ($mounted) {
@@ -239,7 +239,7 @@ function make_mount_button($device) {
 	if ($device['size'] == 0) {
 		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-erase', 'Insert');
 	} elseif ($format) {
-		$disable = get_config("Config", "destructive_mode") == "enabled" ? "" : "disabled";
+		$disable = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled") ? "" : "disabled";
 		$disable = $preclearing ? "disabled" : $disable;
 		$button = sprintf($button, $context, 'format', $disable, 'fa fa-erase', 'Format');
 	} elseif ($is_mounting) {

@@ -255,27 +255,27 @@ function verify_precleared($dev) {
 function get_format_cmd($dev, $fs) {
 	switch ($fs) {
 		case 'xfs':
-			return "/sbin/mkfs.xfs -f {$dev}";
+			return "/sbin/mkfs.xfs -f {$dev} 2>&1";
 			break;
 
 		case 'ntfs':
-			return "/sbin/mkfs.ntfs -Q {$dev}";
+			return "/sbin/mkfs.ntfs -Q {$dev} 2>&1";
 			break;
 
 		case 'btrfs':
-			return "/sbin/mkfs.btrfs -f {$dev}";
+			return "/sbin/mkfs.btrfs -f {$dev} 2>&1";
 			break;
 
 		case 'ext4':
-			return "/sbin/mkfs.ext4 -F {$dev}";
+			return "/sbin/mkfs.ext4 -F {$dev} 2>&1";
 			break;
 
 		case 'exfat':
-			return "/usr/sbin/mkfs.exfat {$dev}";
+			return "/usr/sbin/mkfs.exfat {$dev} 2>&1";
 			break;
 
 		case 'fat32':
-			return "/sbin/mkfs.fat -s 8 -F 32 {$dev}";
+			return "/sbin/mkfs.fat -s 8 -F 32 {$dev} 2>&1";
 			break;
 
 		default:
@@ -292,13 +292,13 @@ function format_partition($partition, $fs) {
 	}
 	unassigned_log("Formatting partition '{$partition}' with '$fs' filesystem.");
 	exec(get_format_cmd($partition, $fs),$out, $return);
-	if ($out) {
-		unassigned_log("Format partition '{$partition}' with '$fs' filesystem result:\n".implode(PHP_EOL, $out));
-	}
 	if ($return)
 	{
-		unassigned_log("Format partition '{$partition}' with '$fs' filesystem failed!  Result:\n".implode(PHP_EOL, $return));
+		unassigned_log("Format partition '{$partition}' with '$fs' filesystem failed!  Result:\n".implode(PHP_EOL, $out));
 		return FALSE;
+	}
+	if ($out) {
+		unassigned_log("Format partition '{$partition}' with '$fs' filesystem result:\n".implode(PHP_EOL, $out));
 	}
 
 	sleep(3);
@@ -386,13 +386,13 @@ function format_disk($dev, $fs) {
 	} else {
 		exec(get_format_cmd("{$dev}1", $fs),$out, $return);
 	}
-	if ($out) {
-		unassigned_log("Format disk '{$dev}' with '$fs' filesystem result:\n".implode(PHP_EOL, $out));
-	}
 	if ($return)
 	{
-		unassigned_log("Format disk '{$dev}' with '$fs' filesystem failed!  Result:\n".implode(PHP_EOL, $return));
+		unassigned_log("Format disk '{$dev}' with '$fs' filesystem failed!  Result:\n".implode(PHP_EOL, $out));
 		return FALSE;
+	}
+	if ($out) {
+		unassigned_log("Format disk '{$dev}' with '$fs' filesystem result:\n".implode(PHP_EOL, $out));
 	}
 
 	sleep(3);
