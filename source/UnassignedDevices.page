@@ -5,7 +5,7 @@ Markdown="false"
 ---
 <?php
 /* Copyright 2015, Guilherme Jardim
- * Copyright 2016-2019, Dan Landon
+ * Copyright 2016-2020, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -740,14 +740,15 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			<tr>
 				<td>Device</td>
 				<td>Identification</td>
-				<td>&nbsp;</td>
+				<td></td>
 				<td>Temp</td>
 				<td>FS</td>
 				<td>Size</td>
 				<td>Open files</td>
 				<td>Used</td>
 				<td>Free</td>
-				<td>Auto mount</td>
+				<td>Read Only</td>
+				<td>Auto Mount</td>
 				<td>Share</td>
 				<td>Log</td>
 				<td>Script</td>
@@ -911,6 +912,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 				},"json");
 			});
 		}
+
 		else if (checkbox.hasClass("toggle_share"))
 		{
 			checkbox.change(function()
@@ -921,6 +923,18 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 				},"json");
 			});
 		}
+
+		else if (checkbox.hasClass("read_only"))
+		{
+			checkbox.change(function()
+			{
+				$.post(URL,{action:"read_only",serial:$(this).attr("serial"),status:$(this).is(":checked")},function(data)
+				{
+					$(this).prop("checked",data.read_only);
+				},"json");
+			});
+		}
+
 	});
 
 	$( "#usb_devices_list" ).arrive(".show-complete", {onceOnly:false}, function()
@@ -931,7 +945,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	$(function()
 	{
 		// Add icons to Tab/Title bar
-		addButtonTab('<a title="Unassigned Devices Settings" target="_blank" href="/Settimgs/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>',
+		addButtonTab('<a title="Unassigned Devices Settings" href="/Settimgs/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>',
 								 "Unassigned Devices");
 		addButtonTab('<a style="cursor:pointer" onclick="$.post(\''+URL+'\',{\'action\':\'rescan_disks\'});" title="Rescan Disks"><i class="fa fa-refresh"></i></a>',
 								 "Unassigned Devices");

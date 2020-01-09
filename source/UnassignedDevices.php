@@ -1,6 +1,6 @@
 <?php
 /* Copyright 2015, Guilherme Jardim
- * Copyright 2016-2019, Dan Landon
+ * Copyright 2016-2020, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -14,7 +14,6 @@ $plugin = "unassigned.devices";
 require_once("plugins/{$plugin}/include/lib.php");
 require_once("webGui/include/Helpers.php");
 $csrf_token = $var['csrf_token'];
-$version = parse_ini_file("/etc/unraid-version");
 
 if (isset($_POST['display'])) $display = $_POST['display'];
 if (isset($_POST['var'])) $var = $_POST['var'];
@@ -177,7 +176,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 			}
 		}
 	}
-	$out[] = "<td >".$fstype."</td>";
+	$out[] = "<td>".$fstype."</td>";
 	$out[] = "<td>".my_scale($partition['size'], $unit)." $unit</td>";
 	if ($total) {
 		$mounted_disk = FALSE;
@@ -205,7 +204,12 @@ function render_partition($disk, $partition, $total=FALSE) {
 	} else {
 		$out[] = render_used_and_free($partition, $mounted);
 	}
-	$out[] = "<td></td>";
+	if ($mounted) {
+		$out[] = ($disk['partitions'][0]['read_only'] == "yes") ? "<td><span>Yes</span></td>" : "<td><span>No&nbsp;</span></td>";
+	} else {
+		$out[] = "<td title='Turn on to Mount Device Read only'><input type='checkbox' class='read_only' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['read_only']) ? 'checked':'')."></td>";
+	}
+	$out[] = "<td title='Turn on to Mount Device when Array is Started'><input type='checkbox' class='automount' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['automount']) ? 'checked':'')."></td>";
 	$out[] = "<td title='Turn on to Share Device with SMB and/or NFS'><input type='checkbox' class='toggle_share' info='".htmlentities(json_encode($partition))."' ".(($partition['shared']) ? 'checked':'')."></td>";
 	$out[] = "<td><a title='View Device Script Log' href='/Main/ScriptLog?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><i class='fa fa-align-left'></i></a></td>";
 	$out[] = "<td><a title='Edit Device Script' href='/Main/EditScript?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><i class=".( file_exists(get_config($partition['serial'],"command.1")) ? "'fa fa-code'":"'fa fa-minus-square-o'" )."'></i></a></td>";
@@ -214,11 +218,16 @@ function render_partition($disk, $partition, $total=FALSE) {
 }
 
 function make_mount_button($device) {
-	global $paths, $Preclear;
+	global $paths, $Preclear, $version;
+
 	$button = "<span style='width:auto;text-align:right;'><button type='button' device='{$device['device']}' class='array' context='%s' role='%s' %s><i class='%s'></i>	%s</button></span>";
 	if (isset($device['partitions'])) {
 		$mounted = isset($device['mounted']) ? $device['mounted'] : in_array(TRUE, array_map(function($ar){return is_mounted($ar['device']);}, $device['partitions']));
-		$disable = count(array_filter($device['partitions'], function($p){ if (! empty($p['fstype']) && $p['fstype'] != "precleared") return TRUE;})) ? "" : "disabled";
+		if ( ($device['partitions'][0]['fstype'] == "crypto_LUKS") && (version_compare($version['version'],"6.9", ">")) ) {
+			$disable = "disabled";
+		} else {
+			$disable = count(array_filter($device['partitions'], function($p){ if (! empty($p['fstype']) && $p['fstype'] != "precleared") return TRUE;})) ? "" : "disabled";
+		}
 		$format	 = (isset($device['partitions']) && ! count($device['partitions'])) || $device['partitions'][0]['fstype'] == "precleared" ? true : false;
 		$context = "disk";
 	} else {
@@ -245,7 +254,7 @@ function make_mount_button($device) {
 	} elseif ($is_mounting) {
 		$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-circle-o-notch fa-spin', 'Mounting...');
 	} elseif ($is_unmounting) {
-		$button = sprintf($button, $context, 'mount',	'disabled', 'fa fa-circle-o-notch fa-spin', 'Unmounting...');
+		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-circle-o-notch fa-spin', 'Unmounting...');
 	} elseif ($is_formatting) {
 		$button = sprintf($button, $context, 'format', 'disabled', 'fa fa-circle-o-notch fa-spin', 'Formatting...');
 	} elseif ($mounted) {
@@ -268,7 +277,7 @@ switch ($_POST['action']) {
 		$time		 = -microtime(true); 
 		$disks = get_all_disks_info();
 
-		echo "<table class='disk_status wide usb_disks'><thead><tr><td>Device</td><td>Identification</td><td></td><td>Temp</td><td>FS</td><td>Size</td><td>Open files</td><td>Used</td><td>Free</td><td>Auto mount</td><td>Share</td><td>Log</td><td>Script</td></tr></thead>";
+		echo "<table class='disk_status wide usb_disks'><thead><tr><td>Device</td><td>Identification</td><td></td><td>Temp</td><td>FS</td><td>Size</td><td>Open files</td><td>Used</td><td>Free</td><td>Read Only</td><td>Auto Mount</td><td>Share&nbsp;&nbsp;</td><td>Log</td><td>Script</td></tr></thead>";
 		echo "<tbody>";
 		$odd="odd";
 		if ( count($disks) ) {
@@ -322,10 +331,11 @@ switch ($_POST['action']) {
 				echo "<td>".my_scale($disk['size'],$unit)." {$unit}</td>";
 				echo ($p)?$p[7]:"<td>-</td>";
 				echo ($p)?$p[8]:"<td>-</td><td>-</td>";
-				echo ($p)?"<td title='Turn on to Mount Device when Array is Started'><input type='checkbox' class='automount' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['automount']) ? 'checked':'')."></td>":"<td>-</td>";
+				echo ($p)?$p[9]:"<td>-</td>";
 				echo ($p)?$p[10]:"<td>-</td>";
 				echo ($p)?$p[11]:"<td>-</td>";
 				echo ($p)?$p[12]:"<td>-</td>";
+				echo ($p)?$p[13]:"<td>-</td>";
 				echo "</tr>";
 				if ($add_toggle)
 				{
@@ -452,6 +462,8 @@ switch ($_POST['action']) {
 				$mountpoint	= basename(get_config($serial, "mountpoint.1"));
 				$shared		= get_config($serial, "shared");
 				$ct .= "<tr><td><img src='/plugins/{$plugin}/images/green-blink.png'> missing</td><td>$serial"."   ($mountpoint)</td>";
+// dfl
+				$ct .= "<td title='Turn on to Mount Device Read only'><input type='checkbox' class='read_only' serial='{$serial}' ".(($disk['partitions'][0]['read_only']) ? 'checked':'')."></td>";
 				$ct .= "<td title='Turn on to Mount Device when Array is Started'><input type='checkbox' class='automount' serial='{$serial}' ".( is_automount($serial) ? 'checked':'' )."></td>";
 				$ct .= "<td><a title='Edit Device Script' href='/Main/EditScript?s=".urlencode($serial)."&l=".urlencode(basename($mountpoint))."&p=".urlencode("1")."'><i class=".( file_exists(get_config($serial,"command.1")) ? "'fa fa-code'":"'fa fa-minus-square-o'" )."'></i></a></td>";
 				$ct .= "<td title='Remove Device configuration' colspan='7'><a style='cursor:pointer;' onclick='remove_disk_config(\"{$serial}\")'>Remove</a></td></tr>";
@@ -459,7 +471,7 @@ switch ($_POST['action']) {
 		}
 		if (strlen($ct)) {
 			echo "<div id='smb_tab' class='show-complete'><div id='title'><span class='left'><img src='/plugins/{$plugin}/icons/historical.png' class='icon'>Historical Devices</span></div>";
-			echo "<table class='disk_status wide usb_absent'><thead><tr><td>Device</td><td>Serial Number (Mountpoint)</td><td>Auto mount</td><td>Script</td><td colspan='7'>Config</td></tr></thead><tbody>{$ct}</tbody></table></div>";
+			echo "<table class='disk_status wide usb_absent'><thead><tr><td>Device</td><td>Serial Number (Mountpoint)</td><td>Read Only</td><td>Auto mount</td><td>Script</td><td colspan='7'>Config</td></tr></thead><tbody>{$ct}</tbody></table></div>";
 		}
 		unassigned_log("Total render time: ".($time + microtime(true))."s", "DEBUG");
 		break;
@@ -520,6 +532,12 @@ switch ($_POST['action']) {
 		}
 		break;
 
+	case 'read_only':
+		$serial = urldecode(($_POST['serial']));
+		$status = urldecode(($_POST['status']));
+		echo json_encode(array( 'read_only' => toggle_read_only($serial, $status) ));
+		break;
+
 	/*	DISK	*/
 	case 'mount':
 		$device = urldecode($_POST['device']);
@@ -563,7 +581,7 @@ switch ($_POST['action']) {
 		$user = isset($_POST['USER']) ? $_POST['USER'] : NULL;
 		$pass = isset($_POST['PASS']) ? $_POST['PASS'] : NULL;
 		$login = $user ? ($pass ? "-U '{$user}%{$pass}'" : "-U '{$user}' -N") : "-U%";
-		echo timed_exec(10, "/usr/bin/smbclient -g -L '$ip' $login 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}'|sort");
+		echo shell_exec("/usr/bin/smbclient -t2 -g -L '$ip' $login 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}'|sort");
 		break;
 
 	/*	NFS	*/

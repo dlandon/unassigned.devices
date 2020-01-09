@@ -4,7 +4,7 @@ Icon="unlock-alt"
 ---
 <?php
 /* Copyright 2015, Guilherme Jardim
- * Copyright 2016-2019, Dan Landon
+ * Copyright 2016-2020, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -110,7 +110,7 @@ Destructive Mode:
   <?=mk_option($cfg["Config"]["destructive_mode"], "enabled", "Enabled");?>
   </select><?if (! $parted):?>&nbsp;<span style="font-weight: bold">'Unassigned Devices Plus'</span> plugin must be installed to enable Destructive Mode.<?endif;?>
 
-> If enabled, this will allow users to<span class="red" style="font-weight: bold">erase and format partitions</span>using Unassigned Devices. Be careful.
+> If enabled, this will allow users to<span class="red" style="font-weight: bold">erase and format partitions</span>using Unassigned Devices. This cannot be enabled unless the 'Unassigned Devices Plus' plugin is installed.
 
 Auto Mount USB Devices?
 : <select name="automount_usb" size="1">

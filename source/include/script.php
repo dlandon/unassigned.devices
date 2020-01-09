@@ -1,5 +1,5 @@
 <?php
-/* Copyright 2016-2018, Dan Landon
+/* Copyright 2016-2020, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,

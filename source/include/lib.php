@@ -1,6 +1,6 @@
 <?php
 /* Copyright 2015, Guilherme Jardim
- * Copyright 2016-2019, Dan Landon
+ * Copyright 2016-2020, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -35,6 +35,7 @@ $paths = [  "smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 $docroot = $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $users = @parse_ini_file("$docroot/state/users.ini", true);
 $disks = @parse_ini_file("$docroot/state/disks.ini", true);
+$version = parse_ini_file("/etc/unraid-version");
 
 if (! isset($var)){
 	if (! is_file("$docroot/state/var.ini")) shell_exec("/usr/bin/wget -qO /dev/null localhost:$(ss -napt | /bin/grep emhttp | /bin/grep -Po ':\K\d+') >/dev/null");
@@ -474,12 +475,24 @@ function is_automount($sn, $usb=FALSE) {
 	return ($auto == "yes" || ( ! $auto && $usb !== FALSE && $auto_usb == "yes" ) ) ? TRUE : FALSE;
 }
 
+function is_read_only($sn) {
+	return (get_config($sn, "read_only") == "yes") ? TRUE : FALSE;
+}
+
 function toggle_automount($sn, $status) {
 	$config_file = $GLOBALS["paths"]["config_file"];
 	$config = @parse_ini_file($config_file, true);
 	$config[$sn]["automount"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
 	return ($config[$sn]["automount"] == "yes") ? TRUE : FALSE;
+}
+
+function toggle_read_only($sn, $status) {
+	$config_file = $GLOBALS["paths"]["config_file"];
+	$config = @parse_ini_file($config_file, true);
+	$config[$sn]["read_only"] = ($status == "true") ? "yes" : "no";
+	save_ini_file($config_file, $config);
+	return ($config[$sn]["read_only"] == "yes") ? TRUE : FALSE;
 }
 
 function execute_script($info, $action, $testing = FALSE) { 
@@ -564,7 +577,7 @@ function is_mounted($dev, $dir=FALSE) {
 	return $rc;
 }
 
-function get_mount_params($fs, $dev) {
+function get_mount_params($fs, $dev, $ro = FALSE) {
 	global $paths, $use_netbios;
 
 	$config_file	= $GLOBALS["paths"]["config_file"];
@@ -574,13 +587,14 @@ function get_mount_params($fs, $dev) {
 	} else {
 		$discard = "";
 	}
+	$rw	= $ro ? "ro" : "rw";
 	switch ($fs) {
 		case 'hfsplus':
-			return "force,rw,users,async,umask=000";
+			return "force,{$rw},users,async,umask=000";
 			break;
 
 		case 'xfs':
-			return "rw,noatime,nodiratime{$discard}";
+			return "{$rw},noatime,nodiratime{$discard}";
 			break;
 
 		case 'btrfs':
@@ -594,7 +608,7 @@ function get_mount_params($fs, $dev) {
 			break;
 
 		case 'crypto_LUKS':
-			return "rw,noatime,nodiratime{$discard}";
+			return "{$rw},noatime,nodiratime{$discard}";
 			break;
 
 		case 'ext4':
@@ -620,35 +634,39 @@ function get_mount_params($fs, $dev) {
 }
 
 function do_mount($info) {
-	global $var;
+	global $var, $version;
 
 	$rc = FALSE;
-	if ($info['fstype'] == "cifs" || $info['fstype'] == "nfs") {
-		$rc = do_mount_samba($info);
-	} else if($info['fstype'] == "loop") {
-		$rc = do_mount_iso($info);
-	} else if ($info['fstype'] == "crypto_LUKS") {
-		if (! is_mounted($info['device']) || ! is_mounted($info['mountpoint'], true)) {
-			$luks	= basename($info['device']);
-			$cmd	= "luksOpen {$info['luks']} {$luks} --allow-discards";
-			if (file_exists($var['luksKeyfile'])) {
-				$cmd	= $cmd." -d {$var['luksKeyfile']}";
-				$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+	if ( ($info['fstype'] == "crypto_LUKS") && (version_compare($version['version'],"6.9", ">")) ) {
+		unassigned_log("Warning: Encrypted disks cannot be mounted.  Add this disk to the cache pool.");
+	} else {
+		if ($info['fstype'] == "cifs" || $info['fstype'] == "nfs") {
+			$rc = do_mount_samba($info);
+		} else if($info['fstype'] == "loop") {
+			$rc = do_mount_iso($info);
+		} else if ($info['fstype'] == "crypto_LUKS") {
+			if (! is_mounted($info['device']) || ! is_mounted($info['mountpoint'], true)) {
+				$luks	= basename($info['device']);
+				$cmd	= "luksOpen {$info['luks']} {$luks}";
+				if (file_exists($var['luksKeyfile'])) {
+					$cmd	= $cmd." -d {$var['luksKeyfile']}";
+					$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+				} else {
+					unassigned_log("luksOpen: key file not found - using emcmd to open.");
+					$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
+				}
+				if ($o != "") {
+					unassigned_log("luksOpen error: ".$o);
+					shell_exec("/sbin/cryptsetup luksClose ".basename($info['device']));
+				} else {
+					$rc = do_mount_local($info);
+				}
 			} else {
-				unassigned_log("luksOpen: key file not found - using emcmd to open.");
-				$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
-			}
-			if ($o != "") {
-				unassigned_log("luksOpen error: ".$o);
-				shell_exec("/sbin/cryptsetup luksClose ".basename($info['device']));
-			} else {
-				$rc = do_mount_local($info);
+				unassigned_log("Drive '{$info['device']}' already mounted.");
 			}
 		} else {
-			unassigned_log("Drive '{$info['device']}' already mounted.");
+			$rc = do_mount_local($info);
 		}
-	} else {
-		$rc = do_mount_local($info);
 	}
 	return $rc;
 }
@@ -659,13 +677,14 @@ function do_mount_local($info) {
 	$dev = $info['device'];
 	$dir = $info['mountpoint'];
 	$fs  = $info['fstype'];
+	$ro  = ($info['read_only'] == 'yes') ? TRUE : FALSE;
 	if (! is_mounted($dev) || ! is_mounted($dir, true)) {
 		if ($fs) {
 			@mkdir($dir, 0777, TRUE);
 			if ($fs != "crypto_LUKS") {
-				$cmd = "/sbin/mount -t $fs -o ".get_mount_params($fs, $dev)." '{$dev}' '{$dir}'";
+				$cmd = "/sbin/mount -t $fs -o ".get_mount_params($fs, $dev, $ro)." '{$dev}' '{$dir}'";
 			} else {
-				$cmd = "/sbin/mount -o ".get_mount_params($fs, $dev)." '{$dev}' '{$dir}'";
+				$cmd = "/sbin/mount -o ".get_mount_params($fs, $dev, $ro)." '{$dev}' '{$dir}'";
 			}
 			unassigned_log("Mount drive command: $cmd");
 			$o = shell_exec($cmd." 2>&1");
@@ -1429,6 +1448,7 @@ function get_partition_info($device, $reload=FALSE){
 		}
 		$disk['owner']		= (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
 		$disk['automount']	= is_automount($disk['serial'], strpos($attrs['DEVPATH'],"usb"));
+		$disk['read_only']	= is_read_only($disk['serial']);
 		$disk['shared']		= config_shared($disk['serial'], $disk['part'], strpos($attrs['DEVPATH'],"usb"));
 		$disk['command']	= get_config($disk['serial'], "command.{$disk['part']}");
 		$disk['command_bg']	= get_config($disk['serial'], "command_bg.{$disk['part']}");

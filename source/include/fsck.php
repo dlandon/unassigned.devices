@@ -1,6 +1,6 @@
 <?php
 /* Copyright 2015, Guilherme Jardim
- * Copyright 2016-2018, Dan Landon
+ * Copyright 2016-2020, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -34,7 +34,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 	echo "FS: $fs<br /><br />";
 	if ($fs == "crypto_LUKS") {
 		$luks	= basename($device);
-		$cmd	= "luksOpen {$mapper} {$luks} --allow-discards";
+		$cmd	= "luksOpen {$mapper} {$luks}";
 		if (file_exists($var['luksKeyfile'])) {
 			$cmd	= $cmd." -d {$var['luksKeyfile']}";
 			$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
@@ -67,5 +67,5 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 		shell_exec("/sbin/cryptsetup luksClose ".basename($luks));
 	}
 }
-write_log("<center><button type='button' onclick='document.location=\"/plugins/{$plugin}/include/fsck.php?device={$device}&fs={$fs}&type=rw&mapper={$mapper}\"'> Run with CORRECT flag</button></center>");
+write_log("<center><button type='button' onclick='document.location=\"/plugins/{$plugin}/include/fsck.php?device={$device}&fs={$fs}&type=rw&mapper={$mapper}\"'>Run with CORRECT flag</button></center>");
 ?>
