@@ -598,13 +598,13 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 			break;
 
 		case 'btrfs':
-			return "auto,async,noatime,nodiratime{$discard}";
+			return "{$rw},auto,async,noatime,nodiratime{$discard}";
 			break;
 
 		case 'exfat':
 		case 'vfat':
 		case 'ntfs':
-			return "auto,async,noatime,nodiratime,nodev,nosuid,umask=000";
+			return "{$rw},auto,async,noatime,nodiratime,nodev,nosuid,umask=000";
 			break;
 
 		case 'crypto_LUKS':
@@ -612,7 +612,7 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 			break;
 
 		case 'ext4':
-			return "auto,noatime,nodiratime,async,nodev,nosuid{$discard}";
+			return "{$rw},auto,noatime,nodiratime,async,nodev,nosuid{$discard}";
 			break;
 
 		case 'cifs':
