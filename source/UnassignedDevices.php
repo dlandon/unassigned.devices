@@ -458,12 +458,9 @@ switch ($_POST['action']) {
 		foreach ($config as $serial => $value) {
 			if($serial == "Config") continue;
 			if (! preg_grep("#{$serial}#", $disks_serials)){
-				$partition	= get_config($serial, "partition");
 				$mountpoint	= basename(get_config($serial, "mountpoint.1"));
-				$shared		= get_config($serial, "shared");
 				$ct .= "<tr><td><img src='/plugins/{$plugin}/images/green-blink.png'> missing</td><td>$serial"."   ($mountpoint)</td>";
-// dfl
-				$ct .= "<td title='Turn on to Mount Device Read only'><input type='checkbox' class='read_only' serial='{$serial}' ".(($disk['partitions'][0]['read_only']) ? 'checked':'')."></td>";
+				$ct .= "<td title='Turn on to Mount Device Read only'><input type='checkbox' class='read_only' serial='{$serial}' ".( is_read_only($serial) ? 'checked':'')."></td>";
 				$ct .= "<td title='Turn on to Mount Device when Array is Started'><input type='checkbox' class='automount' serial='{$serial}' ".( is_automount($serial) ? 'checked':'' )."></td>";
 				$ct .= "<td><a title='Edit Device Script' href='/Main/EditScript?s=".urlencode($serial)."&l=".urlencode(basename($mountpoint))."&p=".urlencode("1")."'><i class=".( file_exists(get_config($serial,"command.1")) ? "'fa fa-code'":"'fa fa-minus-square-o'" )."'></i></a></td>";
 				$ct .= "<td title='Remove Device configuration' colspan='7'><a style='cursor:pointer;' onclick='remove_disk_config(\"{$serial}\")'>Remove</a></td></tr>";

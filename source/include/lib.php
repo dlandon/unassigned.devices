@@ -628,7 +628,7 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 			break;
 
 		default:
-			return "auto,async,noatime,nodiratime";
+			return "{$rw},auto,async,noatime,nodiratime";
 			break;
 	}
 }
