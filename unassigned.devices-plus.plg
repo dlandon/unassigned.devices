@@ -3,7 +3,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices-plus">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.01.11">
+<!ENTITY version   "2020.01.11a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/unassigned.devices/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
@@ -32,7 +32,7 @@ The 'pre-install' script.
 <FILE Run="/bin/bash">
 <INLINE>
 # Unassigned Devices must be installed.
-if [ ! -d /usr/local/emhttp/plugins/unassigned.devices ] ; then
+if [ ! -f /boot/config/plugins/unassigned.devices.plg ] ; then
 echo ""
 echo "-----------------------------------------------------------"
 echo " &name; has not been installed!"
