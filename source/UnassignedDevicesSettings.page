@@ -18,12 +18,26 @@ $plugin = "unassigned.devices";
 require_once("plugins/{$plugin}/include/lib.php");
 $config_file = "/tmp/{$plugin}/config/{$plugin}.cfg";
 $cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
+$uuid_devices = array();
+foreach (get_all_disks_info() as $d) {
+	if (($d['partitions'][0]['fstype'] == "xfs") && (! is_mounted($d['device']."1"))) {
+		$a = array();
+		$a['device'] = $d['device'];
+		$a['label'] = $d['serial'];
+		$uuid_devices[] = $a;
+	}
+}
 
 if (count($_POST)) {
-	array_map(function($k, $v) use (&$cfg) { if($k[0] != "#") $cfg["Config"][$k] = $v; }, array_keys($_POST), $_POST );
-	remove_shares();
-	save_ini_file($config_file, $cfg);
-	reload_shares();
+	if ($_POST['#command'] == "Apply") {
+		array_map(function($k, $v) use (&$cfg) { if($k[0] != "#") $cfg["Config"][$k] = $v; }, array_keys($_POST), $_POST );
+		remove_shares();
+		save_ini_file($config_file, $cfg);
+		reload_shares();
+	} else if (($_POST['#command'] == "UUID") && (isset($_POST['change_uuid']))) {
+		$dev = substr($_POST['change_uuid'], 1, 8)."1";
+		change_UUID($dev);
+	}
 }
 
 $use_netbios = ($var['USE_NETBIOS']=='yes') ? TRUE : FALSE;
@@ -92,7 +106,7 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
 	}
 </script>
 
-<div id="title" class="nocontrol">Settings:</div>
+<div id="title" class="nocontrol">Common Settings</div>
 <form markdown="1" name="common_settings" method="POST">
 
 <?if (! $parted):?>
@@ -148,8 +162,7 @@ Remove Nmap package (used to scan for NFS servers)?
 : <input type="submit" name="#apply" value="Apply"><input type="button" value="Done" onclick="done()">
 </form>
 
-&nbsp;
-<div id="title" class="nocontrol">SMB Security:</div>
+<div id="title" class="nocontrol">SMB Security</div>
 <form markdown="1" name="smb_settings" method="POST">
 Enable SMB Security?
 : <select name="smb_security" size="1" onchange="prepareSecurity(this);">
@@ -184,7 +197,7 @@ Enable SMB Security?
 : <input type="submit" name="#apply" value="Apply"><input type="button" value="Done" onclick="done()">
 </form>
 
-<div id="title" class="nocontrol">NFS Settings:</div>
+<div id="title" class="nocontrol">NFS Settings</div>
 <form markdown="1" name="nfs_settings" method="POST">
 Enable NFS export?
 : <select name="nfs_export" size="1" <?if ($var['shareNFSEnabled']=="no"):?>disabled<?endif;?>>
@@ -217,4 +230,23 @@ Enable NFS export?
 
 &nbsp;
 : <input type="submit" name="#apply" value="Apply"><input type="button" value="Done" onclick="done()">
+</form>
+
+<div id="title" class="nocontrol">Change Disk UUID</div>
+<form markdown="1" name="change_uuid" method="POST">
+Select Disk to change UUID:
+: <select name="change_uuid" size="1">
+
+  <?foreach ($uuid_devices as $d) {?>
+  <?=mk_option($disk_uuid, ("(".$d['device'].") - ".$d['label']), ("(".$d['device'].") - ".$d['label']))?>
+  <?}?>
+  </select>
+  
+> Select the disk that you want to change the UUID.  This is useful when a disk has been removed from the array and has he same UUID as an array disk.  Drive must be unmounted to change the UUID.
+
+&nbsp;
+: <form name="change_disk_uuid" method="POST" action="/update.php" target="progressFrame">
+   	<input type="hidden" name="#command" value="UUID">
+    <input type="submit" value="Change UUID" title="Change the disk UUID." <?=count($uuid_devices) ? "" : "disabled"?>>
+  </form>
 </form>

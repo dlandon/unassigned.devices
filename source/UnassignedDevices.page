@@ -945,7 +945,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	$(function()
 	{
 		// Add icons to Tab/Title bar
-		addButtonTab('<a title="Unassigned Devices Settings" href="/Settimgs/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>',
+		addButtonTab('<a title="Unassigned Devices Settings" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>',
 								 "Unassigned Devices");
 		addButtonTab('<a style="cursor:pointer" onclick="$.post(\''+URL+'\',{\'action\':\'rescan_disks\'});" title="Rescan Disks"><i class="fa fa-refresh"></i></a>',
 								 "Unassigned Devices");

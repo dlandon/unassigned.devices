@@ -1503,6 +1503,14 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 	return $cmd[$type] ? sprintf($cmd[$type], $dev) : "";
 }
 
+function change_UUID($dev) {
+
+	sleep(1);
+	$rc = timed_exec(2, "/usr/sbin/xfs_admin -U generate {$dev}");
+
+	unassigned_log("Changing disk '{$dev}' UUID. Result: ".$rc);
+}
+
 function setSleepTime($device) {
 	$device = preg_replace("/\d+$/", "", $device);
 	timed_exec(10, "/usr/sbin/hdparm -S180 $device 2>&1");

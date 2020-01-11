@@ -23,6 +23,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+
+2020.01.11a
+- Fix: Don't install if UD is not an installed plugin.
+
+2019.12.29
 - First release.
 </CHANGES>
 
