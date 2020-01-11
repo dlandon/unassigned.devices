@@ -3,7 +3,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices-plus">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2019.12.29">
+<!ENTITY version   "2020.01.11">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/unassigned.devices/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
@@ -25,6 +25,27 @@
 ###&version;
 - First release.
 </CHANGES>
+
+<!--
+The 'pre-install' script.
+-->
+<FILE Run="/bin/bash">
+<INLINE>
+# Unassigned Devices must be installed.
+if [ ! -d /usr/local/emhttp/plugins/unassigned.devices ] ; then
+echo ""
+echo "-----------------------------------------------------------"
+echo " &name; has not been installed!"
+echo " Install Unassigned devices first."
+echo "-----------------------------------------------------------"
+echo ""
+exit 1
+fi
+
+# Remove emhttp files so we can re-install.
+rm -rf /usr/local/emhttp/plugins/&name;/* 2>/dev/null
+</INLINE>
+</FILE>
 
 <!--
 nmap-7.80-x86_64-3.txz
@@ -83,16 +104,6 @@ libbsd-0.8.7-x86_64-1_slonly.txz
 </FILE>
 
 <!--
-The 'pre-install' script.
--->
-<FILE Run="/bin/bash">
-<INLINE>
-# Remove emhttp files so we can re-install.
-rm -rf /usr/local/emhttp/plugins/&name;/* 2>/dev/null
-</INLINE>
-</FILE>
-
-<!--
 README.md
 -->
 <FILE Name="/usr/local/emhttp/plugins/&name;/README.md">
@@ -116,7 +127,6 @@ The 'post-install' script.
 echo ""
 echo "-----------------------------------------------------------"
 echo " &name; has been installed."
-echo " This plugin requires Dynamix webGui to operate"
 echo " Copyright 2015, gfjardim"
 echo " Copyright 2016-2019, &author;"
 echo " Version: &version;"
