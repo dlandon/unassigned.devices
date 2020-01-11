@@ -36,7 +36,7 @@ if [ ! -d /usr/local/emhttp/plugins/unassigned.devices ] ; then
 echo ""
 echo "-----------------------------------------------------------"
 echo " &name; has not been installed!"
-echo " Install Unassigned devices first."
+echo " Install Unassigned Devices plugin first."
 echo "-----------------------------------------------------------"
 echo ""
 exit 1
