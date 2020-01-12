@@ -637,7 +637,7 @@ function do_mount($info) {
 	global $var, $version;
 
 	$rc = FALSE;
-	if ( ($info['fstype'] == "crypto_LUKS") && (version_compare($version['version'],"6.9", ">")) ) {
+	if ( ($info['fstype'] == "crypto_LUKS") && (version_compare($version['version'],"6.8.9", ">")) ) {
 		unassigned_log("Warning: Encrypted disks cannot be mounted.  Add this disk to the cache pool.");
 	} else {
 		if ($info['fstype'] == "cifs" || $info['fstype'] == "nfs") {
@@ -1507,7 +1507,6 @@ function change_UUID($dev) {
 
 	sleep(1);
 	$rc = timed_exec(2, "/usr/sbin/xfs_admin -U generate {$dev}");
-
 	unassigned_log("Changing disk '{$dev}' UUID. Result: ".$rc);
 }
 
