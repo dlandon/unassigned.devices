@@ -586,12 +586,9 @@ switch ($_POST['action']) {
 		$network = $_POST['network'];
 		foreach ($network as $iface)
 		{
-			$net = explode(".", $iface["ip"]);
-			$net[end((array_keys($net)))] = 0;
-			$net = implode(".", $net);
-			$mask = netmasks($iface["netmask"]);
-			$net = "{$net}/{$mask}"; 
-			echo timed_exec(20, "/usr/bin/nmap {$net} -p2049 --open -n | grep -e 'Nmap scan report for' | sed -e 's/Nmap scan report for //g' | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4");
+			$ip = $iface["ip"];
+			$netmask = $iface["netmask"];
+			echo shell_exec("/usr/bin/timeout -s 13 5 plugins/{$plugin}/scripts/port_ping.sh {$ip} {$netmask} 2049 2>/dev/null | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4");
 		}
 		break;
 
