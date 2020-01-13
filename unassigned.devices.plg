@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.01.12">
+<!ENTITY version   "2020.01.13">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"bc55f15b0d78f97dd16add673b0624c8">
+<!ENTITY MD5		"ac8012f098767d91d071d52c34020235">
 ]>
 
 <PLUGIN name="&name;"
@@ -25,6 +25,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Encrypt remote SMB share passwords.
+
+###2020.01.12
 - Fix: Settings not saving.
 
 ###2020.01.11
