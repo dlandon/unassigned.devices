@@ -622,7 +622,7 @@ switch ($_POST['action']) {
 				set_samba_config("{$device}", "path", $path);
 				set_samba_config("{$device}", "user", $user);
 				set_samba_config("{$device}", "domain", $domain);
-				set_samba_config("{$device}", "pass", $pass);
+				set_samba_config("{$device}", "pass", encrypt_data($pass));
 				set_samba_config("{$device}", "share", safe_name($share));
 			} else {
 				unassigned_log("Share '{$device}' contains a '$' character.	It cannot be mounted.");

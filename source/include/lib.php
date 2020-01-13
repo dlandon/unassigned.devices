@@ -999,6 +999,33 @@ function set_samba_config($source, $var, $val) {
 	return (isset($config[$source][$var])) ? $config[$source][$var] : FALSE;
 }
 
+function encrypt_data($data) {
+	$key = get_config("Config", "key");
+	if ($key == "") {
+		$key = shell_exec("echo `date` | base64");
+		$key = str_replace("\n", "", $key);
+		set_config("Config", "key", $key);
+	}
+
+	if ($m = strlen($data)%8) {
+		$data .= str_repeat("\x00", 8 - $m);
+	}
+	$val = openssl_encrypt($data, 'BF-ECB', $key, OPENSSL_RAW_DATA | OPENSSL_NO_PADDING);
+	$val = str_replace("\n", "", $val);
+	return($val);
+}
+
+function decrypt_data($data) {
+	$key = get_config("Config", "key");
+	$val = openssl_decrypt($data, 'BF-ECB', $key, OPENSSL_RAW_DATA | OPENSSL_NO_PADDING);
+
+	if (! preg_match("//u", $val)) {
+		unassigned_log("Warning: Password is not UTF-8 encoded");
+		$val = "";
+	}
+	return($val);
+}
+
 function is_samba_automount($sn) {
 	$auto = get_samba_config($sn, "automount");
 	return ( ($auto) ? ( ($auto == "yes") ? TRUE : FALSE ) : TRUE);
@@ -1081,7 +1108,7 @@ function do_mount_samba($info) {
 				}
 			} else {
 				file_put_contents("{$paths['credentials']}", "username=".($info['user'] ? $info['user'] : 'guest')."\n", FILE_APPEND);
-				file_put_contents("{$paths['credentials']}", "password=".$info['pass']."\n", FILE_APPEND);
+				file_put_contents("{$paths['credentials']}", "password=".decrypt_data($info['pass'])."\n", FILE_APPEND);
 				file_put_contents("{$paths['credentials']}", "domain=".$info['domain']."\n", FILE_APPEND);
 				if (($use_netbios != "yes") || ($config['Config']['samba_v1'] != "yes")) {
 					$ver	= "3.0";
