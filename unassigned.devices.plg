@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.01.13">
+<!ENTITY version   "2020.01.13a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"ac8012f098767d91d071d52c34020235">
+<!ENTITY MD5		"46933fb9e00ceb4731bcbf374d2d63f3">
 ]>
 
 <PLUGIN name="&name;"
@@ -25,6 +25,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Remove the need for nmap.
+
+###2020.01.13
 - Add: Encrypt remote SMB share passwords.
 
 ###2020.01.12
@@ -901,9 +904,6 @@ Unassigned devices background start script.
 #!/bin/bash
 # Copy configuration files to tmp file system.
 /usr/local/emhttp/plugins/&name;/scripts/copy_config.sh 2>/dev/null
-
-# Remove nmap package if user sets configuration parameter.
-/usr/local/emhttp/plugins/&name;/scripts/remove_nmap 2>/dev/null
 
 # Remove the background start script.
 rm -f /tmp/start_unassigned_devices 2>/dev/null
