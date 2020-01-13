@@ -586,8 +586,8 @@ switch ($_POST['action']) {
 		$network = $_POST['network'];
 		foreach ($network as $iface)
 		{
-			$ip = $iface["ip"];
-			$netmask = $iface["netmask"];
+			$ip = $iface['ip'];
+			$netmask = $iface['netmask'];
 			echo shell_exec("/usr/bin/timeout -s 13 5 plugins/{$plugin}/scripts/port_ping.sh {$ip} {$netmask} 2049 2>/dev/null | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4");
 		}
 		break;
