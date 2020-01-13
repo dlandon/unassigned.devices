@@ -661,10 +661,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		<dt>IP/Host:</dt>
 		<dd><span class="samba_hosts"></dd>
 		<dd><input type="text" name="IP"></span></dd>
-<?if(is_file("/usr/bin/nmap")):?>
 		<dt>&nbsp;</dt>
 		<dd><button type="button" onclick="load_hosts(this, 'list_nfs_hosts');">Search for servers</button></dd>
-<?endif;?>
 		<dd><input type="hidden" name="USER"></dd>
 		<dd><input type="hidden" name="PASS"></dd>
 		<dt>Share:</dt>
