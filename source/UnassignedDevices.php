@@ -577,11 +577,12 @@ switch ($_POST['action']) {
 		{
 			$ip = $iface['ip'];
 			$netmask = $iface['netmask'];
-		  exec("plugins/{$plugin}/scripts/port_ping.sh {$ip} {$netmask} 445", $hosts);
-		  foreach ($hosts as $host) {
-		  	$name=trim(shell_exec("/usr/bin/nmblookup -A '$host' 2>/dev/null | grep -v 'GROUP' | grep -Po '[^<]*(?=<00>)' | head -n 1"));
-		  	$names[]= $name ? $name : $host;
-		  }
+			exec("plugins/{$plugin}/scripts/port_ping.sh {$ip} {$netmask} 445", $hosts);
+			foreach ($hosts as $host) {
+				$name=trim(shell_exec("/usr/bin/nmblookup -A '$host' 2>/dev/null | grep -v 'GROUP' | grep -Po '[^<]*(?=<00>)' | head -n 1"));
+				$names[]= $name ? $name : $host;
+			}
+			natsort($names);
 		}
 		echo implode(PHP_EOL, $names);
 		// exec("/usr/bin/nmblookup --option='disable netbios'='No' '$workgroup' | awk '{print $1}'", $output);
