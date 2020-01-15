@@ -570,7 +570,9 @@ switch ($_POST['action']) {
 
 	/*	SAMBA	*/
 	case 'list_samba_hosts':
-		echo timed_exec(10, "/usr/bin/smbtree --servers --no-pass | grep -v -P '^\w+' | tr -d '\\' | awk '{print $1}' | sort");
+		$workgroup = urldecode($_POST['workgroup']);
+		// echo timed_exec(10, "/usr/bin/smbtree --servers --no-pass | grep -v -P '^\w+' | tr -d '\\' | awk '{print $1}' | sort");
+	  echo shell_exec("/usr/bin/nmblookup -S '$workgroup' --debuglevel=0 | grep -v 'GROUP' | grep -Po '[^<]*(?=<00>)' | sort");
 		break;
 
 	case 'list_samba_shares':

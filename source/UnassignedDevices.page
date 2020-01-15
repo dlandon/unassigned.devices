@@ -417,7 +417,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		var target = $(el).parents("div").find("*[name='IP']");
 		var old = $(el).html();
 		$(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> Searching ...");
-		$.post(URL,{'action': action, 'var': vars, network: network}).done(function(data){
+		$.post(URL,{'action': action, 'var': vars, 'network': network, 'workgroup': workgroup}).done(function(data){
 			$(el).html(old);
 			if (data) {
 				var hosts = data.split('\n');
@@ -428,7 +428,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 					{
 						if (hosts[i].length)
 						{
-							add += "<option value='"+hosts[i]+"'>"+hosts[i]+"</option>";
+							add += "<option value='"+hosts[i].trim()+"'>"+hosts[i].trim()+"</option>";
 						}
 					}
 					target.replaceWith(add+"</select>")
@@ -676,10 +676,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	<dl>
 		<dt>IP/Host:</dt>
 		<dd><input type="text" name="IP"></dd>
-		<?if (version_compare($version['version'],"6.8", "<")):?>
 		<dt>&nbsp;</dt>
 		<dd><button type="button" onclick="load_hosts(this, 'list_samba_hosts');">Search for servers</button></dd>
-		<?endif;?>
 		<dt>Username:</dt>
 		<dd><input type="text" name="USER"></dd>
 		<dt>Password:</dt>
