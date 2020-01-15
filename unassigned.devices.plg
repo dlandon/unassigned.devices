@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.01.13a">
+<!ENTITY version   "2020.01.14">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"46933fb9e00ceb4731bcbf374d2d63f3">
+<!ENTITY MD5		"fa0a4ca4b8e63ca0f476d4342b8b37e4">
 ]>
 
 <PLUGIN name="&name;"
@@ -25,6 +25,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Capitalize SMB server names entered manually.
+
+###2020.01.14
 - Fix: Remove the need for nmap.
 
 ###2020.01.13

@@ -615,7 +615,7 @@ switch ($_POST['action']) {
 			$device = ($protocol == "NFS") ? "{$ip}:/{$path}" : "//{$ip}/{$share}";
 			if (strpos($path, "$") === FALSE) {
 				set_samba_config("{$device}", "protocol", $protocol);
-				set_samba_config("{$device}", "ip", $ip);
+				set_samba_config("{$device}", "ip", (is_ip($ip) ? $ip : strtoupper($ip)));
 				set_samba_config("{$device}", "path", $path);
 				set_samba_config("{$device}", "user", $user);
 				set_samba_config("{$device}", "domain", $domain);
