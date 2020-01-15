@@ -110,7 +110,7 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
 <form markdown="1" name="common_settings" method="POST">
 
 <?if (! $parted):?>
-> <span class="red" style="font-weight: bold">Note:</span> The <span class="red" style="font-weight: bold">'Unassigned Devices Plus'</span> plugin must be installed in order to mount HFS+ and exFAT disk formats, and scan for NFS servers using Nmap.
+> <span class="red" style="font-weight: bold">Note:</span> The <span class="red" style="font-weight: bold">'Unassigned Devices Plus'</span> plugin must be installed in order to mount HFS+ and exFAT disk formats, and enable desctrctive mode.
 <?endif;?>
 
 Common Script:
@@ -149,14 +149,6 @@ Mount SSDs with 'discard' option?
   </select>
 
 > Mount SSDs that support discard with 'discard' option.  If you are using the SSD Trim Settings to do a periodic trim of SSDs you can set this to 'No'.
-
-Remove Nmap package (used to scan for NFS servers)?
-: <select name="remove_nmap_pkg" size="1">
-  <?=mk_option($cfg["Config"]["remove_nmap_pkg"], "no", "No");?>
-  <?=mk_option($cfg["Config"]["remove_nmap_pkg"], "yes", "Yes");?>
-  </select>
-
-> The Nmap package is used to scan for NFS servers on your LAN.  Some have expressed a security concern about having the Nmap package installed on the LAN.  You can remove the Nmap package if you are concerned about this potential security issue.  You need to reboot the server for the changes to take effect.  Nmap will also be removed when Unassigned Devices is re-installed or updated
 
 &nbsp;
 : <input type="submit" name="#apply" value="Apply"><input type="button" value="Done" onclick="done()">

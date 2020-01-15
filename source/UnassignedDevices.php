@@ -586,8 +586,8 @@ switch ($_POST['action']) {
 		$network = $_POST['network'];
 		foreach ($network as $iface)
 		{
-			$ip = $iface["ip"];
-			$netmask = $iface["netmask"];
+			$ip = $iface['ip'];
+			$netmask = $iface['netmask'];
 			echo shell_exec("/usr/bin/timeout -s 13 5 plugins/{$plugin}/scripts/port_ping.sh {$ip} {$netmask} 2049 2>/dev/null | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4");
 		}
 		break;
@@ -615,7 +615,7 @@ switch ($_POST['action']) {
 			$device = ($protocol == "NFS") ? "{$ip}:/{$path}" : "//{$ip}/{$share}";
 			if (strpos($path, "$") === FALSE) {
 				set_samba_config("{$device}", "protocol", $protocol);
-				set_samba_config("{$device}", "ip", $ip);
+				set_samba_config("{$device}", "ip", (is_ip($ip) ? $ip : strtoupper($ip)));
 				set_samba_config("{$device}", "path", $path);
 				set_samba_config("{$device}", "user", $user);
 				set_samba_config("{$device}", "domain", $domain);
