@@ -25,7 +25,7 @@
 <CHANGES>
 ##&name;
 ###&version;
-- Fix: SMB server lookup.  Thasnks to gfjardim.
+- Fix: SMB server lookup.  Thanks to gfjardim.
 
 ###2020.01.14
 - Fix: Remove the need for nmap.
