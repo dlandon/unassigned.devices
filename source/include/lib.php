@@ -1010,14 +1010,14 @@ function encrypt_data($data) {
 	if ($m = strlen($data)%8) {
 		$data .= str_repeat("\x00", 8 - $m);
 	}
-	$val = openssl_encrypt($data, 'BF-ECB', $key, OPENSSL_RAW_DATA | OPENSSL_NO_PADDING);
+	$val = openssl_encrypt($data, 'aes-256-cbc', $key, OPENSSL_RAW_DATA | OPENSSL_NO_PADDING);
 	$val = str_replace("\n", "", $val);
 	return($val);
 }
 
 function decrypt_data($data) {
 	$key = get_config("Config", "key");
-	$val = openssl_decrypt($data, 'BF-ECB', $key, OPENSSL_RAW_DATA | OPENSSL_NO_PADDING);
+	$val = openssl_decrypt($data, 'aes-256-cbc', $key, OPENSSL_RAW_DATA | OPENSSL_NO_PADDING);
 
 	if (! preg_match("//u", $val)) {
 		unassigned_log("Warning: Password is not UTF-8 encoded");
@@ -1107,7 +1107,7 @@ function do_mount_samba($info) {
 					unassigned_log("NFS mount failed: {$o}.");
 				}
 			} else {
-				file_put_contents("{$paths['credentials']}", "username=".($info['user'] ? $info['user'] : 'guest')."\n", FILE_APPEND);
+				file_put_contents("{$paths['credentials']}", "username=".($info['user'] ? $info['user'] : 'guest')."\n");
 				file_put_contents("{$paths['credentials']}", "password=".decrypt_data($info['pass'])."\n", FILE_APPEND);
 				file_put_contents("{$paths['credentials']}", "domain=".$info['domain']."\n", FILE_APPEND);
 				if (($use_netbios != "yes") || ($config['Config']['samba_v1'] != "yes")) {
