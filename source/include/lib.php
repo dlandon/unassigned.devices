@@ -1010,14 +1010,14 @@ function encrypt_data($data) {
 	if ($m = strlen($data)%8) {
 		$data .= str_repeat("\x00", 8 - $m);
 	}
-	$val = openssl_encrypt($data, 'aes-256-cbc', $key, OPENSSL_RAW_DATA | OPENSSL_NO_PADDING);
+	$val = openssl_encrypt($data, 'aes256', $key, OPENSSL_RAW_DATA);
 	$val = str_replace("\n", "", $val);
 	return($val);
 }
 
 function decrypt_data($data) {
 	$key = get_config("Config", "key");
-	$val = openssl_decrypt($data, 'aes-256-cbc', $key, OPENSSL_RAW_DATA | OPENSSL_NO_PADDING);
+	$val = openssl_decrypt($data, 'aes256', $key, OPENSSL_RAW_DATA);
 
 	if (! preg_match("//u", $val)) {
 		unassigned_log("Warning: Password is not UTF-8 encoded");
