@@ -1001,8 +1001,8 @@ function set_samba_config($source, $var, $val) {
 
 function encrypt_data($data) {
 	$key = get_config("Config", "key");
-	if ($key == "") {
-		$key = shell_exec("echo `date` | base64");
+	if ($key == "" || strlen($key) > 32) {
+		$key = substr(shell_exec("echo `date` | base64"), 1, 32);
 		$key = str_replace("\n", "", $key);
 		set_config("Config", "key", $key);
 	}
