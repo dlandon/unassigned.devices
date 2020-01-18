@@ -1001,15 +1001,12 @@ function set_samba_config($source, $var, $val) {
 
 function encrypt_data($data) {
 	$key = get_config("Config", "key");
-	if ($key == "" || strlen($key) > 32) {
+	if ($key == "" || strlen($key) != 32) {
 		$key = substr(shell_exec("echo `date` | base64"), 1, 32);
 		$key = str_replace("\n", "", $key);
 		set_config("Config", "key", $key);
 	}
 
-	if ($m = strlen($data)%8) {
-		$data .= str_repeat("\x00", 8 - $m);
-	}
 	$val = openssl_encrypt($data, 'aes256', $key, OPENSSL_RAW_DATA);
 	$val = str_replace("\n", "", $val);
 	return($val);
