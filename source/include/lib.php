@@ -1008,7 +1008,7 @@ function encrypt_data($data) {
 	}
 	$iv = get_config("Config", "iv");
 	if ($iv == "" || strlen($iv) != 32) {
-		$iv = substr(shell_exec("echo 'unassigned.devices' | base64"), 1, 32);
+		$iv = substr(shell_exec("echo 'unassigned.devices.plugin' | base64"), 1, 32);
 		$iv = str_replace("\n", "", $iv);
 		set_config("Config", "iv", $iv);
 	}
