@@ -1002,18 +1002,15 @@ function set_samba_config($source, $var, $val) {
 function encrypt_data($data) {
 	$key = get_config("Config", "key");
 	if ($key == "" || strlen($key) != 32) {
-		$key = substr(shell_exec("echo `date` | base64"), 1, 32);
-		$key = str_replace("\n", "", $key);
+		$key = substr(base64_encode(openssl_random_pseudo_bytes(32)), 0, 32);
 		set_config("Config", "key", $key);
 	}
 	$iv = get_config("Config", "iv");
-	if ($iv == "" || strlen($iv) != 32) {
-		$iv = substr(shell_exec("echo 'unassigned.devices.plugin' | base64"), 1, 32);
-		$iv = str_replace("\n", "", $iv);
+	if ($iv == "" || strlen($iv) != 16) {
+		$iv = substr(base64_encode(openssl_random_pseudo_bytes(16)), 0, 16);
 		set_config("Config", "iv", $iv);
 	}
 
-	$m = strlen($data);
 	$val = openssl_encrypt($data, 'aes256', $key, $options=0, $iv);
 	$val = str_replace("\n", "", $val);
 	return($val);
@@ -1118,7 +1115,6 @@ function do_mount_samba($info) {
 				if (($use_netbios != "yes") || ($config['Config']['samba_v1'] != "yes")) {
 					$ver	= "3.0";
 					$params	= sprintf(get_mount_params($fs, '$dev'), $ver);
-					$params = str_replace('domain=,', '', $params);
 					$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 					unassigned_log("Mount SMB share '$dev' using SMB3 protocol.");
 					unassigned_log("Mount SMB command: '$cmd'");
@@ -1128,7 +1124,6 @@ function do_mount_samba($info) {
 						/* If the mount failed, try to mount with samba vers=2.0. */
 						$ver	= "2.0";
 						$params	= sprintf(get_mount_params($fs, '$dev'), $ver);
-						$params = str_replace('domain=,', '', $params);
 						$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 						unassigned_log("Mount SMB share '$dev' using SMB2 protocol.");
 						unassigned_log("Mount SMB command: '$cmd'");
@@ -1139,7 +1134,6 @@ function do_mount_samba($info) {
 						/* If the mount failed, try to mount with samba vers=1.0. */
 						$ver	= "1.0";
 						$params	= sprintf(get_mount_params($fs, '$dev'), $ver);
-						$params = str_replace('domain=,', '', $params);
 						$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 						unassigned_log("Mount SMB share '$dev' using SMB1 protocol.");
 						unassigned_log("Mount SMB command: '$cmd'");
@@ -1152,7 +1146,6 @@ function do_mount_samba($info) {
 				} else {
 					$ver	= "1.0";
 					$params	= sprintf(get_mount_params($fs, '$dev'), $ver);
-					$params = str_replace('domain=,', '', $params);
 					$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 					unassigned_log("Mount SMB share '$dev' using SMB1 protocol.");
 					unassigned_log("Mount SMB command: '$cmd'");
