@@ -1006,15 +1006,23 @@ function encrypt_data($data) {
 		$key = str_replace("\n", "", $key);
 		set_config("Config", "key", $key);
 	}
+	$iv = get_config("Config", "iv");
+	if ($iv == "" || strlen($iv) != 32) {
+		$iv = substr(shell_exec("echo 'unassigned.devices' | base64"), 1, 32);
+		$iv = str_replace("\n", "", $iv);
+		set_config("Config", "iv", $iv);
+	}
 
-	$val = openssl_encrypt($data, 'aes256', $key, OPENSSL_RAW_DATA);
+	$m = strlen($data);
+	$val = openssl_encrypt($data, 'aes256', $key, $options=0, $iv);
 	$val = str_replace("\n", "", $val);
 	return($val);
 }
 
 function decrypt_data($data) {
 	$key = get_config("Config", "key");
-	$val = openssl_decrypt($data, 'aes256', $key, OPENSSL_RAW_DATA);
+	$iv = get_config("Config", "iv");
+	$val = openssl_decrypt($data, 'aes256', $key, $options=0, $iv);
 
 	if (! preg_match("//u", $val)) {
 		unassigned_log("Warning: Password is not UTF-8 encoded");

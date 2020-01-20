@@ -635,6 +635,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	}
 </script>
 
+<div class='pluginUpdate'></div>
+
 <div style='display: inline; float: right; margin: -58px -14px;' id='unassigned_tabbed'></div>
 <div id="dialog-confirm" style="display:none;" title=""></div>
 <div id="dialog-samba" style="display:none;" title=""></div>
@@ -965,5 +967,11 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		// Load page content
 		usb_disks(tab_usbdisks);
 		detect_usb_disk_change(tab_usbdisks);
+	});
+
+	$(function() {
+	  if ( typeof caPluginUpdateCheck === "function" ) {
+		caPluginUpdateCheck("unassigned.devices",{element:".pluginUpdate"});
+	  }
 	});
 </script>
