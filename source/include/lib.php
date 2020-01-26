@@ -522,7 +522,7 @@ global $paths;
 		unassigned_log("Running device script: '".basename($cmd)."' with action '{$action}'.");
 
 		$running = shell_exec("/usr/bin/ps -C ".basename($cmd)." | grep '".basename($cmd)."'") != "" ? TRUE : FALSE;
-		if (! $running) {
+		if ((! $running) || (($running) && ($action != "ADD"))) {
 			if (! $testing) {
 				if ($action == "REMOVE") {
 					sleep(1);
