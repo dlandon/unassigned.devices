@@ -36,8 +36,10 @@ if ( isset($_GET['device']) && isset($_GET['owner']) ) {
 		while (!feof($proc)) {
 			write_log(fgets($proc));
 		}
-	} else {
+	} elseif ($command !== FALSE) {
 		echo "No script file to execute!";
+	} else {
+		echo "Script is already running!";
 	}
 }
 ?>

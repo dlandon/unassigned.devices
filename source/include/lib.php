@@ -514,27 +514,32 @@ global $paths;
 			unassigned_log("Error: common script failed with return '{$return}'");
 		}
 	}
+
 	if ($cmd) {
 		$command_script = $paths['scripts'].basename($cmd);
 		copy($cmd, $command_script);
 		@chmod($command_script, 0755);
 		unassigned_log("Running device script: '".basename($cmd)."' with action '{$action}'.");
-	} else {
-		return FALSE;
+
+		$running = shell_exec("/usr/bin/ps -C ".basename($cmd)." | grep '".basename($cmd)."'") != "" ? TRUE : FALSE;
+		if (! $running) {
+			if (! $testing) {
+				if ($action == "REMOVE") {
+					sleep(1);
+				}
+				$cmd = isset($info['serial']) ? "$command_script > /tmp/{$info['serial']}.log 2>&1 $bg" : "$command_script /tmp/".preg_replace('~[^\w]~i', '', $info['device']).".log 2>&1 $bg";
+				exec($cmd, $out, $return);
+				if ($return) {
+					unassigned_log("Error: device script failed with return '{$return}'");
+				}
+			} else {
+				return $command_script;
+			}
+		} else {
+			unassigned_log("Device script '".basename($cmd)."' aleady running!");
+		}
 	}
 
-	if (! $testing) {
-		if ($action == "REMOVE") {
-			sleep(1);
-		}
-		$cmd = isset($info['serial']) ? "$command_script > /tmp/{$info['serial']}.log 2>&1 $bg" : "$command_script /tmp/".preg_replace('~[^\w]~i', '', $info['device']).".log 2>&1 $bg";
-		exec($cmd, $out, $return);
-		if ($return) {
-			unassigned_log("Error: device script failed with return '{$return}'");
-		}
-	} else {
-		return $command_script;
-	}
 	return FALSE;
 }
 

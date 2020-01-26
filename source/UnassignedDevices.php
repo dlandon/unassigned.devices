@@ -261,7 +261,13 @@ function make_mount_button($device) {
 		if ($device['fstype'] == "crypto_LUKS") {
 			$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-export', 'Unmount');
 		} else {
-			$button = sprintf($button, $context, 'umount', '', 'fa fa-export', 'Unmount');
+			$cmd = get_config($device['serial'],"command.1");
+			$running = shell_exec("/usr/bin/ps -C ".basename($cmd)." | grep '".basename($cmd)."'") != "" ? TRUE : FALSE;
+			if ($running) {
+				$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-export', 'Running...');
+			} else {
+				$button = sprintf($button, $context, 'umount', '', 'fa fa-export', 'Unmount');
+			}
 		}
 	} else {
 		$disable = $preclearing ? "disabled" : $disable;
