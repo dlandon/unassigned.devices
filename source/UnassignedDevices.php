@@ -262,7 +262,7 @@ function make_mount_button($device) {
 			$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-export', 'Unmount');
 		} else {
 			$cmd = get_config($device['serial'],"command.1");
-			$running = shell_exec("/usr/bin/ps -ef | grep '".basename($cmd)."' | grep -v 'grep'") != "" ? TRUE : FALSE;
+			$running = ($cmd != "") ? (shell_exec("/usr/bin/ps -ef | grep '".basename($cmd)."' | grep -v 'grep'") != "" ? TRUE : FALSE) : FALSE;
 			if ($running) {
 				$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-export', 'Running...');
 			} else {
@@ -400,7 +400,7 @@ switch ($_POST['action']) {
 
 				$disabled = $is_alive ? "enabled":"disabled";
 				$cmd = get_samba_config($mount['device'],"command");
-				$running = shell_exec("/usr/bin/ps -ef | grep '".basename($cmd)."' | grep -v 'grep'") != "" ? TRUE : FALSE;
+				$running = ($cmd != "") ? (shell_exec("/usr/bin/ps -ef | grep '".basename($cmd)."' | grep -v 'grep'") != "" ? TRUE : FALSE) : FALSE;
 				if ($running) {
 					echo "<td><span style='width:auto;text-align:right;'><button type='button' style='padding:2px 7px 2px 7px;<i class='fa fa-export' disabled></i>Running...</button></span></td>";
 				} else {
@@ -446,7 +446,7 @@ switch ($_POST['action']) {
 				}
 				$disabled = $is_alive ? "enabled":"disabled";
 				$cmd = get_iso_config($mount['device'],"command");
-				$running = shell_exec("/usr/bin/ps -ef | grep '".basename($cmd)."' | grep -v 'grep'") != "" ? TRUE : FALSE;
+				$running = ($cmd != "") ? (shell_exec("/usr/bin/ps -ef | grep '".basename($cmd)."' | grep -v 'grep'") != "" ? TRUE : FALSE) : FALSE;
 				if ($running) {
 					echo "<td><span style='width:auto;text-align:right;'><button type='button' style='padding:2px 7px 2px 7px;<i class='fa fa-export' disabled></i>Running...</button></span></td>";
 				} else {
