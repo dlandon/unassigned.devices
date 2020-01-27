@@ -266,9 +266,12 @@ switch ($COMMAND) {
 		unassigned_reload();
 		break;
 
+	case 'refresh':
+		break;
+
 	default:
 		unassigned_log("Error: 'rc.unassigned {$argv[1]} {$argv[2]}' not understood");
-		unassigned_log("rc.unassigned usage: 'mount','umount','reload'");
+		unassigned_log("rc.unassigned usage: 'mount','umount','reload', 'refresh'");
 		exit(0);
 		break;
 }

@@ -30,6 +30,7 @@ if ( isset($_GET['device']) && isset($_GET['owner']) ) {
 	$command = execute_script($info, 'ADD', TRUE);
 	if ($command != "") {
 		$command = $command." 2>&1";
+		@touch($GLOBALS['paths']['reload']);
 		putenv("OWNER={$owner}");
 		write_log($command."<br><br>");
 		$proc = popen($command, 'r');
