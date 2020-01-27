@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.01.20">
+<!ENTITY version   "2020.01.27">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"7d47e536b246b7046002ef1fb0c7d887">
+<!ENTITY MD5		"59eb4b108853e43161cfebc5fdc52a92">
 ]>
 
 <PLUGIN name="&name;"
@@ -25,6 +25,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Don't allow device script to be run twice.  Show script running status.
+
+###2020.01.20
 - Fix: Improved randomness in key and iv generation.
 
 ###2020.01.19a
