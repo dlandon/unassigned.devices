@@ -527,7 +527,7 @@ global $paths;
 				if ($action == "REMOVE") {
 					sleep(1);
 				}
-				$cmd = isset($info['serial']) ? "$command_script > /tmp/{$info['serial']}.log 2>&1 $bg" : "$command_script /tmp/".preg_replace('~[^\w]~i', '', $info['device']).".log 2>&1 $bg";
+				$cmd = isset($info['serial']) ? "$command_script > /tmp/{$info['serial']}.log 2>&1 $bg" : "$command_script > /tmp/".preg_replace('~[^\w]~i', '', $info['device']).".log 2>&1 $bg";
 				exec($cmd, $out, $return);
 				if ($return) {
 					unassigned_log("Error: device script failed with return '{$return}'");
@@ -1161,6 +1161,7 @@ function do_mount_samba($info) {
 			if (is_mounted($dev)) {
 				@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
 				unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
+				@touch($paths['reload']);
 				$rc = TRUE;
 			} else {
 				@rmdir($dir);

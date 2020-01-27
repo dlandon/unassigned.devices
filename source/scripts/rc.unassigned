@@ -277,5 +277,5 @@ switch ($COMMAND) {
 }
 
 array_map(function($f){@unlink($f);}, $remove);
-touch($paths['reload']);
+@touch($paths['reload']);
 ?>
