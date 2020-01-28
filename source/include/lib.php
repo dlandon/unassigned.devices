@@ -521,7 +521,7 @@ global $paths;
 		@chmod($command_script, 0755);
 		unassigned_log("Running device script: '".basename($cmd)."' with action '{$action}'.");
 
-		$running = shell_exec("/usr/bin/ps -C ".basename($cmd)." | grep '".basename($cmd)."'") != "" ? TRUE : FALSE;
+		$running = shell_exec("/usr/bin/ps -ef | grep '".basename($cmd)."' | grep -v 'grep'") != "" ? TRUE : FALSE;
 		if ((! $running) || (($running) && ($action != "ADD"))) {
 			if (! $testing) {
 				if ($action == "REMOVE") {
