@@ -472,7 +472,7 @@ function set_config($sn, $var, $val) {
 function is_automount($sn, $usb=FALSE) {
 	$auto = get_config($sn, "automount");
 	$auto_usb = get_config("Config", "automount_usb");
-	return ($auto == "yes" || ( ! $auto && $usb !== FALSE && $auto_usb == "yes" ) ) ? TRUE : FALSE;
+	return ($auto == "yes" || ( $usb !== FALSE && $auto_usb == "yes" ) ) ? TRUE : FALSE;
 }
 
 function is_read_only($sn) {
