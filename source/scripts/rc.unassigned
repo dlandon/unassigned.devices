@@ -35,6 +35,10 @@ function unassigned_mount() {
 					unassigned_log("Disk '{$device}' does not have a serial number and cannot be mounted.");
 					continue;
 				}
+				if ( $info['pass_through'] ) {
+					unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' is set as pass through and will not be mounted.");
+					continue;
+				}
 				if (! $info['automount'] && ( $DEVNAME == "auto" || $DEVNAME == "autodevices" || isset($_ENV['DEVNAME']) )) {
 					unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' is not set to auto mount and will not be mounted.");
 					continue;

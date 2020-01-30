@@ -204,6 +204,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 	} else {
 		$out[] = render_used_and_free($partition, $mounted);
 	}
+	$out[] = "<td title='Turn on to mark this Device as passed through to a VM or Docker'><input type='checkbox' class='pass_through' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['pass_through']) ? 'checked':'')."></td>";
 	if ($mounted) {
 		$out[] = ($disk['partitions'][0]['read_only'] == "yes") ? "<td><span>Yes</span></td>" : "<td><span>No&nbsp;</span></td>";
 	} else {
@@ -270,7 +271,7 @@ function make_mount_button($device) {
 			}
 		}
 	} else {
-		$disable = $preclearing ? "disabled" : $disable;
+		$disable = (is_pass_through($device['serial']) || $preclearing) ? "disabled" : $disable;
 		$button = sprintf($button, $context, 'mount', $disable, 'fa fa-import', 'Mount');
 	}
 	return $button;
@@ -283,7 +284,7 @@ switch ($_POST['action']) {
 		$time		 = -microtime(true); 
 		$disks = get_all_disks_info();
 
-		echo "<table class='disk_status wide usb_disks'><thead><tr><td>Device</td><td>Identification</td><td></td><td>Temp</td><td>FS</td><td>Size</td><td>Open files</td><td>Used</td><td>Free</td><td>Read Only</td><td>Auto Mount</td><td>Share&nbsp;&nbsp;</td><td>Log</td><td>Script</td></tr></thead>";
+		echo "<table class='disk_status wide usb_disks'><thead><tr><td>Device</td><td>Identification</td><td></td><td>Temp</td><td>FS</td><td>Size</td><td>Open files</td><td>Used</td><td>Free</td><td>Pass Through</td><td>Read Only</td><td>Auto Mount</td><td>Share&nbsp;&nbsp;</td><td>Log</td><td>Script</td></tr></thead>";
 		echo "<tbody>";
 		$odd="odd";
 		if ( count($disks) ) {
@@ -294,7 +295,7 @@ switch ($_POST['action']) {
 				$preclearing	= $Preclear ? $Preclear->isRunning($disk_name) : false;
 				$is_precleared	= ($disk['partitions'][0]['fstype'] == "precleared") ? true : false;
 				$flash			= ($disk['partitions'][0]['fstype'] == "vfat" || $disk['partitions'][0]['fstype'] == "exfat") ? true : false;
-				if ($mounted || is_file($disk['partitions'][0]['command']) || $preclearing) {
+				if ( ($mounted || is_file($disk['partitions'][0]['command']) || $preclearing) && ! is_pass_through($disk['serial']) ) {
 					$disk_running	= array_key_exists("running", $disk) ? $disk["running"] : is_disk_running($disk['device']);
 					$disk['temperature'] = $disk['temperature'] ? $disk['temperature'] : get_temp(substr($disk['device'],0,10), $disk_running);
 				}
@@ -342,6 +343,7 @@ switch ($_POST['action']) {
 				echo ($p)?$p[11]:"<td>-</td>";
 				echo ($p)?$p[12]:"<td>-</td>";
 				echo ($p)?$p[13]:"<td>-</td>";
+				echo ($p)?$p[14]:"<td>-</td>";
 				echo "</tr>";
 				if ($add_toggle)
 				{
@@ -551,6 +553,12 @@ switch ($_POST['action']) {
 		$serial = urldecode(($_POST['serial']));
 		$status = urldecode(($_POST['status']));
 		echo json_encode(array( 'read_only' => toggle_read_only($serial, $status) ));
+		break;
+
+	case 'pass_through':
+		$serial = urldecode(($_POST['serial']));
+		$status = urldecode(($_POST['status']));
+		echo json_encode(array( 'pass_through' => toggle_pass_through($serial, $status) ));
 		break;
 
 	/*	DISK	*/

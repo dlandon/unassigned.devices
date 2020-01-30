@@ -711,7 +711,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 				<option value="xfs">XFS</option>
 				<option value="btrfs">BTRFS</option>
 				<option value="ntfs">NTFS</option>
-				<option value="ext4">EXT4</option>
 				<option value="exfat">exFAT</option>
 				<option value="fat32">FAT32</option>
 			</select>
@@ -743,6 +742,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 				<td>Open files</td>
 				<td>Used</td>
 				<td>Free</td>
+				<td>Pass Through</td>
 				<td>Read Only</td>
 				<td>Auto Mount</td>
 				<td>Share</td>
@@ -766,7 +766,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 <blockquote class='inline_help'>
 	<p>Unassigned Devices is called UD for short.</p>
 	<p>Hover your mouse over an any active area on the UD page and a tool tip will show you what clicking that area does.</p>
-	<p>You can mount USB devices, sata drives, Remote SMB/NFS shares, and ISO Files with UD.  Any devices with the auto mount switch on will be mounted when the array is started.  XFS and EXT4 formatted drives are mounted with discard (trim) for SSD drives. All drives and SMB/NFS Mounts are unmounted when the array is stopped on the 'unmounting_disks' event.</p>
+	<p>You can mount USB devices, sata drives, Remote SMB/NFS shares, and ISO Files with UD.  Any devices with the auto mount switch on will be mounted when the array is started.  All drives and SMB/NFS Mounts are unmounted when the array is stopped on the 'unmounting_disks' event.</p>
 	<p>If you want to share your drive, you can turn on the Share switch.  The default for Remote SMB shares is Public read/write access.  Enable SMB Security by user in the Unassigned Devices Settings.  NFS shares are exported and access is read/write.  The export of NFS devices is enabled in the Unassigned Devices settings. You can also enable a common script that will be executed on every disk mount.  In order to share any UD device, sharing needs to be enabled in the UD Settings and the switch turned on to share the particular device.</p>
 	<p>After entering a mount point, press Enter to save the change.</p>
 	<p>Additional options are available when you click on the device identification.  When the disk is unmounted, the mount name of the device can be changed.  A disk can be formatted and an fsck run to check the disk.</p>
@@ -788,7 +788,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		<li>'/usr/local/sbin/rc.unassigned umount auto' - all devices and SMB/NFS mounts set to auto mount will be unmounted.</li>
 		<li>'/usr/local/sbin/rc.unassigned umount all' - all devices and SMB/NFS mounts are unmounted in preparation for shutting down the array.</li>
 		<li>'/usr/local/sbin/rc.unassigned mount /dev/sdX' - mount device sdX where 'X' is the device designator.</li>
-		<li>'/usr/local/sbin/rc.unassigned umount /dev/sdX' - unmount device sdX where 'X' is the device designator.	You can use this command in a UD script to unmount the device when the script has completed.<li>
+		<li>'/usr/local/sbin/rc.unassigned umount /dev/sdX' - unmount device sdX where 'X' is the device designator.	You can use this command in a UD script to unmount the device when the script has completed.</li>
+		<li>'/usr/local/sbin/rc.unassigned refresh /dev/sdX' - used at the end of the 'ADD' case of a script so the 'Running...' indicator will be updated.</li>
 	</p>
 	<p>Switch the 'Complete' button to change the web page to just show hardware devices.	Switch the 'Simple' switch to switch back to the full web display.</p>
 	<p>Click on <u>Settings</u> to go to the UD Settings.</p>
@@ -931,6 +932,16 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			});
 		}
 
+		else if (checkbox.hasClass("pass_through"))
+		{
+			checkbox.change(function()
+			{
+				$.post(URL,{action:"pass_through",serial:$(this).attr("serial"),status:$(this).is(":checked")},function(data)
+				{
+					$(this).prop("checked",data.pass_through);
+				},"json");
+			});
+		}
 	});
 
 	$( "#usb_devices_list" ).arrive(".show-complete", {onceOnly:false}, function()

@@ -267,10 +267,6 @@ function get_format_cmd($dev, $fs) {
 			return "/sbin/mkfs.btrfs -f {$dev} 2>&1";
 			break;
 
-		case 'ext4':
-			return "/sbin/mkfs.ext4 -F {$dev} 2>&1";
-			break;
-
 		case 'exfat':
 			return "/usr/sbin/mkfs.exfat {$dev} 2>&1";
 			break;
@@ -472,11 +468,16 @@ function set_config($sn, $var, $val) {
 function is_automount($sn, $usb=FALSE) {
 	$auto = get_config($sn, "automount");
 	$auto_usb = get_config("Config", "automount_usb");
-	return ($auto == "yes" || ( $usb !== FALSE && $auto_usb == "yes" ) ) ? TRUE : FALSE;
+	$pass_through = get_config($sn, "pass_through");
+	return ($auto == "yes" || ( $pass_through != "yes" && $usb !== FALSE && $auto_usb == "yes" ) ) ? TRUE : FALSE;
 }
 
 function is_read_only($sn) {
 	return (get_config($sn, "read_only") == "yes") ? TRUE : FALSE;
+}
+
+function is_pass_through($sn) {
+	return (get_config($sn, "pass_through") == "yes") ? TRUE : FALSE;
 }
 
 function toggle_automount($sn, $status) {
@@ -493,6 +494,19 @@ function toggle_read_only($sn, $status) {
 	$config[$sn]["read_only"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
 	return ($config[$sn]["read_only"] == "yes") ? TRUE : FALSE;
+}
+
+function toggle_pass_through($sn, $status) {
+	$config_file = $GLOBALS["paths"]["config_file"];
+	$config = @parse_ini_file($config_file, true);
+	$config[$sn]["pass_through"] = ($status == "true") ? "yes" : "no";
+	save_ini_file($config_file, $config);
+	if ( $status == "true" ) {
+		toggle_automount($sn, FALSE);
+		toggle_read_only($sn, FALSE);
+	}
+	@touch($GLOBALS['paths']['reload']);
+	return ($config[$sn]["pass_through"] == "yes") ? TRUE : FALSE;
 }
 
 function execute_script($info, $action, $testing = FALSE) { 
@@ -1477,14 +1491,15 @@ function get_partition_info($device, $reload=FALSE){
 		} else {
 			$disk['openfiles'] = 0;
 		}
-		$disk['owner']		= (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
-		$disk['automount']	= is_automount($disk['serial'], strpos($attrs['DEVPATH'],"usb"));
-		$disk['read_only']	= is_read_only($disk['serial']);
-		$disk['shared']		= config_shared($disk['serial'], $disk['part'], strpos($attrs['DEVPATH'],"usb"));
-		$disk['command']	= get_config($disk['serial'], "command.{$disk['part']}");
-		$disk['command_bg']	= get_config($disk['serial'], "command_bg.{$disk['part']}");
-		$disk['prog_name']	= basename($disk['command'], ".sh");
-		$disk['logfile']	= $paths['device_log'].$disk['prog_name'].".log";
+		$disk['owner']			= (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
+		$disk['automount']		= is_automount($disk['serial'], strpos($attrs['DEVPATH'],"usb"));
+		$disk['read_only']		= is_read_only($disk['serial']);
+		$disk['pass_through']	= is_pass_through($disk['serial']);
+		$disk['shared']			= config_shared($disk['serial'], $disk['part'], strpos($attrs['DEVPATH'],"usb"));
+		$disk['command']		= get_config($disk['serial'], "command.{$disk['part']}");
+		$disk['command_bg']		= get_config($disk['serial'], "command_bg.{$disk['part']}");
+		$disk['prog_name']		= basename($disk['command'], ".sh");
+		$disk['logfile']		= $paths['device_log'].$disk['prog_name'].".log";
 		return $disk;
 	}
 }
