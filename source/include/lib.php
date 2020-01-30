@@ -469,11 +469,13 @@ function is_automount($sn, $usb=FALSE) {
 	$auto = get_config($sn, "automount");
 	$auto_usb = get_config("Config", "automount_usb");
 	$pass_through = get_config($sn, "pass_through");
-	return ($auto == "yes" || ( $pass_through != "yes" && $usb !== FALSE && $auto_usb == "yes" ) ) ? TRUE : FALSE;
+	return ( ($pass_through != "yes" && $auto == "yes") || ( $usb && $auto_usb == "yes" ) ) ? TRUE : FALSE;
 }
 
 function is_read_only($sn) {
-	return (get_config($sn, "read_only") == "yes") ? TRUE : FALSE;
+	$read_only = get_config($sn, "read_only");
+	$pass_through = get_config($sn, "pass_through");
+	return ( $pass_through != "yes" && $read_only == "yes" ) ? TRUE : FALSE;
 }
 
 function is_pass_through($sn) {
@@ -501,10 +503,6 @@ function toggle_pass_through($sn, $status) {
 	$config = @parse_ini_file($config_file, true);
 	$config[$sn]["pass_through"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
-	if ( $status == "true" ) {
-		toggle_automount($sn, FALSE);
-		toggle_read_only($sn, FALSE);
-	}
 	@touch($GLOBALS['paths']['reload']);
 	return ($config[$sn]["pass_through"] == "yes") ? TRUE : FALSE;
 }
