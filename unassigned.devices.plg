@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.01.30">
+<!ENTITY version   "2020.01.30a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"61fe0f647d5899750ee85c90c42f4fe7">
+<!ENTITY MD5		"441e9ba927dc87585baa98f1becf05d3">
 ]>
 
 <PLUGIN name="&name;"
