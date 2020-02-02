@@ -1550,7 +1550,7 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 function change_UUID($dev) {
 
 	sleep(1);
-	$rc = timed_exec(2, "/usr/sbin/xfs_admin -U generate {$dev}");
+	$rc = timed_exec(10, "/usr/sbin/xfs_admin -U generate {$dev}");
 	unassigned_log("Changing disk '{$dev}' UUID. Result: ".$rc);
 }
 
