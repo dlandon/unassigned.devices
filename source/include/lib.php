@@ -1073,10 +1073,6 @@ function get_samba_mounts() {
 			if (is_ip($ip))
 			{
 				$is_alive = (trim(exec("/bin/ping -c 2 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
-				if ($is_alive)
-				{
-					$mount['device'] = ($mount['fstype'] == "nfs") ? "{$ip}:{$mount['path']}" : "//{$ip}/{$mount['path']}";
-				}	
 			}
 		}
 
