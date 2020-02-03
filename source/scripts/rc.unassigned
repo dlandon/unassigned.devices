@@ -71,7 +71,7 @@ function unassigned_mount() {
 	}
 
 	# Mount Remote SMB/NFS mounts
-	if (strpos($DEVNAME, "//") === 0 || strpos($DEVNAME, "://") || $DEVNAME == "auto" || $DEVNAME == "autoshares") {
+	if (strpos($DEVNAME, "//") === 0 || strpos($DEVNAME, ":/") || $DEVNAME == "auto" || $DEVNAME == "autoshares") {
 		foreach (get_samba_mounts() as $info) {
 			$device = $info['device'];
 			if ( $DEVNAME == $device || $DEVNAME == "auto" || $DEVNAME == "autoshares" ) {
@@ -160,7 +160,7 @@ function unassigned_umount() {
 	}
 
 	# Deal with Remote SMB/NFS mounts
-	if (strpos($DEVNAME, "//") === 0 || strpos($DEVNAME, "://") || $DEVNAME == "auto" || $DEVNAME == "all") {
+	if (strpos($DEVNAME, "//") === 0 || strpos($DEVNAME, ":/") || $DEVNAME == "auto" || $DEVNAME == "all") {
 		foreach (get_samba_mounts() as $info) {
 			$device = $info['device'];
 			if ( $DEVNAME == $device || $DEVNAME == "auto" || $DEVNAME == "all" ) {

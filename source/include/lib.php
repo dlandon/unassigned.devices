@@ -1075,7 +1075,7 @@ function get_samba_mounts() {
 				$is_alive = (trim(exec("/bin/ping -c 2 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
 				if ($is_alive)
 				{
-					$mount['device'] = ($mount['fstype'] == "nfs") ? "{$ip}:/{$mount['path']}" : "//{$ip}/{$mount['path']}";
+					$mount['device'] = ($mount['fstype'] == "nfs") ? "{$ip}:{$mount['path']}" : "//{$ip}/{$mount['path']}";
 				}	
 			}
 		}
@@ -1120,7 +1120,7 @@ function do_mount_samba($info) {
 			if ($fs == "nfs") {
 				$params	= get_mount_params($fs, '$dev');
 				$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
-				unassigned_log("Mount NFS command: '$cmd'");
+				unassigned_log("Mount NFS command: $cmd");
 				$o		= timed_exec(10, $cmd." 2>&1");
 				if ($o != "") {
 					unassigned_log("NFS mount failed: {$o}.");
@@ -1134,7 +1134,7 @@ function do_mount_samba($info) {
 					$params	= sprintf(get_mount_params($fs, '$dev'), $ver);
 					$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 					unassigned_log("Mount SMB share '$dev' using SMB3 protocol.");
-					unassigned_log("Mount SMB command: '$cmd'");
+					unassigned_log("Mount SMB command: $cmd");
 					$o		= timed_exec(10, $cmd." 2>&1");
 					if (!is_mounted($dev) && strpos($o, "Permission denied") === FALSE) {
 						unassigned_log("SMB3 mount failed: {$o}.");
@@ -1143,7 +1143,7 @@ function do_mount_samba($info) {
 						$params	= sprintf(get_mount_params($fs, '$dev'), $ver);
 						$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 						unassigned_log("Mount SMB share '$dev' using SMB2 protocol.");
-						unassigned_log("Mount SMB command: '$cmd'");
+						unassigned_log("Mount SMB command: $cmd");
 						$o		= timed_exec(10, $cmd." 2>&1");
 					}
 					if ((!is_mounted($dev) && $use_netbios == 'yes') && strpos($o, "Permission denied") === FALSE) {
@@ -1153,7 +1153,7 @@ function do_mount_samba($info) {
 						$params	= sprintf(get_mount_params($fs, '$dev'), $ver);
 						$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 						unassigned_log("Mount SMB share '$dev' using SMB1 protocol.");
-						unassigned_log("Mount SMB command: '$cmd'");
+						unassigned_log("Mount SMB command: $cmd");
 						$o		= timed_exec(10, $cmd." 2>&1");
 						if ($o != "") {
 							unassigned_log("SMB1 mount failed: {$o}.");
@@ -1165,7 +1165,7 @@ function do_mount_samba($info) {
 					$params	= sprintf(get_mount_params($fs, '$dev'), $ver);
 					$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 					unassigned_log("Mount SMB share '$dev' using SMB1 protocol.");
-					unassigned_log("Mount SMB command: '$cmd'");
+					unassigned_log("Mount SMB command: $cmd");
 					$o		= timed_exec(10, $cmd." 2>&1");
 				}
 				@unlink("{$paths['credentials']}");
