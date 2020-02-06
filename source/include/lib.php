@@ -844,8 +844,11 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 				// Add the recycle bin parameters if plugin is installed
 				$recycle_script = "plugins/recycle.bin/scripts/configure_recycle_bin";
 				if (is_file($recycle_script)) {
-					unassigned_log("Enabling the Recycle Bin on share '$share_name'");
-					timed_exec(5, "{$recycle_script} {$share_conf}");
+					$recycle_bin_cfg = parse_ini_file( "/boot/config/plugins/recycle.bin/recycle.bin.cfg" );
+					if ($recycle_bin_cfg['INCLUDE_UD'] == "yes") {
+						unassigned_log("Enabling the Recycle Bin on share '$share_name'");
+						timed_exec(5, "{$recycle_script} {$share_conf}");
+					}
 				}
 			}
 		}
