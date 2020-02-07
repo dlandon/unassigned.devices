@@ -25,7 +25,7 @@
 <CHANGES>
 ##&name;
 ###&version;
-- Fix: Add delay to mount check to verify local disk has mounted and gite it time to mount.
+- Fix: Add delay to mount check to verify local disk has mounted and give it time to mount.
 
 ###2020.02.05
 - Fix: Recycle Bin enabled on UD devices even when it is not enabled in Recycle Bin Settings.
