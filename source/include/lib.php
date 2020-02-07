@@ -708,11 +708,17 @@ function do_mount_local($info) {
 			if ($o != "" && $fs == "ntfs" && is_mounted($dev)) {
 				unassigned_log("Mount warning: $o");
 			}
-			if (is_mounted($dev)) {
-				@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
-				unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
-				$rc = TRUE;
-			} else {
+			foreach (range(0,5) as $t) {
+				if (is_mounted($dev)) {
+					@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
+					unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
+					$rc = TRUE;
+					break;
+				} else {
+					sleep(0.5);
+				}
+			}
+			if (! $rc) {
 				if ($fs == "crypto_LUKS" ) {
 					shell_exec("/sbin/cryptsetup luksClose ".basename($info['device']));
 				}

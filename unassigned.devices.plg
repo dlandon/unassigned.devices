@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.02.05">
+<!ENTITY version   "2020.02.06">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"9538fa1ee15f54266497f63455aaa92c">
+<!ENTITY MD5		"4aeeca9a9dcaba523dc88bbc64762f4c">
 ]>
 
 <PLUGIN name="&name;"
@@ -25,6 +25,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Add delay to mount check to verify local disk has mounted and gite it time to mount.
+
+###2020.02.05
 - Fix: Recycle Bin enabled on UD devices even when it is not enabled in Recycle Bin Settings.
 
 ###2020.02.02
