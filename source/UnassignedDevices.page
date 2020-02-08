@@ -715,7 +715,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 				<option value="fat32">FAT32</option>
 			</select>
 		</dd>
-		<dt>Type<span class="red">Yes</span>to confirm:</dt>
+		<dt>Type<span class="red">'Yes'</span>to confirm:</dt>
 		<dd><input type="text" name="CONFIRM" style="width: 60px"></dd>
 	</dl>
 	<p>Note: An XFS or BTRFS disk partitioned in UD is compatible with the array disk partitioning and can be added to the array.</p>
@@ -723,7 +723,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 <div id="rm_partition" style="display:none;">
 	<dl>
-		<dt>Type<span class="red">Yes</span>to confirm:</dt>
+		<dt>Type<span class="red">'Yes'</span>to confirm:</dt>
 		<dd><input type="text" name="CONFIRM" style="width: 60px"></dd>
 	</dl>
 	<p>Note: The data on this disk will be lost!</p>

@@ -294,7 +294,7 @@ switch ($_POST['action']) {
 				$p				= (count($disk['partitions']) > 0) ? render_partition($disk, $disk['partitions'][0], TRUE) : FALSE;
 				$preclearing	= $Preclear ? $Preclear->isRunning($disk_name) : false;
 				$is_precleared	= ($disk['partitions'][0]['fstype'] == "precleared") ? true : false;
-				$flash			= ($disk['partitions'][0]['fstype'] == "vfat" || $disk['partitions'][0]['fstype'] == "exfat") ? true : false;
+				$flash			= ($disk['partitions'][0]['fstype'] == "vfat") ? true : false;
 				if ( ($mounted || is_file($disk['partitions'][0]['command']) || $preclearing) && ! is_pass_through($disk['serial']) ) {
 					$disk_running	= array_key_exists("running", $disk) ? $disk["running"] : is_disk_running($disk['device']);
 					$disk['temperature'] = $disk['temperature'] ? $disk['temperature'] : get_temp(substr($disk['device'],0,10), $disk_running);
@@ -620,7 +620,7 @@ switch ($_POST['action']) {
 		$user = isset($_POST['USER']) ? $_POST['USER'] : NULL;
 		$pass = isset($_POST['PASS']) ? $_POST['PASS'] : NULL;
 		$login = $user ? ($pass ? "-U '{$user}%{$pass}'" : "-U '{$user}' -N") : "-U%";
-		echo shell_exec("/usr/bin/smbclient -t2 -g -L '$ip' $login 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}'|sort");
+		echo shell_exec("/usr/bin/smbclient -t2 -g -L '$ip' $login 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}' | grep -v '\\$' | sort");
 		break;
 
 	/*	NFS	*/
