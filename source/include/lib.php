@@ -708,7 +708,7 @@ function do_mount_local($info) {
 			if ($o != "" && $fs == "ntfs" && is_mounted($dev)) {
 				unassigned_log("Mount warning: $o");
 			}
-			foreach (range(0,5) as $t) {
+			for ($i=0; $i < 5; $i++) {
 				if (is_mounted($dev)) {
 					@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
 					unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
