@@ -29,7 +29,8 @@ $paths = [  "smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"formatting"		=> "/var/state/{$plugin}/formatting_%s.state",
 			"df_temp"			=> "/tmp/{$plugin}/df",
 			"scripts"			=> "/tmp/{$plugin}/scripts/",
-			"credentials"		=> "/tmp/{$plugin}/credentials"
+			"credentials"		=> "/tmp/{$plugin}/credentials",
+			"authentication"	=> "/tmp/{$plugin}/authentication"
 		];
 
 $docroot = $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';

@@ -619,8 +619,13 @@ switch ($_POST['action']) {
 		$ip = urldecode($_POST['IP']);
 		$user = isset($_POST['USER']) ? $_POST['USER'] : NULL;
 		$pass = isset($_POST['PASS']) ? $_POST['PASS'] : NULL;
-		$login = $user ? ($pass ? "-U '{$user}%{$pass}'" : "-U '{$user}' -N") : "-U%";
-		echo shell_exec("/usr/bin/smbclient -t2 -g -L '$ip' $login 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}' | grep -v '\\$' | sort");
+		$domain = isset($_POST['DOMAIN']) ? $_POST['DOMAIN'] : NULL;
+		file_put_contents("{$paths['authentication']}", "username=".$user."\n");
+		file_put_contents("{$paths['authentication']}", "password=".$pass."\n", FILE_APPEND);
+		file_put_contents("{$paths['authentication']}", "domain=".$domain."\n", FILE_APPEND);
+		$list = shell_exec("/usr/bin/smbclient -t2 -g -L '$ip' --authentication-file='{$paths['authentication']}' 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}' | grep -v '\\$' | sort");
+		@unlink("{$paths['authentication']}");
+		echo $list;
 		break;
 
 	/*	NFS	*/

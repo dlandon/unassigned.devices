@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.02.08">
+<!ENTITY version   "2020.02.09">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"602a97b24ea61e6170e20500ebb78982">
+<!ENTITY MD5		"ecf243814db3d7b09df3bb144334583a">
 ]>
 
 <PLUGIN name="&name;"
@@ -25,6 +25,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Authentication file for credentials for smbclient shares list.
+
+###2020.02.08
 - Add: Allow SMART report on disks that are not formatted.
 - Fix: Don't show Windows shares with '$' in the name.  UD can't mount them, so there is no reason to even list them.
 - Add: Quotes to Yes in confirmations to make it easier to understand they enter 'Yes'.
