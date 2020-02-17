@@ -305,6 +305,7 @@ function format_partition($partition, $fs) {
 	if ($o != "") {
 		unassigned_log("Reload partition table result:\n$o");
 	}
+	shell_exec("/sbin/udevadm trigger --action=change {$disk}");
 
 	sleep(3);
 	@touch($GLOBALS['paths']['reload']);
@@ -346,6 +347,7 @@ function format_disk($dev, $fs) {
 	if ($o != "") {
 		unassigned_log("Reload partition table result:\n$o");
 	}
+	shell_exec("/sbin/udevadm trigger --action=change {$dev}");
 
 	unassigned_log("Creating a primary partition on disk '{$dev}'.");
 	if ($fs == "xfs" || $fs == "btrfs") {
@@ -399,6 +401,7 @@ function format_disk($dev, $fs) {
 	if ($o != "") {
 		unassigned_log("Reload partition table result:\n$o");
 	}
+	shell_exec("/sbin/udevadm trigger --action=change {$dev}");
 
 	sleep(3);
 	@touch($GLOBALS['paths']['reload']);
@@ -421,6 +424,7 @@ function remove_partition($dev, $part) {
 	if ($out != "") {
 		unassigned_log("Remove parition failed result '{$out}'");
 	}
+	shell_exec("/sbin/udevadm trigger --action=change {$dev}");
 	sleep(10);
 	return TRUE;
 }
