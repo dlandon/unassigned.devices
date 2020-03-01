@@ -1047,6 +1047,8 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
         <label class="image-radio-label image-radio-linux" for="{0}"></label>
         <input type="radio" id="{1}" name="PROTOCOL" value="SMB" required="">
         <label class="image-radio-label image-radio-windows" for="{1}"></label>
+       <p><span style="font-weight:bold;">Note:</span> Dockers will not be able to access any SMB or NFS share until you restart the Docker service after the device is mounted.	Be sure to add a Docker path mapping the SMB or NFS share as 'RW/Slave' or 'RO/Slave'.</p>
+       <p>Go to Settings->Docker and disable then re-enable Docker.</p>
       </div>
     </div>
     <div data-question-done></div>
