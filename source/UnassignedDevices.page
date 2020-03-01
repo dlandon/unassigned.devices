@@ -871,7 +871,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
       [surveyOption.type,surveyOption.device]
     </div>
     <div data-question-content>
-      <div class="swal-title">The data on this disk will be lost!</div>
+      <div class="swal-title">Any data on this disk will be lost!</div>
       <!-- <div class="swal-title">Type<span class="red">'Yes'</span>to confirm:</div> -->
       <div style="margin-bottom: 25px;font-size: 20px;">Type<span class="red">'Yes'</span>to format:</div>
       <input type="text" name="confim-yes" class="swal-content__input" autocomplete="new-password" required >
@@ -908,6 +908,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
       [surveyOption.partition,surveyOption.device]
     </div>
     <div data-question-content>
+      <div class="swal-title">Any data on this disk will be lost!</div>
       <div class="swal-title" style="font-size: 20px">Remove partition <span class="red">{0}</span> from disk <span class="red">{1}</span></div>
       <div style="margin-bottom: 25px;font-size: 20px;">Type<span class="red">'Yes'</span>to confirm:</div>
       <input type="text" name="confim-yes" class="swal-content__input" autocomplete="new-password" required >
