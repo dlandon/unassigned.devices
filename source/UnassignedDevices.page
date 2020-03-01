@@ -86,7 +86,15 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		color:initial;
 	}
 </style>
-
+<style type="text/css">
+  .image-radio input{margin:0;padding:0;-webkit-appearance:none;-moz-appearance:none;appearance:none;}
+  .image-radio input:active +.image-radio-label{opacity: .9;}
+  .image-radio input:checked +.image-radio-label{ -webkit-filter: none;-moz-filter: none;filter: none;}
+  .image-radio-label{cursor:pointer; background-size:contain; background-repeat:no-repeat;display:inline-block; width:100px;height:70px; -webkit-transition: all 100ms ease-in;-moz-transition: all 100ms ease-in;transition: all 100ms ease-in;-webkit-filter: brightness(1.8) grayscale(1) opacity(.7);-moz-filter: brightness(1.8) grayscale(1) opacity(.7);filter: brightness(1.8) grayscale(1) opacity(.7);}
+  .image-radio-label:hover{-webkit-filter: brightness(1.2) grayscale(.5) opacity(.9);-moz-filter: brightness(1.2) grayscale(.5) opacity(.9);filter: brightness(1.2) grayscale(.5) opacity(.9);}
+  .image-radio-linux{background-image: url(/plugins/unassigned.devices/icons/nfs-radio.png)}
+  .image-radio-windows{background-image: url(/plugins/unassigned.devices/icons/smb-radio.png)}
+</style>
 <script type="text/javascript">
 
 	<?=$Preclear ? $Preclear->Script() : "";?>
@@ -633,6 +641,200 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			return false;
 		}
 	}
+
+
+function swalShowResult(success) {
+  opts = (success) ? {title:"Success!",icon:"success"} : {title:"Fail!",icon:"error"};
+  swal2({title:opts.title,icon:opts.icon,text:" ",buttons:{confirm:{visible:false},cancel:{visible:false}},timer:1200});
+}
+
+
+function doUnassignedDevicesSurvey(surveyName, surveyOption) {
+  var survey = $("div[data-survey-name="+ surveyName +"]");
+  var numQuestions = survey.find("div[data-question]").length;
+  var surveyData = new Array
+  var index = 0;
+
+  var evalCondition = function(obj, selector){
+    if (obj.find(selector).length) {
+      evaled = $.trim(obj.find(selector).eq(0).text())
+      if (evaled.length ) {
+        return eval(evaled);
+      }
+      return null;
+    }
+  }
+
+  var getAttr = function(obj, name, defaultValue) {
+    return (typeof obj.attr(name) !== "undefined") ? obj.attr(name) : defaultValue;
+  }
+
+  function showSwal(direction="=") {
+    switch(direction) {
+      case '>':index++;break;
+      case '<':index--;break;
+    }
+    if(index >= numQuestions){return true;}
+    question  = survey.find("div[data-question]").eq(index);
+    condition = question.find("div[data-question-condition]").eq(0);
+
+    if (condition.length && ! eval($.trim(condition.text())) ) {
+      showSwal(direction);
+    }
+
+    content = question.find("div[data-question-content]").html();
+    format = question.find("div[data-question-format]");
+    if (format.length) { 
+      eval("formatOpts = " + $.trim(format.text()));
+      content = content.formatUnicorn(formatOpts);
+    }
+
+    has_checked = ["checkbox","radio","option"];
+    restore_content=$("<div></div>").html(content);
+    restore_content.find(":input").each(function(i,v){
+      name = $(this).prop("name");
+      if (name in surveyData) {
+        if ($.inArray($(this).prop("type"), has_checked) != -1 ) {
+          if ( $(this).val() == surveyData[name] ) { 
+            $(this).attr("checked",true);
+          }
+        }
+        else if ($(this).prop("type") == "select-one") {
+          $(this).find("option[value="+ surveyData[name] +"]").attr("selected",true);
+        }
+        else { 
+          $(this).attr("value",surveyData[name]);
+        }
+      }
+    });
+    content = restore_content[0].outerHTML;
+    button = {back:getAttr(question, "data-question-button-back","Back"),cancel:getAttr(question, "data-question-button-cancel","Cancel"),
+               done:getAttr(question, "data-question-button-done","Done"),next:getAttr(question, "data-question-button-next","Next")};
+
+    swalOpts = new Object;
+    swalOpts.title   = question.attr("data-question-title");
+    swalOpts.content = {element:"div",attributes:{innerHTML:content}};
+    swalOpts.icon    =  getAttr(question, "data-question-icon","info");
+    swalOpts.buttons = new Object;
+    swalOpts.buttons.confirm = {text: "", value: null, visible: false, className: "", closeModal: true};
+    swalOpts.buttons.cancel  = (index > 0) ? {text: button.back,   value: false, visible: true, className: "", closeModal: false} :
+                                             {text: button.cancel, value: null,  visible: true, className: "", closeModal: true};
+    swalOpts.buttons.next    = (index == numQuestions - 1 ) ? {text:button.done, value: true, visible: true, className: "", closeModal: false}:
+                                                              {text:button.next, value: true, visible: true, className: "", closeModal: false};
+    swal2(swalOpts).then( (response) => {
+      emptyInputs = $.grep($(".swal-modal").find(":input"), function (e,v){ e = $(e);
+        switch (e.prop('type')) {
+          case 'radio': if (e.is(":checked")){surveyData[e.prop("name")] = e.val();}; n=$(":input[name="+e.prop("name")+"]"); return (n.is("[required]") && ! n.is(":checked")); break;
+          case 'option':
+          case 'checkbox': if(e.is(":checked")){surveyData[e.prop("name")] = e.val()}; return (e.is("[required]") && ! e.is(":checked")); break;
+          case 'select-one': if (e.has(":checked")){surveyData[e.prop("name")] = e.find(":checked").val();}; n=$(":input[name="+e.prop("name")+"]"); return (n.is("[required]") && ! n.has(":checked")); break;
+
+          default: if (e.val()){surveyData[e.prop("name")] = e.val()}; return (e.is("[required]") && ! e.val()); break;
+        }
+      });
+      if (response)
+      {
+        if (emptyInputs.length) {
+          return "=";
+        }
+        else if (! emptyInputs.length && index <= numQuestions - 1) {
+          evaled = evalCondition(question, "div[data-question-done]");
+          if(index < numQuestions - 1) {
+            if (evaled !== null && evaled === true) return ">";
+            if (evaled !== null && evaled === false) return "<";
+            else return ">";
+          }
+          else if(index == numQuestions - 1) {
+            if (evaled !== null && evaled === false) return "=";
+            $(".swal-button--cancel").prop("disabled",true);
+            evalCondition(survey,"div[data-survey-done]");
+            if (getAttr(survey.find("div[data-survey-done]").eq(0),"data-survey-done-wait", "true") == "false" ) {
+              setTimeout(() => { swal2({buttons:{confirm:{visible:false},cancel:{visible:false}},timer:100}) }, 1500)
+            }
+            return true;
+          }
+        }
+      }
+      else {
+        if ( response === false && index <= numQuestions ) {
+          return "<";
+        }
+        else if ( response === null  ) { 
+          return true;
+        }
+      }
+      return "=";
+    }).then( (response2) => {
+      if (typeof response2 !== "boolean") return showSwal(response2);
+      else return false;
+    });
+  }
+  showSwal();
+}
+
+
+function load_hosts2(el, action) {
+  var target = $(el).parents("div").find("*[name='IP']");
+  var old = $(el).html();
+  $(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> Searching ...");
+  $.post(URL,{'action': action, 'var': vars, 'network': network, 'workgroup': workgroup}).done(function(data) {
+    $(el).html(old);
+    if (data) {
+      var hosts = data.split('\n');
+      if (hosts.length) {
+        var add = "<select name='IP' class='swal-content__input' required>";
+        for(var i = 0;i < hosts.length;i++)
+        {
+          if (hosts[i].length)
+          {
+            add += "<option value='"+hosts[i].trim()+"'>"+hosts[i].trim()+"</option>";
+          }
+        }
+        target.replaceWith(add+"</select>")
+      }
+      else
+      {
+        target.replaceWith("<input type='text' name='IP' class='swal-content__input'>");
+      }
+    }
+  });
+}
+
+
+function load_shares2(el, ip, user, pass, action) {
+  var old = $(el).html();
+  var target = $(el).parents("div").find("*[name='SHARE']");
+  $(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> Loading ...");
+  var opts = new Object();
+  opts["action"] = action;
+  opts["IP"] = ip;
+  opts["USER"] = user;
+  opts["PASS"] = pass;
+  $.post(URL,opts).done(function(data){
+    $(el).html(old);
+    if (data != " ") {
+      var shares = data.split('\n');
+      if (shares.length) {
+        var add = "<select name='SHARE' class='swal-content__input' required>";
+        for(var i = 0;i < shares.length;i++){
+          if (shares[i].length) {
+            add += "<option value='"+shares[i]+"'>"+shares[i]+"</option>";
+          }
+        }
+        target.replaceWith(add+"</select>");
+      }
+      else
+      {
+        target.replaceWith("<input type='text' name='SHARE' class='swal-content__input' required>");
+      }
+    }
+    else
+    {
+      target.replaceWith("<input type='text' name='SHARE' class='swal-content__input' required>");
+    }
+  });
+}
+
 </script>
 
 <div style='display: inline; float: right; margin: -58px -14px;' id='unassigned_tabbed'></div>
@@ -825,6 +1027,12 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	var URL				= '/plugins/<?=$plugin;?>/UnassignedDevices.php';
 	var diskinfo		= "";
 
+  if (typeof swal2 === "undefined")
+  {
+    $('head').append( $('<link rel="stylesheet" type="text/css" />').attr('href', '<?autov("/plugins/${plugin}/assets/sweetalert2.css");?>') );
+    $.getScript( '/plugins/<?=$plugin;?>/assets/sweetalert2.js');
+  }
+
 	$('#tab'+tab_usbdisks).bind({click:function() {pin_tab(tab_usbdisks); detect_usb_disk_change(tab_usbdisks);}});
 
 	// Remove or hide diskio toggle
@@ -978,3 +1186,304 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		detect_usb_disk_change(tab_usbdisks);
 	});
 </script>
+
+
+<div style="display:none" data-survey-name="add_iso_share" data-survey-title="Add ISO File Share">
+  <div data-question data-question-title="Choose File" data-question-button-done="Add">
+    <div data-question-format>
+      ["data-pickroot","ISO_FILE"]
+    </div>
+    <div data-question-content>
+      <input type='text' name='{1}' placeholder='Click to select ISO file' data-pickcloseonfile='true' data-pickfilter='iso' {0}='/mnt/user/' data-pickfolders='true' required='required' class='swal-content__input'autocomplete="off" >
+      <p><span style="font-weight:bold;">Note:</span> Dockers will not be able to access any ISO file share until you restart the Docker service after the device is mounted.  Be sure to add a Docker path mapping the ISO share as 'RW/Slave' or 'RO/Slave'.</p>
+      <p>Go to Settings->Docker and disable then re-enable Docker.</p>
+    </div>
+    <div data-question-load>
+    </div>
+    <div data-question-done>
+      (surveyData["ISO_FILE"].toLowerCase().indexOf(".iso") !== -1)
+    </div>
+  </div>
+  <div data-survey-done>
+    var opts = {action:"add_iso_share",ISO_FILE:surveyData["ISO_FILE"]};
+    if (opts.ISO_FILE) {
+      $.post("/plugins/unassigned.devices/UnassignedDevices.php",opts).done(function() {
+        swalShowResult(true);
+        usb_disks(tab_usbdisks);
+      }).fail(function(){swalShowResult(false);});
+    }
+  </div>
+  <div>
+    <script type="text/javascript">
+      $(document).on("click","input[name=ISO_FILE]",function() {
+        if (! $(this).siblings("div.fileTree").length) {
+          $(this).fileTreeAttach();
+          $(this).trigger("click");
+        }
+        $(this).siblings("div.fileTree").css("text-align","left").css("z-index","10001").css("left","20px").css("width",$(this).outerWidth())
+      });
+      $(function(){
+        window.add_iso_share = function(){doUnassignedDevicesSurvey("add_iso_share")}
+      })
+    </script>
+  </div>
+</div>
+
+
+
+<div style="display:none" data-survey-name="format_disk" data-survey-title="Format and Partition Disk">
+  <div data-question data-question-title="Choose Filesystem Format">
+    <div data-question-format>
+      [surveyOption.type,surveyOption.device]
+    </div>
+    <div data-question-content>
+          <select name="FS" class="swal-content__input">
+            <option value="xfs">XFS</option>
+            <option value="btrfs">BTRFS</option>
+            <option value="ntfs">NTFS</option>
+            <option value="exfat">exFAT</option>
+            <option value="fat32">FAT32</option>
+          </select>
+      <p><span style="font-weight:bold;">Note:</span> An XFS or BTRFS disk partitioned in UD is compatible with the array disk partitioning and can be added to the array.</p>
+    </div>
+    <div data-question-load></div>
+    <div data-question-done></div>
+  </div>
+
+  <div data-question data-question-title="" data-question-button-done="Format" data-question-icon="warning">
+    <div data-question-format>
+      [surveyOption.type,surveyOption.device]
+    </div>
+    <div data-question-content>
+      <div class="swal-title">The data on this disk will be lost!</div>
+      <!-- <div class="swal-title">Type<span class="red">'Yes'</span>to confirm:</div> -->
+      <div style="margin-bottom: 25px;font-size: 20px;">Type<span class="red">'Yes'</span>to format:</div>
+      <input type="text" name="CONFIRM" class="swal-content__input" autocomplete="off" required >
+    </div>
+    <div data-question-load></div>
+    <div data-question-done>
+      (surveyData["CONFIRM"] == "Yes")
+    </div>
+  </div>
+
+  <div data-survey-done data-survey-done-wait="true">
+    $("button[device='"+surveyOption.device+"']").prop('disabled',true);
+    $("button[device='"+surveyOption.device+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> Formatting ...");
+    $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"format_"+surveyOption.type,device:surveyOption.device,fs:surveyData["FS"]}, function(data)
+      {
+        $("button[device='"+surveyOption.device+"']").prop('disabled',true);
+        $("button[device='"+surveyOption.device+"']").html( data.status ? "Formated" : "Format failed..." );
+        swalShowResult(data.status);
+      },"json").fail(function(){swalShowResult(false);});
+  </div>
+  <div>
+    <script type="text/javascript">
+      $(function(){
+        window.format_disk = function(bt, type, device){doUnassignedDevicesSurvey("format_disk",{el:bt,type:type,device:device});}
+      });
+    </script>
+  </div>
+</div>
+
+
+
+<div style="display:none" data-survey-name="remove_partiton" data-survey-title="">
+  <div data-question data-question-title="" data-question-button-done="Remove" data-question-icon="warning">
+    <div data-question-format>
+      [surveyOption.partition,surveyOption.device]
+    </div>
+    <div data-question-content>
+      <div class="swal-title" style="font-size: 20px">Remove partition <span class="red">{0}</span> from disk <span class="red">{1}</span></div>
+      <div style="margin-bottom: 25px;font-size: 20px;">Type<span class="red">'Yes'</span>to confirm:</div>
+      <input type="text" name="CONFIRM" class="swal-content__input" autocomplete="off" required >
+    </div>
+    <div data-question-load></div>
+    <div data-question-done>
+      (surveyData["CONFIRM"] == "Yes")
+    </div>
+  </div>
+
+  <div data-survey-done >
+    $("span[device='"+surveyOption.device+surveyOption.partition+"']").prop('disabled',true);
+    $("span[device='"+surveyOption.device+surveyOption.partition+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> Removing ...");
+    $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"rm_partition",device:surveyOption.device,partition:surveyOption.partition},"json").always(function(data)
+    {
+      swalShowResult(true);
+      usb_disks(tab_usbdisks);
+    }).fail(function(){swalShowResult(false);});
+  </div>
+  <div>
+    <script type="text/javascript">
+      $(function(){
+        window.rm_partition = function(bt, device, partition){doUnassignedDevicesSurvey("remove_partiton",{el:bt,device:device,partition:partition});}
+      });
+    </script>
+  </div>
+</div>
+
+
+
+<div style="display:none" data-survey-name="remove_iso_share" data-survey-title="Remove ISO File mount" >
+  <div data-question data-question-title="" data-question-button-done="Remove" data-question-icon="warning">
+    <div data-question-format>
+      [surveyOption]
+    </div>
+    <div data-question-content>
+      <div class="swal-title" style="font-size: 20px">This will remove the mapped <span style="font-weight: bold">ISO</span> share for:</div>
+      <div style="margin-bottom: 15px;margin-top: 15px;">
+        <span style="font-weight: bold">{0}</span>
+      </div>
+      <div class="swal-title" style="font-size: 20px">
+        <span class="red" style="font-weight: bold">Are you sure?</span>
+      </div>
+    </div>
+    <div data-question-load></div>
+    <div data-question-done></div>
+  </div>
+  <div data-survey-done>
+    $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"remove_iso_config",device:surveyOption},"json").done(function(){
+      usb_disks(tab_usbdisks);
+      swalShowResult(true);
+    }).fail(function(){swalShowResult(false);});
+  </div>
+  <div>
+    <script type="text/javascript">
+      $(function(){
+        window.remove_iso_config = function(i){doUnassignedDevicesSurvey("remove_iso_share",i);}
+      });
+    </script>
+  </div>
+</div>
+
+
+
+<div style="display:none" data-survey-name="remove_remote_share" data-survey-title="Remove SMB/NFS mount">
+  <div data-question data-question-title="" data-question-button-done="Remove" data-question-icon="warning">
+    <div data-question-format>
+      [surveyOption, (surveyOption.startsWith("//") ? "SMB" : "NFS")]
+    </div>
+    <div data-question-content>
+      <div class="swal-title" style="font-size: 20px">This will remove the mapped <span style="font-weight: bold">{1}</span> share for:</div>
+      <div style="margin-bottom: 15px;margin-top: 15px;">
+        <span style="font-weight: bold">{0}</span>
+      </div>
+      <div class="swal-title" style="font-size: 20px">
+        <span class="red" style="font-weight: bold">Are you sure?</span>
+      </div>
+    </div>
+    <div data-question-load></div>
+    <div data-question-done></div>
+  </div>
+  <div data-survey-done>
+    $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"remove_samba_config",device:surveyOption},"json").done(function(){
+      usb_disks(tab_usbdisks);
+      swalShowResult(true);
+    }).fail(function(){swalShowResult(false);});
+  </div>
+  <div>
+    <script type="text/javascript">
+      $(function(){
+        window.remove_samba_config = function(i){doUnassignedDevicesSurvey("remove_remote_share",i);}
+      });
+    </script>
+  </div>
+</div>
+
+
+
+<div style="display:none" data-survey-name="add_remote_share" data-survey-title="Add Remote Share">
+  <div data-question data-question-title="Choose Protocol">
+    <div data-question-format>
+      ["nfs_radio","smb_radio"]
+    </div>
+    <div data-question-content>
+      <div class="image-radio">
+        <input type="radio" id="{0}" name="PROTOCOL" value="NFS" required="">
+        <label class="image-radio-label image-radio-linux" for="{0}"></label>
+        <input type="radio" id="{1}" name="PROTOCOL" value="SMB" required="">
+        <label class="image-radio-label image-radio-windows" for="{1}"></label>
+      </div>
+    </div>
+    <div data-question-done></div>
+  </div>
+
+  <div data-question data-question-title="Choose Server">
+    <div data-question-format>
+      [surveyData["PROTOCOL"] == "SMB" ? "list_samba_hosts" : "list_nfs_hosts"]
+    </div>
+    <div data-question-content>
+      <input type='text' class="swal-content__input" name='IP' required><br>
+      <button type='button' onclick='load_hosts2(this,"{0}")'>Search For Servers</button>
+    </div>
+  </div>
+
+  <div data-question data-question-title="Username">
+    <div data-question-condition>
+      surveyData['PROTOCOL'] == 'SMB';
+    </div>
+    <div data-question-content>
+      <div class="swal-content">
+        <input type="text" class="swal-content__input" name="USER" placeholder="Username">
+      </div>
+    </div>
+  </div>
+
+  <div data-question data-question-title="Password">
+    <div data-question-condition>
+      surveyData['PROTOCOL'] == 'SMB'
+    </div>
+    <div data-question-content>
+      <div class="swal-content">
+        <input type="password" class="swal-content__input" name="PASS" placeholder="Password" >
+      </div>
+    </div>
+  </div>
+
+  <div data-question data-question-title="Domain">
+    <div data-question-condition>
+      surveyData['PROTOCOL'] == 'SMB'
+    </div>
+    <div data-question-content>
+      <div class="swal-content">
+        <input type="text" class="swal-content__input" name="DOMAIN" placeholder="Domain">
+      </div>
+    </div>
+  </div>
+
+  <div data-question data-question-title="Choose Share">
+    <div data-question-format>
+      [surveyData['PROTOCOL'], surveyData['IP'], surveyData['USER'], surveyData['PASS'], surveyData['DOMAIN'], (surveyData['PROTOCOL'] == 'SMB' ? 'list_samba_shares' : 'list_nfs_shares')]
+    </div>
+    <div data-question-content>
+      <input type='text' class="swal-content__input"  name='SHARE' required><br>
+      <button type='button' onclick='load_shares2(this, "{1}", "{2}", "{3}", "{5}")'>Load Shares</button>
+    </div>
+    <div data-question-done>
+      (surveyData["SHARE"].length)
+    </div>
+  </div>
+
+  <div data-survey-done>
+        var opts = new Object();
+        opts["action"]   = "add_samba_share";
+        opts["PROTOCOL"] = surveyData['PROTOCOL'];
+        opts["IP"]       = surveyData['IP'];
+        opts["USER"]     = surveyData['USER'];
+        opts["DOMAIN"]   = surveyData['DOMAIN'];
+        opts["PASS"]     = surveyData['PASS'];
+        opts["SHARE"]    = surveyData['SHARE'];
+        if (opts.SHARE && opts.IP) {
+          $.post("/plugins/unassigned.devices/UnassignedDevices.php",opts).done(function(){
+            swalShowResult(true);
+            usb_disks(tab_usbdisks);
+          }).fail(function(){swalShowResult(false);});
+        }
+  </div>
+  <div>
+    <script type="text/javascript">
+      $(function(){
+        window.add_samba_share = function(i){doUnassignedDevicesSurvey("add_remote_share",i);}
+      });
+    </script>
+  </div>
+</div>
