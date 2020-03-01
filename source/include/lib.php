@@ -29,7 +29,8 @@ $paths = [  "smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"formatting"		=> "/var/state/{$plugin}/formatting_%s.state",
 			"df_temp"			=> "/tmp/{$plugin}/df",
 			"scripts"			=> "/tmp/{$plugin}/scripts/",
-			"credentials"		=> "/tmp/{$plugin}/credentials"
+			"credentials"		=> "/tmp/{$plugin}/credentials",
+			"authentication"	=> "/tmp/{$plugin}/authentication"
 		];
 
 $docroot = $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
@@ -267,10 +268,6 @@ function get_format_cmd($dev, $fs) {
 			return "/sbin/mkfs.btrfs -f {$dev} 2>&1";
 			break;
 
-		case 'ext4':
-			return "/sbin/mkfs.ext4 -F {$dev} 2>&1";
-			break;
-
 		case 'exfat':
 			return "/usr/sbin/mkfs.exfat {$dev} 2>&1";
 			break;
@@ -308,6 +305,7 @@ function format_partition($partition, $fs) {
 	if ($o != "") {
 		unassigned_log("Reload partition table result:\n$o");
 	}
+	shell_exec("/sbin/udevadm trigger --action=change {$disk}");
 
 	sleep(3);
 	@touch($GLOBALS['paths']['reload']);
@@ -349,6 +347,7 @@ function format_disk($dev, $fs) {
 	if ($o != "") {
 		unassigned_log("Reload partition table result:\n$o");
 	}
+	shell_exec("/sbin/udevadm trigger --action=change {$dev}");
 
 	unassigned_log("Creating a primary partition on disk '{$dev}'.");
 	if ($fs == "xfs" || $fs == "btrfs") {
@@ -402,6 +401,7 @@ function format_disk($dev, $fs) {
 	if ($o != "") {
 		unassigned_log("Reload partition table result:\n$o");
 	}
+	shell_exec("/sbin/udevadm trigger --action=change {$dev}");
 
 	sleep(3);
 	@touch($GLOBALS['paths']['reload']);
@@ -424,6 +424,7 @@ function remove_partition($dev, $part) {
 	if ($out != "") {
 		unassigned_log("Remove parition failed result '{$out}'");
 	}
+	shell_exec("/sbin/udevadm trigger --action=change {$dev}");
 	sleep(10);
 	return TRUE;
 }
@@ -472,11 +473,18 @@ function set_config($sn, $var, $val) {
 function is_automount($sn, $usb=FALSE) {
 	$auto = get_config($sn, "automount");
 	$auto_usb = get_config("Config", "automount_usb");
-	return ($auto == "yes" || ( ! $auto && $usb !== FALSE && $auto_usb == "yes" ) ) ? TRUE : FALSE;
+	$pass_through = get_config($sn, "pass_through");
+	return ( ($pass_through != "yes" && $auto == "yes") || ( $usb && $auto_usb == "yes" ) ) ? TRUE : FALSE;
 }
 
 function is_read_only($sn) {
-	return (get_config($sn, "read_only") == "yes") ? TRUE : FALSE;
+	$read_only = get_config($sn, "read_only");
+	$pass_through = get_config($sn, "pass_through");
+	return ( $pass_through != "yes" && $read_only == "yes" ) ? TRUE : FALSE;
+}
+
+function is_pass_through($sn) {
+	return (get_config($sn, "pass_through") == "yes") ? TRUE : FALSE;
 }
 
 function toggle_automount($sn, $status) {
@@ -493,6 +501,15 @@ function toggle_read_only($sn, $status) {
 	$config[$sn]["read_only"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
 	return ($config[$sn]["read_only"] == "yes") ? TRUE : FALSE;
+}
+
+function toggle_pass_through($sn, $status) {
+	$config_file = $GLOBALS["paths"]["config_file"];
+	$config = @parse_ini_file($config_file, true);
+	$config[$sn]["pass_through"] = ($status == "true") ? "yes" : "no";
+	save_ini_file($config_file, $config);
+	@touch($GLOBALS['paths']['reload']);
+	return ($config[$sn]["pass_through"] == "yes") ? TRUE : FALSE;
 }
 
 function execute_script($info, $action, $testing = FALSE) { 
@@ -514,27 +531,32 @@ global $paths;
 			unassigned_log("Error: common script failed with return '{$return}'");
 		}
 	}
+
 	if ($cmd) {
 		$command_script = $paths['scripts'].basename($cmd);
 		copy($cmd, $command_script);
 		@chmod($command_script, 0755);
 		unassigned_log("Running device script: '".basename($cmd)."' with action '{$action}'.");
-	} else {
-		return FALSE;
+
+		$running = shell_exec("/usr/bin/ps -ef | grep '".basename($cmd)."' | grep -v 'grep'") != "" ? TRUE : FALSE;
+		if ((! $running) || (($running) && ($action != "ADD"))) {
+			if (! $testing) {
+				if ($action == "REMOVE") {
+					sleep(1);
+				}
+				$cmd = isset($info['serial']) ? "$command_script > /tmp/{$info['serial']}.log 2>&1 $bg" : "$command_script > /tmp/".preg_replace('~[^\w]~i', '', $info['device']).".log 2>&1 $bg";
+				exec($cmd, $out, $return);
+				if ($return) {
+					unassigned_log("Error: device script failed with return '{$return}'");
+				}
+			} else {
+				return $command_script;
+			}
+		} else {
+			unassigned_log("Device script '".basename($cmd)."' aleady running!");
+		}
 	}
 
-	if (! $testing) {
-		if ($action == "REMOVE") {
-			sleep(1);
-		}
-		$cmd = isset($info['serial']) ? "$command_script > /tmp/{$info['serial']}.log 2>&1 $bg" : "$command_script /tmp/".preg_replace('~[^\w]~i', '', $info['device']).".log 2>&1 $bg";
-		exec($cmd, $out, $return);
-		if ($return) {
-			unassigned_log("Error: device script failed with return '{$return}'");
-		}
-	} else {
-		return $command_script;
-	}
 	return FALSE;
 }
 
@@ -691,11 +713,17 @@ function do_mount_local($info) {
 			if ($o != "" && $fs == "ntfs" && is_mounted($dev)) {
 				unassigned_log("Mount warning: $o");
 			}
-			if (is_mounted($dev)) {
-				@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
-				unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
-				$rc = TRUE;
-			} else {
+			for ($i=0; $i < 5; $i++) {
+				if (is_mounted($dev)) {
+					@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
+					unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
+					$rc = TRUE;
+					break;
+				} else {
+					sleep(0.5);
+				}
+			}
+			if (! $rc) {
 				if ($fs == "crypto_LUKS" ) {
 					shell_exec("/sbin/cryptsetup luksClose ".basename($info['device']));
 				}
@@ -827,8 +855,11 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 				// Add the recycle bin parameters if plugin is installed
 				$recycle_script = "plugins/recycle.bin/scripts/configure_recycle_bin";
 				if (is_file($recycle_script)) {
-					unassigned_log("Enabling the Recycle Bin on share '$share_name'");
-					timed_exec(5, "{$recycle_script} {$share_conf}");
+					$recycle_bin_cfg = parse_ini_file( "/boot/config/plugins/recycle.bin/recycle.bin.cfg" );
+					if ($recycle_bin_cfg['INCLUDE_UD'] == "yes") {
+						unassigned_log("Enabling the Recycle Bin on share '$share_name'");
+						timed_exec(5, "{$recycle_script} {$share_conf}");
+					}
 				}
 			}
 		}
@@ -1001,23 +1032,25 @@ function set_samba_config($source, $var, $val) {
 
 function encrypt_data($data) {
 	$key = get_config("Config", "key");
-	if ($key == "") {
-		$key = shell_exec("echo `date` | base64");
-		$key = str_replace("\n", "", $key);
+	if ($key == "" || strlen($key) != 32) {
+		$key = substr(base64_encode(openssl_random_pseudo_bytes(32)), 0, 32);
 		set_config("Config", "key", $key);
 	}
-
-	if ($m = strlen($data)%8) {
-		$data .= str_repeat("\x00", 8 - $m);
+	$iv = get_config("Config", "iv");
+	if ($iv == "" || strlen($iv) != 16) {
+		$iv = substr(base64_encode(openssl_random_pseudo_bytes(16)), 0, 16);
+		set_config("Config", "iv", $iv);
 	}
-	$val = openssl_encrypt($data, 'BF-ECB', $key, OPENSSL_RAW_DATA | OPENSSL_NO_PADDING);
+
+	$val = openssl_encrypt($data, 'aes256', $key, $options=0, $iv);
 	$val = str_replace("\n", "", $val);
 	return($val);
 }
 
 function decrypt_data($data) {
 	$key = get_config("Config", "key");
-	$val = openssl_decrypt($data, 'BF-ECB', $key, OPENSSL_RAW_DATA | OPENSSL_NO_PADDING);
+	$iv = get_config("Config", "iv");
+	$val = openssl_decrypt($data, 'aes256', $key, $options=0, $iv);
 
 	if (! preg_match("//u", $val)) {
 		unassigned_log("Warning: Password is not UTF-8 encoded");
@@ -1054,10 +1087,6 @@ function get_samba_mounts() {
 			if (is_ip($ip))
 			{
 				$is_alive = (trim(exec("/bin/ping -c 2 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
-				if ($is_alive)
-				{
-					$mount['device'] = ($mount['fstype'] == "nfs") ? "{$ip}:/{$mount['path']}" : "//{$ip}/{$mount['path']}";
-				}	
 			}
 		}
 
@@ -1101,32 +1130,30 @@ function do_mount_samba($info) {
 			if ($fs == "nfs") {
 				$params	= get_mount_params($fs, '$dev');
 				$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
-				unassigned_log("Mount NFS command: '$cmd'");
+				unassigned_log("Mount NFS command: $cmd");
 				$o		= timed_exec(10, $cmd." 2>&1");
 				if ($o != "") {
 					unassigned_log("NFS mount failed: {$o}.");
 				}
 			} else {
-				file_put_contents("{$paths['credentials']}", "username=".($info['user'] ? $info['user'] : 'guest')."\n", FILE_APPEND);
+				file_put_contents("{$paths['credentials']}", "username=".($info['user'] ? $info['user'] : 'guest')."\n");
 				file_put_contents("{$paths['credentials']}", "password=".decrypt_data($info['pass'])."\n", FILE_APPEND);
 				file_put_contents("{$paths['credentials']}", "domain=".$info['domain']."\n", FILE_APPEND);
 				if (($use_netbios != "yes") || ($config['Config']['samba_v1'] != "yes")) {
 					$ver	= "3.0";
 					$params	= sprintf(get_mount_params($fs, '$dev'), $ver);
-					$params = str_replace('domain=,', '', $params);
 					$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 					unassigned_log("Mount SMB share '$dev' using SMB3 protocol.");
-					unassigned_log("Mount SMB command: '$cmd'");
+					unassigned_log("Mount SMB command: $cmd");
 					$o		= timed_exec(10, $cmd." 2>&1");
 					if (!is_mounted($dev) && strpos($o, "Permission denied") === FALSE) {
 						unassigned_log("SMB3 mount failed: {$o}.");
 						/* If the mount failed, try to mount with samba vers=2.0. */
 						$ver	= "2.0";
 						$params	= sprintf(get_mount_params($fs, '$dev'), $ver);
-						$params = str_replace('domain=,', '', $params);
 						$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 						unassigned_log("Mount SMB share '$dev' using SMB2 protocol.");
-						unassigned_log("Mount SMB command: '$cmd'");
+						unassigned_log("Mount SMB command: $cmd");
 						$o		= timed_exec(10, $cmd." 2>&1");
 					}
 					if ((!is_mounted($dev) && $use_netbios == 'yes') && strpos($o, "Permission denied") === FALSE) {
@@ -1134,10 +1161,9 @@ function do_mount_samba($info) {
 						/* If the mount failed, try to mount with samba vers=1.0. */
 						$ver	= "1.0";
 						$params	= sprintf(get_mount_params($fs, '$dev'), $ver);
-						$params = str_replace('domain=,', '', $params);
 						$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 						unassigned_log("Mount SMB share '$dev' using SMB1 protocol.");
-						unassigned_log("Mount SMB command: '$cmd'");
+						unassigned_log("Mount SMB command: $cmd");
 						$o		= timed_exec(10, $cmd." 2>&1");
 						if ($o != "") {
 							unassigned_log("SMB1 mount failed: {$o}.");
@@ -1147,10 +1173,9 @@ function do_mount_samba($info) {
 				} else {
 					$ver	= "1.0";
 					$params	= sprintf(get_mount_params($fs, '$dev'), $ver);
-					$params = str_replace('domain=,', '', $params);
 					$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 					unassigned_log("Mount SMB share '$dev' using SMB1 protocol.");
-					unassigned_log("Mount SMB command: '$cmd'");
+					unassigned_log("Mount SMB command: $cmd");
 					$o		= timed_exec(10, $cmd." 2>&1");
 				}
 				@unlink("{$paths['credentials']}");
@@ -1158,6 +1183,7 @@ function do_mount_samba($info) {
 			if (is_mounted($dev)) {
 				@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
 				unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
+				@touch($paths['reload']);
 				$rc = TRUE;
 			} else {
 				@rmdir($dir);
@@ -1473,14 +1499,15 @@ function get_partition_info($device, $reload=FALSE){
 		} else {
 			$disk['openfiles'] = 0;
 		}
-		$disk['owner']		= (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
-		$disk['automount']	= is_automount($disk['serial'], strpos($attrs['DEVPATH'],"usb"));
-		$disk['read_only']	= is_read_only($disk['serial']);
-		$disk['shared']		= config_shared($disk['serial'], $disk['part'], strpos($attrs['DEVPATH'],"usb"));
-		$disk['command']	= get_config($disk['serial'], "command.{$disk['part']}");
-		$disk['command_bg']	= get_config($disk['serial'], "command_bg.{$disk['part']}");
-		$disk['prog_name']	= basename($disk['command'], ".sh");
-		$disk['logfile']	= $paths['device_log'].$disk['prog_name'].".log";
+		$disk['owner']			= (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
+		$disk['automount']		= is_automount($disk['serial'], strpos($attrs['DEVPATH'],"usb"));
+		$disk['read_only']		= is_read_only($disk['serial']);
+		$disk['pass_through']	= is_pass_through($disk['serial']);
+		$disk['shared']			= config_shared($disk['serial'], $disk['part'], strpos($attrs['DEVPATH'],"usb"));
+		$disk['command']		= get_config($disk['serial'], "command.{$disk['part']}");
+		$disk['command_bg']		= get_config($disk['serial'], "command_bg.{$disk['part']}");
+		$disk['prog_name']		= basename($disk['command'], ".sh");
+		$disk['logfile']		= $paths['device_log'].$disk['prog_name'].".log";
 		return $disk;
 	}
 }
@@ -1533,7 +1560,7 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 function change_UUID($dev) {
 
 	sleep(1);
-	$rc = timed_exec(2, "/usr/sbin/xfs_admin -U generate {$dev}");
+	$rc = timed_exec(10, "/usr/sbin/xfs_admin -U generate {$dev}");
 	unassigned_log("Changing disk '{$dev}' UUID. Result: ".$rc);
 }
 

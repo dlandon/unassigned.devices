@@ -35,6 +35,10 @@ function unassigned_mount() {
 					unassigned_log("Disk '{$device}' does not have a serial number and cannot be mounted.");
 					continue;
 				}
+				if ( $info['pass_through'] ) {
+					unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' is set as pass through and will not be mounted.");
+					continue;
+				}
 				if (! $info['automount'] && ( $DEVNAME == "auto" || $DEVNAME == "autodevices" || isset($_ENV['DEVNAME']) )) {
 					unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' is not set to auto mount and will not be mounted.");
 					continue;
@@ -67,7 +71,7 @@ function unassigned_mount() {
 	}
 
 	# Mount Remote SMB/NFS mounts
-	if (strpos($DEVNAME, "//") === 0 || strpos($DEVNAME, "://") || $DEVNAME == "auto" || $DEVNAME == "autoshares") {
+	if (strpos($DEVNAME, "//") === 0 || strpos($DEVNAME, ":/") || $DEVNAME == "auto" || $DEVNAME == "autoshares") {
 		foreach (get_samba_mounts() as $info) {
 			$device = $info['device'];
 			if ( $DEVNAME == $device || $DEVNAME == "auto" || $DEVNAME == "autoshares" ) {
@@ -156,7 +160,7 @@ function unassigned_umount() {
 	}
 
 	# Deal with Remote SMB/NFS mounts
-	if (strpos($DEVNAME, "//") === 0 || strpos($DEVNAME, "://") || $DEVNAME == "auto" || $DEVNAME == "all") {
+	if (strpos($DEVNAME, "//") === 0 || strpos($DEVNAME, ":/") || $DEVNAME == "auto" || $DEVNAME == "all") {
 		foreach (get_samba_mounts() as $info) {
 			$device = $info['device'];
 			if ( $DEVNAME == $device || $DEVNAME == "auto" || $DEVNAME == "all" ) {
@@ -266,13 +270,16 @@ switch ($COMMAND) {
 		unassigned_reload();
 		break;
 
+	case 'refresh':
+		break;
+
 	default:
 		unassigned_log("Error: 'rc.unassigned {$argv[1]} {$argv[2]}' not understood");
-		unassigned_log("rc.unassigned usage: 'mount','umount','reload'");
+		unassigned_log("rc.unassigned usage: 'mount','umount','reload', 'refresh'");
 		exit(0);
 		break;
 }
 
 array_map(function($f){@unlink($f);}, $remove);
-touch($paths['reload']);
+@touch($paths['reload']);
 ?>
