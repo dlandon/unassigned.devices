@@ -18,7 +18,7 @@ for net1 in $(seq $((i1 & m1)) $((i1 & m1 | 255-m1))); do
     for net3 in $(seq $((i3 & m3)) $((i3 & m3 | 255-m3)) ); do
       for host in $(seq $(((i4 & m4)+1)) $(((i4 & m4 | 255-m4)-1)) ); do
         ip="${net1}.${net2}.${net3}.${host}"
-        timeout -s 13 $timeout bash -c "(echo >/dev/tcp/${ip}/${port}) &>/dev/null && echo $ip" 2>/dev/null &
+        timeout -s 5 $timeout bash -c "(echo >/dev/tcp/${ip}/${port}) &>/dev/null && echo $ip" 2>/dev/null &
       done
     done
   done
