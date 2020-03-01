@@ -85,8 +85,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		display: none;
 		color:initial;
 	}
-</style>
-<style type="text/css">
+
   .image-radio input{margin:0;padding:0;-webkit-appearance:none;-moz-appearance:none;appearance:none;}
   .image-radio input:active +.image-radio-label{opacity: .9;}
   .image-radio input:checked +.image-radio-label{ -webkit-filter: none;-moz-filter: none;filter: none;}
@@ -290,81 +289,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		return false;
 	}
 
-	function remove_disk_config(serial){
-		var title = 'Remove config';
-		$( "#dialog-confirm" ).html(serial);
-		$( "#dialog-confirm" ).append( "<br><br><span style='color: #E80000;'>Are you sure?</span>" );
-		$( "#dialog-confirm" ).dialog({
-			title: title,
-			resizable: false,
-			width: 500,
-			modal: true,
-			show : {effect: 'fade' , duration: 250},
-			hide : {effect: 'fade' , duration: 250},
-			buttons: {
-				"Yes": function() {
-					$( this ).dialog( "close" );
-					$.post(URL,{action:"remove_config",serial:serial},"json");
-					usb_disks(tab_usbdisks);
-				},
-				Cancel: function() {
-					$( this ).dialog( "close" );
-					$( this ).html("");
-				}
-			}
-		});
-	}
-
-	function remove_samba_config(device){
-		var title = 'Remove SMB/NFS mount';
-		$( "#dialog-confirm" ).html("<dl>Source:&nbsp;&nbsp;"+device+"</dl>");
-		$( "#dialog-confirm" ).append( "<dl><dt><span style='color: #E80000;'>Are you sure?</span></dd></dl>" );
-		$( "#dialog-confirm" ).dialog({
-			title: title,
-			resizable: false,
-			width: 500,
-			modal: true,
-			show : {effect: 'fade' , duration: 250},
-			hide : {effect: 'fade' , duration: 250},
-			buttons: {
-				"Yes": function() {
-					$( this ).dialog( "close" );
-					$.post(URL,{action:"remove_samba_config",device:device},"json");
-					usb_disks(tab_usbdisks);
-				},
-				Cancel: function() {
-					$( this ).dialog( "close" );
-					$( this ).html("");
-				}
-			}
-		});
-	}
-
-	function remove_iso_config(device){
-		var title = 'Remove ISO File mount';
-		$( "#dialog-confirm" ).html("<dl>Source:&nbsp;&nbsp;"+device+"</dl>");
-		$( "#dialog-confirm" ).append( "<dl><dt><span style='color: #E80000;'>Are you sure?</span></dd></dl>" );
-		$( "#dialog-confirm" ).dialog({
-			title: title,
-			resizable: false,
-			width: 500,
-			modal: true,
-			show : {effect: 'fade' , duration: 250},
-			hide : {effect: 'fade' , duration: 250},
-			buttons: {
-				"Yes": function() {
-					$( this ).dialog( "close" );
-					$.post(URL,{action:"remove_iso_config",device:device},"json");
-					usb_disks(tab_usbdisks);
-				},
-				Cancel: function() {
-					$( this ).dialog( "close" );
-					$( this ).html("");
-				}
-			}
-		});
-	}
-
 	function showInput(){
 		$(this).off('click');
 		$(this).siblings('input').each(function(){$(this).show();});
@@ -378,207 +302,71 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		$(this).siblings('span').click(showInput);
 	}
 
-	function add_samba_share(){
-		var title = 'Add Remote SMB/NFS Share';
-		$( "#dialog-samba" ).html($("#add-remote-defaults").html());
-		$( "#dialog-samba" ).find(".switch").switchButton({labels_placement:"right",on_label:'YES',off_label:'NO'});
-		$( "#dialog-samba" ).find(".switch-button-background").css("margin-top", "6px");
-		$( "#dialog-samba" ).dialog({
-		title: title,
-		resizable: false,
-		width: 600,
-		modal: true,
-		show : {effect: 'fade' , duration: 250},
-		hide : {effect: 'fade' , duration: 250},
-		buttons: {
-			"Add": function() {
-				$( this ).dialog( "close" );
-				var opts = new Object();
-				opts["action"]		= "add_samba_share";
-				opts["PROTOCOL"]	= getVal(this,"PROTOCOL");
-				opts["IP"]			= getVal(this,"IP");
-				opts["USER"]		= getVal(this,"USER");
-				opts["DOMAIN"]		= getVal(this,"DOMAIN");
-				opts["PASS"]		= getVal(this,"PASS");
-				opts["SHARE"]		= getVal(this,"SHARE");
-				if (opts.SHARE && opts.IP) {
-					$.post(URL,opts).done(function(){usb_disks(tab_usbdisks);});
-				}
-			},
-			Cancel: function() {
-				$( this ).dialog( "close" );
-			}
-		}
-		});
-	}
-
-	function add_iso_share(){
-		var title = 'Add ISO File Share';
-		$( "#dialog-iso" ).html($("#add-iso-defaults").html());
-		$( "#dialog-iso" ).find(".switch").switchButton({labels_placement:"right",on_label:'YES',off_label:'NO'});
-		$( "#dialog-iso" ).find(".switch-button-background").css("margin-top", "6px");
-		$( "#dialog-iso" ).dialog({
-		title: title,
-		resizable: false,
-		width: 600,
-		height: 470,
-		modal: true,
-		show : {effect: 'fade' , duration: 250},
-		hide : {effect: 'fade' , duration: 250},
-		buttons: {
-			"Add": function() {
-				$( this ).dialog( "close" );
-				var opts = new Object();
-				opts["action"]	 = "add_iso_share";
-				opts["ISO_FILE"]	= getVal(this,"ISO_FILE");
-				if (opts.ISO_FILE) {
-					$.post(URL,opts).done(function(){usb_disks(tab_usbdisks);});
-				}
-			},
-			Cancel: function() {
-				$( this ).dialog( "close" );
-			}
-		}
-		});
-	}
 
 	function load_hosts(el, action) {
-		var target = $(el).parents("div").find("*[name='IP']");
-		var old = $(el).html();
-		$(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> Searching ...");
-		$.post(URL,{'action': action, 'var': vars, 'network': network, 'workgroup': workgroup}).done(function(data){
-			$(el).html(old);
-			if (data) {
-				var hosts = data.split('\n');
-				if (hosts.length)
-				{
-					var add = "<select name='IP'>";
-					for(var i = 0;i < hosts.length;i++)
-					{
-						if (hosts[i].length)
-						{
-							add += "<option value='"+hosts[i].trim()+"'>"+hosts[i].trim()+"</option>";
-						}
-					}
-					target.replaceWith(add+"</select>")
-				}
-				else
-				{
-					target.replaceWith("<input type='text' name='IP'>");
-				}
-			}
-		});
+	  var target = $(el).parents("div").find("*[name='IP']");
+	  var old = $(el).html();
+	  $(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> Searching ...");
+	  $.post(URL,{'action': action, 'var': vars, 'network': network, 'workgroup': workgroup}).done(function(data) {
+	    $(el).html(old);
+	    if (data) {
+	      var hosts = data.split('\n');
+	      if (hosts.length) {
+	        var add = "<select name='IP' class='swal-content__input' required>";
+	        for(var i = 0;i < hosts.length;i++)
+	        {
+	          if (hosts[i].length)
+	          {
+	            add += "<option value='"+hosts[i].trim()+"'>"+hosts[i].trim()+"</option>";
+	          }
+	        }
+	        target.replaceWith(add+"</select>")
+	      }
+	      else
+	      {
+	        target.replaceWith("<input type='text' name='IP' class='swal-content__input' autocomplete='new-password'>");
+	      }
+	    }
+	  });
 	}
 
-	function load_shares(el, action) {
-		var old = $(el).html();
-		var target = $(el).parents("div").find("*[name='SHARE']");
-		$(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> Loading ...");
-		var opts = new Object();
-		opts["action"] = action;
-		opts["IP"] = getVal("#dialog-samba","IP");
-		opts["USER"] = getVal("#dialog-samba","USER");
-		opts["PASS"] = getVal("#dialog-samba","PASS");
-		$.post(URL,opts).done(function(data){
-			$(el).html(old);
-			if (data != " ") {
-				var shares = data.split('\n');
-				if (shares.length) {
-					var add = "<select name='SHARE'>";
-					for(var i = 0;i < shares.length;i++){
-						if (shares[i].length) {
-							add += "<option value='"+shares[i]+"'>"+shares[i]+"</option>";
-						}
-					}
-					target.replaceWith(add+"</select>");
-				}
-				else
-				{
-					target.replaceWith("<input type='text' name='SHARE'>");
-				}
-			}
-			else
-			{
-				target.replaceWith("<input type='text' name='SHARE'>");
-			}
-		});
+	function load_shares(el, ip, user, pass, action) {
+	  var old = $(el).html();
+	  var target = $(el).parents("div").find("*[name='SHARE']");
+	  $(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> Loading ...");
+	  var opts = new Object();
+	  opts["action"] = action;
+	  opts["IP"] = ip;
+	  opts["USER"] = user;
+	  opts["PASS"] = pass;
+	  $.post(URL,opts).done(function(data){
+	    $(el).html(old);
+	    if (data != " ") {
+	      var shares = data.split('\n');
+	      if (shares.length) {
+	        var add = "<select name='SHARE' class='swal-content__input' required>";
+	        for(var i = 0;i < shares.length;i++){
+	          if (shares[i].length) {
+	            add += "<option value='"+shares[i]+"'>"+shares[i]+"</option>";
+	          }
+	        }
+	        target.replaceWith(add+"</select>");
+	      }
+	      else
+	      {
+	        target.replaceWith("<input type='text' name='SHARE' class='swal-content__input' autocomplete='new-password' required>");
+	      }
+	    }
+	    else
+	    {
+	      target.replaceWith("<input type='text' name='SHARE' class='swal-content__input' autocomplete='new-password' required>");
+	    }
+	  });
 	}
 
 	function getVal(el, name) {
 		el = $(el).find("*[name="+name+"]");
 		return value = ( $(el).attr('type') == 'checkbox' ) ? ($(el).is(':checked') ? "on" : "off") : $(el).val();
-	}
-
-	function format_disk(bt, type, device){
-		var title = 'Format and Partition '+type+': '+device;
-		$( "#dialog-confirm" ).html($("#format_disk").html());
-		$( "#dialog-confirm" ).dialog({
-			title: title,
-			resizable: false,
-			width: 600,
-			modal: true,
-			show : {effect: 'fade' , duration: 250},
-			hide : {effect: 'fade' , duration: 250},
-			buttons: {
-				"Format": function() {
-					if (getVal(this,"CONFIRM") != "Yes") {return false;}
-					var bc = $("button[device='"+device+"']").html();
-					$("button[device='"+device+"']").prop('disabled',true);
-					$("button[device='"+device+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> Formatting ...");
-					$( this ).dialog( "close" );
-					fs = getVal(this,"FS");
-					$.post(URL,{action:"format_"+type,device:device,fs:fs}, function(data)
-						{
-							$("button[device='"+device+"']").prop('disabled',true);
-							$("button[device='"+device+"']").html( data.status ? "Formated" : "Format failed..." );
-						},"json");
-				},
-				Cancel: function() {
-					$( this ).dialog( "close" );
-					$( this ).html("");
-				}
-			}
-		});
-	}
-
-	function rm_partition(bt, device, partition){
-		var title = 'Remove partition '+partition+' from disk '+device;
-		$( "#dialog-confirm" ).html($("#rm_partition").html());
-		$( "#dialog-confirm" ).dialog({
-			title: title,
-			resizable: false,
-			width: 600,
-			modal: true,
-			show : {effect: 'fade' , duration: 250},
-			hide : {effect: 'fade' , duration: 250},
-			buttons: {
-				"Remove": function() {
-					if (getVal(this,"CONFIRM") != "Yes") {return false;}
-					var bc = $("button[device='"+device+"']").html();
-					$("span[device='"+device+partition+"']").prop('disabled',true);
-					$("span[device='"+device+partition+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> Removing ...");
-					$( this ).dialog( "close" );
-					fs = getVal(this,"FS");
-					$.post(URL,{action:"rm_partition",device:device,partition:partition},"json").always(function(data)
-						{
-							usb_disks(tab_usbdisks);
-						});
-				},
-				Cancel: function() {
-					$( this ).dialog( "close" );
-					$( this ).html("");
-				}
-			}
-		});
-	}
-
-	function load_samba_opts(el) {
-		p = $(el).parents("div").find(".options");
-		if ($(el).val() == "SMB") {
-			p.html($("#add-samba-defaults").html());
-		} else if ($(el).val() == "NFS") {
-			p.html($("#add-nfs-defaults").html());
-		}
 	}
 
 	function get_tab_title_by_name(name) {
@@ -663,12 +451,10 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		}
 	}
 
-
 function swalShowResult(success) {
   opts = (success) ? {title:"Success!",icon:"success"} : {title:"Fail!",icon:"error"};
-  swal2({title:opts.title,icon:opts.icon,text:" ",buttons:{confirm:{visible:false},cancel:{visible:false}},timer:1200});
+  swal2({title:opts.title,icon:opts.icon,text:" ",buttons:{confirm:{visible:false},cancel:{visible:false}},timer:1800});
 }
-
 
 function doUnassignedDevicesSurvey(surveyName, surveyOption) {
   var survey = $("div[data-survey-name="+ surveyName +"]");
@@ -736,6 +522,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
     swalOpts.title   = question.attr("data-question-title");
     swalOpts.content = {element:"div",attributes:{innerHTML:content}};
     swalOpts.icon    =  getAttr(question, "data-question-icon","info");
+    swalOpts.closeOnClickOutside = false;
     swalOpts.buttons = new Object;
     swalOpts.buttons.confirm = {text: "", value: null, visible: false, className: "", closeModal: true};
     swalOpts.buttons.cancel  = (index > 0) ? {text: button.back,   value: false, visible: true, className: "", closeModal: false} :
@@ -750,7 +537,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
           case 'checkbox': if(e.is(":checked")){surveyData[e.prop("name")] = e.val()}; return (e.is("[required]") && ! e.is(":checked")); break;
           case 'select-one': if (e.has(":checked")){surveyData[e.prop("name")] = e.find(":checked").val();}; n=$(":input[name="+e.prop("name")+"]"); return (n.is("[required]") && ! n.has(":checked")); break;
 
-          default: if (e.val()){surveyData[e.prop("name")] = e.val()}; return (e.is("[required]") && ! e.val()); break;
+          default: if (e.val()||e.prop("name")){surveyData[e.prop("name")] = e.val()}; return (e.is("[required]") && ! e.val()); break;
         }
       });
       if (response)
@@ -793,195 +580,9 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
   showSwal();
 }
 
-
-function load_hosts2(el, action) {
-  var target = $(el).parents("div").find("*[name='IP']");
-  var old = $(el).html();
-  $(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> Searching ...");
-  $.post(URL,{'action': action, 'var': vars, 'network': network, 'workgroup': workgroup}).done(function(data) {
-    $(el).html(old);
-    if (data) {
-      var hosts = data.split('\n');
-      if (hosts.length) {
-        var add = "<select name='IP' class='swal-content__input' required>";
-        for(var i = 0;i < hosts.length;i++)
-        {
-          if (hosts[i].length)
-          {
-            add += "<option value='"+hosts[i].trim()+"'>"+hosts[i].trim()+"</option>";
-          }
-        }
-        target.replaceWith(add+"</select>")
-      }
-      else
-      {
-        target.replaceWith("<input type='text' name='IP' class='swal-content__input'>");
-      }
-    }
-  });
-}
-
-
-function load_shares2(el, ip, user, pass, action) {
-  var old = $(el).html();
-  var target = $(el).parents("div").find("*[name='SHARE']");
-  $(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> Loading ...");
-  var opts = new Object();
-  opts["action"] = action;
-  opts["IP"] = ip;
-  opts["USER"] = user;
-  opts["PASS"] = pass;
-  $.post(URL,opts).done(function(data){
-    $(el).html(old);
-    if (data != " ") {
-      var shares = data.split('\n');
-      if (shares.length) {
-        var add = "<select name='SHARE' class='swal-content__input' required>";
-        for(var i = 0;i < shares.length;i++){
-          if (shares[i].length) {
-            add += "<option value='"+shares[i]+"'>"+shares[i]+"</option>";
-          }
-        }
-        target.replaceWith(add+"</select>");
-      }
-      else
-      {
-        target.replaceWith("<input type='text' name='SHARE' class='swal-content__input' required>");
-      }
-    }
-    else
-    {
-      target.replaceWith("<input type='text' name='SHARE' class='swal-content__input' required>");
-    }
-  });
-}
-
 </script>
 
-<div style='display: inline; float: right; margin: -58px -14px;' id='unassigned_tabbed'></div>
-<div id="dialog-confirm" style="display:none;" title=""></div>
-<div id="dialog-samba" style="display:none;" title=""></div>
-<div id="dialog-iso" style="display:none;" title=""></div>
 <?=$Preclear ? $Preclear->html() : "";?>
-<div id="add-remote-defaults" style="display:none;">
-	<dl>
-		<dt>Protocol:</dt>
-		<dd>
-			<select name="PROTOCOL" onchange="load_samba_opts(this);">
-			<option>Choose</option>
-			<option value="SMB">SMB</option>
-			<option value="NFS">NFS</option>
-			</select>
-		</dd>
-	</dl>
-	<p>Note: Dockers will not be able to access any SMB or NFS share until you restart the Docker service after the device is mounted.	Be sure to add a Docker path mapping the SMB or NFS share as 'RW/Slave' or 'RO/Slave'.</p>
-	<p>Go to Settings->Docker and disable then re-enable Docker.</p>
-	<div class="options"></div>
-</div>
-
-<div id="add-nfs-defaults" style="display:none;">
-	<dl>
-		<dt>IP/Host:</dt>
-		<dd><span class="samba_hosts"></dd>
-		<dd><input type="text" name="IP"></span></dd>
-		<dt>&nbsp;</dt>
-		<dd><button type="button" onclick="load_hosts(this, 'list_nfs_hosts');">Search for servers</button></dd>
-		<dd><input type="hidden" name="USER"></dd>
-		<dd><input type="hidden" name="PASS"></dd>
-		<dt>Share:</dt>
-		<dd><span class="samba_shares"><input type='text' name='SHARE'></span></dd>
-		<dt>&nbsp;</dt>
-		<dd><button type="button" onclick="load_shares(this, 'list_nfs_shares');">Load Shares</button></dd>
-	</dl>
-</div>
-
-<div id="add-samba-defaults" style="display:none;">
-	<dl>
-		<dt>IP/Host:</dt>
-		<dd><input type="text" name="IP"></dd>
-		<dt>&nbsp;</dt>
-		<dd><button type="button" onclick="load_hosts(this, 'list_samba_hosts');">Search for servers</button></dd>
-		<dt>Username:</dt>
-		<dd><input type="text" name="USER"></dd>
-		<dt>Password:</dt>
-		<dd><input type="password" name="PASS"></dd>
-		<dt>Domain:</dt>
-		<dd><input type="text" name="DOMAIN"></dd>
-		<dt>Share:</dt>
-		<dd><input type='text' name='SHARE'></dd>
-		<dt>&nbsp;</dt>
-		<dd><button type="button" onclick="load_shares(this, 'list_samba_shares');">Load Shares</button></dd>
-	</dl>
-</div>
-
-<div id="add-iso-defaults" style="display:none;">
-<script>
-	$("input[data-pickroot]").fileTreeAttach();
-</script>
-	<p>Note: Dockers will not be able to access any ISO file share until you restart the Docker service after the device is mounted.	Be sure to add a Docker path mapping the ISO share as 'RW/Slave' or 'RO/Slave'.</p>
-	<p>Go to Settings->Docker and disable then re-enable Docker.</p>
-	<dl>
-		<dt>ISO File:</dt>
-		<dd><input id='iso_file' type='text' name='ISO_FILE' placeholder="Click to select ISO file" data-pickcloseonfile="true" data-pickfilter="iso" data-pickroot="/mnt/user/" data-pickfolders="true" required="required" /></dd>
-	</dl>
-</div>
-
-<div id="format_disk" style="display:none;">
-	<dl>
-		<dt>Filesystem:</dt>
-		<dd>
-			<select name="FS">
-				<option value="xfs">XFS</option>
-				<option value="btrfs">BTRFS</option>
-				<option value="ntfs">NTFS</option>
-				<option value="exfat">exFAT</option>
-				<option value="fat32">FAT32</option>
-			</select>
-		</dd>
-		<dt>Type<span class="red">'Yes'</span>to confirm:</dt>
-		<dd><input type="text" name="CONFIRM" style="width: 60px"></dd>
-	</dl>
-	<p>Note: An XFS or BTRFS disk partitioned in UD is compatible with the array disk partitioning and can be added to the array.</p>
-</div>
-
-<div id="rm_partition" style="display:none;">
-	<dl>
-		<dt>Type<span class="red">'Yes'</span>to confirm:</dt>
-		<dd><input type="text" name="CONFIRM" style="width: 60px"></dd>
-	</dl>
-	<p>Note: The data on this disk will be lost!</p>
-</div>
-
-<div id="table_loading" style="display: none;">
-	<table class='disk_status wide usb_disks'>
-		<thead>
-			<tr>
-				<td>Device</td>
-				<td>Identification</td>
-				<td></td>
-				<td>Temp</td>
-				<td>FS</td>
-				<td>Size</td>
-				<td>Open files</td>
-				<td>Used</td>
-				<td>Free</td>
-				<td>Pass Through</td>
-				<td>Read Only</td>
-				<td>Auto Mount</td>
-				<td>Share</td>
-				<td>Log</td>
-				<td>Script</td>
-			</tr>
-		</thead>
-		<tbody id="spinner">
-		<tr>
-			<td colspan="13" style="text-align:center;padding-top:12px">
-				<i class="fa fa-spinner fa-spin icon"></i><em>Please wait, retrieving information ...</em>
-			</td>
-		</tr>
-		</tbody>
-	</table>
-</div>
 
 <div id="usb_devices_list">
 </div>
@@ -1215,7 +816,7 @@ function load_shares2(el, ip, user, pass, action) {
       ["data-pickroot","ISO_FILE"]
     </div>
     <div data-question-content>
-      <input type='text' name='{1}' placeholder='Click to select ISO file' data-pickcloseonfile='true' data-pickfilter='iso' {0}='/mnt/user/' data-pickfolders='true' required='required' class='swal-content__input'autocomplete="off" >
+      <input type='text' name='{1}' placeholder='Click to select ISO file' data-pickcloseonfile='true' data-pickfilter='iso' {0}='/mnt/user/' data-pickfolders='true' required='required' class='swal-content__input' autocomplete="new-password" >
       <p><span style="font-weight:bold;">Note:</span> Dockers will not be able to access any ISO file share until you restart the Docker service after the device is mounted.  Be sure to add a Docker path mapping the ISO share as 'RW/Slave' or 'RO/Slave'.</p>
       <p>Go to Settings->Docker and disable then re-enable Docker.</p>
     </div>
@@ -1241,7 +842,7 @@ function load_shares2(el, ip, user, pass, action) {
           $(this).fileTreeAttach();
           $(this).trigger("click");
         }
-        $(this).siblings("div.fileTree").css("text-align","left").css("z-index","10001").css("left","20px").css("width",$(this).outerWidth())
+        $(this).next("div.fileTree").css("text-align","left").css("z-index","10001").css("left","20px").css("width",$(this).width()+13)
       });
       $(function(){
         window.add_iso_share = function(){doUnassignedDevicesSurvey("add_iso_share")}
@@ -1270,7 +871,6 @@ function load_shares2(el, ip, user, pass, action) {
     <div data-question-load></div>
     <div data-question-done></div>
   </div>
-
   <div data-question data-question-title="" data-question-button-done="Format" data-question-icon="warning">
     <div data-question-format>
       [surveyOption.type,surveyOption.device]
@@ -1279,14 +879,13 @@ function load_shares2(el, ip, user, pass, action) {
       <div class="swal-title">The data on this disk will be lost!</div>
       <!-- <div class="swal-title">Type<span class="red">'Yes'</span>to confirm:</div> -->
       <div style="margin-bottom: 25px;font-size: 20px;">Type<span class="red">'Yes'</span>to format:</div>
-      <input type="text" name="CONFIRM" class="swal-content__input" autocomplete="off" required >
+      <input type="text" name="confim-yes" class="swal-content__input" autocomplete="new-password" required >
     </div>
     <div data-question-load></div>
     <div data-question-done>
-      (surveyData["CONFIRM"] == "Yes")
+      (surveyData["confim-yes"] == "Yes")
     </div>
   </div>
-
   <div data-survey-done data-survey-done-wait="true">
     $("button[device='"+surveyOption.device+"']").prop('disabled',true);
     $("button[device='"+surveyOption.device+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> Formatting ...");
@@ -1316,19 +915,17 @@ function load_shares2(el, ip, user, pass, action) {
     <div data-question-content>
       <div class="swal-title" style="font-size: 20px">Remove partition <span class="red">{0}</span> from disk <span class="red">{1}</span></div>
       <div style="margin-bottom: 25px;font-size: 20px;">Type<span class="red">'Yes'</span>to confirm:</div>
-      <input type="text" name="CONFIRM" class="swal-content__input" autocomplete="off" required >
+      <input type="text" name="confim-yes" class="swal-content__input" autocomplete="new-password" required >
     </div>
     <div data-question-load></div>
     <div data-question-done>
-      (surveyData["CONFIRM"] == "Yes")
+      (surveyData["confim-yes"] == "Yes")
     </div>
   </div>
-
   <div data-survey-done >
     $("span[device='"+surveyOption.device+surveyOption.partition+"']").prop('disabled',true);
     $("span[device='"+surveyOption.device+surveyOption.partition+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> Removing ...");
-    $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"rm_partition",device:surveyOption.device,partition:surveyOption.partition},"json").always(function(data)
-    {
+    $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"rm_partition",device:surveyOption.device,partition:surveyOption.partition},"json").always(function(data) {
       swalShowResult(true);
       usb_disks(tab_usbdisks);
     }).fail(function(){swalShowResult(false);});
@@ -1371,6 +968,40 @@ function load_shares2(el, ip, user, pass, action) {
     <script type="text/javascript">
       $(function(){
         window.remove_iso_config = function(i){doUnassignedDevicesSurvey("remove_iso_share",i);}
+      });
+    </script>
+  </div>
+</div>
+
+
+
+<div style="display:none" data-survey-name="remove_disk_config" data-survey-title="Remove Disk Config" >
+  <div data-question data-question-title="" data-question-button-done="Remove" data-question-icon="warning">
+    <div data-question-format>
+      [surveyOption]
+    </div>
+    <div data-question-content>
+      <div class="swal-title" style="font-size: 20px">This will remove the saved configuration of:</div>
+      <div style="margin-bottom: 15px;margin-top: 15px;">
+        <span style="font-weight: bold">{0}</span>
+      </div>
+      <div class="swal-title" style="font-size: 20px">
+        <span class="red" style="font-weight: bold">Are you sure?</span>
+      </div>
+    </div>
+    <div data-question-load></div>
+    <div data-question-done></div>
+  </div>
+  <div data-survey-done>
+    $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"remove_config",serial:surveyOption},"json").done(function(){
+      usb_disks(tab_usbdisks);
+      swalShowResult(true);
+    }).fail(function(){swalShowResult(false);});
+  </div>
+  <div>
+    <script type="text/javascript">
+      $(function(){
+        window.remove_disk_config = function(i){doUnassignedDevicesSurvey("remove_disk_config",i);}
       });
     </script>
   </div>
@@ -1427,63 +1058,57 @@ function load_shares2(el, ip, user, pass, action) {
     </div>
     <div data-question-done></div>
   </div>
-
   <div data-question data-question-title="Choose Server">
     <div data-question-format>
       [surveyData["PROTOCOL"] == "SMB" ? "list_samba_hosts" : "list_nfs_hosts"]
     </div>
     <div data-question-content>
-      <input type='text' class="swal-content__input" name='IP' required><br>
-      <button type='button' onclick='load_hosts2(this,"{0}")'>Search For Servers</button>
+      <input type='text' class="swal-content__input" name='IP' autocomplete="new-password" required><br>
+      <button class="swal-button" onclick='load_hosts(this,"{0}")'>Search For Servers</button>
     </div>
   </div>
-
   <div data-question data-question-title="Username">
     <div data-question-condition>
       surveyData['PROTOCOL'] == 'SMB';
     </div>
     <div data-question-content>
       <div class="swal-content">
-        <input type="text" class="swal-content__input" name="USER" placeholder="Username">
+        <input type="text" class="swal-content__input" name="USER" autocomplete="new-password" placeholder="Username">
       </div>
     </div>
   </div>
-
   <div data-question data-question-title="Password">
     <div data-question-condition>
       surveyData['PROTOCOL'] == 'SMB'
     </div>
     <div data-question-content>
       <div class="swal-content">
-        <input type="password" class="swal-content__input" name="PASS" placeholder="Password" >
+        <input type="password" class="swal-content__input" name="PASS" autocomplete="new-password" placeholder="Password" >
       </div>
     </div>
   </div>
-
   <div data-question data-question-title="Domain">
     <div data-question-condition>
       surveyData['PROTOCOL'] == 'SMB'
     </div>
     <div data-question-content>
       <div class="swal-content">
-        <input type="text" class="swal-content__input" name="DOMAIN" placeholder="Domain">
+        <input type="text" class="swal-content__input" name="DOMAIN" autocomplete="new-password" placeholder="Domain">
       </div>
     </div>
   </div>
-
   <div data-question data-question-title="Choose Share">
     <div data-question-format>
       [surveyData['PROTOCOL'], surveyData['IP'], surveyData['USER'], surveyData['PASS'], surveyData['DOMAIN'], (surveyData['PROTOCOL'] == 'SMB' ? 'list_samba_shares' : 'list_nfs_shares')]
     </div>
     <div data-question-content>
-      <input type='text' class="swal-content__input"  name='SHARE' required><br>
-      <button type='button' onclick='load_shares2(this, "{1}", "{2}", "{3}", "{5}")'>Load Shares</button>
+      <input type='text' class="swal-content__input" autocomplete="new-password" name='SHARE' required><br>
+      <button class="swal-button" onclick='load_shares(this, "{1}", "{2}", "{3}", "{5}")'>Load Shares</button>
     </div>
     <div data-question-done>
       (surveyData["SHARE"].length)
     </div>
   </div>
-
   <div data-survey-done>
         var opts = new Object();
         opts["action"]   = "add_samba_share";
