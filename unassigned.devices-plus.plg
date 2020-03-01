@@ -3,7 +3,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices-plus">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.01.13">
+<!ENTITY version   "2020.03.01">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/unassigned.devices/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
@@ -18,11 +18,16 @@
 		pluginURL="&pluginURL;"
 		support="&supportURL;"
 		icon="unlock-alt"
-		min="6.4.0">
+		min="6.7.0"
+		max="6.8.9">
+
 
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Minimum version is now 6.7.  Maintaining backwards compatibility back farther is cumbersome and unnecessary.  Users are encouraged to update.
+
+###2020.01.13
 - Fix: Remove nmap and libnl packages.
 
 ###2020.01.12

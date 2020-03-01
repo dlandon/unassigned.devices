@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.02.09">
+<!ENTITY version   "2020.03.01">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"ecf243814db3d7b09df3bb144334583a">
+<!ENTITY MD5		"2958118aff6e66bbce8a560d06d9db42">
 ]>
 
 <PLUGIN name="&name;"
@@ -19,12 +19,17 @@
 		pluginURL="&pluginURL;"
 		support="&supportURL;"
 		icon="unlock-alt"
-		min="6.4.0"
+		min="6.7.0"
 		max="6.8.9">
 
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Force rc.unassigned to reload UDEV info when partition changes.
+- Add: Replace jQuery dialogs with SweetAlert2.
+- Fix: Minimum version is now 6.7.  Maintaining backwards compatibility back farther is cumbersome and unnecessary.  Users are encouraged to update.
+
+###2020.02.09
 - Add: Authentication file for credentials for smbclient shares list.
 
 ###2020.02.08
