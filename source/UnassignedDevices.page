@@ -17,7 +17,6 @@ Markdown="false"
 
 $plugin = "unassigned.devices";
 require_once("plugins/{$plugin}/include/lib.php");
-$version = parse_ini_file("/etc/unraid-version");
 
 if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/OpenDevices.page","plugins/dynamix/OpenDevices.page-");
 ?>
@@ -217,14 +216,10 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		{
 			tableWidths = $("#usb_devices_list > table > thead > tr").children("td").map(function(i,v){return $(this).getHiddenDimensions().outerWidth;});
 
-			<?if (version_compare($version['version'],"6.6", "<")):?>
-			$("#usb_devices_list").html( $("#table_loading").html() );
-			<?else:?>
 			if ( !$('#spin_div').length ) {
 				$('#spinner').html("<tr><td colspan='8'><div id='spin_div' class='spinner'></div></td></tr>");
 			}
 			$("#usb_devices_list").html( $('div.spinner').html(unraid_logo) );
-			<?endif;?>
 			$("#usb_devices_list > table > thead > tr").children("td").each(function(i,v)
 			{
 				if (i in tableWidths)
@@ -1041,8 +1036,6 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
   </div>
 </div>
 
-
-
 <div style="display:none" data-survey-name="add_remote_share" data-survey-title="Add Remote Share">
   <div data-question data-question-title="Choose Protocol">
     <div data-question-format>
@@ -1132,4 +1125,17 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
       });
     </script>
   </div>
+</div>
+
+
+<div id="table_loading" style="display: none;">
+	<table class='disk_status wide usb_disks'>
+		<tbody id="spinner">
+		<tr>
+			<td colspan="13" style="text-align:center;padding-top:12px">
+				<i class="fa fa-spinner fa-spin icon"></i><em>Please wait, retrieving information ...</em>
+			</td>
+		</tr>
+		</tbody>
+	</table>
 </div>
