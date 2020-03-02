@@ -27,7 +27,7 @@
 ###&version;
 - Fix: Force rc.unassigned to reload UDEV info when partition changes.
 - Add: Replace jQuery dialogs with SweetAlert2.
-- Fix: Minimum version is now 6.7.  Maintaining backwards compatibility back farther is cumbersome and unnecessary.  Users are encouraged to update.
+- Fix: Minimum version is now 6.8.  Maintaining backwards compatibility back farther is cumbersome and unnecessary.  Users are encouraged to update.
 
 ###2020.02.09
 - Add: Authentication file for credentials for smbclient shares list.
