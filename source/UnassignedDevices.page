@@ -29,7 +29,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 <script src="<?autov('/webGui/javascript/jquery.filetree.js')?>"></script>
 
 <script type="text/javascript" src="<?autov('/plugins/'.$plugin.'/assets/arrive.min.js')?>"></script>
-<link rel="stylesheet" type="text/css" href="<?autov('/plugins/'.$plugin.'/assets/style-'.$display['theme'].'.css')?>">
 
 <style>
 	table.usb_disks {padding: 0px 10px 0px 0px;border-collapse:collapse;white-space:nowrap;}
@@ -1130,15 +1129,9 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
   </div>
 </div>
 
-
 <div id="table_loading" style="display: none;">
 	<table class='disk_status wide usb_disks'>
 		<tbody id="spinner">
-		<tr>
-			<td colspan="13" style="text-align:center;padding-top:12px">
-				<i class="fa fa-spinner fa-spin icon"></i><em>Please wait, retrieving information ...</em>
-			</td>
-		</tr>
 		</tbody>
 	</table>
 </div>
