@@ -586,14 +586,6 @@ switch ($_POST['action']) {
 		@unlink(sprintf($paths['formatting'],basename($device)));
 		break;
 
-	case 'format_partition':
-		$device = urldecode($_POST['device']);
-		$fs = urldecode($_POST['fs']);
-		@touch(sprintf($paths['formatting'],basename($device)));
-		echo json_encode(array( 'status' => format_partition($device, $fs)));
-		@unlink(sprintf($paths['formatting'],basename($device)));
-		break;
-
 	/*	SAMBA	*/
 	case 'list_samba_hosts':
 		$workgroup = urldecode($_POST['workgroup']);

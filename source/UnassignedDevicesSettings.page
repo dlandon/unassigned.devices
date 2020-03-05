@@ -19,12 +19,18 @@ require_once("plugins/{$plugin}/include/lib.php");
 $config_file = "/tmp/{$plugin}/config/{$plugin}.cfg";
 $cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
 $uuid_devices = array();
+$encrypt_devices = array();
 foreach (get_all_disks_info() as $d) {
 	if (($d['partitions'][0]['fstype'] == "xfs") && (! is_mounted($d['device']."1"))) {
 		$a = array();
 		$a['device'] = $d['device'];
 		$a['label'] = $d['serial'];
 		$uuid_devices[] = $a;
+	}
+	if ($d['partitions'][0]['fstype'] == "crypto_LUKS") {
+		$a = array();
+		$a['label'] = $d['serial'];
+		$encrypt_devices[] = $a;
 	}
 }
 
@@ -37,6 +43,10 @@ if (count($_POST)) {
 	} else if (($_POST['#command'] == "UUID") && (isset($_POST['change_uuid']))) {
 		$dev = substr($_POST['change_uuid'], 1, 8)."1";
 		change_UUID($dev);
+	} else if ($_POST['#command'] == "chg_pass") {
+		$serial = $_POST['change_pass'];
+		$password = $_POST['password'];
+		set_config($serial, "pass", encrypt_data($password));
 	}
 }
 
@@ -240,5 +250,28 @@ Select Disk to change UUID:
 : <form name="change_disk_uuid" method="POST" action="/update.php" target="progressFrame">
    	<input type="hidden" name="#command" value="UUID">
     <input type="submit" value="Change UUID" title="Change the disk UUID." <?=count($uuid_devices) ? "" : "disabled"?>>
+  </form>
+</form>
+
+<div id="title" class="nocontrol">Change Encrypted Disk Password</div>
+<form markdown="1" name="change_pass" method="POST">
+Select Disk to change:
+: <select name="change_pass" size="1">
+
+  <?foreach ($encrypt_devices as $d) {?>
+  <?=mk_option($disk_encrypt, ($d['label']), ($d['label']))?>
+  <?}?>
+  </select>
+
+Enter New Password:
+
+: <input type="password" name="password" class="wide" maxlength="100" value="">
+  
+> Select the disk that you want to change the Password.  This is the password for this disk only and does not affect the array Password.  Leave password blank to use the array password.
+
+&nbsp;
+: <form name="change_disk_pass" method="POST" action="/update.php" target="progressFrame">
+   	<input type="hidden" name="#command" value="chg_pass">
+    <input type="submit" value="Change Password" title="Change the disk Password." <?=count($encrypt_devices) ? "" : "disabled"?>>
   </form>
 </form>

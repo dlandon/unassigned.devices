@@ -30,13 +30,13 @@ $paths = [  "smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"df_temp"			=> "/tmp/{$plugin}/df",
 			"scripts"			=> "/tmp/{$plugin}/scripts/",
 			"credentials"		=> "/tmp/{$plugin}/credentials",
-			"authentication"	=> "/tmp/{$plugin}/authentication"
+			"authentication"	=> "/tmp/{$plugin}/authentication",
+			"luks_pass"			=> "/tmp/{$plugin}/luks_pass"
 		];
 
 $docroot = $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $users = @parse_ini_file("$docroot/state/users.ini", true);
 $disks = @parse_ini_file("$docroot/state/disks.ini", true);
-$version = parse_ini_file("/etc/unraid-version");
 
 if (! isset($var)){
 	if (! is_file("$docroot/state/var.ini")) shell_exec("/usr/bin/wget -qO /dev/null localhost:$(ss -napt | /bin/grep emhttp | /bin/grep -Po ':\K\d+') >/dev/null");
@@ -171,7 +171,6 @@ function lsof($dir) {
 }
 
 function get_temp($dev, $running = null) {
-
 	$rc	= "*";
 	$tc = $GLOBALS["paths"]["hdd_temp"];
 	$temps = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
@@ -257,6 +256,7 @@ function verify_precleared($dev) {
 function get_format_cmd($dev, $fs) {
 	switch ($fs) {
 		case 'xfs':
+		case 'xfs-encrypted';
 			return "/sbin/mkfs.xfs -f {$dev} 2>&1";
 			break;
 
@@ -265,6 +265,7 @@ function get_format_cmd($dev, $fs) {
 			break;
 
 		case 'btrfs':
+		case 'btrfs-encrypted';
 			return "/sbin/mkfs.btrfs -f {$dev} 2>&1";
 			break;
 
@@ -280,36 +281,6 @@ function get_format_cmd($dev, $fs) {
 			return false;
 			break;
 	}
-}
-
-function format_partition($partition, $fs) {
-	$part = get_partition_info($partition);
-	if ( $part['fstype'] && $part['fstype'] != "precleared" ) {
-		unassigned_log("Aborting format: partition '{$partition}' is already formatted with '{$part['fstype']}' filesystem.");
-		return NULL;
-	}
-	unassigned_log("Formatting partition '{$partition}' with '$fs' filesystem.");
-	exec(get_format_cmd($partition, $fs),$out, $return);
-	if ($return)
-	{
-		unassigned_log("Format partition '{$partition}' with '$fs' filesystem failed!  Result:\n".implode(PHP_EOL, $out));
-		return FALSE;
-	}
-	if ($out) {
-		unassigned_log("Format partition '{$partition}' with '$fs' filesystem result:\n".implode(PHP_EOL, $out));
-	}
-
-	sleep(3);
-	$disk = preg_replace("@\d+@", "", $partition);
-	$o = trim(shell_exec("/usr/sbin/hdparm -z {$disk}"));
-	if ($o != "") {
-		unassigned_log("Reload partition table result:\n$o");
-	}
-	shell_exec("/sbin/udevadm trigger --action=change {$disk}");
-
-	sleep(3);
-	@touch($GLOBALS['paths']['reload']);
-	return TRUE;
 }
 
 function format_disk($dev, $fs) {
@@ -350,28 +321,31 @@ function format_disk($dev, $fs) {
 	shell_exec("/sbin/udevadm trigger --action=change {$dev}");
 
 	unassigned_log("Creating a primary partition on disk '{$dev}'.");
-	if ($fs == "xfs" || $fs == "btrfs") {
+	if ($fs == "xfs" || $fs == "xfs-encrypted" || $fs == "btrfs" || $fs == "btrfs-encrypted") {
 		if ($disk_schema == "gpt") {
+			unassigned_log("Creating Unraid compatible gpt partition on disk '{$dev}'.");
 			shell_exec("/sbin/sgdisk -Z {$dev}");
-			shell_exec("/sbin/sgdisk -o -a 1 -n 1:32K:0 {$dev}");
+			$o = shell_exec("/sbin/sgdisk -o -a 1 -n 1:32K:0 {$dev}");
+			if ($o != "") {
+				unassigned_log("Create gpt partition table result:\n$o");
+			}
 		} else {
-			unassigned_log("Creating unRAID compatible mbr on disk '{$dev}'.");
+			unassigned_log("Creating Unraid compatible mbr partition on disk '{$dev}'.");
 			$o = shell_exec("/usr/local/sbin/mkmbr.sh {$dev}");
 			if ($o != "") {
-				unassigned_log("Create '{$disk_schema}' partition table result:\n$o");
+				unassigned_log("Create mbr partition table result:\n$o");
 			}
 		}
-
 		unassigned_log("Reloading disk '{$dev}' partition table.");
 		$o = trim(shell_exec("/usr/sbin/hdparm -z {$dev} 2>&1"));
 		if ($o != "") {
 			unassigned_log("Reload partition table result:\n$o");
 		}
 	} else {
-		unassigned_log("Creating a '{$disk_schema}' partition table on disk '{$dev}'.");
-		$o = trim(shell_exec("/usr/sbin/parted {$dev} --script -- mklabel {$disk_schema} 2>&1"));
+		unassigned_log("Creating a 'gpt' partition table on disk '{$dev}'.");
+		$o = trim(shell_exec("/usr/sbin/parted {$dev} --script -- mklabel gpt 2>&1"));
 		if ($o != "") {
-			unassigned_log("Create '{$disk_schema}' partition table result:\n$o");
+			unassigned_log("Create 'gpt' partition table result:\n$o");
 		}
 
 		$o = trim(shell_exec("/usr/sbin/parted -a optimal {$dev} --script -- mkpart primary $parted_fs 0% 100% 2>&1"));
@@ -381,10 +355,31 @@ function format_disk($dev, $fs) {
 	}
 
 	unassigned_log("Formatting disk '{$dev}' with '$fs' filesystem.");
-	if (strpos($dev, "nvme") !== false) {
-		exec(get_format_cmd("{$dev}p1", $fs),$out, $return);
+	if (strpos($fs, "-encrypted") !== false) {
+		$cmd = "luksFormat {$dev}1";
+		$o = shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
+		if ($o)
+		{
+			unassigned_log("luksFormat error: ".$o);
+			return FALSE;
+		}
+		$mapper = "format_".basename($dev);
+		$cmd	= "luksOpen {$dev}1 ".$mapper;
+		$o = exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
+		if ($o)
+		{
+			unassigned_log("luksOpen error: ".$o);
+			return FALSE;
+		}
+		exec(get_format_cmd("/dev/mapper/{$mapper}", $fs),$out, $return);
+		sleep(3);
+		shell_exec("/sbin/cryptsetup luksClose ".$mapper);
 	} else {
-		exec(get_format_cmd("{$dev}1", $fs),$out, $return);
+		if (strpos($dev, "nvme") !== false) {
+			exec(get_format_cmd("{$dev}p1", $fs),$out, $return);
+		} else {
+			exec(get_format_cmd("{$dev}1", $fs),$out, $return);
+		}
 	}
 	if ($return)
 	{
@@ -656,39 +651,41 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 }
 
 function do_mount($info) {
-	global $var, $version;
+	global $var, $paths;
 
 	$rc = FALSE;
-	if ( ($info['fstype'] == "crypto_LUKS") && (version_compare($version['version'],"6.8.9", ">")) ) {
-		unassigned_log("Warning: Encrypted disks cannot be mounted.  Add this disk to the cache pool.");
-	} else {
-		if ($info['fstype'] == "cifs" || $info['fstype'] == "nfs") {
-			$rc = do_mount_samba($info);
-		} else if($info['fstype'] == "loop") {
-			$rc = do_mount_iso($info);
-		} else if ($info['fstype'] == "crypto_LUKS") {
-			if (! is_mounted($info['device']) || ! is_mounted($info['mountpoint'], true)) {
-				$luks	= basename($info['device']);
-				$cmd	= "luksOpen {$info['luks']} {$luks}";
+	if ($info['fstype'] == "cifs" || $info['fstype'] == "nfs") {
+		$rc = do_mount_samba($info);
+	} else if($info['fstype'] == "loop") {
+		$rc = do_mount_iso($info);
+	} else if ($info['fstype'] == "crypto_LUKS") {
+		if (! is_mounted($info['device']) || ! is_mounted($info['mountpoint'], true)) {
+			$luks	= basename($info['device']);
+			$cmd	= "luksOpen {$info['luks']} {$luks}";
+			$pass	= decrypt_data(get_config($info['serial'], "pass"));
+			if ($pass == "") {
 				if (file_exists($var['luksKeyfile'])) {
 					$cmd	= $cmd." -d {$var['luksKeyfile']}";
 					$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
 				} else {
-					unassigned_log("luksOpen: key file not found - using emcmd to open.");
 					$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
 				}
-				if ($o != "") {
-					unassigned_log("luksOpen error: ".$o);
-					shell_exec("/sbin/cryptsetup luksClose ".basename($info['device']));
-				} else {
-					$rc = do_mount_local($info);
-				}
 			} else {
-				unassigned_log("Drive '{$info['device']}' already mounted.");
+				file_put_contents("{$paths['luks_pass']}", $pass);
+				$cmd	= $cmd." -d {$paths['luks_pass']}";
+				$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+			}
+			if ($o != "") {
+				unassigned_log("luksOpen error: ".$o);
+				shell_exec("/sbin/cryptsetup luksClose ".basename($info['device']));
+			} else {
+				$rc = do_mount_local($info);
 			}
 		} else {
-			$rc = do_mount_local($info);
+			unassigned_log("Drive '{$info['device']}' already mounted.");
 		}
+	} else {
+		$rc = do_mount_local($info);
 	}
 	return $rc;
 }

@@ -17,6 +17,7 @@ Markdown="false"
 
 $plugin = "unassigned.devices";
 require_once("plugins/{$plugin}/include/lib.php");
+$version = parse_ini_file("/etc/unraid-version");
 
 if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/OpenDevices.page","plugins/dynamix/OpenDevices.page-");
 ?>
@@ -599,7 +600,6 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 	<p><b>Note: You can mount a disk from the array that has been encrypted with the following caveats:
 		<li>The array disk passphrase has to be defined.  You cannot enter the passphrase for the disk in UD.</li>
 		<li>The disk can only be mounted if the current array passphrase is the same as the encrypted disk.</li>
-		<li>An array encrypted disk cannot be created with UD.</li></b>
 	<p>UD includes scripts that are used for mounting and unmounting devices and SMB/NFS mounts.	These scripts can be used from the command line or in scripts as necessary.
 	<p>Unassigned devices script:
 		<li>'/usr/local/sbin/rc.unassigned mount auto' - all devices and SMB/NFS mounts set to auto mount will be mounted.</li>
@@ -691,7 +691,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 		{
 			disk_op(this, $(this).attr("role"), $(this).attr("device"));
 		});
-		tr.find("button[role=format]").click(function(){format_disk(this, $(this).attr("context"), $(this).attr("device"));});
+		tr.find("button[role=format]").click(function(){format_disk(this, $(this).attr("context"), $(this).attr("device"), $(this).attr("serial"));});
 
 	});
 
@@ -856,6 +856,10 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
           <select name="FS" class="swal-content__input">
             <option value="xfs">XFS</option>
             <option value="btrfs">BTRFS</option>
+			<?if (version_compare($version['version'],"6.7.9", ">")):?>
+            <option value="xfs-encrypted">XFS - encrypted</option>
+            <option value="btrfs-encrypted">BTRFS - encrypted</option>
+			<?endif;?>
             <option value="ntfs">NTFS</option>
             <option value="exfat">exFAT</option>
             <option value="fat32">FAT32</option>
@@ -867,7 +871,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
   </div>
   <div data-question data-question-title="" data-question-button-done="Format" data-question-icon="warning">
     <div data-question-format>
-      [surveyOption.type,surveyOption.device]
+      [surveyOption.type,surveyOption.device,surveyOption.serial]
     </div>
     <div data-question-content>
       <div class="swal-title">Any data on this disk will be lost!</div>
@@ -883,7 +887,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
   <div data-survey-done data-survey-done-wait="true">
     $("button[device='"+surveyOption.device+"']").prop('disabled',true);
     $("button[device='"+surveyOption.device+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> Formatting ...");
-    $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"format_"+surveyOption.type,device:surveyOption.device,fs:surveyData["FS"]}, function(data)
+    $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"format_"+surveyOption.type,device:surveyOption.device, fs:surveyData["FS"]}, function(data)
       {
         $("button[device='"+surveyOption.device+"']").prop('disabled',true);
         $("button[device='"+surveyOption.device+"']").html( data.status ? "Formated" : "Format failed..." );
@@ -1129,7 +1133,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
   </div>
 </div>
 
-<div id="table_loading" style="display: none;">
+<div style="display: none;">
 	<table class='disk_status wide usb_disks'>
 		<tbody id="spinner">
 		</tbody>
