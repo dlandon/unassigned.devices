@@ -383,11 +383,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 		var Target		= get_tab_title_by_name(Name);
 		var elementId 	= 'event-' + new Date().getTime() * Math.floor(Math.random()*100000);
-		<?if ($display['theme'] == 'white' || $display['theme'] == 'black'):?>
-			var element	= $("<span id='"+elementId+"' class='status'>"+Button+"</span>");
-		<?else:?>
-			var element	= $("<span id='"+elementId+"' class='status'><span style='margin:5px;'></span>"+Button+"</span>");
-		<?endif;?>
+		var element	= $("<span id='"+elementId+"' class='status'>"+Button+"</span>");
 
 		if (element.find("input[type='button']").length)
 		{

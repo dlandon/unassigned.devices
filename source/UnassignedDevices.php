@@ -56,7 +56,7 @@ function netmasks($netmask, $rev = false)
 }
 
 function render_used_and_free($partition, $mounted) {
-	global $display, $version;
+	global $display;
 
 	$o = "";
 	if (strlen($partition['target']) && $mounted) {
@@ -65,22 +65,12 @@ function render_used_and_free($partition, $mounted) {
 	    if ($display['text'] % 10 == 0) {
 			$o .= "<td>".my_scale($partition['used'], $unit)." $unit</td>";
 		} else {
-			if ( version_compare($version['version'],"6.7", "<") )
-			{
-				$o .= "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'><span>".my_scale($partition['used'], $unit)." $unit</span></span></div></td>";
-			} else {
-				$o .= "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'></span><span>".my_scale($partition['used'], $unit)." $unit</span></div></td>";
-			}
+			$o .= "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'></span><span>".my_scale($partition['used'], $unit)." $unit</span></div></td>";
 		}
 	    if ($display['text'] < 10 ? $display['text'] % 10 == 0 : $display['text'] % 10 != 0) {
 			$o .= "<td>".my_scale($partition['avail'], $unit)." $unit</td>";
 		} else {
-			if ( version_compare($version['version'],"6.7", "<") )
-			{
-				$o .= "<td><div class='usage-disk'><span style='margin:0;width:$free_pct%' class='".usage_color($display,$free_pct,true)."'><span>".my_scale($partition['avail'], $unit)." $unit</span></span></div></td>";
-			} else {
-				$o .= "<td><div class='usage-disk'><span style='margin:0;width:$free_pct%' class='".usage_color($display,$free_pct,true)."'></span><span>".my_scale($partition['avail'], $unit)." $unit</span></div></td>";
-			}
+			$o .= "<td><div class='usage-disk'><span style='margin:0;width:$free_pct%' class='".usage_color($display,$free_pct,true)."'></span><span>".my_scale($partition['avail'], $unit)." $unit</span></div></td>";
 		}
 
 	} else {
@@ -90,7 +80,7 @@ function render_used_and_free($partition, $mounted) {
 }
 
 function render_used_and_free_disk($disk, $mounted) {
-	global $display, $version;
+	global $display;
 
 	$o = "";
 	if ($mounted) {
@@ -107,22 +97,12 @@ function render_used_and_free_disk($disk, $mounted) {
 	    if ($display['text'] % 10 == 0) {
 			$o .= "<td>".my_scale($used, $unit)." $unit</td>";
 		} else {
-			if ( version_compare($version['version'],"6.7", "<") )
-			{
-				$o .= "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'><span>".my_scale($used, $unit)." $unit</span></span></div></td>";
-			} else {
-				$o .= "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'></span><span>".my_scale($used, $unit)." $unit</span></div></td>";
-			}
+			$o .= "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'></span><span>".my_scale($used, $unit)." $unit</span></div></td>";
 		}
 	    if ($display['text'] < 10 ? $display['text'] % 10 == 0 : $display['text'] % 10 != 0) {
 			$o .= "<td>".my_scale($avail, $unit)." $unit</td>";
 		} else {
-			if ( version_compare($version['version'],"6.7", "<") )
-			{
-				$o .= "<td><div class='usage-disk'><span style='margin:0;width:$free_pct%' class='".usage_color($display,$free_pct,true)."'><span>".my_scale($avail, $unit)." $unit</span></span></div></td>";
-			} else {
-				$o .= "<td><div class='usage-disk'><span style='margin:0;width:$free_pct%' class='".usage_color($display,$free_pct,true)."'></span><span>".my_scale($avail, $unit)." $unit</span></div></td>";
-			}
+			$o .= "<td><div class='usage-disk'><span style='margin:0;width:$free_pct%' class='".usage_color($display,$free_pct,true)."'></span><span>".my_scale($avail, $unit)." $unit</span></div></td>";
 		}
 	} else {
 		$o .= "<td>-</td><td>-</td>";
@@ -165,7 +145,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 	$out[] = "<tr class='$outdd toggle-parts toggle-".basename($disk['device'])."' name='toggle-".basename($disk['device'])."' style='display:none;' >";
 	$out[] = "<td></td>";
 	$out[] = "<td>{$mpoint}</td>";
-	$out[] = "<td class='mount'>{$mbutton}</td>";
+	$out[] = "<td>{$mbutton}</td>";
 	$out[] = "<td>-</td>";
 	$fstype = $partition['fstype'];
 	if ($total) {
@@ -176,7 +156,8 @@ function render_partition($disk, $partition, $total=FALSE) {
 			}
 		}
 	}
-	$out[] = "<td>".$fstype."</td>";
+
+	$out[] = "<td>".($fstype == "crypto_LUKS" ? "luks" : $fstype)."</td>";
 	$out[] = "<td>".my_scale($partition['size'], $unit)." $unit</td>";
 	if ($total) {
 		$mounted_disk = FALSE;
@@ -219,16 +200,12 @@ function render_partition($disk, $partition, $total=FALSE) {
 }
 
 function make_mount_button($device) {
-	global $paths, $Preclear, $version;
+	global $paths, $Preclear;
 
 	$button = "<span style='width:auto;text-align:right;'><button type='button' device='{$device['device']}' class='array' context='%s' role='%s' %s><i class='%s'></i>	%s</button></span>";
 	if (isset($device['partitions'])) {
 		$mounted = isset($device['mounted']) ? $device['mounted'] : in_array(TRUE, array_map(function($ar){return is_mounted($ar['device']);}, $device['partitions']));
-		if ( ($device['partitions'][0]['fstype'] == "crypto_LUKS") && (version_compare($version['version'],"6.9", ">")) ) {
-			$disable = "disabled";
-		} else {
-			$disable = count(array_filter($device['partitions'], function($p){ if (! empty($p['fstype']) && $p['fstype'] != "precleared") return TRUE;})) ? "" : "disabled";
-		}
+		$disable = count(array_filter($device['partitions'], function($p){ if (! empty($p['fstype']) && $p['fstype'] != "precleared") return TRUE;})) ? "" : "disabled";
 		$format	 = (isset($device['partitions']) && ! count($device['partitions'])) || $device['partitions'][0]['fstype'] == "precleared" ? true : false;
 		$context = "disk";
 	} else {
@@ -324,7 +301,7 @@ switch ($_POST['action']) {
 								{$preclear_link}
 								<span id='preclear_{$disk['serial_short']}' style='display:block;'></span>";
 
-				echo "<tr class='{$odd} toggle-disk'>";
+				echo "<tr class='$odd toggle-disk'>";
 				if ( $flash || $preclearing ) {
 					echo "<td><img src='/plugins/{$plugin}/images/green-blink.png'> {$disk_name}</td>";
 				} else {
@@ -347,16 +324,16 @@ switch ($_POST['action']) {
 				echo "</tr>";
 				if ($add_toggle)
 				{
+					echo "<tr>";
 					foreach ($disk['partitions'] as $partition) {
 						foreach (render_partition($disk, $partition) as $l)
 						{
 							echo $l;
 						}
 					}
-				}
-				if ($display['theme'] == 'white' || $display['theme'] == 'black') {
-					$odd = ($odd == "odd") ? "even" : "odd";
-				}
+					echo "</tr>";
+				} 
+				$odd = ($odd == "odd") ? "even" : "odd";
 			}
 		} else {
 			echo "<tr><td colspan='12' style='text-align:center;'>No unassigned disks available.</td></tr>";
@@ -415,9 +392,7 @@ switch ($_POST['action']) {
 				echo "<td><a title='View Remote SMB/NFS Script Log' href='/Main/ScriptLog?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><i class='fa fa-align-left'></i></a></td>";
 				echo "<td><a title='Edit Remote SMB/NFS Script' href='/Main/EditScript?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><i class=".( file_exists(get_samba_config($mount['device'],"command")) ? "'fa fa-code'":"'fa fa-minus-square-o'" )."'></i></a></td>";
 				echo "</tr>";
-				if ($display['theme'] == 'white' || $display['theme'] == 'black') {
-					$odd = ($odd == "odd") ? "even" : "odd";
-				}
+				$odd = ($odd == "odd") ? "even" : "odd";
 			}
 		}
 
