@@ -637,7 +637,8 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 			if (($use_netbios == "yes") && (get_config("Config", "samba_v1") == "yes")) {
 				$sec = ",sec=ntlm";
 			}
-			return "rw,nounix,iocharset=utf8,file_mode=0777,dir_mode=0777,uid=99,gid=100$sec,vers=%s,credentials='{$paths['credentials']}'";
+			$credentials_file = "{$paths['credentials']}_".basename($dev);
+			return "rw,nounix,iocharset=utf8,file_mode=0777,dir_mode=0777,uid=99,gid=100$sec,vers=%s,credentials='$credentials_file'";
 			break;
 
 		case 'nfs':
@@ -671,10 +672,11 @@ function do_mount($info) {
 					$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
 				}
 			} else {
-				file_put_contents("{$paths['luks_pass']}_{$luks}", $pass);
-				$cmd	= $cmd." -d {$paths['luks_pass']}_{$luks}";
+				$luks_pass_file = "{$paths['luks_pass']}_".$luks;
+				file_put_contents($luks_pass_file, $pass);
+				$cmd	= $cmd." -d $luks_pass_file";
 				$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
-				@unlink("{$paths['luks_pass']}_{$luks}");
+				@unlink("$luks_pass_file");
 			}
 			if ($o != "") {
 				unassigned_log("luksOpen error: ".$o);
@@ -1126,7 +1128,7 @@ function do_mount_samba($info) {
 		if (! is_mounted($dev) || ! is_mounted($dir, true)) {
 			@mkdir($dir, 0777, TRUE);
 			if ($fs == "nfs") {
-				$params	= get_mount_params($fs, '$dev');
+				$params	= get_mount_params($fs, $dev);
 				$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 				unassigned_log("Mount NFS command: $cmd");
 				$o		= timed_exec(10, $cmd." 2>&1");
@@ -1134,12 +1136,13 @@ function do_mount_samba($info) {
 					unassigned_log("NFS mount failed: {$o}.");
 				}
 			} else {
-				file_put_contents("{$paths['credentials']}", "username=".($info['user'] ? $info['user'] : 'guest')."\n");
-				file_put_contents("{$paths['credentials']}", "password=".decrypt_data($info['pass'])."\n", FILE_APPEND);
-				file_put_contents("{$paths['credentials']}", "domain=".$info['domain']."\n", FILE_APPEND);
+				$credentials_file = "{$paths['credentials']}_".basename($dev);
+				file_put_contents("$credentials_file", "username=".($info['user'] ? $info['user'] : 'guest')."\n");
+				file_put_contents("$credentials_file", "password=".decrypt_data($info['pass'])."\n", FILE_APPEND);
+				file_put_contents("$credentials_file", "domain=".$info['domain']."\n", FILE_APPEND);
 				if (($use_netbios != "yes") || ($config['Config']['samba_v1'] != "yes")) {
 					$ver	= "3.0";
-					$params	= sprintf(get_mount_params($fs, '$dev'), $ver);
+					$params	= sprintf(get_mount_params($fs, $dev), $ver);
 					$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 					unassigned_log("Mount SMB share '$dev' using SMB3 protocol.");
 					unassigned_log("Mount SMB command: $cmd");
@@ -1148,7 +1151,7 @@ function do_mount_samba($info) {
 						unassigned_log("SMB3 mount failed: {$o}.");
 						/* If the mount failed, try to mount with samba vers=2.0. */
 						$ver	= "2.0";
-						$params	= sprintf(get_mount_params($fs, '$dev'), $ver);
+						$params	= sprintf(get_mount_params($fs, $dev), $ver);
 						$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 						unassigned_log("Mount SMB share '$dev' using SMB2 protocol.");
 						unassigned_log("Mount SMB command: $cmd");
@@ -1158,7 +1161,7 @@ function do_mount_samba($info) {
 						unassigned_log("SMB2 mount failed: {$o}.");
 						/* If the mount failed, try to mount with samba vers=1.0. */
 						$ver	= "1.0";
-						$params	= sprintf(get_mount_params($fs, '$dev'), $ver);
+						$params	= sprintf(get_mount_params($fs, $dev), $ver);
 						$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 						unassigned_log("Mount SMB share '$dev' using SMB1 protocol.");
 						unassigned_log("Mount SMB command: $cmd");
@@ -1170,13 +1173,13 @@ function do_mount_samba($info) {
 					}
 				} else {
 					$ver	= "1.0";
-					$params	= sprintf(get_mount_params($fs, '$dev'), $ver);
+					$params	= sprintf(get_mount_params($fs, $dev), $ver);
 					$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 					unassigned_log("Mount SMB share '$dev' using SMB1 protocol.");
 					unassigned_log("Mount SMB command: $cmd");
 					$o		= timed_exec(10, $cmd." 2>&1");
 				}
-				@unlink("{$paths['credentials']}");
+				@unlink("$credentials_file");
 			}
 			if (is_mounted($dev)) {
 				@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
