@@ -18,6 +18,7 @@ $plugin = "unassigned.devices";
 require_once("plugins/{$plugin}/include/lib.php");
 $config_file = "/tmp/{$plugin}/config/{$plugin}.cfg";
 $cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
+
 $uuid_devices = array();
 $encrypt_devices = array();
 foreach (get_all_disks_info() as $d) {
@@ -86,7 +87,7 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
 		if (! filter && ! on_files)   filter = 'HIDE_FILES_FILTER';
 		if (! root.trim() ) root = '/mnt/user/';
 		var p = $(el);
-		// Skip is fileTree is already open
+		// Skip if fileTree is already open
 		if ( p.next().hasClass('fileTree') ){return null;}
 		// create a random id
 		var r = Math.floor((Math.random()*1000)+1);
@@ -234,25 +235,6 @@ Enable NFS export?
 : <input type="submit" name="#apply" value="Apply"><input type="button" value="Done" onclick="done()">
 </form>
 
-<div id="title" class="nocontrol">Change Disk UUID</div>
-<form markdown="1" name="change_uuid" method="POST">
-Select Disk to change UUID:
-: <select name="change_uuid" size="1">
-
-  <?foreach ($uuid_devices as $d) {?>
-  <?=mk_option($disk_uuid, ("(".$d['device'].") - ".$d['label']), ("(".$d['device'].") - ".$d['label']))?>
-  <?}?>
-  </select>
-  
-> Select the disk that you want to change the UUID.  This is useful when a disk has been removed from the array and has he same UUID as an array disk.  Drive must be unmounted to change the UUID.
-
-&nbsp;
-: <form name="change_disk_uuid" method="POST" action="/update.php" target="progressFrame">
-   	<input type="hidden" name="#command" value="UUID">
-    <input type="submit" value="Change UUID" title="Change the disk UUID." <?=count($uuid_devices) ? "" : "disabled"?>>
-  </form>
-</form>
-
 <div id="title" class="nocontrol">Change Encrypted Disk Password</div>
 <form markdown="1" name="change_pass" method="POST">
 Select Disk to change:
@@ -273,5 +255,24 @@ Enter New Password:
 : <form name="change_disk_pass" method="POST" action="/update.php" target="progressFrame">
    	<input type="hidden" name="#command" value="chg_pass">
     <input type="submit" value="Change Password" title="Change the disk Password." <?=count($encrypt_devices) ? "" : "disabled"?>>
+  </form>
+</form>
+
+<div id="title" class="nocontrol">Change Disk UUID</div>
+<form markdown="1" name="change_uuid" method="POST">
+Select Disk to change UUID:
+: <select name="change_uuid" size="1">
+
+  <?foreach ($uuid_devices as $d) {?>
+  <?=mk_option($disk_uuid, ("(".$d['device'].") - ".$d['label']), ("(".$d['device'].") - ".$d['label']))?>
+  <?}?>
+  </select>
+  
+> Select the disk that you want to change the UUID.  This is useful when a disk has been removed from the array and has he same UUID as an array disk.  Drive must be unmounted to change the UUID.
+
+&nbsp;
+: <form name="change_disk_uuid" method="POST" action="/update.php" target="progressFrame">
+   	<input type="hidden" name="#command" value="UUID">
+    <input type="submit" value="Change UUID" title="Change the disk UUID." <?=count($uuid_devices) ? "" : "disabled"?>>
   </form>
 </form>

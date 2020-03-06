@@ -142,7 +142,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 	}
 	$mbutton = make_mount_button($partition);
 	
-	$out[] = "<tr class='$outdd toggle-parts toggle-".basename($disk['device'])."' name='toggle-".basename($disk['device'])."' style='display:none;' >";
+	$out[] = "<tr class='toggle-parts toggle-".basename($disk['device'])."' name='toggle-".basename($disk['device'])."' style='display:none;' >";
 	$out[] = "<td></td>";
 	$out[] = "<td>{$mpoint}</td>";
 	$out[] = "<td>{$mbutton}</td>";
@@ -263,7 +263,6 @@ switch ($_POST['action']) {
 
 		echo "<table class='disk_status wide usb_disks'><thead><tr><td>Device</td><td>Identification</td><td></td><td>Temp</td><td>FS</td><td>Size</td><td>Open files</td><td>Used</td><td>Free</td><td>Pass Through</td><td>Read Only</td><td>Auto Mount</td><td>Share&nbsp;&nbsp;</td><td>Log</td><td>Script</td></tr></thead>";
 		echo "<tbody>";
-		$odd="odd";
 		if ( count($disks) ) {
 			foreach ($disks as $disk) {
 				$mounted		= isset($disk['mounted']) ? $disk['mounted'] : in_array(TRUE, array_map(function($ar){return is_mounted($ar['device']);}, $disk['partitions']));
@@ -301,7 +300,7 @@ switch ($_POST['action']) {
 								{$preclear_link}
 								<span id='preclear_{$disk['serial_short']}' style='display:block;'></span>";
 
-				echo "<tr class='$odd toggle-disk'>";
+				echo "<tr class='toggle-disk'>";
 				if ( $flash || $preclearing ) {
 					echo "<td><img src='/plugins/{$plugin}/images/green-blink.png'> {$disk_name}</td>";
 				} else {
@@ -333,7 +332,6 @@ switch ($_POST['action']) {
 					}
 					echo "</tr>";
 				} 
-				$odd = ($odd == "odd") ? "even" : "odd";
 			}
 		} else {
 			echo "<tr><td colspan='12' style='text-align:center;'>No unassigned disks available.</td></tr>";
@@ -351,13 +349,12 @@ switch ($_POST['action']) {
 		$ds1 = time();
 		$samba_mounts = get_samba_mounts();
 		unassigned_log("get_samba_mounts: ".(time() - $ds1)."s","DEBUG");
-		$odd="odd";
 		if (count($samba_mounts)) {
 			foreach ($samba_mounts as $mount)
 			{
 				$is_alive = $mount['is_alive'];
 				$mounted = is_mounted($mount['device']);
-				echo "<tr class='$odd'>";
+				echo "<tr>";
 				$protocol = $mount['protocol'] == "NFS" ? "nfs" : "smb";
 				printf( "<td><img src='/plugins/{$plugin}/images/%s'>%s</td>", ( $is_alive ? "green-on.png":"green-blink.png" ), $protocol);
 				echo "<td><div><i class='fa fa-globe hdd'></i><span style='margin:3px;'></span>{$mount['name']}</div></td>";
@@ -392,7 +389,6 @@ switch ($_POST['action']) {
 				echo "<td><a title='View Remote SMB/NFS Script Log' href='/Main/ScriptLog?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><i class='fa fa-align-left'></i></a></td>";
 				echo "<td><a title='Edit Remote SMB/NFS Script' href='/Main/EditScript?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><i class=".( file_exists(get_samba_config($mount['device'],"command")) ? "'fa fa-code'":"'fa fa-minus-square-o'" )."'></i></a></td>";
 				echo "</tr>";
-				$odd = ($odd == "odd") ? "even" : "odd";
 			}
 		}
 
@@ -402,7 +398,7 @@ switch ($_POST['action']) {
 			foreach ($iso_mounts as $mount) {
 				$mounted = is_mounted($mount['device']);
 				$is_alive = is_file($mount['file']);
-				echo "<tr class='$odd'>";
+				echo "<tr>";
 				printf( "<td><img src='/plugins/{$plugin}/images/%s'>iso</td>", ( $is_alive ? "green-on.png":"green-blink.png" ));
 				$devname = basename($mount['device']);
 				echo "<td><i class='fa fa-bullseye'></i><span style='margin:0px;'></span>{$mount['device']}</td>";
@@ -436,7 +432,6 @@ switch ($_POST['action']) {
 				echo "<td><a title='View ISO File Script Log' href='/Main/ScriptLog?i=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><i class='fa fa-align-left'></i></a></td>";
 				echo "<td><a title='Edit ISO File Script' href='/Main/EditScript?i=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><i class=".( file_exists(get_iso_config($mount['device'],"command")) ? "'fa fa-code'":"'fa fa-minus-square-o'" )."'></i></a></td>";
 				echo "</tr>";
-				$odd = ($odd == "odd") ? "even" : "odd";
 			}
 		}
 		if (! count($samba_mounts) && ! count($iso_mounts)) {

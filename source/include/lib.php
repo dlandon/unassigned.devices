@@ -671,9 +671,10 @@ function do_mount($info) {
 					$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
 				}
 			} else {
-				file_put_contents("{$paths['luks_pass']}", $pass);
-				$cmd	= $cmd." -d {$paths['luks_pass']}";
+				file_put_contents("{$paths['luks_pass']}_{$luks}", $pass);
+				$cmd	= $cmd." -d {$paths['luks_pass']}_{$luks}";
 				$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+				@unlink("{$paths['luks_pass']}_{$luks}");
 			}
 			if ($o != "") {
 				unassigned_log("luksOpen error: ".$o);
