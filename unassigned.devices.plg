@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.03.06">
+<!ENTITY version   "2020.03.08">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"52e4691bbef58cc7420aa5957d60a786">
+<!ENTITY MD5		"21f739f6e69cc8eb7e4ad1eb49ffb5e7">
 ]>
 
 <PLUGIN name="&name;"
@@ -19,12 +19,14 @@
 		pluginURL="&pluginURL;"
 		support="&supportURL;"
 		icon="unlock-alt"
-		min="6.7.0"
-		max="6.8.9">
+		min="6.7.0">
 
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Remove max version.
+
+###2020.03.06
 - Add: Format disks xfs and btrfs encrypted that can be added to the array.  Unraid 6.8 only.
 - Add: Per disk password to mount encrypted disks that do not use the array password.
 - Fix: UI code cleanup.
