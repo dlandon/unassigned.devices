@@ -801,7 +801,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 
 
 <div style="display:none" data-survey-name="add_iso_share" data-survey-title="Add ISO File Share">
-  <div data-question data-question-title="Choose File" data-question-button-done="Add">
+  <div data-question data-question-title="Choose ISO File" data-question-button-done="Add">
     <div data-question-format>
       ["data-pickroot","ISO_FILE"]
     </div>
@@ -843,8 +843,8 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 
 
 
-<div style="display:none" data-survey-name="format_disk" data-survey-title="Format and Partition Disk">
-  <div data-question data-question-title="Choose Filesystem Format">
+<div style="display:none" data-survey-name="format_disk" data-survey-title="Partition and Format Disk">
+  <div data-question data-question-title="Choose File System Format">
     <div data-question-format>
       [surveyOption.type,surveyOption.device]
     </div>
@@ -867,7 +867,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
   </div>
   <div data-question data-question-title="" data-question-button-done="Format" data-question-icon="warning">
     <div data-question-format>
-      [surveyOption.type,surveyOption.device,surveyOption.serial]
+      [surveyOption.type,surveyOption.device]
     </div>
     <div data-question-content>
       <div class="swal-title">Any data on this disk will be lost!</div>
@@ -1037,7 +1037,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 </div>
 
 <div style="display:none" data-survey-name="add_remote_share" data-survey-title="Add Remote Share">
-  <div data-question data-question-title="Choose Protocol">
+  <div data-question data-question-title="Click on Icon to Choose Protocol">
     <div data-question-format>
       ["nfs_radio","smb_radio"]
     </div>
@@ -1060,6 +1060,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
     <div data-question-content>
       <input type='text' class="swal-content__input" name='IP' autocomplete="new-password" required><br>
       <button class="swal-button" onclick='load_hosts(this,"{0}")'>Search For Servers</button>
+      <p>Search for Servers, or enter the Server name manually.</p>
     </div>
   </div>
   <div data-question data-question-title="Username">
@@ -1099,6 +1100,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
     <div data-question-content>
       <input type='text' class="swal-content__input" autocomplete="new-password" name='SHARE' required><br>
       <button class="swal-button" onclick='load_shares(this, "{1}", "{2}", "{3}", "{5}")'>Load Shares</button>
+      <p>Search for Shares, or enter the Share name manually.</p>
     </div>
     <div data-question-done>
       (surveyData["SHARE"].length)
