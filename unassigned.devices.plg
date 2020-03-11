@@ -26,7 +26,7 @@
 ###&version;
 - Fix: Some UI cleanup.
 - Add: Enter password when formatting an encrypted disk for outside the array.
-- Fix: Script run manually on anencrypted disk.
+- Fix: Script run manually on an encrypted disk.
 
 ###2020.03.08
 - Fix: Remove max version.
