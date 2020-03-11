@@ -283,7 +283,7 @@ function get_format_cmd($dev, $fs) {
 	}
 }
 
-function format_disk($dev, $fs) {
+function format_disk($dev, $fs, $pass) {
 	global $paths;
 
 	# making sure it doesn't have partitions
@@ -357,7 +357,15 @@ function format_disk($dev, $fs) {
 	unassigned_log("Formatting disk '{$dev}' with '$fs' filesystem.");
 	if (strpos($fs, "-encrypted") !== false) {
 		$cmd = "luksFormat {$dev}1";
-		$o = shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
+		if ($pass == "") {
+			$o = shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
+		} else {
+			$luks	= basename($dev);
+			$luks_pass_file = "{$paths['luks_pass']}_".$luks;
+			file_put_contents($luks_pass_file, $pass);
+			$cmd	= $cmd." -d {$luks_pass_file}";
+			$o = shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+		}
 		if ($o)
 		{
 			unassigned_log("luksFormat error: ".$o);
@@ -365,7 +373,15 @@ function format_disk($dev, $fs) {
 		}
 		$mapper = "format_".basename($dev);
 		$cmd	= "luksOpen {$dev}1 ".$mapper;
-		$o = exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
+		if ($pass == "") {
+			$o = exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
+		} else {
+			$luks	= basename($dev);
+			$luks_pass_file = "{$paths['luks_pass']}_".$luks;
+			$cmd	= $cmd." -d {$luks_pass_file}";
+			$o = shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+			@unlink("$luks_pass_file");
+		}
 		if ($o)
 		{
 			unassigned_log("luksOpen error: ".$o);

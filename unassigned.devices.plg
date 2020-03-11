@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.03.10">
+<!ENTITY version   "2020.03.10a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"41b1839056256b39a9c084237afd04d2">
+<!ENTITY MD5		"aeb5e4262408b5ffba34f29021576975">
 ]>
 
 <PLUGIN name="&name;"
@@ -25,6 +25,8 @@
 ##&name;
 ###&version;
 - Fix: Some UI cleanup.
+- Add: Enter password when formatting an encrypted disk for outside the array.
+- Fix: Script run manually on anencrypted disk.
 
 ###2020.03.08
 - Fix: Remove max version.

@@ -117,7 +117,8 @@ function render_partition($disk, $partition, $total=FALSE) {
 	$out = array();
 	$mounted =	(isset($partition["mounted"])) ? $partition["mounted"] : is_mounted($partition['device']);
 	if ($mounted && is_file(get_config($disk['serial'],"command.{$partition['part']}"))) {
-		$fscheck = "<a title='Execute Script as udev simulating a device being installed' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/script.php?device={$partition['device']}&owner=udev\",\"Execute Script\",600,900);'><i class='fa fa-flash partition'></i>{$partition['part']}</a>";
+		$script_partition = $partition['fstype'] == "crypto_LUKS" ? $partition['luks'] : $partition['device'];
+		$fscheck = "<a title='Execute Script as udev simulating a device being installed' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/script.php?device={$script_partition}&owner=udev\",\"Execute Script\",600,900);'><i class='fa fa-flash partition'></i>{$partition['part']}</a>";
 	} elseif ( (! $mounted &&	$partition['fstype'] != 'btrfs') ) {
 		$fscheck = "<a title='File System Check' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&type=ro&mapper={$partition['luks']}\",\"Check filesystem\",600,900);'><i class='fa fa-th-large partition'></i>{$partition['part']}</a>";
 	} else {
@@ -551,8 +552,9 @@ switch ($_POST['action']) {
 	case 'format_disk':
 		$device = urldecode($_POST['device']);
 		$fs = urldecode($_POST['fs']);
+		$pass = urldecode($_POST['pass']);
 		@touch(sprintf($paths['formatting'],basename($device)));
-		echo json_encode(array( 'status' => format_disk($device, $fs)));
+		echo json_encode(array( 'status' => format_disk($device, $fs, $pass)));
 		@unlink(sprintf($paths['formatting'],basename($device)));
 		break;
 

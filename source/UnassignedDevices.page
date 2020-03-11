@@ -687,8 +687,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 		{
 			disk_op(this, $(this).attr("role"), $(this).attr("device"));
 		});
-		tr.find("button[role=format]").click(function(){format_disk(this, $(this).attr("context"), $(this).attr("device"), $(this).attr("serial"));});
-
+		tr.find("button[role=format]").click(function(){format_disk(this, $(this).attr("context"), $(this).attr("device"));});
 	});
 
 
@@ -865,6 +864,20 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
     <div data-question-load></div>
     <div data-question-done></div>
   </div>
+
+  <div data-question data-question-title="Password">
+    <div data-question-condition>
+      surveyData['FS'] == 'xfs-encrypted' || surveyData['FS'] == 'btrfs-encrypted'
+    </div>
+    <div data-question-content>
+      <div class="swal-content">
+        <input type="password" class="swal-content__input" name="PASS" autocomplete="new-password" placeholder="Password" >
+        <p>Enter the password to use for this disk.  Leave blank to use the array password/passphrase.  If not using the array password/passphrase, be sure to enter the password for this disk in UD Settings.</p>
+        <p><span style="font-weight:bold;">Note:</span> Remember your password.  It cannot be recovered!</p>
+   </div>
+    </div>
+  </div>
+
   <div data-question data-question-title="" data-question-button-done="Format" data-question-icon="warning">
     <div data-question-format>
       [surveyOption.type,surveyOption.device]
@@ -883,7 +896,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
   <div data-survey-done data-survey-done-wait="true">
     $("button[device='"+surveyOption.device+"']").prop('disabled',true);
     $("button[device='"+surveyOption.device+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> Formatting ...");
-    $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"format_"+surveyOption.type,device:surveyOption.device, fs:surveyData["FS"]}, function(data)
+    $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"format_"+surveyOption.type,device:surveyOption.device, fs:surveyData["FS"], pass:surveyData["PASS"]}, function(data)
       {
         $("button[device='"+surveyOption.device+"']").prop('disabled',true);
         $("button[device='"+surveyOption.device+"']").html( data.status ? "Formated" : "Format failed..." );
