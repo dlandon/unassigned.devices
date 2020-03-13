@@ -356,7 +356,11 @@ function format_disk($dev, $fs, $pass) {
 
 	unassigned_log("Formatting disk '{$dev}' with '$fs' filesystem.");
 	if (strpos($fs, "-encrypted") !== false) {
-		$cmd = "luksFormat {$dev}1";
+		if (strpos($dev, "nvme") !== false) {
+			$cmd = "luksFormat {$dev}p1";
+		} else {
+			$cmd = "luksFormat {$dev}1";
+		}
 		if ($pass == "") {
 			$o = shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
 		} else {
@@ -419,7 +423,7 @@ function format_disk($dev, $fs, $pass) {
 	shell_exec("/sbin/udevadm trigger --action=change {$dev}");
 
 	sleep(3);
-	@touch($GLOBALS['paths']['reload']);
+	exec("/usr/sbin/partprobe {$dev}");
 	return TRUE;
 }
 
