@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.03.10a">
+<!ENTITY version   "2020.03.13">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"aeb5e4262408b5ffba34f29021576975">
+<!ENTITY MD5		"9ed345f13736bc7898b893e5d280eb6c">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Mark partition read only if it mounted as read only.
+- Fix: Format of encrypted nvme disk using wrong partition name.
+
+###2020.03.10a
 - Fix: Some UI cleanup.
 - Add: Enter password when formatting an encrypted disk for outside the array.
 - Fix: Script run manually on an encrypted disk.

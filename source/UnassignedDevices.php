@@ -188,7 +188,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 	}
 	$out[] = "<td title='Turn on to mark this Device as passed through to a VM or Docker'><input type='checkbox' class='pass_through' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['pass_through']) ? 'checked':'')."></td>";
 	if ($mounted) {
-		$out[] = ($disk['partitions'][0]['read_only'] == "yes") ? "<td><span>Yes</span></td>" : "<td><span>No&nbsp;</span></td>";
+		$out[] = ($disk['partitions'][0]['read_only'] == "yes" || is_disk_ro($partition['device'])) ? "<td><span>Yes</span></td>" : "<td><span>No&nbsp;</span></td>";
 	} else {
 		$out[] = "<td title='Turn on to Mount Device Read only'><input type='checkbox' class='read_only' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['read_only']) ? 'checked':'')."></td>";
 	}

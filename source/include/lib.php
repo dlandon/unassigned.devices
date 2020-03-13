@@ -372,7 +372,11 @@ function format_disk($dev, $fs, $pass) {
 			return FALSE;
 		}
 		$mapper = "format_".basename($dev);
-		$cmd	= "luksOpen {$dev}1 ".$mapper;
+		if (strpos($dev, "nvme") !== false) {
+			$cmd	= "luksOpen {$dev}p1 ".$mapper;
+		} else {
+			$cmd	= "luksOpen {$dev}1 ".$mapper;
+		}
 		if ($pass == "") {
 			$o = exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
 		} else {
@@ -606,6 +610,16 @@ function is_mounted($dev, $dir=FALSE) {
 		$data = timed_exec(2, "/sbin/mount");
 		$append = ($dir) ? " " : " on";
 		$rc = strpos($data, $dev.$append);
+	}
+	return $rc;
+}
+
+function is_disk_ro($dev) {
+
+	$rc = FALSE;
+	if ($dev != "") {
+		$data = timed_exec(2, "/sbin/mount | grep {$dev}");
+		$rc = strpos($data, "ro");
 	}
 	return $rc;
 }
