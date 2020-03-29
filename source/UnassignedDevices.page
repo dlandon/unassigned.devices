@@ -806,7 +806,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
     </div>
     <div data-question-content>
       <input type='text' name='{1}' placeholder='Click to select ISO file' data-pickcloseonfile='true' data-pickfilter='iso' {0}='/mnt/user/' data-pickfolders='true' required='required' class='swal-content__input' autocomplete="new-password" >
-      <p><span style="font-weight:bold;">Note:</span> Dockers will not be able to access any ISO file share until you restart the Docker service after the device is mounted.  Be sure to add a Docker path mapping the ISO share as 'RW/Slave' or 'RO/Slave'.</p>
+      <p><span style="font-weight:bold;">Note:</span> Dockers will not be able to access any ISO share until you restart the Docker service after the ISO file is mounted.  Be sure to add a Docker path mapping the ISO share as 'RW/Slave' or 'RO/Slave'.</p>
       <p>Go to Settings->Docker and disable then re-enable Docker.</p>
     </div>
     <div data-question-load>
@@ -872,7 +872,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
     <div data-question-content>
       <div class="swal-content">
         <input type="password" class="swal-content__input" name="PASS" autocomplete="new-password" placeholder="Password" >
-        <p>Enter the password to use for this disk.  Leave blank to use the array password/passphrase.  If not using the array password/passphrase, be sure to enter the password for this disk in UD Settings.</p>
+        <p>Enter the password to use for this disk.  Leave blank to use the array password/passphrase.  If using a disk password, be sure to enter the password for this disk in UD Settings so it can be mounted.</p>
         <p><span style="font-weight:bold;">Note:</span> Remember your password.  It cannot be recovered!</p>
    </div>
     </div>
@@ -955,7 +955,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
       [surveyOption]
     </div>
     <div data-question-content>
-      <div class="swal-title" style="font-size: 20px">This will remove the mapped <span style="font-weight: bold">ISO</span> share for:</div>
+      <div class="swal-title" style="font-size: 20px">This will remove the <span style="font-weight: bold">ISO</span> file share for:</div>
       <div style="margin-bottom: 15px;margin-top: 15px;">
         <span style="font-weight: bold">{0}</span>
       </div>
@@ -1023,7 +1023,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
       [surveyOption, (surveyOption.startsWith("//") ? "SMB" : "NFS")]
     </div>
     <div data-question-content>
-      <div class="swal-title" style="font-size: 20px">This will remove the mapped <span style="font-weight: bold">{1}</span> share for:</div>
+      <div class="swal-title" style="font-size: 20px">This will remove the remote <span style="font-weight: bold">{1}</span> share for:</div>
       <div style="margin-bottom: 15px;margin-top: 15px;">
         <span style="font-weight: bold">{0}</span>
       </div>
@@ -1060,7 +1060,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
         <label class="image-radio-label image-radio-linux" for="{0}"></label>
         <input type="radio" id="{1}" name="PROTOCOL" value="SMB" required="">
         <label class="image-radio-label image-radio-windows" for="{1}"></label>
-       <p><span style="font-weight:bold;">Note:</span> Dockers will not be able to access any SMB or NFS share until you restart the Docker service after the device is mounted.	Be sure to add a Docker path mapping the SMB or NFS share as 'RW/Slave' or 'RO/Slave'.</p>
+       <p><span style="font-weight:bold;">Note:</span> Dockers will not be able to access any SMB/NFS share until you restart the Docker service after the device is mounted.	Be sure to add a Docker path mapping the SMB/NFS share as 'RW/Slave' or 'RO/Slave'.</p>
        <p>Go to Settings->Docker and disable then re-enable Docker.</p>
       </div>
     </div>
@@ -1083,6 +1083,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
     <div data-question-content>
       <div class="swal-content">
         <input type="text" class="swal-content__input" name="USER" autocomplete="new-password" placeholder="Username">
+		<p>Enter the Username if the share is password protected.  You will need to enter credentials for Windows 10 shares.</p>
       </div>
     </div>
   </div>
@@ -1093,6 +1094,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
     <div data-question-content>
       <div class="swal-content">
         <input type="password" class="swal-content__input" name="PASS" autocomplete="new-password" placeholder="Password" >
+		<p>Enter the Password if the share is password protected.  You will need to enter credentials for Windows 10 shares.</p>
       </div>
     </div>
   </div>
@@ -1103,6 +1105,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
     <div data-question-content>
       <div class="swal-content">
         <input type="text" class="swal-content__input" name="DOMAIN" autocomplete="new-password" placeholder="Domain">
+		<p>Enter the Domain for the share if on a Domain.</p>
       </div>
     </div>
   </div>

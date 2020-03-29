@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.03.13a">
+<!ENTITY version   "2020.03.28">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"4369f3d1734017cdccf21a972b3f1484">
+<!ENTITY MD5		"37232ccf0fade4939df9be6bf1e212d1">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Some UI reorganization and text changes.
+- Fix: Encrypted disk file system check on disks with disk passwords.
+
+###2020.03.13a
 - Add: Mark partition read only if it mounted as read only.
 - Fix: Format of encrypted nvme disk using wrong partition name.
 - Fix: Add 'partprobe' to be sure the cached partition table is current.

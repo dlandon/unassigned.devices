@@ -120,7 +120,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 		$script_partition = $partition['fstype'] == "crypto_LUKS" ? $partition['luks'] : $partition['device'];
 		$fscheck = "<a title='Execute Script as udev simulating a device being installed' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/script.php?device={$script_partition}&owner=udev\",\"Execute Script\",600,900);'><i class='fa fa-flash partition'></i>{$partition['part']}</a>";
 	} elseif ( (! $mounted &&	$partition['fstype'] != 'btrfs') ) {
-		$fscheck = "<a title='File System Check' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&type=ro&mapper={$partition['luks']}\",\"Check filesystem\",600,900);'><i class='fa fa-th-large partition'></i>{$partition['part']}</a>";
+		$fscheck = "<a title='File System Check' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&type=ro\",\"Check filesystem\",600,900);'><i class='fa fa-th-large partition'></i>{$partition['part']}</a>";
 	} else {
 		$fscheck = "<i class='fa fa-th-large partition'></i>{$partition['part']}";
 	}
@@ -262,7 +262,7 @@ switch ($_POST['action']) {
 		$time		 = -microtime(true); 
 		$disks = get_all_disks_info();
 
-		echo "<table class='disk_status wide usb_disks'><thead><tr><td>Device</td><td>Identification</td><td></td><td>Temp</td><td>FS</td><td>Size</td><td>Open files</td><td>Used</td><td>Free</td><td>Pass Through</td><td>Read Only</td><td>Auto Mount</td><td>Share&nbsp;&nbsp;</td><td>Log</td><td>Script</td></tr></thead>";
+		echo "<table class='disk_status wide usb_disks'><thead><tr><td>Device</td><td>Identification</td><td></td><td>Temp</td><td>FS</td><td>Open</td><td>Size</td><td>Used</td><td>Free</td><td>Pass Thru</td><td>Read only</td><td>Auto mount</td><td>Share&nbsp;&nbsp;</td><td>Log</td><td>Script</td></tr></thead>";
 		echo "<tbody>";
 		if ( count($disks) ) {
 			foreach ($disks as $disk) {
@@ -312,8 +312,8 @@ switch ($_POST['action']) {
 				echo "<td class='mount'>{$mbutton}</td>";
 				echo "<td>{$temp}</td>";
 				echo ($p)?$p[5]:"<td>-</td>";
-				echo "<td>".my_scale($disk['size'],$unit)." {$unit}</td>";
 				echo ($p)?$p[7]:"<td>-</td>";
+				echo "<td>".my_scale($disk['size'],$unit)." {$unit}</td>";
 				echo ($p)?$p[8]:"<td>-</td><td>-</td>";
 				echo ($p)?$p[9]:"<td>-</td>";
 				echo ($p)?$p[10]:"<td>-</td>";
