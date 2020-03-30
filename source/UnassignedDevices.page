@@ -17,6 +17,7 @@ Markdown="false"
 
 $plugin = "unassigned.devices";
 require_once("plugins/{$plugin}/include/lib.php");
+require_once("plugins/{$plugin}/include/tr.php");
 $version = parse_ini_file("/etc/unraid-version");
 
 if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/OpenDevices.page","plugins/dynamix/OpenDevices.page-");
@@ -93,6 +94,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
   .image-radio-linux{background-image: url(/plugins/unassigned.devices/icons/nfs-radio.png)}
   .image-radio-windows{background-image: url(/plugins/unassigned.devices/icons/smb-radio.png)}
 </style>
+
 <script type="text/javascript">
 
 	<?=$Preclear ? $Preclear->Script() : "";?>
@@ -570,7 +572,6 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
   }
   showSwal();
 }
-
 </script>
 
 <?=$Preclear ? $Preclear->html() : "";?>
@@ -579,6 +580,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 </div>
 
 <blockquote class='inline_help'>
+<?if ($translations):?>:plug1<?endif;?>
 	<p>Unassigned Devices is called UD for short.</p>
 	<p>Hover your mouse over an any active area on the UD page and a tool tip will show you what clicking that area does.</p>
 	<p>You can mount USB devices, sata drives, Remote SMB/NFS shares, and ISO Files with UD.  Any devices with the auto mount switch on will be mounted when the array is started.  All drives and SMB/NFS Mounts are unmounted when the array is stopped on the 'stopping_svcs' event.</p>
@@ -607,6 +609,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 	</p>
 	<p>Switch the 'Complete' button to change the web page to just show hardware devices.	Switch the 'Simple' switch to switch back to the full web display.</p>
 	<p>Click on the Settings icon to go to the UD Settings.</p>
+<?if ($translations):?>:end<?endif;?>
 </blockquote>
 </form>
 
@@ -799,15 +802,15 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 </script>
 
 
-<div style="display:none" data-survey-name="add_iso_share" data-survey-title="Add ISO File Share">
-  <div data-question data-question-title="Choose ISO File" data-question-button-done="Add">
+<div style="display:none" data-survey-name="add_iso_share" data-survey-title="<?tr('Add ISO File Share',true)?>">
+  <div data-question data-question-title="<?tr('Choose ISO File')?>" data-question-button-done="<?tr('Add')?>">
     <div data-question-format>
       ["data-pickroot","ISO_FILE"]
     </div>
     <div data-question-content>
-      <input type='text' name='{1}' placeholder='Click to select ISO file' data-pickcloseonfile='true' data-pickfilter='iso' {0}='/mnt/user/' data-pickfolders='true' required='required' class='swal-content__input' autocomplete="new-password" >
-      <p><span style="font-weight:bold;">Note:</span> Dockers will not be able to access any ISO share until you restart the Docker service after the ISO file is mounted.  Be sure to add a Docker path mapping the ISO share as 'RW/Slave' or 'RO/Slave'.</p>
-      <p>Go to Settings->Docker and disable then re-enable Docker.</p>
+      <input type='text' name='{1}' placeholder='<?tr("Click to select ISO file")?>' data-pickcloseonfile='true' data-pickfilter='iso' {0}='/mnt/user/' data-pickfolders='true' required='required' class='swal-content__input' autocomplete="new-password" >
+      <p><span style="font-weight:bold;"><?tr("Note")?>:</span> <?tr("Dockers will not be able to access any ISO share until you restart the Docker service after the ISO file is mounted.  Be sure to add a Docker path mapping the ISO share as 'RW/Slave' or 'RO/Slave'")?>.</p>
+      <p><?tr("Go to Settings->Docker and disable then re-enable Docker")?>.</p>
     </div>
     <div data-question-load>
     </div>
@@ -842,8 +845,8 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 
 
 
-<div style="display:none" data-survey-name="format_disk" data-survey-title="Partition and Format Disk">
-  <div data-question data-question-title="Choose File System Format">
+<div style="display:none" data-survey-name="format_disk" data-survey-title="<?tr('Partition and Format Disk')?>">
+  <div data-question data-question-title="<?tr('Choose File System Format')?>">
     <div data-question-format>
       [surveyOption.type,surveyOption.device]
     </div>
@@ -859,32 +862,32 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
             <option value="exfat">exFAT</option>
             <option value="fat32">FAT32</option>
           </select>
-      <p><span style="font-weight:bold;">Note:</span> An XFS or BTRFS disk partitioned in UD is compatible with the array disk partitioning and can be added to the array.</p>
+      <p><span style="font-weight:bold;"><?tr("Note")?>:</span> <?tr("An XFS or BTRFS disk partitioned in UD is compatible with the array disk partitioning and can be added to the array")?>.</p>
     </div>
     <div data-question-load></div>
     <div data-question-done></div>
   </div>
 
-  <div data-question data-question-title="Password">
+  <div data-question data-question-title="<?tr('Password')?>">
     <div data-question-condition>
       surveyData['FS'] == 'xfs-encrypted' || surveyData['FS'] == 'btrfs-encrypted'
     </div>
     <div data-question-content>
       <div class="swal-content">
-        <input type="password" class="swal-content__input" name="PASS" autocomplete="new-password" placeholder="Password" >
-        <p>Enter the password to use for this disk.  Leave blank to use the array password/passphrase.  If using a disk password, be sure to enter the password for this disk in UD Settings so it can be mounted.</p>
-        <p><span style="font-weight:bold;">Note:</span> Remember your password.  It cannot be recovered!</p>
+        <input type="password" class="swal-content__input" name="PASS" autocomplete="new-password" placeholder=<?tr("Password")?> >
+        <p><?tr("Enter the password to use for this disk.  Leave blank to use the array password/passphrase.  If using a disk password, be sure to enter the password for this disk in UD Settings so it can be mounted")?>.</p>
+        <p><span style="font-weight:bold;"><?tr("Note")?>:</span> <?tr("Remember your password.  It cannot be recovered")?>!</p>
    </div>
     </div>
   </div>
 
-  <div data-question data-question-title="" data-question-button-done="Format" data-question-icon="warning">
+  <div data-question data-question-title="" data-question-button-done=<?tr("Format")?> data-question-icon="warning">
     <div data-question-format>
       [surveyOption.type,surveyOption.device]
     </div>
     <div data-question-content>
-      <div class="swal-title">Any data on this disk will be lost!</div>
-      <!-- <div class="swal-title">Type<span class="red">'Yes'</span>to confirm:</div> -->
+      <div class="swal-title"><?tr("Any data on this disk will be lost")?>!</div>
+      <!-- <div class="swal-title"><?tr("Type")?><span class="red">'Yes'</span><?tr("to confirm")?>:</div> -->
       <div style="margin-bottom: 25px;font-size: 20px;">Type<span class="red">'Yes'</span>to format:</div>
       <input type="text" name="confim-yes" class="swal-content__input" autocomplete="new-password" required >
     </div>
@@ -899,7 +902,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
     $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"format_"+surveyOption.type,device:surveyOption.device, fs:surveyData["FS"], pass:surveyData["PASS"]}, function(data)
       {
         $("button[device='"+surveyOption.device+"']").prop('disabled',true);
-        $("button[device='"+surveyOption.device+"']").html( data.status ? "Formated" : "Format failed..." );
+        $("button[device='"+surveyOption.device+"']").html( data.status ? <?tr("Formated")?> : <?tr("Format failed...")?> );
         swalShowResult(data.status);
       },"json").fail(function(){swalShowResult(false);});
   </div>
@@ -920,9 +923,9 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
       [surveyOption.partition,surveyOption.device]
     </div>
     <div data-question-content>
-      <div class="swal-title">Any data on this disk will be lost!</div>
-      <div class="swal-title" style="font-size: 20px">Remove partition <span class="red">{0}</span> from disk <span class="red">{1}</span></div>
-      <div style="margin-bottom: 25px;font-size: 20px;">Type<span class="red">'Yes'</span>to confirm:</div>
+      <div class="swal-title"><?tr("Any data on this disk will be lost")?>!</div>
+      <div class="swal-title" style="font-size: 20px"><?tr("Remove partition")?> <span class="red">{0}</span> <?tr("from disk")?> <span class="red">{1}</span></div>
+      <div style="margin-bottom: 25px;font-size: 20px;"><?tr("Type")?><span class="red">'Yes'</span><?tr("to confirm")?>:</div>
       <input type="text" name="confim-yes" class="swal-content__input" autocomplete="new-password" required >
     </div>
     <div data-question-load></div>
@@ -948,19 +951,18 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 </div>
 
 
-
-<div style="display:none" data-survey-name="remove_iso_share" data-survey-title="Remove ISO File mount" >
-  <div data-question data-question-title="" data-question-button-done="Remove" data-question-icon="warning">
+<div style="display:none" data-survey-name="remove_iso_share" data-survey-title=<?tr("Remove ISO File mount")?> >
+  <div data-question data-question-title="" data-question-button-done=<?tr("Remove")?> data-question-icon="warning">
     <div data-question-format>
       [surveyOption]
     </div>
     <div data-question-content>
-      <div class="swal-title" style="font-size: 20px">This will remove the <span style="font-weight: bold">ISO</span> file share for:</div>
+      <div class="swal-title" style="font-size: 20px"><?tr("This will remove the")?> <span style="font-weight: bold">ISO</span> <?tr("file share for")?>:</div>
       <div style="margin-bottom: 15px;margin-top: 15px;">
         <span style="font-weight: bold">{0}</span>
       </div>
       <div class="swal-title" style="font-size: 20px">
-        <span class="red" style="font-weight: bold">Are you sure?</span>
+        <span class="red" style="font-weight: bold"><?tr("Are you sure")?>?</span>
       </div>
     </div>
     <div data-question-load></div>
@@ -982,19 +984,18 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 </div>
 
 
-
-<div style="display:none" data-survey-name="remove_disk_config" data-survey-title="Remove Disk Config" >
-  <div data-question data-question-title="" data-question-button-done="Remove" data-question-icon="warning">
+<div style="display:none" data-survey-name="remove_disk_config" data-survey-title=<?tr("Remove Disk Config")?> >
+  <div data-question data-question-title="" data-question-button-done=<?tr("Remove")?> data-question-icon="warning">
     <div data-question-format>
       [surveyOption]
     </div>
     <div data-question-content>
-      <div class="swal-title" style="font-size: 20px">This will remove the saved configuration of:</div>
+      <div class="swal-title" style="font-size: 20px"><?tr("This will remove the saved configuration of")?>:</div>
       <div style="margin-bottom: 15px;margin-top: 15px;">
         <span style="font-weight: bold">{0}</span>
       </div>
       <div class="swal-title" style="font-size: 20px">
-        <span class="red" style="font-weight: bold">Are you sure?</span>
+        <span class="red" style="font-weight: bold"><?tr("Are you sure")?>?</span>
       </div>
     </div>
     <div data-question-load></div>
@@ -1016,19 +1017,18 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 </div>
 
 
-
-<div style="display:none" data-survey-name="remove_remote_share" data-survey-title="Remove SMB/NFS mount">
-  <div data-question data-question-title="" data-question-button-done="Remove" data-question-icon="warning">
+<div style="display:none" data-survey-name="remove_remote_share" data-survey-title='<?tr("Remove SMB/NFS mount")?>'>
+  <div data-question data-question-title="" data-question-button-done='<?tr("Remove")?>' data-question-icon="warning">
     <div data-question-format>
       [surveyOption, (surveyOption.startsWith("//") ? "SMB" : "NFS")]
     </div>
     <div data-question-content>
-      <div class="swal-title" style="font-size: 20px">This will remove the remote <span style="font-weight: bold">{1}</span> share for:</div>
+      <div class="swal-title" style="font-size: 20px"><?tr("This will remove the remote")?> <span style="font-weight: bold">{1}</span> <?tr("share for")?>:</div>
       <div style="margin-bottom: 15px;margin-top: 15px;">
         <span style="font-weight: bold">{0}</span>
       </div>
       <div class="swal-title" style="font-size: 20px">
-        <span class="red" style="font-weight: bold">Are you sure?</span>
+        <span class="red" style="font-weight: bold">'<?tr("Are you sure")?>?'</span>
       </div>
     </div>
     <div data-question-load></div>
@@ -1049,8 +1049,8 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
   </div>
 </div>
 
-<div style="display:none" data-survey-name="add_remote_share" data-survey-title="Add Remote Share">
-  <div data-question data-question-title="Click on Icon to Choose Protocol">
+<div style="display:none" data-survey-name="add_remote_share" data-survey-title='<?tr("Add Remote Share")?>'>
+  <div data-question data-question-title='<?tr("Click on Icon to Choose Protocol")?>'>
     <div data-question-format>
       ["nfs_radio","smb_radio"]
     </div>
@@ -1060,63 +1060,63 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
         <label class="image-radio-label image-radio-linux" for="{0}"></label>
         <input type="radio" id="{1}" name="PROTOCOL" value="SMB" required="">
         <label class="image-radio-label image-radio-windows" for="{1}"></label>
-       <p><span style="font-weight:bold;">Note:</span> Dockers will not be able to access any SMB/NFS share until you restart the Docker service after the device is mounted.	Be sure to add a Docker path mapping the SMB/NFS share as 'RW/Slave' or 'RO/Slave'.</p>
-       <p>Go to Settings->Docker and disable then re-enable Docker.</p>
+       <p><span style="font-weight:bold;"><?tr("Note")?>:</span> <?tr("Dockers will not be able to access any SMB/NFS share until you restart the Docker service after the device is mounted.	Be sure to add a Docker path mapping the SMB/NFS share as 'RW/Slave' or 'RO/Slave'")?>.</p>
+       <p><?tr("Go to Settings->Docker and disable then re-enable Docker")?>.</p>
       </div>
     </div>
     <div data-question-done></div>
   </div>
-  <div data-question data-question-title="Choose Server">
+  <div data-question data-question-title='<?tr("Choose Server")?>'>
     <div data-question-format>
       [surveyData["PROTOCOL"] == "SMB" ? "list_samba_hosts" : "list_nfs_hosts"]
     </div>
     <div data-question-content>
       <input type='text' class="swal-content__input" name='IP' autocomplete="new-password" required><br>
-      <button class="swal-button" onclick='load_hosts(this,"{0}")'>Search For Servers</button>
-      <p>Search for Servers, or enter the Server name manually.</p>
+      <button class="swal-button" onclick='load_hosts(this,"{0}")'><?tr("Search For Servers")?></button>
+      <p><?tr("Search for Servers, or enter the Server name manually")?>.</p>
     </div>
   </div>
-  <div data-question data-question-title="Username">
+  <div data-question data-question-title='<?tr("Username")?>'>
     <div data-question-condition>
       surveyData['PROTOCOL'] == 'SMB';
     </div>
     <div data-question-content>
       <div class="swal-content">
-        <input type="text" class="swal-content__input" name="USER" autocomplete="new-password" placeholder="Username">
-		<p>Enter the Username if the share is password protected.  You will need to enter credentials for Windows 10 shares.</p>
+        <input type="text" class="swal-content__input" name="USER" autocomplete="new-password" placeholder=<?tr("Username")?>>
+		<p><?tr("Enter the Username if the share is password protected.  You will need to enter credentials for Windows 10 shares")?>.</p>
       </div>
     </div>
   </div>
-  <div data-question data-question-title="Password">
+  <div data-question data-question-title='<?tr("Password")?>'>
     <div data-question-condition>
       surveyData['PROTOCOL'] == 'SMB'
     </div>
     <div data-question-content>
       <div class="swal-content">
-        <input type="password" class="swal-content__input" name="PASS" autocomplete="new-password" placeholder="Password" >
-		<p>Enter the Password if the share is password protected.  You will need to enter credentials for Windows 10 shares.</p>
+        <input type="password" class="swal-content__input" name="PASS" autocomplete="new-password" placeholder='<?tr("Password")?>'>
+		<p><?tr("Enter the Password if the share is password protected.  You will need to enter credentials for Windows 10 shares")?>.</p>
       </div>
     </div>
   </div>
-  <div data-question data-question-title="Domain">
+  <div data-question data-question-title='<?tr("Domain")?>'>
     <div data-question-condition>
       surveyData['PROTOCOL'] == 'SMB'
     </div>
     <div data-question-content>
       <div class="swal-content">
-        <input type="text" class="swal-content__input" name="DOMAIN" autocomplete="new-password" placeholder="Domain">
-		<p>Enter the Domain for the share if on a Domain.</p>
+        <input type="text" class="swal-content__input" name="DOMAIN" autocomplete="new-password" placeholder='<?tr("Domain")?>'>
+		<p><?tr("Enter the Domain for the share if on a Domain")?>.</p>
       </div>
     </div>
   </div>
-  <div data-question data-question-title="Choose Share">
+  <div data-question data-question-title='<?tr("Choose Share")?>'>
     <div data-question-format>
       [surveyData['PROTOCOL'], surveyData['IP'], surveyData['USER'], surveyData['PASS'], surveyData['DOMAIN'], (surveyData['PROTOCOL'] == 'SMB' ? 'list_samba_shares' : 'list_nfs_shares')]
     </div>
     <div data-question-content>
       <input type='text' class="swal-content__input" autocomplete="new-password" name='SHARE' required><br>
-      <button class="swal-button" onclick='load_shares(this, "{1}", "{2}", "{3}", "{5}")'>Load Shares</button>
-      <p>Search for Shares, or enter the Share name manually.</p>
+      <button class="swal-button" onclick='load_shares(this, "{1}", "{2}", "{3}", "{5}")'><?tr("Load Shares")?></button>
+      <p><?tr("Search for Shares, or enter the Share name manually")?>.</p>
     </div>
     <div data-question-done>
       (surveyData["SHARE"].length)

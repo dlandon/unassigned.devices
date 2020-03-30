@@ -11,6 +11,7 @@
 
 $plugin = "unassigned.devices";
 require_once("plugins/{$plugin}/include/lib.php");
+require_once("plugins/{$plugin}/include/tr.php");
 readfile('logging.htm');
 
 function write_log($string) {
@@ -38,9 +39,9 @@ if ( isset($_GET['device']) && isset($_GET['owner']) ) {
 			write_log(fgets($proc));
 		}
 	} elseif ($command !== FALSE) {
-		echo "No script file to execute!";
+		echo tr("No script file to execute")."!";
 	} else {
-		echo "Script is already running!";
+		echo tr("Script is already running")."!";
 	}
 }
 ?>

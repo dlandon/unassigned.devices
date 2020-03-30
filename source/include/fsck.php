@@ -12,6 +12,7 @@
 
 $plugin = "unassigned.devices";
 require_once("plugins/{$plugin}/include/lib.php");
+require_once("plugins/{$plugin}/include/tr.php");
 readfile('logging.htm');
 
 function write_log($string) {
@@ -77,5 +78,5 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 		shell_exec("/sbin/cryptsetup luksClose ".$mapper);
 	}
 }
-write_log("<center><button type='button' onclick='document.location=\"/plugins/{$plugin}/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&type=rw\"'>Run with CORRECT flag</button></center>");
+write_log("<center><button type='button' onclick='document.location=\"/plugins/{$plugin}/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&type=rw\"'>".tr("Run with CORRECT flag",true)."</button></center>");
 ?>
