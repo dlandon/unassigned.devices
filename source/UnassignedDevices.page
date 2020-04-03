@@ -445,7 +445,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	}
 
 function swalShowResult(success) {
-  opts = (success) ? {title:"Success!",icon:"success"} : {title:"Fail!",icon:"error"};
+  opts = (success) ? {title:'<?tr("Success!")?>',icon:"success"} : {title:'<?tr("Fail!")?>',icon:"error"};
   swal2({title:opts.title,icon:opts.icon,text:" ",buttons:{confirm:{visible:false},cancel:{visible:false}},timer:1800});
 }
 
