@@ -94,7 +94,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
   .image-radio-linux{background-image: url(/plugins/unassigned.devices/icons/nfs-radio.png)}
   .image-radio-windows{background-image: url(/plugins/unassigned.devices/icons/smb-radio.png)}
 </style>
-
 <script type="text/javascript">
 
 	<?=$Preclear ? $Preclear->Script() : "";?>
@@ -572,6 +571,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
   }
   showSwal();
 }
+
 </script>
 
 <?=$Preclear ? $Preclear->html() : "";?>
@@ -844,7 +844,6 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 </div>
 
 
-
 <div style="display:none" data-survey-name="format_disk" data-survey-title="<?tr('Partition and Format Disk')?>">
   <div data-question data-question-title="<?tr('Choose File System Format')?>">
     <div data-question-format>
@@ -881,14 +880,13 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
     </div>
   </div>
 
-  <div data-question data-question-title="" data-question-button-done=<?tr("Format")?> data-question-icon="warning">
+  <div data-question data-question-title="" data-question-button-done='<?tr("Format")?>' data-question-icon="warning">
     <div data-question-format>
       [surveyOption.type,surveyOption.device]
     </div>
     <div data-question-content>
       <div class="swal-title"><?tr("Any data on this disk will be lost")?>!</div>
-      <!-- <div class="swal-title"><?tr("Type")?><span class="red">'Yes'</span><?tr("to confirm")?>:</div> -->
-      <div style="margin-bottom: 25px;font-size: 20px;">Type<span class="red">'Yes'</span>to format:</div>
+      <div style="margin-bottom: 25px;font-size: 20px;"><?tr("Type")?><span class="red">'Yes'</span><?tr("to format")?>:</div>
       <input type="text" name="confim-yes" class="swal-content__input" autocomplete="new-password" required >
     </div>
     <div data-question-load></div>
@@ -902,7 +900,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
     $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"format_"+surveyOption.type,device:surveyOption.device, fs:surveyData["FS"], pass:surveyData["PASS"]}, function(data)
       {
         $("button[device='"+surveyOption.device+"']").prop('disabled',true);
-        $("button[device='"+surveyOption.device+"']").html( data.status ? <?tr("Formated")?> : <?tr("Format failed...")?> );
+        $("button[device='"+surveyOption.device+"']").html( data.status ? "Formated" : "Format failed..." );
         swalShowResult(data.status);
       },"json").fail(function(){swalShowResult(false);});
   </div>
@@ -918,7 +916,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 
 
 <div style="display:none" data-survey-name="remove_partiton" data-survey-title="">
-  <div data-question data-question-title="" data-question-button-done="Remove" data-question-icon="warning">
+  <div data-question data-question-title="" data-question-button-done='<?tr("Remove")?>' data-question-icon="warning">
     <div data-question-format>
       [surveyOption.partition,surveyOption.device]
     </div>

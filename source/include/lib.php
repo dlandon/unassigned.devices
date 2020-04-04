@@ -444,7 +444,8 @@ function remove_partition($dev, $part) {
 		unassigned_log("Remove parition failed result '{$out}'");
 	}
 	shell_exec("/sbin/udevadm trigger --action=change {$dev}");
-	sleep(10);
+	sleep(5);
+	exec("/usr/sbin/partprobe {$dev}");
 	return TRUE;
 }
 
