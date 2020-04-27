@@ -160,7 +160,6 @@ function render_partition($disk, $partition, $total=FALSE) {
 	}
 
 	$out[] = "<td>".($fstype == "crypto_LUKS" ? "luks" : $fstype)."</td>";
-	$out[] = "<td>".my_scale($partition['size'], $unit)." $unit</td>";
 	if ($total) {
 		$mounted_disk = FALSE;
 		$open_files = 0;
@@ -171,9 +170,11 @@ function render_partition($disk, $partition, $total=FALSE) {
 			}
 		}
 
+		$out[] = "<td>".my_scale($partition['size'], $unit)." $unit</td>";
 		$out[] = "<td>".($mounted_disk && strlen($open_files) ? $open_files : "-")."</td>";
 	} else {
 		$out[] = "<td>".($partition['openfiles'] ? $partition['openfiles'] : "-")."</td>";
+		$out[] = "<td>".my_scale($partition['size'], $unit)." $unit</td>";
 	}
 	if ($total) {
 		$mounted_disk = FALSE;
