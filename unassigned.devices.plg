@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.04.26b">
+<!ENTITY version   "2020.04.27">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"73146ab36b6763b1970ffa4c7d14fd2f">
+<!ENTITY MD5		"f84c26facb1c6f863f0184f8b73d76ab">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Add 'plus' back to expand disk partitons and remove highlight color on disk serial number.
+
+###2020.04.26b
 - Fix: Some UI changes to line things up better.  Some style sheet changes.
 
 ###2020.04.03a

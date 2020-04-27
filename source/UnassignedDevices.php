@@ -288,12 +288,13 @@ switch ($_POST['action']) {
 				if ( $p	&& ! ($is_precleared || $preclearing) )
 				{
 					$add_toggle = TRUE;
-					$hdd_serial .="<span style='color:blueviolet' title='".tr("Click to view partitions/mount points",true)."' class='exec toggle-hdd' hdd='{$disk_name}'>";
+					$hdd_serial .="<span title='".tr("Click to view partitions/mount points",true)."' class='exec toggle-hdd' hdd='{$disk_name}'>
+									<i class='fa fa-plus-square fa-append'></i></span>";
 				}
 				else
 				{
 					$add_toggle = FALSE;
-					$hdd_serial .= "<span class='toggle-hdd' hdd='{$disk_name}'>";
+					$hdd_serial .= "<span class='toggle-hdd' hdd='{$disk_name}'></span>";
 				}
 
 				$hdd_serial .= "{$disk['serial']}
