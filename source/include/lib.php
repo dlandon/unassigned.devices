@@ -512,6 +512,7 @@ function toggle_automount($sn, $status) {
 	$config = @parse_ini_file($config_file, true);
 	$config[$sn]["automount"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
+	@touch($GLOBALS['paths']['reload']);
 	return ($config[$sn]["automount"] == "yes") ? TRUE : FALSE;
 }
 
@@ -818,6 +819,7 @@ function config_shared($sn, $part, $usb=FALSE) {
 function toggle_share($serial, $part, $status) {
 	$new = ($status == "true") ? "yes" : "no";
 	set_config($serial, "share.{$part}", $new);
+	@touch($GLOBALS['paths']['reload']);
 	return ($new == 'yes') ? TRUE:FALSE;
 }
 

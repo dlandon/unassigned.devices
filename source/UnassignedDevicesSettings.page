@@ -173,7 +173,7 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
 <?if ($translations):?>:end<?endif;?>
 
 &nbsp;
-: <input type="submit" name="#apply" value='<?tr("Apply")?>'>'<input type="button" value='<?tr("Done")?>' onclick="done()">
+: <input type="submit" name="#apply" value='<?tr("Apply")?>'><input type="button" value='<?tr("Done")?>' onclick="done()">
 </form>
 
 <div id="title" class="nocontrol"><?tr("SMB Security")?></div>
