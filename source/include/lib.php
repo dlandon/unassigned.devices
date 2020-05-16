@@ -779,8 +779,8 @@ function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE, $nfs = FALSE) {
 	if ( is_mounted($dev) ) {
 		unassigned_log("Unmounting '{$dev}'...");
 		$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : "")." '{$dev}' 2>&1";
-		$timeout = ($smb || $nfs) ? ($force ? 30 : 10) : 90;
 		unassigned_log("Unmount cmd: $cmd");
+		$timeout = ($smb || $nfs) ? ($force ? 30 : 10) : 90;
 		$o = timed_exec($timeout, $cmd);
 		for ($i=0; $i < 5; $i++) {
 			if (! is_mounted($dev)) {

@@ -205,7 +205,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 function make_mount_button($device) {
 	global $paths, $Preclear;
 
-	$button = "<span style='width:auto;text-align:right;'><button type='button' device='{$device['device']}' class='array' context='%s' role='%s' %s><i class='%s'></i>	%s</button></span>";
+	$button = "<span style='width:auto;text-align:right;'><button device='{$device['device']}' class='mount' context='%s' role='%s' %s><i class='%s'></i>%s</button></span>";
 	if (isset($device['partitions'])) {
 		$mounted = isset($device['mounted']) ? $device['mounted'] : in_array(TRUE, array_map(function($ar){return is_mounted($ar['device']);}, $device['partitions']));
 		$disable = count(array_filter($device['partitions'], function($p){ if (! empty($p['fstype']) && $p['fstype'] != "precleared") return TRUE;})) ? "" : "disabled";
@@ -245,7 +245,7 @@ function make_mount_button($device) {
 			$cmd = get_config($device['serial'],"command.1");
 			$running = ($cmd != "") ? (shell_exec("/usr/bin/ps -ef | grep '".basename($cmd)."' | grep -v 'grep'") != "" ? TRUE : FALSE) : FALSE;
 			if ($running) {
-				$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-export', 'Running...');
+				$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-circle-o-notch fa-spin', 'Running...');
 			} else {
 				$button = sprintf($button, $context, 'umount', '', 'fa fa-export', 'Unmount');
 			}
@@ -379,9 +379,9 @@ switch ($_POST['action']) {
 				$cmd = get_samba_config($mount['device'],"command");
 				$running = ($cmd != "") ? (shell_exec("/usr/bin/ps -ef | grep '".basename($cmd)."' | grep -v 'grep'") != "" ? TRUE : FALSE) : FALSE;
 				if ($running) {
-					echo "<td><span style='width:auto;text-align:right;'><button type='button' style='padding:2px 7px 2px 7px;<i class='fa fa-export' disabled></i>Running...</button></span></td>";
+					echo "<td><span style='width:auto;text-align:right;'><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i>Running...</button></span></td>";
 				} else {
-					echo "<td><span style='width:auto;text-align:right;'>".($mounted ? "<button type='button' device ='{$mount['device']}' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>Unmount</button>" : "<button type='button' device ='{$mount['device']}' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>Mount</button>")."</span></td>";
+					echo "<td><span style='width:auto;text-align:right;'>".($mounted ? "<button class='mount' device ='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>Unmount</button>" : "<button class='mount'device ='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>Mount</button>")."</span></td>";
 				}
 				echo $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount['name']}\");' title='".tr("Remove Remote SMB/NFS Share",true)."'> <i class='fa fa-remove hdd'></i></a></td>";
 				echo "<td><span>".my_scale($mount['size'], $unit)." $unit</span></td>";
@@ -422,9 +422,9 @@ switch ($_POST['action']) {
 				$cmd = get_iso_config($mount['device'],"command");
 				$running = ($cmd != "") ? (shell_exec("/usr/bin/ps -ef | grep '".basename($cmd)."' | grep -v 'grep'") != "" ? TRUE : FALSE) : FALSE;
 				if ($running) {
-					echo "<td><span style='width:auto;text-align:right;'><button type='button' style='padding:2px 7px 2px 7px;<i class='fa fa-export' disabled></i>Running...</button></span></td>";
+					echo "<td><span style='width:auto;text-align:right;'><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i>Running...</button></span></td>";
 				} else {
-					echo "<td><span style='width:auto;text-align:right;'>".($mounted ? "<button type='button' device='{$mount['device']}' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>Unmount</button>" : "<button type='button' device='{$mount['device']}' style='padding:2px 7px 2px 7px;' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>Mount</button>")."</span></td>";
+					echo "<td><span style='width:auto;text-align:right;'>".($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>Unmount</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>Mount</button>")."</span></td>";
 				}
 				echo $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec' style='color:#CC0000;font-weight:bold;' onclick='remove_iso_config(\"{$mount['device']}\");' title='".tr("Remove ISO File Share",true)."'> <i class='fa fa-remove hdd'></i></a></td>";
 				echo "<td><span>".my_scale($mount['size'], $unit)." $unit</span></td>";
@@ -438,8 +438,8 @@ switch ($_POST['action']) {
 		if (! count($samba_mounts) && ! count($iso_mounts)) {
 			echo "<tr><td colspan='12' style='text-align:center;'>No Remote SMB/NFS or ISO File Shares configured.</td></tr>";
 		}
-		echo "</tbody></table><button type='button' onclick='add_samba_share();'>Add Remote SMB/NFS Share</button>";
-		echo "<button type='button' onclick='add_iso_share();'>Add ISO File Share</button></div>";
+		echo "</tbody></table><button onclick='add_samba_share();'>Add Remote SMB/NFS Share</button>";
+		echo "<button onclick='add_iso_share();'>Add ISO File Share</button></div>";
 
 		$config_file = $GLOBALS["paths"]["config_file"];
 		$config = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
