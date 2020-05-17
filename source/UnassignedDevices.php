@@ -358,15 +358,15 @@ switch ($_POST['action']) {
 				echo "<tr>";
 				$protocol = $mount['protocol'] == "NFS" ? "nfs" : "smb";
 				printf( "<td><img src='/plugins/{$plugin}/images/%s'>%s</td>", ( $is_alive ? "green-on.png":"green-blink.png" ), $protocol);
-				echo "<td><div></i><span style='margin:3px;'></span>{$mount['name']}</div></td>";
+				echo "<td><div></i><span style='margin:0px;'></span>{$mount['name']}</div></td>";
 				$mount_point = basename($mount['mountpoint']);
 				if ($mounted) {
-					echo "<td><i class='fa fa-share-alt hdd'></i><span style='margin:2px;'></span><a title='".tr("Browse Remote SMB/NFS Share",true)."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
+					echo "<td><i class='fa fa-share-alt hdd'></i><span style='margin:0px;'></span><a title='".tr("Browse Remote SMB/NFS Share",true)."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
 				} else {
 					echo "<td>
 						<form title='".tr("Click to change Remote SMB/NFS Mount Point - Press Enter to save",true)."' method='POST' action='/plugins/{$plugin}/UnassignedDevices.php' target='progressFrame' class='inline'>
 						<i class='fa fa-share-alt hdd'></i>
-						<span style='margin:1px;' class='text exec'><a>{$mount_point}</a></span>
+						<span style='margin:0px;' class='text exec'><a>{$mount_point}</a></span>
 						<input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden />
 						<input type='hidden' name='action' value='change_samba_mountpoint'/>
 						<input type='hidden' name='device' value='{$mount['name']}'/>
@@ -438,8 +438,8 @@ switch ($_POST['action']) {
 		if (! count($samba_mounts) && ! count($iso_mounts)) {
 			echo "<tr><td colspan='12' style='text-align:center;'>No Remote SMB/NFS or ISO File Shares configured.</td></tr>";
 		}
-		echo "</tbody></table><button onclick='add_samba_share();'>Add Remote SMB/NFS Share</button>";
-		echo "<button onclick='add_iso_share();'>Add ISO File Share</button></div>";
+		echo "</tbody></table><button onclick='add_samba_share()'>Add Remote SMB/NFS Share</button>";
+		echo "<button onclick='add_iso_share()'>Add ISO File Share</button></div>";
 
 		$config_file = $GLOBALS["paths"]["config_file"];
 		$config = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
