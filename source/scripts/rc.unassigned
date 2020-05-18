@@ -82,9 +82,12 @@ function unassigned_mount() {
 				unassigned_log("Remote SMB/NFS share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
 				addFile(sprintf($paths['unmounting'],basename($info['device'])));
 				if (do_mount( $info )) {
-					add_smb_share($info['mountpoint'], $info['device'], FALSE);
+					if ($info['smb_share']) {
+						add_smb_share($info['mountpoint'], $info['device'], FALSE);
+						export_disk($info, true);
+					}
 					execute_script($info, "ADD");
-					export_disk($info, true);
+
 				} else {
 					execute_script($info, "ERROR_MOUNT");
 				}

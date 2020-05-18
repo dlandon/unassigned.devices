@@ -190,13 +190,9 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		$.post(URL,{'action':op,'device':device},function(data)
 		{
 			opt = (op == "mount") ? "Mounting" : "Unmounting";
-			if (data.status)
+			text = "<i class='fa fa-circle-o-notch fa-spin'></i> " + opt + "...";
+			if (! data.status)
 			{
-				text	= "<i class='fa fa-circle-o-notch fa-spin'></i> " + opt + "...";
-			}
-			else
-			{
-				text	= "<i class='fa fa-circle-o-notch fa-spin'></i> " + opt + "...";
 				setTimeout(usb_disks,1500);
 			}
 			$("button[device='"+device+"']").prop('disabled',true);
@@ -242,7 +238,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			{
 				if(v.length)
 				{
-					$("tr[name='"+v+"']").prev().find("i.fa-plus-sign").removeClass("fa-plus-sign").addClass("fa-minus-sign");
+					$("tr[name='"+v+"']").prev().find("i.fa-plus-square").removeClass("fa-plus-square").addClass("fa-minus-square");
 					$("tr[name='"+v+"']").css("display", "table-row");
 				}
 			});
@@ -677,9 +673,9 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 			$(this).disableSelection();disk = $(this).attr("hdd");el = $(this);
 			$(".toggle-"+disk).slideToggle(0,function(){
 				if ( $("tr.toggle-"+disk+":first").is(":visible") ){
-					el.find(".fa-append").addClass("fa-minus-sign").removeClass("fa-plus-sign");
+					el.find(".fa-append").addClass("fa-minus-square").removeClass("fa-plus-square");
 				} else {
-					el.find(".fa-append").removeClass("fa-minus-sign").addClass("fa-plus-sign");
+					el.find(".fa-append").removeClass("fa-minus-square").addClass("fa-plus-square");
 				}
 			});
 		});
@@ -736,6 +732,17 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 			checkbox.change(function()
 			{
 				$.post(URL,{action:"toggle_share",info:$(this).attr("info"),status:$(this).is(":checked")},function(data)
+				{
+					$(this).prop("checked",data.result);
+				},"json");
+			});
+		}
+
+		else if (checkbox.hasClass("toggle_samba_share"))
+		{
+			checkbox.change(function()
+			{
+				$.post(URL,{action:"toggle_samba_share",info:$(this).attr("info"),status:$(this).is(":checked")},function(data)
 				{
 					$(this).prop("checked",data.result);
 				},"json");

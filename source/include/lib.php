@@ -1101,6 +1101,11 @@ function is_samba_automount($sn) {
 	return ( ($auto) ? ( ($auto == "yes") ? TRUE : FALSE ) : TRUE);
 }
 
+function is_samba_share($sn) {
+	$smb_share = get_samba_config($sn, "smb_share");
+	return ( ($smb_share) ? ( ($smb_share == "yes") ? TRUE : FALSE ) : TRUE);
+}
+
 function get_samba_mounts() {
 	global $paths;
 
@@ -1134,6 +1139,7 @@ function get_samba_mounts() {
 		$mount['is_alive'] = $is_alive;
 
 		$mount['automount'] = is_samba_automount($mount['name']);
+		$mount['smb_share'] = is_samba_share($mount['name']);
 		if (! $mount["mountpoint"]) {
 			$mount['mountpoint'] = $mount['target'] ? $mount['target'] : preg_replace("%\s+%", "_", "{$paths['usb_mountpoint']}/{$mount['ip']}_{$mount['share']}");
 		}
@@ -1243,6 +1249,14 @@ function toggle_samba_automount($source, $status) {
 	$config[$source]["automount"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
 	return ($config[$source]["automount"] == "yes") ? TRUE : FALSE;
+}
+
+function toggle_samba_share($source, $status) {
+	$config_file = $GLOBALS["paths"]["samba_mount"];
+	$config = @parse_ini_file($config_file, true);
+	$config[$source]["smb_share"] = ($status == "true") ? "yes" : "no";
+	save_ini_file($config_file, $config);
+	return ($config[$source]["smb_share"] == "yes") ? TRUE : FALSE;
 }
 
 function remove_config_samba($source) {
