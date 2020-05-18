@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.05.16">
+<!ENTITY version   "2020.05.17">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"b1800bf9dd4b8c41e1d6cad69a244a63">
+<!ENTITY MD5		"201ab961115b5b75eea4a5f54a30e066">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Share option to remote mounts.
+- Fix: Minor UI issues.
+
+###2020.05.16
 - Fix: Size mount/unmount buttons so display line height is consistent with the array device lines.
 - Fix: Adjusted some table layout.
 
