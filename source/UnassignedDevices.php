@@ -130,7 +130,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 	$mpoint = "<span>{$fscheck}<i class='fa fa-share'></i>";
 	$mount_point = basename($partition['mountpoint']);
 	if ($mounted) {
-		$mpoint .= "<a title='".tr("Browse Share",true)."' href='/Main/Browse?dir={$partition['mountpoint']}'>{$mount_point}</a></span>";
+		$mpoint .= "<a title='".tr("Browse Disk Share",true)."' href='/Main/Browse?dir={$partition['mountpoint']}'>{$mount_point}</a></span>";
 	} else {
 		$mount_point = basename($partition['mountpoint']);
 		$mpoint .= "<form title='".tr("Click to Change Device Mount Point - Press Enter to save",true)."' method='POST' action='/plugins/{$plugin}/UnassignedDevices.php' target='progressFrame' class='inline'>";
@@ -223,7 +223,7 @@ function make_mount_button($device) {
 	$dev			= basename($device['device']);
 	$preclearing	= $Preclear ? $Preclear->isRunning(basename($device['device'])) : false;
 	if ($device['size'] == 0) {
-		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-erase', 'Insert');
+		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-erase', 'Mount');
 	} elseif ($format) {
 		$disable = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled") ? "" : "disabled";
 		$disable = $preclearing ? "disabled" : $disable;

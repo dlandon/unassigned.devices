@@ -177,7 +177,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 	function disk_op(el, op, device){
 		// add spinning and disable button
-		$("button[device='"+device+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> "+(op == "mount" ? "Mounting" : "Unmounting")+" ...");
+		$("button[device='"+device+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> "+(op == "mount" ? "Mounting" : "Unmounting")+"...");
 		$("button[device='"+device+"']").prop("disabled","true");
 		// disable partition buttons
 		td = $("button[device='"+device+"']").closest('td');
@@ -299,7 +299,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	function load_hosts(el, action) {
 	  var target = $(el).parents("div").find("*[name='IP']");
 	  var old = $(el).html();
-	  $(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> Searching ...");
+	  $(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> Searching...");
 	  $.post(URL,{'action': action, 'var': vars, 'network': network, 'workgroup': workgroup}).done(function(data) {
 	    $(el).html(old);
 	    if (data) {
@@ -326,7 +326,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	function load_shares(el, ip, user, pass, action) {
 	  var old = $(el).html();
 	  var target = $(el).parents("div").find("*[name='SHARE']");
-	  $(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> Loading ...");
+	  $(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> Loading...");
 	  var opts = new Object();
 	  opts["action"] = action;
 	  opts["IP"] = ip;
@@ -784,9 +784,9 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 		// Add icons to Tab/Title bar
 		addButtonTab('<a title="Unassigned Devices Settings" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>',
 								 "Unassigned Devices");
-		addButtonTab('<a style="cursor:pointer" onclick="$.post(\''+URL+'\',{\'action\':\'rescan_disks\'});" title="Rescan Disks"><i class="fa fa-refresh"></i></a>',
+		addButtonTab('<a style="cursor:pointer;" onclick="$.post(\''+URL+'\',{\'action\':\'rescan_disks\'});" title="Rescan Disks"><i class="fa fa-refresh"></i></a>',
 								 "Unassigned Devices");
-		addButtonTab('<div class="switch-wrapper"><a style="cursor:pointer" title="Switch Display Mode"><input type="checkbox" class="complete-switch"></a></div>',
+		addButtonTab('<div class="switch-wrapper"><a style="cursor:pointer;" title="Switch Display Mode"><input type="checkbox" class="complete-switch"></a></div>',
 								 "Unassigned Devices");
 
 		// Add switchButton to Tab/Title bar
@@ -810,7 +810,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 </script>
 
 
-<div style="display:none" data-survey-name="add_iso_share" data-survey-title="<?tr('Add ISO File Share',true)?>">
+<div style="display:none;" data-survey-name="add_iso_share" data-survey-title="<?tr('Add ISO File Share',true)?>">
   <div data-question data-question-title="<?tr('Choose ISO File')?>" data-question-button-done="<?tr('Add')?>">
     <div data-question-format>
       ["data-pickroot","ISO_FILE"]
@@ -852,7 +852,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 </div>
 
 
-<div style="display:none" data-survey-name="format_disk" data-survey-title="<?tr('Partition and Format Disk')?>">
+<div style="display:none;" data-survey-name="format_disk" data-survey-title="<?tr('Partition and Format Disk')?>">
   <div data-question data-question-title="<?tr('Choose File System Format')?>">
     <div data-question-format>
       [surveyOption.type,surveyOption.device]
@@ -904,11 +904,11 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
   </div>
   <div data-survey-done data-survey-done-wait="true">
     $("button[device='"+surveyOption.device+"']").prop('disabled',true);
-    $("button[device='"+surveyOption.device+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> Formatting ...");
+    $("button[device='"+surveyOption.device+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> Formatting...");
     $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"format_"+surveyOption.type,device:surveyOption.device, fs:surveyData["FS"], pass:surveyData["PASS"]}, function(data)
       {
         $("button[device='"+surveyOption.device+"']").prop('disabled',true);
-        $("button[device='"+surveyOption.device+"']").html( data.status ? "Formated" : "Format failed..." );
+        $("button[device='"+surveyOption.device+"']").html( data.status ? "Formated" : "Format failed" );
         swalShowResult(data.status);
       },"json").fail(function(){swalShowResult(false);});
   </div>
@@ -923,14 +923,14 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 
 
 
-<div style="display:none" data-survey-name="remove_partiton" data-survey-title="">
+<div style="display:none;" data-survey-name="remove_partiton" data-survey-title="">
   <div data-question data-question-title="" data-question-button-done='<?tr("Remove")?>' data-question-icon="warning">
     <div data-question-format>
       [surveyOption.partition,surveyOption.device]
     </div>
     <div data-question-content>
       <div class="swal-title"><?tr("Any data on this disk will be lost")?>!</div>
-      <div class="swal-title" style="font-size: 20px"><?tr("Remove partition")?> <span class="red">{0}</span> <?tr("from disk")?> <span class="red">{1}</span></div>
+      <div class="swal-title" style="font-size: 20px;"><?tr("Remove partition")?> <span class="red">{0}</span> <?tr("from disk")?> <span class="red">{1}</span></div>
       <div style="margin-bottom: 25px;font-size: 20px;"><?tr("Type")?><span class="red">'Yes'</span><?tr("to confirm")?>:</div>
       <input type="text" name="confim-yes" class="swal-content__input" autocomplete="new-password" required >
     </div>
@@ -941,7 +941,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
   </div>
   <div data-survey-done >
     $("span[device='"+surveyOption.device+surveyOption.partition+"']").prop('disabled',true);
-    $("span[device='"+surveyOption.device+surveyOption.partition+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> Removing ...");
+    $("span[device='"+surveyOption.device+surveyOption.partition+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> Removing...");
     $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"rm_partition",device:surveyOption.device,partition:surveyOption.partition},"json").always(function(data) {
       swalShowResult(true);
       usb_disks(tab_usbdisks);
@@ -957,18 +957,18 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 </div>
 
 
-<div style="display:none" data-survey-name="remove_iso_share" data-survey-title=<?tr("Remove ISO File mount")?> >
+<div style="display:none;" data-survey-name="remove_iso_share" data-survey-title=<?tr("Remove ISO File mount")?> >
   <div data-question data-question-title="" data-question-button-done=<?tr("Remove")?> data-question-icon="warning">
     <div data-question-format>
       [surveyOption]
     </div>
     <div data-question-content>
-      <div class="swal-title" style="font-size: 20px"><?tr("This will remove the")?> <span style="font-weight: bold">ISO</span> <?tr("file share for")?>:</div>
+      <div class="swal-title" style="font-size: 20px;"><?tr("This will remove the")?> <span style="font-weight: bold;">ISO</span> <?tr("file share for")?>:</div>
       <div style="margin-bottom: 15px;margin-top: 15px;">
-        <span style="font-weight: bold">{0}</span>
+        <span style="font-weight: bold;">{0}</span>
       </div>
-      <div class="swal-title" style="font-size: 20px">
-        <span class="red" style="font-weight: bold"><?tr("Are you sure")?>?</span>
+      <div class="swal-title" style="font-size: 20px;">
+        <span class="red" style="font-weight: bold;"><?tr("Are you sure")?>?</span>
       </div>
     </div>
     <div data-question-load></div>
@@ -990,18 +990,18 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 </div>
 
 
-<div style="display:none" data-survey-name="remove_disk_config" data-survey-title=<?tr("Remove Disk Config")?> >
+<div style="display:none;" data-survey-name="remove_disk_config" data-survey-title=<?tr("Remove Disk Config")?> >
   <div data-question data-question-title="" data-question-button-done=<?tr("Remove")?> data-question-icon="warning">
     <div data-question-format>
       [surveyOption]
     </div>
     <div data-question-content>
-      <div class="swal-title" style="font-size: 20px"><?tr("This will remove the saved configuration of")?>:</div>
+      <div class="swal-title" style="font-size: 20px;"><?tr("This will remove the saved configuration of")?>:</div>
       <div style="margin-bottom: 15px;margin-top: 15px;">
-        <span style="font-weight: bold">{0}</span>
+        <span style="font-weight: bold;">{0}</span>
       </div>
-      <div class="swal-title" style="font-size: 20px">
-        <span class="red" style="font-weight: bold"><?tr("Are you sure")?>?</span>
+      <div class="swal-title" style="font-size: 20px;">
+        <span class="red" style="font-weight: bold;"><?tr("Are you sure")?>?</span>
       </div>
     </div>
     <div data-question-load></div>
@@ -1023,18 +1023,18 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 </div>
 
 
-<div style="display:none" data-survey-name="remove_remote_share" data-survey-title='<?tr("Remove SMB/NFS mount")?>'>
+<div style="display:none;" data-survey-name="remove_remote_share" data-survey-title='<?tr("Remove SMB/NFS mount")?>'>
   <div data-question data-question-title="" data-question-button-done='<?tr("Remove")?>' data-question-icon="warning">
     <div data-question-format>
       [surveyOption, (surveyOption.startsWith("//") ? "SMB" : "NFS")]
     </div>
     <div data-question-content>
-      <div class="swal-title" style="font-size: 20px"><?tr("This will remove the remote")?> <span style="font-weight: bold">{1}</span> <?tr("share for")?>:</div>
+      <div class="swal-title" style="font-size: 20px;"><?tr("This will remove the remote")?> <span style="font-weight: bold;">{1}</span> <?tr("share for")?>:</div>
       <div style="margin-bottom: 15px;margin-top: 15px;">
-        <span style="font-weight: bold">{0}</span>
+        <span style="font-weight: bold;">{0}</span>
       </div>
-      <div class="swal-title" style="font-size: 20px">
-        <span class="red" style="font-weight: bold">'<?tr("Are you sure")?>?'</span>
+      <div class="swal-title" style="font-size: 20px;">
+        <span class="red" style="font-weight: bold;">'<?tr("Are you sure")?>?'</span>
       </div>
     </div>
     <div data-question-load></div>
@@ -1055,7 +1055,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
   </div>
 </div>
 
-<div style="display:none" data-survey-name="add_remote_share" data-survey-title='<?tr("Add Remote Share")?>'>
+<div style="display:none;" data-survey-name="add_remote_share" data-survey-title='<?tr("Add Remote Share")?>'>
   <div data-question data-question-title='<?tr("Click on Icon to Choose Protocol")?>'>
     <div data-question-format>
       ["nfs_radio","smb_radio"]
