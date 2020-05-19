@@ -45,12 +45,14 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	table.usb_absent tr>td+td+td{text-align:left;}
 	table.usb_absent tr>td+td+td+td{text-align:left;}
 	table.usb_absent tr>td+td+td+td+td{text-align:left;}
-	table.usb_absent tr>td+td+td+td+td+td{text-align:right;}
+	table.usb_absent tr>td+td+td+td+td+td{text-align:center;}
 
 	table.samba_mounts thead tr>td{text-align:left;width:8%;}
 	table.samba_mounts tr>td{text-align:left;white-space:nowrap;}
 	table.samba_mounts tr>td+td{width:auto;}
-	table.samba_mounts tr>td+td+td+td+td+td+td+td+td{text-align:left;}
+	table.samba_mounts tr>td+td+td+td+td{text-align:center;}
+	table.samba_mounts tr>td+td+td+td+td+td{text-align:right}
+	table.samba_mounts tr>td+td+td+td+td+td+td+td+td{text-align:left}
 
 	button.mount {padding:2px 7px 2px 0px;margin:1px 0px 1px 0px;}
 	i.fa{margin:0px 5px 0px 5px;}

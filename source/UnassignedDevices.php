@@ -351,15 +351,15 @@ switch ($_POST['action']) {
 				echo "<tr>";
 				$protocol = $mount['protocol'] == "NFS" ? "nfs" : "smb";
 				printf( "<td><img src='/plugins/{$plugin}/images/%s'>%s</td>", ( $is_alive ? "green-on.png":"green-blink.png" ), $protocol);
-				echo "<td><div></i><span style='margin:0px;'></span>{$mount['name']}</div></td>";
+				echo "<td>{$mount['name']}</td>";
 				$mount_point = basename($mount['mountpoint']);
 				if ($mounted) {
-					echo "<td><i class='fa fa-share-alt hdd'></i><span style='margin:0px;'></span><a title='".tr("Browse Remote SMB/NFS Share",true)."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
+					echo "<td><i class='fa fa-share-alt hdd'></i><a title='".tr("Browse Remote SMB/NFS Share",true)."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
 				} else {
 					echo "<td>
 						<form title='".tr("Click to change Remote SMB/NFS Mount Point - Press Enter to save",true)."' method='POST' action='/plugins/{$plugin}/UnassignedDevices.php' target='progressFrame' class='inline'>
 						<i class='fa fa-share-alt hdd'></i>
-						<span style='margin:0px;' class='text exec'><a>{$mount_point}</a></span>
+						<span class='text exec'><a>{$mount_point}</a></span>
 						<input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden />
 						<input type='hidden' name='action' value='change_samba_mountpoint'/>
 						<input type='hidden' name='device' value='{$mount['name']}'/>
@@ -372,12 +372,12 @@ switch ($_POST['action']) {
 				$cmd = get_samba_config($mount['device'],"command");
 				$running = ($cmd != "") ? (shell_exec("/usr/bin/ps -ef | grep '".basename($cmd)."' | grep -v 'grep'") != "" ? TRUE : FALSE) : FALSE;
 				if ($running) {
-					echo "<td><span style='width:auto;text-align:right;'><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i>Running...</button></span></td>";
+					echo "<td><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i>Running...</button></td>";
 				} else {
-					echo "<td><span style='width:auto;text-align:right;'>".($mounted ? "<button class='mount' device ='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>Unmount</button>" : "<button class='mount'device ='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>Mount</button>")."</span></td>";
+					echo "<td>".($mounted ? "<button class='mount' device ='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>Unmount</button>" : "<button class='mount'device ='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>Mount</button>")."</td>";
 				}
 				echo $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount['name']}\");' title='".tr("Remove Remote SMB/NFS Share",true)."'> <i class='fa fa-remove hdd'></i></a></td>";
-				echo "<td><span>".my_scale($mount['size'], $unit)." $unit</span></td>";
+				echo "<td>".my_scale($mount['size'], $unit)." $unit</span></td>";
 				echo render_used_and_free($mount, $mounted);
 				echo "<td title='".tr("Turn on to Mount Remote SMB/NFS Share when Array is Started",true)."'><input type='checkbox' class='samba_automount' device='{$mount['name']}' ".(($mount['automount']) ? 'checked':'')." /></td>";
 				echo "<td title='".tr("Turn on to Share Remote Mount with SMB and/or NFS",true)."'><input type='checkbox' class='toggle_samba_share' info='".htmlentities(json_encode($mount))."' ".(($mount['smb_share']) ? 'checked':'')." /></td>";
@@ -396,7 +396,7 @@ switch ($_POST['action']) {
 				echo "<tr>";
 				printf( "<td><img src='/plugins/{$plugin}/images/%s'>iso</td>", ( $is_alive ? "green-on.png":"green-blink.png" ));
 				$devname = basename($mount['device']);
-				echo "<td><span style='margin:0px;'></span>{$mount['device']}</td>";
+				echo "<td>{$mount['device']}</td>";
 				$mount_point = basename($mount['mountpoint']);
 				if ($mounted) {
 					echo "<td><i class='fa fa-share-alt'></i><span style='margin:0px;'></span><a title='".tr("Browse ISO File Share",true)."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
@@ -404,7 +404,7 @@ switch ($_POST['action']) {
 					echo "<td>
 						<form title='".tr("Click to change ISO File Mount Point - Press Enter to save",true)."' method='POST' action='/plugins/{$plugin}/UnassignedDevices.php' target='progressFrame' class='inline'>
 						<i class='fa fa-share-alt hdd'></i>
-						<span style='margin:0px;' class='text exec'><a>{$mount_point}</a></span>
+						<span class='text exec'><a>{$mount_point}</a></span>
 						<input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden />
 						<input type='hidden' name='action' value='change_iso_mountpoint'/>
 						<input type='hidden' name='device' value='{$mount['device']}'/>
@@ -416,12 +416,12 @@ switch ($_POST['action']) {
 				$cmd = get_iso_config($mount['device'],"command");
 				$running = ($cmd != "") ? (shell_exec("/usr/bin/ps -ef | grep '".basename($cmd)."' | grep -v 'grep'") != "" ? TRUE : FALSE) : FALSE;
 				if ($running) {
-					echo "<td><span style='width:auto;text-align:right;'><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i>Running...</button></span></td>";
+					echo "<td><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i>Running...</button></td>";
 				} else {
-					echo "<td><span style='width:auto;text-align:right;'>".($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>Unmount</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>Mount</button>")."</span></td>";
+					echo "<td>".($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>Unmount</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>Mount</button>")."</td>";
 				}
 				echo $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec' style='color:#CC0000;font-weight:bold;' onclick='remove_iso_config(\"{$mount['device']}\");' title='".tr("Remove ISO File Share",true)."'> <i class='fa fa-remove hdd'></i></a></td>";
-				echo "<td><span>".my_scale($mount['size'], $unit)." $unit</span></td>";
+				echo "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				echo render_used_and_free($mount, $mounted);
 				echo "<td title='".tr("Turn on to Mount ISO File when Array is Started",true)."'><input type='checkbox' class='iso_automount' device='{$mount['device']}' ".(($mount['automount']) ? 'checked':'')." /></td>";
 				echo "<td></td>";
@@ -445,7 +445,7 @@ switch ($_POST['action']) {
 			if($serial == "Config") continue;
 			if (! preg_grep("#{$serial}#", $disks_serials)){
 				$mountpoint	= basename(get_config($serial, "mountpoint.1"));
-				$ct .= "<tr><td><img src='/plugins/{$plugin}/images/green-blink.png'> missing</td><td>$serial"."   ($mountpoint)</td>";
+				$ct .= "<tr><td><img src='/plugins/{$plugin}/images/green-blink.png'> missing</td><td>$serial"." ($mountpoint)</td>";
 				$ct .= "<td title='".tr("Turn on to Mount Device Read only",true)."'><input type='checkbox' class='read_only' serial='{$serial}' ".( is_read_only($serial) ? 'checked':'')." /></td>";
 				$ct .= "<td title='".tr("Turn on to Mount Device when Array is Started",true)."'><input type='checkbox' class='automount' serial='{$serial}' ".( is_automount($serial) ? 'checked':'' )." /></td>";
 				$ct .= "<td><a title='".tr("Edit Device Script",true)."' href='/Main/EditScript?s=".urlencode($serial)."&l=".urlencode(basename($mountpoint))."&p=".urlencode("1")."'><i class=".( file_exists(get_config($serial,"command.1")) ? "'fa fa-code'":"'fa fa-minus-square-o'" )."'></i></a></td>";
