@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.05.18">
+<!ENTITY version   "2020.05.22">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"69fcafd38a994874bd6de3cd279f4d52">
+<!ENTITY MD5		"a227966ab3589c8e07167f94bda5f205">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Don't allow setting 'Pass Thru' when a disk is mounted.
+- Fix: Update support link.
+
+2020.05.18
 - Fix: UI adjustments and code cleanup.
 
 ###2020.05.17
