@@ -7,7 +7,7 @@
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/unassigned.devices/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
-<!ENTITY supportURL	"https://forums.unraid.net/topic/44104-unassigned-devices-managing-disk-drives-outside-of-the-unraid-array/">
+<!ENTITY supportURL	"https://forums.unraid.net/topic/54808-file-activity-plugin-how-can-i-figure-out-what-keeps-spinning-up-my-disks/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
 ]>
 
