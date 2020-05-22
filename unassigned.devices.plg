@@ -27,7 +27,7 @@
 - Fix: Don't allow setting 'Pass Thru' when a disk is mounted.
 - Fix: Update support link.
 
-2020.05.18
+###2020.05.18
 - Fix: UI adjustments and code cleanup.
 
 ###2020.05.17
