@@ -776,6 +776,7 @@ function do_mount_local($info) {
 }
 
 function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE, $nfs = FALSE) {
+
 	if ( is_mounted($dev) ) {
 		unassigned_log("Unmounting '{$dev}'...");
 		$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : "")." '{$dev}' 2>&1";
@@ -982,7 +983,7 @@ function rm_nfs_share($dir) {
 
 function remove_shares() {
 	// Disk mounts
-	foreach (get_unasigned_disks() as $name => $disk) {
+	foreach (get_unassigned_disks() as $name => $disk) {
 		foreach ($disk['partitions'] as $p) {
 			if ( is_mounted(realpath($p), true) ) {
 				$info = get_partition_info($p);
@@ -1019,7 +1020,7 @@ function remove_shares() {
 
 function reload_shares() {
 	// Disk mounts
-	foreach (get_unasigned_disks() as $name => $disk) {
+	foreach (get_unassigned_disks() as $name => $disk) {
 		foreach ($disk['partitions'] as $p) {
 			if ( is_mounted(realpath($p), true) ) {
 				$info = get_partition_info($p);
@@ -1383,7 +1384,7 @@ function remove_config_iso($source) {
 ############         DISK FUNCTIONS         #############
 #########################################################
 
-function get_unasigned_disks() {
+function get_unassigned_disks() {
 	global $disks, $var;
 
 	$ud_disks = $paths = $unraid_disks = array();
@@ -1451,7 +1452,7 @@ function get_unasigned_disks() {
 function get_all_disks_info($bus="all") {
 	unassigned_log("Starting get_all_disks_info.", "DEBUG");
 	$d1 = time();
-	$ud_disks = get_unasigned_disks();
+	$ud_disks = get_unassigned_disks();
 	foreach ($ud_disks as $key => $disk) {
 		$dp = time();
 		if ($disk['type'] != $bus && $bus != "all") continue;

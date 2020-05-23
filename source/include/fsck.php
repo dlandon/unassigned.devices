@@ -21,7 +21,7 @@ function write_log($string) {
 	if (empty($string)) {
 		return;
 	}
-	$string = str_replace("\n", "<br>", $string);
+	$string = str_replace("\n", "<br />", $string);
 	$string = str_replace('"', "\\\"", trim($string));
 	echo "<script>addLog(\"{$string}\");</script>";
 	@flush();
@@ -33,7 +33,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 	$type	= isset($_GET['type']) ? trim(urldecode($_GET['type'])) : 'ro';
 	$luks	= trim(urldecode($_GET['luks']));
 	$serial	= trim(urldecode($_GET['serial']));
-	echo "FS: $fs<br /><br />";
+	write_log("FS: $fs<br /><br />");
 	if ($fs == "crypto_LUKS") {
 		$mapper	= basename($device);
 		$cmd	= "luksOpen {$luks} {$mapper}";

@@ -25,7 +25,7 @@ function unassigned_mount() {
 	global $DEVNAME, $paths, $remove;
 
 	# Mount local disks
-	foreach(get_unasigned_disks() as $name => $disk) {
+	foreach(get_unassigned_disks() as $name => $disk) {
 		$device = $disk['device'];
 		foreach ($disk['partitions'] as $partition)
 		{
@@ -125,7 +125,7 @@ function unassigned_umount() {
 	$force = ($DEVNAME == "all") ? TRUE : FALSE;
 
 	# Deal with local disks
-	foreach(get_unasigned_disks() as $disk) {
+	foreach(get_unassigned_disks() as $disk) {
 		$device = $disk['device'];
 		foreach ($disk['partitions'] as $partition) {
 			if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "auto" || $DEVNAME == "all" ) {

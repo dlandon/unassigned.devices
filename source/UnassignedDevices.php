@@ -126,7 +126,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 		$fscheck = "<i class='fa fa-check partition'></i>{$partition['part']}";
 	}
 
-	$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled") ? "<span title='".tr("Remove Partition",true)."' device='{$partition['device']}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i></span>" : "";
+	$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled") ? "<span title='".tr("Remove Partition",true)."' device='{$partition['device']}' class='exec' style='color:red;font-weight:bold;' onclick='rm_partition(this,\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i></span>" : "";
 	$mpoint = "<span>{$fscheck}<i class='fa fa-share'></i>";
 	$mount_point = basename($partition['mountpoint']);
 	if ($mounted) {
@@ -142,13 +142,14 @@ function render_partition($disk, $partition, $total=FALSE) {
 		$mpoint .= "<input type='hidden' name='csrf_token' value='{$csrf_token}'/>";
 		$mpoint .= "</form>{$rm_partition}</span>";
 	}
+	$temp = my_temp($disk['temperature']);
 	$mbutton = make_mount_button($partition);
 	
 	$out[] = "<tr class='toggle-parts toggle-".basename($disk['device'])."' name='toggle-".basename($disk['device'])."' style='display:none;' >";
 	$out[] = "<td></td>";
 	$out[] = "<td>{$mpoint}</td>";
 	$out[] = "<td class='mount'>{$mbutton}</td>";
-	$out[] = "<td>-</td>";
+	$out[] = "<td>{$temp}</td>";
 	$fstype = $partition['fstype'];
 	if ($total) {
 		foreach ($disk['partitions'] as $part) {
@@ -170,11 +171,9 @@ function render_partition($disk, $partition, $total=FALSE) {
 			}
 		}
 
-		$out[] = "<td>".my_scale($partition['size'], $unit)." $unit</td>";
 		$out[] = "<td>".($mounted_disk && strlen($open_files) ? $open_files : "-")."</td>";
 	} else {
-		$out[] = "<td>".($partition['openfiles'] ? $partition['openfiles'] : "-")."</td>";
-		$out[] = "<td>".my_scale($partition['size'], $unit)." $unit</td>";
+		$out[] = "<td>".($mounted ? $partition['openfiles'] : "-")."</td>";
 	}
 	if ($total) {
 		$mounted_disk = FALSE;
@@ -184,13 +183,19 @@ function render_partition($disk, $partition, $total=FALSE) {
 				break;
 			}
 		}
+		$out[] = "";
 		$out[] = render_used_and_free_disk($disk, $mounted_disk);
 	} else {
+		$out[] = "<td>".my_scale($partition['size'], $unit)." $unit</td>";
 		$out[] = render_used_and_free($partition, $mounted);
 	}
 	$out[] = "<td title='".tr("Turn on to mark this Device as passed through to a VM or Docker",true)."'><input type='checkbox' class='pass_through' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['pass_through']) ? 'checked':'')." /></td>";
-	$out[] = "<td title='".tr("Turn on to Mount Device Read only",true)."'><input type='checkbox' class='read_only' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['read_only']) ? 'checked':'')." /></td>";
-	$out[] = "<td title='".tr("Turn on to Mount Device when Array is Started",true)."'><input type='checkbox' class='automount' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['automount']) ? 'checked':'')." /></td>";
+	if ($total) {
+		$out[] = "<td title='".tr("Turn on to Mount Device Read only",true)."'><input type='checkbox' class='read_only' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['read_only']) ? 'checked':'')." /></td>";
+		$out[] = "<td title='".tr("Turn on to Mount Device when Array is Started",true)."'><input type='checkbox' class='automount' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['automount']) ? 'checked':'')." /></td>";
+	} else {
+		$out[] = "<td></td><td></td>";
+	}
 	$out[] = "<td title='".tr("Turn on to Share Device with SMB and/or NFS",true)."'><input type='checkbox' class='toggle_share' info='".htmlentities(json_encode($partition))."' ".(($partition['shared']) ? 'checked':'')." /></td>";
 	$out[] = "<td><a title='".tr("View Device Script Log",true)."' href='/Main/ScriptLog?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><i class='fa fa-align-left'></i></a></td>";
 	$out[] = "<td><a title='".tr("Edit Device Script",true)."' href='/Main/EditScript?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><i class=".( file_exists(get_config($partition['serial'],"command.1")) ? "'fa fa-code'":"'fa fa-minus-square-o'" )."'></i></a></td>";
@@ -209,7 +214,7 @@ function make_mount_button($device) {
 		$context = "disk";
 	} else {
 		$mounted =	(isset($device["mounted"])) ? $device["mounted"] : is_mounted($device['device']);
-		$disable = (! empty($device['fstype']) && $device['fstype'] != "precleared") ? "" : "disabled";
+		$disable = (! empty($device['fstype']) && $device['fstype'] != "crypto_LUKS" && $device['fstype'] != "precleared") ? "" : "disabled";
 		$format	 = ((isset($device['fstype']) && empty($device['fstype'])) || $device['fstype'] == "precleared") ? true : false;
 		$context = "partition";
 	}
@@ -235,16 +240,12 @@ function make_mount_button($device) {
 	} elseif ($is_formatting) {
 		$button = sprintf($button, $context, 'format', 'disabled', 'fa fa-circle-o-notch fa-spin', 'Formatting...');
 	} elseif ($mounted) {
-		if ($device['fstype'] == "crypto_LUKS") {
-			$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-export', 'Unmount');
+		$cmd = get_config($device['serial'],"command.1");
+		$running = ($cmd != "") ? (shell_exec("/usr/bin/ps -ef | grep '".basename($cmd)."' | grep -v 'grep'") != "" ? TRUE : FALSE) : FALSE;
+		if ($running) {
+			$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-circle-o-notch fa-spin', 'Running...');
 		} else {
-			$cmd = get_config($device['serial'],"command.1");
-			$running = ($cmd != "") ? (shell_exec("/usr/bin/ps -ef | grep '".basename($cmd)."' | grep -v 'grep'") != "" ? TRUE : FALSE) : FALSE;
-			if ($running) {
-				$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-circle-o-notch fa-spin', 'Running...');
-			} else {
-				$button = sprintf($button, $context, 'umount', '', 'fa fa-export', 'Unmount');
-			}
+			$button = sprintf($button, $context, 'umount', $disable, 'fa fa-export', 'Unmount');
 		}
 	} else {
 		$disable = (is_pass_through($device['serial']) || $preclearing) ? "disabled" : $disable;
@@ -308,7 +309,7 @@ switch ($_POST['action']) {
 				echo "<td class='mount'>{$mbutton}</td>";
 				echo "<td>{$temp}</td>";
 				echo ($p)?$p[5]:"<td>-</td>";
-				echo ($p)?$p[7]:"<td>-</td>";
+				echo ($p)?$p[6]:"<td>-</td>";
 				echo "<td>".my_scale($disk['size'],$unit)." {$unit}</td>";
 				echo ($p)?$p[8]:"<td>-</td><td>-</td>";
 				echo ($p)?$p[9]:"<td>-</td>";
@@ -376,8 +377,8 @@ switch ($_POST['action']) {
 				} else {
 					echo "<td>".($mounted ? "<button class='mount' device ='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>Unmount</button>" : "<button class='mount'device ='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>Mount</button>")."</td>";
 				}
-				echo $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount['name']}\");' title='".tr("Remove Remote SMB/NFS Share",true)."'> <i class='fa fa-remove hdd'></i></a></td>";
-				echo "<td>".my_scale($mount['size'], $unit)." $unit</span></td>";
+				echo $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec' style='color:red;font-weight:bold;' onclick='remove_samba_config(\"{$mount['name']}\");' title='".tr("Remove Remote SMB/NFS Share",true)."'> <i class='fa fa-remove hdd'></i></a></td>";
+				echo "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				echo render_used_and_free($mount, $mounted);
 				echo "<td title='".tr("Turn on to Mount Remote SMB/NFS Share when Array is Started",true)."'><input type='checkbox' class='samba_automount' device='{$mount['name']}' ".(($mount['automount']) ? 'checked':'')." /></td>";
 				echo "<td title='".tr("Turn on to Share Remote Mount with SMB and/or NFS",true)."'><input type='checkbox' class='toggle_samba_share' info='".htmlentities(json_encode($mount))."' ".(($mount['smb_share']) ? 'checked':'')." /></td>";
@@ -420,7 +421,7 @@ switch ($_POST['action']) {
 				} else {
 					echo "<td>".($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>Unmount</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>Mount</button>")."</td>";
 				}
-				echo $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec' style='color:#CC0000;font-weight:bold;' onclick='remove_iso_config(\"{$mount['device']}\");' title='".tr("Remove ISO File Share",true)."'> <i class='fa fa-remove hdd'></i></a></td>";
+				echo $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec' style='color:red;font-weight:bold;' onclick='remove_iso_config(\"{$mount['device']}\");' title='".tr("Remove ISO File Share",true)."'> <i class='fa fa-remove hdd'></i></a></td>";
 				echo "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				echo render_used_and_free($mount, $mounted);
 				echo "<td title='".tr("Turn on to Mount ISO File when Array is Started",true)."'><input type='checkbox' class='iso_automount' device='{$mount['device']}' ".(($mount['automount']) ? 'checked':'')." /></td>";

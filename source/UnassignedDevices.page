@@ -33,12 +33,13 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 <script type="text/javascript" src="<?autov('/plugins/'.$plugin.'/assets/arrive.min.js')?>"></script>
 
 <style>
-	table.usb_disks {padding: 0px 10px 0px 0px;border-collapse:collapse;white-space:nowrap;}
+	table.usb_disks {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
 	table.usb_disks thead tr>td{text-align:left;width:8%;}
 	table.usb_disks tr>td{text-align:left;white-space:nowrap;}
 	table.usb_disks tr>td+td+td+td{width:auto;}
 	table.usb_disks tr>td+td+td+td+td+td+td+td+td+td{text-align:left;}
 
+	table.usb_absent {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
 	table.usb_absent thead tr>td{text-align:left;width:8%;}
 	table.usb_absent tr>td{text-align:left;white-space:nowrap;}
 	table.usb_absent tr>td+td{text-align:left;width:auto;}
@@ -47,6 +48,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	table.usb_absent tr>td+td+td+td+td{text-align:left;}
 	table.usb_absent tr>td+td+td+td+td+td{text-align:center;}
 
+	table.samba_mounts {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
 	table.samba_mounts thead tr>td{text-align:left;width:8%;}
 	table.samba_mounts tr>td{text-align:left;white-space:nowrap;}
 	table.samba_mounts tr>td+td{width:auto;}
@@ -63,19 +65,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	.underline{text-decoration: underline;}
 
 	form.inline{display:inline;margin:0;padding:0;}
-
-	.switch-wrapper {
-		display: inline-block;
-		position: relative;
-		top: 0px;
-		vertical-align: middle;
-		right: -12px;
-	}
-
-	.switch-button-background.checked {
-		background:#0088CC;
-		border:1px solid #0088CC;
-	}
 
 	.fileTree {
 		width: 305px;
@@ -582,20 +571,20 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 	<p>Hover your mouse over an any active area on the UD page and a tool tip will show you what clicking that area does.</p>
 	<p>You can mount USB devices, sata drives, Remote SMB/NFS shares, and ISO Files with UD.  Any devices with the auto mount switch on will be mounted when the array is started.  All drives and SMB/NFS Mounts are unmounted when the array is stopped on the 'stopping_svcs' event.</p>
 	<p>If you want to share your drive, you can turn on the Share switch.  The default for Remote SMB shares is Public read/write access.  Enable SMB Security by user in the Unassigned Devices Settings.  NFS shares are exported and access is read/write.  The export of NFS devices is enabled in the Unassigned Devices settings. You can also enable a common script that will be executed on every disk mount.  In order to share any UD device, sharing needs to be enabled in the UD Settings and the switch turned on to share the particular device.  SMB/NFS remove shares and ISO mounts are always shared.</p>
-	<p>After entering a mount point, press Enter to save the change.</p>
+	<p>After entering a mount point, press &lt;Enter&gt; to save the change.</p>
 	<p>Additional options are available when you click on the device identification.  When the disk is unmounted, the mount name of the device can be changed.  A disk can be formatted and an fsck run to check the disk.</p>
 	<p><b>The 'Settings->Unassigned Devices' security settings for SMB and NFS must be set correctly for SMB and NFS sharing to work properly.</b></p>
 	<p><b>If the mount button is grayed out for a SMB/NFS remote share, the remote server is not responding to a ping.  The remote share server must respond to a ping or UD will consider it off-line.</b></p>
 	<p>UD has a destructive mode that allows deleting disk partitions and formatting disks.	If Destructive Mode is not turned on in the UD Settings, you WILL NOT be able to format a disk or remove partitions.  Go the the 'Settings->Unassigned Devices' to set the destructive mode.</p>
 	<p>To format a disk:</p>
 		<li>Destructive mode must be enabled.</li>
-		<li>Disk must have all partitions removed.	Unmount disk, click on the serial number, and click on all red-X to delete partitions.</li>
-		<li>If the disk has been precelared and shows a grayed 'Format' button, click on the disk serial number, then click on the red-X to delete the preclear status file.</li>
-	<p><b>Note: A disk partitioned in UD is compatible with the array disk partitioning and can be added to the array.  Supported file formats are XFS and BTRFS.</b>
+		<li>Disk must have all partitions removed.	Unmount disk, click on the serial number, and click on all <i style='color:red;font-weight:bold;' class='fa fa-remove hdd'></i> icons to delete partitions.</li>
+		<li>If the disk has been precelared and shows a grayed 'Format' button, click on the <i style='color:black;font-weight:bold;' class='fa fa-plus-square'></i> icon, then click on the <i style='color:red;font-weight:bold;' class='fa fa-remove hdd'></i> icon to delete the preclear status file.</li>
+	<p><b>Note: A disk partitioned in UD is compatible with the array disk partitioning and can be added to the array. Supported file formats are XFS and BTRFS.</b>
 	<p>Encrypted Disks:</p>
 		<li>Any disk formatted in UD that is encrypted will use the array password/passphrase and can be incorporated into the array.</li>
 		<li>Any disk that was not encrypted in UD can be mounted by setting a per disk passord set in UD settings.</li>
-	<p>UD includes scripts that are used for mounting and unmounting devices and SMB/NFS mounts.	These scripts can be used from the command line or in scripts as necessary.
+	<p>UD includes scripts that are used for mounting and unmounting devices and SMB/NFS mounts. These scripts can be used from the command line or in scripts as necessary.
 	<p>Unassigned devices script:
 		<li>'/usr/local/sbin/rc.unassigned mount auto' - all devices and SMB/NFS mounts set to auto mount will be mounted.</li>
 		<li>'/usr/local/sbin/rc.unassigned umount auto' - all devices and SMB/NFS mounts set to auto mount will be unmounted.</li>
@@ -605,7 +594,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 		<li>'/usr/local/sbin/rc.unassigned refresh /dev/sdX' - used at the end of the 'ADD' case of a script so the 'Running...' indicator will be updated.</li>
 	</p>
 	<p>Switch the 'Complete' button to change the web page to just show hardware devices.	Switch the 'Simple' switch to switch back to the full web display.</p>
-	<p>Click on the Settings icon to go to the UD Settings.</p>
+	<p>Click on the <i class="fa fa-gear"></i> icon to go to the UD Settings.</p>
 <?if ($translations):?>:end<?endif;?>
 </blockquote>
 </form>
@@ -786,7 +775,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 								 "Unassigned Devices");
 		addButtonTab('<a style="cursor:pointer;" onclick="$.post(\''+URL+'\',{\'action\':\'rescan_disks\'});" title="Rescan Disks"><i class="fa fa-refresh"></i></a>',
 								 "Unassigned Devices");
-		addButtonTab('<div class="switch-wrapper"><a style="cursor:pointer;" title="Switch Display Mode"><input type="checkbox" class="complete-switch"></a></div>',
+		addButtonTab('<a style="cursor:pointer;" title="Switch Display Mode"><input type="checkbox" class="complete-switch"></a>',
 								 "Unassigned Devices");
 
 		// Add switchButton to Tab/Title bar
@@ -1077,7 +1066,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
       [surveyData["PROTOCOL"] == "SMB" ? "list_samba_hosts" : "list_nfs_hosts"]
     </div>
     <div data-question-content>
-      <input type='text' class="swal-content__input" name='IP' autocomplete="new-password" required><br>
+      <input type='text' class="swal-content__input" name='IP' autocomplete="new-password" required><br/>
       <button class="swal-button" onclick='load_hosts(this,"{0}")'><?tr("Search For Servers")?></button>
       <p><?tr("Search for Servers, or enter the Server name manually")?>.</p>
     </div>
@@ -1120,7 +1109,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
       [surveyData['PROTOCOL'], surveyData['IP'], surveyData['USER'], surveyData['PASS'], surveyData['DOMAIN'], (surveyData['PROTOCOL'] == 'SMB' ? 'list_samba_shares' : 'list_nfs_shares')]
     </div>
     <div data-question-content>
-      <input type='text' class="swal-content__input" autocomplete="new-password" name='SHARE' required><br>
+      <input type='text' class="swal-content__input" autocomplete="new-password" name='SHARE' required><br />
       <button class="swal-button" onclick='load_shares(this, "{1}", "{2}", "{3}", "{5}")'><?tr("Load Shares")?></button>
       <p><?tr("Search for Shares, or enter the Share name manually")?>.</p>
     </div>
