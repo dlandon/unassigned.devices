@@ -166,6 +166,11 @@ function is_disk_running($dev) {
 	return ($state == 0) ? TRUE : FALSE;
 }
 
+function is_script_running($cmd) {
+	$rc = shell_exec("/usr/bin/ps -ef | /bin/grep '".basename($cmd)."' | /bin/grep -v 'grep'") != "" ? TRUE : FALSE;
+	return($rc);
+}
+
 function lsof($dir) {
 	return intval(trim(timed_exec(5, "/usr/bin/lsof '{$dir}' 2>/dev/null | /bin/sort -k8 | /bin/uniq -f7 | /bin/grep -c -e REG")));
 }
@@ -559,8 +564,8 @@ global $paths;
 		@chmod($command_script, 0755);
 		unassigned_log("Running device script: '".basename($cmd)."' with action '{$action}'.");
 
-		$running = shell_exec("/usr/bin/ps -ef | grep '".basename($cmd)."' | grep -v 'grep'") != "" ? TRUE : FALSE;
-		if ((! $running) || (($running) && ($action != "ADD"))) {
+		$script_running = is_script_running($cmd);
+		if ((! $script_running) || (($running) && ($action != "ADD"))) {
 			if (! $testing) {
 				if ($action == "REMOVE") {
 					sleep(1);
@@ -624,7 +629,7 @@ function is_disk_ro($dev) {
 
 	$rc = FALSE;
 	if ($dev != "") {
-		$data = timed_exec(2, "/sbin/mount | grep {$dev}");
+		$data = timed_exec(2, "/sbin/mount | /bin/grep {$dev}");
 		$rc = strpos($data, "ro");
 	}
 	return $rc;
