@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.05.23">
+<!ENTITY version   "2020.05.24">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"6a6887f9fe1767daa9a5838f1a79f629">
+<!ENTITY MD5		"d23d5c65a2a0fd22eb13dc75b6911eb4">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,13 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Add option to settings to keep disks spun up.
+- Fix: A lot of error handling on UI.
+- Add: Shred credential and password files.
+- Fix: Even more UI cleanup.
+- Add: Don't show tmperature when a disk is passed through.
+
+###2020.05.23
 - Fix: Don't show information that does not apply.
 - Fix: Show FS when doing a file system check to show activity.
 - Fix: Each parttion was using the same script on multi-partitioned disks.
