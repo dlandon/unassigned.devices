@@ -117,10 +117,16 @@ function render_partition($disk, $partition, $total=FALSE) {
 	if (! isset($partition['device'])) return array();
 	$out = array();
 	$mounted =	(isset($partition["mounted"])) ? $partition["mounted"] : is_mounted($partition['device']);
-	if ($mounted && is_file(get_config($disk['serial'],"command.{$partition['part']}"))) {
+	$cmd = get_config($disk['serial'],"command.{$partition['part']}");
+	if ($mounted && is_file($cmd)) {
 		$script_partition = $partition['fstype'] == "crypto_LUKS" ? $partition['luks'] : $partition['device'];
-		$fscheck = "<a title='".tr("Execute Script as udev simulating a device being installed",true)."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/script.php?device={$script_partition}&owner=udev\",\"Execute Script\",600,900);'><i class='fa fa-flash partition'></i></a>{$partition['part']}";
-	} elseif ( (! $mounted &&	$partition['fstype'] != 'btrfs') ) {
+		$script_running = is_script_running($cmd);
+		if (! $script_running) {
+			$fscheck = "<a title='".tr("Execute Script as udev simulating a device being installed",true)."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/script.php?device={$script_partition}&owner=udev\",\"Execute Script\",600,900);'><i class='fa fa-flash partition'></i></a>{$partition['part']}";
+		} else {
+			$fscheck = "<i class='fa fa-flash partition'></i>{$partition['part']}";
+		}
+	} elseif ( (! $mounted && $partition['fstype'] != 'btrfs') ) {
 		$fscheck = "<a title='".tr("File System Check",true)."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&type=ro\",\"Check filesystem\",600,900);'><i class='fa fa-check partition'></i></a>{$partition['part']}";
 	} else {
 		$fscheck = "<i class='fa fa-check partition'></i>{$partition['part']}";
@@ -194,11 +200,13 @@ function render_partition($disk, $partition, $total=FALSE) {
 		$out[] = "<td title='".tr("Turn on to Mount Device Read only",true)."'><input type='checkbox' class='read_only' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['read_only']) ? 'checked':'')." /></td>";
 		$out[] = "<td title='".tr("Turn on to Mount Device when Array is Started",true)."'><input type='checkbox' class='automount' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['automount']) ? 'checked':'')." /></td>";
 	} else {
-		$out[] = "<td></td><td></td><td></td>";
+		$out[] = "<td></td>";
+		$out[] = "<td></td>";
+		$out[] = "<td></td>";
 	}
 	$out[] = "<td title='".tr("Turn on to Share Device with SMB and/or NFS",true)."'><input type='checkbox' class='toggle_share' info='".htmlentities(json_encode($partition))."' ".(($partition['shared']) ? 'checked':'')." /></td>";
 	$out[] = "<td><a title='".tr("View Device Script Log",true)."' href='/Main/ScriptLog?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><i class='fa fa-align-left'></i></a></td>";
-	$out[] = "<td><a title='".tr("Edit Device Script",true)."' href='/Main/EditScript?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><i class=".( file_exists(get_config($partition['serial'],"command.1")) ? "'fa fa-code'":"'fa fa-minus-square-o'" )."'></i></a></td>";
+	$out[] = "<td><a title='".tr("Edit Device Script",true)."' href='/Main/EditScript?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><i class=".( file_exists($partition['command']) ? "'fa fa-code'" : "'fa fa-minus-square-o'" )."'></i></a></td>";
 	$out[] = "</tr>";
 	return $out;
 }
@@ -240,8 +248,8 @@ function make_mount_button($device) {
 	} elseif ($is_formatting) {
 		$button = sprintf($button, $context, 'format', 'disabled', 'fa fa-circle-o-notch fa-spin', 'Formatting...');
 	} elseif ($mounted) {
-		$cmd = get_config($device['serial'],"command.1");
-		$script_running = ($cmd != "") ? is_script_running($cmd) : FALSE;
+		$cmd = $device['command'];
+		$script_running = is_script_running($cmd);
 		if ($script_running) {
 			$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-circle-o-notch fa-spin', 'Running...');
 		} else {
@@ -371,7 +379,7 @@ switch ($_POST['action']) {
 
 				$disabled = $is_alive ? "enabled":"disabled";
 				$cmd = get_samba_config($mount['device'],"command");
-				$script_running = ($cmd != "") ? is_script_running($cmd) : FALSE;
+				$script_running = is_script_running($cmd);
 				if ($script_running) {
 					echo "<td><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i>Running...</button></td>";
 				} else {
@@ -415,7 +423,7 @@ switch ($_POST['action']) {
 				}
 				$disabled = $is_alive ? "enabled":"disabled";
 				$cmd = get_iso_config($mount['device'],"command");
-				$script_running = ($cmd != "") ? is_script_running($cmd) : FALSE;
+				$script_running = is_script_running($cmd);
 				if ($script_running) {
 					echo "<td><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i>Running...</button></td>";
 				} else {
@@ -486,7 +494,7 @@ switch ($_POST['action']) {
 	case 'get_command':
 		$serial = urldecode(($_POST['serial']));
 		$part	 = urldecode(($_POST['part']));
-		echo json_encode(array( 'command' => get_config($serial, "command.{$part}"), "background" =>	get_config($serial, "command_bg.{$part}") ));
+		echo json_encode(array( 'command' => get_config($serial, "command.{$part}"), "background" => get_config($serial, "command_bg.{$part}") ));
 		break;
 
 	case 'set_command':

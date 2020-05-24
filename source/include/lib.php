@@ -167,7 +167,10 @@ function is_disk_running($dev) {
 }
 
 function is_script_running($cmd) {
-	$rc = shell_exec("/usr/bin/ps -ef | /bin/grep '".basename($cmd)."' | /bin/grep -v 'grep'") != "" ? TRUE : FALSE;
+	$rc = FALSE;
+	if ($cmd != "") {
+		$rc = shell_exec("/usr/bin/ps -ef | /bin/grep '".basename($cmd)."' | /bin/grep -v 'grep'") != "" ? TRUE : FALSE;
+	}
 	return($rc);
 }
 
@@ -565,7 +568,7 @@ global $paths;
 		unassigned_log("Running device script: '".basename($cmd)."' with action '{$action}'.");
 
 		$script_running = is_script_running($cmd);
-		if ((! $script_running) || (($running) && ($action != "ADD"))) {
+		if ((! $script_running) || (($script_running) && ($action != "ADD"))) {
 			if (! $testing) {
 				if ($action == "REMOVE") {
 					sleep(1);
@@ -1499,8 +1502,9 @@ function get_disk_info($device, $reload=FALSE){
 	$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV, $reload) : get_udev_info($device, NULL, $reload);
 	$device = realpath($device);
 	$disk['serial_short'] = isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
-	$disk['serial']       = "{$attrs['ID_MODEL']}_{$disk['serial_short']}";
-	$disk['device']       = $device;
+	$disk['serial']		= "{$attrs['ID_MODEL']}_{$disk['serial_short']}";
+	$disk['device']		= $device;
+	$disk['command']	= get_config($disk['serial'],"command.1");
 	return $disk;
 }
 
