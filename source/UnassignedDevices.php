@@ -507,7 +507,7 @@ switch ($_POST['action']) {
 
 	case 'remove_config':
 		$serial = urldecode(($_POST['serial']));
-		echo json_encode(array( 'result' => remove_config_disk($serial)));
+		echo json_encode(remove_config_disk($serial));
 		break;
 
 	case 'toggle_share':
@@ -615,6 +615,8 @@ switch ($_POST['action']) {
 
 	/* SMB SHARES */
 	case 'add_samba_share':
+		$rc = TRUE;
+
 		$ip = urldecode($_POST['IP']);
 		$ip = implode("",explode("\\", $ip));
 		$ip = stripslashes(trim($ip));
@@ -638,13 +640,15 @@ switch ($_POST['action']) {
 				set_samba_config("{$device}", "share", safe_name($share));
 			} else {
 				unassigned_log("Share '{$device}' contains a '$' character.	It cannot be mounted.");
+				$rc = FALSE;
 			}
 		}
+		echo json_encode($rc);
 		break;
 
 	case 'remove_samba_config':
 		$device = urldecode(($_POST['device']));
-		remove_config_samba($device);
+		echo json_encode(remove_config_samba($device));
 		break;
 
 	case 'samba_automount':
@@ -682,6 +686,7 @@ switch ($_POST['action']) {
 
 	/* ISO FILE SHARES */
 	case 'add_iso_share':
+		$rc = TRUE;
 		$file = isset($_POST['ISO_FILE']) ? urldecode($_POST['ISO_FILE']) : "";
 		$file = implode("",explode("\\", $file));
 		$file = stripslashes(trim($file));
@@ -692,12 +697,14 @@ switch ($_POST['action']) {
 			set_iso_config("{$file}", "share", $share);
 		} else {
 			unassigned_log("ISO File '{$file}' not found.");
+			$rc = FALSE;
 		}
+		echo json_encode($rc);
 		break;
 
 	case 'remove_iso_config':
 		$device = urldecode(($_POST['device']));
-		remove_config_iso($device);
+		echo json_encode(remove_config_iso($device));
 		break;
 
 	case 'iso_automount':
@@ -717,7 +724,7 @@ switch ($_POST['action']) {
 	case 'rm_partition':
 		$device = urldecode($_POST['device']);
 		$partition = urldecode($_POST['partition']);
-		remove_partition($device, $partition );
+		echo json_encode(remove_partition($device, $partition));
 		break;
 
 	case 'change_mountpoint':

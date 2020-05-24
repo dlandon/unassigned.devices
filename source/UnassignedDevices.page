@@ -306,7 +306,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	      }
 	      else
 	      {
-	        target.replaceWith("<input type='text' name='IP' class='swal-content__input' autocomplete='new-password'>");
+	        target.replaceWith("<input type='text' name='IP' class='swal-content__input' autocomplete='off'>");
 	      }
 	    }
 	  });
@@ -336,12 +336,12 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	      }
 	      else
 	      {
-	        target.replaceWith("<input type='text' name='SHARE' class='swal-content__input' autocomplete='new-password' required>");
+	        target.replaceWith("<input type='text' name='SHARE' class='swal-content__input' autocomplete='off' required>");
 	      }
 	    }
 	    else
 	    {
-	      target.replaceWith("<input type='text' name='SHARE' class='swal-content__input' autocomplete='new-password' required>");
+	      target.replaceWith("<input type='text' name='SHARE' class='swal-content__input' autocomplete='off' required>");
 	    }
 	  });
 	}
@@ -805,7 +805,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
       ["data-pickroot","ISO_FILE"]
     </div>
     <div data-question-content>
-      <input type='text' name='{1}' placeholder='<?tr("Click to select ISO file")?>' data-pickcloseonfile='true' data-pickfilter='iso' {0}='/mnt/user/' data-pickfolders='true' required='required' class='swal-content__input' autocomplete="new-password" >
+      <input type='text' name='{1}' placeholder='<?tr("Click to select ISO file")?>' data-pickcloseonfile='true' data-pickfilter='iso' {0}='/mnt/user/' data-pickfolders='true' required='required' class='swal-content__input' autocomplete="off" >
       <p><span style="font-weight:bold;"><?tr("Note")?>:</span> <?tr("Dockers will not be able to access any ISO share until you restart the Docker service after the ISO file is mounted.  Be sure to add a Docker path mapping the ISO share as 'RW/Slave' or 'RO/Slave'")?>.</p>
       <p><?tr("Go to Settings->Docker and disable then re-enable Docker")?>.</p>
     </div>
@@ -818,10 +818,14 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
   <div data-survey-done>
     var opts = {action:"add_iso_share",ISO_FILE:surveyData["ISO_FILE"]};
     if (opts.ISO_FILE) {
-      $.post("/plugins/unassigned.devices/UnassignedDevices.php",opts).done(function() {
-        swalShowResult(true);
-        usb_disks(tab_usbdisks);
-      }).fail(function(){swalShowResult(false);});
+      $.post("/plugins/unassigned.devices/UnassignedDevices.php",opts).done(function(data) {
+		if (data == "true") {
+			swalShowResult(true);
+			usb_disks(tab_usbdisks);
+		} else {
+			swalShowResult(false);
+		}
+      },"json").fail(function(){swalShowResult(false);});
     }
   </div>
   <div>
@@ -884,7 +888,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
     <div data-question-content>
       <div class="swal-title"><?tr("Any data on this disk will be lost")?>!</div>
       <div style="margin-bottom: 25px;font-size: 20px;"><?tr("Type")?><span class="red">'Yes'</span><?tr("to format")?>:</div>
-      <input type="text" name="confim-yes" class="swal-content__input" autocomplete="new-password" required >
+      <input type="text" name="confim-yes" class="swal-content__input" autocomplete="off" required >
     </div>
     <div data-question-load></div>
     <div data-question-done>
@@ -894,8 +898,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
   <div data-survey-done data-survey-done-wait="true">
     $("button[device='"+surveyOption.device+"']").prop('disabled',true);
     $("button[device='"+surveyOption.device+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> Formatting...");
-    $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"format_"+surveyOption.type,device:surveyOption.device, fs:surveyData["FS"], pass:surveyData["PASS"]}, function(data)
-      {
+    $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"format_"+surveyOption.type,device:surveyOption.device, fs:surveyData["FS"], pass:surveyData["PASS"]}, function(data) {
         $("button[device='"+surveyOption.device+"']").prop('disabled',true);
         $("button[device='"+surveyOption.device+"']").html( data.status ? "Formated" : "Format failed" );
         swalShowResult(data.status);
@@ -921,7 +924,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
       <div class="swal-title"><?tr("Any data on this disk will be lost")?>!</div>
       <div class="swal-title" style="font-size: 20px;"><?tr("Remove partition")?> <span class="red">{0}</span> <?tr("from disk")?> <span class="red">{1}</span></div>
       <div style="margin-bottom: 25px;font-size: 20px;"><?tr("Type")?><span class="red">'Yes'</span><?tr("to confirm")?>:</div>
-      <input type="text" name="confim-yes" class="swal-content__input" autocomplete="new-password" required >
+      <input type="text" name="confim-yes" class="swal-content__input" autocomplete="off" required >
     </div>
     <div data-question-load></div>
     <div data-question-done>
@@ -929,12 +932,16 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
     </div>
   </div>
   <div data-survey-done >
-    $("span[device='"+surveyOption.device+surveyOption.partition+"']").prop('disabled',true);
-    $("span[device='"+surveyOption.device+surveyOption.partition+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> Removing...");
-    $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"rm_partition",device:surveyOption.device,partition:surveyOption.partition},"json").always(function(data) {
-      swalShowResult(true);
-      usb_disks(tab_usbdisks);
-    }).fail(function(){swalShowResult(false);});
+	$("span[device='"+surveyOption.device+surveyOption.partition+"']").prop('disabled',true);
+	$("span[device='"+surveyOption.device+surveyOption.partition+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> Removing...");
+	$.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"rm_partition",device:surveyOption.device,partition:surveyOption.partition}).done(function(data) {
+		if (data == "true") {
+			swalShowResult(true);
+			usb_disks(tab_usbdisks);
+		} else {
+			swalShowResult(false);
+		}
+	}, "json").fail(function(){swalShowResult(false);});
   </div>
   <div>
     <script type="text/javascript">
@@ -964,10 +971,14 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
     <div data-question-done></div>
   </div>
   <div data-survey-done>
-    $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"remove_iso_config",device:surveyOption},"json").done(function(){
-      usb_disks(tab_usbdisks);
-      swalShowResult(true);
-    }).fail(function(){swalShowResult(false);});
+    $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"remove_iso_config",device:surveyOption},"json").done(function(data) {
+		if (data == "true") {
+			usb_disks(tab_usbdisks);
+			swalShowResult(true);
+		} else {
+			swalShowResult(false);
+		}
+    },"json").fail(function(){swalShowResult(false);});
   </div>
   <div>
     <script type="text/javascript">
@@ -997,10 +1008,14 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
     <div data-question-done></div>
   </div>
   <div data-survey-done>
-    $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"remove_config",serial:surveyOption},"json").done(function(){
-      usb_disks(tab_usbdisks);
-      swalShowResult(true);
-    }).fail(function(){swalShowResult(false);});
+    $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"remove_config",serial:surveyOption},"json").done(function(data){
+		if (data == "true") {
+			usb_disks(tab_usbdisks);
+			swalShowResult(true);
+		} else {
+			swalShowResult(false)
+		}
+    },"json").fail(function(){swalShowResult(false);});
   </div>
   <div>
     <script type="text/javascript">
@@ -1030,9 +1045,13 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
     <div data-question-done></div>
   </div>
   <div data-survey-done>
-    $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"remove_samba_config",device:surveyOption},"json").done(function(){
-      usb_disks(tab_usbdisks);
-      swalShowResult(true);
+    $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"remove_samba_config",device:surveyOption},"json").done(function(data){
+		if (data === "true") {
+			usb_disks(tab_usbdisks);
+			swalShowResult(true);
+		} else {
+			swalShowResult(false)
+		}
     }).fail(function(){swalShowResult(false);});
   </div>
   <div>
@@ -1066,9 +1085,9 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
       [surveyData["PROTOCOL"] == "SMB" ? "list_samba_hosts" : "list_nfs_hosts"]
     </div>
     <div data-question-content>
-      <input type='text' class="swal-content__input" name='IP' autocomplete="new-password" required><br/>
+      <input type='text' class="swal-content__input" name='IP' autocomplete="off" required><br/>
       <button class="swal-button" onclick='load_hosts(this,"{0}")'><?tr("Search For Servers")?></button>
-      <p><?tr("Search for Servers, or enter the Server name manually")?>.</p>
+      <p><?tr("Search for Servers, or enter the Server name/IP address manually")?>.</p>
     </div>
   </div>
   <div data-question data-question-title='<?tr("Username")?>'>
@@ -1077,7 +1096,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
     </div>
     <div data-question-content>
       <div class="swal-content">
-        <input type="text" class="swal-content__input" name="USER" autocomplete="new-password" placeholder=<?tr("Username")?>>
+        <input type="text" class="swal-content__input" name="USER" autocomplete="off" placeholder=<?tr("Username")?>>
 		<p><?tr("Enter the Username if the share is password protected.  You will need to enter credentials for Windows 10 shares")?>.</p>
       </div>
     </div>
@@ -1099,7 +1118,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
     </div>
     <div data-question-content>
       <div class="swal-content">
-        <input type="text" class="swal-content__input" name="DOMAIN" autocomplete="new-password" placeholder='<?tr("Domain")?>'>
+        <input type="text" class="swal-content__input" name="DOMAIN" autocomplete="off" placeholder='<?tr("Domain")?>'>
 		<p><?tr("Enter the Domain for the share if on a Domain")?>.</p>
       </div>
     </div>
@@ -1109,7 +1128,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
       [surveyData['PROTOCOL'], surveyData['IP'], surveyData['USER'], surveyData['PASS'], surveyData['DOMAIN'], (surveyData['PROTOCOL'] == 'SMB' ? 'list_samba_shares' : 'list_nfs_shares')]
     </div>
     <div data-question-content>
-      <input type='text' class="swal-content__input" autocomplete="new-password" name='SHARE' required><br />
+      <input type='text' class="swal-content__input" autocomplete="off" name='SHARE' required><br />
       <button class="swal-button" onclick='load_shares(this, "{1}", "{2}", "{3}", "{5}")'><?tr("Load Shares")?></button>
       <p><?tr("Search for Shares, or enter the Share name manually")?>.</p>
     </div>
@@ -1127,9 +1146,13 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
         opts["PASS"]     = surveyData['PASS'];
         opts["SHARE"]    = surveyData['SHARE'];
         if (opts.SHARE && opts.IP) {
-          $.post("/plugins/unassigned.devices/UnassignedDevices.php",opts).done(function(){
-            swalShowResult(true);
-            usb_disks(tab_usbdisks);
+          $.post("/plugins/unassigned.devices/UnassignedDevices.php",opts).done(function(data){
+			if (data == "true") {
+				swalShowResult(true);
+				usb_disks(tab_usbdisks);
+			} else {
+				swalShowResult(false);
+			}
           }).fail(function(){swalShowResult(false);});
         }
   </div>

@@ -189,8 +189,7 @@ function get_temp($dev, $running = null) {
 		$cmd	= "/usr/sbin/smartctl -A $dev | /bin/awk 'BEGIN{t=\"*\"} $1==\"Temperature:\"{t=$2;exit};$1==190||$1==194{t=$10;exit} END{print t}'";
 		$temp	= trim(timed_exec(10, $cmd));
 		$temp	= ($temp < 128) ? $temp : "*";
-		$temps[$dev] = array('timestamp' => time(),
-							 'temp'      => $temp);
+		$temps[$dev] = array('timestamp' => time(), 'temp' => $temp);
 		file_put_contents($tc, json_encode($temps));
 		$rc = $temp;
 	}
@@ -436,6 +435,8 @@ function format_disk($dev, $fs, $pass) {
 }
 
 function remove_partition($dev, $part) {
+	$rc = TRUE;
+
 	foreach (get_all_disks_info() as $d) {
 		if ($d['device'] == $dev) {
 			foreach ($d['partitions'] as $p) {
@@ -447,14 +448,15 @@ function remove_partition($dev, $part) {
 		}
 	}
 	unassigned_log("Removing partition '{$part}' from disk '{$dev}'.");
-	$out = shell_exec("/usr/sbin/parted {$dev} --script -- rm {$part}");
+	$out = shell_exec("/usr/sbin/parted {$dev} --script -- rm {$part} 2>&1");
 	if ($out != "") {
 		unassigned_log("Remove parition failed result '{$out}'");
+		$rc = FALSE;
 	}
 	shell_exec("/sbin/udevadm trigger --action=change {$dev}");
 	sleep(5);
 	exec("/usr/sbin/partprobe {$dev}");
-	return TRUE;
+	return $rc;
 }
 
 function benchmark() {
@@ -603,14 +605,14 @@ function remove_config_disk($sn) {
 	if ( isset($config[$source]) ) {
 		unassigned_log("Removing configuration '$source'.");
 	}
-	$command = $config[$source][command];
+	$command = $config[$source]['command'];
 	if ( isset($command) && is_file($command) ) {
 		@unlink($command);
 		unassigned_log("Removing script '$command'.");
 	}
 	unset($config[$sn]);
 	save_ini_file($config_file, $config);
-	return (isset($config[$sn])) ? TRUE : FALSE;
+	return (! isset($config[$sn])) ? TRUE : FALSE;
 }
 
 #########################################################
@@ -1274,14 +1276,14 @@ function remove_config_samba($source) {
 	if ( isset($config[$source]) ) {
 		unassigned_log("Removing configuration '$source'.");
 	}
-	$command = $config[$source][command];
+	$command = $config[$source]['command'];
 	if ( isset($command) && is_file($command) ) {
 		@unlink($command);
 		unassigned_log("Removing script '$command'.");
 	}
 	unset($config[$source]);
 	save_ini_file($config_file, $config);
-	return (isset($config[$source])) ? TRUE : FALSE;
+	return (! isset($config[$source])) ? TRUE : FALSE;
 }
 
 #########################################################
@@ -1377,14 +1379,14 @@ function remove_config_iso($source) {
 	if ( isset($config[$source]) ) {
 		unassigned_log("Removing configuration '$source'.");
 	}
-	$command = $config[$source][command];
+	$command = $config[$source]['command'];
 	if ( isset($command) && is_file($command) ) {
 		@unlink($command);
 		unassigned_log("Removing script '$command'.");
 	}
 	unset($config[$source]);
 	save_ini_file($config_file, $config);
-	return (isset($config[$source])) ? TRUE : FALSE;
+	return (! isset($config[$source])) ? TRUE : FALSE;
 }
 
 
@@ -1551,7 +1553,7 @@ function get_partition_info($device, $reload=FALSE){
 		$disk['target'] = str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep {$disk['device']} | /bin/awk '{print $2}'")));
 		file_put_contents("{$paths['df_temp']}", "");
 		if (file_exists($disk['mountpoint'])) {
-			timed_exec(2,"/bin/df '{$disk['device']}' --output=size,used,avail | /bin/grep -v '1K-blocks' > {$paths['df_temp']} 2>/dev/null");
+			timed_exec(5,"/bin/df '{$disk['device']}' --output=size,used,avail | /bin/grep -v '1K-blocks' > {$paths['df_temp']} 2>/dev/null");
 		}
 		$disk['size']		= intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $1}'")))*1024;
 		$disk['used']		= intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $2}'")))*1024;
@@ -1627,7 +1629,15 @@ function change_UUID($dev) {
 }
 
 function setSleepTime($device) {
+	global $paths;
+
+	$config_file	= $GLOBALS["paths"]["config_file"];
+	$config			= @parse_ini_file($config_file, true);
 	$device = preg_replace("/\d+$/", "", $device);
-	timed_exec(10, "/usr/sbin/hdparm -S180 $device 2>&1");
+	if ($config['Config']['spin_down'] != "no") {
+		timed_exec(5, "/usr/sbin/hdparm -S180 $device 2>&1");
+	} else {
+		timed_exec(5, "/usr/sbin/hdparm -S0 $device 2>&1");
+	}
 }
 ?>

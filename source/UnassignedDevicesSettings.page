@@ -129,7 +129,7 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
 : <input type="text" name="common_cmd" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin?>/','sh',false,true,true);" value="<?=$cfg['Config']['common_cmd'];?>">
 
 <?if ($translations):?>:plug1<?endif;?>
-> If set, this script will run before the device script.  The action is in the environment variable '**$ACTION**'.  Be sure you reference all commands with their full path.
+> If set, this script will run before the device script.  The action is in the environment variable **$ACTION**.  Be sure you reference all commands with their full path.
 <?if ($translations):?>:end<?endif;?>
 
 <?tr("Destructive Mode")?>:
@@ -152,24 +152,34 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
 > When set to **Yes**, will auto mount a new USB device and share it without user intervention.
 <?if ($translations):?>:end<?endif;?>
 
-<?tr("Force all SMB remote shares to SMB v1")?>?
-: <select name="samba_v1" size="1" <?if (! $use_netbios):?>disabled<?endif;?>>
-  <?=mk_option($cfg["Config"]["samba_v1"], "no", tr("No",true));?>
-  <?=mk_option($cfg["Config"]["samba_v1"], "yes", tr("Yes",true));?>
-  </select><?if (! $use_netbios):?>&nbsp;<span style="font-weight: bold">NetBIOS</span> <?tr("must be enabled in SMB Settings to enable SMB v1")?>.<?endif;?>
-
-<?if ($translations):?>:plug4<?endif;?>
-> Normally a SMB remote share will be mounted with the highest version of SMB that the remote server will support.  When set to **Yes**, all SMB remote shares will be forced to mount with SMB v1.  Some remote shares will give errors when mounted with SMB v2.  SMB v1 has security issues and should not be used unless absolutely necessary.  This cannot be enabled if NetBIOS is disabled.
-<?if ($translations):?>:end<?endif;?>
-
 <?tr("Mount SSDs with 'discard' option")?>?
 : <select name="discard" size="1">
   <?=mk_option($cfg["Config"]["discard"], "yes", tr("Yes",true));?>
   <?=mk_option($cfg["Config"]["discard"], "no", tr("No",true));?>
   </select>
 
-<?if ($translations):?>:plug5<?endif;?>
+<?if ($translations):?>:plug4<?endif;?>
 > Mount SSDs that support discard with 'discard' option.  If you are using the SSD Trim Settings to do a periodic trim of SSDs you can set this to **No**.
+<?if ($translations):?>:end<?endif;?>
+
+<?tr("Spin down disks")?>?
+: <select name="spin_down" size="1">
+  <?=mk_option($cfg["Config"]["spin_down"], "yes", tr("Yes",true));?>
+  <?=mk_option($cfg["Config"]["spin_down"], "no", tr("No",true));?>
+  </select>
+
+<?if ($translations):?>:plug5<?endif;?>
+> Set to **Yes** to set a 15 minute disk spin down timer.  Set to **No** to keep disks spun up.
+<?if ($translations):?>:end<?endif;?>
+
+<?tr("Force all SMB remote shares to SMB v1")?>?
+: <select name="samba_v1" size="1" <?if (! $use_netbios):?>disabled<?endif;?>>
+  <?=mk_option($cfg["Config"]["samba_v1"], "no", tr("No",true));?>
+  <?=mk_option($cfg["Config"]["samba_v1"], "yes", tr("Yes",true));?>
+  </select><?if (! $use_netbios):?>&nbsp;<span style="font-weight: bold">NetBIOS</span> <?tr("must be enabled in SMB Settings to enable SMB v1")?>.<?endif;?>
+
+<?if ($translations):?>:plug6<?endif;?>
+> Normally a SMB remote share will be mounted with the highest version of SMB that the remote server will support.  When set to **Yes**, all SMB remote shares will be forced to mount with SMB v1.  Some remote shares will give errors when mounted with SMB v2.  SMB v1 has security issues and should not be used unless absolutely necessary.  This cannot be enabled if NetBIOS is disabled.
 <?if ($translations):?>:end<?endif;?>
 
 &nbsp;
@@ -243,7 +253,7 @@ Enable NFS export?
 </div>
 
 <?if ($translations):?>:plug7<?endif;?>
-> Set to **Yes** to export NFS shares.  Shares are exported Public with read and write access or Private with the rule you set.
+> Set to **Yes** to export NFS shares.  Shares are exported Public with read and write access or Private with the rule you set.  Access is controlled with permission settings on files and folders.
 <?if ($translations):?>:end<?endif;?>
 
 &nbsp;
@@ -286,7 +296,7 @@ Select Disk to change UUID:
   </select>
   
 <?if ($translations):?>:plug9<?endif;?>
-> Select the disk that you want to change the UUID.  This is useful when a disk has been removed from the array and has he same UUID as an array disk.  Drive must be unmounted to change the UUID.
+> Select the disk that you want to change the UUID.  This is useful when a disk has been removed from the array and has the same UUID as an array disk.  Drive must be unmounted to change the UUID.
 <?if ($translations):?>:end<?endif;?>
 
 &nbsp;
