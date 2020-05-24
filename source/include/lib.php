@@ -395,7 +395,7 @@ function format_disk($dev, $fs, $pass) {
 			$luks_pass_file = "{$paths['luks_pass']}_".$luks;
 			$cmd	= $cmd." -d {$luks_pass_file}";
 			$o = shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
-			@unlink("$luks_pass_file");
+			exec("/bin/shred -u $luks_pass_file");
 		}
 		if ($o)
 		{
@@ -722,7 +722,7 @@ function do_mount($info) {
 				file_put_contents($luks_pass_file, $pass);
 				$cmd	= $cmd." -d $luks_pass_file";
 				$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
-				@unlink("$luks_pass_file");
+				exec("/bin/shred -u $luks_pass_file");
 			}
 			if ($o != "") {
 				unassigned_log("luksOpen error: ".$o);
@@ -1233,7 +1233,7 @@ function do_mount_samba($info) {
 					unassigned_log("Mount SMB command: $cmd");
 					$o		= timed_exec(10, $cmd." 2>&1");
 				}
-				@unlink("$credentials_file");
+				exec("/bin/shred -u $credentials_file");
 			}
 			if (is_mounted($dev)) {
 				@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);

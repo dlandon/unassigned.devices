@@ -819,9 +819,9 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
     var opts = {action:"add_iso_share",ISO_FILE:surveyData["ISO_FILE"]};
     if (opts.ISO_FILE) {
       $.post("/plugins/unassigned.devices/UnassignedDevices.php",opts).done(function(data) {
+		usb_disks(tab_usbdisks);
 		if (data == "true") {
 			swalShowResult(true);
-			usb_disks(tab_usbdisks);
 		} else {
 			swalShowResult(false);
 		}
@@ -935,13 +935,13 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 	$("span[device='"+surveyOption.device+surveyOption.partition+"']").prop('disabled',true);
 	$("span[device='"+surveyOption.device+surveyOption.partition+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> Removing...");
 	$.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"rm_partition",device:surveyOption.device,partition:surveyOption.partition}).done(function(data) {
+		usb_disks(tab_usbdisks);
 		if (data == "true") {
 			swalShowResult(true);
-			usb_disks(tab_usbdisks);
 		} else {
 			swalShowResult(false);
 		}
-	}, "json").fail(function(){swalShowResult(false);});
+	},"json").fail(function(){swalShowResult(false);});
   </div>
   <div>
     <script type="text/javascript">
@@ -971,9 +971,9 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
     <div data-question-done></div>
   </div>
   <div data-survey-done>
-    $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"remove_iso_config",device:surveyOption},"json").done(function(data) {
+    $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"remove_iso_config",device:surveyOption}).done(function(data) {
+		usb_disks(tab_usbdisks);
 		if (data == "true") {
-			usb_disks(tab_usbdisks);
 			swalShowResult(true);
 		} else {
 			swalShowResult(false);
@@ -1008,9 +1008,9 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
     <div data-question-done></div>
   </div>
   <div data-survey-done>
-    $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"remove_config",serial:surveyOption},"json").done(function(data){
+    $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"remove_config",serial:surveyOption}).done(function(data){
+		usb_disks(tab_usbdisks);
 		if (data == "true") {
-			usb_disks(tab_usbdisks);
 			swalShowResult(true);
 		} else {
 			swalShowResult(false)
@@ -1045,14 +1045,14 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
     <div data-question-done></div>
   </div>
   <div data-survey-done>
-    $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"remove_samba_config",device:surveyOption},"json").done(function(data){
+    $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"remove_samba_config",device:surveyOption}).done(function(data){
+		usb_disks(tab_usbdisks);
 		if (data === "true") {
-			usb_disks(tab_usbdisks);
 			swalShowResult(true);
 		} else {
 			swalShowResult(false)
 		}
-    }).fail(function(){swalShowResult(false);});
+    },"json").fail(function(){swalShowResult(false);});
   </div>
   <div>
     <script type="text/javascript">
@@ -1147,13 +1147,13 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
         opts["SHARE"]    = surveyData['SHARE'];
         if (opts.SHARE && opts.IP) {
           $.post("/plugins/unassigned.devices/UnassignedDevices.php",opts).done(function(data){
+			usb_disks(tab_usbdisks);
 			if (data == "true") {
 				swalShowResult(true);
-				usb_disks(tab_usbdisks);
 			} else {
 				swalShowResult(false);
 			}
-          }).fail(function(){swalShowResult(false);});
+          },"json").fail(function(){swalShowResult(false);});
         }
   </div>
   <div>
