@@ -279,7 +279,7 @@ switch ($_POST['action']) {
 				$preclearing	= $Preclear ? $Preclear->isRunning($disk_name) : false;
 				$is_precleared	= ($disk['partitions'][0]['fstype'] == "precleared") ? true : false;
 				$flash			= ($disk['partitions'][0]['fstype'] == "vfat") ? true : false;
-				if ( ($mounted || is_file($disk['partitions'][0]['command']) || $preclearing) ) {
+				if ( (! is_pass_through($disk['serial'])) && ($mounted || is_file($disk['partitions'][0]['command']) || $preclearing) ) {
 					$disk_running	= array_key_exists("running", $disk) ? $disk["running"] : is_disk_running($disk['device']);
 					$disk['temperature'] = $disk['temperature'] ? $disk['temperature'] : get_temp(substr($disk['device'],0,10), $disk_running);
 				}
