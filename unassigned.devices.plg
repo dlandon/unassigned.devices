@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.05.22">
+<!ENTITY version   "2020.05.23">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"a227966ab3589c8e07167f94bda5f205">
+<!ENTITY MD5		"6a6887f9fe1767daa9a5838f1a79f629">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,13 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Don't show information that does not apply.
+- Fix: Show FS when doing a file system check to show activity.
+- Fix: Each parttion was using the same script on multi-partitioned disks.
+- Fix: Minor UI issues.
+- Fix: UI code cleanup.  Fixed things that have been bothering me for a long time.
+
+###2020.05.22
 - Fix: Don't allow setting 'Pass Thru' when a disk is mounted.
 - Fix: Update support link.
 
