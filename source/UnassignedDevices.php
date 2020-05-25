@@ -180,8 +180,8 @@ function render_partition($disk, $partition, $total=FALSE) {
 		$out[] = render_used_and_free($partition, $mounted);
 	}
 	if ($total) {
-		$out[] = "<td title='".tr("Turn on to mark this Device as passed through to a VM or Docker",true)."'><input type='checkbox' class='pass_through' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['pass_through']) ? 'checked':'')." /></td>";
-		$out[] = "<td title='".tr("Turn on to Mount Device Read only",true)."'><input type='checkbox' class='read_only' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['read_only']) ? 'checked':'')." /></td>";
+		$out[] = "<td title='".tr("Turn on to mark this Device as passed through to a VM or Docker",true)."'><input type='checkbox' class='toggle_pass_through' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['pass_through']) ? 'checked':'')." /></td>";
+		$out[] = "<td title='".tr("Turn on to Mount Device Read only",true)."'><input type='checkbox' class='toggle_read_only' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['read_only']) ? 'checked':'')." /></td>";
 		$out[] = "<td title='".tr("Turn on to Mount Device when Array is Started",true)."'><input type='checkbox' class='automount' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['automount']) ? 'checked':'')." /></td>";
 	} else {
 		$out[] = "<td></td>";
@@ -439,7 +439,7 @@ switch ($_POST['action']) {
 			if (! preg_grep("#{$serial}#", $disks_serials)){
 				$mountpoint	= basename(get_config($serial, "mountpoint.1"));
 				$ct .= "<tr><td><img src='/plugins/{$plugin}/images/green-blink.png'> missing</td><td>$serial"." ($mountpoint)</td>";
-				$ct .= "<td title='".tr("Turn on to Mount Device Read only",true)."'><input type='checkbox' class='read_only' serial='{$serial}' ".( is_read_only($serial) ? 'checked':'')." /></td>";
+				$ct .= "<td title='".tr("Turn on to Mount Device Read only",true)."'><input type='checkbox' class='toggle_read_only' serial='{$serial}' ".( is_read_only($serial) ? 'checked':'')." /></td>";
 				$ct .= "<td title='".tr("Turn on to Mount Device when Array is Started",true)."'><input type='checkbox' class='automount' serial='{$serial}' ".( is_automount($serial) ? 'checked':'' )." /></td>";
 				$ct .= "<td><a title='".tr("Edit Device Script",true)."' href='/Main/EditScript?s=".urlencode($serial)."&l=".urlencode(basename($mountpoint))."&p=".urlencode("1")."'><i class=".( file_exists(get_config($serial,"command.1")) ? "'fa fa-code'":"'fa fa-minus-square-o'" )."'></i></a></td>";
 				$ct .= "<td title='".tr("Remove Device configuration",true)."' colspan='7'><a style='color:#CC0000;font-weight:bold;cursor:pointer;' onclick='remove_disk_config(\"{$serial}\")'><i class='fa fa-remove hdd'></a></td></tr>";
@@ -502,16 +502,16 @@ switch ($_POST['action']) {
 		}
 		break;
 
-	case 'read_only':
+	case 'toggle_read_only':
 		$serial = urldecode(($_POST['serial']));
 		$status = urldecode(($_POST['status']));
-		echo json_encode(array( 'read_only' => toggle_read_only($serial, $status) ));
+		echo json_encode(array( 'result' => toggle_read_only($serial, $status) ));
 		break;
 
-	case 'pass_through':
+	case 'toggle_pass_through':
 		$serial = urldecode(($_POST['serial']));
 		$status = urldecode(($_POST['status']));
-		echo json_encode(array( 'pass_through' => toggle_pass_through($serial, $status) ));
+		echo json_encode(array( 'result' => toggle_pass_through($serial, $status) ));
 		break;
 
 	/*	DISK	*/

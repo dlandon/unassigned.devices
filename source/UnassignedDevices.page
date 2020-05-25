@@ -740,24 +740,24 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 			});
 		}
 
-		else if (checkbox.hasClass("read_only"))
+		else if (checkbox.hasClass("toggle_read_only"))
 		{
 			checkbox.change(function()
 			{
-				$.post(URL,{action:"read_only",serial:$(this).attr("serial"),status:$(this).is(":checked")},function(data)
+				$.post(URL,{action:"toggle_read_only",serial:$(this).attr("serial"),status:$(this).is(":checked")},function(data)
 				{
-					$(this).prop("checked",data.read_only);
+					$(this).prop("checked",data.result);
 				},"json");
 			});
 		}
 
-		else if (checkbox.hasClass("pass_through"))
+		else if (checkbox.hasClass("toggle_pass_through"))
 		{
 			checkbox.change(function()
 			{
-				$.post(URL,{action:"pass_through",serial:$(this).attr("serial"),status:$(this).is(":checked")},function(data)
+				$.post(URL,{action:"toggle_pass_through",serial:$(this).attr("serial"),status:$(this).is(":checked")},function(data)
 				{
-					$(this).prop("checked",data.pass_through);
+					$(this).prop("checked",data.result);
 				},"json");
 			});
 		}
@@ -936,11 +936,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 	$("span[device='"+surveyOption.device+surveyOption.partition+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> Removing...");
 	$.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"rm_partition",device:surveyOption.device,partition:surveyOption.partition}).done(function(data) {
 		usb_disks(tab_usbdisks);
-		if (data == "true") {
-			swalShowResult(true);
-		} else {
-			swalShowResult(false);
-		}
+		swalShowResult((data == "true") ? true : false);
 	},"json").fail(function(){swalShowResult(false);});
   </div>
   <div>
@@ -973,11 +969,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
   <div data-survey-done>
     $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"remove_iso_config",device:surveyOption}).done(function(data) {
 		usb_disks(tab_usbdisks);
-		if (data == "true") {
-			swalShowResult(true);
-		} else {
-			swalShowResult(false);
-		}
+		swalShowResult((data == "true") ? true : false);
     },"json").fail(function(){swalShowResult(false);});
   </div>
   <div>
@@ -1010,11 +1002,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
   <div data-survey-done>
     $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"remove_config",serial:surveyOption}).done(function(data){
 		usb_disks(tab_usbdisks);
-		if (data == "true") {
-			swalShowResult(true);
-		} else {
-			swalShowResult(false)
-		}
+		swalShowResult((data == "true") ? true : false);
     },"json").fail(function(){swalShowResult(false);});
   </div>
   <div>
@@ -1047,11 +1035,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
   <div data-survey-done>
     $.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"remove_samba_config",device:surveyOption}).done(function(data){
 		usb_disks(tab_usbdisks);
-		if (data === "true") {
-			swalShowResult(true);
-		} else {
-			swalShowResult(false)
-		}
+		swalShowResult((data == "true") ? true : false);
     },"json").fail(function(){swalShowResult(false);});
   </div>
   <div>
@@ -1097,7 +1081,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
     <div data-question-content>
       <div class="swal-content">
         <input type="text" class="swal-content__input" name="USER" autocomplete="off" placeholder=<?tr("Username")?>>
-		<p><?tr("Enter the Username if the share is password protected.  You will need to enter credentials for Windows 10 shares")?>.</p>
+		<p><?tr("Enter the Username if the share is password protected.  You will need to enter credentials for Windows 10 shares just to list them")?>.</p>
       </div>
     </div>
   </div>
@@ -1108,7 +1092,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
     <div data-question-content>
       <div class="swal-content">
         <input type="password" class="swal-content__input" name="PASS" autocomplete="new-password" placeholder='<?tr("Password")?>'>
-		<p><?tr("Enter the Password if the share is password protected.  You will need to enter credentials for Windows 10 shares")?>.</p>
+		<p><?tr("Enter the Password if the share is password protected.  You will need to enter credentials for Windows 10 shares just to list them")?>.</p>
       </div>
     </div>
   </div>
@@ -1148,11 +1132,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
         if (opts.SHARE && opts.IP) {
           $.post("/plugins/unassigned.devices/UnassignedDevices.php",opts).done(function(data){
 			usb_disks(tab_usbdisks);
-			if (data == "true") {
-				swalShowResult(true);
-			} else {
-				swalShowResult(false);
-			}
+			swalShowResult((data == "true") ? true : false);
           },"json").fail(function(){swalShowResult(false);});
         }
   </div>
