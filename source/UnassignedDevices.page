@@ -820,11 +820,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
     if (opts.ISO_FILE) {
       $.post("/plugins/unassigned.devices/UnassignedDevices.php",opts).done(function(data) {
 		usb_disks(tab_usbdisks);
-		if (data == "true") {
-			swalShowResult(true);
-		} else {
-			swalShowResult(false);
-		}
+		swalShowResult((data == "true") ? true : false);
       },"json").fail(function(){swalShowResult(false);});
     }
   </div>
