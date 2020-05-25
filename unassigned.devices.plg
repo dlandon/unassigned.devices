@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.05.24">
+<!ENTITY version   "2020.05.25">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"d23d5c65a2a0fd22eb13dc75b6911eb4">
+<!ENTITY MD5		"cf350af6e8f863e9811c6ccaf2aefc63">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Return code handling - code Cleanup.
+- Fix: Made some minor default script modifications.
+- Fix: Removed some unused code.
+
+###2020.05.24
 - Add: Add option to settings to keep disks spun up.
 - Fix: A lot of error handling on UI.
 - Add: Shred credential and password files.
