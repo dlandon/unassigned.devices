@@ -178,13 +178,12 @@ function lsof($dir) {
 	return intval(trim(timed_exec(5, "/usr/bin/lsof '{$dir}' 2>/dev/null | /bin/sort -k8 | /bin/uniq -f7 | /bin/grep -c -e REG")));
 }
 
-function get_temp($dev, $running = null) {
+function get_temp($dev, $running) {
 	$rc	= "*";
 	$tc = $GLOBALS["paths"]["hdd_temp"];
 	$temps = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-	$running = ($running === null) ? is_disk_running($dev) : $running;
 	if (isset($temps[$dev]) && (time() - $temps[$dev]['timestamp']) < 120 ) {
-		return $temps[$dev]['temp'];
+		$rc = $temps[$dev]['temp'];
 	} else if ($running) {
 		$cmd	= "/usr/sbin/smartctl -A $dev | /bin/awk 'BEGIN{t=\"*\"} $1==\"Temperature:\"{t=$2;exit};$1==190||$1==194{t=$10;exit} END{print t}'";
 		$temp	= trim(timed_exec(10, $cmd));
@@ -264,30 +263,31 @@ function get_format_cmd($dev, $fs) {
 	switch ($fs) {
 		case 'xfs':
 		case 'xfs-encrypted';
-			return "/sbin/mkfs.xfs -f {$dev} 2>&1";
+			$rc = "/sbin/mkfs.xfs -f {$dev} 2>&1";
 			break;
 
 		case 'ntfs':
-			return "/sbin/mkfs.ntfs -Q {$dev} 2>&1";
+			$rc = "/sbin/mkfs.ntfs -Q {$dev} 2>&1";
 			break;
 
 		case 'btrfs':
 		case 'btrfs-encrypted';
-			return "/sbin/mkfs.btrfs -f {$dev} 2>&1";
+			$rc = "/sbin/mkfs.btrfs -f {$dev} 2>&1";
 			break;
 
 		case 'exfat':
-			return "/usr/sbin/mkfs.exfat {$dev} 2>&1";
+			$rc = "/usr/sbin/mkfs.exfat {$dev} 2>&1";
 			break;
 
 		case 'fat32':
-			return "/sbin/mkfs.fat -s 8 -F 32 {$dev} 2>&1";
+			$rc = "/sbin/mkfs.fat -s 8 -F 32 {$dev} 2>&1";
 			break;
 
 		default:
-			return false;
+			$rc = FALSE;
 			break;
 	}
+	return $rc;
 }
 
 function format_disk($dev, $fs, $pass) {
@@ -589,14 +589,6 @@ global $paths;
 	}
 
 	return FALSE;
-}
-
-function set_command($sn, $cmd) {
-	$config_file = $GLOBALS["paths"]["config_file"];
-	$config = @parse_ini_file($config_file, true);
-	$config[$sn]["command"] = htmlentities($cmd, ENT_COMPAT);
-	save_ini_file($config_file, $config);
-	return (isset($config[$sn]["command"])) ? TRUE : FALSE;
 }
 
 function remove_config_disk($sn) {

@@ -19,22 +19,6 @@ $csrf_token = $var['csrf_token'];
 if (isset($_POST['display'])) $display = $_POST['display'];
 if (isset($_POST['var'])) $var = $_POST['var'];
 
-function pid_is_running($pid) {
-	return file_exists( "/proc/$pid" );
-}
-
-function is_tmux_executable() {
-	return is_file("/usr/bin/tmux") ? (is_executable("/usr/bin/tmux") ? TRUE : FALSE) : FALSE;
-}
-
-function tmux_is_session($name) {
-	if (is_tmux_executable()) {
-		exec('/usr/bin/tmux ls 2>/dev/null|/usr/bin/cut -d: -f1', $screens);
-		return in_array($name, $screens);	} else {
-		return false;
-	}
-}
-
 function netmasks($netmask, $rev = false)
 {
 	$netmasks = [	"255.255.255.252"	=> "30",
@@ -491,12 +475,6 @@ switch ($_POST['action']) {
 		echo json_encode(array( 'automount' => toggle_automount($serial, $status) ));
 		break;
 
-	case 'get_command':
-		$serial = urldecode(($_POST['serial']));
-		$part	 = urldecode(($_POST['part']));
-		echo json_encode(array( 'command' => get_config($serial, "command.{$part}"), "background" => get_config($serial, "command_bg.{$part}") ));
-		break;
-
 	case 'set_command':
 		$serial = urldecode(($_POST['serial']));
 		$part = urldecode(($_POST['part']));
@@ -592,7 +570,7 @@ switch ($_POST['action']) {
 		file_put_contents("{$paths['authentication']}", "password=".$pass."\n", FILE_APPEND);
 		file_put_contents("{$paths['authentication']}", "domain=".$domain."\n", FILE_APPEND);
 		$list = shell_exec("/usr/bin/smbclient -t2 -g -L '$ip' --authentication-file='{$paths['authentication']}' 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}' | grep -v '\\$' | sort");
-		@unlink("{$paths['authentication']}");
+		exec("/bin/shred -u ".$paths['authentication']);
 		echo $list;
 		break;
 

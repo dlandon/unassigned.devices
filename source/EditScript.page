@@ -80,7 +80,7 @@ PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin
 case \$ACTION in
   'ADD' )
     # do your stuff here
-	/usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Device added" -i "normal"
+	/usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Device mounted" -i "normal"
 
 	# This will refresh the UD webpage when the script is finished.
 	/usr/local/sbin/rc.unassigned refresh \$DEVICE
@@ -93,7 +93,7 @@ case \$ACTION in
 
   'REMOVE' )
     # do your stuff here
-	/usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Device can be removed" -i "normal"
+	/usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Device unmounted" -i "normal"
   ;;
 
   'ERROR_MOUNT' )
@@ -129,16 +129,6 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 		display:none;
 		color:initial;
 	}
-	.switch-button-background.checked {
-		background:#0088CC;
-		border:1px solid #0088CC;
-	}
-	.switch-wrapper {
-		display: inline-block;
-		position: relative;
-		top: 3px;
-		line-height:20px;
-	}
 </style>
 
 <form markdown="1" method="POST" action="/update.php" target="progressFrame">
@@ -151,7 +141,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 > Choose your script name from the file selection dropdown, or enter your desired script name.
 <?if ($translations):?>:end<?endif;?>
 
-<span class="switch-wrapper" title='<?tr("Turn on to run Script File in the background")?>.'><input type="checkbox" name="run_background" <?=$background;?>></span>
+<span title='<?tr("Turn on to run Script File in the background")?>.'><input type="checkbox" name="run_background" <?=$background;?>></span>
 
 <?if ($translations):?>:help2<?endif;?>
 > Turn on the 'Run in Background' to have the script run as a background task.  This can keep the Unassigned Devices UI from hanging when the script is run from the UI.
