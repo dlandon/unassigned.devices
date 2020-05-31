@@ -697,7 +697,7 @@ function do_mount($info) {
 	} else if($info['fstype'] == "loop") {
 		$rc = do_mount_iso($info);
 	} else if ($info['fstype'] == "crypto_LUKS") {
-		if (! is_mounted($info['device']) || ! is_mounted($info['mountpoint'], true)) {
+		if (! is_mounted($info['device']) || ! is_mounted($info['mountpoint'], TRUE)) {
 			$luks	= basename($info['device']);
 			$cmd	= "luksOpen {$info['luks']} {$luks}";
 			$pass	= decrypt_data(get_config($info['serial'], "pass"));
@@ -737,7 +737,7 @@ function do_mount_local($info) {
 	$dir = $info['mountpoint'];
 	$fs  = $info['fstype'];
 	$ro  = ($info['read_only'] == 'yes') ? TRUE : FALSE;
-	if (! is_mounted($dev) || ! is_mounted($dir, true)) {
+	if (! is_mounted($dev) || ! is_mounted($dir, TRUE)) {
 		if ($fs) {
 			@mkdir($dir, 0777, TRUE);
 			if ($fs != "crypto_LUKS") {
@@ -778,7 +778,7 @@ function do_mount_local($info) {
 
 function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE, $nfs = FALSE) {
 
-	if ( is_mounted($dev) && is_mounted($dir, true) ) {
+	if ( is_mounted($dev) && is_mounted($dir, TRUE) ) {
 		unassigned_log("Unmounting '{$dev}'...");
 		$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : "")." '{$dev}' 2>&1";
 		unassigned_log("Unmount cmd: $cmd");
@@ -988,7 +988,7 @@ function remove_shares() {
 	// Disk mounts
 	foreach (get_unassigned_disks() as $name => $disk) {
 		foreach ($disk['partitions'] as $p) {
-			if ( is_mounted(realpath($p), true) ) {
+			if ( is_mounted(realpath($p)) ) {
 				$info = get_partition_info($p);
 				$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV, $reload) : get_udev_info($device, NULL, $reload);
 				if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'],"usb"))) {
@@ -1025,7 +1025,7 @@ function reload_shares() {
 	// Disk mounts
 	foreach (get_unassigned_disks() as $name => $disk) {
 		foreach ($disk['partitions'] as $p) {
-			if ( is_mounted(realpath($p), true) ) {
+			if ( is_mounted(realpath($p), TRUE) ) {
 				$info = get_partition_info($p);
 				$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV, $reload) : get_udev_info($device, NULL, $reload);
 				if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'],"usb"))) {
@@ -1172,7 +1172,7 @@ function do_mount_samba($info) {
 		$dev = $info['device'];
 		$dir = $info['mountpoint'];
 		$fs  = $info['fstype'];
-		if (! is_mounted($dev) || ! is_mounted($dir, true)) {
+		if (! is_mounted($dev) || ! is_mounted($dir, TRUE)) {
 			@mkdir($dir, 0777, TRUE);
 			if ($fs == "nfs") {
 				$params	= get_mount_params($fs, $dev);
@@ -1337,7 +1337,7 @@ function do_mount_iso($info) {
 	$dev = $info['device'];
 	$dir = $info['mountpoint'];
 	if (is_file($info['file'])) {
-		if (! is_mounted($dev) || ! is_mounted($dir, true)) {
+		if (! is_mounted($dev) || ! is_mounted($dir, TRUE)) {
 			@mkdir($dir, 0777, TRUE);
 			$cmd = "/sbin/mount -ro loop '{$dev}' '{$dir}'";
 			unassigned_log("Mount iso command: mount -ro loop '{$dev}' '{$dir}'");
