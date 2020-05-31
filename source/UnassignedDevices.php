@@ -100,7 +100,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 
 	if (! isset($partition['device'])) return array();
 	$out = array();
-	$mounted =	(isset($partition["mounted"])) ? $partition["mounted"] : is_mounted($partition['device']);
+	$mounted =	(isset($partition['mounted'])) ? $partition['mounted'] : is_mounted($partition['device']);
 	$cmd = get_config($disk['serial'],"command.{$partition['part']}");
 	if ($mounted && is_file($cmd)) {
 		$script_partition = $partition['fstype'] == "crypto_LUKS" ? $partition['luks'] : $partition['device'];
@@ -205,7 +205,7 @@ function make_mount_button($device) {
 		$format	 = (isset($device['partitions']) && ! count($device['partitions'])) || $device['partitions'][0]['fstype'] == "precleared" ? true : false;
 		$context = "disk";
 	} else {
-		$mounted =	(isset($device["mounted"])) ? $device["mounted"] : is_mounted($device['device']);
+		$mounted =	(isset($device['mounted'])) ? $device['mounted'] : is_mounted($device['device']);
 		$disable = (! empty($device['fstype']) && $device['fstype'] != "crypto_LUKS" && $device['fstype'] != "precleared") ? "" : "disabled";
 		$format	 = ((isset($device['fstype']) && empty($device['fstype'])) || $device['fstype'] == "precleared") ? true : false;
 		$context = "partition";
@@ -240,7 +240,7 @@ function make_mount_button($device) {
 			$button = sprintf($button, $context, 'umount', $disable, 'fa fa-export', 'Unmount');
 		}
 	} else {
-		$disable = (is_pass_through($device['serial']) || $preclearing) ? "disabled" : $disable;
+		$disable = (is_pass_through($device['serial']) || $preclearing ) ? "disabled" : $disable;
 		$button = sprintf($button, $context, 'mount', $disable, 'fa fa-import', 'Mount');
 	}
 	return $button;
@@ -264,7 +264,7 @@ switch ($_POST['action']) {
 				$is_precleared	= ($disk['partitions'][0]['fstype'] == "precleared") ? true : false;
 				$flash			= ($disk['partitions'][0]['fstype'] == "vfat") ? true : false;
 				if ( (! is_pass_through($disk['serial'])) && ($mounted || is_file($disk['partitions'][0]['command']) || $preclearing) ) {
-					$disk_running	= array_key_exists("running", $disk) ? $disk["running"] : is_disk_running($disk['device']);
+					$disk_running	= array_key_exists("running", $disk) ? $disk['running'] : is_disk_running($disk['device']);
 					$disk['temperature'] = $disk['temperature'] ? $disk['temperature'] : get_temp(substr($disk['device'],0,10), $disk_running);
 				}
 				$temp = my_temp($disk['temperature']);
@@ -302,7 +302,7 @@ switch ($_POST['action']) {
 				echo "<td>{$temp}</td>";
 				echo ($p)?$p[5]:"<td>-</td>";
 				echo ($p)?$p[6]:"<td>-</td>";
-				echo "<td>".my_scale($disk['size'],$unit)." {$unit}</td>";
+				echo ($disk['size'] == "-") ? "<td>-</td>" : "<td>".my_scale($disk['size'],$unit)." {$unit}</td>";
 				echo ($p)?$p[8]:"<td>-</td><td>-</td>";
 				echo ($p)?$p[9]:"<td>-</td>";
 				echo ($p)?$p[10]:"<td>-</td>";

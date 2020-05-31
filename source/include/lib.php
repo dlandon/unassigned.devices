@@ -612,7 +612,6 @@ function remove_config_disk($sn) {
 #########################################################
 
 function is_mounted($dev, $dir=FALSE) {
-
 	$rc = FALSE;
 	if ($dev != "") {
 		$data = timed_exec(2, "/sbin/mount");
@@ -779,7 +778,7 @@ function do_mount_local($info) {
 
 function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE, $nfs = FALSE) {
 
-	if ( is_mounted($dev) ) {
+	if ( is_mounted($dev) && is_mounted($dir, true) ) {
 		unassigned_log("Unmounting '{$dev}'...");
 		$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : "")." '{$dev}' 2>&1";
 		unassigned_log("Unmount cmd: $cmd");
@@ -805,6 +804,8 @@ function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE, $nfs = FALSE) {
 				$rc = do_unmount($dev, $dir, TRUE, $smb, $nfs);
 			}
 		}
+	} else {
+		unassigned_log("Cannot unmount '{$dev}'.  UD did not mount the device.");
 	}
 	return $rc;
 }
@@ -1450,7 +1451,6 @@ function get_unassigned_disks() {
 	return $ud_disks;
 }
 
-
 function get_all_disks_info($bus="all") {
 	unassigned_log("Starting get_all_disks_info.", "DEBUG");
 	$d1 = time();
@@ -1459,11 +1459,11 @@ function get_all_disks_info($bus="all") {
 		$dp = time();
 		if ($disk['type'] != $bus && $bus != "all") continue;
 		$disk['temperature'] = "";
-		$disk['size'] = intval(trim(timed_exec(5, "/bin/lsblk -nb -o size {$key} 2>/dev/null")));
 		$disk = array_merge($disk, get_disk_info($key));
 		foreach ($disk['partitions'] as $k => $p) {
 			if ($p) $disk['partitions'][$k] = get_partition_info($p);
 		}
+		$disk['size'] = ((! is_mounted(realpath($key)."1") && is_pass_through($disk['serial']))) ? "-" : intval(trim(timed_exec(5, "/bin/lsblk -nb -o size ".realpath($key)." 2>/dev/null")));
 		$ud_disks[$key] = $disk;
 		unassigned_log("Getting [".realpath($key)."] info: ".(time() - $dp)."s", "DEBUG");
 	}
