@@ -983,7 +983,6 @@ function rm_nfs_share($dir) {
 	return TRUE;
 }
 
-
 function remove_shares() {
 	// Disk mounts
 	foreach (get_unassigned_disks() as $name => $disk) {
@@ -992,8 +991,6 @@ function remove_shares() {
 				$info = get_partition_info($p);
 				$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV, $reload) : get_udev_info($device, NULL, $reload);
 				if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'],"usb"))) {
-					unassigned_log("Reloading shared dir '{$info['target']}'.");
-					unassigned_log("Removing old config...");
 					rm_smb_share($info['target'], $info['label']);
 					rm_nfs_share($info['target']);
 				}
@@ -1004,8 +1001,6 @@ function remove_shares() {
 	// SMB Mounts
 	foreach (get_samba_mounts() as $name => $info) {
 		if ( is_mounted($info['device']) ) {
-			unassigned_log("Reloading shared dir '{$info['mountpoint']}'.");
-			unassigned_log("Removing old config...");
 			rm_smb_share($info['mountpoint'], $info['device']);
 		}
 	}
@@ -1013,8 +1008,6 @@ function remove_shares() {
 	// ISO File Mounts
 	foreach (get_iso_mounts() as $name => $info) {
 		if ( is_mounted($info['device']) ) {
-			unassigned_log("Reloading shared dir '{$info['mountpoint']}'.");
-			unassigned_log("Removing old config...");
 			rm_smb_share($info['mountpoint'], $info['device']);
 			rm_nfs_share($info['mountpoint']);
 		}
@@ -1023,13 +1016,13 @@ function remove_shares() {
 
 function reload_shares() {
 	// Disk mounts
+	unassigned_log("Relaoding disk shares...");
 	foreach (get_unassigned_disks() as $name => $disk) {
 		foreach ($disk['partitions'] as $p) {
-			if ( is_mounted(realpath($p), TRUE) ) {
+			if ( is_mounted(realpath($p)) ) {
 				$info = get_partition_info($p);
 				$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV, $reload) : get_udev_info($device, NULL, $reload);
 				if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'],"usb"))) {
-					unassigned_log("Adding new config...");
 					add_smb_share($info['mountpoint'], $info['label']);
 					add_nfs_share($info['mountpoint']);
 				}
@@ -1038,6 +1031,7 @@ function reload_shares() {
 	}
 
 	// SMB Mounts
+	unassigned_log("Relaoding remote mount shares...");
 	foreach (get_samba_mounts() as $name => $info) {
 		if ( is_mounted($info['device']) ) {
 			add_smb_share($info['mountpoint'], $info['device'], FALSE);
@@ -1045,6 +1039,7 @@ function reload_shares() {
 	}
 
 	// ISO File Mounts
+	unassigned_log("Relaoding iso shares...");
 	foreach (get_iso_mounts() as $name => $info) {
 		if ( is_mounted($info['device']) ) {
 			add_smb_share($info['mountpoint'], $info['device'], FALSE);
