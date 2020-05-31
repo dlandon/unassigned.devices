@@ -1515,8 +1515,11 @@ function get_partition_info($device, $reload=FALSE){
 			$all_disks = array_unique(array_map(function($ar){return realpath($ar);},listDir("/dev/disk/by-id")));
 			$disk['label']  = (count(preg_grep("%".$matches[1][0]."%i", $all_disks)) > 2) ? $disk['label']."-part".$matches[2][0] : $disk['label'];
 		}
+		$disk['pass_through']	= (! $disk['mounted']) ? is_pass_through($disk['serial']) : FALSE;
 		$disk['fstype'] = safe_name($attrs['ID_FS_TYPE']);
-		$disk['fstype'] = (! $disk['fstype'] && verify_precleared($disk['disk'])) ? "precleared" : $disk['fstype'];
+		if (! $disk['pass_through']) {
+			$disk['fstype'] = (! $disk['fstype'] && verify_precleared($disk['disk'])) ? "precleared" : $disk['fstype'];
+		}
 		if ( $disk['mountpoint'] = get_config($disk['serial'], "mountpoint.{$disk['part']}") ) {
 			if (! $disk['mountpoint'] ) goto empty_mountpoint;
 		} else {
@@ -1544,7 +1547,6 @@ function get_partition_info($device, $reload=FALSE){
 		$disk['owner']			= (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
 		$disk['automount']		= is_automount($disk['serial'], strpos($attrs['DEVPATH'],"usb"));
 		$disk['read_only']		= is_read_only($disk['serial']);
-		$disk['pass_through']	= (! $disk['mounted']) ? is_pass_through($disk['serial']) : FALSE;
 		$disk['shared']			= config_shared($disk['serial'], $disk['part'], strpos($attrs['DEVPATH'],"usb"));
 		$disk['command']		= get_config($disk['serial'], "command.{$disk['part']}");
 		$disk['command_bg']		= get_config($disk['serial'], "command_bg.{$disk['part']}");
