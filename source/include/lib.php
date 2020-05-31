@@ -572,7 +572,7 @@ global $paths;
 		$script_running = is_script_running($cmd);
 		if ((! $script_running) || (($script_running) && ($action != "ADD"))) {
 			if (! $testing) {
-				if ($action == "REMOVE") {
+				if ($action == "REMOVE" || $action == "ERROR_UNMOUNT") {
 					sleep(1);
 				}
 				$cmd = isset($info['serial']) ? "$command_script > /tmp/{$info['serial']}.log 2>&1 $bg" : "$command_script > /tmp/".preg_replace('~[^\w]~i', '', $info['device']).".log 2>&1 $bg";
@@ -779,6 +779,7 @@ function do_mount_local($info) {
 
 function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE, $nfs = FALSE) {
 
+	$rc = FALSE;
 	if ( is_mounted($dev) && is_mounted($dir, TRUE) ) {
 		unassigned_log("Unmounting '{$dev}'...");
 		$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : "")." '{$dev}' 2>&1";
