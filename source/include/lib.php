@@ -622,16 +622,6 @@ function is_mounted($dev, $dir=FALSE) {
 	return $rc;
 }
 
-function is_disk_ro($dev) {
-
-	$rc = FALSE;
-	if ($dev != "") {
-		$data = timed_exec(2, "/sbin/mount | /bin/grep {$dev}");
-		$rc = strpos($data, "ro");
-	}
-	return $rc;
-}
-
 function get_mount_params($fs, $dev, $ro = FALSE) {
 	global $paths, $use_netbios;
 
