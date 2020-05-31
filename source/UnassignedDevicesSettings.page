@@ -39,9 +39,11 @@ foreach (get_all_disks_info() as $d) {
 if (count($_POST)) {
 	if ($_POST['#apply'] == "Apply") {
 		array_map(function($k, $v) use (&$cfg) { if($k[0] != "#") $cfg["Config"][$k] = $v; }, array_keys($_POST), $_POST );
+		unassigned_log("Updating share settings...");
 		remove_shares();
 		save_ini_file($config_file, $cfg);
 		reload_shares();
+		unassigned_log("Share settings updated.");
 	} else if (($_POST['#command'] == "UUID") && (isset($_POST['change_uuid']))) {
 		$dev = substr($_POST['change_uuid'], 1, 8)."1";
 		change_UUID($dev);

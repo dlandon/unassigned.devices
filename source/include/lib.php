@@ -989,8 +989,8 @@ function remove_shares() {
 	// Disk mounts
 	foreach (get_unassigned_disks() as $name => $disk) {
 		foreach ($disk['partitions'] as $p) {
-			if ( is_mounted(realpath($p)) ) {
-				$info = get_partition_info($p);
+			$info = get_partition_info($p);
+			if ( is_mounted($info['device']) ) {
 				$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV, $reload) : get_udev_info($device, NULL, $reload);
 				if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'],"usb"))) {
 					rm_smb_share($info['target'], $info['label']);
@@ -1018,11 +1018,10 @@ function remove_shares() {
 
 function reload_shares() {
 	// Disk mounts
-	unassigned_log("Relaoding disk shares...");
 	foreach (get_unassigned_disks() as $name => $disk) {
 		foreach ($disk['partitions'] as $p) {
-			if ( is_mounted(realpath($p)) ) {
-				$info = get_partition_info($p);
+			$info = get_partition_info($p);
+			if ( is_mounted($info['device']) ) {
 				$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV, $reload) : get_udev_info($device, NULL, $reload);
 				if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'],"usb"))) {
 					add_smb_share($info['mountpoint'], $info['label']);
@@ -1033,7 +1032,6 @@ function reload_shares() {
 	}
 
 	// SMB Mounts
-	unassigned_log("Relaoding remote mount shares...");
 	foreach (get_samba_mounts() as $name => $info) {
 		if ( is_mounted($info['device']) ) {
 			add_smb_share($info['mountpoint'], $info['device'], FALSE);
@@ -1041,7 +1039,6 @@ function reload_shares() {
 	}
 
 	// ISO File Mounts
-	unassigned_log("Relaoding iso shares...");
 	foreach (get_iso_mounts() as $name => $info) {
 		if ( is_mounted($info['device']) ) {
 			add_smb_share($info['mountpoint'], $info['device'], FALSE);
