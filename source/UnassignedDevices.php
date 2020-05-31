@@ -100,7 +100,8 @@ function render_partition($disk, $partition, $total=FALSE) {
 
 	if (! isset($partition['device'])) return array();
 	$out = array();
-	$mounted =	(isset($partition['mounted'])) ? $partition['mounted'] : is_mounted($partition['device']);
+
+	$mounted =	$partition['mounted'];
 	$cmd = get_config($disk['serial'],"command.{$partition['part']}");
 	if ($mounted && is_file($cmd)) {
 		$script_partition = $partition['fstype'] == "crypto_LUKS" ? $partition['luks'] : $partition['device'];
@@ -155,8 +156,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 		$mounted_disk = FALSE;
 		$open_files = 0;
 		foreach ($disk['partitions'] as $part) {
-_echo($mounted);
-			if (is_mounted($part['device'])) {
+			if ($part['mounted']) {
 				$open_files		+= $part['openfiles'];
 				$mounted_disk	= TRUE;
 			}
@@ -169,7 +169,7 @@ _echo($mounted);
 	if ($total) {
 		$mounted_disk = FALSE;
 		foreach ($disk['partitions'] as $part) {
-			if (is_mounted($part['device'])) {
+			if ($part['mounted']) {
 				$mounted_disk = TRUE;
 				break;
 			}
@@ -200,13 +200,14 @@ function make_mount_button($device) {
 	global $paths, $Preclear;
 
 	$button = "<span style='width:auto;text-align:right;'><button device='{$device['device']}' class='mount' context='%s' role='%s' %s><i class='%s'></i>%s</button></span>";
+
 	if (isset($device['partitions'])) {
-		$mounted = isset($device['mounted']) ? $device['mounted'] : in_array(TRUE, array_map(function($ar){return is_mounted($ar['device']);}, $device['partitions']));
+		$mounted = isset($device['mounted']) ? $device['mounted'] : in_array(TRUE, array_map(function($ar){return $ar['mounted'];}, $device['partitions']));
 		$disable = count(array_filter($device['partitions'], function($p){ if (! empty($p['fstype']) && $p['fstype'] != "precleared") return TRUE;})) ? "" : "disabled";
 		$format	 = (isset($device['partitions']) && ! count($device['partitions'])) || $device['partitions'][0]['fstype'] == "precleared" ? true : false;
 		$context = "disk";
 	} else {
-		$mounted =	(isset($device['mounted'])) ? $device['mounted'] : is_mounted($device['device']);
+		$mounted =	$device['mounted'];
 		$disable = (! empty($device['fstype']) && $device['fstype'] != "crypto_LUKS" && $device['fstype'] != "precleared") ? "" : "disabled";
 		$format	 = ((isset($device['fstype']) && empty($device['fstype'])) || $device['fstype'] == "precleared") ? true : false;
 		$context = "partition";
@@ -254,7 +255,6 @@ switch ($_POST['action']) {
 		unassigned_log("Starting page render [get_content]", "DEBUG");
 		$time		 = -microtime(true); 
 		$disks = get_all_disks_info();
-
 		echo "<table class='disk_status wide usb_disks'><thead><tr><td>".tr('Device',true)."</td><td>".tr('Identification',true)."</td><td></td><td>".tr('Temp',true)."</td><td>".tr('FS',true)."</td><td>".tr('Open',true)."</td><td>".tr('Size',true)."</td><td>".tr('Used',true)."</td><td>".tr('Free',true)."</td><td>".tr('Pass Thru',true)."</td><td>".tr('Read only',true)."</td><td>".tr('Auto mount',true)."</td><td>".tr('Share',true)."</td><td>".tr('Log',true)."</td><td>".tr('Script',true)."</td></tr></thead>";
 		echo "<tbody>";
 		if ( count($disks) ) {
@@ -342,7 +342,7 @@ switch ($_POST['action']) {
 			foreach ($samba_mounts as $mount)
 			{
 				$is_alive = $mount['is_alive'];
-				$mounted = is_mounted($mount['device']);
+				$mounted = $mount['mounted'];
 				echo "<tr>";
 				$protocol = $mount['protocol'] == "NFS" ? "nfs" : "smb";
 				printf( "<td><img src='/plugins/{$plugin}/images/%s'>%s</td>", ( $is_alive ? "green-on.png":"green-blink.png" ), $protocol);
@@ -386,7 +386,7 @@ switch ($_POST['action']) {
 		$iso_mounts = get_iso_mounts();
 		if (count($iso_mounts)) {
 			foreach ($iso_mounts as $mount) {
-				$mounted = is_mounted($mount['device']);
+				$mounted = $mount['mounted'];
 				$is_alive = is_file($mount['file']);
 				echo "<tr>";
 				printf( "<td><img src='/plugins/{$plugin}/images/%s'>iso</td>", ( $is_alive ? "green-on.png":"green-blink.png" ));

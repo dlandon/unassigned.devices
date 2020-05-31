@@ -617,7 +617,7 @@ function is_mounted($dev, $dir=FALSE) {
 	if ($dev != "") {
 		$data = timed_exec(2, "/sbin/mount");
 		$append = ($dir) ? " " : " on";
-		$rc = strpos($data, $dev.$append);
+		$rc = (strpos($data, $dev.$append) != 0) ? TRUE : FALSE;
 	}
 	return $rc;
 }
@@ -990,7 +990,7 @@ function remove_shares() {
 	foreach (get_unassigned_disks() as $name => $disk) {
 		foreach ($disk['partitions'] as $p) {
 			$info = get_partition_info($p);
-			if ( is_mounted($info['device']) ) {
+			if ( $info['mounted'] ) {
 				$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV, $reload) : get_udev_info($device, NULL, $reload);
 				if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'],"usb"))) {
 					rm_smb_share($info['target'], $info['label']);
@@ -1002,14 +1002,14 @@ function remove_shares() {
 
 	// SMB Mounts
 	foreach (get_samba_mounts() as $name => $info) {
-		if ( is_mounted($info['device']) ) {
+		if ( $info['mounted'] ) {
 			rm_smb_share($info['mountpoint'], $info['device']);
 		}
 	}
 
 	// ISO File Mounts
 	foreach (get_iso_mounts() as $name => $info) {
-		if ( is_mounted($info['device']) ) {
+		if ( $info['mounted'] ) {
 			rm_smb_share($info['mountpoint'], $info['device']);
 			rm_nfs_share($info['mountpoint']);
 		}
@@ -1021,7 +1021,7 @@ function reload_shares() {
 	foreach (get_unassigned_disks() as $name => $disk) {
 		foreach ($disk['partitions'] as $p) {
 			$info = get_partition_info($p);
-			if ( is_mounted($info['device']) ) {
+			if ( $info['mounted'] ) {
 				$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV, $reload) : get_udev_info($device, NULL, $reload);
 				if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'],"usb"))) {
 					add_smb_share($info['mountpoint'], $info['label']);
@@ -1033,14 +1033,14 @@ function reload_shares() {
 
 	// SMB Mounts
 	foreach (get_samba_mounts() as $name => $info) {
-		if ( is_mounted($info['device']) ) {
+		if ( $info['mounted'] ) {
 			add_smb_share($info['mountpoint'], $info['device'], FALSE);
 		}
 	}
 
 	// ISO File Mounts
 	foreach (get_iso_mounts() as $name => $info) {
-		if ( is_mounted($info['device']) ) {
+		if ( $info['mounted'] ) {
 			add_smb_share($info['mountpoint'], $info['device'], FALSE);
 			add_nfs_share($info['mountpoint']);
 		}
@@ -1130,12 +1130,12 @@ function get_samba_mounts() {
 			}
 		}
 
-		if (! $is_alive && is_mounted($device)) {
+		$mount['mounted']	= is_mounted($mount['device']);
+		if (! $is_alive && $mount['mounted']) {
 			unassigned_log("SMB/NFS server '{$mount['ip']}' is not responding to a ping and appears to be offline.");
 		}
 
-		$mount['is_alive'] = $is_alive;
-
+		$mount['is_alive']	= $is_alive;
 		$mount['automount'] = is_samba_automount($mount['name']);
 		$mount['smb_share'] = is_samba_share($mount['name']);
 		if (! $mount["mountpoint"]) {
@@ -1309,8 +1309,9 @@ function get_iso_mounts() {
 		if (! $mount["mountpoint"]) {
 			$mount["mountpoint"] = preg_replace("%\s+%", "_", "{$paths['usb_mountpoint']}/{$mount['share']}");
 		}
-		$mount['target'] = $mount['mountpoint'];
-		$is_alive = is_file($mount['file']);
+		$mount['target']	= $mount['mountpoint'];
+		$is_alive			= is_file($mount['file']);
+		$mount['mounted']	= is_mounted($mount['device']);
 		file_put_contents("{$paths['df_temp']}", "");
 		if ($is_alive && file_exists($mount['mountpoint'])) {
 			timed_exec(2, "/bin/df '{$mount['mountpoint']}' --output=size,used,avail | /bin/grep -v '1K-blocks' > {$paths['df_temp']} 2>/dev/null");
@@ -1544,7 +1545,8 @@ function get_partition_info($device, $reload=FALSE){
 		$disk['size']		= intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $1}'")))*1024;
 		$disk['used']		= intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $2}'")))*1024;
 		$disk['avail']		= intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $3}'")))*1024;
-		if ($disk['target'] != "" && is_mounted($disk['device'])) {
+		$disk['mounted']	= is_mounted($disk['device']);
+		if ($disk['target'] != "" && $disk['mounted']) {
 			$disk['openfiles']	= lsof($disk['target']);
 		} else {
 			$disk['openfiles'] = 0;
@@ -1552,7 +1554,7 @@ function get_partition_info($device, $reload=FALSE){
 		$disk['owner']			= (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
 		$disk['automount']		= is_automount($disk['serial'], strpos($attrs['DEVPATH'],"usb"));
 		$disk['read_only']		= is_read_only($disk['serial']);
-		$disk['pass_through']	= (! is_mounted($disk['device'])) ? is_pass_through($disk['serial']) : FALSE;
+		$disk['pass_through']	= (! $disk['mounted']) ? is_pass_through($disk['serial']) : FALSE;
 		$disk['shared']			= config_shared($disk['serial'], $disk['part'], strpos($attrs['DEVPATH'],"usb"));
 		$disk['command']		= get_config($disk['serial'], "command.{$disk['part']}");
 		$disk['command_bg']		= get_config($disk['serial'], "command_bg.{$disk['part']}");
