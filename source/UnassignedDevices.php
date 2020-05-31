@@ -302,7 +302,7 @@ switch ($_POST['action']) {
 				echo "<td>{$temp}</td>";
 				echo ($p)?$p[5]:"<td>-</td>";
 				echo ($p)?$p[6]:"<td>-</td>";
-				echo ($disk['size'] == "-") ? "<td>-</td>" : "<td>".my_scale($disk['size'],$unit)." {$unit}</td>";
+				echo "<td>".my_scale($disk['size'],$unit)." {$unit}</td>";
 				echo ($p)?$p[8]:"<td>-</td><td>-</td>";
 				echo ($p)?$p[9]:"<td>-</td>";
 				echo ($p)?$p[10]:"<td>-</td>";

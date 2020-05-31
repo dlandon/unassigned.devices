@@ -612,6 +612,7 @@ function remove_config_disk($sn) {
 #########################################################
 
 function is_mounted($dev, $dir=FALSE) {
+
 	$rc = FALSE;
 	if ($dev != "") {
 		$data = timed_exec(2, "/sbin/mount");
@@ -1454,11 +1455,11 @@ function get_all_disks_info($bus="all") {
 		$dp = time();
 		if ($disk['type'] != $bus && $bus != "all") continue;
 		$disk['temperature'] = "";
+		$disk['size'] = intval(trim(timed_exec(5, "/bin/lsblk -nb -o size ".realpath($key)." 2>/dev/null")));
 		$disk = array_merge($disk, get_disk_info($key));
 		foreach ($disk['partitions'] as $k => $p) {
 			if ($p) $disk['partitions'][$k] = get_partition_info($p);
 		}
-		$disk['size'] = ((! is_mounted(realpath($key)."1") && is_pass_through($disk['serial']))) ? "-" : intval(trim(timed_exec(5, "/bin/lsblk -nb -o size ".realpath($key)." 2>/dev/null")));
 		$ud_disks[$key] = $disk;
 		unassigned_log("Getting [".realpath($key)."] info: ".(time() - $dp)."s", "DEBUG");
 	}
