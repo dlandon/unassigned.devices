@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.05.25">
+<!ENTITY version   "2020.05.31">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"cf350af6e8f863e9811c6ccaf2aefc63">
+<!ENTITY MD5		"8783dc5a6c9961a0b9b0fa45aeb77768">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,13 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Don't unmount a disk if UD did not mount it.
+- Add: Don't allow partition removal on a passed through disk.
+- Fix: Share updating disk shares from UD settings.
+- Fix: Excessive logging when shares are updated from UD settings.
+- Fix: Cut down on tmp file accesses.
+
+###2020.05.25
 - Fix: Return code handling - code Cleanup.
 - Fix: Made some minor default script modifications.
 - Fix: Removed some unused code.
