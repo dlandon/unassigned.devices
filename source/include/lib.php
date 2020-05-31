@@ -1515,11 +1515,7 @@ function get_partition_info($device, $reload=FALSE){
 			$all_disks = array_unique(array_map(function($ar){return realpath($ar);},listDir("/dev/disk/by-id")));
 			$disk['label']  = (count(preg_grep("%".$matches[1][0]."%i", $all_disks)) > 2) ? $disk['label']."-part".$matches[2][0] : $disk['label'];
 		}
-		$disk['pass_through']	= (! $disk['mounted']) ? is_pass_through($disk['serial']) : FALSE;
 		$disk['fstype'] = safe_name($attrs['ID_FS_TYPE']);
-		if (! $disk['pass_through']) {
-			$disk['fstype'] = (! $disk['fstype'] && verify_precleared($disk['disk'])) ? "precleared" : $disk['fstype'];
-		}
 		if ( $disk['mountpoint'] = get_config($disk['serial'], "mountpoint.{$disk['part']}") ) {
 			if (! $disk['mountpoint'] ) goto empty_mountpoint;
 		} else {
@@ -1530,6 +1526,11 @@ function get_partition_info($device, $reload=FALSE){
 		if ($disk['fstype'] == "crypto_LUKS") {
 			$disk['device'] = "/dev/mapper/".basename($disk['mountpoint']);
 		}
+		$disk['mounted']	= is_mounted($disk['device']);
+		$disk['pass_through']	= (! $disk['mounted']) ? is_pass_through($disk['serial']) : FALSE;
+		if (! $disk['pass_through']) {
+			$disk['fstype'] = (! $disk['fstype'] && verify_precleared($disk['disk'])) ? "precleared" : $disk['fstype'];
+		}
 		$disk['target'] = str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep {$disk['device']} | /bin/awk '{print $2}'")));
 		file_put_contents("{$paths['df_temp']}", "");
 		if (file_exists($disk['mountpoint'])) {
@@ -1538,7 +1539,6 @@ function get_partition_info($device, $reload=FALSE){
 		$disk['size']		= intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $1}'")))*1024;
 		$disk['used']		= intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $2}'")))*1024;
 		$disk['avail']		= intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $3}'")))*1024;
-		$disk['mounted']	= is_mounted($disk['device']);
 		if ($disk['target'] != "" && $disk['mounted']) {
 			$disk['openfiles']	= lsof($disk['target']);
 		} else {
