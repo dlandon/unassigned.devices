@@ -116,7 +116,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 		$fscheck = "<i class='fa fa-check partition'></i>{$partition['part']}";
 	}
 
-	$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && (! is_pass_through($disk['serial']))) ? "<span title='".tr("Remove Partition",true)."' device='{$partition['device']}' class='exec' style='color:red;font-weight:bold;' onclick='rm_partition(this,\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i></span>" : "";
+	$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && (! $disk['pass_throuogh'])) ? "<span title='".tr("Remove Partition",true)."' device='{$partition['device']}' class='exec' style='color:red;font-weight:bold;' onclick='rm_partition(this,\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i></span>" : "";
 	$mpoint = "<span>{$fscheck}<i class='fa fa-share'></i>";
 	$mount_point = basename($partition['mountpoint']);
 	if ($mounted) {
@@ -155,6 +155,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 		$mounted_disk = FALSE;
 		$open_files = 0;
 		foreach ($disk['partitions'] as $part) {
+_echo($mounted);
 			if (is_mounted($part['device'])) {
 				$open_files		+= $part['openfiles'];
 				$mounted_disk	= TRUE;
@@ -241,7 +242,7 @@ function make_mount_button($device) {
 			$button = sprintf($button, $context, 'umount', $disable, 'fa fa-export', 'Unmount');
 		}
 	} else {
-		$disable = (is_pass_through($device['serial']) || $preclearing ) ? "disabled" : $disable;
+		$disable = ($device['partitions'][0]['pass_through'] || $preclearing ) ? "disabled" : $disable;
 		$button = sprintf($button, $context, 'mount', $disable, 'fa fa-import', 'Mount');
 	}
 	return $button;
@@ -264,7 +265,7 @@ switch ($_POST['action']) {
 				$preclearing	= $Preclear ? $Preclear->isRunning($disk_name) : false;
 				$is_precleared	= ($disk['partitions'][0]['fstype'] == "precleared") ? true : false;
 				$flash			= ($disk['partitions'][0]['fstype'] == "vfat") ? true : false;
-				if ( (! is_pass_through($disk['serial'])) && ($mounted || is_file($disk['partitions'][0]['command']) || $preclearing) ) {
+				if ( (! $disk['partitions'][0]['pass_through']) && ($mounted || is_file($disk['partitions'][0]['command']) || $preclearing) ) {
 					$disk_running	= array_key_exists("running", $disk) ? $disk['running'] : is_disk_running($disk['device']);
 					$disk['temperature'] = $disk['temperature'] ? $disk['temperature'] : get_temp(substr($disk['device'],0,10), $disk_running);
 				}
