@@ -816,7 +816,7 @@ function toggle_share($serial, $part, $status) {
 	$new = ($status == "true") ? "yes" : "no";
 	set_config($serial, "share.{$part}", $new);
 	@touch($GLOBALS['paths']['reload']);
-	return ($new == 'yes') ? TRUE:FALSE;
+	return ($new == 'yes') ? TRUE : FALSE;
 }
 
 function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {

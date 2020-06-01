@@ -495,10 +495,10 @@ switch ($_POST['action']) {
 		$status = urldecode(($_POST['status']));
 		$result = toggle_share($info['serial'], $info['part'],$status);
 		echo json_encode(array( 'result' => $result));
-		if ($result && strlen($info['target'])) {
+		if ($result && strlen($info['target']) && $info['mounted']) {
 			add_smb_share($info['mountpoint'], $info['label']);
 			add_nfs_share($info['mountpoint']);
-		} else {
+		} elseif ($info['mounted']) {
 			rm_smb_share($info['mountpoint'], $info['label']);
 			rm_nfs_share($info['mountpoint']);
 		}
@@ -648,10 +648,10 @@ switch ($_POST['action']) {
 		$status = urldecode(($_POST['status']));
 		$result = toggle_samba_share($info['device'], $status);
 		echo json_encode(array( 'result' => $result));
-		if ($result && strlen($info['target'])) {
+		if ($result && strlen($info['target']) && $info['mounted']) {
 			add_smb_share($info['mountpoint'], $info['device']);
 			add_nfs_share($info['mountpoint']);
-		} else {
+		} elseif ($info['mounted']) {
 			rm_smb_share($info['mountpoint'], $info['device']);
 			rm_nfs_share($info['mountpoint']);
 		}
