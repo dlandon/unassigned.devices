@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.05.31b">
+<!ENTITY version   "2020.05.31c">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"94d3a01a4015bc13433a2f43303d3cc6">
+<!ENTITY MD5		"80a7d1f23a1130195a1ddacbd6176a55">
 ]>
 
 <PLUGIN name="&name;"
@@ -30,6 +30,7 @@
 - Fix: Excessive logging when shares are updated from UD settings.
 - Fix: Cut down on tmp file accesses.
 - Fix: Don't check a disk for preclear status if passed through.
+- Fix: Shares toggling when device is not mounted.
 
 ###2020.05.25
 - Fix: Return code handling - code Cleanup.
