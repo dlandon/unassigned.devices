@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.05.31c">
+<!ENTITY version   "2020.06.03">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"80a7d1f23a1130195a1ddacbd6176a55">
+<!ENTITY MD5		"2b421cf9f2a4e28e8958478584e61aa9">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Allow spaces in mount point/share name.
+- Fix: Some icon adjustments.
+
+###2020.05.31c
 - Add: Don't unmount a disk if UD did not mount it.
 - Add: Don't allow partition removal on a passed through disk.
 - Fix: Share updating disk shares from UD settings.
