@@ -118,13 +118,14 @@ function render_partition($disk, $partition, $total=FALSE) {
 	}
 
 	$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && (! $disk['partitions'][0]['pass_through'])) ? "<span title='".tr("Remove Partition",true)."' device='{$partition['device']}' class='exec' style='color:red;font-weight:bold;' onclick='rm_partition(this,\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i></span>" : "";
-	$mpoint = "<span>{$fscheck}<i class='fa fa-share'></i>";
+	$mpoint = "<span>{$fscheck}";
 	$mount_point = basename($partition['mountpoint']);
 	if ($mounted) {
-		$mpoint .= "<a title='".tr("Browse Disk Share",true)."' href='/Main/Browse?dir={$partition['mountpoint']}'>{$mount_point}</a></span>";
+		$mpoint .= "<i class='fa fa-share fa'></i><a title='".tr("Browse Disk Share",true)."' href='/Main/Browse?dir={$partition['mountpoint']}'>{$mount_point}</a></span>";
 	} else {
 		$mount_point = basename($partition['mountpoint']);
 		$mpoint .= "<form title='".tr("Click to Change Device Mount Point - Press Enter to save",true)."' method='POST' action='/plugins/{$plugin}/UnassignedDevices.php' target='progressFrame' class='inline'>";
+		$mpoint .= "<i class='fa fa-share'></i></span>";
 		$mpoint .= "<span class='text exec'><a>{$mount_point}</a></span>";
 		$mpoint .= "<input type='hidden' name='action' value='change_mountpoint'/>";
 		$mpoint .= "<input type='hidden' name='serial' value='{$partition['serial']}'/>";
@@ -349,7 +350,7 @@ switch ($_POST['action']) {
 				echo "<td>{$mount['name']}</td>";
 				$mount_point = basename($mount['mountpoint']);
 				if ($mounted) {
-					echo "<td><i class='fa fa-share-alt hdd'></i><a title='".tr("Browse Remote SMB/NFS Share",true)."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
+					echo "<td><i class='fa fa-share-alt fa'></i><a title='".tr("Browse Remote SMB/NFS Share",true)."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
 				} else {
 					echo "<td>
 						<form title='".tr("Click to change Remote SMB/NFS Mount Point - Press Enter to save",true)."' method='POST' action='/plugins/{$plugin}/UnassignedDevices.php' target='progressFrame' class='inline'>
@@ -619,7 +620,7 @@ switch ($_POST['action']) {
 				set_samba_config("{$device}", "pass", encrypt_data($pass));
 				set_samba_config("{$device}", "share", safe_name($share));
 			} else {
-				unassigned_log("Share '{$device}' contains a '$' character.	It cannot be mounted.");
+				unassigned_log("Share '{$device}' contains a '$' character.	It cannot be added.");
 				$rc = FALSE;
 			}
 		}
@@ -710,7 +711,7 @@ switch ($_POST['action']) {
 	case 'change_mountpoint':
 		$serial = urldecode($_POST['serial']);
 		$partition = urldecode($_POST['partition']);
-		$mountpoint = safe_name(basename(urldecode($_POST['mountpoint'])));
+		$mountpoint = safe_name(basename(urldecode($_POST['mountpoint'])), FALSE);
 		if ($mountpoint != "") {
 			$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
 			set_config($serial, "mountpoint.{$partition}", $mountpoint);
@@ -720,7 +721,7 @@ switch ($_POST['action']) {
 
 	case 'change_samba_mountpoint':
 		$device = urldecode($_POST['device']);
-		$mountpoint = safe_name(basename(urldecode($_POST['mountpoint'])));
+		$mountpoint = safe_name(basename(urldecode($_POST['mountpoint'])), FALSE);
 		if ($mountpoint != "") {
 			$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
 			set_samba_config($device, "mountpoint", $mountpoint);
@@ -730,7 +731,7 @@ switch ($_POST['action']) {
 
 	case 'change_iso_mountpoint':
 		$device = urldecode($_POST['device']);
-		$mountpoint = safe_name(basename(urldecode($_POST['mountpoint'])));
+		$mountpoint = safe_name(basename(urldecode($_POST['mountpoint'])), FALSE);
 		if ($mountpoint != "") {
 			$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
 			set_iso_config($device, "mountpoint", $mountpoint);

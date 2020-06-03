@@ -148,12 +148,15 @@ function listDir($root) {
 	return $paths;
 }
 
-function safe_name($string) {
+function safe_name($string, $convert_spaces=TRUE) {
 	$string = stripcslashes($string);
-	$string = str_replace(array( "'", " " ), "_", $string);
+	$string = str_replace( "'", "_", $string);
+	if ($convert_spaces) {
+		$string = str_replace(" " , "_", $string);
+	}
 	$string = htmlentities($string, ENT_QUOTES, 'UTF-8');
 	$string = html_entity_decode($string, ENT_QUOTES, 'UTF-8');
-	$string = preg_replace('/[^A-Za-z0-9\-_]/', '', $string);
+	$string = preg_replace('/[^A-Za-z0-9\-_] /', '', $string);
 	return trim($string);
 }
 
@@ -1522,9 +1525,9 @@ function get_partition_info($device, $reload=FALSE){
 			empty_mountpoint:
 			$disk['mountpoint'] = $disk['target'] ? $disk['target'] : preg_replace("%\s+%", "_", sprintf("%s/%s", $paths['usb_mountpoint'], $disk['label']));
 		}
-		$disk['luks']	= $disk['device'];
+		$disk['luks']	= safe_name($disk['device']);
 		if ($disk['fstype'] == "crypto_LUKS") {
-			$disk['device'] = "/dev/mapper/".basename($disk['mountpoint']);
+			$disk['device'] = "/dev/mapper/".safe_name(basename($disk['mountpoint']));
 		}
 		$disk['mounted']	= is_mounted($disk['device']);
 		$disk['pass_through']	= (! $disk['mounted']) ? is_pass_through($disk['serial']) : FALSE;
