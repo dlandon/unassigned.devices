@@ -213,12 +213,23 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
 	<?php endforeach; ?>
 </div>
 
-<?if ($translations):?>:plug6<?endif;?>
+<?if ($translations):?>:plug7<?endif;?>
 > Set the user level of SMB Security.
 >
 > + Set to **Yes** to enable SMB Security on SMB shares.  Set access by user to allow access and whether or not the user can write to the share.
 > + Set to **Yes (hidden)** to enable SMB Security on SMB shares that will not be visible.  Set access by user to allow access and whether or not the user can write to the share.
 > + Set to **No** will share devices, SMB/NFS, and iso Mounts Public with read and write access.
+<?if ($translations):?>:end<?endif;?>
+
+<?tr("Add 'force user = nobody' to SMB share config")?>?
+: <select name="force_user" size="1">
+  <?=mk_option($cfg["Config"]["force_user"], "yes", tr("Yes",true));?>
+  <?=mk_option($cfg["Config"]["force_user"], "no", tr("No",true));?>
+  </select>
+
+<?if ($translations):?>:plug8<?endif;?>
+> There are times when permissions on SMB shares aren't handled as expected.  Turning this feature on can help with those permisions.  This applies to all devices mounted with Unassigned Devices.
+> The down side is that it overrides some Linux permissions.  If you are unsure about whether or not this is necessary, leave it enabled.
 <?if ($translations):?>:end<?endif;?>
 
 &nbsp;
@@ -254,7 +265,7 @@ Enable NFS export?
 	</div>
 </div>
 
-<?if ($translations):?>:plug7<?endif;?>
+<?if ($translations):?>:plug9<?endif;?>
 > Set to **Yes** to export NFS shares.  Shares are exported Public with read and write access or Private with the rule you set.  Access is controlled with permission settings on files and folders.
 <?if ($translations):?>:end<?endif;?>
 
@@ -276,7 +287,7 @@ Select Disk:
 
 : <input type="password" name="password" class="wide" maxlength="100" value="">
   
-<?if ($translations):?>:plug8<?endif;?>
+<?if ($translations):?>:plug10<?endif;?>
 > Select the disk that you want to set a Password.  This is the password for this disk only and does not affect the array password/passphrase.  Leave password blank to use the array password/passphrase.
 <?if ($translations):?>:end<?endif;?>
 
@@ -297,7 +308,7 @@ Select Disk to change UUID:
   <?}?>
   </select>
   
-<?if ($translations):?>:plug9<?endif;?>
+<?if ($translations):?>:plug11<?endif;?>
 > Select the disk that you want to change the UUID.  This is useful when a disk has been removed from the array and has the same UUID as an array disk.  Drive must be unmounted to change the UUID.
 <?if ($translations):?>:end<?endif;?>
 

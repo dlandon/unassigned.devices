@@ -858,7 +858,7 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 			} else {
 				$hidden = "\n\tbrowseable = yes";
 			}
-			$force_user = "\n\tForce User = nobody";
+			$force_user = ( get_config("Config", "force_user") != "no" ) ? "\n\tforce User = nobody" : "";
 			if (count($valid_users)) {
 				$valid_users = "\n\tvalid users = ".implode(', ', $valid_users);
 				$write_users = count($write_users) ? "\n\twrite list = ".implode(', ', $write_users) : "";
