@@ -59,12 +59,13 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	button.mount {padding:2px 7px 2px 0px;margin:1px 0px 1px 0px;}
 	i.fa{margin:0px 13px 0px 5px;}
 	i.hdd{margin:0px; 0px;}
-	i.partition{margin-left: 18px;}
+	i.partition-hdd{margin:4px; 0px; 0px; 0px;}
+	i.partition-script{margin-left: 13px;}
 	.exec{cursor: pointer;}
 	i.fa-append{margin:0px;font-size: 0.8em;position: relative; left:-0.3em;top:0.7em;}
 	.underline{text-decoration: underline;}
 
-	form.inline{display:inline;margin:0;padding:0;}
+	form.inline{display:inline;margin: 0px; padding: 0px;}
 
 	.fileTree {
 		width: 305px;

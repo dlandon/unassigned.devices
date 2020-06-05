@@ -107,14 +107,14 @@ function render_partition($disk, $partition, $total=FALSE) {
 		$script_partition = $partition['fstype'] == "crypto_LUKS" ? $partition['luks'] : $partition['device'];
 		$script_running = is_script_running($cmd);
 		if (! $script_running) {
-			$fscheck = "<a title='".tr("Execute Script as udev simulating a device being installed",true)."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/script.php?device={$script_partition}&owner=udev\",\"Execute Script\",600,900);'><i class='fa fa-flash partition'></i></a>{$partition['part']}";
+			$fscheck = "<a title='".tr("Execute Script as udev simulating a device being installed",true)."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/script.php?device={$script_partition}&owner=udev\",\"Execute Script\",600,900);'><i class='fa fa-flash partition-script'></i></a>{$partition['part']}";
 		} else {
-			$fscheck = "<i class='fa fa-flash partition'></i>{$partition['part']}";
+			$fscheck = "<i class='fa fa-flash partition-script'></i>{$partition['part']}";
 		}
 	} elseif ( (! $mounted && $partition['fstype'] != 'btrfs') ) {
-		$fscheck = "<a title='".tr("File System Check",true)."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&type=ro\",\"Check filesystem\",600,900);'><i class='fa fa-check partition'></i></a>{$partition['part']}";
+		$fscheck = "<a title='".tr("File System Check",true)."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&type=ro\",\"Check filesystem\",600,900);'><i class='fa fa-check'></i></a>{$partition['part']}";
 	} else {
-		$fscheck = "<i class='fa fa-check partition'></i>{$partition['part']}";
+		$fscheck = "<i class='fa fa-check'></i>{$partition['part']}";
 	}
 
 	$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && (! $disk['partitions'][0]['pass_through'])) ? "<span title='".tr("Remove Partition",true)."' device='{$partition['device']}' class='exec' style='color:red;font-weight:bold;' onclick='rm_partition(this,\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i></span>" : "";
@@ -125,7 +125,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 	} else {
 		$mount_point = basename($partition['mountpoint']);
 		$mpoint .= "<form title='".tr("Click to Change Device Mount Point - Press Enter to save",true)."' method='POST' action='/plugins/{$plugin}/UnassignedDevices.php' target='progressFrame' class='inline'>";
-		$mpoint .= "<i class='fa fa-share'></i></span>";
+		$mpoint .= "<i class='fa fa-share partition-hdd'></i></span>";
 		$mpoint .= "<span class='text exec'><a>{$mount_point}</a></span>";
 		$mpoint .= "<input type='hidden' name='action' value='change_mountpoint'/>";
 		$mpoint .= "<input type='hidden' name='serial' value='{$partition['serial']}'/>";
