@@ -228,8 +228,9 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
   </select>
 
 <?if ($translations):?>:plug8<?endif;?>
-> There are times when permissions on SMB shares aren't handled as expected.  Turning this feature on can help with those permisions.  This applies to all devices mounted with Unassigned Devices.
-> The down side is that it overrides some Linux permissions.  If you are unsure about whether or not this is necessary, leave it enabled.
+> There are times when permissions on SMB shares aren't handled as expected.  Turning this feature on can help with those permissions.
+> This applies to all devices mounted with Unassigned Devices.
+> The down side is that it overrides Linux group permissions.  If you are unsure about whether or not this is necessary, leave it enabled.
 <?if ($translations):?>:end<?endif;?>
 
 &nbsp;
