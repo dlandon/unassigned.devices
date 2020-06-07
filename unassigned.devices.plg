@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.06.03">
+<!ENTITY version   "2020.06.06">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"2b421cf9f2a4e28e8958478584e61aa9">
+<!ENTITY MD5		"7ab24fed1d604de182355a991d6b6586">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Configuration setting to turn 'force user = nobody' SMB parameter on or off.
+- Fix: More icon adjustments.
+- Fix: Center 'Mount' text on mount button.
+
+###2020.06.03
 - Fix: Allow spaces in mount point/share name.
 - Fix: Some icon adjustments.
 
