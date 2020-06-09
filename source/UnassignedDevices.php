@@ -112,16 +112,16 @@ function render_partition($disk, $partition, $total=FALSE) {
 			$fscheck = "<i class='fa fa-flash partition-script'></i>{$partition['part']}";
 		}
 	} elseif ( (! $mounted && $partition['fstype'] != 'btrfs') ) {
-		$fscheck = "<a title='".tr("File System Check",true)."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&type=ro\",\"Check filesystem\",600,900);'><i class='fa fa-check'></i></a>{$partition['part']}";
+		$fscheck = "<a title='".tr("File System Check",true)."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&type=ro\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i></a>{$partition['part']}";
 	} else {
-		$fscheck = "<i class='fa fa-check'></i>{$partition['part']}";
+		$fscheck = "<i class='fa fa-check partition-hdd'></i>{$partition['part']}";
 	}
 
 	$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && (! $disk['partitions'][0]['pass_through'])) ? "<span title='".tr("Remove Partition",true)."' device='{$partition['device']}' class='exec' style='color:red;font-weight:bold;' onclick='rm_partition(this,\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i></span>" : "";
 	$mpoint = "<span>{$fscheck}";
 	$mount_point = basename($partition['mountpoint']);
 	if ($mounted) {
-		$mpoint .= "<i class='fa fa-share fa'></i><a title='".tr("Browse Disk Share",true)."' href='/Main/Browse?dir={$partition['mountpoint']}'>{$mount_point}</a></span>";
+		$mpoint .= "<i class='fa fa-share partition-hdd'></i><a title='".tr("Browse Disk Share",true)."' href='/Main/Browse?dir={$partition['mountpoint']}'>{$mount_point}</a></span>";
 	} else {
 		$mount_point = basename($partition['mountpoint']);
 		$mpoint .= "<form title='".tr("Click to Change Device Mount Point - Press Enter to save",true)."' method='POST' action='/plugins/{$plugin}/UnassignedDevices.php' target='progressFrame' class='inline'>";
@@ -229,16 +229,16 @@ function make_mount_button($device) {
 		$disable = $preclearing ? "disabled" : $disable;
 		$button = sprintf($button, $context, 'format', $disable, 'fa fa-erase', 'Format');
 	} elseif ($is_mounting) {
-		$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-circle-o-notch fa-spin', 'Mounting...');
+		$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-circle-o-notch fa-spin', ' Mounting...');
 	} elseif ($is_unmounting) {
-		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-circle-o-notch fa-spin', 'Unmounting...');
+		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-circle-o-notch fa-spin', ' Unmounting...');
 	} elseif ($is_formatting) {
-		$button = sprintf($button, $context, 'format', 'disabled', 'fa fa-circle-o-notch fa-spin', 'Formatting...');
+		$button = sprintf($button, $context, 'format', 'disabled', 'fa fa-circle-o-notch fa-spin', ' Formatting...');
 	} elseif ($mounted) {
 		$cmd = $device['command'];
 		$script_running = is_script_running($cmd);
 		if ($script_running) {
-			$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-circle-o-notch fa-spin', 'Running...');
+			$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-circle-o-notch fa-spin', ' Running...');
 		} else {
 			$disable = is_mounted($device['partitions'][0]['mountpoint'], TRUE) ? $disable : "disabled";
 			$button = sprintf($button, $context, 'umount', $disable, 'fa fa-export', 'Unmount');
@@ -368,7 +368,7 @@ switch ($_POST['action']) {
 				$cmd = get_samba_config($mount['device'],"command");
 				$script_running = is_script_running($cmd);
 				if ($script_running) {
-					echo "<td><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i>Running...</button></td>";
+					echo "<td><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i> Running...</button></td>";
 				} else {
 					echo "<td>".($mounted ? "<button class='mount' device ='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>Unmount</button>" : "<button class='mount'device ='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>Mount</button>")."</td>";
 				}
@@ -412,7 +412,7 @@ switch ($_POST['action']) {
 				$cmd = get_iso_config($mount['device'],"command");
 				$script_running = is_script_running($cmd);
 				if ($script_running) {
-					echo "<td><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i>Running...</button></td>";
+					echo "<td><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i> Running...</button></td>";
 				} else {
 					echo "<td>".($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>Unmount</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>Mount</button>")."</td>";
 				}
