@@ -56,7 +56,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	table.samba_mounts tr>td+td+td+td+td+td{text-align:right}
 	table.samba_mounts tr>td+td+td+td+td+td+td+td+td{text-align:left}
 
-	button.mount {padding:2px 4px 2px 10px;margin:1px 0px 1px 0px;}
+	button.mount {padding:2px 4px 2px 6px;margin:1px 0px 1px 0px;}
 	i.hdd{margin:0px; 0px;}
 	i.partition-hdd{margin:5px; 0px; 5px; 0px;}
 	i.partition-script{margin-left: 10px; margin-right: 6px;}
