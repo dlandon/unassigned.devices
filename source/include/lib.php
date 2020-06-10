@@ -650,9 +650,13 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 			break;
 
 		case 'exfat':
-		case 'vfat':
-		case 'ntfs':
 			return "{$rw},auto,async,noatime,nodiratime,nodev,nosuid,umask=000";
+
+		case 'vfat':
+			return "{$rw},auto,async,noatime,nodiratime,nodev,nosuid,iocharset=utf8,umask=000";
+
+		case 'ntfs':
+			return "{$rw},auto,async,noatime,nodiratime,nodev,nosuid,nls=utf8,umask=000";
 			break;
 
 		case 'crypto_LUKS':
