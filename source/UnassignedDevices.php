@@ -274,7 +274,7 @@ switch ($_POST['action']) {
 
 				$mbutton = make_mount_button($disk);
 
-				$preclear_link = ($disk['size'] !== 0 && ! $flash && ! $mounted && $Preclear && ! $preclearing) ? "&nbsp;&nbsp;".$Preclear->Link($disk_name, "icon") : "";
+				$preclear_link = ($disk['size'] !== 0 && ! $disk['partitions'][0]['fstype'] && ! $mounted && $Preclear && ! $preclearing  && get_config("Config", "destructive_mode") == "enabled") ? "&nbsp;&nbsp;".$Preclear->Link($disk_name, "icon") : "";
 
 				$hdd_serial = "<a href=\"#\" title='".tr("Disk Log Information",true)."' onclick=\"openBox('/webGui/scripts/disk_log&amp;arg1={$disk_name}','Disk Log Information',600,900,false);return false\"><i class='fa fa-hdd-o icon'></i></a>";
 				if ( $p	&& ! ($is_precleared || $preclearing) )
