@@ -240,7 +240,8 @@ function make_mount_button($device) {
 		if ($script_running) {
 			$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-circle-o-notch fa-spin', ' Running...');
 		} else {
-			$disable = is_mounted($device['partitions'][0]['mountpoint'], TRUE) ? $disable : "disabled";
+			$disable = ! isset($device['partitions'][0]['mountpoint']) || is_mounted($device['partitions'][0]['mountpoint'], TRUE) ? $disable : "disabled";
+			$disable = ! isset($device['mountpoint']) || is_mounted($device['mountpoint'], TRUE) ? $disable : "disabled";
 			$button = sprintf($button, $context, 'umount', $disable, 'fa fa-export', 'Unmount');
 		}
 	} else {
