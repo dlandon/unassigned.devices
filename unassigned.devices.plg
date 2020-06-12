@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.06.11">
+<!ENTITY version   "2020.06.11a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"e941b50efe51c4a2304bd2cb5b5873b2">
+<!ENTITY MD5		"3d6387f2b3e07c01c738e25191b38a38">
 ]>
 
 <PLUGIN name="&name;"
@@ -28,6 +28,7 @@
 - Add: iocharset=utf8 to vfat mount; nls=utf8 to ntfs mount.
 - Add: Don't show preclear icon if disk has a file system.
 - Add: Don't show preclear icon if destructive mode is disabled.
+- Fix: Reversion of unmount when UD did not mount a device.
 
 ###2020.06.06
 - Add: Configuration setting to turn 'force user = nobody' SMB parameter on or off.
