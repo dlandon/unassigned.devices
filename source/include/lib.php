@@ -1380,7 +1380,7 @@ function remove_config_iso($source) {
 #########################################################
 
 function get_unassigned_disks() {
-	global $disks, $var;
+	global $disks;
 
 	$ud_disks = $paths = $unraid_disks = array();
 
@@ -1394,35 +1394,14 @@ function get_unassigned_disks() {
 	}
 	natsort($paths);
 
-	// Get the flash device.
-	$unraid_disks[] = "/dev/".$disks['flash']['device'];
-
-	// Get the array devices.
-	for ($i = 1; $i < $var['SYS_ARRAY_SLOTS']; $i++) {
-		if (isset($disks["disk".$i]['device']) && $disks["disk".$i]['device'] != "") {
-			$dev = $disks["disk".$i]['device'];
+	// Get all unraid disk devices (array disks, cache, and pool devices)
+	foreach ($disks as $d) {
+		if ($d['device']) {
+			$dev = $d['device'];
 			$unraid_disks[] = "/dev/".$dev;
 		}
 	}
 
-	// Get the parity devices.
-	if (isset($disks['parity']['device']) && $disks['parity']['device'] != "") {
-		$unraid_disks[] = "/dev/".$disks['parity']['device'];
-	}
-	if (isset($disks['parity2']['device']) && $disks['parity2']['device'] != "") {
-		$unraid_disks[] = "/dev/".$disks['parity2']['device'];
-	}
-
-	// Get all cache devices.
-	if (isset($disks['cache']['device']) && $disks['cache']['device'] != "") {
-		$unraid_disks[] = "/dev/".$disks['cache']['device'];
-	}
-	for ($i = 2; $i <= $var['SYS_CACHE_SLOTS']; $i++) {
-		if (isset($disks["cache".$i]['device']) && $disks["cache".$i]['device'] != "") {
-			$dev = $disks["cache".$i]['device'];
-			$unraid_disks[] = "/dev/".$dev;
-		}
-	}
 	foreach ($unraid_disks as $k) {$o .= "  $k\n";}; unassigned_log("UNRAID DISKS:\n$o", "DEBUG");
 
 	// Create the array of unassigned devices.
@@ -1434,9 +1413,6 @@ function get_unassigned_disks() {
 				natsort($m);
 				$ud_disks[$d] = array("device"=>$path,"type"=>"ata", "partitions"=>$m);
 				unassigned_log("Unassigned disk: '$d'.", "DEBUG");
-			} else {
-				unassigned_log("Discarded: => '$d' '($path)'.", "DEBUG");
-				continue;
 			}
 		}
 	}
