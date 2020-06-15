@@ -125,7 +125,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 	} else {
 		$mount_point = basename($partition['mountpoint']);
 		$mpoint .= "<form title='".tr("Click to Change Device Mount Point - Press Enter to save",true)."' method='POST' action='/plugins/{$plugin}/UnassignedDevices.php' target='progressFrame' class='inline'>";
-		$mpoint .= "<i class='fa fa-share partition-hdd'></i></span>";
+		$mpoint .= "<i class='fa fa-share hdd'></i></span>";
 		$mpoint .= "<span class='text exec'><a>{$mount_point}</a></span>";
 		$mpoint .= "<input type='hidden' name='action' value='change_mountpoint'/>";
 		$mpoint .= "<input type='hidden' name='serial' value='{$partition['serial']}'/>";
@@ -351,11 +351,11 @@ switch ($_POST['action']) {
 				echo "<td>{$mount['name']}</td>";
 				$mount_point = basename($mount['mountpoint']);
 				if ($mounted) {
-					echo "<td><i class='fa fa-share-alt fa'></i><a title='".tr("Browse Remote SMB/NFS Share",true)."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
+					echo "<td><i class='fa fa-share-alt mount-share'></i><a title='".tr("Browse Remote SMB/NFS Share",true)."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
 				} else {
 					echo "<td>
 						<form title='".tr("Click to change Remote SMB/NFS Mount Point - Press Enter to save",true)."' method='POST' action='/plugins/{$plugin}/UnassignedDevices.php' target='progressFrame' class='inline'>
-						<i class='fa fa-share-alt hdd'></i>
+						<i class='fa fa-share-alt share'></i>
 						<span class='text exec'><a>{$mount_point}</a></span>
 						<input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden />
 						<input type='hidden' name='action' value='change_samba_mountpoint'/>
@@ -396,11 +396,11 @@ switch ($_POST['action']) {
 				echo "<td>{$mount['device']}</td>";
 				$mount_point = basename($mount['mountpoint']);
 				if ($mounted) {
-					echo "<td><i class='fa fa-share-alt'></i><span style='margin:0px;'></span><a title='".tr("Browse ISO File Share",true)."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
+					echo "<td><i class='fa fa-share-alt mount-share'></i><span style='margin:0px;'></span><a title='".tr("Browse ISO File Share",true)."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
 				} else {
 					echo "<td>
 						<form title='".tr("Click to change ISO File Mount Point - Press Enter to save",true)."' method='POST' action='/plugins/{$plugin}/UnassignedDevices.php' target='progressFrame' class='inline'>
-						<i class='fa fa-share-alt hdd'></i>
+						<i class='fa fa-share-alt share'></i>
 						<span class='text exec'><a>{$mount_point}</a></span>
 						<input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden />
 						<input type='hidden' name='action' value='change_iso_mountpoint'/>

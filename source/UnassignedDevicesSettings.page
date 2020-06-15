@@ -130,9 +130,7 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
 <?tr('Common Script')?>:
 : <input type="text" name="common_cmd" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin?>/','sh',false,true,true);" value="<?=$cfg['Config']['common_cmd'];?>">
 
-<?if ($translations):?>:plug1<?endif;?>
-> If set, this script will run before the device script.  The action is in the environment variable **$ACTION**.  Be sure you reference all commands with their full path.
-<?if ($translations):?>:end<?endif;?>
+> If set, this script will run before the device script.  The action is in the environment variable **$ACTION**. Be sure you reference all commands with their full path.
 
 <?tr("Destructive Mode")?>:
 : <select name="destructive_mode" size="1" <?if (! $parted):?>disabled<?endif;?>>
@@ -140,9 +138,7 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
   <?=mk_option($cfg["Config"]["destructive_mode"], "enabled", tr("Enabled",true));?>
   </select><?if (! $parted):?>&nbsp;<?tr("'Unassigned Devices Plus' plugin must be installed to enable Destructive Mode")?>.<?endif;?>
 
-<?if ($translations):?>:plug2<?endif;?>
 > If enabled, this will allow you to erase and format partitions using Unassigned Devices. This cannot be enabled unless the 'Unassigned Devices Plus' plugin is installed.
-<?if ($translations):?>:end<?endif;?>
 
 <?tr("Auto Mount USB Devices")?>?
 : <select name="automount_usb" size="1">
@@ -150,9 +146,7 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
   <?=mk_option($cfg["Config"]["automount_usb"], "yes", tr("Yes",true));?>
   </select>
 
-<?if ($translations):?>:plug3<?endif;?>
 > When set to **Yes**, will auto mount a new USB device and share it without user intervention.
-<?if ($translations):?>:end<?endif;?>
 
 <?tr("Mount SSDs with 'discard' option")?>?
 : <select name="discard" size="1">
@@ -160,9 +154,7 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
   <?=mk_option($cfg["Config"]["discard"], "no", tr("No",true));?>
   </select>
 
-<?if ($translations):?>:plug4<?endif;?>
 > Mount SSDs that support discard with 'discard' option.  If you are using the SSD Trim Settings to do a periodic trim of SSDs you can set this to **No**.
-<?if ($translations):?>:end<?endif;?>
 
 <?tr("Spin down disks")?>?
 : <select name="spin_down" size="1">
@@ -170,9 +162,7 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
   <?=mk_option($cfg["Config"]["spin_down"], "no", tr("No",true));?>
   </select>
 
-<?if ($translations):?>:plug5<?endif;?>
 > Set to **Yes** to set a 15 minute disk spin down timer.  Set to **No** to keep disks spun up.
-<?if ($translations):?>:end<?endif;?>
 
 <?tr("Force all SMB remote shares to SMB v1")?>?
 : <select name="samba_v1" size="1" <?if (! $use_netbios):?>disabled<?endif;?>>
@@ -180,9 +170,7 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
   <?=mk_option($cfg["Config"]["samba_v1"], "yes", tr("Yes",true));?>
   </select><?if (! $use_netbios):?>&nbsp;<span style="font-weight: bold">NetBIOS</span> <?tr("must be enabled in SMB Settings to enable SMB v1")?>.<?endif;?>
 
-<?if ($translations):?>:plug6<?endif;?>
 > Normally a SMB remote share will be mounted with the highest version of SMB that the remote server will support.  When set to **Yes**, all SMB remote shares will be forced to mount with SMB v1.  Some remote shares will give errors when mounted with SMB v2.  SMB v1 has security issues and should not be used unless absolutely necessary.  This cannot be enabled if NetBIOS is disabled.
-<?if ($translations):?>:end<?endif;?>
 
 &nbsp;
 : <input type="submit" name="#apply" value='<?tr("Apply")?>'><input type="button" value='<?tr("Done")?>' onclick="done()">
@@ -194,7 +182,7 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
 : <select name="smb_security" size="1" onchange="prepareSecurity(this);">
   <?=mk_option($cfg['Config']["smb_security"], "no", tr("No",true))?>
   <?=mk_option($cfg['Config']["smb_security"], "yes", tr("Yes",true))?>
-  <?=mk_option($cfg['Config']["smb_security"], "hidden", tr("Yes (hidden)",true))?>
+  <?=mk_option($cfg['Config']["smb_security"], "hidden", tr("Hidden",true))?>
   </select>
 
 <div id="smb_security" style="display: <?=($cfg['Config']["smb_security"] == "no" || $cfg['Config']["smb_security"] == "" ? "none" : "block");?>">
@@ -213,25 +201,21 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
 	<?php endforeach; ?>
 </div>
 
-<?if ($translations):?>:plug7<?endif;?>
 > Set the user level of SMB Security.
 >
 > + Set to **Yes** to enable SMB Security on SMB shares.  Set access by user to allow access and whether or not the user can write to the share.
-> + Set to **Yes (hidden)** to enable SMB Security on SMB shares that will not be visible.  Set access by user to allow access and whether or not the user can write to the share.
+> + Set to **Hidden** to enable SMB Security on SMB shares that will not be visible.  Set access by user to allow access and whether or not the user can write to the share.
 > + Set to **No** will share devices, SMB/NFS, and iso Mounts Public with read and write access.
-<?if ($translations):?>:end<?endif;?>
 
-<?tr("Add 'force user = nobody' to SMB share config")?>?
+<?tr("Add")?> 'force user = nobody' <?tr("to SMB share config")?>?
 : <select name="force_user" size="1">
   <?=mk_option($cfg["Config"]["force_user"], "yes", tr("Yes",true));?>
   <?=mk_option($cfg["Config"]["force_user"], "no", tr("No",true));?>
   </select>
 
-<?if ($translations):?>:plug8<?endif;?>
 > There are times when permissions on SMB shares aren't handled as expected.  Turning this feature on can help with those permissions.
 > This applies to all devices mounted with Unassigned Devices.
 > The down side is that it overrides Linux group permissions.  If you are unsure about whether or not this is necessary, leave it enabled.
-<?if ($translations):?>:end<?endif;?>
 
 &nbsp;
 : <input type="submit" name="#apply" value='<?tr("Apply")?>'><input type="button" value='<?tr("Done")?>' onclick="done()">
@@ -239,7 +223,7 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
 
 <div id="title" class="nocontrol"><?tr("NFS Settings")?></div>
 <form markdown="1" name="nfs_settings" method="POST">
-Enable NFS export?
+<?tr("Enable NFS export")?>?
 : <select name="nfs_export" size="1" <?if ($var['shareNFSEnabled']=="no"):?>disabled<?endif;?>>
   <?=mk_option($cfg['Config']["nfs_export"], "no", tr("No",true))?>
   <?=mk_option($cfg['Config']["nfs_export"], "yes", tr("Yes",true))?>
@@ -266,9 +250,7 @@ Enable NFS export?
 	</div>
 </div>
 
-<?if ($translations):?>:plug9<?endif;?>
 > Set to **Yes** to export NFS shares.  Shares are exported Public with read and write access or Private with the rule you set.  Access is controlled with permission settings on files and folders.
-<?if ($translations):?>:end<?endif;?>
 
 &nbsp;
 : <input type="submit" name="#apply" value='<?tr("Apply")?>'><input type="button" value='<?tr("Done")?>' onclick="done()">
@@ -276,7 +258,7 @@ Enable NFS export?
 
 <div id="title" class="nocontrol"><?tr("Set Encrypted Disk Password")?></div>
 <form markdown="1" name="set_pass" method="POST">
-Select Disk:
+<?tr("Select Disk")?>:
 : <select name="set_pass" size="1">
 
   <?foreach ($encrypt_devices as $d) {?>
@@ -288,9 +270,7 @@ Select Disk:
 
 : <input type="password" name="password" class="wide" maxlength="100" value="">
   
-<?if ($translations):?>:plug10<?endif;?>
 > Select the disk that you want to set a Password.  This is the password for this disk only and does not affect the array password/passphrase.  Leave password blank to use the array password/passphrase.
-<?if ($translations):?>:end<?endif;?>
 
 &nbsp;
 : <form name="change_disk_pass" method="POST" action="/update.php" target="progressFrame">
@@ -301,7 +281,7 @@ Select Disk:
 
 <div id="title" class="nocontrol"><?tr("Change Disk UUID")?></div>
 <form markdown="1" name="change_uuid" method="POST">
-Select Disk to change UUID:
+<?tr("Select Disk to change UUID")?>:
 : <select name="change_uuid" size="1">
 
   <?foreach ($uuid_devices as $d) {?>
@@ -309,9 +289,7 @@ Select Disk to change UUID:
   <?}?>
   </select>
   
-<?if ($translations):?>:plug11<?endif;?>
 > Select the disk that you want to change the UUID.  This is useful when a disk has been removed from the array and has the same UUID as an array disk.  Drive must be unmounted to change the UUID.
-<?if ($translations):?>:end<?endif;?>
 
 &nbsp;
 : <form name="change_disk_uuid" method="POST" action="/update.php" target="progressFrame">

@@ -57,8 +57,10 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	table.samba_mounts tr>td+td+td+td+td+td+td+td+td{text-align:left}
 
 	button.mount {padding:2px 4px 2px 6px;margin:1px 0px 1px 0px;}
-	i.hdd{margin:0px; 0px;}
-	i.partition-hdd{margin:5px; 0px; 5px; 0px;}
+	i.partition-hdd{margin:5px; 0px; 0px; 0px;}
+	i.hdd{margin:5px; 0px; 0px; 0px;}
+	i.share{margin:0px 0px 0px 0px;}
+	i.mount-share{margin:0px 12px 0px 0px;}
 	i.partition-script{margin-left: 10px; margin-right: 6px;}
 	.exec{cursor: pointer;}
 	i.fa-append{margin:0px;font-size: 0.8em;position: relative; left:-0.3em;top:0.7em;}
@@ -430,7 +432,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	}
 
 function swalShowResult(success) {
-  opts = (success) ? {title:'<?tr("Success!")?>',icon:"success"} : {title:'<?tr("Fail!")?>',icon:"error"};
+  opts = (success) ? {title:'<?tr("Success")?>!',icon:"success"} : {title:'<?tr("Fail")?>!',icon:"error"};
   swal2({title:opts.title,icon:opts.icon,text:" ",buttons:{confirm:{visible:false},cancel:{visible:false}},timer:1800});
 }
 
@@ -566,7 +568,6 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 </div>
 
 <blockquote class='inline_help'>
-<?if ($translations):?>:plug1<?endif;?>
 	<p>Unassigned Devices is called UD for short.</p>
 	<p>Hover your mouse over an any active area on the UD page and a tool tip will show you what clicking that area does.</p>
 	<p>You can mount USB devices, sata drives, Remote SMB/NFS shares, and ISO Files with UD.  Any devices with the auto mount switch on will be mounted when the array is started.  All drives and SMB/NFS Mounts are unmounted when the array is stopped on the 'stopping_svcs' event.</p>
@@ -595,7 +596,6 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 	</p>
 	<p>Switch the 'Complete' button to change the web page to just show hardware devices.	Switch the 'Simple' switch to switch back to the full web display.</p>
 	<p>Click on the <i class="fa fa-gear"></i> icon to go to the UD Settings.</p>
-<?if ($translations):?>:end<?endif;?>
 </blockquote>
 </form>
 
@@ -799,7 +799,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 </script>
 
 
-<div style="display:none;" data-survey-name="add_iso_share" data-survey-title="<?tr('Add ISO File Share',true)?>">
+<div style="display:none;" data-survey-name="add_iso_share" data-survey-title="<?tr('Add ISO File Share')?>">
   <div data-question data-question-title="<?tr('Choose ISO File')?>" data-question-button-done="<?tr('Add')?>">
     <div data-question-format>
       ["data-pickroot","ISO_FILE"]
