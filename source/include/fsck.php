@@ -13,6 +13,13 @@
 $plugin = "unassigned.devices";
 require_once("plugins/{$plugin}/include/lib.php");
 require_once("plugins/{$plugin}/include/tr.php");
+
+$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+if ($translations) {
+	$_SERVER['REQUEST_URI']='unassigneddevices';
+	require_once "$docroot/webGui/include/Translations.php";
+}
+
 readfile('logging.htm');
 
 function write_log($string) {
@@ -30,7 +37,7 @@ function write_log($string) {
 if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 	$device	= trim(urldecode($_GET['device']));
 	$fs		= trim(urldecode($_GET['fs']));
-	$type	= isset($_GET['type']) ? trim(urldecode($_GET['type'])) : 'ro';
+	$check_type	= isset($_GET['check_type']) ? trim(urldecode($_GET['check_type'])) : 'ro';
 	$luks	= trim(urldecode($_GET['luks']));
 	$serial	= trim(urldecode($_GET['serial']));
 	write_log("FS: $fs<br /><br />");
@@ -68,7 +75,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 			$file_system = "btrfs";
 		}
 	}
-	$command = get_fsck_commands($file_system, $device, $type)." 2>&1";
+	$command = get_fsck_commands($file_system, $device, $check_type)." 2>&1";
 	write_log($command."<br /><br />");
 	$proc = popen($command, 'r');
 	while (!feof($proc)) {
@@ -78,5 +85,5 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 		shell_exec("/sbin/cryptsetup luksClose ".$mapper);
 	}
 }
-write_log("<center><button type='button' onclick='document.location=\"/plugins/{$plugin}/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&type=rw\"'>".tr("Run with CORRECT flag",true)."</button></center>");
+write_log("<center><button type='button' onclick='document.location=\"/plugins/{$plugin}/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=rw&type=".tr('Done',true)."\"'>".tr("Run with CORRECT flag",true)."</button></center>");
 ?>
