@@ -61,9 +61,9 @@ $(function() {
 </script>
 
 <?if (is_file($file)):?>
-	<input type="button" value=<?tr("Download")?> onclick="getlog()">
+	<input type="button" value=<?tr("Download");?> onclick="getlog()">
 <?else:?>
-	<input type="button" value=<?tr("Download")?> disabled>
+	<input type="button" value=<?tr("Download");?> disabled>
 <?endif;?>
-<input type="button" value=<?tr("Refresh")?> onclick="refresh()">
-<input type="button" value=<?tr("Done")?> onclick="done()">
+<input type="button" value=<?tr("Refresh");?> onclick="refresh()">
+<input type="button" value=<?tr("Done");?> onclick="done()">

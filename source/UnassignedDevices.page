@@ -56,11 +56,11 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	table.samba_mounts tr>td+td+td+td+td+td{text-align:right}
 	table.samba_mounts tr>td+td+td+td+td+td+td+td+td{text-align:left}
 
-	button.mount {padding:2px 4px 2px 6px;margin:1px 0px 1px 0px;}
+	button.mount {padding:2px 4px 3px 6px;margin:1px 0px 1px 0px;}
 	i.partition-hdd{margin:5px; 0px; 0px; 0px;}
 	i.hdd{margin:5px; 0px; 0px; 0px;}
-	i.share{margin:0px 0px 0px 0px;}
-	i.mount-share{margin:0px 12px 0px 0px;}
+	i.share{margin:5px 0px 0px 0px;}
+	i.mount-share{margin:5px 12px 0px 0px;}
 	i.partition-script{margin-left: 10px; margin-right: 6px;}
 	.exec{cursor: pointer;}
 	i.fa-append{margin:0px;font-size: 0.8em;position: relative; left:-0.3em;top:0.7em;}
@@ -168,7 +168,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 	function disk_op(el, op, device){
 		// add spinning and disable button
-		$("button[device='"+device+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> "+(op == "mount" ? "Mounting" : "Unmounting")+"...");
+		$("button[device='"+device+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> "+(op == "mount" ? "<?tr('Mounting');?>" : "<?tr('Unmounting');?>")+"...");
 		$("button[device='"+device+"']").prop("disabled","true");
 		// disable partition buttons
 		td = $("button[device='"+device+"']").closest('td');
@@ -182,7 +182,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		}
 		$.post(URL,{'action':op,'device':device},function(data)
 		{
-			opt = (op == "mount") ? "Mounting" : "Unmounting";
+			opt = (op == "mount") ? "<?tr('Mounting');?>" : "<?tr('Unmounting');?>";
 			text = "<i class='fa fa-circle-o-notch fa-spin'></i> " + opt + "...";
 			if (! data.status)
 			{
@@ -290,7 +290,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	function load_hosts(el, action) {
 	  var target = $(el).parents("div").find("*[name='IP']");
 	  var old = $(el).html();
-	  $(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> Searching...");
+	  $(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> <?tr('Searching');?>...");
 	  $.post(URL,{'action': action, 'var': vars, 'network': network, 'workgroup': workgroup}).done(function(data) {
 	    $(el).html(old);
 	    if (data) {
@@ -432,7 +432,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	}
 
 function swalShowResult(success) {
-  opts = (success) ? {title:'<?tr("Success")?>!',icon:"success"} : {title:'<?tr("Fail")?>!',icon:"error"};
+  opts = (success) ? {title:'<?tr("Success");?>!',icon:"success"} : {title:'<?tr("Fail");?>!',icon:"error"};
   swal2({title:opts.title,icon:opts.icon,text:" ",buttons:{confirm:{visible:false},cancel:{visible:false}},timer:1800});
 }
 
@@ -495,8 +495,8 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
       }
     });
     content = restore_content[0].outerHTML;
-    button = {back:getAttr(question, "data-question-button-back","Back"),cancel:getAttr(question, "data-question-button-cancel","Cancel"),
-               done:getAttr(question, "data-question-button-done","Done"),next:getAttr(question, "data-question-button-next","Next")};
+    button = {back:getAttr(question, "data-question-button-back","<?tr('Back');?>"),cancel:getAttr(question, "data-question-button-cancel","<?tr('Cancel');?>"),
+               done:getAttr(question, "data-question-button-done","<?tr('Done');?>"),next:getAttr(question, "data-question-button-next","<?tr('Next');?>")};
 
     swalOpts = new Object;
     swalOpts.title   = question.attr("data-question-title");
@@ -771,15 +771,15 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 	$(function()
 	{
 		// Add icons to Tab/Title bar
-		addButtonTab('<a title="Unassigned Devices Settings" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>',
+		addButtonTab('<a title="<?tr('Unassigned Devices Settings');?>" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>',
 								 "Unassigned Devices");
-		addButtonTab('<a style="cursor:pointer;" onclick="$.post(\''+URL+'\',{\'action\':\'rescan_disks\'});" title="Rescan Disks"><i class="fa fa-refresh"></i></a>',
+		addButtonTab('<a style="cursor:pointer;" onclick="$.post(\''+URL+'\',{\'action\':\'rescan_disks\'});" title="<?tr('Rescan Disks');?>"><i class="fa fa-refresh"></i></a>',
 								 "Unassigned Devices");
-		addButtonTab('<a style="cursor:pointer;" title="Switch Display Mode"><input type="checkbox" class="complete-switch"></a>',
+		addButtonTab('<a style="cursor:pointer;" title="<?tr('Switch Display Mode');?>"><input type="checkbox" class="complete-switch"></a>',
 								 "Unassigned Devices");
 
 		// Add switchButton to Tab/Title bar
-		$('.complete-switch').switchButton({ labels_placement: "left", on_label: 'Complete', off_label: 'Simple', checked: $.cookie('unassigned-complete-view') != 'false'});
+		$('.complete-switch').switchButton({ labels_placement: "left", on_label: '<?tr("Complete");?>', off_label: '<?tr("Simple");?>', checked: $.cookie('unassigned-complete-view') != 'false'});
 		$('.complete-switch').change(function()
 		{
 			$('.show-complete').slideToggle('slow');
@@ -799,15 +799,14 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 </script>
 
 
-<div style="display:none;" data-survey-name="add_iso_share" data-survey-title="<?tr('Add ISO File Share')?>">
-  <div data-question data-question-title="<?tr('Choose ISO File')?>" data-question-button-done="<?tr('Add')?>">
+<div style="display:none;" data-survey-name="add_iso_share" data-survey-title="Add ISO File Share">
+  <div data-question data-question-title="<?tr('Choose ISO File');?>" data-question-button-done="<?tr('Add');?>">
     <div data-question-format>
       ["data-pickroot","ISO_FILE"]
     </div>
     <div data-question-content>
-      <input type='text' name='{1}' placeholder='<?tr("Click to select ISO file")?>' data-pickcloseonfile='true' data-pickfilter='iso' {0}='/mnt/user/' data-pickfolders='true' required='required' class='swal-content__input' autocomplete="off" >
-      <p><span style="font-weight:bold;"><?tr("Note")?>:</span> <?tr("Dockers will not be able to access any ISO share until you restart the Docker service after the ISO file is mounted.  Be sure to add a Docker path mapping the ISO share as 'RW/Slave' or 'RO/Slave'")?>.</p>
-      <p><?tr("Go to Settings->Docker and disable then re-enable Docker")?>.</p>
+      <input type='text' name='{1}' placeholder='<?tr("Click to select ISO file");?>' data-pickcloseonfile='true' data-pickfilter='iso' {0}='/mnt/user/' data-pickfolders='true' required='required' class='swal-content__input' autocomplete="off" >
+      <p><span style="font-weight:bold;"><?tr("Note");?>:</span> <?tr("Be sure to add a Docker path mapping the ISO share as 'RW/Slave' or 'RO/Slave' if you are accessing the share with a Docker");?>.</p>
     </div>
     <div data-question-load>
     </div>
@@ -841,8 +840,8 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 </div>
 
 
-<div style="display:none;" data-survey-name="format_disk" data-survey-title="<?tr('Partition and Format Disk')?>">
-  <div data-question data-question-title="<?tr('Choose File System Format')?>">
+<div style="display:none;" data-survey-name="format_disk" data-survey-title="Partition and Format Disk">
+  <div data-question data-question-title="<?tr('Choose File System Format');?>">
     <div data-question-format>
       [surveyOption.type,surveyOption.device]
     </div>
@@ -858,37 +857,37 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
             <option value="exfat">exFAT</option>
             <option value="fat32">FAT32</option>
           </select>
-      <p><span style="font-weight:bold;"><?tr("Note")?>:</span> <?tr("An XFS or BTRFS disk partitioned in UD is compatible with the array disk partitioning and can be added to the array")?>.</p>
+      <p><span style="font-weight:bold;"><?tr("Note");?>:</span> <?tr("An XFS or BTRFS disk partitioned in UD is compatible with the array disk partitioning and can be added to the array");?>.</p>
     </div>
     <div data-question-load></div>
     <div data-question-done></div>
   </div>
 
-  <div data-question data-question-title="<?tr('Password')?>">
+  <div data-question data-question-title="<?tr('Password');?>">
     <div data-question-condition>
       surveyData['FS'] == 'xfs-encrypted' || surveyData['FS'] == 'btrfs-encrypted'
     </div>
     <div data-question-content>
       <div class="swal-content">
-        <input type="password" class="swal-content__input" name="PASS" autocomplete="new-password" placeholder=<?tr("Password")?> >
-        <p><?tr("Enter the password to use for this disk.  Leave blank to use the array password/passphrase.  If using a disk password, be sure to enter the password for this disk in UD Settings so it can be mounted")?>.</p>
-        <p><span style="font-weight:bold;"><?tr("Note")?>:</span> <?tr("Remember your password.  It cannot be recovered")?>!</p>
+        <input type="password" class="swal-content__input" name="PASS" autocomplete="new-password" placeholder=<?tr("Password");?> >
+        <p><?tr("Enter the password to use for this disk. Leave blank to use the array password/passphrase. If using a disk password be sure to enter the password for this disk in UD Settings so it can be mounted");?>.</p>
+        <p><span style="font-weight:bold;"><?tr("Note");?>:</span> <?tr("Remember your password. It cannot be recovered");?>!</p>
    </div>
     </div>
   </div>
 
-  <div data-question data-question-title="" data-question-button-done="Format" data-question-icon="warning">
+  <div data-question data-question-title="" data-question-button-done="<?tr('Format');?>" data-question-icon="warning">
     <div data-question-format>
       [surveyOption.type,surveyOption.device]
     </div>
     <div data-question-content>
-      <div class="swal-title"><?tr("Any data on this disk will be lost")?>!</div>
-      <div style="margin-bottom: 25px;font-size: 20px;"><?tr("Type")?><span class="red">'Yes'</span><?tr("to format")?>:</div>
-      <input type="text" name="confim-yes" class="swal-content__input" autocomplete="off" required >
+      <div class="swal-title"><?tr("Any data on this disk will be lost");?>!</div>
+      <div style="margin-bottom: 25px;font-size: 20px;"><?tr("Type");?><span class="red">'<?tr("Yes");?>'</span><?tr("to format");?>:</div>
+      <input type="text" name="confirm-yes" class="swal-content__input" autocomplete="off" required >
     </div>
     <div data-question-load></div>
     <div data-question-done>
-      (surveyData["confim-yes"] == "Yes")
+      (surveyData["confirm-yes"] == "<?tr('Yes');?>")
     </div>
   </div>
   <div data-survey-done data-survey-done-wait="true">
@@ -910,21 +909,20 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 </div>
 
 
-
-<div style="display:none;" data-survey-name="remove_partiton" data-survey-title="">
-  <div data-question data-question-title="" data-question-button-done='<?tr("Remove")?>' data-question-icon="warning">
+<div style="display:none;" data-survey-name="remove_partiton" data-survey-title="Remove Disk Partition">
+  <div data-question data-question-title="" data-question-button-done='<?tr("Remove");?>' data-question-icon="warning">
     <div data-question-format>
       [surveyOption.partition,surveyOption.device]
     </div>
     <div data-question-content>
-      <div class="swal-title"><?tr("Any data on this disk will be lost")?>!</div>
-      <div class="swal-title" style="font-size: 20px;"><?tr("Remove partition")?> <span class="red">{0}</span> <?tr("from disk")?> <span class="red">{1}</span></div>
-      <div style="margin-bottom: 25px;font-size: 20px;"><?tr("Type")?><span class="red">'Yes'</span><?tr("to confirm")?>:</div>
-      <input type="text" name="confim-yes" class="swal-content__input" autocomplete="off" required >
+      <div class="swal-title"><?tr("Any data on this disk will be lost");?>!</div>
+      <div class="swal-title" style="font-size: 20px;"><?tr("Remove partition");?> <span class="red">{0}</span> <?tr("from disk");?> <span class="red">{1}</span></div>
+      <div style="margin-bottom: 25px;font-size: 20px;"><?tr("Type");?><span class="red">'<?tr("Yes");?>'</span><?tr("to confirm");?>:</div>
+      <input type="text" name="confirm-yes" class="swal-content__input" autocomplete="off" required >
     </div>
     <div data-question-load></div>
     <div data-question-done>
-      (surveyData["confim-yes"] == "Yes")
+      (surveyData["confirm-yes"] == "<?tr('Yes');?>")
     </div>
   </div>
   <div data-survey-done >
@@ -945,18 +943,18 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 </div>
 
 
-<div style="display:none;" data-survey-name="remove_iso_share" data-survey-title=<?tr("Remove ISO File mount")?> >
-  <div data-question data-question-title="" data-question-button-done=<?tr("Remove")?> data-question-icon="warning">
+<div style="display:none;" data-survey-name="remove_iso_share" data-survey-title="Remove ISO File mount">
+  <div data-question data-question-title="" data-question-button-done=<?tr("Remove");?> data-question-icon="warning">
     <div data-question-format>
       [surveyOption]
     </div>
     <div data-question-content>
-      <div class="swal-title" style="font-size: 20px;"><?tr("This will remove the")?> <span style="font-weight: bold;">ISO</span> <?tr("file share for")?>:</div>
+      <div class="swal-title" style="font-size: 20px;"><?tr("This will remove the");?> <span style="font-weight: bold;">ISO</span> <?tr("file share for");?>:</div>
       <div style="margin-bottom: 15px;margin-top: 15px;">
         <span style="font-weight: bold;">{0}</span>
       </div>
       <div class="swal-title" style="font-size: 20px;">
-        <span class="red" style="font-weight: bold;"><?tr("Are you sure")?>?</span>
+        <span class="red" style="font-weight: bold;"><?tr("Are you sure");?>?</span>
       </div>
     </div>
     <div data-question-load></div>
@@ -978,18 +976,18 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 </div>
 
 
-<div style="display:none;" data-survey-name="remove_disk_config" data-survey-title=<?tr("Remove Disk Config")?> >
-  <div data-question data-question-title="" data-question-button-done=<?tr("Remove")?> data-question-icon="warning">
+<div style="display:none;" data-survey-name="remove_disk_config" data-survey-title="Remove Disk Config">
+  <div data-question data-question-title="" data-question-button-done=<?tr("Remove");?> data-question-icon="warning">
     <div data-question-format>
       [surveyOption]
     </div>
     <div data-question-content>
-      <div class="swal-title" style="font-size: 20px;"><?tr("This will remove the saved configuration of")?>:</div>
+      <div class="swal-title" style="font-size: 20px;"><?tr("This will remove the saved configuration of");?>:</div>
       <div style="margin-bottom: 15px;margin-top: 15px;">
         <span style="font-weight: bold;">{0}</span>
       </div>
       <div class="swal-title" style="font-size: 20px;">
-        <span class="red" style="font-weight: bold;"><?tr("Are you sure")?>?</span>
+        <span class="red" style="font-weight: bold;"><?tr("Are you sure");?>?</span>
       </div>
     </div>
     <div data-question-load></div>
@@ -1011,18 +1009,18 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 </div>
 
 
-<div style="display:none;" data-survey-name="remove_remote_share" data-survey-title='<?tr("Remove SMB/NFS mount")?>'>
-  <div data-question data-question-title="" data-question-button-done='<?tr("Remove")?>' data-question-icon="warning">
+<div style="display:none;" data-survey-name="remove_remote_share" data-survey-title="Remove SMB/NFS mount">
+  <div data-question data-question-title="" data-question-button-done='<?tr("Remove");?>' data-question-icon="warning">
     <div data-question-format>
       [surveyOption, (surveyOption.startsWith("//") ? "SMB" : "NFS")]
     </div>
     <div data-question-content>
-      <div class="swal-title" style="font-size: 20px;"><?tr("This will remove the remote")?> <span style="font-weight: bold;">{1}</span> <?tr("share for")?>:</div>
+      <div class="swal-title" style="font-size: 20px;"><?tr("This will remove the remote");?> <span style="font-weight: bold;">{1}</span> <?tr("share for");?>:</div>
       <div style="margin-bottom: 15px;margin-top: 15px;">
         <span style="font-weight: bold;">{0}</span>
       </div>
       <div class="swal-title" style="font-size: 20px;">
-        <span class="red" style="font-weight: bold;">'<?tr("Are you sure")?>?'</span>
+        <span class="red" style="font-weight: bold;"><?tr("Are you sure");?>?</span>
       </div>
     </div>
     <div data-question-load></div>
@@ -1043,8 +1041,8 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
   </div>
 </div>
 
-<div style="display:none;" data-survey-name="add_remote_share" data-survey-title='<?tr("Add Remote Share")?>'>
-  <div data-question data-question-title='<?tr("Click on Icon to Choose Protocol")?>'>
+<div style="display:none;" data-survey-name="add_remote_share" data-survey-title="Add Remote Share">
+  <div data-question data-question-title="<?tr('Click on Icon to Choose Protocol');?>">
     <div data-question-format>
       ["nfs_radio","smb_radio"]
     </div>
@@ -1054,63 +1052,62 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
         <label class="image-radio-label image-radio-linux" for="{0}"></label>
         <input type="radio" id="{1}" name="PROTOCOL" value="SMB" required="">
         <label class="image-radio-label image-radio-windows" for="{1}"></label>
-       <p><span style="font-weight:bold;"><?tr("Note")?>:</span> <?tr("Dockers will not be able to access any SMB/NFS share until you restart the Docker service after the device is mounted.	Be sure to add a Docker path mapping the SMB/NFS share as 'RW/Slave' or 'RO/Slave'")?>.</p>
-       <p><?tr("Go to Settings->Docker and disable then re-enable Docker")?>.</p>
+        <p><span style="font-weight:bold;"><?tr("Note");?>:</span> <?tr("Be sure to add a Docker path mapping the SMB/NFS share as 'RW/Slave' or 'RO/Slave' if you are accessing the share with a Docker.");?>.</p>
       </div>
     </div>
     <div data-question-done></div>
   </div>
-  <div data-question data-question-title='<?tr("Choose Server")?>'>
+  <div data-question data-question-title="<?tr('Choose Server');?>">
     <div data-question-format>
       [surveyData["PROTOCOL"] == "SMB" ? "list_samba_hosts" : "list_nfs_hosts"]
     </div>
     <div data-question-content>
       <input type='text' class="swal-content__input" name='IP' autocomplete="off" required><br/>
-      <button class="swal-button" onclick='load_hosts(this,"{0}")'><?tr("Search For Servers")?></button>
-      <p><?tr("Search for Servers, or enter the Server name/IP address manually")?>.</p>
+      <button class="swal-button" onclick='load_hosts(this,"{0}")'><?tr("Search For Servers");?></button>
+      <p><?tr("Search for Servers, or enter the Server name/IP address manually");?>.</p>
     </div>
   </div>
-  <div data-question data-question-title='<?tr("Username")?>'>
+  <div data-question data-question-title='<?tr("Username");?>'>
     <div data-question-condition>
       surveyData['PROTOCOL'] == 'SMB';
     </div>
     <div data-question-content>
       <div class="swal-content">
-        <input type="text" class="swal-content__input" name="USER" autocomplete="off" placeholder=<?tr("Username")?>>
-		<p><?tr("Enter the Username if the share is password protected.  You will need to enter credentials for Windows 10 shares just to list them")?>.</p>
+        <input type="text" class="swal-content__input" name="USER" autocomplete="off" placeholder=<?tr("Username");?>>
+		<p><?tr("Enter the Username if the share is password protected. You will need to enter credentials for Windows 10 shares just to list them");?>.</p>
       </div>
     </div>
   </div>
-  <div data-question data-question-title='<?tr("Password")?>'>
+  <div data-question data-question-title='<?tr("Password");?>'>
     <div data-question-condition>
       surveyData['PROTOCOL'] == 'SMB'
     </div>
     <div data-question-content>
       <div class="swal-content">
-        <input type="password" class="swal-content__input" name="PASS" autocomplete="new-password" placeholder='<?tr("Password")?>'>
-		<p><?tr("Enter the Password if the share is password protected.  You will need to enter credentials for Windows 10 shares just to list them")?>.</p>
+        <input type="password" class="swal-content__input" name="PASS" autocomplete="new-password" placeholder='<?tr("Password");?>'>
+		<p><?tr("Enter the Password if the share is password protected. You will need to enter credentials for Windows 10 shares just to list them");?>.</p>
       </div>
     </div>
   </div>
-  <div data-question data-question-title='<?tr("Domain")?>'>
+  <div data-question data-question-title='<?tr("Domain");?>'>
     <div data-question-condition>
       surveyData['PROTOCOL'] == 'SMB'
     </div>
     <div data-question-content>
       <div class="swal-content">
-        <input type="text" class="swal-content__input" name="DOMAIN" autocomplete="off" placeholder='<?tr("Domain")?>'>
-		<p><?tr("Enter the Domain for the share if on a Domain")?>.</p>
+        <input type="text" class="swal-content__input" name="DOMAIN" autocomplete="off" placeholder='<?tr("Domain");?>'>
+		<p><?tr("Enter the Domain for the share if on a Domain");?>.</p>
       </div>
     </div>
   </div>
-  <div data-question data-question-title='<?tr("Choose Share")?>'>
+  <div data-question data-question-title='<?tr("Choose Share");?>'>
     <div data-question-format>
       [surveyData['PROTOCOL'], surveyData['IP'], surveyData['USER'], surveyData['PASS'], surveyData['DOMAIN'], (surveyData['PROTOCOL'] == 'SMB' ? 'list_samba_shares' : 'list_nfs_shares')]
     </div>
     <div data-question-content>
       <input type='text' class="swal-content__input" autocomplete="off" name='SHARE' required><br />
-      <button class="swal-button" onclick='load_shares(this, "{1}", "{2}", "{3}", "{5}")'><?tr("Load Shares")?></button>
-      <p><?tr("Search for Shares, or enter the Share name manually")?>.</p>
+      <button class="swal-button" onclick='load_shares(this, "{1}", "{2}", "{3}", "{5}")'><?tr("Load Shares");?></button>
+      <p><?tr("Search for Shares or enter the Share name manually");?>.</p>
     </div>
     <div data-question-done>
       (surveyData["SHARE"].length)

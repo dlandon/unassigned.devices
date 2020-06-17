@@ -16,6 +16,12 @@ require_once("plugins/{$plugin}/include/tr.php");
 require_once("webGui/include/Helpers.php");
 $csrf_token = $var['csrf_token'];
 
+$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+if ($translations) {
+	$_SERVER['REQUEST_URI']='unassigneddevices';
+	require_once "$docroot/webGui/include/Translations.php";
+}
+
 if (isset($_POST['display'])) $display = $_POST['display'];
 if (isset($_POST['var'])) $var = $_POST['var'];
 
@@ -223,30 +229,30 @@ function make_mount_button($device) {
 	$dev			= basename($device['device']);
 	$preclearing	= $Preclear ? $Preclear->isRunning(basename($device['device'])) : false;
 	if ($device['size'] == 0) {
-		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-erase', 'Mount');
+		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-erase', tr('Mount',true));
 	} elseif ($format) {
 		$disable = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled") ? "" : "disabled";
 		$disable = $preclearing ? "disabled" : $disable;
-		$button = sprintf($button, $context, 'format', $disable, 'fa fa-erase', 'Format');
+		$button = sprintf($button, $context, 'format', $disable, 'fa fa-erase', tr('Format',true));
 	} elseif ($is_mounting) {
-		$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-circle-o-notch fa-spin', ' Mounting...');
+		$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-circle-o-notch fa-spin', ' '.tr('Mounting...',true));
 	} elseif ($is_unmounting) {
-		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-circle-o-notch fa-spin', ' Unmounting...');
+		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-circle-o-notch fa-spin', ' '.tr('Unmounting...',true));
 	} elseif ($is_formatting) {
-		$button = sprintf($button, $context, 'format', 'disabled', 'fa fa-circle-o-notch fa-spin', ' Formatting...');
+		$button = sprintf($button, $context, 'format', 'disabled', 'fa fa-circle-o-notch fa-spin', ' '.tr('Formatting...',true));
 	} elseif ($mounted) {
 		$cmd = $device['command'];
 		$script_running = is_script_running($cmd);
 		if ($script_running) {
-			$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-circle-o-notch fa-spin', ' Running...');
+			$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-circle-o-notch fa-spin', ' '.tr('Running...',true));
 		} else {
 			$disable = ! isset($device['partitions'][0]['mountpoint']) || is_mounted($device['partitions'][0]['mountpoint'], TRUE) ? $disable : "disabled";
 			$disable = ! isset($device['mountpoint']) || is_mounted($device['mountpoint'], TRUE) ? $disable : "disabled";
-			$button = sprintf($button, $context, 'umount', $disable, 'fa fa-export', 'Unmount');
+			$button = sprintf($button, $context, 'umount', $disable, 'fa fa-export', tr('Unmount',true));
 		}
 	} else {
 		$disable = ($device['partitions'][0]['pass_through'] || $preclearing ) ? "disabled" : $disable;
-		$button = sprintf($button, $context, 'mount', $disable, 'fa fa-import', 'Mount');
+		$button = sprintf($button, $context, 'mount', $disable, 'fa fa-import', tr('Mount',true));
 	}
 	return $button;
 }
@@ -298,7 +304,7 @@ switch ($_POST['action']) {
 				if ( $flash || $preclearing ) {
 					echo "<td><img src='/plugins/{$plugin}/images/green-blink.png'>{$disk_name}</td>";
 				} else {
-					echo "<td title='".tr("SMART Attributes on {$disk_name}",true)."'><img src='/plugins/{$plugin}/images/".($disk_running ? "green-on.png":"green-blink.png" )."'>";
+					echo "<td title='".tr("SMART Attributes on",true)." ". $disk_name."'><img src='/plugins/{$plugin}/images/".($disk_running ? "green-on.png":"green-blink.png" )."'>";
 					echo "<a href='/Main/New?name={$disk_name}'> {$disk_name}</a></td>";
 				}
 				echo "<td>{$hdd_serial}</td>";
@@ -334,7 +340,7 @@ switch ($_POST['action']) {
 
 		# SAMBA Mounts
 		echo "<div id='smb_tab' class='show-complete'>";
-		echo "<div id='title'><span class='left'><img src='/plugins/{$plugin}/icons/smbsettings.png' class='icon'>SMB Shares &nbsp;|&nbsp;<img src='/plugins/{$plugin}/icons/nfs.png' class='icon'>NFS Shares &nbsp;|&nbsp;<img src='/plugins/{$plugin}/icons/iso.png' class='icon' style='width:16px;'>ISO File Shares</span></div>";
+		echo "<div id='title'><span class='left'><img src='/plugins/{$plugin}/icons/smbsettings.png' class='icon'>".tr('SMB Shares',true)."&nbsp;|&nbsp;<img src='/plugins/{$plugin}/icons/nfs.png' class='icon'>".tr('NFS Shares',true)."&nbsp;|&nbsp;<img src='/plugins/{$plugin}/icons/iso.png' class='icon' style='width:16px;'>".tr('ISO File Shares',true)."</span></div>";
 		echo "<table class='disk_status wide samba_mounts'><thead><tr><td>".tr('Device',true)."</td><td>".tr('Source',true)."</td><td>".tr('Mount point',true)."</td><td></td><td>".tr('Remove',true)."</td><td>".tr('Size',true)."</td><td>".tr('Used',true)."</td><td>".tr('Free',true)."</td><td>".tr('Auto mount',true)."</td><td>".tr('Share',true)."</td><td>".tr('Log',true)."</td><td>".tr('Script',true)."</td></tr></thead>";
 		echo "<tbody>";
 		$ds1 = time();
@@ -369,9 +375,9 @@ switch ($_POST['action']) {
 				$cmd = get_samba_config($mount['device'],"command");
 				$script_running = is_script_running($cmd);
 				if ($script_running) {
-					echo "<td><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i> Running...</button></td>";
+					echo "<td><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i> ".tr('Running...')."</button></td>";
 				} else {
-					echo "<td>".($mounted ? "<button class='mount' device ='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>Unmount</button>" : "<button class='mount'device ='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>Mount</button>")."</td>";
+					echo "<td>".($mounted ? "<button class='mount' device ='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>".tr('Unmount',true)."</button>" : "<button class='mount'device ='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>".tr('Mount',true)."</button>")."</td>";
 				}
 				echo $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec' style='color:red;font-weight:bold;' onclick='remove_samba_config(\"{$mount['name']}\");' title='".tr("Remove Remote SMB/NFS Share",true)."'> <i class='fa fa-remove hdd'></i></a></td>";
 				echo "<td>".my_scale($mount['size'], $unit)." $unit</td>";
@@ -413,9 +419,9 @@ switch ($_POST['action']) {
 				$cmd = get_iso_config($mount['device'],"command");
 				$script_running = is_script_running($cmd);
 				if ($script_running) {
-					echo "<td><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i> Running...</button></td>";
+					echo "<td><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i> ".tr('Running...')."</button></td>";
 				} else {
-					echo "<td>".($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>Unmount</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>Mount</button>")."</td>";
+					echo "<td>".($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>".tr('Unmount',true)."</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>".tr('Mount',true)."</button>")."</td>";
 				}
 				echo $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec' style='color:red;font-weight:bold;' onclick='remove_iso_config(\"{$mount['device']}\");' title='".tr("Remove ISO File Share",true)."'> <i class='fa fa-remove hdd'></i></a></td>";
 				echo "<td>".my_scale($mount['size'], $unit)." $unit</td>";
@@ -428,10 +434,10 @@ switch ($_POST['action']) {
 			}
 		}
 		if (! count($samba_mounts) && ! count($iso_mounts)) {
-			echo "<tr><td colspan='12' style='text-align:center;'>No Remote SMB/NFS or ISO File Shares configured.</td></tr>";
+			echo "<tr><td colspan='12' style='text-align:center;'>".tr('No Remote SMB/NFS or ISO File Shares configured',true).".</td></tr>";
 		}
-		echo "</tbody></table><button onclick='add_samba_share()'>Add Remote SMB/NFS Share</button>";
-		echo "<button onclick='add_iso_share()'>Add ISO File Share</button></div>";
+		echo "</tbody></table><button onclick='add_samba_share()'>".tr('Add Remote SMB/NFS Share',true)."</button>";
+		echo "<button onclick='add_iso_share()'>".tr('Add ISO File Share',true)."</button></div>";
 
 		$config_file = $GLOBALS["paths"]["config_file"];
 		$config = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
@@ -450,8 +456,8 @@ switch ($_POST['action']) {
 			}
 		}
 		if (strlen($ct)) {
-			echo "<div id='smb_tab' class='show-complete'><div id='title'><span class='left'><img src='/plugins/{$plugin}/icons/historical.png' class='icon'>Historical Devices</span></div>";
-			echo "<table class='disk_status wide usb_absent'><thead><tr><td>".tr('Device',true)."</td><td>".tr('Serial Number (Mountpoint)',true)."</td><td>".tr('Read Only',true)."</td><td>".tr('Auto mount',true)."</td><td>".tr('Script',true)."</td><td colspan='7'>".tr('Remove',true)."</td></tr></thead><tbody>{$ct}</tbody></table></div>";
+			echo "<div id='smb_tab' class='show-complete'><div id='title'><span class='left'><img src='/plugins/{$plugin}/icons/historical.png' class='icon'>".tr('Historical Devices',true)."</span></div>";
+			echo "<table class='disk_status wide usb_absent'><thead><tr><td>".tr('Device',true)."</td><td>".tr('Serial Number (Mountpoint)',true)."</td><td>".tr('Read only',true)."</td><td>".tr('Auto mount',true)."</td><td>".tr('Script',true)."</td><td colspan='7'>".tr('Remove',true)."</td></tr></thead><tbody>{$ct}</tbody></table></div>";
 		}
 		unassigned_log("Total render time: ".($time + microtime(true))."s", "DEBUG");
 		break;

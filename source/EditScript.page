@@ -135,34 +135,34 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 <input type="hidden" name="#include" value="/webGui/include/update.file.php">
 
 
-<input type="text" title='<?tr("Enter Script File Name")?>.' name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>/','sh',false,true);" autocomplete="off" value="<?=$file;?>"><?=$remove;?>
+<input type="text" title='<?tr("Enter Script File Name");?>.' name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>/','sh',false,true);" autocomplete="off" value="<?=$file;?>"><?=$remove;?>
 
 > Choose your script name from the file selection dropdown, or enter your desired script name.
 
-<span title='<?tr("Turn on to run Script File in the background")?>.'><input type="checkbox" name="run_background" <?=$background;?>></span>
+<span title='<?tr("Turn on to run Script File in the background");?>.'><input type="checkbox" name="run_background" <?=$background;?>></span>
 
 > Turn on the 'Run in Background' to have the script run as a background task.  This can keep the Unassigned Devices UI from hanging when the script is run from the UI.
 
 <br />
-<strong><?tr("Script content")?>:</strong>
+<strong><?tr("Script content");?>:</strong>
 <br />
 
-<textarea spellcheck="false" cols="80" rows="22" name="text" title='<?tr("Enter and Edit the Script that runs when a udev or operator event occurs")?>.' style="font-family:bitstream;width:80%"><?=$text;?></textarea>
+<textarea spellcheck="false" cols="80" rows="22" name="text" title='<?tr("Enter and Edit the Script that runs when a udev or operator event occurs");?>.' style="font-family:bitstream;width:80%"><?=$text;?></textarea>
 
 > Click the **Save** button to commit the current edits.  Click **Reset** to undo any changes you make (before Saving). Click **Done** to exit this page.
 >
 > Click the **Default Script** button to initialize the edit box with a default script.
 > You still need to click **Save** in order to commit the change.
 
-<button type="button" title='<?tr("Load the default script")?>.' onclick="setDefault(this.form)"><?tr("Default Script")?></button>
-<input type="reset" title='<?tr("Undo your changes since last Save")?>.' value='<?tr("Reset")?>'/>
-<input type="submit" title='<?tr("Save your changes and save to Script File")?>.' value='<?tr("Save")?>'/>
-<button type="button" onclick="done()"><?tr("Done")?></button>
+<button type="button" title='<?tr("Load the default script");?>.' onclick="setDefault(this.form)"><?tr("Default Script");?></button>
+<input type="reset" title='<?tr("Undo your changes since last Save");?>.' value='<?tr("Reset");?>'/>
+<input type="submit" title='<?tr("Save your changes and save to Script File");?>.' value='<?tr("Save");?>'/>
+<button type="button" onclick="done()"><?tr("Done");?></button>
 
 </form>
 
 <script>
-	$("input[name=run_background]").each(function(){var checked = $(this).is(":checked");$(this).switchButton({labels_placement: "right", checked:checked,on_label:"Run in background",off_label:"Run in background"});});
+	$("input[name=run_background]").each(function(){var checked = $(this).is(":checked");$(this).switchButton({labels_placement: "right", checked:checked,on_label:"<?tr('Run in background');?>",off_label:"<?tr('Run in background');?>"});});
 	<?if (isset($_GET['s'])):?>
 		$( "form" ).submit(function( event ) {
 			$.post("/plugins/<?=$plugin;?>/UnassignedDevices.php",{action:"set_command",serial:"<?=$serial;?>",command:$("input[name='#file']").val(),part:"<?=$partition;?>",background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault();},"json");
