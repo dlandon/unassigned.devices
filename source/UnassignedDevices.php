@@ -448,7 +448,7 @@ switch ($_POST['action']) {
 			if($serial == "Config") continue;
 			if (! preg_grep("#{$serial}#", $disks_serials)){
 				$mountpoint	= basename(get_config($serial, "mountpoint.1"));
-				$ct .= "<tr><td><img src='/plugins/{$plugin}/images/green-blink.png'> missing</td><td>$serial"." ($mountpoint)</td>";
+				$ct .= "<tr><td><img src='/plugins/{$plugin}/images/green-blink.png'>".tr('missing',true)."</td><td>$serial"." ($mountpoint)</td>";
 				$ct .= "<td title='".tr("Turn on to Mount Device Read only",true)."'><input type='checkbox' class='toggle_read_only' serial='{$serial}' ".( is_read_only($serial) ? 'checked':'')." /></td>";
 				$ct .= "<td title='".tr("Turn on to Mount Device when Array is Started",true)."'><input type='checkbox' class='automount' serial='{$serial}' ".( is_automount($serial) ? 'checked':'' )." /></td>";
 				$ct .= "<td><a title='".tr("Edit Device Script",true)."' href='/Main/EditScript?s=".urlencode($serial)."&l=".urlencode(basename($mountpoint))."&p=".urlencode("1")."'><i class=".( file_exists(get_config($serial,"command.1")) ? "'fa fa-code'":"'fa fa-minus-square-o'" )."'></i></a></td>";
