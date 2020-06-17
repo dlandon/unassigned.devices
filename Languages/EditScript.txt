@@ -1,0 +1,11 @@
+Remove Script File=Scriptbestand verwijderen
+Enter Script File Name=Voer Scriptbestandsnaam in
+Turn on to run Script File in the background=Schakel in om Scriptbestand op de achtergrond uit te voeren
+Script content=Scriptinhoud
+Enter and Edit the Script that runs when a udev or operator event occurs=Voer het script in en bewerk het dat wordt uitgevoerd wanneer een udev- of operatorgebeurtenis plaatsvindt
+Load the default script=Laad het standaard script
+Default Script=Standaardscript
+Run in background=Laten lopen op de achtergrond
+Undo your changes since last Save=Maak uw wijzigingen ongedaan sinds de laatste keer opslaan
+Save your changes and save to Script File=Sla uw wijzigingen op en sla ze op in Scriptbestand
+Save=Opslaan
