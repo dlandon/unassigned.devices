@@ -124,7 +124,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 			$fscheck = "<i class='fa fa-flash partition-script'></i>{$partition['part']}";
 		}
 	} elseif ( (! $mounted && $partition['fstype'] != 'btrfs') ) {
-		$fscheck = "<a title='"._("File System Check")."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&type=ro\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i></a>{$partition['part']}";
+		$fscheck = "<a title='"._('File System Check')."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i></a>{$partition['part']}";
 	} else {
 		$fscheck = "<i class='fa fa-check partition-hdd'></i>{$partition['part']}";
 	}
@@ -383,7 +383,7 @@ switch ($_POST['action']) {
 				if ($script_running) {
 					echo "<td><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i>"." "._("Running")."...</button></td>";
 				} else {
-					echo "<td>".($mounted ? "<button class='mount' device ='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>Unmount</button>" : "<button class='mount'device ='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>"._('Mount')."</button>")."</td>";
+					echo "<td>".($mounted ? "<button class='mount' device ='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>"._('Unmount')."</button>" : "<button class='mount'device ='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>"._('Mount')."</button>")."</td>";
 				}
 				echo $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec' style='color:red;font-weight:bold;' onclick='remove_samba_config(\"{$mount['name']}\");' title='"._("Remove Remote SMB/NFS Share")."'> <i class='fa fa-remove hdd'></i></a></td>";
 				echo "<td>".my_scale($mount['size'], $unit)." $unit</td>";
