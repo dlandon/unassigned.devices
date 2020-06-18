@@ -873,7 +873,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
             <option value="exfat">exFAT</option>
             <option value="fat32">FAT32</option>
           </select>
-      <p><span style="font-weight:bold;">_(Note)_:</span>_(An XFS or BTRFS disk partitioned in UD is compatible with the array disk partitioning and can be added to the array)_.</p>
+      <p><span style="font-weight:bold;">_(Note)_:</span> _(An XFS or BTRFS disk partitioned in UD is compatible with the array disk partitioning and can be added to the array)_.</p>
     </div>
     <div data-question-load></div>
     <div data-question-done></div>
@@ -892,13 +892,13 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
     </div>
   </div>
 
-  <div data-question data-question-title="" data-question-button-done="Format" data-question-icon="warning">
+  <div data-question data-question-title="" data-question-button-done=_(Format)_ data-question-icon="warning">
     <div data-question-format>
       [surveyOption.type,surveyOption.device]
     </div>
     <div data-question-content>
       <div class="swal-title">_(Any data on this disk will be lost)_!</div>
-      <div style="margin-bottom: 25px;font-size: 20px;">_(Type)_?> <span class="red">_(Yes)_</span> _(to format)_:</div>
+      <div style="margin-bottom: 25px;font-size: 20px;">_(Type)_ <span class="red">'_(Yes)_'</span> _(to format)_:</div>
       <input type="text" name="confim-yes" class="swal-content__input" autocomplete="off" required >
     </div>
     <div data-question-load></div>
@@ -934,7 +934,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
     <div data-question-content>
       <div class="swal-title">_(Any data on this disk will be lost)_!</div>
       <div class="swal-title" style="font-size: 20px;">_(Remove partition)_ <span class="red">{0}</span> _(from disk)_ <span class="red">{1}</span></div>
-      <div style="margin-bottom: 25px;font-size: 20px;">_(Type)_ <span class="red">_(Yes)_</span> _(to confirm)_:</div>
+      <div style="margin-bottom: 25px;font-size: 20px;">_(Type)_ <span class="red">'_(Yes)_'</span> _(to confirm)_:</div>
       <input type="text" name="confim-yes" class="swal-content__input" autocomplete="off" required >
     </div>
     <div data-question-load></div>
