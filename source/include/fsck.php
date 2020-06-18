@@ -12,12 +12,16 @@
 
 $plugin = "unassigned.devices";
 require_once("plugins/{$plugin}/include/lib.php");
-require_once("plugins/{$plugin}/include/tr.php");
+$translations = file_exists("$docroot/webGui/include/Translations.php");
 
-$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 if ($translations) {
-	$_SERVER['REQUEST_URI']='unassigneddevices';
-	require_once "$docroot/webGui/include/Translations.php";
+  // add translations
+  $_SERVER['REQUEST_URI'] = 'unassigneddevices';
+  require_once "$docroot/webGui/include/Translations.php";
+} else {
+  // legacy support (without javascript)
+  $noscript = true;
+  require_once "$docroot/plugins/$plugin/include/Legacy.php";
 }
 
 readfile('logging.htm');
@@ -85,5 +89,5 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 		shell_exec("/sbin/cryptsetup luksClose ".$mapper);
 	}
 }
-write_log("<center><button type='button' onclick='document.location=\"/plugins/{$plugin}/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=rw&type=".tr('Done',true)."\"'>".tr("Run with CORRECT flag",true)."</button></center>");
+write_log("<center><button type='button' onclick='document.location=\"/plugins/{$plugin}/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=rw&type="._('Done')."\"'>"._('Run with CORRECT flag')."</button></center>");
 ?>
