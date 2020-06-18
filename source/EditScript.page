@@ -14,7 +14,6 @@ Title="Edit Script"
 
 $plugin = "unassigned.devices";
 require_once("plugins/{$plugin}/include/lib.php");
-require_once("plugins/{$plugin}/include/tr.php");
 
 function safe_filename($string) {
 	$string = preg_replace('~[^0-9a-z -_]~i', '', $string);
@@ -108,7 +107,7 @@ case \$ACTION in
 esac
 EOT;
 
-$prompt=tr("Remove Script File",true);
+$prompt=_("Remove Script File");
 $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$file}\");'><i class='fa fa-times-circle' style='color:red;font-size: 25px;'></i></a> " : "";
 ?>
 
@@ -135,29 +134,29 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 <input type="hidden" name="#include" value="/webGui/include/update.file.php">
 
 
-<input type="text" title='<?tr("Enter Script File Name");?>.' name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>/','sh',false,true);" autocomplete="off" value="<?=$file;?>"><?=$remove;?>
+<input type="text" title='_(Enter Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>/','sh',false,true);" autocomplete="off" value="<?=$file;?>"><?=$remove;?>
 
 > Choose your script name from the file selection dropdown, or enter your desired script name.
 
-<span title='<?tr("Turn on to run Script File in the background");?>.'><input type="checkbox" name="run_background" <?=$background;?>></span>
+<span title='_(Turn on to run Script File in the background)_.'><input type="checkbox" name="run_background" <?=$background;?>></span>
 
 > Turn on the 'Run in Background' to have the script run as a background task.  This can keep the Unassigned Devices UI from hanging when the script is run from the UI.
 
 <br />
-<strong><?tr("Script content");?>:</strong>
+<strong>_(Script content)_:</strong>
 <br />
 
-<textarea spellcheck="false" cols="80" rows="22" name="text" title='<?tr("Enter and Edit the Script that runs when a udev or operator event occurs");?>.' style="font-family:bitstream;width:80%"><?=$text;?></textarea>
+<textarea spellcheck="false" cols="80" rows="22" name="text" title='_(Enter and Edit the Script that runs when a udev or operator event occurs)_.' style="font-family:bitstream;width:80%"><?=$text;?></textarea>
 
 > Click the **Save** button to commit the current edits.  Click **Reset** to undo any changes you make (before Saving). Click **Done** to exit this page.
 >
 > Click the **Default Script** button to initialize the edit box with a default script.
 > You still need to click **Save** in order to commit the change.
 
-<button type="button" title='<?tr("Load the default script");?>.' onclick="setDefault(this.form)"><?tr("Default Script");?></button>
-<input type="reset" title='<?tr("Undo your changes since last Save");?>.' value='<?tr("Reset");?>'/>
-<input type="submit" title='<?tr("Save your changes and save to Script File");?>.' value='<?tr("Save");?>'/>
-<button type="button" onclick="done()"><?tr("Done");?></button>
+<button type="button" title='_(Load the default script)_.' onclick="setDefault(this.form)">_(Default Script)_</button>
+<input type="reset" title='_(Undo your changes since last Save)_.' value='_(Reset)_'/>
+<input type="submit" title='_(Save your changes and save to Script File)_.' value='_(Save)_'/>
+<button type="button" onclick="done()">_(Done)_</button>
 
 </form>
 
