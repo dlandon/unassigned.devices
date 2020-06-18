@@ -41,7 +41,7 @@ if ( isset($_GET['device']) && isset($_GET['owner']) ) {
 	$info = get_partition_info($device, true);
 	$owner = trim(urldecode($_GET['owner']));
 	$command = execute_script($info, 'ADD', TRUE);
-	if (!$command != "") {
+	if ($command != "") {
 		$command = $command." 2>&1";
 		@touch($GLOBALS['paths']['reload']);
 		putenv("OWNER={$owner}");
