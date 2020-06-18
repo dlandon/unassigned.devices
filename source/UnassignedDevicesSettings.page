@@ -18,15 +18,17 @@ $plugin = "unassigned.devices";
 require_once "plugins/$plugin/include/lib.php";
 $translations = file_exists("$docroot/webGui/include/Translations.php");
 
-if ($translations) {
-  // add translations
-  $_SERVER['REQUEST_URI'] = 'unassigneddevicessettings';
-  require_once "$docroot/webGui/include/Translations.php";
-} else {
-  // legacy support (without javascript)
-  $noscript = true;
-  require_once "$docroot/plugins/$plugin/include/Legacy.php";
-}
+$translations = file_exists("$docroot/webGui/include/Translations.php");
+require_once "$docroot/plugins/$plugin/include/Legacy.php";
+?>
+<?if (!$translations):?>
+<?eval('?>'.parse_file("$docroot/plugins/$plugin/UnassignedDevicesSettings.page"))?>
+<?else:?>
+<?
+require_once "plugins/$plugin/include/lib.php";
+
+// read translations
+parse_plugin('UnassignedDevicesSettings');
 
 $config_file = "/tmp/$plugin/config/$plugin.cfg";
 $cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
@@ -309,3 +311,4 @@ _(Select Disk to change UUID)_:
     <input type="submit" value='_(Change UUID)_' title='_(Change the disk UUID)_.' <?=count($uuid_devices) ? "" : "disabled";?>>
   </form>
 </form>
+<?endif;?>
