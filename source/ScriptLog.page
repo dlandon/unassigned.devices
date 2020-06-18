@@ -14,8 +14,20 @@ Title="Script Log"
  */
 
 $plugin = "unassigned.devices";
+$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+$translations = file_exists("$docroot/webGui/include/Translations.php");
+
+if ($translations) {
+  // add translations
+  $_SERVER['REQUEST_URI'] = 'unassigneddevices';
+  require_once "$docroot/webGui/include/Translations.php";
+} else {
+  // legacy support (without javascript)
+  $noscript = true;
+  require_once "$docroot/plugins/$plugin/include/Legacy.php";
+}
+
 require_once("plugins/{$plugin}/include/lib.php");
-require_once("plugins/{$plugin}/include/tr.php");
 
 if (isset($_GET['s'])) {
 	$serial = $_GET['s'];
@@ -61,9 +73,9 @@ $(function() {
 </script>
 
 <?if (is_file($file)):?>
-	<input type="button" value=<?tr("Download");?> onclick="getlog()">
+	<input type="button" value=_(Download)_ onclick="getlog()">
 <?else:?>
-	<input type="button" value=<?tr("Download");?> disabled>
+	<input type="button" value=_(Download)_ disabled>
 <?endif;?>
-<input type="button" value=<?tr("Refresh");?> onclick="refresh()">
-<input type="button" value=<?tr("Done");?> onclick="done()">
+<input type="button" value=_(Refresh)_ onclick="refresh()">
+<input type="button" value=_(Done)_ onclick="done()">
