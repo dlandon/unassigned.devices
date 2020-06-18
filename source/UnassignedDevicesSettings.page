@@ -16,7 +16,6 @@ Icon="unlock-alt"
 
 $plugin = "unassigned.devices";
 require_once("plugins/{$plugin}/include/lib.php");
-require_once("plugins/{$plugin}/include/tr.php");
 $config_file = "/tmp/{$plugin}/config/{$plugin}.cfg";
 $cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
 
@@ -37,7 +36,7 @@ foreach (get_all_disks_info() as $d) {
 }
 
 if (count($_POST)) {
-	if ($_POST['#apply'] == tr("Apply",true)) {
+	if ($_POST['#apply'] == "_(Apply)_") {
 		array_map(function($k, $v) use (&$cfg) { if($k[0] != "#") $cfg["Config"][$k] = $v; }, array_keys($_POST), $_POST );
 		unassigned_log("Updating share settings...");
 		remove_shares();
@@ -120,69 +119,69 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
 	}
 </script>
 
-<div id="title" class="nocontrol"><?tr("Common Settings")?></div>
+<div id="title" class="nocontrol">_(Common Settings)_</div>
 <form markdown="1" name="common_settings" method="POST">
 
 <?if (! $parted):?>
 > **Note:** The 'Unassigned Devices Plus' plugin must be installed in order to mount HFS+ and exFAT disk formats, and enable desctrctive mode.
 <?endif;?>
 
-<?tr('Common Script')?>:
+_(Common Script)_:
 : <input type="text" name="common_cmd" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin?>/','sh',false,true,true);" value="<?=$cfg['Config']['common_cmd'];?>">
 
 > If set, this script will run before the device script.  The action is in the environment variable **$ACTION**. Be sure you reference all commands with their full path.
 
-<?tr("Destructive Mode")?>:
+_(Destructive Mode)_:
 : <select name="destructive_mode" size="1" <?if (! $parted):?>disabled<?endif;?>>
-  <?=mk_option($cfg["Config"]["destructive_mode"], "disabled", tr("Disabled",true));?>
-  <?=mk_option($cfg["Config"]["destructive_mode"], "enabled", tr("Enabled",true));?>
-  </select><?if (! $parted):?>&nbsp;<?tr("'Unassigned Devices Plus' plugin must be installed to enable Destructive Mode")?>.<?endif;?>
+  <?=mk_option($cfg["Config"]["destructive_mode"], "disabled", "_(Disabled)_");?>
+  <?=mk_option($cfg["Config"]["destructive_mode"], "enabled", "_(Enabled)_");?>
+  </select><?if (! $parted):?>&nbsp;_(The 'Unassigned Devices Plus' plugin must be installed to enable Destructive Mode)_.<?endif;?>
 
 > If enabled, this will allow you to erase and format partitions using Unassigned Devices. This cannot be enabled unless the 'Unassigned Devices Plus' plugin is installed.
 
-<?tr("Auto Mount USB Devices")?>?
+_(Auto Mount USB Devices)_?
 : <select name="automount_usb" size="1">
-  <?=mk_option($cfg["Config"]["automount_usb"], "no", tr("No",true));?>
-  <?=mk_option($cfg["Config"]["automount_usb"], "yes", tr("Yes",true));?>
+  <?=mk_option($cfg["Config"]["automount_usb"], "no", "_(No)_");?>
+  <?=mk_option($cfg["Config"]["automount_usb"], "yes", "_(Yes)_");?>
   </select>
 
 > When set to **Yes**, will auto mount a new USB device and share it without user intervention.
 
-<?tr("Mount SSDs with 'discard' option")?>?
+_(Mount SSDs with 'discard' option)_?
 : <select name="discard" size="1">
-  <?=mk_option($cfg["Config"]["discard"], "yes", tr("Yes",true));?>
-  <?=mk_option($cfg["Config"]["discard"], "no", tr("No",true));?>
+  <?=mk_option($cfg["Config"]["discard"], "yes", "_(Yes)_");?>
+  <?=mk_option($cfg["Config"]["discard"], "no", "_(No)_");?>
   </select>
 
 > Mount SSDs that support discard with 'discard' option.  If you are using the SSD Trim Settings to do a periodic trim of SSDs you can set this to **No**.
 
-<?tr("Spin down disks")?>?
+_(Spin down disks)_?
 : <select name="spin_down" size="1">
-  <?=mk_option($cfg["Config"]["spin_down"], "yes", tr("Yes",true));?>
-  <?=mk_option($cfg["Config"]["spin_down"], "no", tr("No",true));?>
+  <?=mk_option($cfg["Config"]["spin_down"], "yes", "_(Yes)_");?>
+  <?=mk_option($cfg["Config"]["spin_down"], "no", "_(No)_");?>
   </select>
 
 > Set to **Yes** to set a 15 minute disk spin down timer.  Set to **No** to keep disks spun up.
 
-<?tr("Force all SMB remote shares to SMB v1")?>?
+_(Force all SMB remote shares to SMB v1)_?
 : <select name="samba_v1" size="1" <?if (! $use_netbios):?>disabled<?endif;?>>
-  <?=mk_option($cfg["Config"]["samba_v1"], "no", tr("No",true));?>
-  <?=mk_option($cfg["Config"]["samba_v1"], "yes", tr("Yes",true));?>
-  </select><?if (! $use_netbios):?>&nbsp;<span style="font-weight: bold">NetBIOS</span> <?tr("must be enabled in SMB Settings to enable SMB v1")?>.<?endif;?>
+  <?=mk_option($cfg["Config"]["samba_v1"], "no", "_(No)_");?>
+  <?=mk_option($cfg["Config"]["samba_v1"], "yes", "_(Yes)_");?>
+  </select><?if (! $use_netbios):?>&nbsp;<span style="font-weight: bold">NetBIOS</span> _(must be enabled in SMB Settings to enable SMB v1)_.<?endif;?>
 
 > Normally a SMB remote share will be mounted with the highest version of SMB that the remote server will support.  When set to **Yes**, all SMB remote shares will be forced to mount with SMB v1.  Some remote shares will give errors when mounted with SMB v2.  SMB v1 has security issues and should not be used unless absolutely necessary.  This cannot be enabled if NetBIOS is disabled.
 
 &nbsp;
-: <input type="submit" name="#apply" value='<?tr("Apply")?>'><input type="button" value='<?tr("Done")?>' onclick="done()">
+: <input type="submit" name="#apply" value='_(Apply)_'><input type="button" value='_(Done)_' onclick="done()">
 </form>
 
-<div id="title" class="nocontrol"><?tr("SMB Security")?></div>
+<div id="title" class="nocontrol">_(SMB Security)_</div>
 <form markdown="1" name="smb_settings" method="POST">
-<?tr("Enable SMB Security")?>?
+_(Enable SMB Security)_?
 : <select name="smb_security" size="1" onchange="prepareSecurity(this);">
-  <?=mk_option($cfg['Config']["smb_security"], "no", tr("No",true))?>
-  <?=mk_option($cfg['Config']["smb_security"], "yes", tr("Yes",true))?>
-  <?=mk_option($cfg['Config']["smb_security"], "hidden", tr("Hidden",true))?>
+  <?=mk_option($cfg['Config']["smb_security"], "no", "_(No)_")?>
+  <?=mk_option($cfg['Config']["smb_security"], "yes", "_(Yes)_")?>
+  <?=mk_option($cfg['Config']["smb_security"], "hidden", "_(Hidden)_")?>
   </select>
 
 <div id="smb_security" style="display: <?=($cfg['Config']["smb_security"] == "no" || $cfg['Config']["smb_security"] == "" ? "none" : "block");?>">
@@ -192,9 +191,9 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
 		<dt><?=$user['name']?></dt>
 		<dd>
 			<select name="smb_<?=$user['name']?>" size="1">
-			<?=mk_option($cfg["Config"]["smb_{$user[name]}"], "no-access", tr("No Access",true))?>
-			<?=mk_option($cfg["Config"]["smb_{$user[name]}"], "read-write", tr("Read/Write",true))?>
-			<?=mk_option($cfg["Config"]["smb_{$user[name]}"], "read-only", tr("Read-only",true))?>
+			<?=mk_option($cfg["Config"]["smb_{$user[name]}"], "no-access", "_(No Access)_")?>
+			<?=mk_option($cfg["Config"]["smb_{$user[name]}"], "read-write", "_(Read/Write)_")?>
+			<?=mk_option($cfg["Config"]["smb_{$user[name]}"], "read-only", "_(Read-only)_")?>
 			</select>
 		</dd>
 	</dl>
@@ -207,10 +206,10 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
 > + Set to **Hidden** to enable SMB Security on SMB shares that will not be visible.  Set access by user to allow access and whether or not the user can write to the share.
 > + Set to **No** will share devices, SMB/NFS, and iso Mounts Public with read and write access.
 
-<?tr("Add")?> 'force user = nobody' <?tr("to SMB share config")?>?
+_(Add)_ 'force user = nobody' _(to SMB share config)_?
 : <select name="force_user" size="1">
-  <?=mk_option($cfg["Config"]["force_user"], "yes", tr("Yes",true));?>
-  <?=mk_option($cfg["Config"]["force_user"], "no", tr("No",true));?>
+  <?=mk_option($cfg["Config"]["force_user"], "yes", "_(Yes)_");?>
+  <?=mk_option($cfg["Config"]["force_user"], "no", "_(No)_");?>
   </select>
 
 > There are times when permissions on SMB shares aren't handled as expected.  Turning this feature on can help with those permissions.
@@ -218,31 +217,31 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
 > The down side is that it overrides Linux group permissions.  If you are unsure about whether or not this is necessary, leave it enabled.
 
 &nbsp;
-: <input type="submit" name="#apply" value='<?tr("Apply")?>'><input type="button" value='<?tr("Done")?>' onclick="done()">
+: <input type="submit" name="#apply" value='_(Apply)_'><input type="button" value='_(Done)_' onclick="done()">
 </form>
 
-<div id="title" class="nocontrol"><?tr("NFS Settings")?></div>
+<div id="title" class="nocontrol">_(NFS Settings)_</div>
 <form markdown="1" name="nfs_settings" method="POST">
-<?tr("Enable NFS export")?>?
+_(Enable NFS export)_?
 : <select name="nfs_export" size="1" <?if ($var['shareNFSEnabled']=="no"):?>disabled<?endif;?>>
-  <?=mk_option($cfg['Config']["nfs_export"], "no", tr("No",true))?>
-  <?=mk_option($cfg['Config']["nfs_export"], "yes", tr("Yes",true))?>
-  </select><?if ($var['shareNFSEnabled']=="no"):?>&nbsp;<?tr("NFS must be enabled to enable NFS Export")?>.<?endif;?>
+  <?=mk_option($cfg['Config']["nfs_export"], "no", "_(No)_")?>
+  <?=mk_option($cfg['Config']["nfs_export"], "yes", "_(Yes)_")?>
+  </select><?if ($var['shareNFSEnabled']=="no"):?>&nbsp;_(NFS must be enabled to enable NFS Export)_.<?endif;?>
 
 <div id="nfs_security" style="display: <?=($cfg['Config']["nfs_export"] == "no" ? "none" : "block");?>">
 <dl>
-	<dt><?tr("NFS Security")?>:</dt>
+	<dt>_(NFS Security)_:</dt>
 	<dd>
 		<select name="nfs_security" size="1">
-		<?=mk_option($cfg["Config"]["nfs_security"], "public", tr("Public",true))?>
-		<?=mk_option($cfg["Config"]["nfs_security"], "private", tr("Private",true))?>
+		<?=mk_option($cfg["Config"]["nfs_security"], "public", "_(Public)_")?>
+		<?=mk_option($cfg["Config"]["nfs_security"], "private", "_(Private)_")?>
 		</select>
 	</dd>
 </dl>
 
 <div id="nfs_rule" style="display: <?=($cfg['Config']["nfs_security"] == "public" ? "none" : "block");?>">
 	<dl>
-		<dt><?tr("Rule")?>:</dt>
+		<dt>_(Rule)_:</dt>
 		<dd>
 			<input type="text" name="nfs_rule" class="wide" maxlength="100" value="<?=$cfg['Config']["nfs_rule"];?>">
 		</dd>
@@ -253,12 +252,12 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
 > Set to **Yes** to export NFS shares.  Shares are exported Public with read and write access or Private with the rule you set.  Access is controlled with permission settings on files and folders.
 
 &nbsp;
-: <input type="submit" name="#apply" value='<?tr("Apply")?>'><input type="button" value='<?tr("Done")?>' onclick="done()">
+: <input type="submit" name="#apply" value='_(Apply)_'><input type="button" value='_(Done)_' onclick="done()">
 </form>
 
-<div id="title" class="nocontrol"><?tr("Set Encrypted Disk Password")?></div>
+<div id="title" class="nocontrol">_(Set Encrypted Disk Password)_</div>
 <form markdown="1" name="set_pass" method="POST">
-<?tr("Select Disk")?>:
+_(Select Disk)_:
 : <select name="set_pass" size="1">
 
   <?foreach ($encrypt_devices as $d) {?>
@@ -266,7 +265,7 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
   <?}?>
   </select>
 
-<?tr("Enter Disk Password")?>:
+_(Enter Disk Password)_:
 
 : <input type="password" name="password" class="wide" maxlength="100" value="">
   
@@ -275,13 +274,13 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
 &nbsp;
 : <form name="change_disk_pass" method="POST" action="/update.php" target="progressFrame">
    	<input type="hidden" name="#command" value="chg_pass">
-    <input type="submit" value='<?tr("Set Password")?>' title='<?tr("Set the disk Password")?>.' <?=count($encrypt_devices) ? "" : "disabled"?>>
+    <input type="submit" value='_(Set Password)_' title='_(Set the disk Password)_.' <?=count($encrypt_devices) ? "" : "disabled"?>>
   </form>
 </form>
 
-<div id="title" class="nocontrol"><?tr("Change Disk UUID")?></div>
+<div id="title" class="nocontrol">_(Change Disk UUID)_</div>
 <form markdown="1" name="change_uuid" method="POST">
-<?tr("Select Disk to change UUID")?>:
+_(Select Disk to change UUID)_:
 : <select name="change_uuid" size="1">
 
   <?foreach ($uuid_devices as $d) {?>
@@ -294,6 +293,6 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
 &nbsp;
 : <form name="change_disk_uuid" method="POST" action="/update.php" target="progressFrame">
    	<input type="hidden" name="#command" value="UUID">
-    <input type="submit" value='<?tr("Change UUID")?>' title='<?tr("Change the disk UUID")?>.' <?=count($uuid_devices) ? "" : "disabled"?>>
+    <input type="submit" value='_(Change UUID)_' title='_(Change the disk UUID)_.' <?=count($uuid_devices) ? "" : "disabled"?>>
   </form>
 </form>
