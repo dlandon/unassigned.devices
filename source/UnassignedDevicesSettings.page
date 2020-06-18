@@ -15,7 +15,6 @@ Icon="unlock-alt"
  */
 
 $plugin = "unassigned.devices";
-require_once "plugins/$plugin/include/lib.php";
 $translations = file_exists("$docroot/webGui/include/Translations.php");
 
 $translations = file_exists("$docroot/webGui/include/Translations.php");
@@ -29,6 +28,8 @@ require_once "plugins/$plugin/include/lib.php";
 
 // read translations
 parse_plugin('UnassignedDevicesSettings');
+
+require_once "plugins/$plugin/include/lib.php";
 
 $config_file = "/tmp/$plugin/config/$plugin.cfg";
 $cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
