@@ -310,7 +310,7 @@ switch ($_POST['action']) {
 				if ( $flash || $preclearing ) {
 					echo "<td><img src='/plugins/{$plugin}/images/green-blink.png'>{$disk_name}</td>";
 				} else {
-					echo "<td title='"._("SMART Attributes on {$disk_name}")."'><img src='/plugins/{$plugin}/images/".($disk_running ? "green-on.png":"green-blink.png" )."'>";
+					echo "<td title='"._("SMART Attributes on")." ".$disk_name."'><img src='/plugins/{$plugin}/images/".($disk_running ? "green-on.png":"green-blink.png" )."'>";
 					echo "<a href='/Main/New?name={$disk_name}'> {$disk_name}</a></td>";
 				}
 				echo "<td>{$hdd_serial}</td>";
