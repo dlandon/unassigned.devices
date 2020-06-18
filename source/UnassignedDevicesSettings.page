@@ -15,8 +15,20 @@ Icon="unlock-alt"
  */
 
 $plugin = "unassigned.devices";
-require_once("plugins/{$plugin}/include/lib.php");
-$config_file = "/tmp/{$plugin}/config/{$plugin}.cfg";
+require_once "plugins/$plugin/include/lib.php";
+$translations = file_exists("$docroot/webGui/include/Translations.php");
+
+if ($translations) {
+  // add translations
+  $_SERVER['REQUEST_URI'] = 'unassigneddevicessettings';
+  require_once "$docroot/webGui/include/Translations.php";
+} else {
+  // legacy support (without javascript)
+  $noscript = true;
+  require_once "$docroot/plugins/$plugin/include/Legacy.php";
+}
+
+$config_file = "/tmp/$plugin/config/$plugin.cfg";
 $cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
 
 $uuid_devices = array();
@@ -66,6 +78,7 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
 	save_ini_file($config_file, $cfg);
 }
 ?>
+
 <script type="text/javascript" src="<?autov('/webGui/javascript/jquery.filetree.js')?>"></script>
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.filetree.css')?>" >
 
@@ -179,9 +192,9 @@ _(Force all SMB remote shares to SMB v1)_?
 <form markdown="1" name="smb_settings" method="POST">
 _(Enable SMB Security)_?
 : <select name="smb_security" size="1" onchange="prepareSecurity(this);">
-  <?=mk_option($cfg['Config']["smb_security"], "no", "_(No)_")?>
-  <?=mk_option($cfg['Config']["smb_security"], "yes", "_(Yes)_")?>
-  <?=mk_option($cfg['Config']["smb_security"], "hidden", "_(Hidden)_")?>
+  <?=mk_option($cfg['Config']["smb_security"], "no", "_(No)_");?>
+  <?=mk_option($cfg['Config']["smb_security"], "yes", "_(Yes)_");?>
+  <?=mk_option($cfg['Config']["smb_security"], "hidden", "_(Hidden)_");?>
   </select>
 
 <div id="smb_security" style="display: <?=($cfg['Config']["smb_security"] == "no" || $cfg['Config']["smb_security"] == "" ? "none" : "block");?>">
@@ -191,9 +204,9 @@ _(Enable SMB Security)_?
 		<dt><?=$user['name']?></dt>
 		<dd>
 			<select name="smb_<?=$user['name']?>" size="1">
-			<?=mk_option($cfg["Config"]["smb_{$user[name]}"], "no-access", "_(No Access)_")?>
-			<?=mk_option($cfg["Config"]["smb_{$user[name]}"], "read-write", "_(Read/Write)_")?>
-			<?=mk_option($cfg["Config"]["smb_{$user[name]}"], "read-only", "_(Read-only)_")?>
+			<?=mk_option($cfg["Config"]["smb_{$user[name]}"], "no-access", "_(No Access)_");?>
+			<?=mk_option($cfg["Config"]["smb_{$user[name]}"], "read-write", "_(Read/Write)_");?>
+			<?=mk_option($cfg["Config"]["smb_{$user[name]}"], "read-only", "_(Read-only)_");?>
 			</select>
 		</dd>
 	</dl>
@@ -224,8 +237,8 @@ _(Add)_ 'force user = nobody' _(to SMB share config)_?
 <form markdown="1" name="nfs_settings" method="POST">
 _(Enable NFS export)_?
 : <select name="nfs_export" size="1" <?if ($var['shareNFSEnabled']=="no"):?>disabled<?endif;?>>
-  <?=mk_option($cfg['Config']["nfs_export"], "no", "_(No)_")?>
-  <?=mk_option($cfg['Config']["nfs_export"], "yes", "_(Yes)_")?>
+  <?=mk_option($cfg['Config']["nfs_export"], "no", "_(No)_");?>
+  <?=mk_option($cfg['Config']["nfs_export"], "yes", "_(Yes)_");?>
   </select><?if ($var['shareNFSEnabled']=="no"):?>&nbsp;_(NFS must be enabled to enable NFS Export)_.<?endif;?>
 
 <div id="nfs_security" style="display: <?=($cfg['Config']["nfs_export"] == "no" ? "none" : "block");?>">
@@ -233,8 +246,8 @@ _(Enable NFS export)_?
 	<dt>_(NFS Security)_:</dt>
 	<dd>
 		<select name="nfs_security" size="1">
-		<?=mk_option($cfg["Config"]["nfs_security"], "public", "_(Public)_")?>
-		<?=mk_option($cfg["Config"]["nfs_security"], "private", "_(Private)_")?>
+		<?=mk_option($cfg["Config"]["nfs_security"], "public", "_(Public)_");?>
+		<?=mk_option($cfg["Config"]["nfs_security"], "private", "_(Private)_");?>
 		</select>
 	</dd>
 </dl>
@@ -274,7 +287,7 @@ _(Enter Disk Password)_:
 &nbsp;
 : <form name="change_disk_pass" method="POST" action="/update.php" target="progressFrame">
    	<input type="hidden" name="#command" value="chg_pass">
-    <input type="submit" value='_(Set Password)_' title='_(Set the disk Password)_.' <?=count($encrypt_devices) ? "" : "disabled"?>>
+    <input type="submit" value='_(Set Password)_' title='_(Set the disk Password)_.' <?=count($encrypt_devices) ? "" : "disabled";?>>
   </form>
 </form>
 
@@ -284,7 +297,7 @@ _(Select Disk to change UUID)_:
 : <select name="change_uuid" size="1">
 
   <?foreach ($uuid_devices as $d) {?>
-  <?=mk_option($disk_uuid, ("(".$d['device'].") - ".$d['label']), ("(".$d['device'].") - ".$d['label']))?>
+  <?=mk_option($disk_uuid, ("(".$d['device'].") - ".$d['label']), ("(".$d['device'].") - ".$d['label']));?>
   <?}?>
   </select>
   
@@ -293,6 +306,6 @@ _(Select Disk to change UUID)_:
 &nbsp;
 : <form name="change_disk_uuid" method="POST" action="/update.php" target="progressFrame">
    	<input type="hidden" name="#command" value="UUID">
-    <input type="submit" value='_(Change UUID)_' title='_(Change the disk UUID)_.' <?=count($uuid_devices) ? "" : "disabled"?>>
+    <input type="submit" value='_(Change UUID)_' title='_(Change the disk UUID)_.' <?=count($uuid_devices) ? "" : "disabled";?>>
   </form>
 </form>
