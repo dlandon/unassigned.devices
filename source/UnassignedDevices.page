@@ -966,7 +966,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
       [surveyOption]
     </div>
     <div data-question-content>
-      <div class="swal-title" style="font-size: 20px;">_(This will remove the **ISO** file share for)_:</div>
+      <div class="swal-title" style="font-size: 20px;">_(This will remove the ISO file share for)_:</div>
       <div style="margin-bottom: 15px;margin-top: 15px;">
         <span style="font-weight: bold;">{0}</span>
       </div>
