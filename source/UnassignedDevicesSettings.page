@@ -23,10 +23,6 @@ require_once "$docroot/plugins/$plugin/include/Legacy.php";
 <?eval('?>'.parse_file("$docroot/plugins/$plugin/UnassignedDevicesSettings.page"))?>
 <?else:?>
 <?
-
-// read translations
-parse_plugin('UnassignedDevicesSettings');
-
 require_once "plugins/$plugin/include/lib.php";
 
 $config_file = "/tmp/$plugin/config/$plugin.cfg";
