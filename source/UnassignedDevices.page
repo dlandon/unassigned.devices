@@ -593,7 +593,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 > To format a disk:
 >
 > + Destructive mode must be enabled.
-> + Disk must have all partitions removed.	Unmount disk, click on the serial number, and click on all <i style='color:red;font-weight:bold;' class='fa fa-remove hdd'></i> icons to delete partitions.
+> + Disk must have all partitions removed.  Unmount disk, click on the serial number, and click on all <i style='color:red;font-weight:bold;' class='fa fa-remove hdd'></i> icons to delete partitions.
 > + If the disk has been precelared and shows a grayed 'Format' button, click on the <i style='color:black;font-weight:bold;' class='fa fa-plus-square'></i> icon, then click on the <i style='color:red;font-weight:bold;' class='fa fa-remove hdd'></i> icon to delete the preclear status file.
 >
 > **Note: A disk partitioned in UD is compatible with the array disk partitioning and can be added to the array. Supported file formats are XFS and BTRFS.**

@@ -148,11 +148,15 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 
 <input type="text" title='_(Enter Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>/','sh',false,true);" autocomplete="off" value="<?=$file;?>"><?=$remove;?>
 
+:ud_edit_script_choose_name_plug:
 > Choose your script name from the file selection dropdown, or enter your desired script name.
+:end
 
 <span title='_(Turn on to run Script File in the background)_.'><input type="checkbox" name="run_background" <?=$background;?>></span>
 
+:ud_edit_script_run_background_plug:
 > Turn on the 'Run in Background' to have the script run as a background task.  This can keep the Unassigned Devices UI from hanging when the script is run from the UI.
+:end
 
 <br />
 <strong>_(Script content)_:</strong>
@@ -160,10 +164,12 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 
 <textarea spellcheck="false" cols="80" rows="22" name="text" title='_(Enter and Edit the Script that runs when a udev or operator event occurs)_.' style="font-family:bitstream;width:80%"><?=$text;?></textarea>
 
+:ud_edit_script_buttons_plug:
 > Click the **Save** button to commit the current edits.  Click **Reset** to undo any changes you make (before Saving). Click **Done** to exit this page.
 >
 > Click the **Default Script** button to initialize the edit box with a default script.
 > You still need to click **Save** in order to commit the change.
+:end
 
 <button type="button" title='_(Load the default script)_.' onclick="setDefault(this.form)">_(Default Script)_</button>
 <input type="reset" title='_(Undo your changes since last Save)_.' value='_(Reset)_'/>
