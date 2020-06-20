@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.06.18">
+<!ENTITY version   "2020.06.20">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"f2d0db2c1c64bde4aaf2645859971d08">
+<!ENTITY MD5		"27396030adf6b890fc274796094ea60b">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Multi Language help tags.
+- Fix: Multi Language code cleanup and fixes for UD on Main page.
+
+###2020.06.18
 - Fix: Multi Language support.
 - Fix: Remove Docker mapping warning on SMB/NFS and ISO mounts.
 
