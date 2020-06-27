@@ -1387,7 +1387,7 @@ function get_unassigned_disks() {
 	// Get all devices by id.
 	foreach (listDir("/dev/disk/by-id/") as $p) {
 		$r = realpath($p);
-		// Only /dev/sd*, /dev/hd* and /dev/nvme* devices.
+		// Only /dev/sd*, /dev/hd*, and /dev/nvme* devices.
 		if (!is_bool(strpos($r, "/dev/sd")) || !is_bool(strpos($r, "/dev/hd")) || !is_bool(strpos($r, "/dev/nvme"))) {
 			$paths[$r] = $p;
 		}
@@ -1397,8 +1397,7 @@ function get_unassigned_disks() {
 	// Get all unraid disk devices (array disks, cache, and pool devices)
 	foreach ($disks as $d) {
 		if ($d['device']) {
-			$dev = $d['device'];
-			$unraid_disks[] = "/dev/".$dev;
+			$unraid_disks[] = "/dev/".$d['device'];
 		}
 	}
 
