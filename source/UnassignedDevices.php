@@ -142,6 +142,8 @@ function render_partition($disk, $partition, $total=FALSE) {
 		$mpoint .= "<input type='hidden' name='action' value='change_mountpoint'/>";
 		$mpoint .= "<input type='hidden' name='serial' value='{$partition['serial']}'/>";
 		$mpoint .= "<input type='hidden' name='partition' value='{$partition['part']}'/>";
+		$mpoint .= "<input type='hidden' name='device' value='{$partition['device']}'/>";
+		$mpoint .= "<input type='hidden' name='fstype' value='{$partition['fstype']}'/>";
 		$mpoint .= "<input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden />";
 		$mpoint .= "<input type='hidden' name='csrf_token' value='{$csrf_token}'/>";
 		$mpoint .= "</form>{$rm_partition}</span>";
@@ -724,10 +726,33 @@ switch ($_POST['action']) {
 	case 'change_mountpoint':
 		$serial = urldecode($_POST['serial']);
 		$partition = urldecode($_POST['partition']);
+		$fstype	= urldecode($_POST['fstype']);
 		$mountpoint = safe_name(basename(urldecode($_POST['mountpoint'])), FALSE);
+		$dev = urldecode($_POST['device']);
 		if ($mountpoint != "") {
 			$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
 			set_config($serial, "mountpoint.{$partition}", $mountpoint);
+			// Update the physical disk label.
+			$mountpoint = basename($mountpoint);
+			switch ($fstype) {
+				case 'xfs';
+					exec("/usr/sbin/xfs_admin -L $mountpoint $dev 2>/dev/null");
+				break;
+
+				case 'btrfs';
+					exec("/sbin/btrfs filesystem label $dev '$mountpoint' 2>/dev/null");
+				break;
+
+				case 'ntfs';
+					$mountpoint = substr($mountpoint, 0, 31);
+					exec("/sbin/ntfslabel $dev '$mountpoint' 2>/dev/null");
+				break;
+
+				case 'vfat';
+					$mountpoint = substr(strtoupper($mountpoint), 0, 10);
+					shell_exec("/sbin/fatlabel $dev '$mountpoint' 2>/dev/null");
+				break;
+			}
 		}
 		require_once("update.htm");
 		break;
