@@ -1583,6 +1583,34 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 	return $cmd[$type] ? sprintf($cmd[$type], $dev) : "";
 }
 
+// Update the physical disk label.
+function change_disk_label($fstype, $dev, $mountpoint) {
+	$mountpoint = basename($mountpoint);
+	switch ($fstype) {
+		case 'xfs';
+			timed_exec(2, "/usr/sbin/xfs_admin -L $mountpoint $dev 2>/dev/null");
+		break;
+
+		case 'btrfs';
+			timed_exec(2, "/sbin/btrfs filesystem label $dev '$mountpoint' 2>/dev/null");
+		break;
+
+		case 'ntfs';
+			$mountpoint = substr($mountpoint, 0, 31);
+			timed_exec(2, "/sbin/ntfslabel $dev '$mountpoint' 2>/dev/null");
+		break;
+
+		case 'vfat';
+			$mountpoint = substr(strtoupper($mountpoint), 0, 10);
+			timed_exec(2, "/sbin/fatlabel $dev '$mountpoint' 2>/dev/null");
+		break;
+
+		case 'crypto_LUKS';
+			timed_exec(2, "/sbin/cryptsetup config $dev --label '$mountpoint' 2>/dev/null");
+		break;
+	}
+}
+
 function change_UUID($dev) {
 
 	sleep(1);
