@@ -99,11 +99,11 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
 		if (! filter && ! on_files)   filter = 'HIDE_FILES_FILTER';
 		if (! root.trim() ) root = '/mnt/user/';
 		var p = $(el);
-		// Skip if fileTree is already open
+		/* Skip if fileTree is already open */
 		if ( p.next().hasClass('fileTree') ){return null;}
-		// create a random id
+		/* create a random id */
 		var r = Math.floor((Math.random()*1000)+1);
-		// Add a new span and load fileTree
+		/* Add a new span and load fileTree */
 		p.after("<span id='fileTree"+r+"' class='textarea fileTree'></span>");
 		var ft = $('#fileTree'+r);
 		ft.fileTree({
@@ -114,13 +114,13 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
 			function(file){if(on_files){p.val(file);if(close_on_select){ft.slideUp('fast',function (){ft.remove();});}};p.trigger('change');},
 			function(folder){if(on_folders){p.val(folder);if(close_on_select){$(ft).slideUp('fast',function (){$(ft).remove();});}};p.trigger('change');}
 		);
-		// Format fileTree according to parent position, height and width
+		/* Format fileTree according to parent position, height and width */
 		ft.css({'left':p.position().left,'top':( p.position().top + p.outerHeight() ),'width':(p.width()) });
-		// close if click elsewhere
+		/* close if click elsewhere */
 		$(document).mouseup(function(e){if(!ft.is(e.target) && ft.has(e.target).length === 0){ft.slideUp('fast',function (){$(ft).remove();});}});
-		// close if parent changed
+		/* close if parent changed */
 		p.bind('keydown',function(){ft.slideUp('fast',function (){$(ft).remove();});});
-		// Open fileTree
+		/* Open fileTree */
 		ft.slideDown('fast');
 	} 
 

@@ -23,7 +23,7 @@ require_once "$docroot/plugins/$plugin/include/Legacy.php";
 <?else:?>
 <?
 
-// read translations
+/* read translations */
 parse_plugin('UnassignedDevices');
 
 require_once("plugins/{$plugin}/include/lib.php");

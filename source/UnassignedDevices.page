@@ -23,7 +23,7 @@ require_once "$docroot/plugins/$plugin/include/Legacy.php";
 <?eval('?>'.parse_file("$docroot/plugins/$plugin/UnassignedDevices.page"))?>
 <?else:?>
 <?
-// read translations
+/* read translations */
 parse_plugin('UnassignedDevices');
 
 require_once "plugins/$plugin/include/lib.php";
@@ -177,10 +177,10 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	}
 
 	function disk_op(el, op, device){
-		// add spinning and disable button
+		/* add spinning and disable button */
 		$("button[device='"+device+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> "+(op == "mount" ? "<?=_('Mounting')?>..." : "<?=_('Unmounting')?>..."));
 		$("button[device='"+device+"']").prop("disabled","true");
-		// disable partition buttons
+		/ disable partition buttons */
 		td = $("button[device='"+device+"']").closest('td');
 		tr = td.closest('tr');
 		part = tr.is('.toggle-parts');
@@ -210,7 +210,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 	function usb_disks(tabnum)
 	{
-		// save table widths
+		/* save table widths */
 		if (! diskinfo)
 		{
 			tableWidths = $("#usb_devices_list > table > thead > tr").children("td").map(function(i,v){return $(this).getHiddenDimensions().outerWidth;});
@@ -576,44 +576,48 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 :unassgned_devices_switches_plug:
 > Turn off the **Complete** switch to change the web page to just show hardware devices. Trun on the **Simple** switch to switch back to the full web display.
 >
-> Turn off the **All** switch to show all device partitions. Turn on **None** switch to switch back to not show partitions.
+> Turn on the **None** switch to show all device partitions. Turn off **All** switch to switch back to not show partitions.
 >
-> Click on the <i class="fa fa-refresh"></i> icon to rescan disks.
+> Click on the <i style='color:black;font-weight:bold;' class="fa fa-refresh"></i> icon to rescan disks.
 >
-> Click on the <i class="fa fa-gear"></i> icon to go to the UD Settings.
+> Click on the <i style='color:black;font-weight:bold;' class="fa fa-gear"></i> icon to go to the UD Settings.
 :end
 
 <div id="usb_devices_list">
 </div>
 
 :unassigned_devices_general_help_plug:
-> Unassigned Devices is called UD for short.<br>
+> **Unassigned Devices is called UD for short.**
+>
 > Hover your mouse over an any active area on the UD page and a tool tip will show you what clicking that area does.
 > You can mount USB devices, sata drives, Remote SMB/NFS shares, and ISO Files with UD.  Any devices with the auto mount switch on will be mounted when the array is started.  All drives and SMB/NFS Mounts are unmounted when the array is stopped on the 'stopping_svcs' event.
 > If you want to share your drive, you can turn on the Share switch.  The default for Remote SMB shares is Public read/write access.  Enable SMB Security by user in the Unassigned Devices Settings.  NFS shares are exported and access is read/write.  The export of NFS devices is enabled in the Unassigned Devices settings. You can also enable a common script that will be executed on every disk mount.  In order to share any UD device, sharing needs to be enabled in the UD Settings and the switch turned on to share the particular device.  SMB/NFS remove shares and ISO mounts are always shared.
 > After entering a mount point, press &lt;Enter&gt; to save the change.
 >
-> Additional options are available when you click on the device identification.  When the disk is unmounted, the mount name of the device can be changed.  A disk can be formatted and an fsck run to check the disk.
-> **The 'Settings->Unassigned Devices' security settings for SMB and NFS must be set correctly for SMB and NFS sharing to work properly.**
-> **If the mount button is grayed out for a SMB/NFS remote share, the remote server is not responding to a ping.  The remote share server must respond to a ping or UD will consider it off-line.**
+> Additional options are available when you click on the <i style='color:black;font-weight:bold;' class="fa fa-plus-square"></i> icon by device identification.  When the disk is unmounted, the mount point of the device can be changed.  The disk label will also be changed.  A disk can be formatted and an fsck run to check the disk.
+>
+> The 'Settings->Unassigned Devices' security settings for SMB and NFS must be set correctly for SMB and NFS sharing to work properly.
+>
+> If the mount button is grayed out for a SMB/NFS remote share, the remote server is not responding to a ping.  The remote share server must respond to a ping or UD will consider it off-line.
+>
 > UD has a destructive mode that allows deleting disk partitions and formatting disks.	If Destructive Mode is not turned on in the UD Settings, you WILL NOT be able to format a disk or remove partitions.  Go the the 'Settings->Unassigned Devices' to set the destructive mode.
 >
-> To format a disk:
+> **To format a disk:**
 >
 > + Destructive mode must be enabled.
-> + Disk must have all partitions removed.  Unmount disk, click on the serial number, and click on all <i style='color:red;font-weight:bold;' class='fa fa-remove hdd'></i> icons to delete partitions.
+> + Disk must have all partitions removed.  Unmount disk, click on the <i style='color:black;font-weight:bold;' class='fa fa-plus-square'></i> icon,, and click on all <i style='color:red;font-weight:bold;' class='fa fa-remove hdd'></i> icons to delete partitions.
 > + If the disk has been precelared and shows a grayed 'Format' button, click on the <i style='color:black;font-weight:bold;' class='fa fa-plus-square'></i> icon, then click on the <i style='color:red;font-weight:bold;' class='fa fa-remove hdd'></i> icon to delete the preclear status file.
 >
-> **Note: A disk partitioned in UD is compatible with the array disk partitioning and can be added to the array. Supported file formats are XFS and BTRFS.**
+> **Note: A disk partitioned in UD is compatible with the array disk partitioning and can be added to the array. Supported file formats are XFS, XFS encrypted, BTRFS and BTRFS encrypted.**
 >
-> Encrypted Disks:
+> **Encrypted Disks:**
 >
-> + Any disk formatted in UD that is encrypted will use the array password/passphrase and can be incorporated into the array.
-> + Any disk that was not encrypted in UD can be mounted by setting a per disk passord set in UD settings.
+> + Any disk formatted in UD that is encrypted will use the array password/passphrase and can be incorporated into the array.  Or you can set a unique password when it is formatted.  If you set a password on the disk when it is formatted, you will need to enter a disk password in Unassignd Devices->Settings for that disk.
+> + Any disk that was not encrypted with the Array password/passphrase can be mounted by setting a per disk passord set in Unassigned Devices->Settings.
 >
-> UD includes scripts that are used for mounting and unmounting devices and SMB/NFS mounts. These scripts can be used from the command line or in scripts as necessary.
+> **Unassigned devices script:**
 >
-> Unassigned devices script:
+> UD includes a script that is used for mounting and unmounting devices and SMB/NFS mounts. These scripts can be used from the command line or in your scripts as necessary.
 >
 > + '/usr/local/sbin/rc.unassigned mount auto' - all devices and SMB/NFS mounts set to auto mount will be mounted.
 > + '/usr/local/sbin/rc.unassigned umount auto' - all devices and SMB/NFS mounts set to auto mount will be unmounted.
@@ -660,7 +664,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 
 	$('#tab'+tab_usbdisks).bind({click:function() {pin_tab(tab_usbdisks); detect_usb_disk_change(tab_usbdisks);}});
 
-	// Remove or hide diskio toggle
+	/* Remove or hide diskio toggle */
 	tabElement = get_tab_title_by_name("<?=_('Unassigned Devices')?>");
 	if (tabElement.prop("nodeName") == "DIV")
 	{
@@ -675,7 +679,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 	}
 
 
-	// Bind Arrive events 
+	/* Bind Arrive events */
 	$("#usb_devices_list").arrive("tr",{onceOnly:false},function()
 	{
 		tr = $(this);
@@ -794,7 +798,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 
 	$(function()
 	{
-		// Add icons to Tab/Title bar
+		/* Add icons to Tab/Title bar */
 		addButtonTab('<a title="<?=_("Unassigned Devices Settings")?>" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>',
 								 "<?=_('Unassigned Devices')?>");
 		addButtonTab('<a style="cursor:pointer;" onclick="$.post(\''+URL+'\',{\'action\':\'rescan_disks\'});" title="<?=_("Rescan Disks")?>"><i class="fa fa-refresh"></i></a>',
@@ -804,7 +808,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch Display Mode")?>"><input type="checkbox" class="complete-switch"></a>',
 								 "<?=_('Unassigned Devices')?>");
 
-		// Add switchButton to Tab/Title bar
+		/* Add switchButton to Tab/Title bar */
 		$('.complete-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Complete')?>", off_label: "<?=_('Simple')?>", checked: $.cookie('unassigned-complete-view') != 'false'});
 		$('.complete-switch').change(function()
 		{
@@ -817,17 +821,17 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 		{
 			$.post(URL,{action:"toggle_show_partitions",status:$(".partitions-switch").is(":checked")},function(data)
 			{
-				$(this).prop("checked",data.result);
+				$(".partitions-switch").prop("checked",data.result);
 			},"json");
 		});
 
-		// Load contents if tab is checked
+		/* Load contents if tab is checked */
 		if ($('#tab'+tab_usbdisks).is(':checked')) {
 			$('#tab'+tab_usbdisks).trigger("click");
 			$.removeCookie('one',{path:'/'});
 		}
 
-		// Load page content
+		/* Load page content */
 		usb_disks(tab_usbdisks);
 		detect_usb_disk_change(tab_usbdisks);
 	});

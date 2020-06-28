@@ -14,11 +14,11 @@ $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $translations = file_exists("$docroot/webGui/include/Translations.php");
 
 if ($translations) {
-  // add translations
+  /* add translations */
   $_SERVER['REQUEST_URI'] = 'unassigneddevices';
   require_once "$docroot/webGui/include/Translations.php";
 } else {
-  // legacy support (without javascript)
+  /* legacy support (without javascript) */
   $noscript = true;
   require_once "$docroot/plugins/$plugin/include/Legacy.php";
 }

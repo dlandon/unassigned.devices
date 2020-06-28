@@ -114,6 +114,7 @@ function save_ini_file($file, $array) {
 			$res[] = "$key = ".(is_numeric($val) ? $val : '"'.$val.'"');
 		}
 	}
+
 	/* Write changes to tmp file. */
 	file_put_contents($file, implode(PHP_EOL, $res));
 
@@ -901,7 +902,7 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 			file_put_contents($paths['smb_extra'], $c);
 
 			if ($recycle_bin) {
-				// Add the recycle bin parameters if plugin is installed
+				/* Add the recycle bin parameters if plugin is installed */
 				$recycle_script = "plugins/recycle.bin/scripts/configure_recycle_bin";
 				if (is_file($recycle_script)) {
 					$recycle_bin_cfg = parse_ini_file( "/boot/config/plugins/recycle.bin/recycle.bin.cfg" );
@@ -992,7 +993,7 @@ function rm_nfs_share($dir) {
 }
 
 function remove_shares() {
-	// Disk mounts
+	/* Disk mounts */
 	foreach (get_unassigned_disks() as $name => $disk) {
 		foreach ($disk['partitions'] as $p) {
 			$info = get_partition_info($p);
@@ -1006,14 +1007,14 @@ function remove_shares() {
 		}
 	}
 
-	// SMB Mounts
+	/* SMB Mounts */
 	foreach (get_samba_mounts() as $name => $info) {
 		if ( $info['mounted'] ) {
 			rm_smb_share($info['mountpoint'], $info['device']);
 		}
 	}
 
-	// ISO File Mounts
+	/* ISO File Mounts */
 	foreach (get_iso_mounts() as $name => $info) {
 		if ( $info['mounted'] ) {
 			rm_smb_share($info['mountpoint'], $info['device']);
@@ -1023,7 +1024,7 @@ function remove_shares() {
 }
 
 function reload_shares() {
-	// Disk mounts
+	/* Disk mounts */
 	foreach (get_unassigned_disks() as $name => $disk) {
 		foreach ($disk['partitions'] as $p) {
 			$info = get_partition_info($p);
@@ -1037,14 +1038,14 @@ function reload_shares() {
 		}
 	}
 
-	// SMB Mounts
+	/* SMB Mounts */
 	foreach (get_samba_mounts() as $name => $info) {
 		if ( $info['mounted'] ) {
 			add_smb_share($info['mountpoint'], $info['device'], FALSE);
 		}
 	}
 
-	// ISO File Mounts
+	/* ISO File Mounts */
 	foreach (get_iso_mounts() as $name => $info) {
 		if ( $info['mounted'] ) {
 			add_smb_share($info['mountpoint'], $info['device'], FALSE);
@@ -1393,17 +1394,17 @@ function get_unassigned_disks() {
 
 	$ud_disks = $paths = $unraid_disks = array();
 
-	// Get all devices by id.
+	/* Get all devices by id. */
 	foreach (listDir("/dev/disk/by-id/") as $p) {
 		$r = realpath($p);
-		// Only /dev/sd*, /dev/hd*, and /dev/nvme* devices.
+		/* Only /dev/sd*, /dev/hd*, and /dev/nvme* devices. */
 		if (!is_bool(strpos($r, "/dev/sd")) || !is_bool(strpos($r, "/dev/hd")) || !is_bool(strpos($r, "/dev/nvme"))) {
 			$paths[$r] = $p;
 		}
 	}
 	natsort($paths);
 
-	// Get all unraid disk devices (array disks, cache, and pool devices)
+	/* Get all unraid disk devices (array disks, cache, and pool devices) */
 	foreach ($disks as $d) {
 		if ($d['device']) {
 			$unraid_disks[] = "/dev/".$d['device'];
@@ -1412,7 +1413,7 @@ function get_unassigned_disks() {
 
 	foreach ($unraid_disks as $k) {$o .= "  $k\n";}; unassigned_log("UNRAID DISKS:\n$o", "DEBUG");
 
-	// Create the array of unassigned devices.
+	/* Create the array of unassigned devices. */
 	foreach ($paths as $path => $d) {
 		if (($d != "") && (preg_match("#^(.(?!wwn|part))*$#", $d))) {
 			if (! in_array($path, $unraid_disks)) {
@@ -1488,7 +1489,7 @@ function get_partition_info($device, $reload=FALSE){
 		$disk['serial_short'] = isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
 		$disk['serial'] = "{$attrs['ID_MODEL']}_{$disk['serial_short']}";
 		$disk['device'] = $device;
-		// Grab partition number
+		/* Grab partition number */
 		preg_match_all("#(.*?)(\d+$)#", $device, $matches);
 		$disk['part'] = $matches[2][0];
 		$disk['disk'] = $matches[1][0];
@@ -1592,7 +1593,7 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 	return $cmd[$type] ? sprintf($cmd[$type], $dev) : "";
 }
 
-// Update the physical disk label.
+/* Update the physical disk label. */
 function change_disk_label($fstype, $dev, $mountpoint) {
 	$mountpoint = basename($mountpoint);
 	switch ($fstype) {
