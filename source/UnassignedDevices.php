@@ -155,7 +155,8 @@ function render_partition($disk, $partition, $total=FALSE) {
 	$temp = my_temp($disk['temperature']);
 	$mbutton = make_mount_button($partition);
 
-	$out[] = "<tr class='toggle-parts toggle-".basename($disk['device'])."' name='toggle-".basename($disk['device'])."' style='display:none;' >";
+	get_config("Config", "show_all_partitions") != 'yes' ? $style = "style='display:none;'" : $style = "";
+	$out[] = "<tr class='toggle-parts toggle-".basename($disk['device'])."' name='toggle-".basename($disk['device'])."' $style >";
 	$out[] = "<td></td>";
 	$out[] = "<td>{$mpoint}</td>";
 	$out[] = "<td class='mount'>{$mbutton}</td>";
@@ -299,8 +300,9 @@ switch ($_POST['action']) {
 				if ( $p	&& ! ($is_precleared || $preclearing) )
 				{
 					$add_toggle = TRUE;
+					get_config("Config", "show_all_partitions") != 'yes' ? $class = "'fa fa-plus-square fa-append'" : $class = "'fa fa-minus-square fa-append'";
 					$hdd_serial .="<span title='"._("Click to view partitions/mount points")."' class='exec toggle-hdd' hdd='{$disk_name}'>
-									<i class='fa fa-plus-square fa-append'></i></span>";
+									<i class=$class></i></span>";
 				}
 				else
 				{
@@ -534,6 +536,11 @@ switch ($_POST['action']) {
 		$serial = urldecode(($_POST['serial']));
 		$status = urldecode(($_POST['status']));
 		echo json_encode(array( 'result' => toggle_pass_through($serial, $status) ));
+		break;
+
+	case 'toggle_show_partitions':
+		$status = urldecode(($_POST['status']));
+		echo json_encode(array( 'result' => toggle_show_partitions($status) ));
 		break;
 
 	/*	DISK	*/

@@ -573,6 +573,16 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 
 <?=$Preclear ? $Preclear->html() : "";?>
 
+:unassgned_devices_switches_plug:
+> Turn off the **Complete** switch to change the web page to just show hardware devices. Trun on the **Simple** switch to switch back to the full web display.
+>
+> Turn off the **All** switch to show all device partitions. Turn on **None** switch to switch back to not show partitions.
+>
+> Click on the <i class="fa fa-refresh"></i> icon to rescan disks.
+>
+> Click on the <i class="fa fa-gear"></i> icon to go to the UD Settings.
+:end
+
 <div id="usb_devices_list">
 </div>
 
@@ -611,9 +621,6 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 > + '/usr/local/sbin/rc.unassigned mount /dev/sdX' - mount device sdX where 'X' is the device designator.
 > + '/usr/local/sbin/rc.unassigned umount /dev/sdX' - unmount device sdX where 'X' is the device designator. You can use this command in a UD script to unmount the device when the script has completed.
 > + '/usr/local/sbin/rc.unassigned refresh /dev/sdX' - used at the end of the 'ADD' case of a script so the 'Running...' indicator will be updated.
->
-> Switch the 'Complete' button to change the web page to just show hardware devices. Switch the 'Simple' switch to switch back to the full web display.
-> Click on the <i class="fa fa-gear"></i> icon to go to the UD Settings.
 :end
 
 <script type="text/javascript">
@@ -792,6 +799,8 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 								 "<?=_('Unassigned Devices')?>");
 		addButtonTab('<a style="cursor:pointer;" onclick="$.post(\''+URL+'\',{\'action\':\'rescan_disks\'});" title="<?=_("Rescan Disks")?>"><i class="fa fa-refresh"></i></a>',
 								 "<?=_('Unassigned Devices')?>");
+		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch On to Show All Partitions")?>"><input type="checkbox" class="partitions-switch"></a>',
+								 "<?=_('Unassigned Devices')?>");
 		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch Display Mode")?>"><input type="checkbox" class="complete-switch"></a>',
 								 "<?=_('Unassigned Devices')?>");
 
@@ -801,6 +810,15 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 		{
 			$('.show-complete').slideToggle('slow');
 			$.cookie('unassigned-complete-view', $('.complete-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path:'/' });
+		});
+		<?$show_all_partitions = get_config("Config", "show_all_partitions")?>;
+		$('.partitions-switch').switchButton({ labels_placement: "left", on_label: "<?=_('All')?>", off_label: "<?=_('None')?>", checked: "<?=$show_all_partitions?>" == 'yes'});
+		$('.partitions-switch').change(function()
+		{
+			$.post(URL,{action:"toggle_show_partitions",status:$(".partitions-switch").is(":checked")},function(data)
+			{
+				$(this).prop("checked",data.result);
+			},"json");
 		});
 
 		// Load contents if tab is checked
