@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.06.28">
+<!ENTITY version   "2020.06.29">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"7f71d956997cdc421061faab1121ac63">
+<!ENTITY MD5		"e8fe1195d1e79e601cf3c132242d1f38">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: UD page always showing Simple display mode when using browser back button.
+- Fix: Dollar sign character in udev information causing a php error.
+
+###2020.06.28
 - Add: Changing the mount point will update the physical disk label.
 - Add: Switch to show/hide all device partitions.
 
