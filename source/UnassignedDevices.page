@@ -181,7 +181,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		/* add spinning and disable button */
 		$("button[device='"+device+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> "+(op == "mount" ? "<?=_('Mounting')?>..." : "<?=_('Unmounting')?>..."));
 		$("button[device='"+device+"']").prop("disabled","true");
-		/ disable partition buttons */
+		/* disable partition buttons */
 		td = $("button[device='"+device+"']").closest('td');
 		tr = td.closest('tr');
 		part = tr.is('.toggle-parts');
@@ -299,64 +299,58 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 
 	function load_hosts(el, action) {
-	  var target = $(el).parents("div").find("*[name='IP']");
-	  var old = $(el).html();
-	  $(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> <?=_('Searching')?>...");
-	  $.post(URL,{'action': action, 'var': vars, 'network': network, 'workgroup': workgroup}).done(function(data) {
-	    $(el).html(old);
-	    if (data) {
-	      var hosts = data.split('\n');
-	      if (hosts.length) {
-	        var add = "<select name='IP' class='swal-content__input' required>";
-	        for(var i = 0;i < hosts.length;i++)
-	        {
-	          if (hosts[i].length)
-	          {
-	            add += "<option value='"+hosts[i].trim()+"'>"+hosts[i].trim()+"</option>";
-	          }
-	        }
-	        target.replaceWith(add+"</select>")
-	      }
-	      else
-	      {
-	        target.replaceWith("<input type='text' name='IP' class='swal-content__input' autocomplete='off'>");
-	      }
-	    }
-	  });
+		var target = $(el).parents("div").find("*[name='IP']");
+		var old = $(el).html();
+		$(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> <?=_('Searching')?>...");
+		$.post(URL,{'action': action, 'var': vars, 'network': network, 'workgroup': workgroup}).done(function(data) {
+			$(el).html(old);
+			if (data) {
+				var hosts = data.split('\n');
+				if (hosts.length) {
+					var add = "<select name='IP' class='swal-content__input' required>";
+					for(var i = 0;i < hosts.length;i++)
+					{
+						if (hosts[i].length)
+						{
+							add += "<option value='"+hosts[i].trim()+"'>"+hosts[i].trim()+"</option>";
+						}
+					}
+					target.replaceWith(add+"</select>")
+				} else {
+					target.replaceWith("<input type='text' name='IP' class='swal-content__input' autocomplete='off'>");
+				}
+			}
+		});
 	}
 
 	function load_shares(el, ip, user, pass, action) {
-	  var old = $(el).html();
-	  var target = $(el).parents("div").find("*[name='SHARE']");
-	  $(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> Loading...");
-	  var opts = new Object();
-	  opts["action"] = action;
-	  opts["IP"] = ip;
-	  opts["USER"] = user;
-	  opts["PASS"] = pass;
-	  $.post(URL,opts).done(function(data){
-	    $(el).html(old);
-	    if (data != " ") {
-	      var shares = data.split('\n');
-	      if (shares.length) {
-	        var add = "<select name='SHARE' class='swal-content__input' required>";
-	        for(var i = 0;i < shares.length;i++){
-	          if (shares[i].length) {
-	            add += "<option value='"+shares[i]+"'>"+shares[i]+"</option>";
-	          }
-	        }
-	        target.replaceWith(add+"</select>");
-	      }
-	      else
-	      {
-	        target.replaceWith("<input type='text' name='SHARE' class='swal-content__input' autocomplete='off' required>");
-	      }
-	    }
-	    else
-	    {
-	      target.replaceWith("<input type='text' name='SHARE' class='swal-content__input' autocomplete='off' required>");
-	    }
-	  });
+		var old = $(el).html();
+		var target = $(el).parents("div").find("*[name='SHARE']");
+		$(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> Loading...");
+		var opts = new Object();
+		opts["action"] = action;
+		opts["IP"] = ip;
+		opts["USER"] = user;
+		opts["PASS"] = pass;
+		$.post(URL,opts).done(function(data){
+			$(el).html(old);
+			if (data != " ") {
+				var shares = data.split('\n');
+				if (shares.length) {
+					var add = "<select name='SHARE' class='swal-content__input' required>";
+					for(var i = 0;i < shares.length;i++) {
+						if (shares[i].length) {
+							add += "<option value='"+shares[i]+"'>"+shares[i]+"</option>";
+						}
+					}
+					target.replaceWith(add+"</select>");
+				} else {
+					target.replaceWith("<input type='text' name='SHARE' class='swal-content__input' autocomplete='off' required>");
+				}
+			} else {
+				target.replaceWith("<input type='text' name='SHARE' class='swal-content__input' autocomplete='off' required>");
+			}
+		});
 	}
 
 	function getVal(el, name) {
@@ -442,133 +436,127 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		}
 	}
 
-function swalShowResult(success) {
-  opts = (success) ? {title:"<?=_('Success')?>!",icon:"success"} : {title:"<?=_('Fail')?>!",icon:"error"};
-  swal2({title:opts.title,icon:opts.icon,text:" ",buttons:{confirm:{visible:false},cancel:{visible:false}},timer:1800});
-}
+	function swalShowResult(success) {
+		opts = (success) ? {title:"<?=_('Success')?>!",icon:"success"} : {title:"<?=_('Fail')?>!",icon:"error"};
+		swal2({title:opts.title,icon:opts.icon,text:" ",buttons:{confirm:{visible:false},cancel:{visible:false}},timer:1800});
+	}
 
-function doUnassignedDevicesSurvey(surveyName, surveyOption) {
-  var survey = $("div[data-survey-name="+ surveyName +"]");
-  var numQuestions = survey.find("div[data-question]").length;
-  var surveyData = new Array
-  var index = 0;
+	function doUnassignedDevicesSurvey(surveyName, surveyOption) {
+		var survey = $("div[data-survey-name="+ surveyName +"]");
+		var numQuestions = survey.find("div[data-question]").length;
+		var surveyData = new Array
+		var index = 0;
 
-  var evalCondition = function(obj, selector){
-    if (obj.find(selector).length) {
-      evaled = $.trim(obj.find(selector).eq(0).text())
-      if (evaled.length ) {
-        return eval(evaled);
-      }
-      return null;
-    }
-  }
+		var evalCondition = function(obj, selector){
+		if (obj.find(selector).length) {
+			evaled = $.trim(obj.find(selector).eq(0).text())
+			if (evaled.length ) {
+				return eval(evaled);
+			}
+			return null;
+		}
+	}
 
-  var getAttr = function(obj, name, defaultValue) {
-    return (typeof obj.attr(name) !== "undefined") ? obj.attr(name) : defaultValue;
-  }
+	var getAttr = function(obj, name, defaultValue) {
+		return (typeof obj.attr(name) !== "undefined") ? obj.attr(name) : defaultValue;
+	}
 
-  function showSwal(direction="=") {
-    switch(direction) {
-      case '>':index++;break;
-      case '<':index--;break;
-    }
-    if(index >= numQuestions){return true;}
-    question  = survey.find("div[data-question]").eq(index);
-    condition = question.find("div[data-question-condition]").eq(0);
+	function showSwal(direction="=") {
+		switch(direction) {
+			case '>':index++;break;
+			case '<':index--;break;
+		}
+		if(index >= numQuestions){return true;}
+		question  = survey.find("div[data-question]").eq(index);
+		condition = question.find("div[data-question-condition]").eq(0);
 
-    if (condition.length && ! eval($.trim(condition.text())) ) {
-      showSwal(direction);
-    }
+		if (condition.length && ! eval($.trim(condition.text())) ) {
+			showSwal(direction);
+		}
 
-    content = question.find("div[data-question-content]").html();
-    format = question.find("div[data-question-format]");
-    if (format.length) { 
-      eval("formatOpts = " + $.trim(format.text()));
-      content = content.formatUnicorn(formatOpts);
-    }
+		content = question.find("div[data-question-content]").html();
+		format = question.find("div[data-question-format]");
+		if (format.length) { 
+			eval("formatOpts = " + $.trim(format.text()));
+		content = content.formatUnicorn(formatOpts);
+		}
 
-    has_checked = ["checkbox","radio","option"];
-    restore_content=$("<div></div>").html(content);
-    restore_content.find(":input").each(function(i,v){
-      name = $(this).prop("name");
-      if (name in surveyData) {
-        if ($.inArray($(this).prop("type"), has_checked) != -1 ) {
-          if ( $(this).val() == surveyData[name] ) { 
-            $(this).attr("checked",true);
-          }
-        }
-        else if ($(this).prop("type") == "select-one") {
-          $(this).find("option[value="+ surveyData[name] +"]").attr("selected",true);
-        }
-        else { 
-          $(this).attr("value",surveyData[name]);
-        }
-      }
-    });
-    content = restore_content[0].outerHTML;
-    button = {back:getAttr(question, "data-question-button-back","<?=_('Back')?>"),cancel:getAttr(question, "data-question-button-cancel","<?=_('Cancel')?>"),
-               done:getAttr(question, "data-question-button-done","<?=_('Done')?>"),next:getAttr(question, "data-question-button-next","<?=_('Next')?>")};
+		has_checked = ["checkbox","radio","option"];
+		restore_content=$("<div></div>").html(content);
+		restore_content.find(":input").each(function(i,v) {
+			name = $(this).prop("name");
+			if (name in surveyData) {
+				if ($.inArray($(this).prop("type"), has_checked) != -1 ) {
+					if ( $(this).val() == surveyData[name] ) { 
+						$(this).attr("checked",true);
+					}
+				} else if ($(this).prop("type") == "select-one") {
+				$(this).find("option[value="+ surveyData[name] +"]").attr("selected",true);
+				} else { 
+					$(this).attr("value",surveyData[name]);
+				}
+			}
+		});
+		content = restore_content[0].outerHTML;
+		button = {back:getAttr(question, "data-question-button-back","<?=_('Back')?>"),cancel:getAttr(question, "data-question-button-cancel","<?=_('Cancel')?>"),
+					done:getAttr(question, "data-question-button-done","<?=_('Done')?>"),next:getAttr(question, "data-question-button-next","<?=_('Next')?>")};
 
-    swalOpts = new Object;
-    swalOpts.title   = question.attr("data-question-title");
-    swalOpts.content = {element:"div",attributes:{innerHTML:content}};
-    swalOpts.icon    =  getAttr(question, "data-question-icon","info");
-    swalOpts.closeOnClickOutside = false;
-    swalOpts.buttons = new Object;
-    swalOpts.buttons.confirm = {text: "", value: null, visible: false, className: "", closeModal: true};
-    swalOpts.buttons.cancel  = (index > 0) ? {text: button.back,   value: false, visible: true, className: "", closeModal: false} :
-                                             {text: button.cancel, value: null,  visible: true, className: "", closeModal: true};
-    swalOpts.buttons.next    = (index == numQuestions - 1 ) ? {text:button.done, value: true, visible: true, className: "", closeModal: false}:
+		swalOpts = new Object;
+		swalOpts.title   = question.attr("data-question-title");
+		swalOpts.content = {element:"div",attributes:{innerHTML:content}};
+		swalOpts.icon    =  getAttr(question, "data-question-icon","info");
+		swalOpts.closeOnClickOutside = false;
+		swalOpts.buttons = new Object;
+		swalOpts.buttons.confirm = {text: "", value: null, visible: false, className: "", closeModal: true};
+		swalOpts.buttons.cancel  = (index > 0) ? {text: button.back,   value: false, visible: true, className: "", closeModal: false} :
+											 {text: button.cancel, value: null,  visible: true, className: "", closeModal: true};
+		swalOpts.buttons.next    = (index == numQuestions - 1 ) ? {text:button.done, value: true, visible: true, className: "", closeModal: false}:
                                                               {text:button.next, value: true, visible: true, className: "", closeModal: false};
-    swal2(swalOpts).then( (response) => {
-      emptyInputs = $.grep($(".swal-modal").find(":input"), function (e,v){ e = $(e);
-        switch (e.prop('type')) {
-          case 'radio': if (e.is(":checked")){surveyData[e.prop("name")] = e.val();}; n=$(":input[name="+e.prop("name")+"]"); return (n.is("[required]") && ! n.is(":checked")); break;
-          case 'option':
-          case 'checkbox': if(e.is(":checked")){surveyData[e.prop("name")] = e.val()}; return (e.is("[required]") && ! e.is(":checked")); break;
-          case 'select-one': if (e.has(":checked")){surveyData[e.prop("name")] = e.find(":checked").val();}; n=$(":input[name="+e.prop("name")+"]"); return (n.is("[required]") && ! n.has(":checked")); break;
+		swal2(swalOpts).then( (response) => {
+			emptyInputs = $.grep($(".swal-modal").find(":input"), function (e,v){ e = $(e);
+				switch (e.prop('type')) {
+					case 'radio': if (e.is(":checked")){surveyData[e.prop("name")] = e.val();}; n=$(":input[name="+e.prop("name")+"]"); return (n.is("[required]") && ! n.is(":checked")); break;
+					case 'option':
+					case 'checkbox': if(e.is(":checked")){surveyData[e.prop("name")] = e.val()}; return (e.is("[required]") && ! e.is(":checked")); break;
+					case 'select-one': if (e.has(":checked")){surveyData[e.prop("name")] = e.find(":checked").val();}; n=$(":input[name="+e.prop("name")+"]"); return (n.is("[required]") && ! n.has(":checked")); break;
 
-          default: if (e.val()||e.prop("name")){surveyData[e.prop("name")] = e.val()}; return (e.is("[required]") && ! e.val()); break;
-        }
-      });
-      if (response)
-      {
-        if (emptyInputs.length) {
-          return "=";
-        }
-        else if (! emptyInputs.length && index <= numQuestions - 1) {
-          evaled = evalCondition(question, "div[data-question-done]");
-          if(index < numQuestions - 1) {
-            if (evaled !== null && evaled === true) return ">";
-            if (evaled !== null && evaled === false) return "<";
-            else return ">";
-          }
-          else if(index == numQuestions - 1) {
-            if (evaled !== null && evaled === false) return "=";
-            $(".swal-button--cancel").prop("disabled",true);
-            evalCondition(survey,"div[data-survey-done]");
-            if (getAttr(survey.find("div[data-survey-done]").eq(0),"data-survey-done-wait", "true") == "false" ) {
-              setTimeout(() => { swal2({buttons:{confirm:{visible:false},cancel:{visible:false}},timer:100}) }, 1500)
-            }
-            return true;
-          }
-        }
-      }
-      else {
-        if ( response === false && index <= numQuestions ) {
-          return "<";
-        }
-        else if ( response === null  ) { 
-          return true;
-        }
-      }
-      return "=";
-    }).then( (response2) => {
-      if (typeof response2 !== "boolean") return showSwal(response2);
-      else return false;
-    });
-  }
-  showSwal();
+					default: if (e.val()||e.prop("name")){surveyData[e.prop("name")] = e.val()}; return (e.is("[required]") && ! e.val()); break;
+				}
+			});
+			if (response)
+			{
+				if (emptyInputs.length) {
+					return "=";
+				} else if (! emptyInputs.length && index <= numQuestions - 1) {
+					evaled = evalCondition(question, "div[data-question-done]");
+					if (index < numQuestions - 1) {
+						if (evaled !== null && evaled === true) return ">";
+							if (evaled !== null && evaled === false) return "<";
+							else return ">";
+						} else if(index == numQuestions - 1) {
+							if (evaled !== null && evaled === false) return "=";
+								$(".swal-button--cancel").prop("disabled",true);
+							evalCondition(survey,"div[data-survey-done]");
+							if (getAttr(survey.find("div[data-survey-done]").eq(0),"data-survey-done-wait", "true") == "false" ) {
+								setTimeout(() => { swal2({buttons:{confirm:{visible:false},cancel:{visible:false}},timer:100}) }, 1500)
+							}
+							return true;
+						}
+			}
+		} else {
+			if ( response === false && index <= numQuestions ) {
+				return "<";
+			} else if ( response === null  ) { 
+				return true;
+			}
+		}
+		return "=";
+		}).then( (response2) => {
+			if (typeof response2 !== "boolean") return showSwal(response2);
+				else return false;
+		});
+	}
+	showSwal();
 }
 </script>
 
@@ -636,6 +624,7 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 	var network		= [];
 	var workgroup	= "";
 
+	/* Reload page if browser back button was used */
 	window.addEventListener( "pageshow", function ( event ) {
 	var historyTraversal = event.persisted || ( typeof window.performance != "undefined" && window.performance.navigation.type === 2 );
 		if ( historyTraversal ) {
