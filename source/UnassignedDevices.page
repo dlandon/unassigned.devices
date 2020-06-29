@@ -96,6 +96,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
   .image-radio-linux{background-image: url(/plugins/unassigned.devices/icons/nfs-radio.png)}
   .image-radio-windows{background-image: url(/plugins/unassigned.devices/icons/smb-radio.png)}
 </style>
+
 <script type="text/javascript">
 
 	<?=$Preclear ? $Preclear->Script() : "";?>
@@ -634,6 +635,15 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 	var vars		= <?=json_encode($var);?>;
 	var network		= [];
 	var workgroup	= "";
+
+	window.addEventListener( "pageshow", function ( event ) {
+	var historyTraversal = event.persisted || ( typeof window.performance != "undefined" && window.performance.navigation.type === 2 );
+		if ( historyTraversal ) {
+			/* Handle page restore. */
+			window.location.reload();
+		}
+	});
+
 	<?
 	if (isset($var['WORKGROUP'])) echo "var workgroup = '{$var['WORKGROUP']}';\n";
 	for ($i=0; $i < 11; $i++)
@@ -656,11 +666,11 @@ function doUnassignedDevicesSurvey(surveyName, surveyOption) {
 	var URL				= '/plugins/<?=$plugin;?>/UnassignedDevices.php';
 	var diskinfo		= "";
 
-  if (typeof swal2 === "undefined")
-  {
-    $('head').append( $('<link rel="stylesheet" type="text/css" />').attr('href', '<?autov("/plugins/${plugin}/assets/sweetalert2.css");?>') );
-    $.getScript( '/plugins/<?=$plugin;?>/assets/sweetalert2.js');
-  }
+	if (typeof swal2 === "undefined")
+	{
+		$('head').append( $('<link rel="stylesheet" type="text/css" />').attr('href', '<?autov("/plugins/${plugin}/assets/sweetalert2.css");?>') );
+		$.getScript( '/plugins/<?=$plugin;?>/assets/sweetalert2.js');
+	}
 
 	$('#tab'+tab_usbdisks).bind({click:function() {pin_tab(tab_usbdisks); detect_usb_disk_change(tab_usbdisks);}});
 
