@@ -19,7 +19,7 @@ $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $translations = file_exists("$docroot/webGui/include/Translations.php");
 require_once "$docroot/plugins/$plugin/include/Legacy.php";
 ?>
-<?if (!$translations):?>
+<?if (! $translations):?>
 <?eval('?>'.parse_file("$docroot/plugins/$plugin/UnassignedDevicesSettings.page"))?>
 <?else:?>
 <?
@@ -117,7 +117,7 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
 		/* Format fileTree according to parent position, height and width */
 		ft.css({'left':p.position().left,'top':( p.position().top + p.outerHeight() ),'width':(p.width()) });
 		/* close if click elsewhere */
-		$(document).mouseup(function(e){if(!ft.is(e.target) && ft.has(e.target).length === 0){ft.slideUp('fast',function (){$(ft).remove();});}});
+		$(document).mouseup(function(e){if (! ft.is(e.target) && ft.has(e.target).length === 0){ft.slideUp('fast',function (){$(ft).remove();});}});
 		/* close if parent changed */
 		p.bind('keydown',function(){ft.slideUp('fast',function (){$(ft).remove();});});
 		/* Open fileTree */

@@ -43,7 +43,7 @@ if (! isset($var)){
 	$var = @parse_ini_file("$docroot/state/var.ini");
 }
 
-if ((!isset($var['USE_NETBIOS']) || ((isset($var['USE_NETBIOS'])) && ($var['USE_NETBIOS'] == "yes")))) {
+if ((! isset($var['USE_NETBIOS']) || ((isset($var['USE_NETBIOS'])) && ($var['USE_NETBIOS'] == "yes")))) {
 	$use_netbios = "yes";
 } else {
 	$use_netbios = "no";
@@ -66,34 +66,30 @@ else
 class MiscUD
 {
 
-  public function save_json($file, $content)
-  {
-    file_put_contents($file, json_encode($content, JSON_PRETTY_PRINT ));
-  }
+	public function save_json($file, $content)
+	{
+		file_put_contents($file, json_encode($content, JSON_PRETTY_PRINT ));
+	}
 
+	public function get_json($file)
+	{
+		return file_exists($file) ? @json_decode(file_get_contents($file), true) : [];
+	}
 
-  public function get_json($file)
-  {
-    return file_exists($file) ? @json_decode(file_get_contents($file), true) : [];
-  }
+	public function disk_device($disk)
+	{
+		return (file_exists($disk)) ? $disk : "/dev/{$disk}";
+	}
 
+	public function disk_name($disk)
+	{
+		return (file_exists($disk)) ? basename($disk) : $disk;
+	}
 
-  public function disk_device($disk)
-  {
-    return (file_exists($disk)) ? $disk : "/dev/{$disk}";
-  }
-
-
-  public function disk_name($disk)
-  {
-    return (file_exists($disk)) ? basename($disk) : $disk;
-  }
-
-
-  public function array_first_element($arr)
-  {
-    return (is_array($arr) && count($arr)) ? $arr[0] : $arr;
-  }
+	public function array_first_element($arr)
+	{
+		return (is_array($arr) && count($arr)) ? $arr[0] : $arr;
+	}
 }
 
 function is_ip($str) {
@@ -226,7 +222,7 @@ function verify_precleared($dev) {
 		$cleared = FALSE;
 	}
 
-	# verify signature
+	/* verify signature */
 	foreach ($pattern as $key => $value) {
 		if ($b["byte{$key}"] != $value) {
 			unassigned_log("Failed test 2: signature pattern $key ['$value'] != '".$b["byte{$key}"]."'", "DEBUG");
@@ -297,7 +293,7 @@ function get_format_cmd($dev, $fs) {
 function format_disk($dev, $fs, $pass) {
 	global $paths;
 
-	# making sure it doesn't have partitions
+	/* making sure it doesn't have partitions */
 	foreach (get_all_disks_info() as $d) {
 		if ($d['device'] == $dev && count($d['partitions']) && $d['partitions'][0]['fstype'] != "precleared") {
 			unassigned_log("Aborting format: disk '{$dev}' has '".count($d['partitions'])."' partition(s).");
@@ -886,7 +882,7 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 			$share_cont = "[{$share_name}]\n\tpath = {$dir}\n\tread only = No{$force_user}\n\tguest ok = Yes{$vfs_objects}";
 		}
 
-		if(!is_dir($paths['smb_usb_shares'])) @mkdir($paths['smb_usb_shares'],0755,TRUE);
+		if (! is_dir($paths['smb_usb_shares'])) @mkdir($paths['smb_usb_shares'],0755,TRUE);
 		$share_conf = preg_replace("#\s+#", "_", realpath($paths['smb_usb_shares'])."/".$share_name.".conf");
 
 		unassigned_log("Adding SMB share '$share_name'.'");
@@ -933,7 +929,7 @@ function rm_smb_share($dir, $share_name) {
 			$c = (is_file($paths['smb_extra'])) ? @file($paths['smb_extra'],FILE_IGNORE_NEW_LINES) : array();
 			# Do Cleanup
 			$smb_extra_includes = array_unique(preg_grep("/include/i", $c));
-			foreach($smb_extra_includes as $key => $inc) if(! is_file(parse_ini_string($inc)['include'])) unset($smb_extra_includes[$key]); 
+			foreach($smb_extra_includes as $key => $inc) if (! is_file(parse_ini_string($inc)['include'])) unset($smb_extra_includes[$key]); 
 			$c = array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_extra_includes);
 			$c = preg_replace('/\n\s*\n\s*\n/s', PHP_EOL.PHP_EOL, implode(PHP_EOL, $c));
 			file_put_contents($paths['smb_extra'], $c);
@@ -1195,7 +1191,7 @@ function do_mount_samba($info) {
 					unassigned_log("Mount SMB share '$dev' using SMB3 protocol.");
 					unassigned_log("Mount SMB command: $cmd");
 					$o		= timed_exec(10, $cmd." 2>&1");
-					if (!is_mounted($dev) && strpos($o, "Permission denied") === FALSE) {
+					if (! is_mounted($dev) && strpos($o, "Permission denied") === FALSE) {
 						unassigned_log("SMB3 mount failed: {$o}.");
 						/* If the mount failed, try to mount with samba vers=2.0. */
 						$ver	= "2.0";
@@ -1205,7 +1201,7 @@ function do_mount_samba($info) {
 						unassigned_log("Mount SMB command: $cmd");
 						$o		= timed_exec(10, $cmd." 2>&1");
 					}
-					if ((!is_mounted($dev) && $use_netbios == 'yes') && strpos($o, "Permission denied") === FALSE) {
+					if ((! is_mounted($dev) && $use_netbios == 'yes') && strpos($o, "Permission denied") === FALSE) {
 						unassigned_log("SMB2 mount failed: {$o}.");
 						/* If the mount failed, try to mount with samba vers=1.0. */
 						$ver	= "1.0";
@@ -1246,7 +1242,6 @@ function do_mount_samba($info) {
 	}
 	return $rc;
 }
-
 
 function toggle_samba_automount($source, $status) {
 	$config_file = $GLOBALS["paths"]["samba_mount"];
@@ -1398,7 +1393,7 @@ function get_unassigned_disks() {
 	foreach (listDir("/dev/disk/by-id/") as $p) {
 		$r = realpath($p);
 		/* Only /dev/sd*, /dev/hd*, and /dev/nvme* devices. */
-		if (!is_bool(strpos($r, "/dev/sd")) || !is_bool(strpos($r, "/dev/hd")) || !is_bool(strpos($r, "/dev/nvme"))) {
+		if (! is_bool(strpos($r, "/dev/sd")) || !is_bool(strpos($r, "/dev/hd")) || !is_bool(strpos($r, "/dev/nvme"))) {
 			$paths[$r] = $p;
 		}
 	}
