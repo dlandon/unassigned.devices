@@ -49,7 +49,7 @@ function netmasks($netmask, $rev = false)
 					"255.255.128.0" 	=> "17",
 					"255.255.0.0"		=> "16",
 				];
-	return $rev ?	array_flip($netmasks)[$netmask] : $netmasks[$netmask];
+	return $rev ? array_flip($netmasks)[$netmask] : $netmasks[$netmask];
 }
 
 function render_used_and_free($partition, $mounted) {
@@ -196,15 +196,12 @@ function render_partition($disk, $partition, $total=FALSE) {
 		}
 		$out[] = "<td></td>";
 		$out[] = render_used_and_free_disk($disk, $mounted_disk);
-	} else {
-		$out[] = "<td>".my_scale($partition['size'], $unit)." $unit</td>";
-		$out[] = render_used_and_free($partition, $mounted);
-	}
-	if ($total) {
 		$out[] = "<td title='"._("Turn on to mark this Device as passed through to a VM or Docker")."'><input type='checkbox' class='toggle_pass_through' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['pass_through']) ? 'checked':'')." /></td>";
 		$out[] = "<td title='"._("Turn on to Mount Device Read only")."'><input type='checkbox' class='toggle_read_only' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['read_only']) ? 'checked':'')." /></td>";
 		$out[] = "<td title='"._("Turn on to Mount Device when Array is Started")."'><input type='checkbox' class='automount' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['automount']) ? 'checked':'')." /></td>";
 	} else {
+		$out[] = "<td>".my_scale($partition['size'], $unit)." $unit</td>";
+		$out[] = render_used_and_free($partition, $mounted);
 		$out[] = "<td></td>";
 		$out[] = "<td></td>";
 		$out[] = "<td></td>";
@@ -571,7 +568,7 @@ switch ($_POST['action']) {
 
 	/*	SAMBA	*/
 	case 'list_samba_hosts':
-		$workgroup = urldecode($_POST['workgroup']);
+		/* $workgroup = urldecode($_POST['workgroup']); */
 		$network = $_POST['network'];
 		$names = [];
 		foreach ($network as $iface)

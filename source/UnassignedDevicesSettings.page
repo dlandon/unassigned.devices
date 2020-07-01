@@ -139,7 +139,7 @@ if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/
 <?endif;?>
 
 _(Common Script)_:
-: <input type="text" name="common_cmd" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin?>/','sh',false,true,true);" value="<?=$cfg['Config']['common_cmd'];?>">
+: <input type="text" name="common_cmd" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>/','sh',false,true,true);" value="<?=$cfg['Config']['common_cmd'];?>">
 
 :ud_settings_common_script_plug:
 > If set, this script will run before the device script.  The action is in the environment variable **$ACTION**. Be sure you reference all commands with their full path.
@@ -212,9 +212,9 @@ _(Enable SMB Security)_?
 	<?php foreach ($users as $user): ?>
 	<?php if ($user['name'] == "root"): continue; endif;?>
 	<dl>
-		<dt><?=$user['name']?></dt>
+		<dt><?=$user['name'];?></dt>
 		<dd>
-			<select name="smb_<?=$user['name']?>" size="1">
+			<select name="smb_<?=$user['name'];?>" size="1">
 			<?=mk_option($cfg["Config"]["smb_{$user[name]}"], "no-access", "_(No Access)_");?>
 			<?=mk_option($cfg["Config"]["smb_{$user[name]}"], "read-write", "_(Read/Write)_");?>
 			<?=mk_option($cfg["Config"]["smb_{$user[name]}"], "read-only", "_(Read-only)_");?>

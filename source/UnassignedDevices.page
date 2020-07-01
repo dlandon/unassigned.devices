@@ -27,7 +27,6 @@ require_once "$docroot/plugins/$plugin/include/Legacy.php";
 parse_plugin('UnassignedDevices');
 
 require_once "plugins/$plugin/include/lib.php";
-
 $version = parse_ini_file("/etc/unraid-version");
 
 if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/OpenDevices.page","plugins/dynamix/OpenDevices.page-");
@@ -128,7 +127,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	}
 
 	(function ($) {
-		$.fn.getHiddenDimensions = function (includeMargin) {
+		$.fn.getHiddenDimensions = function (includeMargin)
+		{
 			var $item = this,
 			props = { position: 'absolute', visibility: 'hidden', display: 'block' },
 			dim = { width: 0, height: 0, innerWidth: 0, innerHeight: 0, outerWidth: 0, outerHeight: 0 },
@@ -177,7 +177,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		window.open(run, 'log', options);
 	}
 
-	function disk_op(el, op, device){
+	function disk_op(el, op, device) {
 		/* add spinning and disable button */
 		$("button[device='"+device+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> "+(op == "mount" ? "<?=_('Mounting')?>..." : "<?=_('Unmounting')?>..."));
 		$("button[device='"+device+"']").prop("disabled","true");
@@ -284,14 +284,14 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		return false;
 	}
 
-	function showInput(){
+	function showInput() {
 		$(this).off('click');
 		$(this).siblings('input').each(function(){$(this).show();});
 		$(this).siblings('input').focus();
 		$(this).hide();
 	}
 
-	function hideInput(){
+	function hideInput() {
 		$(this).hide();
 		$(this).siblings('span').show();
 		$(this).siblings('span').click(showInput);
@@ -301,8 +301,9 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	function load_hosts(el, action) {
 		var target = $(el).parents("div").find("*[name='IP']");
 		var old = $(el).html();
-		$(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> <?=_('Searching')?>...");
-		$.post(URL,{'action': action, 'var': vars, 'network': network, 'workgroup': workgroup}).done(function(data) {
+		$(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> <?=_('Searching');?>...");
+		$.post(URL,{'action': action, 'var': vars, 'network': network, 'workgroup': workgroup}).done(function(data)
+		{
 			$(el).html(old);
 			if (data) {
 				var hosts = data.split('\n');
@@ -326,13 +327,14 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	function load_shares(el, ip, user, pass, action) {
 		var old = $(el).html();
 		var target = $(el).parents("div").find("*[name='SHARE']");
-		$(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> Loading...");
+		$(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> <?=_('Loading');?>...");
 		var opts = new Object();
 		opts["action"] = action;
 		opts["IP"] = ip;
 		opts["USER"] = user;
 		opts["PASS"] = pass;
-		$.post(URL,opts).done(function(data){
+		$.post(URL,opts).done(function(data)
+		{
 			$(el).html(old);
 			if (data != " ") {
 				var shares = data.split('\n');
@@ -478,7 +480,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		format = question.find("div[data-question-format]");
 		if (format.length) { 
 			eval("formatOpts = " + $.trim(format.text()));
-		content = content.formatUnicorn(formatOpts);
+			content = content.formatUnicorn(formatOpts);
 		}
 
 		has_checked = ["checkbox","radio","option"];
@@ -625,8 +627,9 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	var workgroup	= "";
 
 	/* Reload page if browser back button was used */
-	window.addEventListener( "pageshow", function ( event ) {
-	var historyTraversal = event.persisted || ( typeof window.performance != "undefined" && window.performance.navigation.type === 2 );
+	window.addEventListener( "pageshow", function ( event )
+	{
+		var historyTraversal = event.persisted || ( typeof window.performance != "undefined" && window.performance.navigation.type === 2 );
 		if ( historyTraversal ) {
 			/* Handle page restore. */
 			window.location.reload();
@@ -797,24 +800,24 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	$(function()
 	{
 		/* Add icons to Tab/Title bar */
-		addButtonTab('<a title="<?=_("Unassigned Devices Settings")?>" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>',
-								 "<?=_('Unassigned Devices')?>");
-		addButtonTab('<a style="cursor:pointer;" onclick="$.post(\''+URL+'\',{\'action\':\'rescan_disks\'});" title="<?=_("Rescan Disks")?>"><i class="fa fa-refresh"></i></a>',
-								 "<?=_('Unassigned Devices')?>");
-		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch On to Show All Partitions")?>"><input type="checkbox" class="partitions-switch"></a>',
-								 "<?=_('Unassigned Devices')?>");
-		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch Display Mode")?>"><input type="checkbox" class="complete-switch"></a>',
-								 "<?=_('Unassigned Devices')?>");
+		addButtonTab('<a title="<?=_("Unassigned Devices Settings");?>" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>',
+								 "<?=_('Unassigned Devices');?>");
+		addButtonTab('<a style="cursor:pointer;" onclick="$.post(\''+URL+'\',{\'action\':\'rescan_disks\'});" title="<?=_("Rescan Disks");?>"><i class="fa fa-refresh"></i></a>',
+								 "<?=_('Unassigned Devices');?>");
+		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch On to Show All Partitions");?>"><input type="checkbox" class="partitions-switch"></a>',
+								 "<?=_('Unassigned Devices');?>");
+		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch Display Mode");?>"><input type="checkbox" class="complete-switch"></a>',
+								 "<?=_('Unassigned Devices');?>");
 
 		/* Add switchButton to Tab/Title bar */
-		$('.complete-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Complete')?>", off_label: "<?=_('Simple')?>", checked: $.cookie('unassigned-complete-view') != 'false'});
+		$('.complete-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Complete');?>", off_label: "<?=_('Simple');?>", checked: $.cookie('unassigned-complete-view') != 'false'});
 		$('.complete-switch').change(function()
 		{
 			$('.show-complete').slideToggle('slow');
 			$.cookie('unassigned-complete-view', $('.complete-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path:'/' });
 		});
 		<?$show_all_partitions = get_config("Config", "show_all_partitions")?>;
-		$('.partitions-switch').switchButton({ labels_placement: "left", on_label: "<?=_('All')?>", off_label: "<?=_('None')?>", checked: "<?=$show_all_partitions?>" == 'yes'});
+		$('.partitions-switch').switchButton({ labels_placement: "left", on_label: "<?=_('All');?>", off_label: "<?=_('None');?>", checked: "<?=$show_all_partitions;?>" == 'yes'});
 		$('.partitions-switch').change(function()
 		{
 			$.post(URL,{action:"toggle_show_partitions",status:$(".partitions-switch").is(":checked")},function(data)
@@ -836,13 +839,13 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 </script>
 
 
-<div style="display:none;" data-survey-name="add_iso_share" data-survey-title="<?=_('Add ISO File Share')?>">
-	<div data-question data-question-title="<?=_('Choose ISO File')?>" data-question-button-done="<?=_('Add')?>">
+<div style="display:none;" data-survey-name="add_iso_share" data-survey-title="<?=_('Add ISO File Share');?>">
+	<div data-question data-question-title="<?=_('Choose ISO File')?>" data-question-button-done="<?=_('Add');?>">
 		<div data-question-format>
 			["data-pickroot","ISO_FILE"]
 		</div>
 		<div data-question-content>
-			<input type='text' name='{1}' placeholder="<?=_('Click to select ISO file')?>" data-pickcloseonfile='true' data-pickfilter='iso' {0}='/mnt/user/' data-pickfolders='true' required='required' class='swal-content__input' autocomplete="off" >
+			<input type='text' name='{1}' placeholder="<?=_('Click to select ISO file');?>" data-pickcloseonfile='true' data-pickfilter='iso' {0}='/mnt/user/' data-pickfolders='true' required='required' class='swal-content__input' autocomplete="off" >
 		</div>
 		<div data-question-load>
 		</div>
@@ -853,7 +856,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	<div data-survey-done>
 		var opts = {action:"add_iso_share",ISO_FILE:surveyData["ISO_FILE"]};
 		if (opts.ISO_FILE) {
-			$.post("/plugins/unassigned.devices/UnassignedDevices.php",opts).done(function(data) {
+			$.post("/plugins/unassigned.devices/UnassignedDevices.php",opts).done(function(data)
+			{
 				usb_disks(tab_usbdisks);
 				swalShowResult((data == "true") ? true : false);
 			},"json").fail(function(){swalShowResult(false);});
@@ -875,8 +879,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	</div>
 </div>
 
-<div style="display:none;" data-survey-name="format_disk" data-survey-title="<?=_('Partition and Format Disk')?>">
-	<div data-question data-question-title="<?=_('Choose File System Format')?>">
+<div style="display:none;" data-survey-name="format_disk" data-survey-title="<?=_('Partition and Format Disk');?>">
+	<div data-question data-question-title="<?=_('Choose File System Format');?>">
 		<div data-question-format>
 			[surveyOption.type,surveyOption.device]
 		</div>
@@ -892,45 +896,46 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 				<option value="exfat">exFAT</option>
 				<option value="fat32">FAT32</option>
 			</select>
-			<p><span style="font-weight:bold;"><?=_('Note')?>:</span> <?=_('An XFS or BTRFS disk partitioned in UD is compatible with the array disk partitioning and can be added to the array')?>.</p>
+			<p><span style="font-weight:bold;"><?=_('Note');?>:</span> <?=_('An XFS or BTRFS disk partitioned in UD is compatible with the array disk partitioning and can be added to the array');?>.</p>
 		</div>
 		<div data-question-load></div>
 		<div data-question-done></div>
 	</div>
 
-	<div data-question data-question-title="<?=_('Password')?>">
+	<div data-question data-question-title="<?=_('Password');?>">
 		<div data-question-condition>
 			surveyData['FS'] == 'xfs-encrypted' || surveyData['FS'] == 'btrfs-encrypted'
 		</div>
 		<div data-question-content>
 			<div class="swal-content">
-				<input type="password" class="swal-content__input" name="PASS" autocomplete="new-password" placeholder="<?=_('Password')?>">
-				<p><?=_('Enter the password to use for this disk')?>. <?=_('Leave blank to use the array password/passphrase')?>. <?=_('If using a disk password, be sure to enter the password for this disk in UD Settings so it can be mounted')?>.</p>
-				<p><span style="font-weight:bold;"><?=_('Note')?>:</span> <?=_('Remember your password')?>. <?=_('It cannot be recovered')?>!</p>
+				<input type="password" class="swal-content__input" name="PASS" autocomplete="new-password" placeholder="<?=_('Password');?>">
+				<p><?=_('Enter the password to use for this disk');?>. <?=_('Leave blank to use the array password/passphrase');?>. <?=_('If using a disk password, be sure to enter the password for this disk in UD Settings so it can be mounted');?>.</p>
+				<p><span style="font-weight:bold;"><?=_('Note');?>:</span> <?=_('Remember your password');?>. <?=_('It cannot be recovered');?>!</p>
 			</div>
 		</div>
 	</div>
 
-	<div data-question data-question-title="" data-question-button-done=<?=_('Format')?> data-question-icon="warning">
+	<div data-question data-question-title="" data-question-button-done=<?=_('Format');?> data-question-icon="warning">
 		<div data-question-format>
 			[surveyOption.type,surveyOption.device]
 		</div>
 		<div data-question-content>
-			<div class="swal-title"><?=_('Any data on this disk will be lost')?>!</div>
-			<div style="margin-bottom: 25px;font-size: 20px;"><?=_('Type')?> <span class="red">'<?=_('Yes')?>'</span> <?=_('to format')?>:</div>
+			<div class="swal-title"><?=_('Any data on this disk will be lost');?>!</div>
+			<div style="margin-bottom: 25px;font-size: 20px;"><?=_('Type');?> <span class="red">'<?=_('Yes');?>'</span> <?=_('to format');?>:</div>
 			<input type="text" name="confim-yes" class="swal-content__input" autocomplete="off" required >
 		</div>
 		<div data-question-load></div>
 		<div data-question-done>
-			(surveyData["confim-yes"] == "<?=_('Yes')?>")
+			(surveyData["confim-yes"] == "<?=_('Yes');?>")
 		</div>
 	</div>
 	<div data-survey-done data-survey-done-wait="true">
 		$("button[device='"+surveyOption.device+"']").prop('disabled',true);
-		$("button[device='"+surveyOption.device+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> <?=_('Formatting')?>...");
-		$.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"format_"+surveyOption.type,device:surveyOption.device, fs:surveyData["FS"], pass:surveyData["PASS"]}, function(data) {
+		$("button[device='"+surveyOption.device+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> <?=_('Formatting');?>...");
+		$.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"format_"+surveyOption.type,device:surveyOption.device, fs:surveyData["FS"], pass:surveyData["PASS"]}, function(data)
+		{
 			$("button[device='"+surveyOption.device+"']").prop('disabled',true);
-			$("button[device='"+surveyOption.device+"']").html( data.status ? "<?=_('Formated')?>" : "<?=_('Format failed')?>" );
+			$("button[device='"+surveyOption.device+"']").html( data.status ? "<?=_('Formated');?>" : "<?=_('Format failed');?>" );
 			swalShowResult(data.status);
 		},"json").fail(function(){swalShowResult(false);});
 	</div>
@@ -944,25 +949,26 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 </div>
 
 <div style="display:none;" data-survey-name="remove_partiton" data-survey-title="">
-	<div data-question data-question-title="" data-question-button-done="<?=_('Remove')?>" data-question-icon="warning">
+	<div data-question data-question-title="" data-question-button-done="<?=_('Remove');?>" data-question-icon="warning">
 		<div data-question-format>
 			[surveyOption.partition,surveyOption.device]
 		</div>
 		<div data-question-content>
-			<div class="swal-title"><?=_('Any data on this disk will be lost')?>!</div>
-			<div class="swal-title" style="font-size: 20px;"><?=_('Remove partition')?> <span class="red">{0}</span> <?=_('from disk')?> <span class="red">{1}</span></div>
-			<div style="margin-bottom: 25px;font-size: 20px;"><?=_('Type')?> <span class="red">'<?=_('Yes')?>'</span> <?=_('to confirm')?>:</div>
+			<div class="swal-title"><?=_('Any data on this disk will be lost');?>!</div>
+			<div class="swal-title" style="font-size: 20px;"><?=_('Remove partition');?> <span class="red">{0}</span> <?=_('from disk');?> <span class="red">{1}</span></div>
+			<div style="margin-bottom: 25px;font-size: 20px;"><?=_('Type');?> <span class="red">'<?=_('Yes');?>'</span> <?=_('to confirm');?>:</div>
 				<input type="text" name="confim-yes" class="swal-content__input" autocomplete="off" required >
 		</div>
 		<div data-question-load></div>
 		<div data-question-done>
-			(surveyData["confim-yes"] == "<?=_('Yes')?>")
+			(surveyData["confim-yes"] == "<?=_('Yes');?>")
 		</div>
 	</div>
 	<div data-survey-done >
 		$("span[device='"+surveyOption.device+surveyOption.partition+"']").prop('disabled',true);
-		$("span[device='"+surveyOption.device+surveyOption.partition+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> <?=_('Removing')?>...");
-		$.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"rm_partition",device:surveyOption.device,partition:surveyOption.partition}).done(function(data) {
+		$("span[device='"+surveyOption.device+surveyOption.partition+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> <?=_('Removing');?>...");
+		$.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"rm_partition",device:surveyOption.device,partition:surveyOption.partition}).done(function(data)
+		{
 			usb_disks(tab_usbdisks);
 			swalShowResult((data == "true") ? true : false);
 		},"json").fail(function(){swalShowResult(false);});
@@ -976,25 +982,26 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	</div>
 </div>
 
-<div style="display:none;" data-survey-name="remove_iso_share" data-survey-title="<?=_('Remove ISO File mount')?>">
-	<div data-question data-question-title="" data-question-button-done="<?=_('Remove')?>" data-question-icon="warning">
+<div style="display:none;" data-survey-name="remove_iso_share" data-survey-title="<?=_('Remove ISO File mount');?>">
+	<div data-question data-question-title="" data-question-button-done="<?=_('Remove');?>" data-question-icon="warning">
 		<div data-question-format>
 			[surveyOption]
 		</div>
 		<div data-question-content>
-			<div class="swal-title" style="font-size: 20px;"><?=_('This will remove the ISO file share for')?>:</div>
+			<div class="swal-title" style="font-size: 20px;"><?=_('This will remove the ISO file share for');?>:</div>
 			<div style="margin-bottom: 15px;margin-top: 15px;">
 				<span style="font-weight: bold;">{0}</span>
 			</div>
 			<div class="swal-title" style="font-size: 20px;">
-				<span class="red" style="font-weight: bold;"><?=_('Are you sure')?>?</span>
+				<span class="red" style="font-weight: bold;"><?=_('Are you sure');?>?</span>
 			</div>
 		</div>
 		<div data-question-load></div>
 		<div data-question-done></div>
 	</div>
 	<div data-survey-done>
-		$.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"remove_iso_config",device:surveyOption}).done(function(data) {
+		$.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"remove_iso_config",device:surveyOption}).done(function(data)
+		{
 			usb_disks(tab_usbdisks);
 			swalShowResult((data == "true") ? true : false);
 		},"json").fail(function(){swalShowResult(false);});
@@ -1008,25 +1015,26 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	</div>
 </div>
 
-<div style="display:none;" data-survey-name="remove_disk_config" data-survey-title="<?=_('Remove Disk Config')?>">
-	<div data-question data-question-title="" data-question-button-done="<?=_('Remove')?>" data-question-icon="warning">
+<div style="display:none;" data-survey-name="remove_disk_config" data-survey-title="<?=_('Remove Disk Config');?>">
+	<div data-question data-question-title="" data-question-button-done="<?=_('Remove');?>" data-question-icon="warning">
 		<div data-question-format>
 			[surveyOption]
 		</div>
 		<div data-question-content>
-			<div class="swal-title" style="font-size: 20px;"><?=_('This will remove the saved configuration of')?>:</div>
+			<div class="swal-title" style="font-size: 20px;"><?=_('This will remove the saved configuration of');?>:</div>
 			<div style="margin-bottom: 15px;margin-top: 15px;">
 				<span style="font-weight: bold;">{0}</span>
 			</div>
 			<div class="swal-title" style="font-size: 20px;">
-				<span class="red" style="font-weight: bold;"><?=_('Are you sure')?>?</span>
+				<span class="red" style="font-weight: bold;"><?=_('Are you sure');?>?</span>
 			</div>
 		</div>
 		<div data-question-load></div>
 		<div data-question-done></div>
 	</div>
 	<div data-survey-done>
-	$.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"remove_config",serial:surveyOption}).done(function(data){
+	$.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"remove_config",serial:surveyOption}).done(function(data)
+	{
 		usb_disks(tab_usbdisks);
 		swalShowResult((data == "true") ? true : false);
 	},"json").fail(function(){swalShowResult(false);});
@@ -1040,25 +1048,26 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	</div>
 </div>
 
-<div style="display:none;" data-survey-name="remove_remote_share" data-survey-title="<?=_('Remove SMB/NFS mount')?>?">
-	<div data-question data-question-title="" data-question-button-done="<?=_('Remove')?>" data-question-icon="warning">
+<div style="display:none;" data-survey-name="remove_remote_share" data-survey-title="<?=_('Remove SMB/NFS mount');?>?">
+	<div data-question data-question-title="" data-question-button-done="<?=_('Remove');?>" data-question-icon="warning">
 		<div data-question-format>
 			[surveyOption, (surveyOption.startsWith("//") ? "SMB" : "NFS")]
 		</div>
 		<div data-question-content>
-			<div class="swal-title" style="font-size: 20px;"><?=_('This will remove the remote')?> <span style="font-weight: bold;">{1}</span> <?=_('share for')?>:</div>
+			<div class="swal-title" style="font-size: 20px;"><?=_('This will remove the remote');?> <span style="font-weight: bold;">{1}</span> <?=_('share for');?>:</div>
 			<div style="margin-bottom: 15px;margin-top: 15px;">
 				<span style="font-weight: bold;">{0}</span>
 			</div>
 			<div class="swal-title" style="font-size: 20px;">
-				<span class="red" style="font-weight: bold;"><?=_('Are you sure')?>?</span>
+				<span class="red" style="font-weight: bold;"><?=_('Are you sure');?>?</span>
 			</div>
 		</div>
 		<div data-question-load></div>
 		<div data-question-done></div>
 	</div>
 	<div data-survey-done>
-		$.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"remove_samba_config",device:surveyOption}).done(function(data) {
+		$.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"remove_samba_config",device:surveyOption}).done(function(data)
+		{
 			usb_disks(tab_usbdisks);
 			swalShowResult((data == "true") ? true : false);
 	},"json").fail(function(){swalShowResult(false);});
@@ -1072,8 +1081,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	</div>
 </div>
 
-<div style="display:none;" data-survey-name="add_remote_share" data-survey-title="<?=_('Add Remote Share')?>">
-	<div data-question data-question-title="<?=_('Click on Icon to Choose Protocol')?>">
+<div style="display:none;" data-survey-name="add_remote_share" data-survey-title="<?=_('Add Remote Share');?>">
+	<div data-question data-question-title="<?=_('Click on Icon to Choose Protocol');?>">
 		<div data-question-format>
 			["nfs_radio","smb_radio"]
 		</div>
@@ -1087,57 +1096,57 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		</div>
 		<div data-question-done></div>
 	</div>
-	<div data-question data-question-title="<?=_('Choose Server')?>">
+	<div data-question data-question-title="<?=_('Choose Server');?>">
 		<div data-question-format>
 			[surveyData["PROTOCOL"] == "SMB" ? "list_samba_hosts" : "list_nfs_hosts"]
 		</div>
 		<div data-question-content>
 			<input type='text' class="swal-content__input" name='IP' autocomplete="off" required><br/>
-			<button class="swal-button" onclick='load_hosts(this,"{0}")'><?=_('Search For Servers')?></button>
-			<p><?=_('Search for Servers, or enter the Server name/IP address manually')?>.</p>
+			<button class="swal-button" onclick='load_hosts(this,"{0}")'><?=_('Search For Servers');?></button>
+			<p><?=_('Search for Servers, or enter the Server name/IP address manually');?>.</p>
 		</div>
 	</div>
-	<div data-question data-question-title="<?=_('Username')?>">
+	<div data-question data-question-title="<?=_('Username');?>">
 		<div data-question-condition>
 			surveyData['PROTOCOL'] == 'SMB';
 		</div>
 		<div data-question-content>
 			<div class="swal-content">
-				<input type="text" class="swal-content__input" name="USER" autocomplete="off" placeholder="<?=_('Username')?>">
-				<p><?=_('Enter the Username if the share is password protected')?>. <?=_('You will need to enter credentials for Windows 10 shares just to list them')?>.</p>
+				<input type="text" class="swal-content__input" name="USER" autocomplete="off" placeholder="<?=_('Username');?>">
+				<p><?=_('Enter the Username if the share is password protected');?>. <?=_('You will need to enter credentials for Windows 10 shares just to list them');?>.</p>
 			</div>
 		</div>
 	</div>
-	<div data-question data-question-title="<?=_('Password')?>">
+	<div data-question data-question-title="<?=_('Password');?>">
 		<div data-question-condition>
 			surveyData['PROTOCOL'] == 'SMB'
 		</div>
 		<div data-question-content>
 			<div class="swal-content">
-				<input type="password" class="swal-content__input" name="PASS" autocomplete="new-password" placeholder="<?=_('Password')?>">
-				<p><?=_('Enter the Password if the share is password protected')?>. <?=_('You will need to enter credentials for Windows 10 shares just to list them')?>.</p>
+				<input type="password" class="swal-content__input" name="PASS" autocomplete="new-password" placeholder="<?=_('Password');?>">
+				<p><?=_('Enter the Password if the share is password protected');?>. <?=_('You will need to enter credentials for Windows 10 shares just to list them');?>.</p>
 			</div>
 		</div>
 	</div>
-	<div data-question data-question-title="<?=_('Domain')?>">
+	<div data-question data-question-title="<?=_('Domain');?>">
 		<div data-question-condition>
 			surveyData['PROTOCOL'] == 'SMB'
 		</div>
 		<div data-question-content>
 			<div class="swal-content">
-				<input type="text" class="swal-content__input" name="DOMAIN" autocomplete="off" placeholder="<?=_('Domain')?>">
-				<p><?=_('Enter the Domain for the share if on a Domain')?>.</p>
+				<input type="text" class="swal-content__input" name="DOMAIN" autocomplete="off" placeholder="<?=_('Domain');?>">
+				<p><?=_('Enter the Domain for the share if on a Domain');?>.</p>
 			</div>
 		</div>
 	</div>
-	<div data-question data-question-title="<?=_('Choose Share')?>">
+	<div data-question data-question-title="<?=_('Choose Share');?>">
 		<div data-question-format>
 			[surveyData['PROTOCOL'], surveyData['IP'], surveyData['USER'], surveyData['PASS'], surveyData['DOMAIN'], (surveyData['PROTOCOL'] == 'SMB' ? 'list_samba_shares' : 'list_nfs_shares')]
 		</div>
 		<div data-question-content>
 			<input type='text' class="swal-content__input" autocomplete="off" name='SHARE' required><br />
-			<button class="swal-button" onclick='load_shares(this, "{1}", "{2}", "{3}", "{5}")'><?=_('Load Shares')?></button>
-			<p><?=_('Search for Shares or enter the Share name manually')?>.</p>
+			<button class="swal-button" onclick='load_shares(this, "{1}", "{2}", "{3}", "{5}")'><?=_('Load Shares');?></button>
+			<p><?=_('Search for Shares or enter the Share name manually');?>.</p>
 		</div>
 		<div data-question-done>
 			(surveyData["SHARE"].length)
@@ -1153,7 +1162,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		opts["PASS"]     = surveyData['PASS'];
 		opts["SHARE"]    = surveyData['SHARE'];
 		if (opts.SHARE && opts.IP) {
-			$.post("/plugins/unassigned.devices/UnassignedDevices.php",opts).done(function(data) {
+			$.post("/plugins/unassigned.devices/UnassignedDevices.php",opts).done(function(data)
+			{
 				usb_disks(tab_usbdisks);
 				swalShowResult((data == "true") ? true : false);
 			},"json").fail(function(){swalShowResult(false);});
