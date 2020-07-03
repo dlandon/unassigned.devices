@@ -872,7 +872,7 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 			if (count($valid_users)) {
 				$valid_users = "\n\tvalid users = ".implode(', ', $valid_users);
 				$write_users = count($write_users) ? "\n\twrite list = ".implode(', ', $write_users) : "";
-				$read_users = count($read_users) ? "\n\tread users = ".implode(', ', $read_users) : "";
+				$read_users = count($read_users) ? "\n\tread list = ".implode(', ', $read_users) : "";
 				$share_cont =  "[{$share_name}]\n\tpath = {$dir}{$hidden}{$force_user}{$valid_users}{$write_users}{$read_users}{$vfs_objects}";
 			} else {
 				$share_cont =  "[{$share_name}]\n\tpath = {$dir}{$hidden}\n\tinvalid users = @users";
