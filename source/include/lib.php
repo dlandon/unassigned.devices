@@ -332,7 +332,7 @@ function format_disk($dev, $fs, $pass) {
 		if ($disk_schema == "gpt") {
 			unassigned_log("Creating Unraid compatible gpt partition on disk '{$dev}'.");
 			shell_exec("/sbin/sgdisk -Z {$dev}");
-			$o = shell_exec("/sbin/sgdisk -o -a 1 -n 1:32K:0 {$dev}");
+			$o = shell_exec("/sbin/sgdisk -o -a 8 -n 1:32K:0 {$dev}");
 			if ($o != "") {
 				unassigned_log("Create gpt partition table result:\n$o");
 			}
