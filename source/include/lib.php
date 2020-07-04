@@ -1629,9 +1629,11 @@ function setSleepTime($device) {
 	$config_file	= $GLOBALS["paths"]["config_file"];
 	$config			= @parse_ini_file($config_file, true);
 	$device = preg_replace("/\d+$/", "", $device);
-	if ($config['Config']['spin_down'] != "no") {
+	if ((file_get_contents("/sys/block/".basename($device)."/queue/rotational") == 1) && ($config['Config']['spin_down'] != "no")) {
+		unassigned_log("Issue spin down timer for device '{$device}'.");
 		timed_exec(5, "/usr/sbin/hdparm -S180 $device 2>&1");
 	} else {
+		unassigned_log("Don't spin down device '{$device}'.");
 		timed_exec(5, "/usr/sbin/hdparm -S0 $device 2>&1");
 	}
 }
