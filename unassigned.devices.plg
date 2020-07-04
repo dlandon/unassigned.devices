@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.07.03">
+<!ENTITY version   "2020.07.03a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"c6e88be7f97abae1c1c0df424bec2448">
+<!ENTITY MD5		"001309bd76413a8e61d863eb98f443db">
 ]>
 
 <PLUGIN name="&name;"
@@ -26,6 +26,7 @@
 ###&version;
 - Fix: Alignment when creating XFS and btrfs disk partitions.
 - Fix: Wrong read list setting in samba config.
+- Fix: Don't spin down SSD disks.
 
 ###2020.06.29
 - Fix: UD page always showing Simple display mode when using browser back button.
