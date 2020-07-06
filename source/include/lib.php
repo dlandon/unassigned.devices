@@ -1452,11 +1452,11 @@ function get_udev_info($device, $udev=NULL, $reload) {
 		$state[$device] = $udev;
 		save_ini_file($paths['state'], $state);
 		return $udev;
-	} else if (array_key_exists($device, $state) && ! $reload) {
+	} else if (array_key_exists($device, $state) && (! $reload)) {
 		unassigned_log("Using udev cache for '$device'.", "DEBUG");
 		return $state[$device];
 	} else {
-		$state[$device] = parse_ini_string(str_replace("$", "", timed_exec(5,"/sbin/udevadm info --query=property --path $(/sbin/udevadm info -q path -n $device 2>/dev/null) 2>/dev/null")));
+		$state[$device] = parse_ini_string(str_replace(array("$","!"), "", timed_exec(5,"/sbin/udevadm info --query=property --path $(/sbin/udevadm info -q path -n $device 2>/dev/null) 2>/dev/null")));
 		save_ini_file($paths['state'], $state);
 		unassigned_log("Not using udev cache for '$device'.", "DEBUG");
 		return $state[$device];
@@ -1593,7 +1593,7 @@ function change_disk_label($fstype, $dev, $mountpoint) {
 	$mountpoint = basename($mountpoint);
 	switch ($fstype) {
 		case 'xfs';
-			timed_exec(2, "/usr/sbin/xfs_admin -L $mountpoint $dev 2>/dev/null");
+			timed_exec(2, "/usr/sbin/xfs_admin -L '$mountpoint' $dev 2>/dev/null");
 		break;
 
 		case 'btrfs';
@@ -1617,7 +1617,6 @@ function change_disk_label($fstype, $dev, $mountpoint) {
 }
 
 function change_UUID($dev) {
-
 	sleep(1);
 	$rc = timed_exec(10, "/usr/sbin/xfs_admin -U generate {$dev}");
 	unassigned_log("Changing disk '{$dev}' UUID. Result: ".$rc);
