@@ -803,11 +803,6 @@ function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE, $nfs = FALSE) {
 		}
 		if (! $rc) {
 			unassigned_log("Unmount of '{$dev}' failed. Error message: $o"); 
-			sleep(1);
-			if (! lsof($dir) && ! $force) {
-				unassigned_log("Since there aren't any open files, will force unmount.");
-				$rc = do_unmount($dev, $dir, TRUE, $smb, $nfs);
-			}
 		}
 	} else {
 		unassigned_log("Cannot unmount '{$dev}'.  UD did not mount the device.");
