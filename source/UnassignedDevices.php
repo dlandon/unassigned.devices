@@ -737,13 +737,6 @@ switch ($_POST['action']) {
 		$fstype	= urldecode($_POST['fstype']);
 		$mountpoint = safe_name(basename(urldecode($_POST['mountpoint'])), FALSE);
 		$dev = urldecode($_POST['device']);
-?>
-<script>
-		if ( !$('#spin_div').length ) {
-			$('#spinner').html("<tr><td colspan='8'><div id='spin_div' class='spinner'></div></td></tr>");
-		}
-</script>
-<?
 		if ($mountpoint != "") {
 			$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
 			set_config($serial, "mountpoint.{$partition}", $mountpoint);

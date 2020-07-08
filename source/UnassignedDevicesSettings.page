@@ -62,7 +62,7 @@ if (count($_POST)) {
 	}
 }
 
-$use_netbios = ($var['USE_NETBIOS'] == 'yes') ? TRUE : FALSE;
+$use_netbios = ($var['USE_NETBIOS']=='yes') ? TRUE : FALSE;
 $parted = file_exists("/usr/sbin/parted");
 
 if ((! $use_netbios && $cfg['Config']['samba_v1'] == "yes") || (! file_exists("/usr/sbin/parted") && $cfg['Config']['destructive_mode'] == "enabled")) {
