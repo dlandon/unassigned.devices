@@ -1585,7 +1585,7 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 
 /* Update the physical disk label. */
 function change_disk_label($fstype, $dev, $mountpoint) {
-	$mountpoint = basename($mountpoint);
+	$mountpoint = safe_name(basename($mountpoint));
 	switch ($fstype) {
 		case 'xfs';
 			timed_exec(20, "/usr/sbin/xfs_admin -L '$mountpoint' $dev 2>/dev/null");
