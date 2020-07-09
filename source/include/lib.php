@@ -1583,32 +1583,61 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 	return $cmd[$type] ? sprintf($cmd[$type], $dev) : "";
 }
 
-/* Update the physical disk label. */
-function change_disk_label($fstype, $dev, $mountpoint) {
-	$mountpoint = safe_name(basename($mountpoint));
-	switch ($fstype) {
-		case 'xfs';
-			timed_exec(20, "/usr/sbin/xfs_admin -L '$mountpoint' $dev 2>/dev/null");
-		break;
+/* Change disk mount point and update the physical disk label. */
+function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 
-		case 'btrfs';
-			timed_exec(20, "/sbin/btrfs filesystem label $dev '$mountpoint' 2>/dev/null");
-		break;
+	if ($mountpoint != "") {
+		$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
+		set_config($serial, "mountpoint.{$partition}", $mountpoint);
+		$mountpoint = safe_name(basename($mountpoint));
+		switch ($fstype) {
+			case 'xfs';
+				timed_exec(20, "/usr/sbin/xfs_admin -L '$mountpoint' $dev 2>/dev/null");
+			break;
 
-		case 'ntfs';
-			$mountpoint = substr($mountpoint, 0, 31);
-			timed_exec(20, "/sbin/ntfslabel $dev '$mountpoint' 2>/dev/null");
-		break;
+			case 'btrfs';
+				timed_exec(20, "/sbin/btrfs filesystem label $dev '$mountpoint' 2>/dev/null");
+			break;
 
-		case 'vfat';
-			$mountpoint = substr(strtoupper($mountpoint), 0, 10);
-			timed_exec(20, "/sbin/fatlabel $dev '$mountpoint' 2>/dev/null");
-		break;
+			case 'ntfs';
+				$mountpoint = substr($mountpoint, 0, 31);
+				timed_exec(20, "/sbin/ntfslabel $dev '$mountpoint' 2>/dev/null");
+			break;
 
-		case 'crypto_LUKS';
-			timed_exec(20, "/sbin/cryptsetup config $dev --label '$mountpoint' 2>/dev/null");
-		break;
+			case 'vfat';
+				$mountpoint = substr(strtoupper($mountpoint), 0, 10);
+				timed_exec(20, "/sbin/fatlabel $dev '$mountpoint' 2>/dev/null");
+			break;
+
+			case 'crypto_LUKS';
+				timed_exec(20, "/sbin/cryptsetup config $dev --label '$mountpoint' 2>/dev/null");
+			break;
+		}
 	}
+
+	return TRUE;
+}
+
+function change_samba_mountpoint($device, $mountpoint) {
+	global $paths;
+
+	if ($mountpoint != "") {
+		$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
+		set_samba_config($device, "mountpoint", $mountpoint);
+	}
+
+	return TRUE;
+}
+
+function change_iso_mountpoint($device, $mountpoint) {
+	global $paths;
+
+	if ($mountpoint != "") {
+		$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
+		set_iso_config($device, "mountpoint", $mountpoint);
+	}
+
+	return TRUE;
 }
 
 function change_UUID($dev) {

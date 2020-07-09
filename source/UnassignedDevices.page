@@ -68,8 +68,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	button.mount {padding:2px 4px 3px 6px;margin:1px 0px 1px 0px;}
 	i.partition-hdd{margin:5px; 0px; 0px; 0px;}
 	i.hdd{margin:5px; 0px; 0px; 0px;}
-	i.share{margin:5px 0px 0px 0px;}
-	i.mount-share{margin:5px 12px 0px 0px;}
+	i.share{margin:5px 5px 0px 0px;}
+	i.mount-share{margin:5px 5px 0px 0px;}
 	i.partition-script{margin-left: 10px; margin-right: 6px;}
 	.exec{cursor: pointer;}
 	i.fa-append{margin:0px;font-size: 0.8em;position: relative; left:-0.3em;top:0.7em;}
@@ -978,7 +978,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			$(function() {
 				window.rm_partition = function(bt, device, partition){doUnassignedDevicesSurvey("remove_partiton",{el:bt,device:device,partition:partition});}
 			});
-	</script>
+		</script>
 	</div>
 </div>
 
@@ -1033,11 +1033,11 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		<div data-question-done></div>
 	</div>
 	<div data-survey-done>
-	$.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"remove_config",serial:surveyOption}).done(function(data)
-	{
-		usb_disks(tab_usbdisks);
-		swalShowResult((data == "true") ? true : false);
-	},"json").fail(function(){swalShowResult(false);});
+		$.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"remove_config",serial:surveyOption}).done(function(data)
+		{
+			usb_disks(tab_usbdisks);
+			swalShowResult((data == "true") ? true : false);
+		},"json").fail(function(){swalShowResult(false);});
 	</div>
 	<div>
 		<script type="text/javascript">
@@ -1070,7 +1070,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		{
 			usb_disks(tab_usbdisks);
 			swalShowResult((data == "true") ? true : false);
-	},"json").fail(function(){swalShowResult(false);});
+		},"json").fail(function(){swalShowResult(false);});
 	</div>
 	<div>
 		<script type="text/javascript">
@@ -1173,6 +1173,85 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		<script type="text/javascript">
 			$(function(){
 				window.add_samba_share = function(i){doUnassignedDevicesSurvey("add_remote_share",i);}
+			});
+		</script>
+	</div>
+</div>
+
+<div style="display:none;" data-survey-name="change_mountpoint" data-survey-title="">
+	<div data-question data-question-title="<?=_('Change Disk Mount Point');?>" data-question-button-done="<?=_('Change');?>">
+		<div data-question-content>
+			<input type="text" class="swal-content__input" name="MOUNTPOINT" autocomplete="off" placeholder="<?=_('Mount Point');?>" required>
+			<p><?=_('Changing the Mount Point will also change the disk label');?>.</p>
+		</div>
+		<div data-question-load></div>
+		<div data-question-done>
+			(surveyData["MOUNTPOINT"].length)
+		</div>
+	</div>
+	<div data-survey-done data-survey-done-wait="true">
+		$.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"chg_mountpoint",serial:surveyOption.serial,partition:surveyOption.partition,device:surveyOption.device,fstype:surveyOption.fstype,mountpoint:surveyData['MOUNTPOINT']}).done(function(data)
+		{
+			usb_disks(tab_usbdisks);
+			swalShowResult((data == "true") ? true : false);
+		},"json").fail(function(){swalShowResult(false);});
+	</div>
+	<div>
+		<script type="text/javascript">
+			$(function() {
+				window.chg_mountpoint = function(serial, partition, device, fstype){doUnassignedDevicesSurvey("change_mountpoint",{serial:serial,partition:partition,device:device,fstype:fstype});}
+			});
+		</script>
+	</div>
+</div>
+
+<div style="display:none;" data-survey-name="change_samba_mountpoint" data-survey-title="">
+	<div data-question data-question-title="<?=_('Change SMB/NFS Mount Point');?>" data-question-button-done="<?=_('Change');?>">
+		<div data-question-content>
+			<input type="text" class="swal-content__input" name="MOUNTPOINT" autocomplete="off" placeholder="<?=_('Mount Point');?>" required>
+		</div>
+		<div data-question-load></div>
+		<div data-question-done>
+			(surveyData["MOUNTPOINT"].length)
+		</div>
+	</div>
+	<div data-survey-done data-survey-done-wait="true">
+		$.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"chg_samba_mountpoint",device:surveyOption.device,mountpoint:surveyData['MOUNTPOINT']}).done(function(data)
+		{
+			usb_disks(tab_usbdisks);
+			swalShowResult((data == "true") ? true : false);
+		},"json").fail(function(){swalShowResult(false);});
+	</div>
+	<div>
+		<script type="text/javascript">
+			$(function() {
+				window.chg_samba_mountpoint = function(device){doUnassignedDevicesSurvey("change_samba_mountpoint",{device:device});}
+			});
+		</script>
+	</div>
+</div>
+
+<div style="display:none;" data-survey-name="change_iso_mountpoint" data-survey-title="">
+	<div data-question data-question-title="<?=_('Change ISO FIle Mount Point');?>" data-question-button-done="<?=_('Change');?>">
+		<div data-question-content>
+			<input type="text" class="swal-content__input" name="MOUNTPOINT" autocomplete="off" placeholder="<?=_('Mount Point');?>" required>
+		</div>
+		<div data-question-load></div>
+		<div data-question-done>
+			(surveyData["MOUNTPOINT"].length)
+		</div>
+	</div>
+	<div data-survey-done data-survey-done-wait="true">
+		$.post("/plugins/unassigned.devices/UnassignedDevices.php",{action:"chg_iso_mountpoint",device:surveyOption.device,mountpoint:surveyData['MOUNTPOINT']}).done(function(data)
+		{
+			usb_disks(tab_usbdisks);
+			swalShowResult((data == "true") ? true : false);
+		},"json").fail(function(){swalShowResult(false);});
+	</div>
+	<div>
+		<script type="text/javascript">
+			$(function() {
+				window.chg_iso_mountpoint = function(device){doUnassignedDevicesSurvey("change_iso_mountpoint",{device:device});}
 			});
 		</script>
 	</div>
