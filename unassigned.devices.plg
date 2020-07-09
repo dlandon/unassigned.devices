@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.07.03a">
+<!ENTITY version   "2020.07.09">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"001309bd76413a8e61d863eb98f443db">
+<!ENTITY MD5		"e6873e95001d69dd2669cd61e90ed3bb">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,14 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Exclamation character in udev information causing a php error.
+- Fix: Don't force unmount a device if there is an unmount error and there are no open files.
+- Add: Change mount and unmount error notifications to alerts.
+- Add: Sweet Alert dialogs for changing mount points.
+- Add: Safe name for disk label - no spaces or special characters.
+- Fix: Extend disk label command time out.
+
+###2020.07.03a
 - Fix: Alignment when creating XFS and btrfs disk partitions.
 - Fix: Wrong read list setting in samba config.
 - Fix: Don't spin down SSD disks.
