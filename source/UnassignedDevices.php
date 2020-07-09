@@ -137,10 +137,8 @@ function render_partition($disk, $partition, $total=FALSE) {
 	} else {
 		$mount_point = basename($partition['mountpoint']);
 		$device = ($partition['fstype'] == "crypto_LUKS") ? $partition['luks'] : $partition['device'];
-		$mpoint .= "<i class='fa fa-share partition-hdd'></i><a title='"._("Change Device Mount Point")."' class='exec' onclick='chg_mountpoint(\"{$partition['serial']}\",\"{$partition['part']}\",\"{$device}\",\"{$partition['fstype']}\");'>{$mount_point}</a>";
-		$mpoint .= "<input class='input' type='text' name='mountpoint' value='{$mount_point}' hidden />";
-		$mpoint .= "<input type='hidden' name='csrf_token' value='{$csrf_token}'/>";
-		$mpoint .= "</form>{$rm_partition}</span>";
+		$mpoint .= "<i class='fa fa-share partition-hdd'></i><a title='"._("Change Device Mount Point")."' class='exec' onclick='chg_mountpoint(\"{$partition['serial']}\",\"{$partition['part']}\",\"{$device}\",\"{$partition['fstype']}\",\"{$mount_point}\");'>{$mount_point}</a>";
+		$mpoint .= "{$rm_partition}</span>";
 	}
 	$temp = my_temp($disk['temperature']);
 	$mbutton = make_mount_button($partition);
@@ -362,7 +360,7 @@ switch ($_POST['action']) {
 				} else {
 					echo "<td>
 						<i class='fa fa-share-alt share'></i>
-						<a title='"._("Change Remote SMB/NFS Mount Point")."' class='exec' onclick='chg_samba_mountpoint(\"{$mount['name']}\");'>{$mount_point}</a>
+						<a title='"._("Change Remote SMB/NFS Mount Point")."' class='exec' onclick='chg_samba_mountpoint(\"{$mount['name']}\",\"{$mount_point}\");'>{$mount_point}</a>
 						</td>";
 				}
 
@@ -401,7 +399,7 @@ switch ($_POST['action']) {
 				} else {
 					echo "<td>
 						<i class='fa fa-share-alt share'></i>
-						<a title='"._("Change ISO File Mount Point")."' class='exec' onclick='chg_iso_mountpoint(\"{$mount['device']}\");'>{$mount_point}</a>
+						<a title='"._("Change ISO File Mount Point")."' class='exec' onclick='chg_iso_mountpoint(\"{$mount['device']}\",\"{$mount_point}\");'>{$mount_point}</a>
 						</td>";
 				}
 				$disabled = $is_alive ? "enabled":"disabled";

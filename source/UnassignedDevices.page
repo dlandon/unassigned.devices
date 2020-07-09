@@ -1180,8 +1180,11 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 <div style="display:none;" data-survey-name="change_mountpoint" data-survey-title="">
 	<div data-question data-question-title="<?=_('Change Disk Mount Point');?>" data-question-button-done="<?=_('Change');?>">
+		<div data-question-format>
+			[surveyOption.mountpoint]
+		</div>
 		<div data-question-content>
-			<input type="text" class="swal-content__input" name="MOUNTPOINT" autocomplete="off" placeholder="<?=_('Mount Point');?>" required>
+			<input type="text" class="swal-content__input" name="MOUNTPOINT" value={0} placeholder="<?=_('Mount Point');?>" required>
 			<p><?=_('Changing the Mount Point will also change the disk label');?>.</p>
 		</div>
 		<div data-question-load></div>
@@ -1199,7 +1202,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	<div>
 		<script type="text/javascript">
 			$(function() {
-				window.chg_mountpoint = function(serial, partition, device, fstype){doUnassignedDevicesSurvey("change_mountpoint",{serial:serial,partition:partition,device:device,fstype:fstype});}
+				window.chg_mountpoint = function(serial, partition, device, fstype, mountpoint){doUnassignedDevicesSurvey("change_mountpoint",{serial:serial,partition:partition,device:device,fstype:fstype,mountpoint:mountpoint});}
 			});
 		</script>
 	</div>
@@ -1207,8 +1210,11 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 <div style="display:none;" data-survey-name="change_samba_mountpoint" data-survey-title="">
 	<div data-question data-question-title="<?=_('Change SMB/NFS Mount Point');?>" data-question-button-done="<?=_('Change');?>">
+		<div data-question-format>
+			[surveyOption.mountpoint]
+		</div>
 		<div data-question-content>
-			<input type="text" class="swal-content__input" name="MOUNTPOINT" autocomplete="off" placeholder="<?=_('Mount Point');?>" required>
+			<input type="text" class="swal-content__input" name="MOUNTPOINT" value={0} placeholder="<?=_('Mount Point');?>" required>
 		</div>
 		<div data-question-load></div>
 		<div data-question-done>
@@ -1225,7 +1231,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	<div>
 		<script type="text/javascript">
 			$(function() {
-				window.chg_samba_mountpoint = function(device){doUnassignedDevicesSurvey("change_samba_mountpoint",{device:device});}
+				window.chg_samba_mountpoint = function(device, mountpoint){doUnassignedDevicesSurvey("change_samba_mountpoint",{device:device,mountpoint:mountpoint});}
 			});
 		</script>
 	</div>
@@ -1233,8 +1239,11 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 <div style="display:none;" data-survey-name="change_iso_mountpoint" data-survey-title="">
 	<div data-question data-question-title="<?=_('Change ISO FIle Mount Point');?>" data-question-button-done="<?=_('Change');?>">
+		<div data-question-format>
+			[surveyOption.mountpoint]
+		</div>
 		<div data-question-content>
-			<input type="text" class="swal-content__input" name="MOUNTPOINT" autocomplete="off" placeholder="<?=_('Mount Point');?>" required>
+			<input type="text" class="swal-content__input" name="MOUNTPOINT" value={0} placeholder="<?=_('Mount Point');?>" required>
 		</div>
 		<div data-question-load></div>
 		<div data-question-done>
@@ -1251,7 +1260,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	<div>
 		<script type="text/javascript">
 			$(function() {
-				window.chg_iso_mountpoint = function(device){doUnassignedDevicesSurvey("change_iso_mountpoint",{device:device});}
+				window.chg_iso_mountpoint = function(device, mountpoint){doUnassignedDevicesSurvey("change_iso_mountpoint",{device:device,mountpoint:mountpoint});}
 			});
 		</script>
 	</div>
