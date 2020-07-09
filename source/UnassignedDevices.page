@@ -847,8 +847,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		<div data-question-content>
 			<input type='text' name='{1}' placeholder="<?=_('Click to select ISO file');?>" data-pickcloseonfile='true' data-pickfilter='iso' {0}='/mnt/user/' data-pickfolders='true' required='required' class='swal-content__input' autocomplete="off" >
 		</div>
-		<div data-question-load>
-		</div>
+		<div data-question-load></div>
 		<div data-question-done>
 			(surveyData["ISO_FILE"].toLowerCase().indexOf(".iso") !== -1)
 		</div>
@@ -1238,7 +1237,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 </div>
 
 <div style="display:none;" data-survey-name="change_iso_mountpoint" data-survey-title="">
-	<div data-question data-question-title="<?=_('Change ISO FIle Mount Point');?>" data-question-button-done="<?=_('Change');?>">
+	<div data-question data-question-title="<?=_('Change ISO File Mount Point');?>" data-question-button-done="<?=_('Change');?>">
 		<div data-question-format>
 			[surveyOption.mountpoint]
 		</div>
