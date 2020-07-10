@@ -1585,6 +1585,7 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 
 /* Change disk mount point and update the physical disk label. */
 function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
+	global $paths;
 
 	if ($mountpoint != "") {
 		$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
