@@ -1583,62 +1583,136 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 	return $cmd[$type] ? sprintf($cmd[$type], $dev) : "";
 }
 
+/* Check for a duplicate share name */
+function check_for_duplicate_share($dev, $mountpoint, $fstype="") {
+
+	$rc = TRUE;
+
+	/* Parse the samba config file. */
+	$smb_file =  "/etc/samba/smb-shares.conf";
+	$smb_config = parse_ini_file($smb_file, true, INI_SCANNER_RAW);
+
+	/* Get all shares from the smb configuration file. */
+	$smb_shares = array_keys($smb_config);
+
+	/* Get all disk mounts */
+	foreach (get_all_disks_info() as $name => $info) {
+		foreach ($info['partitions'] as $p) {
+			$device = ($fstype == 'crypto_LUKS') ? $p['luks'] : $p['device'];
+			if ($device != $dev) {
+				$s = basename($p['mountpoint']);
+				$ud_shares[] .= $s;
+			}
+		}
+	}
+
+	/* Get the samba mounts */
+	foreach (get_samba_mounts() as $name => $info) {
+		if ($info['device'] != $dev) {
+			$s = basename($info['mountpoint']);
+			$ud_shares[] .= $s;
+		}
+	}
+
+	/* Get ISO File Mounts */
+	foreach (get_iso_mounts() as $name => $info) {
+		if ($info['device'] != $dev) {
+			$s = basename($info['mountpoint']);
+			$ud_shares[] .= $s;
+		}
+	}
+
+	$shares = array_merge($smb_shares, $ud_shares);
+
+	/* See if the share name is already being used */
+	if (in_array($mountpoint, $shares)) {
+		unassigned_log("Cannot change mount point!  Share '{$mountpoint}' already in use.");
+		$rc = FALSE;
+	}
+
+	return $rc;
+}
+
 /* Change disk mount point and update the physical disk label. */
 function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 	global $paths;
 
+	$rc = TRUE;
 	if ($mountpoint != "") {
-		$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
-		set_config($serial, "mountpoint.{$partition}", $mountpoint);
-		$mountpoint = safe_name(basename($mountpoint));
-		switch ($fstype) {
-			case 'xfs';
-				timed_exec(20, "/usr/sbin/xfs_admin -L '$mountpoint' $dev 2>/dev/null");
-			break;
+		$rc = check_for_duplicate_share($dev, $mountpoint, $fstype);
+		if ($rc) {
+			$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
+			set_config($serial, "mountpoint.{$partition}", $mountpoint);
+			$mountpoint = safe_name(basename($mountpoint));
+			switch ($fstype) {
+				case 'xfs';
+					timed_exec(20, "/usr/sbin/xfs_admin -L '$mountpoint' $dev 2>/dev/null");
+				break;
 
-			case 'btrfs';
-				timed_exec(20, "/sbin/btrfs filesystem label $dev '$mountpoint' 2>/dev/null");
-			break;
+				case 'btrfs';
+					timed_exec(20, "/sbin/btrfs filesystem label $dev '$mountpoint' 2>/dev/null");
+				break;
 
-			case 'ntfs';
-				$mountpoint = substr($mountpoint, 0, 31);
-				timed_exec(20, "/sbin/ntfslabel $dev '$mountpoint' 2>/dev/null");
-			break;
+				case 'ntfs';
+					$mountpoint = substr($mountpoint, 0, 31);
+					timed_exec(20, "/sbin/ntfslabel $dev '$mountpoint' 2>/dev/null");
+				break;
 
-			case 'vfat';
-				$mountpoint = substr(strtoupper($mountpoint), 0, 10);
-				timed_exec(20, "/sbin/fatlabel $dev '$mountpoint' 2>/dev/null");
-			break;
+				case 'vfat';
+					$mountpoint = substr(strtoupper($mountpoint), 0, 10);
+					timed_exec(20, "/sbin/fatlabel $dev '$mountpoint' 2>/dev/null");
+				break;
 
-			case 'crypto_LUKS';
-				timed_exec(20, "/sbin/cryptsetup config $dev --label '$mountpoint' 2>/dev/null");
-			break;
+				case 'crypto_LUKS';
+					timed_exec(20, "/sbin/cryptsetup config $dev --label '$mountpoint' 2>/dev/null");
+				break;
+			}
 		}
+	} else {
+		unassigned_log("Cannot change mount point!  Mount point is blank.");
+		$rc = FALSE;
 	}
 
-	return TRUE;
+	return $rc;
 }
 
-function change_samba_mountpoint($device, $mountpoint) {
+/* Change samba mount point */
+function change_samba_mountpoint($dev, $mountpoint) {
 	global $paths;
 
+	$rc = TRUE;
 	if ($mountpoint != "") {
-		$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
-		set_samba_config($device, "mountpoint", $mountpoint);
+		$rc = check_for_duplicate_share($dev, $mountpoint);
+		if ($rc) {
+			$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
+			set_samba_config($dev, "mountpoint", $mountpoint);
+		}
+	} else {
+		unassigned_log("Cannot change mount point!  Mount point is blank.");
+		$rc = FALSE;
 	}
 
-	return TRUE;
+	return $rc;
 }
 
-function change_iso_mountpoint($device, $mountpoint) {
+/* Change iso file mount point */
+function change_iso_mountpoint($dev, $mountpoint) {
 	global $paths;
 
+	$rc = TRUE;
 	if ($mountpoint != "") {
-		$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
-		set_iso_config($device, "mountpoint", $mountpoint);
+		$rc = check_for_duplicate_share($dev, $mountpoint);
+		if ($rc) {
+			$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
+			set_iso_config($dev, "mountpoint", $mountpoint);
+		} else {
+		}
+	} else {
+		unassigned_log("Cannot change mount point!  Mount point is blank.");
+		$rc = FALSE;
 	}
 
-	return TRUE;
+	return $rc;
 }
 
 function change_UUID($dev) {
