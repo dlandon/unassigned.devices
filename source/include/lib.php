@@ -303,15 +303,7 @@ function format_disk($dev, $fs, $pass) {
 	$max_mbr_blocks = hexdec("0xFFFFFFFF");
 	$disk_blocks    = intval(trim(shell_exec("/sbin/blockdev --getsz $dev  | /bin/awk '{ print $1 }' 2>/dev/null")));
 	$disk_schema    = ( $disk_blocks >= $max_mbr_blocks ) ? "gpt" : "msdos";
-	switch ($fs) {
-		case 'exfat':
-			$parted_fs = "fat32";
-			break;
-
-		default:
-			$parted_fs = $fs;
-			break;
-	}
+	$parted_fs = ($fs == 'exfat') ? "fat32" : $fs;
 	unassigned_log("Device '{$dev}' block size: {$disk_blocks}");
 
 	unassigned_log("Clearing partition table of disk '$dev'.");
@@ -329,10 +321,13 @@ function format_disk($dev, $fs, $pass) {
 
 	unassigned_log("Creating a primary partition on disk '{$dev}'.");
 	if ($fs == "xfs" || $fs == "xfs-encrypted" || $fs == "btrfs" || $fs == "btrfs-encrypted") {
-		if ($disk_schema == "gpt") {
+		$is_ssd = (file_get_contents("/sys/block/".preg_replace("#\d+#i", "", basename($dev))."/queue/rotational") == 1) ? FALSE : TRUE;
+		if (($disk_schema == "gpt") || ($is_ssd)) {
 			unassigned_log("Creating Unraid compatible gpt partition on disk '{$dev}'.");
 			shell_exec("/sbin/sgdisk -Z {$dev}");
-			$o = shell_exec("/sbin/sgdisk -o -a 8 -n 1:32K:0 {$dev}");
+			/* Alignment is 4,096 for spinners and 1Mb for SSD */
+			$alignment = $is_ssd ? "" : "-a 8";
+			$o = shell_exec("/sbin/sgdisk -o {$alignment} -n 1:32K:0 {$dev}");
 			if ($o != "") {
 				unassigned_log("Create gpt partition table result:\n$o");
 			}
@@ -695,7 +690,8 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 function do_mount($info) {
 	global $var, $paths;
 
-	$rc = check_for_duplicate_share($info['device'], basename($info['mountpoint']), $info['fstype']);
+	$device = ($info['fstype'] == 'crypto_LUKS') ? $info['luks'] : $info['device'];
+	$rc = check_for_duplicate_share($device, basename($info['mountpoint']), $info['fstype']);
 	if ($rc) {
 		$rc = FALSE;
 		if ($info['fstype'] == "cifs" || $info['fstype'] == "nfs") {
