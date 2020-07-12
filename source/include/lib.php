@@ -703,7 +703,8 @@ function do_mount($info) {
 	} else if ($info['fstype'] == "crypto_LUKS") {
 		if (! is_mounted($info['device']) || ! is_mounted($info['mountpoint'], TRUE)) {
 			$luks	= basename($info['device']);
-			$cmd	= "luksOpen {$info['luks']} {$luks}";
+			$discard = (file_get_contents("/sys/block/".preg_replace("#\d+#i", "", basename($info['luks']))."/queue/rotational") == 1) ? "" : "--allow-discards";
+			$cmd	= "luksOpen $discard {$info['luks']} {$luks}";
 			$pass	= decrypt_data(get_config($info['serial'], "pass"));
 			if ($pass == "") {
 				if (file_exists($var['luksKeyfile'])) {
