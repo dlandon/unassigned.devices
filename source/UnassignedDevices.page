@@ -565,7 +565,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 <?=$Preclear ? $Preclear->html() : "";?>
 
 :unassgned_devices_switches_plug:
-> Turn off the **Complete** switch to change the web page to just show hardware devices. Trun on the **Simple** switch to switch back to the full web display.
+> Turn off the **Complete** switch to change the web page to just show hardware devices. Turn on the **Simple** switch to switch back to the full web display.
 >
 > Turn on the **None** switch to show all device partitions. Turn off **All** switch to switch back to not show partitions.
 >

@@ -695,42 +695,45 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 function do_mount($info) {
 	global $var, $paths;
 
-	$rc = FALSE;
-	if ($info['fstype'] == "cifs" || $info['fstype'] == "nfs") {
-		$rc = do_mount_samba($info);
-	} else if($info['fstype'] == "loop") {
-		$rc = do_mount_iso($info);
-	} else if ($info['fstype'] == "crypto_LUKS") {
-		if (! is_mounted($info['device']) || ! is_mounted($info['mountpoint'], TRUE)) {
-			$luks	= basename($info['device']);
-			$discard = (file_get_contents("/sys/block/".preg_replace("#\d+#i", "", basename($info['luks']))."/queue/rotational") == 1) ? "" : "--allow-discards";
-			$cmd	= "luksOpen $discard {$info['luks']} {$luks}";
-			$pass	= decrypt_data(get_config($info['serial'], "pass"));
-			if ($pass == "") {
-				if (file_exists($var['luksKeyfile'])) {
-					$cmd	= $cmd." -d {$var['luksKeyfile']}";
-					$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+	$rc = check_for_duplicate_share($info['device'], basename($info['mountpoint']), $info['fstype']);
+	if ($rc) {
+		$rc = FALSE;
+		if ($info['fstype'] == "cifs" || $info['fstype'] == "nfs") {
+			$rc = do_mount_samba($info);
+		} else if($info['fstype'] == "loop") {
+			$rc = do_mount_iso($info);
+		} else if ($info['fstype'] == "crypto_LUKS") {
+			if (! is_mounted($info['device']) || ! is_mounted($info['mountpoint'], TRUE)) {
+				$luks	= basename($info['device']);
+				$discard = (file_get_contents("/sys/block/".preg_replace("#\d+#i", "", basename($info['luks']))."/queue/rotational") == 1) ? "" : "--allow-discards";
+				$cmd	= "luksOpen $discard {$info['luks']} {$luks}";
+				$pass	= decrypt_data(get_config($info['serial'], "pass"));
+				if ($pass == "") {
+					if (file_exists($var['luksKeyfile'])) {
+						$cmd	= $cmd." -d {$var['luksKeyfile']}";
+						$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+					} else {
+						$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
+					}
 				} else {
-					$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
+					$luks_pass_file = "{$paths['luks_pass']}_".$luks;
+					file_put_contents($luks_pass_file, $pass);
+					$cmd	= $cmd." -d $luks_pass_file";
+					$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+					exec("/bin/shred -u $luks_pass_file");
+				}
+				if ($o != "") {
+					unassigned_log("luksOpen error: ".$o);
+					shell_exec("/sbin/cryptsetup luksClose ".basename($info['device']));
+				} else {
+					$rc = do_mount_local($info);
 				}
 			} else {
-				$luks_pass_file = "{$paths['luks_pass']}_".$luks;
-				file_put_contents($luks_pass_file, $pass);
-				$cmd	= $cmd." -d $luks_pass_file";
-				$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
-				exec("/bin/shred -u $luks_pass_file");
-			}
-			if ($o != "") {
-				unassigned_log("luksOpen error: ".$o);
-				shell_exec("/sbin/cryptsetup luksClose ".basename($info['device']));
-			} else {
-				$rc = do_mount_local($info);
+				unassigned_log("Drive '{$info['device']}' already mounted.");
 			}
 		} else {
-			unassigned_log("Drive '{$info['device']}' already mounted.");
+			$rc = do_mount_local($info);
 		}
-	} else {
-		$rc = do_mount_local($info);
 	}
 	return $rc;
 }
@@ -1629,7 +1632,7 @@ function check_for_duplicate_share($dev, $mountpoint, $fstype="") {
 
 	/* See if the share name is already being used */
 	if (in_array($mountpoint, $shares)) {
-		unassigned_log("Cannot change mount point!  Share '{$mountpoint}' already in use.");
+		unassigned_log("Error: Cannot use that mount point!  Share '{$mountpoint}' is already being used in the array or another unassigned device.");
 		$rc = FALSE;
 	}
 
@@ -1672,7 +1675,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 			}
 		}
 	} else {
-		unassigned_log("Cannot change mount point!  Mount point is blank.");
+		unassigned_log("Error: Cannot change mount point!  Mount point is blank.");
 		$rc = FALSE;
 	}
 
