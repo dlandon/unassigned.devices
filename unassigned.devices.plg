@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.07.10">
+<!ENTITY version   "2020.07.12">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"23a28ac759050c335d70cbf1dc59b960">
+<!ENTITY MD5		"9fc2c28e8f05ba16020de0d95c984dbb">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Check for duplicate share when changing mount point.
+- Add: Don't mount a disk with a duplicate share name.
+- Add: '-allow-discards' to luksopen so discard and trim will work on encrypted SSD disks.
+
+###2020.07.10
 - Fix: Mount point path when changing the mount point.
 
 ###2020.07.09
