@@ -637,7 +637,7 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 	$config_file	= $GLOBALS["paths"]["config_file"];
 	$config			= @parse_ini_file($config_file, true);
 	if ($config['Config']['discard'] != "no") {
-		$discard = trim(shell_exec("/usr/bin/cat /sys/block/".preg_replace("#\d+#i", "", basename($dev))."/queue/discard_max_bytes 2>/dev/null")) ? ",discard" : "";
+		$discard = (file_get_contents("/sys/block/".preg_replace("#\d+#i", "", basename($dev))."/queue/rotational") == 1) ? "" : ",discard";
 	} else {
 		$discard = "";
 	}
@@ -747,7 +747,8 @@ function do_mount_local($info) {
 			if ($fs != "crypto_LUKS") {
 				$cmd = "/sbin/mount -t $fs -o ".get_mount_params($fs, $dev, $ro)." '{$dev}' '{$dir}'";
 			} else {
-				$cmd = "/sbin/mount -o ".get_mount_params($fs, $dev, $ro)." '{$dev}' '{$dir}'";
+				$device = $info['luks'];
+				$cmd = "/sbin/mount -o ".get_mount_params($fs, $device, $ro)." '{$dev}' '{$dir}'";
 			}
 			unassigned_log("Mount drive command: $cmd");
 			$o = shell_exec($cmd." 2>&1");
@@ -880,7 +881,7 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 		if (! is_dir($paths['smb_usb_shares'])) @mkdir($paths['smb_usb_shares'],0755,TRUE);
 		$share_conf = preg_replace("#\s+#", "_", realpath($paths['smb_usb_shares'])."/".$share_name.".conf");
 
-		unassigned_log("Adding SMB share '$share_name'.'");
+		unassigned_log("Adding SMB share '$share_name'.");
 		file_put_contents($share_conf, $share_cont);
 		if (! exist_in_file($paths['smb_extra'], $share_conf)) {
 			$c = (is_file($paths['smb_extra'])) ? @file($paths['smb_extra'],FILE_IGNORE_NEW_LINES) : array();
@@ -898,7 +899,7 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 				if (is_file($recycle_script)) {
 					$recycle_bin_cfg = parse_ini_file( "/boot/config/plugins/recycle.bin/recycle.bin.cfg" );
 					if ($recycle_bin_cfg['INCLUDE_UD'] == "yes") {
-						unassigned_log("Enabling the Recycle Bin on share '$share_name'");
+						unassigned_log("Enabling the Recycle Bin on share '$share_name'.");
 						timed_exec(5, "{$recycle_script} {$share_conf}");
 					}
 				}
@@ -1583,7 +1584,7 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 	return $cmd[$type] ? sprintf($cmd[$type], $dev) : "";
 }
 
-/* Check for a duplicate share name */
+/* Check for a duplicate share name when changing the mount point */
 function check_for_duplicate_share($dev, $mountpoint, $fstype="") {
 
 	$rc = TRUE;
@@ -1622,6 +1623,7 @@ function check_for_duplicate_share($dev, $mountpoint, $fstype="") {
 		}
 	}
 
+	/* Merge samba shares and ud shares */
 	$shares = array_merge($smb_shares, $ud_shares);
 
 	/* See if the share name is already being used */
@@ -1715,12 +1717,14 @@ function change_iso_mountpoint($dev, $mountpoint) {
 	return $rc;
 }
 
+/* Change the xfs disk UUID */
 function change_UUID($dev) {
 	sleep(1);
 	$rc = timed_exec(10, "/usr/sbin/xfs_admin -U generate {$dev}");
 	unassigned_log("Changing disk '{$dev}' UUID. Result: ".$rc);
 }
 
+/* If the disk is not a SSD, set the spin down timer if allowed by settings */
 function setSleepTime($device) {
 	global $paths;
 
