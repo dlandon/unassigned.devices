@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.07.12b">
+<!ENTITY version   "2020.07.13">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"cfa699038b1d677ac44ec83d233cdd98">
+<!ENTITY MD5		"41b77943ed5770c91e49182ea1205173">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Don't refresh UI when 'Automount' switch is changed.
+- Fix: Change status images to fa icons.
+- Fix: SSD partitioning to be compatible with Unraid 6.9 pool devices.  Note: this partitioning is not compatible with earlier versions of Unraid.
+
+###2020.07.12b.
 - Add: Check for duplicate share when changing mount point.
 - Add: Don't mount a disk with a duplicate share name.
 - Add: '-allow-discards' to luksopen so discard and trim will work on encrypted SSD disks.
