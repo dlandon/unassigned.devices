@@ -319,10 +319,9 @@ function format_disk($dev, $fs, $pass) {
 	}
 	shell_exec("/sbin/udevadm trigger --action=change {$dev}");
 
-	unassigned_log("Creating a primary partition on disk '{$dev}'.");
 	if ($fs == "xfs" || $fs == "xfs-encrypted" || $fs == "btrfs" || $fs == "btrfs-encrypted") {
-		$is_ssd = (file_get_contents("/sys/block/".preg_replace("#\d+#i", "", basename($dev))."/queue/rotational") == 1) ? FALSE : TRUE;
-		if (($disk_schema == "gpt") || ($is_ssd)) {
+		$is_ssd = is_disk_ssd($dev);
+		if ($disk_schema == "gpt") {
 			unassigned_log("Creating Unraid compatible gpt partition on disk '{$dev}'.");
 			shell_exec("/sbin/sgdisk -Z {$dev}");
 			/* Alignment is 4,096 for spinners and 1Mb for SSD */
@@ -333,7 +332,8 @@ function format_disk($dev, $fs, $pass) {
 			}
 		} else {
 			unassigned_log("Creating Unraid compatible mbr partition on disk '{$dev}'.");
-			$o = shell_exec("/usr/local/sbin/mkmbr.sh {$dev}");
+			$start_sector = $is_ssd ? "2048" : "64";
+			$o = shell_exec("/usr/local/sbin/mkmbr.sh {$dev} {$start_sector}");
 			if ($o != "") {
 				unassigned_log("Create mbr partition table result:\n$o");
 			}
@@ -517,7 +517,6 @@ function toggle_automount($sn, $status) {
 	$config = @parse_ini_file($config_file, true);
 	$config[$sn]["automount"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
-	@touch($GLOBALS['paths']['reload']);
 	return ($config[$sn]["automount"] == "yes") ? TRUE : FALSE;
 }
 
@@ -611,6 +610,22 @@ function remove_config_disk($sn) {
 	return (! isset($config[$sn])) ? TRUE : FALSE;
 }
 
+function is_disk_ssd($dev) {
+	$rc = FALSE;
+
+	$device = basename($dev);
+	$device = (strpos($device, "nvme") !== false) ? preg_replace("#\d+p#i", "", $device) : preg_replace("#\d+#i", "", $device) ;
+
+	$file = "/sys/block/".$device."/queue/rotational";
+	if (is_file($file)) {
+		$rc = (file_get_contents($file) == 1) ? FALSE : TRUE;
+	} else {
+		unassigned_log("Warning: Can't get rotational setting of '{$device}'.");
+	}
+
+	return $rc;
+}
+
 #########################################################
 ############        MOUNT FUNCTIONS        ##############
 #########################################################
@@ -632,7 +647,7 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 	$config_file	= $GLOBALS["paths"]["config_file"];
 	$config			= @parse_ini_file($config_file, true);
 	if ($config['Config']['discard'] != "no") {
-		$discard = (file_get_contents("/sys/block/".preg_replace("#\d+#i", "", basename($dev))."/queue/rotational") == 1) ? "" : ",discard";
+		$discard = is_disk_ssd($dev) ? ",discard" : "";;
 	} else {
 		$discard = "";
 	}
@@ -701,7 +716,7 @@ function do_mount($info) {
 		} else if ($info['fstype'] == "crypto_LUKS") {
 			if (! is_mounted($info['device']) || ! is_mounted($info['mountpoint'], TRUE)) {
 				$luks	= basename($info['device']);
-				$discard = (file_get_contents("/sys/block/".preg_replace("#\d+#i", "", basename($info['luks']))."/queue/rotational") == 1) ? "" : "--allow-discards";
+				$discard = is_disk_ssd($info['luks']) ? "--allow-discards" : "";
 				$cmd	= "luksOpen $discard {$info['luks']} {$luks}";
 				$pass	= decrypt_data(get_config($info['serial'], "pass"));
 				if ($pass == "") {
@@ -1730,8 +1745,8 @@ function setSleepTime($device) {
 
 	$config_file	= $GLOBALS["paths"]["config_file"];
 	$config			= @parse_ini_file($config_file, true);
-	$device = preg_replace("/\d+$/", "", $device);
-	if ((file_get_contents("/sys/block/".basename($device)."/queue/rotational") == 1) && ($config['Config']['spin_down'] != "no")) {
+	$device			= preg_replace("/\d+$/", "", $device);
+	if (! is_disk_ssd($device)) {
 		unassigned_log("Issue spin down timer for device '{$device}'.");
 		timed_exec(5, "/usr/sbin/hdparm -S180 $device 2>&1");
 	} else {

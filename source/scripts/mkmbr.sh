@@ -5,7 +5,7 @@
 write_signature() {
 	local disk=${device}
 	local disk_blocks=${blocks_512} 
-	local max_mbr_blocks partition_size size1=0 size2=0 sig start_sector=$1 var
+	local max_mbr_blocks partition_size size1=0 size2=0 sig start_sector=${start_sector} var
 	let partition_size=($disk_blocks - $start_sector)
 	max_mbr_blocks=$(printf "%d" 0xFFFFFFFF)
   
@@ -34,8 +34,9 @@ write_signature() {
 
 # Disk properties
 device=$1
+start_sector=$2
 blocks_512=$(blockdev --getsz ${device} 2>/dev/null)
 
 echo "write mbr signature"
-write_signature 64
+write_signature
 echo "done"
