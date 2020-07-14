@@ -1612,6 +1612,7 @@ function check_for_duplicate_share($dev, $mountpoint, $fstype="") {
 	/* Get all shares from the smb configuration file. */
 	$smb_shares = array_keys($smb_config);
 
+	$ud_shares = array();
 	/* Get all disk mounts */
 	foreach (get_all_disks_info() as $name => $info) {
 		foreach ($info['partitions'] as $p) {
