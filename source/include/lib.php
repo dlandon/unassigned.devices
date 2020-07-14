@@ -332,6 +332,7 @@ function format_disk($dev, $fs, $pass) {
 			}
 		} else {
 			unassigned_log("Creating Unraid compatible mbr partition on disk '{$dev}'.");
+			/* Alignment is 4,096 for spinners and 1Mb for SSD */
 			$start_sector = $is_ssd ? "2048" : "64";
 			$o = shell_exec("/usr/local/sbin/mkmbr.sh {$dev} {$start_sector}");
 			if ($o != "") {
