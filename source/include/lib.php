@@ -647,7 +647,7 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 
 	$config_file	= $GLOBALS["paths"]["config_file"];
 	$config			= @parse_ini_file($config_file, true);
-	if ($config['Config']['discard'] != "no") {
+	if (($config['Config']['discard'] != "no") && ($fs != "cifs") && ($fs != "nfs")) {
 		$discard = is_disk_ssd($dev) ? ",discard" : "";;
 	} else {
 		$discard = "";
