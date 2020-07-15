@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.07.13">
+<!ENTITY version   "2020.07.14">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"41b77943ed5770c91e49182ea1205173">
+<!ENTITY MD5		"39f5a5ee5c997c667cae65b9f0f1faf1">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Php array error when checking for duplicate shares.
+- Fix: Warning when mount SSDs with discard option is set to yes and mounting a cifs or nfs device.
+
+###2020.07.13
 - Fix: Don't refresh UI when 'Automount' switch is changed.
 - Fix: Change status images to fa icons.
 - Fix: SSD partitioning to be compatible with Unraid 6.9 pool devices.  Note: this partitioning is not compatible with earlier versions of Unraid.
@@ -1246,7 +1250,7 @@ echo ""
 echo "-----------------------------------------------------------"
 echo " &name; has been installed."
 echo " Copyright 2015, gfjardim"
-echo " Copyright 2016-2019, &author;"
+echo " Copyright 2016-2020, &author;"
 echo " Version: &version;"
 echo ""
 echo " Note:"
