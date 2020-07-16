@@ -179,10 +179,12 @@ function lsof($dir) {
 }
 
 function get_temp($dev, $running) {
+	global $var;
+
 	$rc	= "*";
 	$tc = $GLOBALS["paths"]["hdd_temp"];
 	$temps = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-	if (isset($temps[$dev]) && (time() - $temps[$dev]['timestamp']) < 120 ) {
+	if (isset($temps[$dev]) && (time() - $temps[$dev]['timestamp']) < $var['poll_attributes'] ) {
 		$rc = $temps[$dev]['temp'];
 	} else if ($running) {
 		$cmd	= "/usr/sbin/smartctl -A $dev | /bin/awk 'BEGIN{t=\"*\"} $1==\"Temperature:\"{t=$2;exit};$1==190||$1==194{t=$10;exit} END{print t}'";
