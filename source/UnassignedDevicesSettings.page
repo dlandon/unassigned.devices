@@ -205,7 +205,7 @@ _(Enable SMB Security)_?
 : <select name="smb_security" size="1" onchange="prepareSecurity(this);">
   <?=mk_option($cfg['Config']["smb_security"], "no", "_(No)_");?>
   <?=mk_option($cfg['Config']["smb_security"], "yes", "_(Yes)_");?>
-  <?=mk_option($cfg['Config']["smb_security"], "hidden", "_(Hidden)_");?>
+  <?=mk_option($cfg['Config']["smb_security"], "hidden", "_(Yes (hidden))_");?>
   </select>
 
 <div id="smb_security" style="display: <?=($cfg['Config']["smb_security"] == "no" || $cfg['Config']["smb_security"] == "" ? "none" : "block");?>">
