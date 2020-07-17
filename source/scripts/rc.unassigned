@@ -58,6 +58,8 @@ function unassigned_mount() {
 						}
 						setSleepTime($device);
 						execute_script($info, "ADD");
+						/* Update the partition info */
+						$info = get_partition_info($partition, true);
 						export_disk($info, true);
 					} else {
 						unassigned_log("Partition '{$info['label']}' could not be mounted.");
@@ -84,7 +86,14 @@ function unassigned_mount() {
 				if (do_mount( $info )) {
 					if ($info['smb_share']) {
 						add_smb_share($info['mountpoint'], $info['device'], FALSE);
-						export_disk($info, true);
+						/* Update the samba mount status */
+						foreach (get_samba_mounts() as $info) {
+						$device = $info['device'];
+							if ( $DEVNAME == $device ) {
+								export_disk($info, true);
+								break;
+							}
+						}
 					}
 					execute_script($info, "ADD");
 
@@ -99,7 +108,7 @@ function unassigned_mount() {
 	if (strpos($DEVNAME, "/mnt") === 0 || $DEVNAME == "auto" || $DEVNAME == "autodevices") {
 		foreach (get_iso_mounts() as $info) {
 			$device = $info['device'];
-			if ( $DEVNAME == $device || $DEVNAME == "auto" || $DEVNAME == "autodevices") {
+			if ( $DEVNAME == $device || $DEVNAME == "auto" || $DEVNAME == "autodevices" ) {
 				if (! $info['automount'] && ($DEVNAME == "auto" || $DEVNAME == "autodevices")) {
 					unassigned_log("ISO File mount '{$info['device']}' is not set to auto mount and will not be mounted.");
 					continue;
@@ -110,7 +119,14 @@ function unassigned_mount() {
 					add_smb_share($info['mountpoint'], $info['device'], FALSE);
 					add_nfs_share($info['mountpoint']);
 					execute_script($info, "ADD");
-					export_disk($info, true);
+					/* Update the iso mount status */
+					foreach (get_iso_mounts() as $info) {
+						$device = $info['device'];
+						if ( $DEVNAME == $device ) {
+							export_disk($info, true);
+							break;
+						}
+					}
 				} else {
 					execute_script($info, "ERROR_MOUNT");
 				}
