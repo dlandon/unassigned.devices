@@ -137,7 +137,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 	} else {
 		$mount_point = basename($partition['mountpoint']);
 		$device = ($partition['fstype'] == "crypto_LUKS") ? $partition['luks'] : $partition['device'];
-		$mpoint .= "<i class='fa fa-share partition-hdd'></i><a title='"._("Change Device Mount Point")."' class='exec' onclick='chg_mountpoint(\"{$partition['serial']}\",\"{$partition['part']}\",\"{$device}\",\"{$partition['fstype']}\",\"{$mount_point}\");'>{$mount_point}</a>";
+		$mpoint .= "<i class='fa fa-share partition-hdd'></i><a title='"._("Change Disk Mount Point")."' class='exec' onclick='chg_mountpoint(\"{$partition['serial']}\",\"{$partition['part']}\",\"{$device}\",\"{$partition['fstype']}\",\"{$mount_point}\");'>{$mount_point}</a>";
 		$mpoint .= "{$rm_partition}</span>";
 	}
 	$temp = my_temp($disk['temperature']);
