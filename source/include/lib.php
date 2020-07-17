@@ -179,10 +179,10 @@ function lsof($dir) {
 }
 
 function get_temp($dev, $running) {
-	global $var;
+	global $var, $paths;
 
 	$rc	= "*";
-	$tc = $GLOBALS["paths"]["hdd_temp"];
+	$tc = $paths["hdd_temp"];
 	$temps = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 	if (isset($temps[$dev]) && (time() - $temps[$dev]['timestamp']) < $var['poll_attributes'] ) {
 		$rc = $temps[$dev]['temp'];
@@ -647,7 +647,7 @@ function is_mounted($dev, $dir=FALSE) {
 function get_mount_params($fs, $dev, $ro = FALSE) {
 	global $paths, $use_netbios;
 
-	$config_file	= $GLOBALS["paths"]["config_file"];
+	$config_file	= $paths["config_file"];
 	$config			= @parse_ini_file($config_file, true);
 	if (($config['Config']['discard'] != "no") && ($fs != "cifs") && ($fs != "nfs")) {
 		$discard = is_disk_ssd($dev) ? ",discard" : "";;
@@ -1125,7 +1125,7 @@ function get_samba_mounts() {
 	global $paths;
 
 	$o = array();
-	$config_file = $GLOBALS["paths"]["samba_mount"];
+	$config_file = $paths["samba_mount"];
 	$samba_mounts = @parse_ini_file($config_file, true);
 	foreach ($samba_mounts as $device => $mount) {
 		$mount['device'] = $device;
@@ -1177,7 +1177,7 @@ function do_mount_samba($info) {
 	global $use_netbios, $paths;
 
 	$rc = FALSE;
-	$config_file	= $GLOBALS["paths"]["config_file"];
+	$config_file	= $paths["config_file"];
 	$config			= @parse_ini_file($config_file, true);
 	if ($info['is_alive']) {
 		$dev = $info['device'];
@@ -1316,7 +1316,7 @@ function get_iso_mounts() {
 	global $paths;
 
 	$o = array();
-	$config_file = $GLOBALS["paths"]["iso_mount"];
+	$config_file = $paths["iso_mount"];
 	$iso_mounts = @parse_ini_file($config_file, true);
 	foreach ($iso_mounts as $device => $mount) {
 		$mount['device'] = $device;
@@ -1747,7 +1747,7 @@ function change_UUID($dev) {
 function setSleepTime($device) {
 	global $paths;
 
-	$config_file	= $GLOBALS["paths"]["config_file"];
+	$config_file	= $paths["config_file"];
 	$config			= @parse_ini_file($config_file, true);
 	$device			= preg_replace("/\d+$/", "", $device);
 	if (! is_disk_ssd($device)) {
