@@ -842,7 +842,6 @@ function config_shared($sn, $part, $usb=FALSE) {
 function toggle_share($serial, $part, $status) {
 	$new = ($status == "true") ? "yes" : "no";
 	set_config($serial, "share.{$part}", $new);
-	@touch($GLOBALS['paths']['reload']);
 	return ($new == 'yes') ? TRUE : FALSE;
 }
 
@@ -1242,7 +1241,6 @@ function do_mount_samba($info) {
 			if (is_mounted($dev)) {
 				@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
 				unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
-				@touch($paths['reload']);
 				$rc = TRUE;
 			} else {
 				@rmdir($dir);
