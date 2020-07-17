@@ -101,7 +101,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	<?=$Preclear ? $Preclear->Script() : "";?>
 
 	function rm_preclear(dev) {
-		$.post(URL,{action:"rm_preclear",device:dev}).always(function(){usb_disks(tab_usbdisks)});
+		$.post(UDURL,{action:"rm_preclear",device:dev}).always(function(){usb_disks(tab_usbdisks)});
 	}
 
 	if (typeof " ".formatUnicorn !== "function")
@@ -191,7 +191,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		} else if (part) {
 			tr.prev('tr.toggle-disk').find('.mount').html(td.html());
 		}
-		$.post(URL,{'action':op,'device':device},function(data)
+		$.post(UDURL,{'action':op,'device':device},function(data)
 		{
 			opt = (op == "mount") ? "<?=_('Mounting')?>..." : "<?=_('Unmounting')?>...";
 			text = "<i class='fa fa-circle-o-notch fa-spin'></i> " + opt;
@@ -229,7 +229,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			});
 		}
 
-		$.post(URL,{action:"get_content",display:display},function(data)
+		$.post(UDURL,{action:"get_content",display:display},function(data)
 		{
 			maxWidth = [];
 			var toggled = $("tr.toggle-parts").filter(":visible").map(function(){return $(this).attr("name");}).get();
@@ -257,7 +257,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 				timers.usbdisks=setTimeout('detect_usb_disk_change('+tabnum+')',1000);
 				return false;
 			}
-			$.post(URL,{action:"detect"},function(data)
+			$.post(UDURL,{action:"detect"},function(data)
 			{
 				do_reload = false;
 				if (diskinfo && diskinfo !== data.diskinfo )
@@ -267,7 +267,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 				if(data.reload)
 				{
 					do_reload = true;
-					$.post(URL,{action:"remove_hook"});
+					$.post(UDURL,{action:"remove_hook"});
 				}
 				diskinfo = data.diskinfo;
 				if (do_reload)
@@ -302,7 +302,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		var target = $(el).parents("div").find("*[name='IP']");
 		var old = $(el).html();
 		$(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> <?=_('Searching');?>...");
-		$.post(URL,{'action': action, 'var': vars, 'network': network, 'workgroup': workgroup}).done(function(data)
+		$.post(UDURL,{'action': action, 'var': vars, 'network': network, 'workgroup': workgroup}).done(function(data)
 		{
 			$(el).html(old);
 			if (data) {
@@ -333,7 +333,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		opts["IP"] = ip;
 		opts["USER"] = user;
 		opts["PASS"] = pass;
-		$.post(URL,opts).done(function(data)
+		$.post(UDURL,opts).done(function(data)
 		{
 			$(el).html(old);
 			if (data != " ") {
@@ -656,7 +656,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	?>
 
 	var tab_usbdisks	= $('input[name$="tabs"]').length;
-	var URL				= '/plugins/<?=$plugin;?>/UnassignedDevices.php';
+	var UDURL		= '/plugins/<?=$plugin;?>/UnassignedDevices.php';
 	var diskinfo		= "";
 
 	if (typeof swal2 === "undefined")
@@ -718,7 +718,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		{
 			checkbox.change(function()
 			{
-				$.post(URL,{action:"automount",serial:$(this).attr("serial"),status:$(this).is(":checked")},function(data)
+				$.post(UDURL,{action:"automount",serial:$(this).attr("serial"),status:$(this).is(":checked")},function(data)
 				{
 					$(this).prop("checked",data.automount);
 				},"json");
@@ -729,7 +729,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		{
 			checkbox.change(function()
 			{
-				$.post(URL,{action:"samba_automount",device:$(this).attr("device"),status:$(this).is(":checked")},function(data)
+				$.post(UDURL,{action:"samba_automount",device:$(this).attr("device"),status:$(this).is(":checked")},function(data)
 				{
 					$(this).prop("checked",data.automount);
 				},"json");
@@ -740,7 +740,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		{
 			checkbox.change(function()
 			{
-				$.post(URL,{action:"iso_automount",device:$(this).attr("device"),status:$(this).is(":checked")},function(data)
+				$.post(UDURL,{action:"iso_automount",device:$(this).attr("device"),status:$(this).is(":checked")},function(data)
 				{
 					$(this).prop("checked",data.automount);
 				},"json");
@@ -751,7 +751,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		{
 			checkbox.change(function()
 			{
-				$.post(URL,{action:"toggle_share",info:$(this).attr("info"),status:$(this).is(":checked")},function(data)
+				$.post(UDURL,{action:"toggle_share",info:$(this).attr("info"),status:$(this).is(":checked")},function(data)
 				{
 					$(this).prop("checked",data.result);
 				},"json");
@@ -762,7 +762,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		{
 			checkbox.change(function()
 			{
-				$.post(URL,{action:"toggle_samba_share",info:$(this).attr("info"),status:$(this).is(":checked")},function(data)
+				$.post(UDURL,{action:"toggle_samba_share",info:$(this).attr("info"),status:$(this).is(":checked")},function(data)
 				{
 					$(this).prop("checked",data.result);
 				},"json");
@@ -773,7 +773,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		{
 			checkbox.change(function()
 			{
-				$.post(URL,{action:"toggle_read_only",serial:$(this).attr("serial"),status:$(this).is(":checked")},function(data)
+				$.post(UDURL,{action:"toggle_read_only",serial:$(this).attr("serial"),status:$(this).is(":checked")},function(data)
 				{
 					$(this).prop("checked",data.result);
 				},"json");
@@ -784,7 +784,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		{
 			checkbox.change(function()
 			{
-				$.post(URL,{action:"toggle_pass_through",serial:$(this).attr("serial"),status:$(this).is(":checked")},function(data)
+				$.post(UDURL,{action:"toggle_pass_through",serial:$(this).attr("serial"),status:$(this).is(":checked")},function(data)
 				{
 					$(this).prop("checked",data.result);
 				},"json");
@@ -802,7 +802,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		/* Add icons to Tab/Title bar */
 		addButtonTab('<a title="<?=_("Unassigned Devices Settings");?>" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>',
 								 "<?=_('Unassigned Devices');?>");
-		addButtonTab('<a style="cursor:pointer;" onclick="$.post(\''+URL+'\',{\'action\':\'rescan_disks\'});" title="<?=_("Rescan Disks");?>"><i class="fa fa-refresh"></i></a>',
+		addButtonTab('<a style="cursor:pointer;" onclick="$.post(\''+UDURL+'\',{\'action\':\'rescan_disks\'});" title="<?=_("Rescan Disks");?>"><i class="fa fa-refresh"></i></a>',
 								 "<?=_('Unassigned Devices');?>");
 		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch On to Show All Partitions");?>"><input type="checkbox" class="partitions-switch"></a>',
 								 "<?=_('Unassigned Devices');?>");
@@ -820,7 +820,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		$('.partitions-switch').switchButton({ labels_placement: "left", on_label: "<?=_('All');?>", off_label: "<?=_('None');?>", checked: "<?=$show_all_partitions;?>" == 'yes'});
 		$('.partitions-switch').change(function()
 		{
-			$.post(URL,{action:"toggle_show_partitions",status:$(".partitions-switch").is(":checked")},function(data)
+			$.post(UDURL,{action:"toggle_show_partitions",status:$(".partitions-switch").is(":checked")},function(data)
 			{
 				$(".partitions-switch").prop("checked",data.result);
 			},"json");
