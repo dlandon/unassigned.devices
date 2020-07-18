@@ -478,6 +478,8 @@ function timed_exec($timeout=10, $cmd) {
 	if ($time >= $timeout) {
 		unassigned_log("Error: shell_exec(".$cmd.") took longer than ".sprintf('%d', $timeout)."s!");
 		$out	= "command timed out";
+	} else {
+		unassigned_log("Timed Exec: shell_exec(".$cmd.") took ".sprintf('%f', $time)."s!", "DEBUG");
 	}
 	return $out;
 }
@@ -1135,13 +1137,13 @@ function get_samba_mounts() {
 			$mount['fstype'] = "cifs";
 		}
 
-		$is_alive = (trim(exec("/bin/ping -c 1 -W 2 {$mount['ip']} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+		$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$mount['ip']} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
 		if (! $is_alive && ! is_ip($mount['ip']))
 		{
 			$ip = trim(timed_exec(5, "/usr/bin/nmblookup {$mount['ip']} | /bin/head -n1 | /bin/awk '{print $1}'"));
 			if (is_ip($ip))
 			{
-				$is_alive = (trim(exec("/bin/ping -c 2 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+				$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
 			}
 		}
 
