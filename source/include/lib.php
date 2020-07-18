@@ -708,46 +708,42 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 function do_mount($info) {
 	global $var, $paths;
 
-	$device = ($info['fstype'] == 'crypto_LUKS') ? $info['luks'] : $info['device'];
-	$rc = check_for_duplicate_share($device, basename($info['mountpoint']), $info['fstype']);
-	if ($rc) {
-		$rc = FALSE;
-		if ($info['fstype'] == "cifs" || $info['fstype'] == "nfs") {
-			$rc = do_mount_samba($info);
-		} else if($info['fstype'] == "loop") {
-			$rc = do_mount_iso($info);
-		} else if ($info['fstype'] == "crypto_LUKS") {
-			if (! is_mounted($info['device']) || ! is_mounted($info['mountpoint'], TRUE)) {
-				$luks	= basename($info['device']);
-				$discard = is_disk_ssd($info['luks']) ? "--allow-discards" : "";
-				$cmd	= "luksOpen $discard {$info['luks']} {$luks}";
-				$pass	= decrypt_data(get_config($info['serial'], "pass"));
-				if ($pass == "") {
-					if (file_exists($var['luksKeyfile'])) {
-						$cmd	= $cmd." -d {$var['luksKeyfile']}";
-						$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
-					} else {
-						$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
-					}
-				} else {
-					$luks_pass_file = "{$paths['luks_pass']}_".$luks;
-					file_put_contents($luks_pass_file, $pass);
-					$cmd	= $cmd." -d $luks_pass_file";
+	$rc = FALSE;
+	if ($info['fstype'] == "cifs" || $info['fstype'] == "nfs") {
+		$rc = do_mount_samba($info);
+	} else if($info['fstype'] == "loop") {
+		$rc = do_mount_iso($info);
+	} else if ($info['fstype'] == "crypto_LUKS") {
+		if (! is_mounted($info['device']) || ! is_mounted($info['mountpoint'], TRUE)) {
+			$luks	= basename($info['device']);
+			$discard = is_disk_ssd($info['luks']) ? "--allow-discards" : "";
+			$cmd	= "luksOpen $discard {$info['luks']} {$luks}";
+			$pass	= decrypt_data(get_config($info['serial'], "pass"));
+			if ($pass == "") {
+				if (file_exists($var['luksKeyfile'])) {
+					$cmd	= $cmd." -d {$var['luksKeyfile']}";
 					$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
-					exec("/bin/shred -u $luks_pass_file");
-				}
-				if ($o != "") {
-					unassigned_log("luksOpen error: ".$o);
-					shell_exec("/sbin/cryptsetup luksClose ".basename($info['device']));
 				} else {
-					$rc = do_mount_local($info);
+					$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
 				}
 			} else {
-				unassigned_log("Drive '{$info['device']}' already mounted.");
+				$luks_pass_file = "{$paths['luks_pass']}_".$luks;
+				file_put_contents($luks_pass_file, $pass);
+				$cmd	= $cmd." -d $luks_pass_file";
+				$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+				exec("/bin/shred -u $luks_pass_file");
+			}
+			if ($o != "") {
+				unassigned_log("luksOpen error: ".$o);
+				shell_exec("/sbin/cryptsetup luksClose ".basename($info['device']));
+			} else {
+				$rc = do_mount_local($info);
 			}
 		} else {
-			$rc = do_mount_local($info);
+			unassigned_log("Drive '{$info['device']}' already mounted.");
 		}
+	} else {
+		$rc = do_mount_local($info);
 	}
 	return $rc;
 }
