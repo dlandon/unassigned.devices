@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.07.14">
+<!ENTITY version   "2020.07.17">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"39f5a5ee5c997c667cae65b9f0f1faf1">
+<!ENTITY MD5		"e5a617f62caac413f910506940fb02d9">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,13 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Use Unraid 'poll_attributes' setting to update disk temperatures.
+- Fix: Update export data json file.
+- Fix: Resolve URL naming conflict.
+- Fix: Cut down on UI updating.
+- Fix: Don't check for duplicate share name when mounting a device.
+
+###2020.07.14
 - Fix: Php array error when checking for duplicate shares.
 - Fix: Warning when mount SSDs with discard option is set to yes and mounting a cifs or nfs device.
 
