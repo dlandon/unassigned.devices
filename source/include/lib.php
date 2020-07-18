@@ -182,17 +182,19 @@ function get_temp($dev, $running) {
 	global $var, $paths;
 
 	$rc	= "*";
-	$tc = $paths["hdd_temp"];
-	$temps = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-	if (isset($temps[$dev]) && (time() - $temps[$dev]['timestamp']) < $var['poll_attributes'] ) {
-		$rc = $temps[$dev]['temp'];
-	} else if ($running) {
-		$cmd	= "/usr/sbin/smartctl -A $dev | /bin/awk 'BEGIN{t=\"*\"} $1==\"Temperature:\"{t=$2;exit};$1==190||$1==194{t=$10;exit} END{print t}'";
-		$temp	= trim(timed_exec(10, $cmd));
-		$temp	= ($temp < 128) ? $temp : "*";
-		$temps[$dev] = array('timestamp' => time(), 'temp' => $temp);
-		file_put_contents($tc, json_encode($temps));
-		$rc = $temp;
+	if ($running) {
+		$tc = $paths["hdd_temp"];
+		$temps = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+		if (isset($temps[$dev]) && (time() - $temps[$dev]['timestamp']) < $var['poll_attributes'] ) {
+			$rc = $temps[$dev]['temp'];
+		} else {
+			$cmd	= "/usr/sbin/smartctl -A $dev | /bin/awk 'BEGIN{t=\"*\"} $1==\"Temperature:\"{t=$2;exit};$1==190||$1==194{t=$10;exit} END{print t}'";
+			$temp	= trim(timed_exec(10, $cmd));
+			$temp	= ($temp < 128) ? $temp : "*";
+			$temps[$dev] = array('timestamp' => time(), 'temp' => $temp);
+			file_put_contents($tc, json_encode($temps));
+			$rc = $temp;
+		}
 	}
 	return $rc;
 }
