@@ -29,7 +29,7 @@ function unassigned_mount() {
 		$device = $disk['device'];
 		foreach ($disk['partitions'] as $partition)
 		{
-			if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "auto" || $DEVNAME == "autodevices") {
+			if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "auto" || $DEVNAME == "autodevices" ) {
 				$info = get_partition_info($partition, true);
 				if ($info['serial'] == "") {
 					unassigned_log("Disk '{$device}' does not have a serial number and cannot be mounted.");
