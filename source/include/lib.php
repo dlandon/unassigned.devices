@@ -21,6 +21,7 @@ $paths = [  "smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"state"				=> "/var/state/{$plugin}/{$plugin}.ini",
 			"mounted"			=> "/var/state/{$plugin}/{$plugin}.json",
 			"hdd_temp"			=> "/var/state/{$plugin}/hdd_temp.json",
+			"run_status"		=> "/var/state/{$plugin}/run_status.json",
 			"samba_mount"		=> "/tmp/{$plugin}/config/samba_mount.cfg",
 			"iso_mount"			=> "/tmp/{$plugin}/config/iso_mount.cfg",
 			"reload"			=> "/var/state/{$plugin}/reload.state",
@@ -162,8 +163,22 @@ function exist_in_file($file, $val) {
 }
 
 function is_disk_running($dev) {
-	$state = trim(timed_exec(10, "/usr/sbin/hdparm -C $dev 2>/dev/null | /bin/grep -c standby"));
-	return ($state == 0) ? TRUE : FALSE;
+	global $paths;
+
+	$rc = TRUE;
+	if (! is_disk_ssd($dev)) {
+		$tc = $paths["run_status"];
+		$running = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+		if (isset($running[$dev]) && (time() - $running[$dev]['timestamp']) < 30 ) {
+			$rc = $runnng[$dev]['running'];
+		} else {
+			$state = trim(timed_exec(10, "/usr/sbin/hdparm -C $dev 2>/dev/null | /bin/grep -c standby"));
+			$rc = ($state == 0) ? TRUE : FALSE;
+			$running[$dev] = array('timestamp' => time(), 'running' => $rc);
+			file_put_contents($tc, json_encode($running));
+		}
+	}
+	return $rc;
 }
 
 function is_script_running($cmd) {
