@@ -838,6 +838,7 @@ function config_shared($sn, $part, $usb=FALSE) {
 function toggle_share($serial, $part, $status) {
 	$new = ($status == "true") ? "yes" : "no";
 	set_config($serial, "share.{$part}", $new);
+	@touch($GLOBALS['paths']['reload']);
 	return ($new == 'yes') ? TRUE : FALSE;
 }
 
