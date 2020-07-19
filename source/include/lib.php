@@ -165,18 +165,16 @@ function exist_in_file($file, $val) {
 function is_disk_running($dev) {
 	global $paths;
 
-	$rc = TRUE;
-	if (! is_disk_ssd($dev)) {
-		$tc = $paths["run_status"];
-		$running = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-		if (isset($running[$dev]) && (time() - $running[$dev]['timestamp']) < 30 ) {
-			$rc = $runnng[$dev]['running'];
-		} else {
-			$state = trim(timed_exec(10, "/usr/sbin/hdparm -C $dev 2>/dev/null | /bin/grep -c standby"));
-			$rc = ($state == 0) ? TRUE : FALSE;
-			$running[$dev] = array('timestamp' => time(), 'running' => $rc);
-			file_put_contents($tc, json_encode($running));
-		}
+	$rc = FALSE;
+	$tc = $paths["run_status"];
+	$run_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+	if (isset($run_status[$dev]) && (time() - $run_status[$dev]['timestamp']) < 30 ) {
+		$rc = ($run_status[$dev]['running'] == 'yes') ? TRUE : FALSE;
+	} else {
+		$state = trim(timed_exec(10, "/usr/sbin/hdparm -C $dev 2>/dev/null | /bin/grep -c standby"));
+		$rc = ($state == 0) ? TRUE : FALSE;
+		$run_status[$dev] = array('timestamp' => time(), 'running' => $rc ? 'yes' : 'no');
+		file_put_contents($tc, json_encode($run_status));
 	}
 	return $rc;
 }
@@ -1498,6 +1496,7 @@ function get_disk_info($device, $reload=FALSE){
 	$disk['serial_short'] = isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
 	$disk['serial']		= "{$attrs['ID_MODEL']}_{$disk['serial_short']}";
 	$disk['device']		= $device;
+	$disk['ssd']		= is_disk_ssd($device);
 	$disk['command']	= get_config($disk['serial'],"command.1");
 	return $disk;
 }
