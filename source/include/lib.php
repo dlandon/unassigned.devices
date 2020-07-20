@@ -183,11 +183,11 @@ function is_disk_running($dev) {
 function is_samba_server_online($mount) {
 	global $paths;
 
-	$dev = $mount['device'];
+	$server = $mount['ip'];
 	$tc = $paths["ping_status"];
 	$ping_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-	if (isset($ping_status[$dev]) && (time() - $ping_status[$dev]['timestamp']) < 27 ) {
-		$is_alive = ($ping_status[$dev]['online'] == 'yes') ? TRUE : FALSE;
+	if (isset($ping_status[$server]) && (time() - $ping_status[$server]['timestamp']) < 27 ) {
+		$is_alive = ($ping_status[$server]['online'] == 'yes') ? TRUE : FALSE;
 	} else {
 		$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$mount['ip']} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
 		if (! $is_alive && ! is_ip($mount['ip']))
@@ -202,7 +202,7 @@ function is_samba_server_online($mount) {
 		if (! $is_alive && $mount['mounted']) {
 			unassigned_log("SMB/NFS server '{$mount['ip']}' is not responding to a ping and appears to be offline.");
 		}
-		$ping_status[$dev] = array('timestamp' => time(), 'online' => $is_alive ? 'yes' : 'no');
+		$ping_status[$server] = array('timestamp' => time(), 'online' => $is_alive ? 'yes' : 'no');
 		file_put_contents($tc, json_encode($ping_status));
 	}
 
