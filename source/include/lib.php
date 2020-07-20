@@ -668,7 +668,7 @@ function is_disk_ssd($dev) {
 
 	$file = "/sys/block/".$device."/queue/rotational";
 	if (is_file($file)) {
-		$rc = (file_get_contents($file) == 1) ? FALSE : TRUE;
+		$rc = (@file_get_contents($file) == 0) ? TRUE : FALSE;
 	} else {
 		unassigned_log("Warning: Can't get rotational setting of '{$device}'.");
 	}
