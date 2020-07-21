@@ -200,7 +200,7 @@ function is_samba_server_online($mount) {
 		}
 
 		if (! $is_alive && $mount['mounted']) {
-			unassigned_log("SMB/NFS server '{$mount['ip']}' is not responding to a ping and appears to be offline.");
+			unassigned_log("SMB/NFS server '{$server}' is not responding to a ping and appears to be offline.");
 		}
 		$ping_status[$server] = array('timestamp' => time(), 'online' => $is_alive ? 'yes' : 'no');
 		file_put_contents($tc, json_encode($ping_status));
