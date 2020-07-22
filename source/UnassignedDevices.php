@@ -26,7 +26,6 @@ if ($translations) {
 
 require_once("plugins/{$plugin}/include/lib.php");
 require_once("webGui/include/Helpers.php");
-$csrf_token = $var['csrf_token'];
 
 if (isset($_POST['display'])) $display = $_POST['display'];
 if (isset($_POST['var'])) $var = $_POST['var'];
@@ -108,7 +107,7 @@ function render_used_and_free_disk($disk, $mounted) {
 }
 
 function render_partition($disk, $partition, $total=FALSE) {
-	global $plugin, $paths, $echo, $csrf_token;
+	global $plugin, $paths, $echo;
 
 	if (! isset($partition['device'])) return array();
 	$out = array();
