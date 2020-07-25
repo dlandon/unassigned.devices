@@ -45,7 +45,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	table.usb_disks {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
 	table.usb_disks thead tr>td{text-align:left;width:8%;}
 	table.usb_disks tr>td{text-align:left;white-space:nowrap;}
-	table.usb_disks tr>td+td+td+td{width:auto;}
+	table.usb_disks tr>td+td+td+td{text-align:center;width:auto;}
+	table.usb_disks tr>td+td+td+td+td+td+td{text-align:right;}
 	table.usb_disks tr>td+td+td+td+td+td+td+td+td+td{text-align:left;}
 	table.usb_disks tr>td+td+td+td+td+td+td+td+td+td+td+td+td+td{text-align:center;}
 
@@ -54,15 +55,16 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	table.usb_absent tr>td{text-align:left;white-space:nowrap;}
 	table.usb_absent tr>td+td{text-align:left;width:auto;}
 	table.usb_absent tr>td+td+td{text-align:left;}
-	table.usb_absent tr>td+td+td{text-align:left;}
 	table.usb_absent tr>td+td+td+td+td{text-align:center;}
 
 	table.samba_mounts {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
 	table.samba_mounts thead tr>td{text-align:left;width:8%;}
-	table.samba_mounts tr>td{text-align:left;white-space:nowrap;}
-	table.samba_mounts tr>td+td{width:auto;}
-	table.samba_mounts tr>td+td+td+td+td+td+td+td{text-align:left;}
-	table.samba_mounts tr>td+td+td+td+td+td+td+td+td+td+td{text-align:center}
+	table.samba_mounts tr>td{text-align:left;white-space:nowrap;witdh:auto;}
+	table.samba_mounts tr>td+td{text-align:left;width:auto;}
+	table.samba_mounts tr>td+td+td+td+td{text-align:center;}
+	table.samba_mounts tr>td+td+td+td+td+td+td+td{text-align:right;}
+	table.samba_mounts tr>td+td+td+td+td+td+td+td+td+td+td+td{text-align:left;}
+	table.samba_mounts tr>td+td+td+td+td+td+td+td+td+td+td+td+td{text-align:center}
 
 	button.mount {padding:2px 4px 3px 6px;margin:1px 0px 1px 0px;}
 	i.partition-hdd{margin:5px; 0px; 0px; 0px;}

@@ -347,7 +347,7 @@ switch ($_POST['action']) {
 		# SAMBA Mounts
 		echo "<div id='smb_tab' class='show-complete'>";
 		echo "<div id='title'><span class='left'><img src='/plugins/$plugin/icons/smbsettings.png' class='icon'>"._('SMB Shares')." &nbsp;|&nbsp;<img src='/plugins/$plugin/icons/nfs.png' class='icon'>"._('NFS Shares')." &nbsp;|&nbsp;<img src='/plugins/$plugin/icons/iso.png' class='icon' style='width:16px;'>"._('ISO File Shares')."</span></div>";
-		echo "<table class='disk_status wide samba_mounts'><thead><tr><td>"._('Device')."</td><td>"._('Source')."</td><td>"._('Mount point')."</td><td></td><td>"._('Remove')."</td><td>"._('Size')."</td><td>"._('Used')."</td><td>"._('Free')."</td><td>"._('Auto mount')."</td><td>"._('Share')."</td><td>"._('Script')."</td></tr></thead>";
+		echo "<table class='disk_status wide samba_mounts'><thead><tr><td>"._('Device')."</td><td>"._('Source')."</td><td>"._('Mount point')."</td><td></td><td>"._('Remove')."</td><td>"._('Size')."</td><td>"._('Used')."</td><td>"._('Free')."</td><td></td><td></td><td>"._('Auto mount')."</td><td>"._('Share')."</td><td>"._('Script')."</td></tr></thead>";
 		echo "<tbody>";
 		$ds1 = time();
 		$samba_mounts = get_samba_mounts();
@@ -360,7 +360,7 @@ switch ($_POST['action']) {
 				echo "<tr>";
 				$protocol = $mount['protocol'] == "NFS" ? "nfs" : "smb";
 				printf( "<td><i class='fa fa-circle orb %s'></i>%s</td>", ( $is_alive ? "green-orb" : "grey-orb" ), $protocol);
-				echo "<td>{$mount['name']}</td>";
+				echo "<td>{$mount['name']}";
 				$mount_point = basename($mount['mountpoint']);
 				if ($mounted) {
 					echo "<td><i class='fa fa-share-alt mount-share'></i><a title='"._("Browse Remote SMB/NFS Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
@@ -371,7 +371,7 @@ switch ($_POST['action']) {
 						</td>";
 				}
 
-				$disabled = $is_alive ? "enabled":"disabled";
+				$disabled = $is_alive ? "enabled" : "disabled";
 				$cmd = get_samba_config($mount['device'],"command");
 				$script_running = is_script_running($cmd);
 				if ($script_running) {
@@ -382,6 +382,7 @@ switch ($_POST['action']) {
 				echo $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec' style='color:red;font-weight:bold;' onclick='remove_samba_config(\"{$mount['name']}\");' title='"._("Remove Remote SMB/NFS Share")."'> <i class='fa fa-remove hdd'></i></a></td>";
 				echo "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				echo render_used_and_free($mount, $mounted);
+				echo "<td></td><td></td>";
 				echo "<td title='"._("Turn on to Mount Remote SMB/NFS Share when Array is Started")."'><input type='checkbox' class='samba_automount' device='{$mount['name']}' ".(($mount['automount']) ? 'checked':'')." /></td>";
 				echo "<td title='"._("Turn on to Share Remote Mount with SMB and/or NFS")."'><input type='checkbox' class='toggle_samba_share' info='".htmlentities(json_encode($mount))."' ".(($mount['smb_share']) ? 'checked':'')." /></td>";
 				echo "<td><a title='"._("View Remote SMB/NFS Script Log")."' href='/Main/ScriptLog?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><i class='fa fa-align-left'></i></a>";
@@ -420,6 +421,7 @@ switch ($_POST['action']) {
 				echo $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec' style='color:red;font-weight:bold;' onclick='remove_iso_config(\"{$mount['device']}\");' title='"._("Remove ISO File Share")."'> <i class='fa fa-remove hdd'></i></a></td>";
 				echo "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				echo render_used_and_free($mount, $mounted);
+				echo "<td></td><td></td>";
 				echo "<td title='"._("Turn on to Mount ISO File when Array is Started")."'><input type='checkbox' class='iso_automount' device='{$mount['device']}' ".(($mount['automount']) ? 'checked':'')." /></td>";
 				echo "<td></td>";
 				echo "<td><a title='"._("View ISO File Script Log")."' href='/Main/ScriptLog?i=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><i class='fa fa-align-left'></i></a>";
