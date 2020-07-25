@@ -54,14 +54,13 @@ function netmasks($netmask, $rev = false)
 function render_used_and_free($partition, $mounted) {
 	global $display;
 
-	$o = "";
 	if (strlen($partition['target']) && $mounted) {
 		$free_pct = $partition['size'] ? round(100*$partition['avail']/$partition['size']) : 0;
 		$used_pct = 100-$free_pct;
 	    if ($display['text'] % 10 == 0) {
-			$o .= "<td>".my_scale($partition['used'], $unit)." $unit</td>";
+			$o = "<td>".my_scale($partition['used'], $unit)." $unit</td>";
 		} else {
-			$o .= "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'></span><span>".my_scale($partition['used'], $unit)." $unit</span></div></td>";
+			$o = "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'></span><span>".my_scale($partition['used'], $unit)." $unit</span></div></td>";
 		}
 	    if ($display['text'] < 10 ? $display['text'] % 10 == 0 : $display['text'] % 10 != 0) {
 			$o .= "<td>".my_scale($partition['avail'], $unit)." $unit</td>";
@@ -70,7 +69,7 @@ function render_used_and_free($partition, $mounted) {
 		}
 
 	} else {
-		$o .= "<td>-</td><td>-</td>";
+		$o = "<td>-</td><td>-</td>";
 	}
 	return $o;
 }
@@ -78,7 +77,6 @@ function render_used_and_free($partition, $mounted) {
 function render_used_and_free_disk($disk, $mounted) {
 	global $display;
 
-	$o = "";
 	if ($mounted) {
 		$size	= 0;
 		$avail	= 0;
@@ -91,9 +89,9 @@ function render_used_and_free_disk($disk, $mounted) {
 		$free_pct = $size ? round(100*$avail/$size) : 0;
 		$used_pct = 100-$free_pct;
 	    if ($display['text'] % 10 == 0) {
-			$o .= "<td>".my_scale($used, $unit)." $unit</td>";
+			$o = "<td>".my_scale($used, $unit)." $unit</td>";
 		} else {
-			$o .= "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'></span><span>".my_scale($used, $unit)." $unit</span></div></td>";
+			$o = "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'></span><span>".my_scale($used, $unit)." $unit</span></div></td>";
 		}
 	    if ($display['text'] < 10 ? $display['text'] % 10 == 0 : $display['text'] % 10 != 0) {
 			$o .= "<td>".my_scale($avail, $unit)." $unit</td>";
@@ -101,7 +99,7 @@ function render_used_and_free_disk($disk, $mounted) {
 			$o .= "<td><div class='usage-disk'><span style='margin:0;width:$free_pct%' class='".usage_color($display,$free_pct,true)."'></span><span>".my_scale($avail, $unit)." $unit</span></div></td>";
 		}
 	} else {
-		$o .= "<td>-</td><td>-</td>";
+		$o = "<td>-</td><td>-</td>";
 	}
 	return $o;
 }
@@ -148,7 +146,6 @@ function render_partition($disk, $partition, $total=FALSE) {
 	$out[] = "<td>{$mpoint}</td>";
 	$out[] = "<td class='mount'>{$mbutton}</td>";
 	$out[] = "<td></td>";
-	$fstype = $partition['fstype'];
 	if ($total) {
 		foreach ($disk['partitions'] as $part) {
 			if ($part['fstype']) {
@@ -156,8 +153,9 @@ function render_partition($disk, $partition, $total=FALSE) {
 				break;
 			}
 		}
+	} else {
+		$fstype = $partition['fstype'];
 	}
-
 	$out[] = "<td>".($fstype == "crypto_LUKS" ? "luks" : $fstype)."</td>";
 	if ($total) {
 		$mounted_disk = FALSE;
@@ -170,23 +168,13 @@ function render_partition($disk, $partition, $total=FALSE) {
 		}
 
 		$out[] = "<td>".($mounted_disk && strlen($open_files) ? $open_files : "-")."</td>";
-	} else {
-		$out[] = "<td>".($mounted ? $partition['openfiles'] : "-")."</td>";
-	}
-	if ($total) {
-		$mounted_disk = FALSE;
-		foreach ($disk['partitions'] as $part) {
-			if ($part['mounted']) {
-				$mounted_disk = TRUE;
-				break;
-			}
-		}
 		$out[] = "<td></td>";
 		$out[] = render_used_and_free_disk($disk, $mounted_disk);
 		$out[] = "<td title='"._("Turn on to mark this Device as passed through to a VM or Docker")."'><input type='checkbox' class='toggle_pass_through' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['pass_through']) ? 'checked':'')." /></td>";
 		$out[] = "<td title='"._("Turn on to Mount Device Read only")."'><input type='checkbox' class='toggle_read_only' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['read_only']) ? 'checked':'')." /></td>";
 		$out[] = "<td title='"._("Turn on to Mount Device when Array is Started")."'><input type='checkbox' class='automount' serial='".$disk['partitions'][0]['serial']."' ".(($disk['partitions'][0]['automount']) ? 'checked':'')." /></td>";
 	} else {
+		$out[] = "<td>".($mounted ? $partition['openfiles'] : "-")."</td>";
 		$out[] = "<td>".my_scale($partition['size'], $unit)." $unit</td>";
 		$out[] = render_used_and_free($partition, $mounted);
 		$out[] = "<td></td>";
@@ -435,15 +423,15 @@ switch ($_POST['action']) {
 			if (! preg_grep("#{$serial}#", $disks_serials)){
 				$mountpoint	= basename(get_config($serial, "mountpoint.1"));
 				$ct .= "<tr><td><i class='fa fa-circle orb grey-orb'></i>"._("missing")."</td><td>$serial"." ($mountpoint)</td>";
+				$ct .= "<td title='"._("Remove Device configuration")."'><a style='color:#CC0000;font-weight:bold;cursor:pointer;' onclick='remove_disk_config(\"{$serial}\")'><i class='fa fa-remove hdd'></a></td>";
 				$ct .= "<td title='"._("Turn on to Mount Device Read only")."'><input type='checkbox' class='toggle_read_only' serial='{$serial}' ".( is_read_only($serial) ? 'checked':'')." /></td>";
 				$ct .= "<td title='"._("Turn on to Mount Device when Array is Started")."'><input type='checkbox' class='automount' serial='{$serial}' ".( is_automount($serial) ? 'checked':'' )." /></td>";
-				$ct .= "<td><a title='"._("Edit Device Script")."' href='/Main/EditScript?s=".urlencode($serial)."&l=".urlencode(basename($mountpoint))."&p=".urlencode("1")."'><i class=".( file_exists(get_config($serial,"command.1")) ? "'fa fa-code'":"'fa fa-minus-square-o'" )."'></i></a></td>";
-				$ct .= "<td title='"._("Remove Device configuration")."' colspan='7'><a style='color:#CC0000;font-weight:bold;cursor:pointer;' onclick='remove_disk_config(\"{$serial}\")'><i class='fa fa-remove hdd'></a></td></tr>";
+				$ct .= "<td><a title='"._("Edit Device Script")."' href='/Main/EditScript?s=".urlencode($serial)."&l=".urlencode(basename($mountpoint))."&p=".urlencode("1")."'><i class=".( file_exists(get_config($serial,"command.1")) ? "'fa fa-code'":"'fa fa-minus-square-o'" )."'></i></a></td></tr>";
 			}
 		}
 		if (strlen($ct)) {
 			echo "<div id='smb_tab' class='show-complete'><div id='title'><span class='left'><img src='/plugins/{$plugin}/icons/historical.png' class='icon'>"._('Historical Devices')."</span></div>";
-			echo "<table class='disk_status wide usb_absent'><thead><tr><td>"._('Device')."</td><td>"._('Serial Number (Mountpoint)')."</td><td>"._('Read only')."</td><td>"._('Auto mount')."</td><td>"._('Script')."</td><td colspan='7'>"._('Remove')."</td></tr></thead><tbody>{$ct}</tbody></table></div>";
+			echo "<table class='disk_status wide usb_absent'><thead><tr><td>"._('Device')."</td><td>"._('Serial Number (Mountpoint)')."</td><td>"._('Remove')."</td><td>"._('Read only')."</td><td>"._('Auto mount')."</td><td>"._('Script')."</td></tr></thead><tbody>{$ct}</tbody></table></div>";
 		}
 		unassigned_log("Total render time: ".($time + microtime(true))."s", "DEBUG");
 		break;
