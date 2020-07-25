@@ -293,18 +293,31 @@ switch ($_POST['action']) {
 					echo "<td title='"._("SMART Attributes on")." ".$disk_name."'><i class='fa fa-circle orb ".($disk_running ? "green-orb" : "grey-orb" )."'></i>";
 					echo "<a href='/Main/New?name={$disk_name}'> {$disk_name}</a></td>";
 				}
+				/* Device serial number */
 				echo "<td>{$hdd_serial}</td>";
+				/* Mount button */
 				echo "<td class='mount'>{$mbutton}</td>";
+				/* Disk temperature */
 				echo "<td>{$temp}</td>";
+				/* File system */
 				echo ($p)?$p[5]:"<td>-</td>";
+				/* Open files */
 				echo ($p)?$p[6]:"<td>-</td>";
+				/* DIsk size */
 				echo "<td>".my_scale($disk['size'],$unit)." {$unit}</td>";
+				/* Used and free */
 				echo ($p)?$p[8]:"<td>-</td><td>-</td>";
+				/* Pass through switch */
 				echo ($p)?$p[9]:"<td>-</td>";
+				/* Read only switch */
 				echo ($p)?$p[10]:"<td>-</td>";
+				/* Auto mount switch */
 				echo ($p)?$p[11]:"<td>-</td>";
+				/* Share switch */
 				echo ($p)?$p[12]:"<td>-</td>";
+				/* Log button */
 				echo ($p)?$p[13]:"<td>-</td>";
+				/* Script button */
 				echo ($p)?$p[14]:"<td>-</td>";
 				echo "</tr>";
 				if ($add_toggle)
