@@ -54,8 +54,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	table.usb_absent thead tr>td{text-align:left;width:8%;}
 	table.usb_absent tr>td{text-align:left;white-space:nowrap;}
 	table.usb_absent tr>td+td{text-align:left;width:auto;}
-	table.usb_absent tr>td+td+td{text-align:left;}
-	table.usb_absent tr>td+td+td+td+td{text-align:center;}
+	table.usb_absent tr>td+td+td+td+td+td+td{text-align:left;}
+	table.usb_absent tr>td+td+td+td+td+td+td+td+td{text-align:center;}
 
 	table.samba_mounts {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
 	table.samba_mounts thead tr>td{text-align:left;width:8%;}
