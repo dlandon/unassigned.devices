@@ -46,7 +46,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	table.usb_disks thead tr>td{text-align:left;width:8%;}
 	table.usb_disks tr>td{text-align:left;white-space:nowrap;}
 	table.usb_disks tr>td+td+td+td{text-align:center;width:auto;}
-	table.usb_disks tr>td+td+td+td+td+td+td{text-align:left;}
+	table.usb_disks tr>td+td+td+td+td+td{text-align:left;}
 	table.usb_disks tr>td+td+td+td+td+td+td+td+td+td{text-align:right;}
 	table.usb_disks tr>td+td+td+td+td+td+td+td+td+td+td+td+td+td{text-align:center;}
 
