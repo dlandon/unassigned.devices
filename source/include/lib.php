@@ -23,13 +23,13 @@ $paths = [  "smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"hdd_temp"			=> "/var/state/{$plugin}/hdd_temp.json",
 			"run_status"		=> "/var/state/{$plugin}/run_status.json",
 			"ping_status"		=> "/var/state/{$plugin}/ping_status.json",
+			"df_status"			=> "/var/state/{$plugin}/df_status.json",
 			"samba_mount"		=> "/tmp/{$plugin}/config/samba_mount.cfg",
 			"iso_mount"			=> "/tmp/{$plugin}/config/iso_mount.cfg",
 			"reload"			=> "/var/state/{$plugin}/reload.state",
 			"unmounting"		=> "/var/state/{$plugin}/unmounting_%s.state",
 			"mounting"			=> "/var/state/{$plugin}/mounting_%s.state",
 			"formatting"		=> "/var/state/{$plugin}/formatting_%s.state",
-			"df_temp"			=> "/tmp/{$plugin}/df",
 			"scripts"			=> "/tmp/{$plugin}/scripts/",
 			"credentials"		=> "/tmp/{$plugin}/credentials",
 			"authentication"	=> "/tmp/{$plugin}/authentication",
@@ -161,6 +161,27 @@ function safe_name($string, $convert_spaces=TRUE) {
 
 function exist_in_file($file, $val) {
 	return (preg_grep("%{$val}%", @file($file))) ? TRUE : FALSE;
+}
+
+function get_device_stats($mount) {
+	global $paths;
+
+	$tc = $paths["df_status"];
+	$mountpoint = $mount['mountpoint'];
+	$df_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+	$rc = "";
+	if (file_exists($mount['mountpoint'])) {
+		if (isset($df_status[$mountpoint]) && (time() - $df_status[$mountpoint]['timestamp']) < 95 ) {
+			$rc = $df_status[$mountpoint]['stats'];
+		} else {
+			if (file_exists($mountpoint)) {
+				$rc = trim(timed_exec(2,"/bin/df '{$mountpoint}' --output=size,used,avail | /bin/grep -v '1K-blocks' 2>/dev/null"));
+				$df_status[$mountpoint] = array('timestamp' => time(), 'stats' => $rc);
+				file_put_contents($tc, json_encode($df_status));
+			}
+		}
+	}
+	return explode(" ", $rc);
 }
 
 function is_disk_running($dev) {
@@ -1187,13 +1208,10 @@ function get_samba_mounts() {
 		if (! $mount["mountpoint"]) {
 			$mount['mountpoint'] = $mount['target'] ? $mount['target'] : preg_replace("%\s+%", "_", "{$paths['usb_mountpoint']}/{$mount['ip']}_{$mount['share']}");
 		}
-		file_put_contents("{$paths['df_temp']}", "");
-		if ($mount['is_alive'] && file_exists($mount['mountpoint'])) {
-			timed_exec(2,"/bin/df '{$mount['mountpoint']}' --output=size,used,avail | /bin/grep -v '1K-blocks' > {$paths['df_temp']} 2>/dev/null");
-		}
-		$mount['size']  	= intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $1}'")))*1024;
-		$mount['used']  	= intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $2}'")))*1024;
-		$mount['avail'] 	= intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $3}'")))*1024;
+		$stats = $mount['is_alive'] ? get_device_stats($mount) : array();
+		$mount['size']  	= intval($stats[0])*1024;
+		$mount['used']  	= intval($stats[1])*1024;
+		$mount['avail'] 	= intval($stats[2])*1024;
 		$mount['target']	= $mount['mountpoint'];
 		$mount['prog_name']	= basename($mount['command'], ".sh");
 		$mount['logfile']	= $paths['device_log'].$mount['prog_name'].".log";
@@ -1356,13 +1374,10 @@ function get_iso_mounts() {
 		$mount['target']	= $mount['mountpoint'];
 		$is_alive			= is_file($mount['file']);
 		$mount['mounted']	= is_mounted($mount['device']);
-		file_put_contents("{$paths['df_temp']}", "");
-		if ($is_alive && file_exists($mount['mountpoint'])) {
-			timed_exec(2, "/bin/df '{$mount['mountpoint']}' --output=size,used,avail | /bin/grep -v '1K-blocks' > {$paths['df_temp']} 2>/dev/null");
-		}
-		$mount['size']  = intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $1}'")))*1024;
-		$mount['used']  = intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $2}'")))*1024;
-		$mount['avail'] = intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $3}'")))*1024;
+		$stats = get_device_stats($mount);
+		$mount['size']  = intval($stats[0])*1024;
+		$mount['used']  = intval($stats[1])*1024;
+		$mount['avail'] = intval($stats[2])*1024;
 		$mount['prog_name'] = basename($mount['command'], ".sh");
 		$mount['logfile'] = $paths['device_log'].$mount['prog_name'].".log";
 		$o[] = $mount;
@@ -1562,13 +1577,10 @@ function get_partition_info($device, $reload=FALSE){
 			$disk['fstype'] = (verify_precleared($disk['disk'])) ? "precleared" : $disk['fstype'];
 		}
 		$disk['target'] = str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep {$disk['device']} | /bin/awk '{print $2}'")));
-		file_put_contents("{$paths['df_temp']}", "");
-		if (file_exists($disk['mountpoint'])) {
-			timed_exec(5,"/bin/df '{$disk['device']}' --output=size,used,avail | /bin/grep -v '1K-blocks' > {$paths['df_temp']} 2>/dev/null");
-		}
-		$disk['size']		= intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $1}'")))*1024;
-		$disk['used']		= intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $2}'")))*1024;
-		$disk['avail']		= intval(trim(shell_exec("/bin/cat {$paths['df_temp']} | /bin/awk '{print $3}'")))*1024;
+		$stats = get_device_stats($disk);
+		$disk['size']		= intval($stats[0])*1024;
+		$disk['used']		= intval($stats[1])*1024;
+		$disk['avail']		= intval($stats[2])*1024;
 		if ($disk['target'] != "" && $disk['mounted']) {
 			$disk['openfiles']	= lsof($disk['target']);
 		} else {
