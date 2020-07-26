@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.07.19a">
+<!ENTITY version   "2020.07.26">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"bf18d6dce665a11c2efd5fb78c5d3dce">
+<!ENTITY MD5		"2e3264d8c202ca69b8c99802423df0da">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,12 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Only ping the same remote share server once for all remote mounts on that server.
+- Fix: Remove unused csrf token from UnassignedDevices.php.
+- Fix: Some code cleanup.
+- Fix: Modify screen layout and alignment of items within UD to be more consistent with Unraid.
+
+###2020.07.19a
 - Add: Don't query disk temperature if disk is in standby.
 - Fix: Change remote share server ping timeout to 1 second.
 - Add: Query disk drives for standby status every 42 seconds.
@@ -1215,7 +1221,7 @@ chmod +x /usr/local/emhttp/plugins/&name;/scripts/* /usr/local/emhttp/plugins/&n
 ln -sf /usr/local/emhttp/plugins/&name;/scripts/rc.unassigned /usr/local/sbin
 ln -sf /usr/local/emhttp/plugins/&name;/scripts/mkmbr.sh /usr/local/sbin
 
-# create mount point
+# create state folder and mount point
 rm -rf /var/state/&name;
 mkdir -p /mnt/disks /var/state/&name;
 chmod 777 /var/state/&name;
