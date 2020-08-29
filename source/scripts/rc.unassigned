@@ -41,6 +41,7 @@ function unassigned_mount() {
 				}
 				if (! $info['automount'] && ( $DEVNAME == "auto" || $DEVNAME == "autodevices" || isset($_ENV['DEVNAME']) )) {
 					unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' is not set to auto mount and will not be mounted.");
+					setSleepTime($device);
 					continue;
 				}
 				if ($info['label'] == "UNRAID") {
@@ -63,6 +64,7 @@ function unassigned_mount() {
 						export_disk($info, true);
 					} else {
 						unassigned_log("Partition '{$info['label']}' could not be mounted.");
+						setSleepTime($device);
 						execute_script($info, "ERROR_MOUNT");
 					}
 				} else {
