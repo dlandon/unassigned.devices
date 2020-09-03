@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.08.29">
+<!ENTITY version   "2020.09.02">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"78f09c6d2433bd54afce827cf8286b07">
+<!ENTITY MD5		"6516aa83b5aaafef0b5c18e7f74869f8">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Remove special characters in disk mount point that were being allowed.
+
+###2020.08.29
 - Add: Issue spin down timer to disks when array is started (or disk plugged in) and they are not set for auto mount.
 
 ###2020.07.26b

@@ -725,7 +725,7 @@ $ct .="<td></td><td></td><td></td><td></td>";
 		$partition = urldecode($_POST['partition']);
 		$device	= urldecode($_POST['device']);
 		$fstype	= urldecode($_POST['fstype']);
-		$mountpoint	= urldecode($_POST['mountpoint']);
+		$mountpoint	= safe_name(urldecode($_POST['mountpoint']), FALSE);
 		echo json_encode(change_mountpoint($serial, $partition, $device, $fstype, $mountpoint));
 		break;
 
