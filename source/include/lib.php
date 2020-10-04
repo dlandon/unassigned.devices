@@ -176,6 +176,7 @@ function get_device_stats($mount) {
 		} else {
 			if (file_exists($mountpoint)) {
 				$rc = trim(timed_exec(2,"/bin/df '{$mountpoint}' --output=size,used,avail | /bin/grep -v '1K-blocks' 2>/dev/null"));
+				$rc = str_replace("  ", " ", $rc);
 				$df_status[$mountpoint] = array('timestamp' => time(), 'stats' => $rc);
 				file_put_contents($tc, json_encode($df_status));
 			}
