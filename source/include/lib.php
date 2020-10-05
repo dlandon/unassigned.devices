@@ -684,14 +684,16 @@ function remove_config_disk($sn) {
 function is_disk_ssd($dev) {
 	$rc = FALSE;
 
-	$device = basename($dev);
-	$device = (strpos($device, "nvme") !== false) ? preg_replace("#\d+p#i", "", $device) : preg_replace("#\d+#i", "", $device) ;
-
-	$file = "/sys/block/".$device."/queue/rotational";
-	if (is_file($file)) {
-		$rc = (@file_get_contents($file) == 0) ? TRUE : FALSE;
+	$device = preg_replace("#\d+#i", "", basename($dev));
+	if (strpos($device, "nvme") === false) {
+		$file = "/sys/block/".$device."/queue/rotational";
+		if (is_file($file)) {
+			$rc = (@file_get_contents($file) == 0) ? TRUE : FALSE;
+		} else {
+			unassigned_log("Warning: Can't get rotational setting of '{$device}'.");
+		}
 	} else {
-		unassigned_log("Warning: Can't get rotational setting of '{$device}'.");
+		$rc = TRUE;
 	}
 
 	return $rc;
