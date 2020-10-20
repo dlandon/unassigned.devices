@@ -461,9 +461,9 @@ function format_disk($dev, $fs, $pass) {
 			$o = shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
 			exec("/bin/shred -u $luks_pass_file");
 		}
-		if ($o)
+		if ($o && stripos($o, "warning") === FALSE)
 		{
-			unassigned_log("luksOpen error: ".$o);
+			unassigned_log("luksOpen result: ".$o);
 			return FALSE;
 		}
 		exec(get_format_cmd("/dev/mapper/{$mapper}", $fs),$out, $return);
@@ -803,8 +803,8 @@ function do_mount($info) {
 				$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
 				exec("/bin/shred -u $luks_pass_file");
 			}
-			if ($o != "") {
-				unassigned_log("luksOpen error: ".$o);
+			if ($o && stripos($o, "warning") === FALSE) {
+				unassigned_log("luksOpen result: ".$o);
 				shell_exec("/sbin/cryptsetup luksClose ".basename($info['device']));
 			} else {
 				$rc = do_mount_local($info);
