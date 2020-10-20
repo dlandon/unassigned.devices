@@ -623,18 +623,13 @@ $ct .="<td></td><td></td><td></td><td></td>";
 		$share = basename($path);
 		if ($share) {
 			$device = ($protocol == "NFS") ? "{$ip}:{$path}" : "//".strtoupper($ip)."/{$share}";
-			if (strpos($path, "$") === FALSE) {
-				set_samba_config("{$device}", "protocol", $protocol);
-				set_samba_config("{$device}", "ip", (is_ip($ip) ? $ip : strtoupper($ip)));
-				set_samba_config("{$device}", "path", $path);
-				set_samba_config("{$device}", "user", $user);
-				set_samba_config("{$device}", "domain", $domain);
-				set_samba_config("{$device}", "pass", encrypt_data($pass));
-				set_samba_config("{$device}", "share", safe_name($share));
-			} else {
-				unassigned_log("Share '{$device}' contains a '$' character.	It cannot be added.");
-				$rc = FALSE;
-			}
+			set_samba_config("{$device}", "protocol", $protocol);
+			set_samba_config("{$device}", "ip", (is_ip($ip) ? $ip : strtoupper($ip)));
+			set_samba_config("{$device}", "path", $path);
+			set_samba_config("{$device}", "user", $user);
+			set_samba_config("{$device}", "domain", $domain);
+			set_samba_config("{$device}", "pass", encrypt_data($pass));
+			set_samba_config("{$device}", "share", safe_name($share));
 		}
 		echo json_encode($rc);
 		break;
