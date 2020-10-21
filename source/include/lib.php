@@ -1652,7 +1652,7 @@ function check_for_duplicate_share($dev, $mountpoint, $fstype="") {
 
 	/* Parse the samba config file. */
 	$smb_file =  "/etc/samba/smb-shares.conf";
-	$smb_config = parse_ini_file($smb_file, true, INI_SCANNER_RAW);
+	$smb_config = parse_ini_file($smb_file, true);
 
 	/* Get all shares from the smb configuration file. */
 	$smb_shares = array_keys($smb_config);
@@ -1790,8 +1790,6 @@ function change_UUID($dev) {
 function setSleepTime($device) {
 	global $paths;
 
-	$config_file	= $paths["config_file"];
-	$config			= @parse_ini_file($config_file, true);
 	$device			= preg_replace("/\d+$/", "", $device);
 	if (! is_disk_ssd($device)) {
 		unassigned_log("Issue spin down timer for device '{$device}'.");
