@@ -37,12 +37,12 @@ $paths = [  "smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 		];
 
 $docroot = $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-$users = @parse_ini_file("$docroot/state/users.ini", true);
-$disks = @parse_ini_file("$docroot/state/disks.ini", true);
+$users = @parse_ini_file("$docroot/state/users.ini", true, INI_SCANNER_RAW);
+$disks = @parse_ini_file("$docroot/state/disks.ini", true, INI_SCANNER_RAW);
 
 if (! isset($var)){
 	if (! is_file("$docroot/state/var.ini")) shell_exec("/usr/bin/wget -qO /dev/null localhost:$(ss -napt | /bin/grep emhttp | /bin/grep -Po ':\K\d+') >/dev/null");
-	$var = @parse_ini_file("$docroot/state/var.ini");
+	$var = @parse_ini_file("$docroot/state/var.ini", false, INI_SCANNER_RAW);
 }
 
 if ((! isset($var['USE_NETBIOS']) || ((isset($var['USE_NETBIOS'])) && ($var['USE_NETBIOS'] == "yes")))) {
@@ -464,7 +464,7 @@ function format_disk($dev, $fs, $pass) {
 		if ($o && stripos($o, "warning") === FALSE)
 		{
 			unassigned_log("luksOpen result: ".$o);
-			return FALSE;
+      return FALSE;
 		}
 		exec(get_format_cmd("/dev/mapper/{$mapper}", $fs),$out, $return);
 		sleep(3);
@@ -554,13 +554,13 @@ function timed_exec($timeout=10, $cmd) {
 
 function get_config($sn, $var) {
 	$config_file = $GLOBALS["paths"]["config_file"];
-	$config = @parse_ini_file($config_file, true);
+	$config = @parse_ini_file($config_file, true, INI_SCANNER_RAW);
 	return (isset($config[$sn][$var])) ? html_entity_decode($config[$sn][$var]) : FALSE;
 }
 
 function set_config($sn, $var, $val) {
 	$config_file = $GLOBALS["paths"]["config_file"];
-	$config = @parse_ini_file($config_file, true);
+	$config = @parse_ini_file($config_file, true, INI_SCANNER_RAW);
 	$config[$sn][$var] = htmlentities($val, ENT_COMPAT);
 	save_ini_file($config_file, $config);
 	return (isset($config[$sn][$var])) ? $config[$sn][$var] : FALSE;
@@ -585,7 +585,7 @@ function is_pass_through($sn) {
 
 function toggle_automount($sn, $status) {
 	$config_file = $GLOBALS["paths"]["config_file"];
-	$config = @parse_ini_file($config_file, true);
+	$config = @parse_ini_file($config_file, true, INI_SCANNER_RAW);
 	$config[$sn]["automount"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
 	return ($config[$sn]["automount"] == "yes") ? TRUE : FALSE;
@@ -593,7 +593,7 @@ function toggle_automount($sn, $status) {
 
 function toggle_read_only($sn, $status) {
 	$config_file = $GLOBALS["paths"]["config_file"];
-	$config = @parse_ini_file($config_file, true);
+	$config = @parse_ini_file($config_file, true, INI_SCANNER_RAW);
 	$config[$sn]["read_only"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
 	return ($config[$sn]["read_only"] == "yes") ? TRUE : FALSE;
@@ -601,7 +601,7 @@ function toggle_read_only($sn, $status) {
 
 function toggle_pass_through($sn, $status) {
 	$config_file = $GLOBALS["paths"]["config_file"];
-	$config = @parse_ini_file($config_file, true);
+	$config = @parse_ini_file($config_file, true, INI_SCANNER_RAW);
 	$config[$sn]["pass_through"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
 	@touch($GLOBALS['paths']['reload']);
@@ -610,7 +610,7 @@ function toggle_pass_through($sn, $status) {
 
 function toggle_show_partitions($status) {
 	$config_file = $GLOBALS["paths"]["config_file"];
-	$config = @parse_ini_file($config_file, true);
+	$config = @parse_ini_file($config_file, true, INI_SCANNER_RAW);
 	$config['Config']['show_all_partitions'] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
 	@touch($GLOBALS['paths']['reload']);
@@ -667,7 +667,7 @@ global $paths;
 
 function remove_config_disk($sn) {
 	$config_file = $GLOBALS["paths"]["config_file"];
-	$config = @parse_ini_file($config_file, true);
+	$config = @parse_ini_file($config_file, true, INI_SCANNER_RAW);
 	if ( isset($config[$source]) ) {
 		unassigned_log("Removing configuration '$source'.");
 	}
@@ -718,7 +718,7 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 	global $paths, $use_netbios;
 
 	$config_file	= $paths["config_file"];
-	$config			= @parse_ini_file($config_file, true);
+	$config			= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
 	if (($config['Config']['discard'] != "no") && ($fs != "cifs") && ($fs != "nfs")) {
 		$discard = is_disk_ssd($dev) ? ",discard" : "";;
 	} else {
@@ -917,7 +917,7 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 
 	if ( ($var['shareSMBEnabled'] != "no") ) {
 		$share_name = basename($dir);
-		$config = @parse_ini_file($paths['config_file'], true);
+		$config = @parse_ini_file($paths['config_file'], true, INI_SCANNER_RAW);
 		$config = $config["Config"];
 
 		$vfs_objects = "";
@@ -981,7 +981,7 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 				/* Add the recycle bin parameters if plugin is installed */
 				$recycle_script = "plugins/recycle.bin/scripts/configure_recycle_bin";
 				if (is_file($recycle_script)) {
-					$recycle_bin_cfg = parse_ini_file( "/boot/config/plugins/recycle.bin/recycle.bin.cfg" );
+					$recycle_bin_cfg = parse_ini_file( "/boot/config/plugins/recycle.bin/recycle.bin.cfg", false, INI_SCANNER_RAW);
 					if ($recycle_bin_cfg['INCLUDE_UD'] == "yes") {
 						unassigned_log("Enabling the Recycle Bin on share '$share_name'.");
 						timed_exec(5, "{$recycle_script} {$share_conf}");
@@ -1136,13 +1136,13 @@ function reload_shares() {
 
 function get_samba_config($source, $var) {
 	$config_file = $GLOBALS["paths"]["samba_mount"];
-	$config = @parse_ini_file($config_file, true);
+	$config = @parse_ini_file($config_file, true, INI_SCANNER_RAW);
 	return (isset($config[$source][$var])) ? $config[$source][$var] : FALSE;
 }
 
 function set_samba_config($source, $var, $val) {
 	$config_file = $GLOBALS["paths"]["samba_mount"];
-	$config = @parse_ini_file($config_file, true);
+	$config = @parse_ini_file($config_file, true, INI_SCANNER_RAW);
 	$config[$source][$var] = $val;
 	save_ini_file($config_file, $config);
 	return (isset($config[$source][$var])) ? $config[$source][$var] : FALSE;
@@ -1192,7 +1192,7 @@ function get_samba_mounts() {
 
 	$o = array();
 	$config_file = $paths["samba_mount"];
-	$samba_mounts = @parse_ini_file($config_file, true);
+	$samba_mounts = @parse_ini_file($config_file, true, INI_SCANNER_RAW);
 	foreach ($samba_mounts as $device => $mount) {
 		$mount['device'] = $device;
 		$mount['name']   = $device;
@@ -1227,7 +1227,7 @@ function do_mount_samba($info) {
 
 	$rc = FALSE;
 	$config_file	= $paths["config_file"];
-	$config			= @parse_ini_file($config_file, true);
+	$config			= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
 	if ($info['is_alive']) {
 		$dev = $info['device'];
 		$dir = $info['mountpoint'];
@@ -1307,7 +1307,7 @@ function do_mount_samba($info) {
 
 function toggle_samba_automount($source, $status) {
 	$config_file = $GLOBALS["paths"]["samba_mount"];
-	$config = @parse_ini_file($config_file, true);
+	$config = @parse_ini_file($config_file, true, INI_SCANNER_RAW);
 	$config[$source]["automount"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
 	return ($config[$source]["automount"] == "yes") ? TRUE : FALSE;
@@ -1315,7 +1315,7 @@ function toggle_samba_automount($source, $status) {
 
 function toggle_samba_share($source, $status) {
 	$config_file = $GLOBALS["paths"]["samba_mount"];
-	$config = @parse_ini_file($config_file, true);
+	$config = @parse_ini_file($config_file, true, INI_SCANNER_RAW);
 	$config[$source]["smb_share"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
 	return ($config[$source]["smb_share"] == "yes") ? TRUE : FALSE;
@@ -1323,7 +1323,7 @@ function toggle_samba_share($source, $status) {
 
 function remove_config_samba($source) {
 	$config_file = $GLOBALS["paths"]["samba_mount"];
-	$config = @parse_ini_file($config_file, true);
+	$config = @parse_ini_file($config_file, true, INI_SCANNER_RAW);
 	if ( isset($config[$source]) ) {
 		unassigned_log("Removing configuration '$source'.");
 	}
@@ -1343,13 +1343,13 @@ function remove_config_samba($source) {
 
 function get_iso_config($source, $var) {
 	$config_file = $GLOBALS["paths"]["iso_mount"];
-	$config = @parse_ini_file($config_file, true);
+	$config = @parse_ini_file($config_file, true, INI_SCANNER_RAW);
 	return (isset($config[$source][$var])) ? $config[$source][$var] : FALSE;
 }
 
 function set_iso_config($source, $var, $val) {
 	$config_file = $GLOBALS["paths"]["iso_mount"];
-	$config = @parse_ini_file($config_file, true);
+	$config = @parse_ini_file($config_file, true, INI_SCANNER_RAW);
 	$config[$source][$var] = $val;
 	save_ini_file($config_file, $config);
 	return (isset($config[$source][$var])) ? $config[$source][$var] : FALSE;
@@ -1365,7 +1365,7 @@ function get_iso_mounts() {
 
 	$o = array();
 	$config_file = $paths["iso_mount"];
-	$iso_mounts = @parse_ini_file($config_file, true);
+	$iso_mounts = @parse_ini_file($config_file, true, INI_SCANNER_RAW);
 	foreach ($iso_mounts as $device => $mount) {
 		$mount['device'] = $device;
 		$mount['fstype'] = "loop";
@@ -1416,7 +1416,7 @@ function do_mount_iso($info) {
 
 function toggle_iso_automount($source, $status) {
 	$config_file = $GLOBALS["paths"]["iso_mount"];
-	$config = @parse_ini_file($config_file, true);
+	$config = @parse_ini_file($config_file, true, INI_SCANNER_RAW);
 	$config[$source]["automount"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
 	return ($config[$source]["automount"] == "yes") ? TRUE : FALSE;
@@ -1424,7 +1424,7 @@ function toggle_iso_automount($source, $status) {
 
 function remove_config_iso($source) {
 	$config_file = $GLOBALS["paths"]["iso_mount"];
-	$config = @parse_ini_file($config_file, true);
+	$config = @parse_ini_file($config_file, true, INI_SCANNER_RAW);
 	if ( isset($config[$source]) ) {
 		unassigned_log("Removing configuration '$source'.");
 	}
@@ -1506,7 +1506,7 @@ function get_all_disks_info($bus="all") {
 function get_udev_info($device, $udev=NULL, $reload) {
 	global $paths;
 
-	$state = is_file($paths['state']) ? @parse_ini_file($paths['state'], true) : array();
+	$state = is_file($paths['state']) ? @parse_ini_file($paths['state'], true, INI_SCANNER_RAW) : array();
 	if ($udev) {
 		$state[$device] = $udev;
 		save_ini_file($paths['state'], $state);
@@ -1791,7 +1791,7 @@ function setSleepTime($device) {
 	global $paths;
 
 	$config_file	= $paths["config_file"];
-	$config			= @parse_ini_file($config_file, true);
+	$config			= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
 	$device			= preg_replace("/\d+$/", "", $device);
 	if (! is_disk_ssd($device)) {
 		unassigned_log("Issue spin down timer for device '{$device}'.");
