@@ -584,7 +584,7 @@ $ct .="<td></td><td></td><td></td><td></td>";
 		file_put_contents("{$paths['authentication']}", "username=".$user."\n");
 		file_put_contents("{$paths['authentication']}", "password=".$pass."\n", FILE_APPEND);
 		file_put_contents("{$paths['authentication']}", "domain=".$domain."\n", FILE_APPEND);
-		$list = shell_exec("/usr/bin/smbclient -t2 -g -L '$ip' --authentication-file='{$paths['authentication']}' 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}' | grep -v '\\$' | sort");
+		$list = shell_exec("/usr/bin/smbclient -t2 -g -L '$ip' --authentication-file='{$paths['authentication']}' 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}' | sort");
 		exec("/bin/shred -u ".$paths['authentication']);
 		echo $list;
 		break;
@@ -623,18 +623,14 @@ $ct .="<td></td><td></td><td></td><td></td>";
 		$share = basename($path);
 		if ($share) {
 			$device = ($protocol == "NFS") ? "{$ip}:{$path}" : "//".strtoupper($ip)."/{$share}";
-			if (strpos($path, "$") === FALSE) {
-				set_samba_config("{$device}", "protocol", $protocol);
-				set_samba_config("{$device}", "ip", (is_ip($ip) ? $ip : strtoupper($ip)));
-				set_samba_config("{$device}", "path", $path);
-				set_samba_config("{$device}", "user", $user);
-				set_samba_config("{$device}", "domain", $domain);
-				set_samba_config("{$device}", "pass", encrypt_data($pass));
-				set_samba_config("{$device}", "share", safe_name($share));
-			} else {
-				unassigned_log("Share '{$device}' contains a '$' character.	It cannot be added.");
-				$rc = FALSE;
-			}
+			$device = str_replace("$", "", $device);
+			set_samba_config("{$device}", "protocol", $protocol);
+			set_samba_config("{$device}", "ip", (is_ip($ip) ? $ip : strtoupper($ip)));
+			set_samba_config("{$device}", "path", $path);
+			set_samba_config("{$device}", "user", $user);
+			set_samba_config("{$device}", "domain", $domain);
+			set_samba_config("{$device}", "pass", encrypt_data($pass));
+			set_samba_config("{$device}", "share", safe_name($share));
 		}
 		echo json_encode($rc);
 		break;
