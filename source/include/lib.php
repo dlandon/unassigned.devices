@@ -1203,7 +1203,7 @@ function get_samba_mounts() {
 			$mount['fstype'] = "cifs";
 		}
 
-		$mount['mounted']	= is_mounted("//".$mount['ip']."/".$mount['share']);
+		$mount['mounted']	= is_mounted(($mount['fstype'] == "cifs") ? "//".$mount['ip']."/".$mount['share'] : $mount['device']);
 		$mount['is_alive']	= is_samba_server_online($mount);
 		$mount['automount'] = is_samba_automount($mount['name']);
 		$mount['smb_share'] = is_samba_share($mount['name']);
@@ -1229,9 +1229,9 @@ function do_mount_samba($info) {
 	$config_file	= $paths["config_file"];
 	$config			= @parse_ini_file($config_file, true);
 	if ($info['is_alive']) {
-		$dev = "//".$info['ip']."/".$info['share'];;
 		$dir = $info['mountpoint'];
 		$fs  = $info['fstype'];
+		$dev = ($fs == "cifs") ? "//".$info['ip']."/".$info['share'] : $info['device'];
 		if (! is_mounted($dev) || ! is_mounted($dir, TRUE)) {
 			@mkdir($dir, 0777, TRUE);
 			if ($fs == "nfs") {
