@@ -448,7 +448,7 @@ switch ($_POST['action']) {
 			if (! preg_grep("#{$serial}#", $disks_serials)){
 				$mountpoint	= basename(get_config($serial, "mountpoint.1"));
 				$ct .= "<tr><td><i class='fa fa-circle orb grey-orb'></i>"._("missing")."</td><td>$serial"." ($mountpoint)</td>";
-$ct .="<td></td><td></td><td></td><td></td>";
+				$ct .="<td></td><td></td><td></td><td></td>";
 				$ct .= "<td title='"._("Turn on to Mount Device Read only")."'><input type='checkbox' class='toggle_read_only' serial='{$serial}' ".( is_read_only($serial) ? 'checked':'')." /></td>";
 				$ct .= "<td title='"._("Turn on to Mount Device when Array is Started")."'><input type='checkbox' class='automount' serial='{$serial}' ".( is_automount($serial) ? 'checked':'' )." /></td>";
 				$ct .= "<td><a title='"._("Edit Device Script")."' href='/Main/EditScript?s=".urlencode($serial)."&l=".urlencode(basename($mountpoint))."&p=".urlencode("1")."'><i class=".( file_exists(get_config($serial,"command.1")) ? "'fa fa-code'":"'fa fa-minus-square-o'" )."'></i></a></td>";
@@ -630,7 +630,7 @@ $ct .="<td></td><td></td><td></td><td></td>";
 			set_samba_config("{$device}", "user", $user);
 			set_samba_config("{$device}", "domain", $domain);
 			set_samba_config("{$device}", "pass", encrypt_data($pass));
-			set_samba_config("{$device}", "share", safe_name($share));
+			set_samba_config("{$device}", "share", safe_name($share, FALSE));
 		}
 		echo json_encode($rc);
 		break;

@@ -1207,8 +1207,8 @@ function get_samba_mounts() {
 		$mount['is_alive']	= is_samba_server_online($mount);
 		$mount['automount'] = is_samba_automount($mount['name']);
 		$mount['smb_share'] = is_samba_share($mount['name']);
-		if (! $mount["mountpoint"]) {
-			$mount['mountpoint'] = $mount['target'] ? $mount['target'] : preg_replace("%\s+%", "_", "{$paths['usb_mountpoint']}/{$mount['ip']}_{$mount['share']}");
+		if (! $mount['mountpoint']) {
+			$mount['mountpoint'] = $mount['target'] ? $mount['target'] : "{$paths['usb_mountpoint']}/{$mount['ip']}_{$mount['share']}";
 		}
 		$stats = $mount['is_alive'] ? get_device_stats($mount) : array();
 		$mount['size']  	= intval($stats[0])*1024;
