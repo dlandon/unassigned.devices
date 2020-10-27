@@ -9,7 +9,7 @@ logger "Mounting 'Auto Mount' Remote Shares..." -t"unassigned.devices"
 # Wait until network is ready
 timer=30
 while [ $timer -gt 0 ]; do
-	gateway=$(route -n | awk '/^0.0.0.0/ {print $2}')
+	gateway=$(route -n | awk '/^0.0.0.0/ {print $2; exit}')
 	if [ -n "$gateway" ] && [ $(ping -q -n -c 1 $gateway | awk -F, '/received/ {print $2}' | awk '{print $1}') -eq 1 ]; then
 		break
 	fi
