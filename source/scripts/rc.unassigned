@@ -189,7 +189,7 @@ function unassigned_umount() {
 					continue;
 				}
 				unassigned_log("Remote SMB/NFS share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
-				$force = $info['is_alive'] ? $force : FALSE;
+				$force = $info['is_alive'] ? $force : TRUE;
 				if ( is_mounted(($info['fstype'] == "cifs") ? "//".$info['ip']."/".$info['share'] : $info['device']) ) {
 					addFile(sprintf($paths['unmounting'],basename($info['device'])));
 					unassigned_log("Removing Remote SMB/NFS share '{$info['device']}'...");

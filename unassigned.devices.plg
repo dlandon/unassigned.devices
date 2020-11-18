@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.10.25">
+<!ENTITY version   "2020.11.18">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"765d32c162ef6bfb5217c143d56946cd">
+<!ENTITY MD5		"42cfd491739ba48a900d4ead2d82ceaf">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Network check potentially hanging in 'started' event script.
+- Fix: All delete 'x' a consistent color.
+- Fix: Fix logic problem with unmounting a remote share when the server is off-line to be sure it is force unmounted.
+
+###2020.10.25
 - Fix: Deal with spaces in smb share name.
 
 ###2020.10.24
