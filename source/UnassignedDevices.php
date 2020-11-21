@@ -129,11 +129,11 @@ function render_partition($disk, $partition, $total=FALSE) {
 	$mpoint = "<span>{$fscheck}";
 	$mount_point = basename($partition['mountpoint']);
 	if ($mounted) {
-		$mpoint .= "<i class='fa fa-share partition-hdd'></i><a title='"._("Browse Disk Share")."' href='/Main/Browse?dir={$partition['mountpoint']}'>{$mount_point}</a></span>";
+		$mpoint .= "<i class='fa fa-folder-open partition-hdd'></i><a title='"._("Browse Disk Share")."' href='/Main/Browse?dir={$partition['mountpoint']}'>{$mount_point}</a></span>";
 	} else {
 		$mount_point = basename($partition['mountpoint']);
 		$device = ($partition['fstype'] == "crypto_LUKS") ? $partition['luks'] : $partition['device'];
-		$mpoint .= "<i class='fa fa-share partition-hdd'></i><a title='"._("Change Disk Mount Point")."' class='exec' onclick='chg_mountpoint(\"{$partition['serial']}\",\"{$partition['part']}\",\"{$device}\",\"{$partition['fstype']}\",\"{$mount_point}\");'>{$mount_point}</a>";
+		$mpoint .= "<i class='fa fa-pencil partition-hdd'></i><a title='"._("Change Disk Mount Point")."' class='exec' onclick='chg_mountpoint(\"{$partition['serial']}\",\"{$partition['part']}\",\"{$device}\",\"{$partition['fstype']}\",\"{$mount_point}\");'>{$mount_point}</a>";
 		$mpoint .= "{$rm_partition}</span>";
 	}
 	$temp = my_temp($disk['temperature']);
@@ -186,7 +186,8 @@ function render_partition($disk, $partition, $total=FALSE) {
 		$out[] = "<td></td>";
 	}
 	$out[] = "<td title='"._("Turn on to Share Device with SMB and/or NFS")."'><input type='checkbox' class='toggle_share' info='".htmlentities(json_encode($partition))."' ".(($partition['shared']) ? 'checked':'')." /></td>";
-	$out[] = "<td>".($fstype == "crypto_LUKS" ? "luks" : $fstype)."</td>";
+
+	$out[] = "<td>".($fstype == "crypto_LUKS" ? "<i class='fa fa-lock orb'></i>".luks_fs_type($partition['mountpoint']) : $fstype)."</td>";
 	if ($total) {
 		$out[] = "<td></td>";
 		$out[] = render_used_and_free_disk($disk, $mounted_disk);
@@ -366,10 +367,10 @@ switch ($_POST['action']) {
 				echo "<td>{$mount['name']}";
 				$mount_point = basename($mount['mountpoint']);
 				if ($mounted) {
-					echo "<td><i class='fa fa-share-alt mount-share'></i><a title='"._("Browse Remote SMB/NFS Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
+					echo "<td><i class='fa fa-folder-open mount-share'></i><a title='"._("Browse Remote SMB/NFS Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
 				} else {
 					echo "<td>
-						<i class='fa fa-share-alt share'></i>
+						<i class='fa fa-pencil share'></i>
 						<a title='"._("Change Remote SMB/NFS Mount Point")."' class='exec' onclick='chg_samba_mountpoint(\"{$mount['name']}\",\"{$mount_point}\");'>{$mount_point}</a>
 						</td>";
 				}
@@ -406,10 +407,10 @@ switch ($_POST['action']) {
 				echo "<td>{$mount['device']}</td>";
 				$mount_point = basename($mount['mountpoint']);
 				if ($mounted) {
-					echo "<td><i class='fa fa-share-alt mount-share'></i><span style='margin:0px;'></span><a title='"._("Browse ISO File Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
+					echo "<td><i class='fa fa-folder-open mount-share'></i><span style='margin:0px;'></span><a title='"._("Browse ISO File Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
 				} else {
 					echo "<td>
-						<i class='fa fa-share-alt share'></i>
+						<i class='fa fa-pencil share'></i>
 						<a title='"._("Change ISO File Mount Point")."' class='exec' onclick='chg_iso_mountpoint(\"{$mount['device']}\",\"{$mount_point}\");'>{$mount_point}</a>
 						</td>";
 				}
@@ -447,7 +448,7 @@ switch ($_POST['action']) {
 			if($serial == "Config") continue;
 			if (! preg_grep("#{$serial}#", $disks_serials)){
 				$mountpoint	= basename(get_config($serial, "mountpoint.1"));
-				$ct .= "<tr><td><i class='fa fa-circle orb grey-orb'></i>"._("missing")."</td><td>$serial"." ($mountpoint)</td>";
+				$ct .= "<tr><td><i class='fa fa-minus-circle orb grey-orb'></i>"._("missing")."</td><td>$serial"." ($mountpoint)</td>";
 				$ct .="<td></td><td></td><td></td><td></td>";
 				$ct .= "<td title='"._("Turn on to Mount Device Read only")."'><input type='checkbox' class='toggle_read_only' serial='{$serial}' ".( is_read_only($serial) ? 'checked':'')." /></td>";
 				$ct .= "<td title='"._("Turn on to Mount Device when Array is Started")."'><input type='checkbox' class='automount' serial='{$serial}' ".( is_automount($serial) ? 'checked':'' )." /></td>";

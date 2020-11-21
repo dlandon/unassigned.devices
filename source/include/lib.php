@@ -714,6 +714,16 @@ function is_mounted($dev, $dir=FALSE) {
 	return $rc;
 }
 
+function luks_fs_type($dev) {
+
+	$rc = "luks";
+	if ($dev != "") {
+		$return = timed_exec(2, "/sbin/mount | /bin/grep $dev | /bin/awk '{print $5}'");
+		$rc = $return == "" ? $rc : $return;
+	}
+	return $rc;
+}
+
 function get_mount_params($fs, $dev, $ro = FALSE) {
 	global $paths, $use_netbios;
 
@@ -758,11 +768,11 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 
 		case 'cifs':
 			$sec = "";
-			if (($use_netbios == "yes") && (get_config("Config", "samba_v1") == "yes")) {
+			if (($use_netbios == "yes") && (get_config("Config", "samba_vers") == "v1")) {
 				$sec = ",sec=ntlm";
 			}
 			$credentials_file = "{$paths['credentials']}_".basename($dev);
-			return "rw,nounix,iocharset=utf8,file_mode=0777,dir_mode=0777,uid=99,gid=100$sec,vers=%s,credentials='$credentials_file'";
+			return "rw,nounix,iocharset=utf8,file_mode=0777,dir_mode=0777,uid=99,gid=100$sec%s,credentials='$credentials_file'";
 			break;
 
 		case 'nfs':
@@ -1247,8 +1257,22 @@ function do_mount_samba($info) {
 				file_put_contents("$credentials_file", "username=".($info['user'] ? $info['user'] : 'guest')."\n");
 				file_put_contents("$credentials_file", "password=".decrypt_data($info['pass'])."\n", FILE_APPEND);
 				file_put_contents("$credentials_file", "domain=".$info['domain']."\n", FILE_APPEND);
-				if (($use_netbios != "yes") || ($config['Config']['samba_v1'] != "yes")) {
-					$ver	= "3.0";
+				if (($use_netbios == "yes") && ($config['Config']['samba_vers'] == "v1")) {
+					$ver	= ",vers=1.0";
+					$params	= sprintf(get_mount_params($fs, $dev), $ver);
+					$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
+					unassigned_log("Mount SMB share '$dev' using SMB1 protocol.");
+					unassigned_log("Mount SMB command: $cmd");
+					$o		= timed_exec(10, $cmd." 2>&1");
+				} elseif ($config['Config']['samba_vers'] == "none") {
+					$ver	= "";
+					$params	= sprintf(get_mount_params($fs, $dev), $ver);
+					$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
+					unassigned_log("Mount SMB share '$dev' using default protocol.");
+					unassigned_log("Mount SMB command: $cmd");
+					$o		= timed_exec(10, $cmd." 2>&1");
+				} else {
+					$ver	= ",vers=3.0";
 					$params	= sprintf(get_mount_params($fs, $dev), $ver);
 					$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 					unassigned_log("Mount SMB share '$dev' using SMB3 protocol.");
@@ -1257,7 +1281,7 @@ function do_mount_samba($info) {
 					if (! is_mounted($dev) && strpos($o, "Permission denied") === FALSE) {
 						unassigned_log("SMB3 mount failed: {$o}.");
 						/* If the mount failed, try to mount with samba vers=2.0. */
-						$ver	= "2.0";
+						$ver	= ",vers=2.0";
 						$params	= sprintf(get_mount_params($fs, $dev), $ver);
 						$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 						unassigned_log("Mount SMB share '$dev' using SMB2 protocol.");
@@ -1267,7 +1291,7 @@ function do_mount_samba($info) {
 					if ((! is_mounted($dev) && $use_netbios == 'yes') && strpos($o, "Permission denied") === FALSE) {
 						unassigned_log("SMB2 mount failed: {$o}.");
 						/* If the mount failed, try to mount with samba vers=1.0. */
-						$ver	= "1.0";
+						$ver	= ",vers=1.0";
 						$params	= sprintf(get_mount_params($fs, $dev), $ver);
 						$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 						unassigned_log("Mount SMB share '$dev' using SMB1 protocol.");
@@ -1278,13 +1302,6 @@ function do_mount_samba($info) {
 							$rc = FALSE;
 						}
 					}
-				} else {
-					$ver	= "1.0";
-					$params	= sprintf(get_mount_params($fs, $dev), $ver);
-					$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
-					unassigned_log("Mount SMB share '$dev' using SMB1 protocol.");
-					unassigned_log("Mount SMB command: $cmd");
-					$o		= timed_exec(10, $cmd." 2>&1");
 				}
 				exec("/bin/shred -u $credentials_file");
 			}
