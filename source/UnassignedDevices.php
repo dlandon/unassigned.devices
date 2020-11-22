@@ -187,7 +187,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 	}
 	$out[] = "<td title='"._("Turn on to Share Device with SMB and/or NFS")."'><input type='checkbox' class='toggle_share' info='".htmlentities(json_encode($partition))."' ".(($partition['shared']) ? 'checked':'')." /></td>";
 
-	$out[] = "<td>".($fstype == "crypto_LUKS" ? "<i class='fa fa-lock orb'></i>".luks_fs_type($partition['mountpoint']) : $fstype)."</td>";
+	$out[] = "<td>".($fstype == "crypto_LUKS" ? luks_fs_type($partition['mountpoint']) : $fstype)."</td>";
 	if ($total) {
 		$out[] = "<td></td>";
 		$out[] = render_used_and_free_disk($disk, $mounted_disk);
@@ -304,6 +304,7 @@ switch ($_POST['action']) {
 					echo "<td><i class='fa fa-circle orb grey-orb'></i>{$disk_name}</td>";
 				} else {
 					echo "<td title='"._("SMART Attributes on")." ".$disk_name."'><i class='fa fa-circle orb ".($disk_running ? "green-orb" : "grey-orb" )."'></i>";
+					echo ($disk['partitions'][0]['fstype'] == "crypto_LUKS" ? "<i class='fa fa-lock orb'></i>" : "");
 					echo "<a href='/Main/New?name={$disk_name}'> {$disk_name}</a></td>";
 				}
 				/* Devie serial number */
