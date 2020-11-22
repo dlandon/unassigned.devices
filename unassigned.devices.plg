@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.11.18">
+<!ENTITY version   "2020.11.22">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"42cfd491739ba48a900d4ead2d82ceaf">
+<!ENTITY MD5		"b8a1ed7fe357bcb21acce620c642b739">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,12 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Change mountpoint icons to something more meaningful.
+- Add: Show lock icon on encrypted disk file system.
+- Add: Show file system type of a mounted encrypted disk.
+- Add: Change mounting sequence of SMB remote shares to - protocol not specified, SMB3, SMB2, then SMB1.  Some remote servers may not want the protocol of SMB to be specified when mounting CIFS shares.
+
+###2020.11.18
 - Fix: Network check potentially hanging in 'started' event script.
 - Fix: All delete 'x' a consistent color.
 - Fix: Fix logic problem with unmounting a remote share when the server is off-line to be sure it is force unmounted.
