@@ -163,7 +163,7 @@ function exist_in_file($file, $val) {
 	return (preg_grep("%{$val}%", @file($file))) ? TRUE : FALSE;
 }
 
-function get_device_stats($mount) {
+function get_device_stats($mount, $active=TRUE) {
 	global $paths;
 
 	$tc = $paths["df_status"];
@@ -171,14 +171,12 @@ function get_device_stats($mount) {
 	$df_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 	$rc = "";
 	if (file_exists($mount['mountpoint'])) {
-		if (isset($df_status[$mountpoint]) && (time() - $df_status[$mountpoint]['timestamp']) < 95 ) {
+		if ( (isset($df_status[$mountpoint]) && ((! $active) || ((time() - $df_status[$mountpoint]['timestamp']) < 95))) ) {
 			$rc = $df_status[$mountpoint]['stats'];
 		} else {
-			if (file_exists($mountpoint)) {
-				$rc = trim(timed_exec(2,"/bin/df '{$mountpoint}' --output=size,used,avail | /bin/grep -v '1K-blocks' 2>/dev/null"));
-				$df_status[$mountpoint] = array('timestamp' => time(), 'stats' => $rc);
-				file_put_contents($tc, json_encode($df_status));
-			}
+			$rc = trim(timed_exec(2,"/bin/df '{$mountpoint}' --output=size,used,avail | /bin/grep -v '1K-blocks' 2>/dev/null"));
+			$df_status[$mountpoint] = array('timestamp' => time(), 'stats' => $rc);
+			file_put_contents($tc, json_encode($df_status));
 		}
 	}
 	return preg_split('/\s+/', $rc);
@@ -190,7 +188,7 @@ function is_disk_running($dev) {
 	$rc = FALSE;
 	$tc = $paths["run_status"];
 	$run_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-	if (isset($run_status[$dev]) && (time() - $run_status[$dev]['timestamp']) < 42 ) {
+	if (isset($run_status[$dev]) && (time() - $run_status[$dev]['timestamp']) < 42) {
 		$rc = ($run_status[$dev]['running'] == 'yes') ? TRUE : FALSE;
 	} else {
 		$state = trim(timed_exec(10, "/usr/sbin/hdparm -C $dev 2>/dev/null | /bin/grep -c standby"));
@@ -204,20 +202,22 @@ function is_disk_running($dev) {
 function is_samba_server_online($mount) {
 	global $paths;
 
+	$is_alive = FALSE;
 	$server = $mount['ip'];
 	$tc = $paths["ping_status"];
 	$ping_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 	if (isset($ping_status[$server]) && (time() - $ping_status[$server]['timestamp']) < 27 ) {
 		$is_alive = ($ping_status[$server]['online'] == 'yes') ? TRUE : FALSE;
 	} else {
-		$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$mount['ip']} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
-		if (! $is_alive && ! is_ip($mount['ip']))
+		if (! is_ip($mount['ip']))
 		{
 			$ip = trim(timed_exec(5, "/usr/bin/nmblookup {$mount['ip']} | /bin/head -n1 | /bin/awk '{print $1}'"));
-			if (is_ip($ip))
-			{
-				$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
-			}
+		} else {
+			$ip = $mount['ip'];
+		}
+		if (is_ip($ip))
+		{
+			$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
 		}
 
 		if (! $is_alive && $mount['mounted']) {
@@ -239,7 +239,7 @@ function is_script_running($cmd) {
 }
 
 function lsof($dir) {
-	return intval(trim(timed_exec(5, "/usr/bin/lsof '{$dir}' 2>/dev/null | /bin/sort -k8 | /bin/uniq -f7 | /bin/grep -c -e REG")));
+	return intval(trim(timed_exec(1, "/usr/bin/lsof '{$dir}' 2>/dev/null | /bin/sort -k8 | /bin/uniq -f7 | /bin/grep -c -e REG")));
 }
 
 function get_temp($dev, $running) {
@@ -459,7 +459,7 @@ function format_disk($dev, $fs, $pass) {
 			$luks_pass_file = "{$paths['luks_pass']}_".$luks;
 			$cmd	= $cmd." -d {$luks_pass_file}";
 			$o = shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
-			exec("/bin/shred -u $luks_pass_file");
+			exec("/bin/shred -u '$luks_pass_file'");
 		}
 		if ($o && stripos($o, "warning") === FALSE)
 		{
@@ -811,7 +811,7 @@ function do_mount($info) {
 				file_put_contents($luks_pass_file, $pass);
 				$cmd	= $cmd." -d $luks_pass_file";
 				$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
-				exec("/bin/shred -u $luks_pass_file");
+				exec("/bin/shred -u '$luks_pass_file'");
 			}
 			if ($o && stripos($o, "warning") === FALSE) {
 				unassigned_log("luksOpen result: ".$o);
@@ -1220,7 +1220,7 @@ function get_samba_mounts() {
 		if (! $mount['mountpoint']) {
 			$mount['mountpoint'] = $mount['target'] ? $mount['target'] : "{$paths['usb_mountpoint']}/{$mount['ip']}_{$mount['share']}";
 		}
-		$stats = $mount['is_alive'] ? get_device_stats($mount) : array();
+		$stats = get_device_stats($mount, $mount['is_alive']);
 		$mount['size']  	= intval($stats[0])*1024;
 		$mount['used']  	= intval($stats[1])*1024;
 		$mount['avail'] 	= intval($stats[2])*1024;
@@ -1305,7 +1305,7 @@ function do_mount_samba($info) {
 					unassigned_log("Mount SMB command: $cmd");
 					$o		= timed_exec(10, $cmd." 2>&1");
 				}
-				exec("/bin/shred -u $credentials_file");
+				exec("/bin/shred -u '$credentials_file'");
 			}
 			if (is_mounted($dev)) {
 				@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
@@ -1598,7 +1598,7 @@ function get_partition_info($device, $reload=FALSE){
 			$disk['fstype'] = (verify_precleared($disk['disk'])) ? "precleared" : $disk['fstype'];
 		}
 		$disk['target'] = str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep {$disk['device']} | /bin/awk '{print $2}'")));
-		$stats = get_device_stats($disk);
+		$stats = get_device_stats($disk, is_disk_running($disk['device']));
 		$disk['size']		= intval($stats[0])*1024;
 		$disk['used']		= intval($stats[1])*1024;
 		$disk['avail']		= intval($stats[2])*1024;
