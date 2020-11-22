@@ -239,7 +239,7 @@ function is_script_running($cmd) {
 }
 
 function lsof($dir) {
-	return intval(trim(timed_exec(1, "/usr/bin/lsof '{$dir}' 2>/dev/null | /bin/sort -k8 | /bin/uniq -f7 | /bin/grep -c -e REG")));
+	return intval(trim(timed_exec(3, "/usr/bin/lsof '{$dir}' 2>/dev/null | /bin/sort -k8 | /bin/uniq -f7 | /bin/grep -c -e REG")));
 }
 
 function get_temp($dev, $running) {
