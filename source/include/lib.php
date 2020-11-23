@@ -768,7 +768,7 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 
 		case 'cifs':
 			$sec = "";
-			if (($use_netbios == "yes") && (get_config("Config", "samba_vers") == "v1")) {
+			if (($use_netbios == "yes") && (get_config("Config", "samba_v1") == "yes")) {
 				$sec = ",sec=ntlm";
 			}
 			$credentials_file = "{$paths['credentials']}_".basename($dev);
