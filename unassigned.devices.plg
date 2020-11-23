@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.11.22a">
+<!ENTITY version   "2020.11.23">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"3171d15129e11525db0d7f663b0ee72e">
+<!ENTITY MD5		"99e573f9aa59e017a23bed527b630f6d">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Missing 'sec=ntlm' from SMB1 mount command.
+
+###2020.11.22a
 - Fix: Change mountpoint icons to something more meaningful.
 - Add: Show lock icon on encrypted disk file system.
 - Add: Show file system type of a mounted encrypted disk.
