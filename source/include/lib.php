@@ -767,12 +767,8 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 			break;
 
 		case 'cifs':
-			$sec = "";
-			if (($use_netbios == "yes") && (get_config("Config", "samba_v1") == "yes")) {
-				$sec = ",sec=ntlm";
-			}
 			$credentials_file = "{$paths['credentials']}_".basename($dev);
-			return "rw,nounix,iocharset=utf8,file_mode=0777,dir_mode=0777,uid=99,gid=100$sec%s,credentials='$credentials_file'";
+			return "rw,nounix,iocharset=utf8,file_mode=0777,dir_mode=0777,uid=99,gid=100%s,credentials='$credentials_file'";
 			break;
 
 		case 'nfs':
@@ -1257,53 +1253,44 @@ function do_mount_samba($info) {
 				file_put_contents("$credentials_file", "username=".($info['user'] ? $info['user'] : 'guest')."\n");
 				file_put_contents("$credentials_file", "password=".decrypt_data($info['pass'])."\n", FILE_APPEND);
 				file_put_contents("$credentials_file", "domain=".$info['domain']."\n", FILE_APPEND);
-				if (($use_netbios != "yes") || ($config['Config']['samba_v1'] != "yes")) {
-					$ver	= "";
+				$ver	= "";
+				$params	= sprintf(get_mount_params($fs, $dev), $ver);
+				$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
+				unassigned_log("Mount SMB share '$dev' using SMB default protocol.");
+				unassigned_log("Mount SMB command: $cmd");
+				$o		= timed_exec(10, $cmd." 2>&1");
+				if (! is_mounted($dev) && strpos($o, "Permission denied") === FALSE) {
+					unassigned_log("SMB default protocol mount failed: {$o}.");
+					$ver	= ",vers=3.0";
 					$params	= sprintf(get_mount_params($fs, $dev), $ver);
 					$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
-					unassigned_log("Mount SMB share '$dev' using SMB default protocol.");
+					unassigned_log("Mount SMB share '$dev' using SMB3 protocol.");
 					unassigned_log("Mount SMB command: $cmd");
 					$o		= timed_exec(10, $cmd." 2>&1");
-					if (! is_mounted($dev) && strpos($o, "Permission denied") === FALSE) {
-						unassigned_log("SMB default protocol mount failed: {$o}.");
-						$ver	= ",vers=3.0";
-						$params	= sprintf(get_mount_params($fs, $dev), $ver);
-						$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
-						unassigned_log("Mount SMB share '$dev' using SMB3 protocol.");
-						unassigned_log("Mount SMB command: $cmd");
-						$o		= timed_exec(10, $cmd." 2>&1");
-					}
-					if (! is_mounted($dev) && strpos($o, "Permission denied") === FALSE) {
-						unassigned_log("SMB3 mount failed: {$o}.");
-						/* If the mount failed, try to mount with samba vers=2.0. */
-						$ver	= ",vers=2.0";
-						$params	= sprintf(get_mount_params($fs, $dev), $ver);
-						$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
-						unassigned_log("Mount SMB share '$dev' using SMB2 protocol.");
-						unassigned_log("Mount SMB command: $cmd");
-						$o		= timed_exec(10, $cmd." 2>&1");
-					}
-					if ((! is_mounted($dev) && $use_netbios == 'yes') && strpos($o, "Permission denied") === FALSE) {
-						unassigned_log("SMB2 mount failed: {$o}.");
-						/* If the mount failed, try to mount with samba vers=1.0. */
-						$ver	= ",vers=1.0";
-						$params	= sprintf(get_mount_params($fs, $dev), $ver);
-						$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
-						unassigned_log("Mount SMB share '$dev' using SMB1 protocol.");
-						unassigned_log("Mount SMB command: $cmd");
-						$o		= timed_exec(10, $cmd." 2>&1");
-						if ($o != "") {
-							unassigned_log("SMB1 mount failed: {$o}.");
-							$rc = FALSE;
-						}
-					}
-				} else {
-					$ver	= ",vers=1.0";
+				}
+				if (! is_mounted($dev) && strpos($o, "Permission denied") === FALSE) {
+					unassigned_log("SMB3 mount failed: {$o}.");
+					/* If the mount failed, try to mount with samba vers=2.0. */
+					$ver	= ",vers=2.0";
+					$params	= sprintf(get_mount_params($fs, $dev), $ver);
+					$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
+					unassigned_log("Mount SMB share '$dev' using SMB2 protocol.");
+					unassigned_log("Mount SMB command: $cmd");
+					$o		= timed_exec(10, $cmd." 2>&1");
+				}
+				if ((! is_mounted($dev) && $use_netbios == 'yes') && strpos($o, "Permission denied") === FALSE) {
+					unassigned_log("SMB2 mount failed: {$o}.");
+					/* If the mount failed, try to mount with samba vers=1.0. */
+					$ver	= ",sec=ntlm,vers=1.0";
 					$params	= sprintf(get_mount_params($fs, $dev), $ver);
 					$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 					unassigned_log("Mount SMB share '$dev' using SMB1 protocol.");
 					unassigned_log("Mount SMB command: $cmd");
 					$o		= timed_exec(10, $cmd." 2>&1");
+					if ($o != "") {
+						unassigned_log("SMB1 mount failed: {$o}.");
+						$rc = FALSE;
+					}
 				}
 				exec("/bin/shred -u '$credentials_file'");
 			}
