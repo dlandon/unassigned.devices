@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.11.23b">
+<!ENTITY version   "2020.11.25">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"e64cb359a7e46fe0b918c813ddbc8397">
+<!ENTITY MD5		"a0ce03566916f276de9ddbf5daa0af2d">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Revert ping check for remote share on-line.
+- Fix: Change display mode switch to a Share display mode switch.
+
+###2020.11.23b
 - Fix: Missing 'sec=ntlm' from SMB1 mount command.
 - Fix: Remove force SMB1 samba mount setting.  It is no longer necessary.
 
