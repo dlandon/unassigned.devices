@@ -806,9 +806,9 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 								 "<?=_('Unassigned Devices');?>");
 		addButtonTab('<a style="cursor:pointer;" onclick="$.post(\''+UDURL+'\',{\'action\':\'rescan_disks\'});" title="<?=_("Rescan Disks");?>"><i class="fa fa-refresh"></i></a>',
 								 "<?=_('Unassigned Devices');?>");
-		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch On to Show All Partitions");?>"><input type="checkbox" class="partitions-switch"></a>',
+		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch On to Show All Disk Partitions");?>"><input type="checkbox" class="partitions-switch"></a>',
 								 "<?=_('Unassigned Devices');?>");
-		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch Display Mode");?>"><input type="checkbox" class="complete-switch"></a>',
+		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch On to Show SMB/NFS/ISO Shares");?>"><input type="checkbox" class="complete-switch"></a>',
 								 "<?=_('Unassigned Devices');?>");
 
 		/* Add switchButton to Tab/Title bar */
