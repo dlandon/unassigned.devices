@@ -794,11 +794,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		}
 	});
 
-	$( "#usb_devices_list" ).arrive(".show-complete", {onceOnly:false}, function()
-	{
-		$(this).css("display", $(".complete-switch").is(":checked") ? "block" : "none");
-	});
-
 	$(function()
 	{
 		/* Add icons to Tab/Title bar */
@@ -808,16 +803,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 								 "<?=_('Unassigned Devices');?>");
 		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch On to Show All Partitions");?>"><input type="checkbox" class="partitions-switch"></a>',
 								 "<?=_('Unassigned Devices');?>");
-		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch Display Mode");?>"><input type="checkbox" class="complete-switch"></a>',
-								 "<?=_('Unassigned Devices');?>");
 
-		/* Add switchButton to Tab/Title bar */
-		$('.complete-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Complete');?>", off_label: "<?=_('Simple');?>", checked: $.cookie('unassigned-complete-view') != 'false'});
-		$('.complete-switch').change(function()
-		{
-			$('.show-complete').slideToggle('slow');
-			$.cookie('unassigned-complete-view', $('.complete-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path:'/' });
-		});
 		<?$show_all_partitions = get_config("Config", "show_all_partitions")?>;
 		$('.partitions-switch').switchButton({ labels_placement: "left", on_label: "<?=_('All');?>", off_label: "<?=_('None');?>", checked: "<?=$show_all_partitions;?>" == 'yes'});
 		$('.partitions-switch').change(function()
