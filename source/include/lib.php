@@ -209,15 +209,14 @@ function is_samba_server_online($mount) {
 	if (isset($ping_status[$server]) && (time() - $ping_status[$server]['timestamp']) < 27 ) {
 		$is_alive = ($ping_status[$server]['online'] == 'yes') ? TRUE : FALSE;
 	} else {
-		if (! is_ip($mount['ip']))
+		$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$mount['ip']} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+		if (! $is_alive && ! is_ip($mount['ip']))
 		{
 			$ip = trim(timed_exec(5, "/usr/bin/nmblookup {$mount['ip']} | /bin/head -n1 | /bin/awk '{print $1}'"));
-		} else {
-			$ip = $mount['ip'];
-		}
-		if (is_ip($ip))
-		{
-			$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+			if (is_ip($ip))
+			{
+				$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+			}
 		}
 
 		if (! $is_alive && $mount['mounted']) {
