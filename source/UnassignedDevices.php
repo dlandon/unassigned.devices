@@ -261,7 +261,7 @@ switch ($_POST['action']) {
 		unassigned_log("Starting page render [get_content]", "DEBUG");
 		$time		 = -microtime(true);
 		$disks = get_all_disks_info();
-		echo "<table class='disk_status wide usb_disks'><thead><tr><td>"._('Device')."</td><td>"._('Identification')."</td><td></td><td>"._('Temp').".</td><td>"._('Open')."</td><td>"._('Pass Thru')."</td><td>"._('Read only')."</td><td>"._('Auto mount')."</td><td>"._('Share')."</td><td>"._('FS')."</td><td>"._('Size')."</td><td>"._('Used')."</td><td>"._('Free')."</td><td>"._('Script')."</td></tr></thead>";
+		echo "<table class='show-disks disk_status wide usb_disks'><thead><tr><td>"._('Device')."</td><td>"._('Identification')."</td><td></td><td>"._('Temp').".</td><td>"._('Open')."</td><td>"._('Pass Thru')."</td><td>"._('Read only')."</td><td>"._('Auto mount')."</td><td>"._('Share')."</td><td>"._('FS')."</td><td>"._('Size')."</td><td>"._('Used')."</td><td>"._('Free')."</td><td>"._('Script')."</td></tr></thead>";
 		echo "<tbody>";
 		if ( count($disks) ) {
 			foreach ($disks as $disk) {
@@ -350,7 +350,7 @@ switch ($_POST['action']) {
 		echo "</tbody></table>";
 
 		# SAMBA Mounts
-		echo "<div id='smb_tab' class='show-complete'>";
+		echo "<div id='smb_tab' class='show-shares'>";
 		echo "<div id='title'><span class='left'><img src='/plugins/$plugin/icons/smbsettings.png' class='icon'>"._('SMB Shares')." &nbsp;|&nbsp;<img src='/plugins/$plugin/icons/nfs.png' class='icon'>"._('NFS Shares')." &nbsp;|&nbsp;<img src='/plugins/$plugin/icons/iso.png' class='icon' style='width:16px;'>"._('ISO File Shares')."</span></div>";
 		echo "<table class='disk_status wide samba_mounts'><thead><tr><td>"._('Device')."</td><td>"._('Source')."</td><td>"._('Mount point')."</td><td></td><td>"._('Remove')."</td><td></td><td></td><td></td><td>"._('Auto mount')."</td><td>"._('Share')."</td><td>"._('Size')."</td><td>"._('Used')."</td><td>"._('Free')."</td><td>"._('Script')."</td></tr></thead>";
 		echo "<tbody>";
@@ -458,7 +458,7 @@ switch ($_POST['action']) {
 			}
 		}
 		if (strlen($ct)) {
-			echo "<div id='smb_tab'><div id='title'><span class='left'><img src='/plugins/{$plugin}/icons/historical.png' class='icon'>"._('Historical Devices')."</span></div>";
+			echo "<div class='show-disks' id='smb_tab'><div id='title'><span class='left'><img src='/plugins/{$plugin}/icons/historical.png' class='icon'>"._('Historical Devices')."</span></div>";
 			echo "<table class='disk_status wide usb_absent'><thead><tr><td>"._('Device')."</td><td>"._('Serial Number (Mountpoint)')."</td><td></td><td></td><td></td><td></td><td>"._('Read only')."</td><td>"._('Auto mount')."</td><td>"._('Script')."</td><td>"._('Remove')."</td></tr></thead><tbody>{$ct}</tbody></table></div>";
 		}
 		unassigned_log("Total render time: ".($time + microtime(true))."s", "DEBUG");

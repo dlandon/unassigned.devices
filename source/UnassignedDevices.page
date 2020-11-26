@@ -794,9 +794,14 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		}
 	});
 
-	$( "#usb_devices_list" ).arrive(".show-complete", {onceOnly:false}, function()
+	$( "#usb_devices_list" ).arrive(".show-shares", {onceOnly:false}, function()
 	{
-		$(this).css("display", $(".complete-switch").is(":checked") ? "block" : "none");
+		$(this).css("display", $(".shares-switch").is(":checked") ? "block" : "none");
+	});
+
+	$( "#usb_devices_list" ).arrive(".show-disks", {onceOnly:false}, function()
+	{
+		$(this).css("display", $(".disks-switch").is(":checked") ? "block" : "none");
 	});
 
 	$(function()
@@ -808,16 +813,26 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 								 "<?=_('Unassigned Devices');?>");
 		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch On to Show All Disk Partitions");?>"><input type="checkbox" class="partitions-switch"></a>',
 								 "<?=_('Unassigned Devices');?>");
-		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch On to Show SMB/NFS/ISO Shares");?>"><input type="checkbox" class="complete-switch"></a>',
+		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch On to Show Disk Devices");?>"><input type="checkbox" class="disks-switch"></a>',
+								 "<?=_('Unassigned Devices');?>");
+		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch On to Show SMB/NFS/ISO Shares");?>"><input type="checkbox" class="shares-switch"></a>',
 								 "<?=_('Unassigned Devices');?>");
 
 		/* Add switchButton to Tab/Title bar */
-		$('.complete-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Shares');?>", off_label: "<?=_('Shares');?>", checked: $.cookie('unassigned-complete-view') != 'false'});
-		$('.complete-switch').change(function()
+		$('.shares-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Shares');?>", off_label: "<?=_('Shares');?>", checked: $.cookie('unassigned-shares-view') != 'false'});
+		$('.shares-switch').change(function()
 		{
-			$('.show-complete').slideToggle('slow');
-			$.cookie('unassigned-complete-view', $('.complete-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path:'/' });
+			$('.show-shares').slideToggle('slow');
+			$.cookie('unassigned-shares-view', $('.shares-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path:'/' });
 		});
+
+		$('.disks-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Disks');?>", off_label: "<?=_('Disks');?>", checked: $.cookie('unassigned-disks-view') != 'false'});
+		$('.disks-switch').change(function()
+		{
+			$('.show-disks').slideToggle('slow');
+			$.cookie('unassigned-disks-view', $('.disks-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path:'/' });
+		});
+
 		<?$show_all_partitions = get_config("Config", "show_all_partitions")?>;
 		$('.partitions-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Partitions');?>", off_label: "<?=_('Partitions');?>", checked: "<?=$show_all_partitions;?>" == 'yes'});
 		$('.partitions-switch').change(function()
@@ -1093,7 +1108,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 				<label class="image-radio-label image-radio-linux" for="{0}"></label>
 				<input type="radio" id="{1}" name="PROTOCOL" value="SMB" required="">
 				<label class="image-radio-label image-radio-windows" for="{1}"></label>
-				<p style='color:red;'><?=_('WARNING: Do NOT use a remote share local mount in a Docker or VM for critical data');?>.  <?=_('Remote share mounts are dependent on a solid and reliable network connection and that is difficult to achieve');?>. <?=_('You WILL have problems if you do');?>!</p>
+				<p style='color:red;'><?=_('WARNING: Use caution when using a remote share local mount in a Docker container or VM for critical data');?>.  <?=_('Media mapped to apps like Plex should not be a problem');?>.  <?=_('Remote share mounts are dependent on a solid and reliable network connection and that is difficult to achieve');?>. <?=_('If the remote share goes offline, you may have problems');?>!</p>
 			</div>
 		</div>
 		<div data-question-done></div>
