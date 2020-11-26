@@ -567,9 +567,9 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 <?=$Preclear ? $Preclear->html() : "";?>
 
 :unassgned_devices_switches_plug:
-> Turn off the **Complete** switch to change the web page to just show hardware devices. Turn on the **Simple** switch to switch back to the full web display.
+> Turn off the **Shares** switch to change the web page to just show hardware devices. Turn on the **Shares** switch to switch back to the full web display.
 >
-> Turn on the **None** switch to show all device partitions. Turn off **All** switch to switch back to not show partitions.
+> Turn on the **Partitions** switch to show all device partitions. Turn off **Partitons** switch to switch back to not show partitions.
 >
 > Click on the <i style='color:black;font-weight:bold;' class="fa fa-refresh"></i> icon to rescan disks.
 >
@@ -601,7 +601,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 > + Disk must have all partitions removed.  Unmount disk, click on the <i style='color:black;font-weight:bold;' class='fa fa-plus-square'></i> icon,, and click on all <i style='color:red;font-weight:bold;' class='fa fa-remove hdd'></i> icons to delete partitions.
 > + If the disk has been precelared and shows a grayed 'Format' button, click on the <i style='color:black;font-weight:bold;' class='fa fa-plus-square'></i> icon, then click on the <i style='color:red;font-weight:bold;' class='fa fa-remove hdd'></i> icon to delete the preclear status file.
 >
-> **Note: A disk partitioned in UD is compatible with the array disk partitioning and can be added to the array. Supported file formats are XFS, XFS encrypted, BTRFS and BTRFS encrypted.**
+> **Note: A disk partitioned in UD is compatible with the array disk partitioning and can be added to the array.  Supported file formats are XFS, XFS encrypted, BTRFS and BTRFS encrypted.**
 >
 > **Encrypted Disks:**
 >
@@ -1093,6 +1093,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 				<label class="image-radio-label image-radio-linux" for="{0}"></label>
 				<input type="radio" id="{1}" name="PROTOCOL" value="SMB" required="">
 				<label class="image-radio-label image-radio-windows" for="{1}"></label>
+				<p style='color:red;'><?=_('WARNING: Do NOT use a remote share local mount in a Docker or VM for critical data');?>.  <?=_('Remote share mounts are dependent on a solid and reliable network connection and that is difficult to achieve');?>. <?=_('You WILL have problems if you do');?>!</p>
 			</div>
 		</div>
 		<div data-question-done></div>
