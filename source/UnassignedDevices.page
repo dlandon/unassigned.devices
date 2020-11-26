@@ -567,9 +567,11 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 <?=$Preclear ? $Preclear->html() : "";?>
 
 :unassgned_devices_switches_plug:
-> Turn off the **Shares** switch to change the web page to just show hardware devices. Turn on the **Shares** switch to switch back to the full web display.
+> Turn on the **Shares** switch to change the web page to show shares. Turn off the **Shares** switch to change the web page to hide shares.
 >
-> Turn on the **Partitions** switch to show all device partitions. Turn off **Partitons** switch to switch back to not show partitions.
+> Turn on the **Disks** switch to change the web page to show disk devices. Turn off the **Diskss** switch to change the web page to hide disk devices.
+>
+> Turn on the **Partitions** switch to show all disk device partitions. Turn off **Partitons** switch to switch back to not show disk device partitions.
 >
 > Click on the <i style='color:black;font-weight:bold;' class="fa fa-refresh"></i> icon to rescan disks.
 >
@@ -1108,7 +1110,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 				<label class="image-radio-label image-radio-linux" for="{0}"></label>
 				<input type="radio" id="{1}" name="PROTOCOL" value="SMB" required="">
 				<label class="image-radio-label image-radio-windows" for="{1}"></label>
-				<p style='color:red;'><?=_('WARNING: Use caution when using a remote share local mount in a Docker container or VM for critical data');?>.  <?=_('Media mapped to apps like Plex should not be a problem');?>.  <?=_('Remote share mounts are dependent on a solid and reliable network connection and that is difficult to achieve');?>. <?=_('If the remote share goes offline, you may have problems');?>!</p>
+				<p style='color:red;'><?=_('WARNING: Use caution when using a remote share local mount in a Docker container or VM for critical data');?>.  <?=_('Media mapped to apps like Plex should not be a problem');?>.  <?=_('Remote share mounts are dependent on a solid and reliable network connection and that can difficult to achieve');?>. <?=_('If the remote share goes offline, you may have problems');?>!</p>
 			</div>
 		</div>
 		<div data-question-done></div>

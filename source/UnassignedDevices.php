@@ -437,7 +437,8 @@ switch ($_POST['action']) {
 		if (! count($samba_mounts) && ! count($iso_mounts)) {
 			echo "<tr><td colspan='14' style='text-align:center;'>"._('No Remote SMB/NFS or ISO File Shares configured').".</td></tr>";
 		}
-		echo "</tbody></table><button onclick='add_samba_share()'>"._('Add Remote SMB/NFS Share')."</button>";
+		echo "</tbody></table>";
+		echo "<button onclick='add_samba_share()'>"._('Add Remote SMB/NFS Share')."</button>";
 		echo "<button onclick='add_iso_share()'>"._('Add ISO File Share')."</button></div>";
 
 		$config_file = $GLOBALS["paths"]["config_file"];
