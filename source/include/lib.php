@@ -1218,7 +1218,11 @@ function get_samba_mounts() {
 		$mount['automount'] = is_samba_automount($mount['name']);
 		$mount['smb_share'] = is_samba_share($mount['name']);
 		if (! $mount['mountpoint']) {
-			$mount['mountpoint'] = $mount['target'] ? $mount['target'] : "{$paths['remote_mountpoint']}/{$mount['ip']}_{$mount['share']}";
+			/* Check for legacy mount point. */
+			$mount['mountpoint'] = "{$paths['usb_mountpoint']}/{$mount['ip']}_{$mount['share']}";
+			if (! file_exists($mount['mountpoint'])) {
+				$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$mount['ip']}_{$mount['share']}";
+			}
 		}
 		$stats = get_device_stats($mount, $mount['is_alive']);
 		$mount['size']  	= intval($stats[0])*1024;
