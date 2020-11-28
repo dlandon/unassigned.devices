@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.11.25a">
+<!ENTITY version   "2020.11.27">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"285b1438060d826544180841394d968b">
+<!ENTITY MD5		"89e6a9fd1a0518b261331b91da59bbe1">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Switch to enable/disable disks view.  You can now limit the view of UD to disks only, remote shares only, or both.
+- Add: Remote shares are now mounted at '/mnt/remotes'.
+
+###2020.11.25a
 - Fix: Revert ping check for remote share on-line.
 - Fix: Change display mode switch to a Share display mode switch.
 - Fix: Add warning message about using remote share local mounts directly in VMs and Dockers.
@@ -1268,7 +1272,7 @@ ln -sf /usr/local/emhttp/plugins/&name;/scripts/mkmbr.sh /usr/local/sbin
 
 # create state folder and mount point
 rm -rf /var/state/&name;
-mkdir -p /mnt/disks /var/state/&name;
+mkdir -p /mnt/disks /mnt/remotes /var/state/&name;
 chmod 777 /var/state/&name;
 
 # create a tmpfs mountpoint at /mnt/disks
@@ -1288,6 +1292,24 @@ if ! mountpoint -q /mnt/disks 2>/dev/null; then
   fi
 fi
 chown nobody:users /mnt/disks
+
+# create a tmpfs mountpoint at /mnt/remotes
+# to make sure that a CIFS connection dropout doesn't fill all rootfs
+# ps: tmpfs mountpoint will only be created if no remote shares are mounted yet
+mounted_remotes="n"
+if ! mountpoint -q /mnt/remotes 2>/dev/null; then
+  for dir in /mnt/remotes/*; do 
+    if mountpoint -q "$dir" 2>/dev/null; then 
+      mounted_remotes="y" 
+    fi
+  done
+  if [ $mounted_remotes == "n" ]; then
+    mount -t tmpfs -o size=1M tmpfs /mnt/remotes
+  else
+    touch /var/state/&name;/reboot_required
+  fi
+fi
+chown nobody:users /mnt/remotes
 
 # Add unassigned_devices to smb-extra.conf.
 at -M -f /tmp/&name;/add-smb-extra now 2>/dev/null
@@ -1321,7 +1343,7 @@ echo ""
 echo " Note:"
 echo " Install the Unassigned Devices Plus plugin if you need to"
 echo " mount exFAT or HFS+ file formats, or format disks."
-if [ $mounted_disks == "y" ]; then
+if [ [ $mounted_disks == "y" ] || [ $mounted_remotes == "y"] ]; then
   echo ""
   echo " PLEASE REBOOT YOUR SERVER "
   echo ""
@@ -1342,6 +1364,11 @@ if mountpoint -q "/mnt/disks"; then
   umount "/mnt/disks"
 fi
 rmdir /mnt/disks 2>/dev/null
+
+if mountpoint -q "/mnt/remotes"; then
+  umount "/mnt/remotes"
+fi
+rmdir /mnt/remotes 2>/dev/null
 
 # Remove installed packages
 find "&packages;/" -type f -iname "*.txz" -delete
