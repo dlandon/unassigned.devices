@@ -17,7 +17,7 @@ $version = parse_ini_file("/etc/unraid-version");
 $paths = [  "smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"smb_usb_shares"	=> "/etc/samba/unassigned-shares",
 			"usb_mountpoint"	=> "/mnt/disks",
-			"remote_mountpoint"	=> version_compare($version['version'],"6.8.9", ">") ? "/mnt/remotes" : "/mnt/disks",
+			"remote_mountpoint"	=> "/mnt/disks",
 			"device_log"		=> "/tmp/{$plugin}/",
 			"config_file"		=> "/tmp/{$plugin}/config/{$plugin}.cfg",
 			"state"				=> "/var/state/{$plugin}/{$plugin}.ini",
@@ -1218,11 +1218,7 @@ function get_samba_mounts() {
 		$mount['automount'] = is_samba_automount($mount['name']);
 		$mount['smb_share'] = is_samba_share($mount['name']);
 		if (! $mount['mountpoint']) {
-			/* Check for legacy mount point. */
-			$mount['mountpoint'] = "{$paths['usb_mountpoint']}/{$mount['ip']}_{$mount['share']}";
-			if (! file_exists($mount['mountpoint'])) {
-				$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$mount['ip']}_{$mount['share']}";
-			}
+			$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$mount['ip']}_{$mount['share']}";
 		}
 		$stats = get_device_stats($mount, $mount['is_alive']);
 		$mount['size']  	= intval($stats[0])*1024;
