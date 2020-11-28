@@ -140,7 +140,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 	$mbutton = make_mount_button($partition);
 
 	get_config("Config", "show_all_partitions") != 'yes' ? $style = "style='display:none;'" : $style = "";
-	$out[] = "<tr class='toggle-parts toggle-".basename($disk['device'])."' name='toggle-".basename($disk['device'])."' $style >";
+	$out[] = "<tr class='toggle-parts toggle-".basename($disk['device'])."' name='toggle-".basename($disk['device'])."' $style>";
 	$out[] = "<td></td>";
 	$out[] = "<td>{$mpoint}</td>";
 	$out[] = "<td class='mount'>{$mbutton}</td>";
@@ -307,7 +307,7 @@ switch ($_POST['action']) {
 					echo ($disk['partitions'][0]['fstype'] == "crypto_LUKS" ? "<i class='fa fa-lock orb'></i>" : "");
 					echo "<a href='/Main/New?name={$disk_name}'> {$disk_name}</a></td>";
 				}
-				/* Devie serial number */
+				/* Device serial number */
 				echo "<td>{$hdd_serial}</td>";
 				/* Mount button */
 				echo "<td class='mount'>{$mbutton}</td>";

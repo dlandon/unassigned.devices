@@ -11,13 +11,12 @@
  */
 
 $plugin = "unassigned.devices";
-$version = parse_ini_file("/etc/unraid-version");
 /* $VERBOSE=TRUE; */
 
 $paths = [  "smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"smb_usb_shares"	=> "/etc/samba/unassigned-shares",
 			"usb_mountpoint"	=> "/mnt/disks",
-			"remote_mountpoint"	=> version_compare($version['version'],"6.8.9", ">") ? "/mnt/remotes" : "/mnt/disks",
+			"remote_mountpoint"	=> "/mnt/remotes",
 			"device_log"		=> "/tmp/{$plugin}/",
 			"config_file"		=> "/tmp/{$plugin}/config/{$plugin}.cfg",
 			"state"				=> "/var/state/{$plugin}/{$plugin}.ini",
@@ -151,7 +150,10 @@ function listDir($root) {
 
 function safe_name($string, $convert_spaces=TRUE) {
 	$string = stripcslashes($string);
-	$string = str_replace( "'", "_", $string);
+	/* Convert single quote to underscore */
+	$string = str_replace( array("'"), "_", $string);
+	/* Remove parentheses */
+	$string = str_replace( array("(", ")"), "", $string);
 	if ($convert_spaces) {
 		$string = str_replace(" " , "_", $string);
 	}
