@@ -3,7 +3,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.11.28b">
+<!ENTITY version   "2020.11.28c">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
@@ -1275,7 +1275,7 @@ ln -sf /usr/local/emhttp/plugins/&name;/scripts/mkmbr.sh /usr/local/sbin
 
 # create state folder and mount point
 rm -rf /var/state/&name;
-mkdir -p /mnt/disks /mnt/remotes /var/state/&name;
+mkdir -p /mnt/disks /var/state/&name;
 chmod 777 /var/state/&name;
 
 # create a tmpfs mountpoint at /mnt/disks
@@ -1295,24 +1295,6 @@ if ! mountpoint -q /mnt/disks 2>/dev/null; then
   fi
 fi
 chown nobody:users /mnt/disks
-
-# create a tmpfs mountpoint at /mnt/remotes
-# to make sure that a CIFS connection dropout doesn't fill all rootfs
-# ps: tmpfs mountpoint will only be created if no remote shares are mounted yet
-mounted_remotes="n"
-if ! mountpoint -q /mnt/remotes 2>/dev/null; then
-  for dir in /mnt/remotes/*; do 
-    if mountpoint -q "$dir" 2>/dev/null; then 
-      mounted_remotes="y" 
-    fi
-  done
-  if [ $mounted_remotes == "n" ]; then
-    mount -t tmpfs -o size=1M tmpfs /mnt/remotes
-  else
-    touch /var/state/&name;/reboot_required
-  fi
-fi
-chown nobody:users /mnt/remotes
 
 # Add unassigned_devices to smb-extra.conf.
 at -M -f /tmp/&name;/add-smb-extra now 2>/dev/null
@@ -1367,11 +1349,6 @@ if mountpoint -q "/mnt/disks"; then
   umount "/mnt/disks"
 fi
 rmdir /mnt/disks 2>/dev/null
-
-if mountpoint -q "/mnt/remotes"; then
-  umount "/mnt/remotes"
-fi
-rmdir /mnt/remotes 2>/dev/null
 
 # Remove installed packages
 find "&packages;/" -type f -iname "*.txz" -delete
