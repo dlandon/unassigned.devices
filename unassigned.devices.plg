@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.11.28a">
+<!ENTITY version   "2020.11.28b">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"3fc037728457cb10dcc1f96c027afc9a">
+<!ENTITY MD5		"b69a30594487839d7e3e0871c6b12ecd">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,8 +24,7 @@
 <CHANGES>
 ##&name;
 ###&version;
-- Fix: Limit the change in remote shares mount point to 6.9 and above.
-- Fix: When updating UD to new remote mount point feature, shares cannot be unmounted.
+- Fix: Roll back remote shares change.
 
 ###2020.11.28
 - Add: Switch to enable/disable disks view.  You can now limit the view of UD to disks only, remote shares only, or both.
