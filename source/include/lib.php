@@ -1229,6 +1229,12 @@ function get_samba_mounts() {
 			if (! $mount['mounted'] || is_link($mount['mountpoint'])) {
 				$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$mount['ip']}_{$path}";
 			}
+		} else {
+			$path = basename($mount['mountpoint']);
+			$mount['mountpoint'] = "{$paths['usb_mountpoint']}/{$path}";
+			if (! $mount['mounted'] || is_link($mount['mountpoint'])) {
+				$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$path}";
+			}
 		}
 		$stats = get_device_stats($mount, $mount['is_alive']);
 		$mount['size']  	= intval($stats[0])*1024;
@@ -1772,7 +1778,7 @@ function change_samba_mountpoint($dev, $mountpoint) {
 	if ($mountpoint != "") {
 		$rc = check_for_duplicate_share($dev, $mountpoint);
 		if ($rc) {
-			$mountpoint = $paths['remote_mountpoint']."/".$mountpoint;
+			$mountpoint = $mountpoint;
 			set_samba_config($dev, "mountpoint", $mountpoint);
 		}
 	} else {
