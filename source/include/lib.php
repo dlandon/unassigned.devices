@@ -17,7 +17,7 @@ $version = parse_ini_file("/etc/unraid-version");
 $paths = [  "smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"smb_usb_shares"	=> "/etc/samba/unassigned-shares",
 			"usb_mountpoint"	=> "/mnt/disks",
-			"remote_mountpoint"	=> "/mnt/disks",
+			"remote_mountpoint"	=> "/mnt/remotes",
 			"device_log"		=> "/tmp/{$plugin}/",
 			"config_file"		=> "/tmp/{$plugin}/config/{$plugin}.cfg",
 			"state"				=> "/var/state/{$plugin}/{$plugin}.ini",
@@ -153,8 +153,6 @@ function safe_name($string, $convert_spaces=TRUE) {
 	$string = stripcslashes($string);
 	/* Convert single quote to underscore */
 	$string = str_replace( array("'"), "_", $string);
-	/* Remove parentheses */
-	$string = str_replace( array("(", ")"), "", $string);
 	if ($convert_spaces) {
 		$string = str_replace(" " , "_", $string);
 	}
@@ -876,6 +874,7 @@ function do_mount_local($info) {
 }
 
 function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE, $nfs = FALSE) {
+global $paths;
 
 	$rc = FALSE;
 	if ( is_mounted($dev) && is_mounted($dir, TRUE) ) {
@@ -888,6 +887,10 @@ function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE, $nfs = FALSE) {
 			if (! is_mounted($dev)) {
 				if (is_dir($dir)) {
 					@rmdir($dir);
+					$link = $paths['usb_mountpoint']."/".basename($dir);
+					if (is_link($link)) {
+						@unlink($link);
+					}
 				}
 				unassigned_log("Successfully unmounted '{$dev}'");
 				$rc = TRUE;
@@ -926,7 +929,8 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 	global $paths, $var, $users;
 
 	if ( ($var['shareSMBEnabled'] != "no") ) {
-		$share_name = basename($dir);
+		/* Remove special characters from share name */
+		$share_name = str_replace( array("(", ")"), "", basename($dir));
 		$config = @parse_ini_file($paths['config_file'], true);
 		$config = $config["Config"];
 
@@ -1009,7 +1013,8 @@ function rm_smb_share($dir, $share_name) {
 	global $paths, $var;
 
 	if ( ($var['shareSMBEnabled'] != "no") ) {
-		$share_name = basename($dir);
+		/* Remove special characters from share name */
+		$share_name = str_replace( array("(", ")"), "", basename($dir));
 		$share_conf = preg_replace("#\s+#", "_", realpath($paths['smb_usb_shares'])."/".$share_name.".conf");
 		if (is_file($share_conf)) {
 			@unlink($share_conf);
@@ -1209,8 +1214,10 @@ function get_samba_mounts() {
 
 		if ($mount['protocol'] == "NFS") {
 			$mount['fstype'] = "nfs";
+			$path = basename($mount['path']);
 		} else {
 			$mount['fstype'] = "cifs";
+			$path = $mount['path'];
 		}
 
 		$mount['mounted']	= is_mounted(($mount['fstype'] == "cifs") ? "//".$mount['ip']."/".$mount['path'] : $mount['device']);
@@ -1218,7 +1225,10 @@ function get_samba_mounts() {
 		$mount['automount'] = is_samba_automount($mount['name']);
 		$mount['smb_share'] = is_samba_share($mount['name']);
 		if (! $mount['mountpoint']) {
-			$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$mount['ip']}_{$mount['share']}";
+			$mount['mountpoint'] = "{$paths['usb_mountpoint']}/{$mount['ip']}_{$path}";
+			if (! $mount['mounted'] || is_link($mount['mountpoint'])) {
+				$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$mount['ip']}_{$path}";
+			}
 		}
 		$stats = get_device_stats($mount, $mount['is_alive']);
 		$mount['size']  	= intval($stats[0])*1024;
@@ -1300,6 +1310,10 @@ function do_mount_samba($info) {
 			}
 			if (is_mounted($dev)) {
 				@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
+				$link = $paths['usb_mountpoint']."/";
+				if (dirname($dir) == $paths['remote_mountpoint']) {
+					exec("/bin/ln -s '{$dir}/' '{$link}'");
+				}
 				unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
 				$rc = TRUE;
 			} else {
