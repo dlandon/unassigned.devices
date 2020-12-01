@@ -135,6 +135,11 @@ function unassigned_mount() {
 			}
 		}
 	}
+
+	/* Tell Unraid to update devs.ini file of unassigned devices. */
+	if (isset($_ENV['DEVTYPE']) && ($_ENV['DEVTYPE'] == "partition")) {
+		unassigned_log("*** mount ".$_ENV['DEVTYPE']." ".$DEVNAME);
+	}
 }
 
 function unassigned_umount() {
@@ -241,6 +246,11 @@ function unassigned_umount() {
 				}
 			}
 		}
+	}
+
+	/* Tell Unraid to update devs.ini file of unassigned devices. */
+	if (isset($_ENV['DEVTYPE']) && ($_ENV['DEVTYPE'] == "disk")) {
+		unassigned_log("*** unmount ".$_ENV['DEVTYPE']." ".$DEVNAME);
 	}
 }
 

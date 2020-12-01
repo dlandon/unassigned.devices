@@ -26,6 +26,7 @@ $paths = [  "smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"run_status"		=> "/var/state/{$plugin}/run_status.json",
 			"ping_status"		=> "/var/state/{$plugin}/ping_status.json",
 			"df_status"			=> "/var/state/{$plugin}/df_status.json",
+			"dev_state"			=> "/usr/local/emhttp/state/devs.ini",
 			"samba_mount"		=> "/tmp/{$plugin}/config/samba_mount.cfg",
 			"iso_mount"			=> "/tmp/{$plugin}/config/iso_mount.cfg",
 			"reload"			=> "/var/state/{$plugin}/reload.state",
@@ -188,16 +189,31 @@ function get_device_stats($mount, $active=TRUE) {
 function is_disk_running($dev) {
 	global $paths;
 
+	$dev	= preg_replace("/\d+$/", "", $dev);
 	$rc = FALSE;
-	$tc = $paths["run_status"];
-	$run_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-	if (isset($run_status[$dev]) && (time() - $run_status[$dev]['timestamp']) < 42) {
-		$rc = ($run_status[$dev]['running'] == 'yes') ? TRUE : FALSE;
-	} else {
-		$state = trim(timed_exec(10, "/usr/sbin/hdparm -C $dev 2>/dev/null | /bin/grep -c standby"));
-		$rc = ($state == 0) ? TRUE : FALSE;
-		$run_status[$dev] = array('timestamp' => time(), 'running' => $rc ? 'yes' : 'no');
-		file_put_contents($tc, json_encode($run_status));
+	$run_devs = FALSE;
+	$sf = $paths["dev_state"];
+	if (is_file($sf)) {
+		$devs = parse_ini_file($paths["dev_state"], true);
+		foreach ($devs as $d) {
+			if (($d['device'] == basename($dev)) && isset($d['spundown'])) {
+				$rc =($d['spundown'] == '0') ? TRUE : FALSE;
+				$run_devs = TRUE;
+				break;
+			}
+		}
+	}
+	if (! $run_devs) {
+		$tc = $paths["run_status"];
+		$run_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+		if (isset($run_status[$dev]) && (time() - $run_status[$dev]['timestamp']) < 42) {
+			$rc = ($run_status[$dev]['running'] == 'yes') ? TRUE : FALSE;
+		} else {
+			$state = trim(timed_exec(10, "/usr/sbin/hdparm -C $dev 2>/dev/null | /bin/grep -c standby"));
+			$rc = ($state == 0) ? TRUE : FALSE;
+			$run_status[$dev] = array('timestamp' => time(), 'running' => $rc ? 'yes' : 'no');
+			file_put_contents($tc, json_encode($run_status));
+		}
 	}
 	return $rc;
 }
@@ -209,7 +225,7 @@ function is_samba_server_online($mount) {
 	$server = $mount['ip'];
 	$tc = $paths["ping_status"];
 	$ping_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-	if (isset($ping_status[$server]) && (time() - $ping_status[$server]['timestamp']) < 27 ) {
+	if (isset($ping_status[$server]) && (time() - $ping_status[$server]['timestamp']) < 12 ) {
 		$is_alive = ($ping_status[$server]['online'] == 'yes') ? TRUE : FALSE;
 	} else {
 		$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$mount['ip']} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
@@ -247,19 +263,34 @@ function lsof($dir) {
 function get_temp($dev, $running) {
 	global $var, $paths;
 
+	$dev	= preg_replace("/\d+$/", "", $dev);
 	$rc	= "*";
 	if ($running) {
-		$tc = $paths["hdd_temp"];
-		$temps = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-		if (isset($temps[$dev]) && (time() - $temps[$dev]['timestamp']) < $var['poll_attributes'] ) {
-			$rc = $temps[$dev]['temp'];
-		} else {
-			$cmd	= "/usr/sbin/smartctl -A $dev | /bin/awk 'BEGIN{t=\"*\"} $1==\"Temperature:\"{t=$2;exit};$1==190||$1==194{t=$10;exit} END{print t}'";
-			$temp	= trim(timed_exec(10, $cmd));
-			$temp	= ($temp < 128) ? $temp : "*";
-			$temps[$dev] = array('timestamp' => time(), 'temp' => $temp);
-			file_put_contents($tc, json_encode($temps));
-			$rc = $temp;
+		$temp = "";
+		$sf = $paths["dev_state"];
+		if (is_file($sf)) {
+			$devs = parse_ini_file($paths["dev_state"], true);
+			foreach ($devs as $d) {
+				if (($d['device'] == basename($dev)) && isset($d['temp'])) {
+					$temp = $d['temp'];
+					$rc = $temp;
+					break;
+				}
+			}
+		}
+		if ($temp == "") {
+			$tc = $paths["hdd_temp"];
+			$temps = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+			if (isset($temps[$dev]) && (time() - $temps[$dev]['timestamp']) < $var['poll_attributes'] ) {
+				$rc = $temps[$dev]['temp'];
+			} else {
+				$cmd	= "/usr/sbin/smartctl -A $dev | /bin/awk 'BEGIN{t=\"*\"} $1==\"Temperature:\"{t=$2;exit};$1==190||$1==194{t=$10;exit} END{print t}'";
+				$temp	= trim(timed_exec(10, $cmd));
+				$temp	= ($temp < 128) ? $temp : "*";
+				$temps[$dev] = array('timestamp' => time(), 'temp' => $temp);
+				file_put_contents($tc, json_encode($temps));
+				$rc = $temp;
+			}
 		}
 	}
 	return $rc;
@@ -684,8 +715,8 @@ function remove_config_disk($sn) {
 }
 
 function is_disk_ssd($dev) {
-	$rc = FALSE;
 
+	$rc = FALSE;
 	$device = preg_replace("#\d+#i", "", basename($dev));
 	if (strpos($device, "nvme") === false) {
 		$file = "/sys/block/".$device."/queue/rotational";
@@ -697,7 +728,6 @@ function is_disk_ssd($dev) {
 	} else {
 		$rc = TRUE;
 	}
-
 	return $rc;
 }
 
@@ -1600,6 +1630,7 @@ function get_partition_info($device, $reload=FALSE){
 			$disk['mountpoint'] = $disk['target'] ? $disk['target'] : preg_replace("%\s+%", "_", sprintf("%s/%s", $paths['usb_mountpoint'], $disk['label']));
 		}
 		$disk['luks']	= safe_name($disk['device']);
+		$disk_device	= $disk['device'];
 		if ($disk['fstype'] == "crypto_LUKS") {
 			$disk['device'] = "/dev/mapper/".safe_name(basename($disk['mountpoint']));
 		}
@@ -1609,7 +1640,7 @@ function get_partition_info($device, $reload=FALSE){
 			$disk['fstype'] = (verify_precleared($disk['disk'])) ? "precleared" : $disk['fstype'];
 		}
 		$disk['target'] = str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep {$disk['device']} | /bin/awk '{print $2}'")));
-		$stats = get_device_stats($disk, is_disk_running($disk['device']));
+		$stats = get_device_stats($disk, is_disk_running($disk_device));
 		$disk['size']		= intval($stats[0])*1024;
 		$disk['used']		= intval($stats[1])*1024;
 		$disk['avail']		= intval($stats[2])*1024;
@@ -1816,17 +1847,30 @@ function change_UUID($dev) {
 	unassigned_log("Changing disk '{$dev}' UUID. Result: ".$rc);
 }
 
-/* If the disk is not a SSD, set the spin down timer if allowed by settings */
+/* If the disk is not a SSD, set the spin down timer if allowed by settings. */
 function setSleepTime($device) {
 	global $paths;
 
-	$device			= preg_replace("/\d+$/", "", $device);
-	if (! is_disk_ssd($device)) {
-		unassigned_log("Issue spin down timer for device '{$device}'.");
-		timed_exec(5, "/usr/sbin/hdparm -S180 $device 2>&1");
-	} else {
-		unassigned_log("Don't spin down device '{$device}'.");
-		timed_exec(5, "/usr/sbin/hdparm -S0 $device 2>&1");
+	$device	= preg_replace("/\d+$/", "", $device);
+	$run_devs = FALSE;
+	$sf = $paths["dev_state"];
+	if (is_file($sf)) {
+		$devs = parse_ini_file($paths["dev_state"], true);
+		foreach ($devs as $d) {
+			if (($d['device'] == basename($device)) && isset($d['spundown'])) {
+				$run_devs = TRUE;
+				break;
+			}
+		}
+	}
+	if (! $run_devs && get_config("Config", "spin_down") == 'yes') {
+		if (! is_disk_ssd($device)) {
+			unassigned_log("Issue spin down timer for device '{$device}'.");
+			timed_exec(5, "/usr/sbin/hdparm -S180 $device 2>&1");
+		} else {
+			unassigned_log("Don't spin down device '{$device}'.");
+			timed_exec(5, "/usr/sbin/hdparm -S0 $device 2>&1");
+		}
 	}
 }
 ?>
