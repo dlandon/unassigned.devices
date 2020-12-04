@@ -270,6 +270,7 @@ switch ($_POST['action']) {
 	case 'get_content':
 		unassigned_log("Starting page render [get_content]", "DEBUG");
 		$time		 = -microtime(true);
+		/* Check for a recent hot plug event. */
 		$tc = $paths["hotplug_status"];
 		$hotplug = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : "no";
 		if ($hotplug == "yes") {
