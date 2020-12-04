@@ -182,7 +182,7 @@ _(Spin down disks)_?
   </select><?if (version_compare($version['version'],"6.8.9", ">")):?>&nbsp;_(Disk spin down is managed by Unraid)_.<?endif;?>
 
 :ud_settings_spin_down_plug:
-> Set to **Yes** to set a 15 minute disk spin down timer.  Set to **No** to keep disks spun up.  Unraid version 6.9 and higher manages disk spin up/down.
+> Set to **Yes** to set a 15 minute disk spin down timer.  Set to **No** to keep disks spun up.  Unraid version 6.9 and higher manages disk spin down.
 :end
 
 &nbsp;

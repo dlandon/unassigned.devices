@@ -26,6 +26,7 @@ $paths = [  "smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"run_status"		=> "/var/state/{$plugin}/run_status.json",
 			"ping_status"		=> "/var/state/{$plugin}/ping_status.json",
 			"df_status"			=> "/var/state/{$plugin}/df_status.json",
+			"hotplug_status"	=> "/var/state/{$plugin}/hotplug_status.json",
 			"dev_state"			=> "/usr/local/emhttp/state/devs.ini",
 			"samba_mount"		=> "/tmp/{$plugin}/config/samba_mount.cfg",
 			"iso_mount"			=> "/tmp/{$plugin}/config/iso_mount.cfg",
@@ -186,11 +187,48 @@ function get_device_stats($mount, $active=TRUE) {
 	return preg_split('/\s+/', $rc);
 }
 
+function get_disk_dev($dev) {
+	global $paths;
+
+	$dev	= preg_replace("/\d+$/", "", $dev);
+	$rc		= basename($dev);
+	$sf = $paths["dev_state"];
+	if (is_file($sf)) {
+		$devs = parse_ini_file($paths["dev_state"], true);
+		foreach ($devs as $d) {
+			if (($d['device'] == basename($dev)) && isset($d['name'])) {
+				$rc = $d['name'];
+				break;
+			}
+		}
+	}
+	return $rc;
+}
+
+function get_disk_reads_writes($dev) {
+	global $paths;
+
+	$dev	= preg_replace("/\d+$/", "", $dev);
+	$rc		= array();
+	$sf = $paths["dev_state"];
+	if (is_file($sf)) {
+		$devs = parse_ini_file($paths["dev_state"], true);
+		foreach ($devs as $d) {
+			if (($d['device'] == basename($dev)) && isset($d['numReads']) && isset($d['numWrites'])) {
+				$rc[] = $d['numReads'];
+				$rc[] = $d['numWrites'];
+				break;
+			}
+		}
+	}
+	return $rc;
+}
+
 function is_disk_running($dev) {
 	global $paths;
 
 	$dev	= preg_replace("/\d+$/", "", $dev);
-	$rc = FALSE;
+	$rc		= FALSE;
 	$run_devs = FALSE;
 	$sf = $paths["dev_state"];
 	if (is_file($sf)) {
@@ -249,6 +287,7 @@ function is_samba_server_online($mount) {
 }
 
 function is_script_running($cmd) {
+
 	$rc = FALSE;
 	if ($cmd != "") {
 		$rc = shell_exec("/usr/bin/ps -ef | /bin/grep '".basename($cmd)."' | /bin/grep -v 'grep'") != "" ? TRUE : FALSE;
@@ -1238,42 +1277,46 @@ function get_samba_mounts() {
 	$o = array();
 	$config_file = $paths["samba_mount"];
 	$samba_mounts = @parse_ini_file($config_file, true);
-	foreach ($samba_mounts as $device => $mount) {
-		$mount['device'] = $device;
-		$mount['name']   = $device;
+	if (is_array($samba_mounts)) {
+		foreach ($samba_mounts as $device => $mount) {
+			$mount['device'] = $device;
+			$mount['name']   = $device;
 
-		if ($mount['protocol'] == "NFS") {
-			$mount['fstype'] = "nfs";
-			$path = basename($mount['path']);
-		} else {
-			$mount['fstype'] = "cifs";
-			$path = $mount['path'];
-		}
+			if ($mount['protocol'] == "NFS") {
+				$mount['fstype'] = "nfs";
+				$path = basename($mount['path']);
+			} else {
+				$mount['fstype'] = "cifs";
+				$path = $mount['path'];
+			}
 
-		$mount['mounted']	= is_mounted(($mount['fstype'] == "cifs") ? "//".$mount['ip']."/".$mount['path'] : $mount['device']);
-		$mount['is_alive']	= is_samba_server_online($mount);
-		$mount['automount'] = is_samba_automount($mount['name']);
-		$mount['smb_share'] = is_samba_share($mount['name']);
-		if (! $mount['mountpoint']) {
-			$mount['mountpoint'] = "{$paths['usb_mountpoint']}/{$mount['ip']}_{$path}";
-			if (! $mount['mounted'] || is_link($mount['mountpoint'])) {
-				$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$mount['ip']}_{$path}";
+			$mount['mounted']	= is_mounted(($mount['fstype'] == "cifs") ? "//".$mount['ip']."/".$mount['path'] : $mount['device']);
+			$mount['is_alive']	= is_samba_server_online($mount);
+			$mount['automount'] = is_samba_automount($mount['name']);
+			$mount['smb_share'] = is_samba_share($mount['name']);
+			if (! $mount['mountpoint']) {
+				$mount['mountpoint'] = "{$paths['usb_mountpoint']}/{$mount['ip']}_{$path}";
+				if (! $mount['mounted'] || is_link($mount['mountpoint'])) {
+					$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$mount['ip']}_{$path}";
+				}
+			} else {
+				$path = basename($mount['mountpoint']);
+				$mount['mountpoint'] = "{$paths['usb_mountpoint']}/{$path}";
+				if (! $mount['mounted'] || is_link($mount['mountpoint'])) {
+					$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$path}";
+				}
 			}
-		} else {
-			$path = basename($mount['mountpoint']);
-			$mount['mountpoint'] = "{$paths['usb_mountpoint']}/{$path}";
-			if (! $mount['mounted'] || is_link($mount['mountpoint'])) {
-				$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$path}";
-			}
+			$stats = get_device_stats($mount, $mount['is_alive']);
+			$mount['size']  	= intval($stats[0])*1024;
+			$mount['used']  	= intval($stats[1])*1024;
+			$mount['avail'] 	= intval($stats[2])*1024;
+			$mount['target']	= $mount['mountpoint'];
+			$mount['prog_name']	= basename($mount['command'], ".sh");
+			$mount['logfile']	= $paths['device_log'].$mount['prog_name'].".log";
+			$o[] = $mount;
 		}
-		$stats = get_device_stats($mount, $mount['is_alive']);
-		$mount['size']  	= intval($stats[0])*1024;
-		$mount['used']  	= intval($stats[1])*1024;
-		$mount['avail'] 	= intval($stats[2])*1024;
-		$mount['target']	= $mount['mountpoint'];
-		$mount['prog_name']	= basename($mount['command'], ".sh");
-		$mount['logfile']	= $paths['device_log'].$mount['prog_name'].".log";
-		$o[] = $mount;
+	} else {
+		unassigned_log("Error: unable to get the samba mounts.");
 	}
 	return $o;
 }
@@ -1426,23 +1469,27 @@ function get_iso_mounts() {
 	$o = array();
 	$config_file = $paths["iso_mount"];
 	$iso_mounts = @parse_ini_file($config_file, true);
-	foreach ($iso_mounts as $device => $mount) {
-		$mount['device'] = $device;
-		$mount['fstype'] = "loop";
-		$mount['automount'] = is_iso_automount($mount['device']);
-		if (! $mount["mountpoint"]) {
-			$mount["mountpoint"] = preg_replace("%\s+%", "_", "{$paths['usb_mountpoint']}/{$mount['share']}");
+	if (is_array($iso_mounts)) {
+		foreach ($iso_mounts as $device => $mount) {
+			$mount['device'] = $device;
+			$mount['fstype'] = "loop";
+			$mount['automount'] = is_iso_automount($mount['device']);
+			if (! $mount["mountpoint"]) {
+				$mount["mountpoint"] = preg_replace("%\s+%", "_", "{$paths['usb_mountpoint']}/{$mount['share']}");
+			}
+			$mount['target']	= $mount['mountpoint'];
+			$is_alive			= is_file($mount['file']);
+			$mount['mounted']	= is_mounted($mount['device']);
+			$stats = get_device_stats($mount);
+			$mount['size']  = intval($stats[0])*1024;
+			$mount['used']  = intval($stats[1])*1024;
+			$mount['avail'] = intval($stats[2])*1024;
+			$mount['prog_name'] = basename($mount['command'], ".sh");
+			$mount['logfile'] = $paths['device_log'].$mount['prog_name'].".log";
+			$o[] = $mount;
 		}
-		$mount['target']	= $mount['mountpoint'];
-		$is_alive			= is_file($mount['file']);
-		$mount['mounted']	= is_mounted($mount['device']);
-		$stats = get_device_stats($mount);
-		$mount['size']  = intval($stats[0])*1024;
-		$mount['used']  = intval($stats[1])*1024;
-		$mount['avail'] = intval($stats[2])*1024;
-		$mount['prog_name'] = basename($mount['command'], ".sh");
-		$mount['logfile'] = $paths['device_log'].$mount['prog_name'].".log";
-		$o[] = $mount;
+	} else {
+		unassigned_log("Error: unable to get the ISO mounts.");
 	}
 	return $o;
 }
@@ -1525,7 +1572,8 @@ function get_unassigned_disks() {
 		}
 	}
 
-	foreach ($unraid_disks as $k) {$o .= "  $k\n";}; unassigned_log("UNRAID DISKS:\n$o", "DEBUG");
+	foreach ($unraid_disks as $k) {$o .= "  $k\n";};
+	unassigned_log("UNRAID DISKS:\n$o", "DEBUG");
 
 	/* Create the array of unassigned devices. */
 	foreach ($paths as $path => $d) {
@@ -1543,20 +1591,26 @@ function get_unassigned_disks() {
 }
 
 function get_all_disks_info($bus="all") {
+
 	unassigned_log("Starting get_all_disks_info.", "DEBUG");
 	$d1 = time();
 	$ud_disks = get_unassigned_disks();
-	foreach ($ud_disks as $key => $disk) {
-		$dp = time();
-		if ($disk['type'] != $bus && $bus != "all") continue;
-		$disk['temperature'] = "";
-		$disk['size'] = intval(trim(timed_exec(5, "/bin/lsblk -nb -o size ".realpath($key)." 2>/dev/null")));
-		$disk = array_merge($disk, get_disk_info($key));
-		foreach ($disk['partitions'] as $k => $p) {
-			if ($p) $disk['partitions'][$k] = get_partition_info($p);
+	if (is_array($ud_disks)) {
+		foreach ($ud_disks as $key => $disk) {
+			$dp = time();
+			if ($disk['type'] != $bus && $bus != "all") continue;
+			$disk['temperature'] = "";
+			$disk['size'] = intval(trim(timed_exec(5, "/bin/lsblk -nb -o size ".realpath($key)." 2>/dev/null")));
+			$disk = array_merge($disk, get_disk_info($key));
+			foreach ($disk['partitions'] as $k => $p) {
+				if ($p) $disk['partitions'][$k] = get_partition_info($p);
+			}
+			$ud_disks[$key] = $disk;
+			unassigned_log("Getting [".realpath($key)."] info: ".(time() - $dp)."s", "DEBUG");
 		}
-		$ud_disks[$key] = $disk;
-		unassigned_log("Getting [".realpath($key)."] info: ".(time() - $dp)."s", "DEBUG");
+	} else {
+		unassigned_log("Error: unable to get unassigned disks.");
+		$ud_disks = array();
 	}
 	unassigned_log("Total time: ".(time() - $d1)."s", "DEBUG");
 	usort($ud_disks, create_function('$a, $b','$key="device";if ($a[$key] == $b[$key]) return 0; return ($a[$key] < $b[$key]) ? -1 : 1;'));
@@ -1589,6 +1643,8 @@ function get_disk_info($device, $reload=FALSE){
 	$disk['serial_short'] = isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
 	$disk['serial']		= "{$attrs['ID_MODEL']}_{$disk['serial_short']}";
 	$disk['device']		= $device;
+// dfl
+	$disk['dev']		= get_disk_dev($device);
 	$disk['ssd']		= is_disk_ssd($device);
 	$disk['command']	= get_config($disk['serial'],"command.1");
 	return $disk;
@@ -1649,6 +1705,9 @@ function get_partition_info($device, $reload=FALSE){
 		} else {
 			$disk['openfiles'] = 0;
 		}
+		$rw	= get_disk_reads_writes($disk_device);
+		$disk['reads']			= $rw[0];
+		$disk['writes']			= $rw[1];
 		$disk['owner']			= (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
 		$disk['automount']		= is_automount($disk['serial'], strpos($attrs['DEVPATH'],"usb"));
 		$disk['read_only']		= is_read_only($disk['serial']);
