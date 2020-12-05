@@ -1390,7 +1390,7 @@ function do_mount_samba($info) {
 			if (is_mounted($dev)) {
 				@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
 				$link = $paths['usb_mountpoint']."/";
-				if (dirname($dir) == $paths['remote_mountpoint']) {
+				if ((get_config("Config", "symlinks") != "no" ) && (dirname($dir) == $paths['remote_mountpoint'])) {
 					exec("/bin/ln -s '{$dir}/' '{$link}'");
 				}
 				unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
