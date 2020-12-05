@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.12.04a">
+<!ENTITY version   "2020.12.5a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"160d5afe6995ebab48640ea461af2729">
+<!ENTITY MD5		"6a85dbadf3b665a245e40dff5653781d">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Configuration setting to turn on symlinks in /mnt/disks.
+- Fix: Don't allow double quote character in mount point.
+
+###2020.12.04a
 - Fix: Issue with samba config file when a remote share has parenthesis in the share name.
 - Fix: Encrypted disks not checked properly for spindown status.
 - Fix: Spin down disk setting not being used.
@@ -33,6 +37,7 @@
 - Add: Beginning with 6.9, Unraid will manage temperature monitoring and spindown control.
 - Add: Beginning with 6.9, you can view and change disk attributes (including temperature thresholds) per disk.
 - Add: Beginning with 6.9, remote shares will mount at /mnt/remotes with symlinks in /mnt/disks for backwards compatibility.
+- Add: Beginning with 6.9, disk reads and writes are displayed.
 
 ###2020.11.28c
 - Fix: Roll back remote shares change.
