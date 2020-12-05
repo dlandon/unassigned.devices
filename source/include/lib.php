@@ -1296,13 +1296,13 @@ function get_samba_mounts() {
 			$mount['smb_share'] = is_samba_share($mount['name']);
 			if (! $mount['mountpoint']) {
 				$mount['mountpoint'] = "{$paths['usb_mountpoint']}/{$mount['ip']}_{$path}";
-				if (! $mount['mounted'] || is_link($mount['mountpoint'])) {
+				if (! $mount['mounted'] || ! is_mounted($mount['mountpoint'], TRUE) || is_link($mount['mountpoint'])) {
 					$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$mount['ip']}_{$path}";
 				}
 			} else {
 				$path = basename($mount['mountpoint']);
 				$mount['mountpoint'] = "{$paths['usb_mountpoint']}/{$path}";
-				if (! $mount['mounted'] || is_link($mount['mountpoint'])) {
+				if (! $mount['mounted'] || ! is_mounted($mount['mountpoint'], TRUE) || is_link($mount['mountpoint'])) {
 					$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$path}";
 				}
 			}
