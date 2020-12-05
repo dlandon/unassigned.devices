@@ -185,17 +185,19 @@ _(Spin down disks)_?
 > Set to **Yes** to set a 15 minute disk spin down timer.  Set to **No** to keep disks spun up.  Unraid version 6.9 and higher manages disk spin down.
 :end
 
-_(Create symlinks on Mount Point)_?
+_(Legacy Mount Point Compatibility)_?
 : <select name="symlinks" size="1">
-  <?=mk_option($cfg["Config"]["symlinks"], "yes", "_(Yes)_");?>
   <?=mk_option($cfg["Config"]["symlinks"], "no", "_(No)_");?>
+  <?=mk_option($cfg["Config"]["symlinks"], "yes", "_(Yes)_");?>
   </select>
 
 :ud_settings_symlinks_plug:
 > Set to **Yes** to create symlinks for /mnt/remotes/ at /mnt/disks/.
 >
-> This is for backwards compatibility with versions prior to Unraid 6.9 so mappings to the /mnt/disks/ mount point will still work.
-> If you do not need the backwards compatibility, you can set it to **No**.
+> This is for backwards compatibility of VM and Docker Container mappings to the /mnt/disks/ mount point.
+> You are encouraged to change your mappings to the /mnt/remotes/ mount point.
+>
+> If you do not need the backwards compatibility, leave it set to **No**.
 :end
 
 &nbsp;
