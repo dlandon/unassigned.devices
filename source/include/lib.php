@@ -752,7 +752,8 @@ function remove_config_disk($sn) {
 
 function is_disk_ssd($device) {
 
-	$rc = FALSE;
+	$rc		= FALSE;
+	$device	= (strpos($device, "nvme") !== false) ? preg_replace("#\d+p#i", "", $device) : preg_replace("#\d+#i", "", $device) ;
 	if (strpos($device, "nvme") === false) {
 		$file = "/sys/block/".basename($device)."/queue/rotational";
 		if (is_file($file)) {
