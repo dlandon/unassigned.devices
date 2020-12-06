@@ -752,19 +752,19 @@ switch ($_POST['action']) {
 		$partition = urldecode($_POST['partition']);
 		$device	= urldecode($_POST['device']);
 		$fstype	= urldecode($_POST['fstype']);
-		$mountpoint	= safe_name(urldecode($_POST['mountpoint']), FALSE);
+		$mountpoint	= basename(safe_name(urldecode($_POST['mountpoint']), FALSE));
 		echo json_encode(change_mountpoint($serial, $partition, $device, $fstype, $mountpoint));
 		break;
 
 	case 'chg_samba_mountpoint':
 		$device = urldecode($_POST['device']);
-		$mountpoint = safe_name(basename(urldecode($_POST['mountpoint'])), FALSE);
+		$mountpoint = basename(safe_name(basename(urldecode($_POST['mountpoint'])), FALSE));
 		echo json_encode(change_samba_mountpoint($device, $mountpoint));
 		break;
 
 	case 'chg_iso_mountpoint':
 		$device = urldecode($_POST['device']);
-		$mountpoint = safe_name(basename(urldecode($_POST['mountpoint'])), FALSE);
+		$mountpoint = basename(safe_name(basename(urldecode($_POST['mountpoint'])), FALSE));
 		echo json_encode(change_iso_mountpoint($device, $mountpoint));
 		break;
 	}
