@@ -190,9 +190,8 @@ function get_device_stats($mount, $active=TRUE) {
 function get_disk_dev($dev) {
 	global $paths;
 
-	$dev	= preg_replace("/\d+$/", "", $dev);
 	$rc		= basename($dev);
-	$sf = $paths["dev_state"];
+	$sf		= $paths["dev_state"];
 	if (is_file($sf)) {
 		$devs = parse_ini_file($paths["dev_state"], true);
 		foreach ($devs as $d) {
@@ -208,9 +207,9 @@ function get_disk_dev($dev) {
 function get_disk_reads_writes($dev) {
 	global $paths;
 
-	$dev	= preg_replace("/\d+$/", "", $dev);
+	$dev	= (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev) ;
 	$rc		= array();
-	$sf = $paths["dev_state"];
+	$sf		= $paths["dev_state"];
 	if (is_file($sf)) {
 		$devs = parse_ini_file($paths["dev_state"], true);
 		foreach ($devs as $d) {
@@ -227,9 +226,8 @@ function get_disk_reads_writes($dev) {
 function is_disk_running($dev) {
 	global $paths;
 
-	$dev	= preg_replace("/\d+$/", "", $dev);
-	$rc		= FALSE;
-	$run_devs = FALSE;
+	$rc			= FALSE;
+	$run_devs	= FALSE;
 	$sf = $paths["dev_state"];
 	if (is_file($sf)) {
 		$devs = parse_ini_file($paths["dev_state"], true);
@@ -302,7 +300,6 @@ function lsof($dir) {
 function get_temp($dev, $running) {
 	global $var, $paths;
 
-	$dev	= preg_replace("/\d+$/", "", $dev);
 	$rc	= "*";
 	if ($running) {
 		$temp = "";
@@ -753,12 +750,11 @@ function remove_config_disk($sn) {
 	return (! isset($config[$sn])) ? TRUE : FALSE;
 }
 
-function is_disk_ssd($dev) {
+function is_disk_ssd($device) {
 
 	$rc = FALSE;
-	$device = preg_replace("#\d+#i", "", basename($dev));
 	if (strpos($device, "nvme") === false) {
-		$file = "/sys/block/".$device."/queue/rotational";
+		$file = "/sys/block/".basename($device)."/queue/rotational";
 		if (is_file($file)) {
 			$rc = (@file_get_contents($file) == 0) ? TRUE : FALSE;
 		} else {
@@ -1643,9 +1639,9 @@ function get_disk_info($device, $reload=FALSE){
 	$disk['serial_short'] = isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
 	$disk['serial']		= "{$attrs['ID_MODEL']}_{$disk['serial_short']}";
 	$disk['device']		= $device;
-// dfl
 	$disk['dev']		= get_disk_dev($device);
 	$disk['ssd']		= is_disk_ssd($device);
+	$disk['running']	= is_disk_running($device);
 	$disk['command']	= get_config($disk['serial'],"command.1");
 	return $disk;
 }
@@ -1696,7 +1692,7 @@ function get_partition_info($device, $reload=FALSE){
 			$disk['fstype'] = (verify_precleared($disk['disk'])) ? "precleared" : $disk['fstype'];
 		}
 		$disk['target'] = str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep {$disk['device']} | /bin/awk '{print $2}'")));
-		$stats = get_device_stats($disk, is_disk_running($disk_device));
+		$stats = get_device_stats($disk, $disk['running']);
 		$disk['size']		= intval($stats[0])*1024;
 		$disk['used']		= intval($stats[1])*1024;
 		$disk['avail']		= intval($stats[2])*1024;
@@ -1705,6 +1701,7 @@ function get_partition_info($device, $reload=FALSE){
 		} else {
 			$disk['openfiles'] = 0;
 		}
+
 		$rw	= get_disk_reads_writes($disk_device);
 		$disk['reads']			= $rw[0];
 		$disk['writes']			= $rw[1];
@@ -1910,7 +1907,6 @@ function change_UUID($dev) {
 function setSleepTime($device) {
 	global $paths;
 
-	$device	= preg_replace("/\d+$/", "", $device);
 	$run_devs = FALSE;
 	$sf = $paths["dev_state"];
 	if (is_file($sf)) {
