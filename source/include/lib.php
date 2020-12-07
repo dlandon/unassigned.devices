@@ -26,6 +26,7 @@ $paths = [  "smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"run_status"		=> "/var/state/{$plugin}/run_status.json",
 			"ping_status"		=> "/var/state/{$plugin}/ping_status.json",
 			"df_status"			=> "/var/state/{$plugin}/df_status.json",
+			"lsof_status"		=> "/var/state/{$plugin}/lsof_status.json",
 			"hotplug_status"	=> "/var/state/{$plugin}/hotplug_status.json",
 			"dev_state"			=> "/usr/local/emhttp/state/devs.ini",
 			"samba_mount"		=> "/tmp/{$plugin}/config/samba_mount.cfg",
@@ -294,7 +295,20 @@ function is_script_running($cmd) {
 }
 
 function lsof($dir) {
-	return intval(trim(timed_exec(3, "/usr/bin/lsof '{$dir}' 2>/dev/null | /bin/sort -k8 | /bin/uniq -f7 | /bin/grep -c -e REG")));
+	global $paths;
+
+	$rc	= 0;
+	$tc = $paths["lsof_status"];
+	$lsof_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+	if (isset($lsof_status[$dev]) && (time() - $lsof_status[$dev]['timestamp']) < 17) {
+		$rc = $lsof_status[$dev]['open_files'];
+	} else {
+		$ret = shell_exec("timed_exec(3, /usr/bin/lsof '{$dir}' 2>/dev/null | /bin/sort -k8 | /bin/uniq -f7 | /bin/grep -c -e REG");
+		$rc = intval(trim($ret));
+		$lsof_status[$dev] = array('timestamp' => time(), 'open_files' => $rc);
+		file_put_contents($tc, json_encode($lsof_status));
+	}
+	return $rc;
 }
 
 function get_temp($dev, $running) {
