@@ -335,7 +335,7 @@ function get_temp($dev, $running) {
 			if (isset($temps[$dev]) && (time() - $temps[$dev]['timestamp']) < $var['poll_attributes'] ) {
 				$rc = $temps[$dev]['temp'];
 			} else {
-				$cmd	= "/usr/sbin/smartctl -A $dev | /bin/awk 'BEGIN{t=\"*\"} $1==\"Temperature:\"{t=$2;exit};$1==190||$1==194{t=$10;exit} END{print t}'";
+				$cmd	= "/usr/sbin/smartctl -n standby -A $dev | /bin/awk 'BEGIN{t=\"*\"} $1==\"Temperature:\"{t=$2;exit};$1==190||$1==194{t=$10;exit} END{print t}'";
 				$temp	= trim(timed_exec(10, $cmd));
 				$temp	= ($temp < 128) ? $temp : "*";
 				$temps[$dev] = array('timestamp' => time(), 'temp' => $temp);
