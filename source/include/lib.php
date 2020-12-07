@@ -303,7 +303,8 @@ function lsof($dir) {
 	if (isset($lsof_status[$dev]) && (time() - $lsof_status[$dev]['timestamp']) < 17) {
 		$rc = $lsof_status[$dev]['open_files'];
 	} else {
-		$ret = shell_exec("timed_exec(3, /usr/bin/lsof '{$dir}' 2>/dev/null | /bin/sort -k8 | /bin/uniq -f7 | /bin/grep -c -e REG");
+		$cmd = "/usr/bin/lsof '{$dir}' 2>/dev/null | /bin/sort -k8 | /bin/uniq -f7 | /bin/grep -c -e REG";
+		$ret = timed_exec(3, $cmd);
 		$rc = intval(trim($ret));
 		$lsof_status[$dev] = array('timestamp' => time(), 'open_files' => $rc);
 		file_put_contents($tc, json_encode($lsof_status));
