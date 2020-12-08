@@ -303,7 +303,7 @@ switch ($_POST['action']) {
 				{
 					$add_toggle = TRUE;
 					get_config("Config", "show_all_partitions") != 'yes' ? $class = "'fa fa-plus-square fa-append'" : $class = "'fa fa-minus-square fa-append'";
-					$hdd_serial .="<span title='"._("Click to view partitions/mount points")."' class='exec toggle-hdd' hdd='{$disk_name}'>
+					$hdd_serial .="<span title='"._("Click to view/hide partitions and mount points")."' class='exec toggle-hdd' hdd='{$disk_name}'>
 									<i class=$class></i></span>";
 				}
 				else
