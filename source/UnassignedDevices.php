@@ -320,14 +320,25 @@ switch ($_POST['action']) {
 				if ( $flash || $preclearing ) {
 					echo "<td><i class='fa fa-circle orb grey-orb'></i>{$disk_name}</td>";
 				} else {
-					echo "<td title='"._("SMART Attributes on")." ".$disk_name."'><i class='fa fa-circle orb ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>";
-					echo ($disk['partitions'][0]['fstype'] == "crypto_LUKS" ? "<i class='fa fa-lock orb'></i>" : "");
+					echo "<td>";
 					if (strpos($disk_dev, "dev") === FALSE) {
 						$str = "New?name";
+						echo "<i class='fa fa-circle orb ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>";
 					} else {
 						$str = "Device?name";
+						if (! $disk['ssd']) {
+							if ($disk['running']) {
+								echo "<a title='"._("Click to spin down disk")."' class='exec' onclick='spin_down_disk(\"{$disk_dev}\")'><i id='disk_orb' class='fa fa-circle orb green-orb'></i></a>";
+							} else {
+								echo "<a title='"._("Click to spin up disk")."' class='exec' onclick='spin_up_disk(\"{$disk_dev}\")'><i id='disk_orb' class='fa fa-circle orb grey-orb'></i></a>";
+							}
+						} else {
+							echo "<i class='fa fa-circle orb ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>";
+						}
 					}
-					echo "<a href='/Main/{$str}={$disk_dev}'> {$disk_name}</a></td>";
+					echo ($disk['partitions'][0]['fstype'] == "crypto_LUKS" ? "<i class='fa fa-lock orb'></i>" : "");
+					echo "<a title= '"._("SMART Attributes on")." ".$disk_name."' href='/Main/{$str}={$disk_dev}'> {$disk_name}</a>";
+					echo "</td>";
 				}
 				/* Device serial number */
 				echo "<td>{$hdd_serial}</td>";
@@ -744,6 +755,16 @@ switch ($_POST['action']) {
 		$device = urldecode($_POST['device']);
 		$partition = urldecode($_POST['partition']);
 		echo json_encode(remove_partition($device, $partition));
+		break;
+
+	case 'spin_down_disk':
+		$device = urldecode($_POST['device']);
+		echo json_encode(spin_disk(TRUE, $device));
+		break;
+
+	case 'spin_up_disk':
+		$device = urldecode($_POST['device']);
+		echo json_encode(spin_disk(FALSE, $device));
 		break;
 
 	case 'chg_mountpoint':

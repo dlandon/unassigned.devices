@@ -782,6 +782,16 @@ function is_disk_ssd($device) {
 	return $rc;
 }
 
+function spin_disk($down, $dev) {
+global $paths;
+
+	if ($down) {
+		exec("/usr/local/sbin/emcmd cmdSpindown=$dev");
+	} else {
+		exec("/usr/local/sbin/emcmd cmdSpinup=$dev");
+	}
+}
+
 #########################################################
 ############        MOUNT FUNCTIONS        ##############
 #########################################################

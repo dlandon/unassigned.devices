@@ -106,6 +106,16 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		$.post(UDURL,{action:"rm_preclear",device:dev}).always(function(){usb_disks(tab_usbdisks)});
 	}
 
+	function spin_down_disk(dev) {
+		document.getElementById('disk_orb').className = "fa fa-refresh fa-spin orb grey-orb";
+		$.post(UDURL,{action:"spin_down_disk",device:dev}).always(function(){usb_disks(tab_usbdisks)});
+	}
+
+	function spin_up_disk(dev) {
+		document.getElementById('disk_orb').className = "fa fa-refresh fa-spin orb grey-orb ";
+		$.post(UDURL,{action:"spin_up_disk",device:dev}).always(function(){usb_disks(tab_usbdisks)});
+	}
+
 	if (typeof " ".formatUnicorn !== "function")
 	{
 	  String.prototype.formatUnicorn = String.prototype.formatUnicorn ||
