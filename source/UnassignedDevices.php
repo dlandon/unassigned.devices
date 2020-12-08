@@ -328,9 +328,9 @@ switch ($_POST['action']) {
 						$str = "Device?name";
 						if (! $disk['ssd']) {
 							if ($disk['running']) {
-								echo "<a title='"._("Click to spin down disk")."' class='exec' onclick='spin_down_disk(\"{$disk_dev}\")'><i id='disk_orb' class='fa fa-circle orb green-orb'></i></a>";
+								echo "<a title='"._("Click to spin down device")."' class='exec' onclick='spin_down_disk(\"{$disk_dev}\")'><i id='disk_orb' class='fa fa-circle orb green-orb'></i></a>";
 							} else {
-								echo "<a title='"._("Click to spin up disk")."' class='exec' onclick='spin_up_disk(\"{$disk_dev}\")'><i id='disk_orb' class='fa fa-circle orb grey-orb'></i></a>";
+								echo "<a title='"._("Click to spin up device")."' class='exec' onclick='spin_up_disk(\"{$disk_dev}\")'><i id='disk_orb' class='fa fa-circle orb grey-orb'></i></a>";
 							}
 						} else {
 							echo "<i class='fa fa-circle orb ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>";
