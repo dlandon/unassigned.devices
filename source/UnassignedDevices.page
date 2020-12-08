@@ -818,6 +818,11 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		$(this).css("display", $(".disks-switch").is(":checked") ? "block" : "none");
 	});
 
+	$( "#usb_devices_list" ).arrive(".show-historical", {onceOnly:false}, function()
+	{
+		$(this).css("display", $(".historical-switch").is(":checked") ? "block" : "none");
+	});
+
 	$(function()
 	{
 		/* Add icons to Tab/Title bar */
@@ -825,7 +830,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 								 "<?=_('Unassigned Devices');?>");
 		addButtonTab('<a style="cursor:pointer;" onclick="$.post(\''+UDURL+'\',{\'action\':\'rescan_disks\'});" title="<?=_("Rescan Disks");?>"><i class="fa fa-refresh"></i></a>',
 								 "<?=_('Unassigned Devices');?>");
-		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch On to Show All Disk Partitions");?>"><input type="checkbox" class="partitions-switch"></a>',
+		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch On to Show Historical Devices");?>"><input type="checkbox" class="historical-switch"></a>',
 								 "<?=_('Unassigned Devices');?>");
 		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch On to Show Disk Devices");?>"><input type="checkbox" class="disks-switch"></a>',
 								 "<?=_('Unassigned Devices');?>");
@@ -847,14 +852,11 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			$.cookie('unassigned-disks-view', $('.disks-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path:'/' });
 		});
 
-		<?$show_all_partitions = get_config("Config", "show_all_partitions")?>;
-		$('.partitions-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Partitions');?>", off_label: "<?=_('Partitions');?>", checked: "<?=$show_all_partitions;?>" == 'yes'});
-		$('.partitions-switch').change(function()
+		$('.historical-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Historical');?>", off_label: "<?=_('Historical');?>", checked: $.cookie('unassigned-historical-view') != 'false'});
+		$('.historical-switch').change(function()
 		{
-			$.post(UDURL,{action:"toggle_show_partitions",status:$(".partitions-switch").is(":checked")},function(data)
-			{
-				$(".partitions-switch").prop("checked",data.result);
-			},"json");
+			$('.show-historical').slideToggle('slow');
+			$.cookie('unassigned-historical-view', $('.historical-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path:'/' });
 		});
 
 		/* Load contents if tab is checked */

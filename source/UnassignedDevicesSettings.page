@@ -200,6 +200,16 @@ _(Legacy Mount Point Compatibility)_?
 > If you do not need the backwards compatibility, leave it set to **No**.
 :end
 
+_(Show All Partitions)_?
+: <select name="show_all_partitions" size="1">
+  <?=mk_option($cfg["Config"]["show_all_partitions"], "no", "_(No)_");?>
+  <?=mk_option($cfg["Config"]["show_all_partitions"], "yes", "_(Yes)_");?>
+  </select>
+
+:ud_settings_show_all_partitions_plug:
+> Set to **Yes** to show all disk partitions in the Unassigned Devices page as the default.  Set to **No** to hide the disk partitions as the default.
+:end
+
 &nbsp;
 : <input type="submit" name="#apply" value='_(Apply)_'><input type="button" value='_(Done)_' onclick="done()">
 </form>

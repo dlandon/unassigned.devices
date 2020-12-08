@@ -692,15 +692,6 @@ function toggle_pass_through($sn, $status) {
 	return ($config[$sn]["pass_through"] == "yes") ? TRUE : FALSE;
 }
 
-function toggle_show_partitions($status) {
-	$config_file = $GLOBALS["paths"]["config_file"];
-	$config = @parse_ini_file($config_file, true);
-	$config['Config']['show_all_partitions'] = ($status == "true") ? "yes" : "no";
-	save_ini_file($config_file, $config);
-	@touch($GLOBALS['paths']['reload']);
-	return ($config['Config']['show_all_partitions'] == "yes") ? TRUE : FALSE;
-}
-
 function execute_script($info, $action, $testing = FALSE) { 
 global $paths;
 
