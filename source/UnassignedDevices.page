@@ -832,24 +832,24 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 								 "<?=_('Unassigned Devices');?>");
 		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch On to Show Historical Devices");?>"><input type="checkbox" class="historical-switch"></a>',
 								 "<?=_('Unassigned Devices');?>");
-		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch On to Show Disk Devices");?>"><input type="checkbox" class="disks-switch"></a>',
-								 "<?=_('Unassigned Devices');?>");
 		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch On to Show SMB/NFS/ISO Shares");?>"><input type="checkbox" class="shares-switch"></a>',
+								 "<?=_('Unassigned Devices');?>");
+		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch On to Show Disk Devices");?>"><input type="checkbox" class="disks-switch"></a>',
 								 "<?=_('Unassigned Devices');?>");
 
 		/* Add switchButton to Tab/Title bar */
-		$('.shares-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Shares');?>", off_label: "<?=_('Shares');?>", checked: $.cookie('unassigned-shares-view') != 'false'});
-		$('.shares-switch').change(function()
-		{
-			$('.show-shares').slideToggle('slow');
-			$.cookie('unassigned-shares-view', $('.shares-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path:'/' });
-		});
-
 		$('.disks-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Disks');?>", off_label: "<?=_('Disks');?>", checked: $.cookie('unassigned-disks-view') != 'false'});
 		$('.disks-switch').change(function()
 		{
 			$('.show-disks').slideToggle('slow');
 			$.cookie('unassigned-disks-view', $('.disks-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path:'/' });
+		});
+
+		$('.shares-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Shares');?>", off_label: "<?=_('Shares');?>", checked: $.cookie('unassigned-shares-view') != 'false'});
+		$('.shares-switch').change(function()
+		{
+			$('.show-shares').slideToggle('slow');
+			$.cookie('unassigned-shares-view', $('.shares-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path:'/' });
 		});
 
 		$('.historical-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Historical');?>", off_label: "<?=_('Historical');?>", checked: $.cookie('unassigned-historical-view') != 'false'});

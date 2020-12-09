@@ -270,6 +270,7 @@ switch ($_POST['action']) {
 	case 'get_content':
 		unassigned_log("Starting page render [get_content]", "DEBUG");
 		$time		 = -microtime(true);
+
 		/* Check for a recent hot plug event. */
 		$tc = $paths["hotplug_status"];
 		$hotplug = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : "no";
@@ -277,6 +278,8 @@ switch ($_POST['action']) {
 			exec("/usr/local/sbin/emcmd 'cmdHotplug=apply'");
 			file_put_contents($tc, json_encode('no'));
 		}
+
+		/* Disk devices */
 		$disks = get_all_disks_info();
 		echo "<table class='show-disks disk_status wide usb_disks'><thead><tr><td>"._('Device')."</td><td>"._('Identification')."</td><td></td><td>"._('Temp').".</td><td>"._('Open')."</td><td>"._('Reads')."</td><td>"._('Writes')."</td><td>"._('Pass Thru')."</td><td>"._('Read only')."</td><td>"._('Auto mount')."</td><td>"._('Share')."</td><td>"._('FS')."</td><td>"._('Size')."</td><td>"._('Used')."</td><td>"._('Free')."</td><td>"._('Script')."</td></tr></thead>";
 		echo "<tbody>";
@@ -473,7 +476,7 @@ switch ($_POST['action']) {
 			}
 		}
 		if (! count($samba_mounts) && ! count($iso_mounts)) {
-			echo "<tr><td colspan='14' style='text-align:center;'>"._('No Remote SMB/NFS or ISO File Shares configured').".</td></tr>";
+			echo "<tr><td colspan='15' style='text-align:center;'>"._('No Remote SMB/NFS or ISO File Shares configured').".</td></tr>";
 		}
 		echo "</tbody></table>";
 		echo "<button onclick='add_samba_share()'>"._('Add Remote SMB/NFS Share')."</button>";
