@@ -254,18 +254,18 @@ function is_disk_running($dev) {
 	return $rc;
 }
 
-function is_samba_server_online($mount) {
+function is_samba_server_online($ip, $mounted) {
 	global $paths, $plugin;
 
 	$is_alive = FALSE;
-	$server = $mount['ip'];
+	$server = $ip;
 	$tc = $paths["ping_status"];
 	$ping_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 	if (isset($ping_status[$server])) {
 		$is_alive = ($ping_status[$server]['online'] == 'yes') ? TRUE : FALSE;
 	}
 	if ((time() - $ping_status[$server]['timestamp']) > 10 ) {
-		exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats ping {$tc} {$mount['ip']} {$mount['mounted']} &");
+		exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats ping {$tc} {$ip} {$mounted} &");
 	}
 
 	return $is_alive;
@@ -290,7 +290,17 @@ function lsof($dir) {
 		$rc = $lsof_status[$dir]['open_files'];
 	}
 	if ((time() - $lsof_status[$dir]['timestamp']) > 15) {
-		exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats open_files {$tc} '{$dir}' &");
+		$pc = $paths["ping_status"];
+		$ping_status = is_file($pc) ? json_decode(file_get_contents($pc),TRUE) : array();
+		foreach ($ping_status as $p) {
+			if ($p['last_online'] == 'no') {
+				$rc = -1;
+				break;
+			}
+		}
+		if ($rc != -1) {
+			exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats open_files {$tc} '{$dir}' &");
+		}
 	}
 	return $rc;
 }
@@ -1290,7 +1300,7 @@ function get_samba_mounts() {
 			}
 
 			$mount['mounted']	= is_mounted(($mount['fstype'] == "cifs") ? "//".$mount['ip']."/".$mount['path'] : $mount['device']);
-			$mount['is_alive']	= is_samba_server_online($mount);
+			$mount['is_alive']	= is_samba_server_online($mount['ip'], $mount['mounted']);
 			$mount['automount'] = is_samba_automount($mount['name']);
 			$mount['smb_share'] = is_samba_share($mount['name']);
 			if (! $mount['mountpoint']) {

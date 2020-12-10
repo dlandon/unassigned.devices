@@ -165,7 +165,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 				$mounted_disk	= TRUE;
 			}
 		}
-
+		$open_files = $open_files >= 0 ? $open_files : "*";
 		$out[] = "<td>".($mounted_disk && strlen($open_files) ? $open_files : "-")."</td>";
 	} else {
 		$out[] = "<td>".($mounted ? $partition['openfiles'] : "-")."</td>";
@@ -670,6 +670,9 @@ switch ($_POST['action']) {
 			set_samba_config("{$device}", "domain", $domain);
 			set_samba_config("{$device}", "pass", encrypt_data($pass));
 			set_samba_config("{$device}", "share", safe_name($share, FALSE));
+
+			/* Refresh the ping status */
+			is_samba_server_online($ip, FALSE);
 		}
 		echo json_encode($rc);
 		break;
