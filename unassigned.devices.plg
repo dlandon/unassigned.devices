@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.12.10">
+<!ENTITY version   "2020.12.10a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"77ad7855ff9af943535a434f0d1e79b1">
+<!ENTITY MD5		"ce5016aae3c37aa4ca86826c615bd2b9">
 ]>
 
 <PLUGIN name="&name;"
@@ -28,6 +28,8 @@
 - Fix: Move show all partitions to a UD setting.
 - Add: Historical switch to show/hide historical disk devices.
 - Add: Run open files check, used and free space check, and ping status updates in a background task to help with responsiveness.
+- Add: Don't show remote server offline until 3 offline pings in 30 seconds.
+- Fix: Don't check for open files when remote shares go offline.
 - Add: Beginning with 6.9, you can manually spin up/down disks by clicking on the disk device active ball, the same as an array device.
 
 ###2020.12.06a
