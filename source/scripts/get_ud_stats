@@ -1,0 +1,102 @@
+#!/usr/bin/php
+<?php
+/* Copyright 2020, Dan Landon
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+
+$plugin = "unassigned.devices";
+$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+
+$COMMAND = $argv[1];
+
+function unassigned_log($m, $type = "NOTICE") {
+	global $plugin;
+
+	if ($type == "DEBUG" && ! $GLOBALS["VERBOSE"]) return NULL;
+	$m		= print_r($m,true);
+	$m		= str_replace("\n", " ", $m);
+	$m		= str_replace('"', "'", $m);
+	$cmd	= "/usr/bin/logger ".'"'.$m.'"'." -t".$plugin;
+	exec($cmd);
+}
+
+function timed_exec($timeout=10, $cmd) {
+	$time		= -microtime(true); 
+	$out		= shell_exec("/usr/bin/timeout ".$timeout." ".$cmd);
+	$time		+= microtime(true);
+	if ($time >= $timeout) {
+		unassigned_log("Error: shell_exec(".$cmd.") took longer than ".sprintf('%d', $timeout)."s!");
+		$out	= "command timed out";
+	} else {
+		unassigned_log("Timed Exec: shell_exec(".$cmd.") took ".sprintf('%f', $time)."s!", "DEBUG");
+	}
+	return $out;
+}
+
+function is_ip($str) {
+	return filter_var($str, FILTER_VALIDATE_IP);
+}
+
+function ping_server($tc, $ip, $mounted) {
+
+	$server = $ip;
+	$ping_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+	$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+	if (! $is_alive && ! is_ip($ip))
+	{
+		$ip = trim(timed_exec(5, "/usr/bin/nmblookup {$ip} | /bin/head -n1 | /bin/awk '{print $1}'"));
+		if (is_ip($ip))
+		{
+			$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+		}
+	}
+	if (! $is_alive && $mounted) {
+		unassigned_log("SMB/NFS server '{$server}' is not responding to a ping and appears to be offline.");
+	}
+	$ping_status[$server] = array('timestamp' => time(), 'online' => $is_alive ? 'yes' : 'no');
+	file_put_contents($tc, json_encode($ping_status));
+}
+
+function df_status($tc, $mountpoint) {
+
+	$df_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+	$rc = trim(timed_exec(2,"/bin/df '{$mountpoint}' --output=size,used,avail | /bin/grep -v '1K-blocks' 2>/dev/null"));
+	$df_status[$mountpoint] = array('timestamp' => time(), 'stats' => $rc);
+	file_put_contents($tc, json_encode($df_status));
+}
+
+function open_files($tc, $dir) {
+
+	$lsof_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+	$cmd = "/usr/bin/lsof '{$dir}' 2>/dev/null | /bin/sort -k8 | /bin/uniq -f7 | /bin/grep -c -e REG";
+	$ret = timed_exec(3, $cmd);
+	$rc = intval(trim($ret));
+	$lsof_status[$dir] = array('timestamp' => time(), 'open_files' => $rc);
+	file_put_contents($tc, json_encode($lsof_status));
+}
+
+switch ($COMMAND) {
+	case 'ping':
+		ping_server($argv[2], $argv[3], $argv[4]);
+		break;
+
+	case 'df_status':
+		df_status($argv[2], $argv[3]);
+		break;
+
+	case 'open_files':
+		open_files($argv[2], $argv[3]);
+		break;
+
+	default:
+		exit(0);
+		break;
+}
+
+?>

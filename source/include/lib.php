@@ -170,19 +170,18 @@ function exist_in_file($file, $val) {
 }
 
 function get_device_stats($mount, $active=TRUE) {
-	global $paths;
+	global $paths, $plugin;
 
 	$tc = $paths["df_status"];
 	$mountpoint = $mount['mountpoint'];
 	$df_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 	$rc = "";
-	if (file_exists($mount['mountpoint'])) {
-		if ( (isset($df_status[$mountpoint]) && ((! $active) || ((time() - $df_status[$mountpoint]['timestamp']) < 95))) ) {
+	if (file_exists($mountpoint)) {
+		if (isset($df_status[$mountpoint])) {
 			$rc = $df_status[$mountpoint]['stats'];
-		} else {
-			$rc = trim(timed_exec(2,"/bin/df '{$mountpoint}' --output=size,used,avail | /bin/grep -v '1K-blocks' 2>/dev/null"));
-			$df_status[$mountpoint] = array('timestamp' => time(), 'stats' => $rc);
-			file_put_contents($tc, json_encode($df_status));
+		}
+		if (($active) && ((time() - $df_status[$mountpoint]['timestamp']) > 95) ) {
+			exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats df_status {$tc} '{$mountpoint}' &");
 		}
 	}
 	return preg_split('/\s+/', $rc);
@@ -256,30 +255,17 @@ function is_disk_running($dev) {
 }
 
 function is_samba_server_online($mount) {
-	global $paths;
+	global $paths, $plugin;
 
 	$is_alive = FALSE;
 	$server = $mount['ip'];
 	$tc = $paths["ping_status"];
 	$ping_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-	if (isset($ping_status[$server]) && (time() - $ping_status[$server]['timestamp']) < 12 ) {
+	if (isset($ping_status[$server])) {
 		$is_alive = ($ping_status[$server]['online'] == 'yes') ? TRUE : FALSE;
-	} else {
-		$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$mount['ip']} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
-		if (! $is_alive && ! is_ip($mount['ip']))
-		{
-			$ip = trim(timed_exec(5, "/usr/bin/nmblookup {$mount['ip']} | /bin/head -n1 | /bin/awk '{print $1}'"));
-			if (is_ip($ip))
-			{
-				$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
-			}
-		}
-
-		if (! $is_alive && $mount['mounted']) {
-			unassigned_log("SMB/NFS server '{$server}' is not responding to a ping and appears to be offline.");
-		}
-		$ping_status[$server] = array('timestamp' => time(), 'online' => $is_alive ? 'yes' : 'no');
-		file_put_contents($tc, json_encode($ping_status));
+	}
+	if ((time() - $ping_status[$server]['timestamp']) > 12 ) {
+		exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats ping {$tc} {$mount['ip']} {$mount['mounted']} &");
 	}
 
 	return $is_alive;
@@ -295,19 +281,16 @@ function is_script_running($cmd) {
 }
 
 function lsof($dir) {
-	global $paths;
+	global $paths, $plugin;
 
 	$rc	= 0;
 	$tc = $paths["lsof_status"];
 	$lsof_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-	if (isset($lsof_status[$dev]) && (time() - $lsof_status[$dev]['timestamp']) < 17) {
-		$rc = $lsof_status[$dev]['open_files'];
-	} else {
-		$cmd = "/usr/bin/lsof '{$dir}' 2>/dev/null | /bin/sort -k8 | /bin/uniq -f7 | /bin/grep -c -e REG";
-		$ret = timed_exec(3, $cmd);
-		$rc = intval(trim($ret));
-		$lsof_status[$dev] = array('timestamp' => time(), 'open_files' => $rc);
-		file_put_contents($tc, json_encode($lsof_status));
+	if (isset($lsof_status[$dir])) {
+		$rc = $lsof_status[$dir]['open_files'];
+	}
+	if ((time() - $lsof_status[$dir]['timestamp']) > 17) {
+		exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats open_files {$tc} '{$dir}' &");
 	}
 	return $rc;
 }
@@ -934,6 +917,9 @@ function do_mount_local($info) {
 					@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
 					unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
 					$rc = TRUE;
+
+					/* Be sure device stats are current. */
+					get_device_stats($dir);
 					break;
 				} else {
 					sleep(0.5);
@@ -1408,6 +1394,9 @@ function do_mount_samba($info) {
 				}
 				unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
 				$rc = TRUE;
+
+				/* Be sure device stats are current. */
+				get_device_stats($dir);
 			} else {
 				@rmdir($dir);
 				unassigned_log("Mount of '{$dev}' failed. Error message: '$o'.");
@@ -1521,6 +1510,9 @@ function do_mount_iso($info) {
 			if (is_mounted($dev)) {
 				unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
 				$rc = TRUE;
+
+				/* Be sure device stats are current. */
+				get_device_stats($dir);
 			} else {
 				@rmdir($dir);
 				unassigned_log("Mount of '{$dev}' failed. Error message: $o");
@@ -1709,7 +1701,7 @@ function get_partition_info($device, $reload=FALSE){
 			$disk['fstype'] = (verify_precleared($disk['disk'])) ? "precleared" : $disk['fstype'];
 		}
 		$disk['target'] = str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep {$disk['device']} | /bin/awk '{print $2}'")));
-		$stats = get_device_stats($disk, $disk['running']);
+		$stats = get_device_stats($disk);
 		$disk['size']		= intval($stats[0])*1024;
 		$disk['used']		= intval($stats[1])*1024;
 		$disk['avail']		= intval($stats[2])*1024;
