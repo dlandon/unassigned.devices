@@ -169,11 +169,10 @@ function exist_in_file($file, $val) {
 	return (preg_grep("%{$val}%", @file($file))) ? TRUE : FALSE;
 }
 
-function get_device_stats($mount, $active=TRUE) {
+function get_device_stats($mountpoint, $active=TRUE) {
 	global $paths, $plugin;
 
 	$tc = $paths["df_status"];
-	$mountpoint = $mount['mountpoint'];
 	$df_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 	$rc = "";
 	if (file_exists($mountpoint)) {
@@ -1315,7 +1314,7 @@ function get_samba_mounts() {
 					$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$path}";
 				}
 			}
-			$stats = get_device_stats($mount, $mount['is_alive']);
+			$stats = get_device_stats($mount['mountpoint'], $mount['is_alive']);
 			$mount['size']  	= intval($stats[0])*1024;
 			$mount['used']  	= intval($stats[1])*1024;
 			$mount['avail'] 	= intval($stats[2])*1024;
@@ -1492,7 +1491,7 @@ function get_iso_mounts() {
 			$mount['target']	= $mount['mountpoint'];
 			$is_alive			= is_file($mount['file']);
 			$mount['mounted']	= is_mounted($mount['device']);
-			$stats = get_device_stats($mount);
+			$stats = get_device_stats($mount['mountpoint']);
 			$mount['size']  = intval($stats[0])*1024;
 			$mount['used']  = intval($stats[1])*1024;
 			$mount['avail'] = intval($stats[2])*1024;
@@ -1711,7 +1710,7 @@ function get_partition_info($device, $reload=FALSE){
 			$disk['fstype'] = (verify_precleared($disk['disk'])) ? "precleared" : $disk['fstype'];
 		}
 		$disk['target'] = str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep {$disk['device']} | /bin/awk '{print $2}'")));
-		$stats = get_device_stats($disk);
+		$stats = get_device_stats($disk['mountpoint']);
 		$disk['size']		= intval($stats[0])*1024;
 		$disk['used']		= intval($stats[1])*1024;
 		$disk['avail']		= intval($stats[2])*1024;
