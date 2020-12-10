@@ -48,6 +48,7 @@ function ping_server($tc, $ip, $mounted) {
 	$server = $ip;
 	$ping_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 	$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+	$no_pings = isset($ping_status[$server]['no_pings']) ? $ping_status[$server]['no_pings'] : 0;
 	if (! $is_alive && ! is_ip($ip))
 	{
 		$ip = trim(timed_exec(5, "/usr/bin/nmblookup {$ip} | /bin/head -n1 | /bin/awk '{print $1}'"));
@@ -56,10 +57,18 @@ function ping_server($tc, $ip, $mounted) {
 			$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
 		}
 	}
-	if (! $is_alive && $mounted) {
-		unassigned_log("SMB/NFS server '{$server}' is not responding to a ping and appears to be offline.");
+	if (! $is_alive) {
+		if ($mounted) {
+			unassigned_log("SMB/NFS server '{$server}' is not responding to a ping and appears to be offline.");
+		}
+		$no_pings++;
+		if (($no_pings <= 3) && ($ping_status[$server]['online'] == 'yes')) {
+			$is_alive = TRUE;
+		} else {
+			$no_pings = 0;
+		}
 	}
-	$ping_status[$server] = array('timestamp' => time(), 'online' => $is_alive ? 'yes' : 'no');
+	$ping_status[$server] = array('timestamp' => time(), 'no_pings' => $no_pings, 'online' => $is_alive ? 'yes' : 'no');
 	file_put_contents($tc, json_encode($ping_status));
 }
 

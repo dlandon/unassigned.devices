@@ -180,7 +180,7 @@ function get_device_stats($mount, $active=TRUE) {
 		if (isset($df_status[$mountpoint])) {
 			$rc = $df_status[$mountpoint]['stats'];
 		}
-		if (($active) && ((time() - $df_status[$mountpoint]['timestamp']) > 95) ) {
+		if (($active) && ((time() - $df_status[$mountpoint]['timestamp']) > 90) ) {
 			exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats df_status {$tc} '{$mountpoint}' &");
 		}
 	}
@@ -242,7 +242,7 @@ function is_disk_running($dev) {
 	if (! $run_devs) {
 		$tc = $paths["run_status"];
 		$run_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-		if (isset($run_status[$dev]) && (time() - $run_status[$dev]['timestamp']) < 42) {
+		if (isset($run_status[$dev]) && (time() - $run_status[$dev]['timestamp']) < 60) {
 			$rc = ($run_status[$dev]['running'] == 'yes') ? TRUE : FALSE;
 		} else {
 			$state = trim(timed_exec(10, "/usr/sbin/hdparm -C $dev 2>/dev/null | /bin/grep -c standby"));
@@ -264,7 +264,7 @@ function is_samba_server_online($mount) {
 	if (isset($ping_status[$server])) {
 		$is_alive = ($ping_status[$server]['online'] == 'yes') ? TRUE : FALSE;
 	}
-	if ((time() - $ping_status[$server]['timestamp']) > 12 ) {
+	if ((time() - $ping_status[$server]['timestamp']) > 10 ) {
 		exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats ping {$tc} {$mount['ip']} {$mount['mounted']} &");
 	}
 
@@ -289,7 +289,7 @@ function lsof($dir) {
 	if (isset($lsof_status[$dir])) {
 		$rc = $lsof_status[$dir]['open_files'];
 	}
-	if ((time() - $lsof_status[$dir]['timestamp']) > 17) {
+	if ((time() - $lsof_status[$dir]['timestamp']) > 15) {
 		exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats open_files {$tc} '{$dir}' &");
 	}
 	return $rc;
