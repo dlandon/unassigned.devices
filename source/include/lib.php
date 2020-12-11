@@ -252,7 +252,7 @@ function is_disk_running($dev) {
 	return $rc;
 }
 
-function is_samba_server_online($ip, $mounted) {
+function is_samba_server_online($ip, $mounted, $background=TRUE) {
 	global $paths, $plugin;
 
 	$is_alive = FALSE;
@@ -263,7 +263,8 @@ function is_samba_server_online($ip, $mounted) {
 		$is_alive = ($ping_status[$server]['online'] == 'yes') ? TRUE : FALSE;
 	}
 	if ((time() - $ping_status[$server]['timestamp']) > 15 ) {
-		exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats ping {$tc} {$ip} {$mounted} &");
+		$bk = $background ? "&" : "";
+		exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats ping {$tc} {$ip} {$mounted} $bk");
 	}
 
 	return $is_alive;
@@ -1309,6 +1310,8 @@ function do_mount_samba($info) {
 	$rc = FALSE;
 	$config_file	= $paths["config_file"];
 	$config			= @parse_ini_file($config_file, true);
+	/* Be sure the server status is current */
+	$info['is_alive'] = is_samba_server_online($info['ip'], FALSE);
 	if ($info['is_alive']) {
 		$dir = $info['mountpoint'];
 		$fs  = $info['fstype'];
