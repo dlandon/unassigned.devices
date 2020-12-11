@@ -81,16 +81,6 @@ function df_status($tc, $mountpoint) {
 	file_put_contents($tc, json_encode($df_status));
 }
 
-function open_files($tc, $dir) {
-
-	$lsof_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-	$cmd = "/usr/bin/lsof '{$dir}' 2>/dev/null | /bin/sort -k8 | /bin/uniq -f7 | /bin/grep -c -e REG";
-	$ret = timed_exec(3, $cmd);
-	$rc = intval(trim($ret));
-	$lsof_status[$dir] = array('timestamp' => time(), 'open_files' => $rc);
-	file_put_contents($tc, json_encode($lsof_status));
-}
-
 switch ($COMMAND) {
 	case 'ping':
 		ping_server($argv[2], $argv[3], $argv[4]);
@@ -98,10 +88,6 @@ switch ($COMMAND) {
 
 	case 'df_status':
 		df_status($argv[2], $argv[3]);
-		break;
-
-	case 'open_files':
-		open_files($argv[2], $argv[3]);
 		break;
 
 	default:

@@ -155,22 +155,6 @@ function render_partition($disk, $partition, $total=FALSE) {
 		}
 	}
 
-	/* Open files */
-	if ($total) {
-		$mounted_disk = FALSE;
-		$open_files = 0;
-		foreach ($disk['partitions'] as $part) {
-			if ($part['mounted']) {
-				$open_files		+= $part['openfiles'];
-				$mounted_disk	= TRUE;
-			}
-		}
-		$open_files = $open_files >= 0 ? $open_files : "*";
-		$out[] = "<td>".($mounted_disk && strlen($open_files) ? $open_files : "-")."</td>";
-	} else {
-		$out[] = "<td>".($mounted ? $partition['openfiles'] : "-")."</td>";
-	}
-
 	/* Reads and writes */
 	if ($total) {
 		$out[] = "<td>".my_scale($part['reads'],$unit,0,null,1)."</td>";
@@ -281,7 +265,7 @@ switch ($_POST['action']) {
 
 		/* Disk devices */
 		$disks = get_all_disks_info();
-		echo "<table class='show-disks disk_status wide usb_disks'><thead><tr><td>"._('Device')."</td><td>"._('Identification')."</td><td></td><td>"._('Temp').".</td><td>"._('Open')."</td><td>"._('Reads')."</td><td>"._('Writes')."</td><td>"._('Pass Thru')."</td><td>"._('Read only')."</td><td>"._('Auto mount')."</td><td>"._('Share')."</td><td>"._('FS')."</td><td>"._('Size')."</td><td>"._('Used')."</td><td>"._('Free')."</td><td>"._('Script')."</td></tr></thead>";
+		echo "<table class='show-disks disk_status wide usb_disks'><thead><tr><td>"._('Device')."</td><td>"._('Identification')."</td><td></td><td>"._('Temp').".</td><td>"._('Reads')."</td><td>"._('Writes')."</td><td>"._('Pass Thru')."</td><td>"._('Read only')."</td><td>"._('Auto mount')."</td><td>"._('Share')."</td><td>"._('FS')."</td><td>"._('Size')."</td><td>"._('Used')."</td><td>"._('Free')."</td><td>"._('Script')."</td></tr></thead>";
 		echo "<tbody>";
 		if ( count($disks) ) {
 			foreach ($disks as $disk) {
@@ -315,7 +299,8 @@ switch ($_POST['action']) {
 					$hdd_serial .= "<span class='toggle-hdd' hdd='{$disk_name}'></span>";
 				}
 
-				$hdd_serial .= "{$disk['serial']}
+				$device = strpos($disk_dev, "dev") === FALSE ? "" : " ({$disk_name})";
+				$hdd_serial .= "{$disk['serial']}$device
 								{$preclear_link}
 								<span id='preclear_{$disk['serial_short']}' style='display:block;'></span>";
 
@@ -340,7 +325,7 @@ switch ($_POST['action']) {
 						}
 					}
 					echo ($disk['partitions'][0]['fstype'] == "crypto_LUKS" ? "<i class='fa fa-lock orb'></i>" : "");
-					echo "<a title= '"._("SMART Attributes on")." ".$disk_name."' href='/Main/{$str}={$disk_dev}'> {$disk_name}</a>";
+					echo "<a title= '"._("SMART Attributes on")." ".$disk_dev."' href='/Main/{$str}={$disk_dev}'> {$disk_dev}</a>";
 					echo "</td>";
 				}
 				/* Device serial number */
@@ -349,28 +334,26 @@ switch ($_POST['action']) {
 				echo "<td class='mount'>{$mbutton}</td>";
 				/* Disk temperature */
 				echo "<td>{$temp}</td>";
-				/* Open files */
-				echo ($p)?$p[5]:"<td>-</td>";
 				/* Reads */
-				echo ($p)?$p[6]:"<td>-</td>";
+				echo ($p)?$p[5]:"<td>-</td>";
 				/* Writes */
-				echo ($p)?$p[7]:"<td>-</td>";
+				echo ($p)?$p[6]:"<td>-</td>";
 				/* Pass through switch */
-				echo ($p)?$p[8]:"<td>-</td>";
+				echo ($p)?$p[7]:"<td>-</td>";
 				/* Read only switch */
-				echo ($p)?$p[9]:"<td>-</td>";
+				echo ($p)?$p[8]:"<td>-</td>";
 				/* Auto mount switch */
-				echo ($p)?$p[10]:"<td>-</td>";
+				echo ($p)?$p[9]:"<td>-</td>";
 				/* Share switch */
-				echo ($p)?$p[11]:"<td>-</td>";
+				echo ($p)?$p[10]:"<td>-</td>";
 				/* File system */
-				echo ($p)?$p[12]:"<td>-</td>";
+				echo ($p)?$p[11]:"<td>-</td>";
 				/* Disk size */
 				echo "<td>".my_scale($disk['size'],$unit)." {$unit}</td>";
 				/* Disk used and free space */
-				echo ($p)?$p[13]:"<td>-</td><td>-</td>";
+				echo ($p)?$p[12]:"<td>-</td><td>-</td>";
 				/* Log and script buttons */
-				echo ($p)?$p[14].$p[15]:"<td>-</td>";
+				echo ($p)?$p[13].$p[14]:"<td>-</td>";
 				echo "</tr>";
 				if ($add_toggle)
 				{
@@ -392,7 +375,7 @@ switch ($_POST['action']) {
 		/* SAMBA Mounts */
 		echo "<div id='smb_tab' class='show-shares'>";
 		echo "<div id='title' class='show-disks'><span class='left'><img src='/plugins/$plugin/icons/smbsettings.png' class='icon'>"._('SMB Shares')." &nbsp;|&nbsp;<img src='/plugins/$plugin/icons/nfs.png' class='icon'>"._('NFS Shares')." &nbsp;|&nbsp;<img src='/plugins/$plugin/icons/iso.png' class='icon' style='width:16px;'>"._('ISO File Shares')."</span></div>";
-		echo "<table class='disk_status wide samba_mounts'><thead><tr><td>"._('Share Type')."</td><td>"._('Source')."</td><td>"._('Mount point')."</td><td></td><td>"._('Remove')."</td><td></td><td></td><td></td><td></td><td>"._('Auto mount')."</td><td>"._('Share')."</td><td></td><td>"._('Size')."</td><td>"._('Used')."</td><td>"._('Free')."</td><td>"._('Script')."</td></tr></thead>";
+		echo "<table class='disk_status wide samba_mounts'><thead><tr><td>"._('Share Type')."</td><td>"._('Source')."</td><td>"._('Mount point')."</td><td></td><td>"._('Remove')."</td><td></td><td></td><td></td><td></td><td></td><td>"._('Auto mount')."</td><td>"._('Share')."</td><td>"._('Size')."</td><td>"._('Used')."</td><td>"._('Free')."</td><td>"._('Script')."</td></tr></thead>";
 		echo "<tbody>";
 		$ds1 = time();
 		$samba_mounts = get_samba_mounts();
@@ -425,10 +408,9 @@ switch ($_POST['action']) {
 					echo "<td>".($mounted ? "<button class='mount' device ='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>"._('Unmount')."</button>" : "<button class='mount'device ='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>"._('Mount')."</button>")."</td>";
 				}
 				echo $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount['name']}\");' title='"._("Remove Remote SMB/NFS Share")."'> <i class='fa fa-remove hdd'></i></a></td>";
-				echo "<td></td><td></td><td></td><td></td>";
+				echo "<td></td><td></td><td></td><td></td><td></td>";
 				echo "<td title='"._("Turn on to Mount Remote SMB/NFS Share when Array is Started")."'><input type='checkbox' class='samba_automount' device='{$mount['name']}' ".(($mount['automount']) ? 'checked':'')." /></td>";
 				echo "<td title='"._("Turn on to Share Remote Mount with SMB and/or NFS")."'><input type='checkbox' class='toggle_samba_share' info='".htmlentities(json_encode($mount))."' ".(($mount['smb_share']) ? 'checked':'')." /></td>";
-				echo "<td></td>";
 				echo "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				echo render_used_and_free($mount, $mounted);
 				echo "<td><a title='"._("View Remote SMB/NFS Script Log")."' href='/Main/ScriptLog?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><i class='fa fa-align-left'></i></a>";
@@ -465,9 +447,9 @@ switch ($_POST['action']) {
 					echo "<td>".($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>"._('Unmount')."</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>"._('Mount')."</button>")."</td>";
 				}
 				echo $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec' style='color:#CC0000;font-weight:bold;' onclick='remove_iso_config(\"{$mount['device']}\");' title='"._("Remove ISO File Share")."'> <i class='fa fa-remove hdd'></i></a></td>";
-				echo "<td></td><td></td><td></td><td></td>";
+				echo "<td></td><td></td><td></td><td></td><td></td>";
 				echo "<td title='"._("Turn on to Mount ISO File when Array is Started")."'><input type='checkbox' class='iso_automount' device='{$mount['device']}' ".(($mount['automount']) ? 'checked':'')." /></td>";
-				echo "<td></td><td></td>";
+				echo "<td></td>";
 				echo "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				echo render_used_and_free($mount, $mounted);
 				echo "<td><a title='"._("View ISO File Script Log")."' href='/Main/ScriptLog?i=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><i class='fa fa-align-left'></i></a>";

@@ -279,31 +279,6 @@ function is_script_running($cmd) {
 	return($rc);
 }
 
-function lsof($dir) {
-	global $paths, $plugin;
-
-	$rc	= 0;
-	$tc = $paths["lsof_status"];
-	$lsof_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-	if (isset($lsof_status[$dir])) {
-		$rc = $lsof_status[$dir]['open_files'];
-	}
-	if ((time() - $lsof_status[$dir]['timestamp']) > 15) {
-		$pc = $paths["ping_status"];
-		$ping_status = is_file($pc) ? json_decode(file_get_contents($pc),TRUE) : array();
-		foreach ($ping_status as $p) {
-			if ($p['last_online'] == 'no') {
-				$rc = -1;
-				break;
-			}
-		}
-		if ($rc != -1) {
-			exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats open_files {$tc} '{$dir}' &");
-		}
-	}
-	return $rc;
-}
-
 function get_temp($dev, $running) {
 	global $var, $paths;
 
@@ -1714,12 +1689,6 @@ function get_partition_info($device, $reload=FALSE){
 		$disk['size']		= intval($stats[0])*1024;
 		$disk['used']		= intval($stats[1])*1024;
 		$disk['avail']		= intval($stats[2])*1024;
-		if ($disk['target'] != "" && $disk['mounted']) {
-			$disk['openfiles']	= lsof($disk['target']);
-		} else {
-			$disk['openfiles'] = 0;
-		}
-
 		$rw	= get_disk_reads_writes($disk_device);
 		$disk['reads']			= $rw[0];
 		$disk['writes']			= $rw[1];
