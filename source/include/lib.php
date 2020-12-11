@@ -26,7 +26,6 @@ $paths = [  "smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"run_status"		=> "/var/state/{$plugin}/run_status.json",
 			"ping_status"		=> "/var/state/{$plugin}/ping_status.json",
 			"df_status"			=> "/var/state/{$plugin}/df_status.json",
-			"lsof_status"		=> "/var/state/{$plugin}/lsof_status.json",
 			"hotplug_status"	=> "/var/state/{$plugin}/hotplug_status.json",
 			"dev_state"			=> "/usr/local/emhttp/state/devs.ini",
 			"samba_mount"		=> "/tmp/{$plugin}/config/samba_mount.cfg",
@@ -263,7 +262,7 @@ function is_samba_server_online($ip, $mounted) {
 	if (isset($ping_status[$server])) {
 		$is_alive = ($ping_status[$server]['online'] == 'yes') ? TRUE : FALSE;
 	}
-	if ((time() - $ping_status[$server]['timestamp']) > 10 ) {
+	if ((time() - $ping_status[$server]['timestamp']) > 15 ) {
 		exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats ping {$tc} {$ip} {$mounted} &");
 	}
 
