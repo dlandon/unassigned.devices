@@ -292,7 +292,7 @@ switch ($_POST['action']) {
 				$preclearing	= $Preclear ? $Preclear->isRunning($disk_name) : false;
 				$is_precleared	= ($disk['partitions'][0]['fstype'] == "precleared") ? true : false;
 				$flash			= ($disk['partitions'][0]['fstype'] == "vfat") ? true : false;
-				if ( (! $disk['partitions'][0]['pass_through']) && ($mounted || ! $preclearing) ) {
+				if ( ($mounted || ! $preclearing) ) {
 					$disk['temperature'] = $disk['temperature'] ? $disk['temperature'] : get_temp(substr($disk['device'],0,10), $disk['running']);
 				}
 				$temp = my_temp($disk['temperature']);
