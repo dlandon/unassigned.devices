@@ -306,7 +306,7 @@ switch ($_POST['action']) {
 
 				echo "<tr class='toggle-disk'>";
 				if ( $flash || $preclearing ) {
-					echo "<td><i class='fa fa-circle orb grey-orb'></i>{$disk_name}</td>";
+					echo "<td><i class='fa fa-circle orb grey-orb'></i>{$disk_dev}</td>";
 				} else {
 					echo "<td>";
 					if (strpos($disk_dev, "dev") === FALSE) {
