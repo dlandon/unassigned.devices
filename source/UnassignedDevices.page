@@ -107,13 +107,13 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	}
 
 	function spin_down_disk(dev) {
-		document.getElementById('disk_orb').className = "fa fa-refresh fa-spin orb grey-orb";
-		$.post(UDURL,{action:"spin_down_disk",device:dev}).always(function(){usb_disks(tab_usbdisks)});
+		document.getElementById('disk_orb-'+dev).className = "fa fa-refresh fa-spin orb grey-orb";
+		$.post(UDURL,{action:"spin_down_disk",device:dev});
 	}
 
 	function spin_up_disk(dev) {
-		document.getElementById('disk_orb').className = "fa fa-refresh fa-spin orb grey-orb ";
-		$.post(UDURL,{action:"spin_up_disk",device:dev}).always(function(){usb_disks(tab_usbdisks)});
+		document.getElementById('disk_orb-'+dev).className = "fa fa-refresh fa-spin orb grey-orb ";
+		$.post(UDURL,{action:"spin_up_disk",device:dev});
 	}
 
 	if (typeof " ".formatUnicorn !== "function")
@@ -272,7 +272,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			$.post(UDURL,{action:"detect"},function(data)
 			{
 				do_reload = false;
-				if (diskinfo && diskinfo !== data.diskinfo )
+				if (diskinfo && diskinfo !== data.diskinfo)
 				{
 					do_reload = true;
 				}
@@ -1127,7 +1127,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 				<p style='color:red;'><?=_('WARNING: Use caution when using a remote share local mount in a Docker container or VM for critical data');?>.  <?=_('Media mapped to apps like Plex should not be a problem');?>.  <?=_('Remote share mounts are dependent on a solid and reliable network connection and that can difficult to achieve');?>. <?=_('If the remote share goes offline, you may have problems');?>!</p>
 			</div>
 		</div>
-		<div data-question-done></div>
 	</div>
 	<div data-question data-question-title="<?=_('Choose Server');?>">
 		<div data-question-format>

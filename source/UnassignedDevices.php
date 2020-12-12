@@ -305,8 +305,14 @@ switch ($_POST['action']) {
 								<span id='preclear_{$disk['serial_short']}' style='display:block;'></span>";
 
 				echo "<tr class='toggle-disk'>";
+				if (strpos($disk_dev, "dev") === FALSE) {
+					$disk_display = $disk_dev;
+				} else {
+					$disk_display = substr($disk_dev, 0, 3)." ".substr($disk_dev, 3);
+					$disk_display = ucfirst($disk_display);
+				}
 				if ( $flash || $preclearing ) {
-					echo "<td><i class='fa fa-circle orb grey-orb'></i>{$disk_dev}</td>";
+					echo "<td><i class='fa fa-circle orb grey-orb'></i>{$disk_display}</td>";
 				} else {
 					echo "<td>";
 					if (strpos($disk_dev, "dev") === FALSE) {
@@ -316,16 +322,16 @@ switch ($_POST['action']) {
 						$str = "Device?name";
 						if (! $disk['ssd']) {
 							if ($disk['running']) {
-								echo "<a title='"._("Click to spin down device")."' class='exec' onclick='spin_down_disk(\"{$disk_dev}\")'><i id='disk_orb' class='fa fa-circle orb green-orb'></i></a>";
+								echo "<a title='"._("Click to spin down device")."' class='exec' onclick='spin_down_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle orb green-orb'></i></a>";
 							} else {
-								echo "<a title='"._("Click to spin up device")."' class='exec' onclick='spin_up_disk(\"{$disk_dev}\")'><i id='disk_orb' class='fa fa-circle orb grey-orb'></i></a>";
+								echo "<a title='"._("Click to spin up device")."' class='exec' onclick='spin_up_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle orb grey-orb'></i></a>";
 							}
 						} else {
 							echo "<i class='fa fa-circle orb ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>";
 						}
 					}
 					echo ($disk['partitions'][0]['fstype'] == "crypto_LUKS" ? "<i class='fa fa-lock orb'></i>" : "");
-					echo "<a title= '"._("SMART Attributes on")." ".$disk_dev."' href='/Main/{$str}={$disk_dev}'> {$disk_dev}</a>";
+					echo "<a title= '"._("SMART Attributes on")." ".$disk_display."' href='/Main/{$str}={$disk_dev}'> {$disk_display}</a>";
 					echo "</td>";
 				}
 				/* Device serial number */
@@ -489,6 +495,26 @@ switch ($_POST['action']) {
 		break;
 
 	case 'detect':
+		global $paths;
+
+		$status = array();
+		$tc = $paths["dev_status"];
+		$previous = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+		$sf	= $paths["dev_state"];
+		if (is_file($sf)) {
+			$devs = parse_ini_file($sf, true);
+			foreach ($devs as $d) {
+				$name = $d['name'];
+				$status[$name]['running'] = $d['spundown'] == '0' ? "yes" : "no";
+				$curr = $status[$name]['running'];
+				$prev = $previous[$name]['running'];
+				if ($curr != $prev) {
+					@touch($GLOBALS['paths']['reload']);
+				}
+			}
+			file_put_contents($tc, json_encode($status));
+		}
+
 		echo json_encode(array("reload" => is_file($paths['reload']), "diskinfo" => 0));
 		break;
 
@@ -498,7 +524,7 @@ switch ($_POST['action']) {
 
 	case 'get_content_json':
 		unassigned_log("Starting json reply action [get_content_json]", "DEBUG");
-		$time		 = -microtime(true);
+		$time = -microtime(true);
 		$disks = get_all_disks_info();
 		echo json_encode($disks);
 		unassigned_log("Total render time: ".($time + microtime(true))."s", "DEBUG");

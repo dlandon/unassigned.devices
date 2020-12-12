@@ -26,6 +26,7 @@ $paths = [  "smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"run_status"		=> "/var/state/{$plugin}/run_status.json",
 			"ping_status"		=> "/var/state/{$plugin}/ping_status.json",
 			"df_status"			=> "/var/state/{$plugin}/df_status.json",
+			"dev_status"		=> "/var/state/{$plugin}/devs_status.json",
 			"hotplug_status"	=> "/var/state/{$plugin}/hotplug_status.json",
 			"dev_state"			=> "/usr/local/emhttp/state/devs.ini",
 			"samba_mount"		=> "/tmp/{$plugin}/config/samba_mount.cfg",
@@ -228,7 +229,7 @@ function is_disk_running($dev) {
 	$run_devs	= FALSE;
 	$sf = $paths["dev_state"];
 	if (is_file($sf)) {
-		$devs = parse_ini_file($paths["dev_state"], true);
+		$devs = parse_ini_file($sf, true);
 		foreach ($devs as $d) {
 			if (($d['device'] == basename($dev)) && isset($d['spundown'])) {
 				$rc =($d['spundown'] == '0') ? TRUE : FALSE;
