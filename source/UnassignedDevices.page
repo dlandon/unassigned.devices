@@ -261,6 +261,12 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		});
 	}
 
+	function ping_poll(tabnum)
+	{
+		$.post(UDURL,{action:"update_ping"});
+		setTimeout(ping_poll, 15000, tabnum);
+	}
+
 	function detect_usb_disk_change(tabnum) {
 		if ($('#tab'+tabnum).is(':checked')) {
 			clearTimeout(timers.usbdisks);
@@ -521,7 +527,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		swalOpts.icon    =  getAttr(question, "data-question-icon","info");
 		swalOpts.closeOnClickOutside = false;
 		swalOpts.buttons = new Object;
-		swalOpts.buttons.confirm = {text: "", value: null, visible: false, className: "", closeModal: true};
+		swalOpts.buttons.confirm = (index > 0) ? {text: button.cancel, value: null,  visible: true, className: "", closeModal: true} : {text: "", value: null, visible: false, className: "", closeModal: true};
 		swalOpts.buttons.cancel  = (index > 0) ? {text: button.back,   value: false, visible: true, className: "", closeModal: false} :
 											 {text: button.cancel, value: null,  visible: true, className: "", closeModal: true};
 		swalOpts.buttons.next    = (index == numQuestions - 1 ) ? {text:button.done, value: true, visible: true, className: "", closeModal: false}:
@@ -549,7 +555,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 							else return ">";
 						} else if(index == numQuestions - 1) {
 							if (evaled !== null && evaled === false) return "=";
-								$(".swal-button--cancel").prop("disabled",true);
+							$(".swal-button--cancel").prop("disabled",true);
+							$(".swal-button--confirm").prop("disabled",true);
 							evalCondition(survey,"div[data-survey-done]");
 							if (getAttr(survey.find("div[data-survey-done]").eq(0),"data-survey-done-wait", "true") == "false" ) {
 								setTimeout(() => { swal2({buttons:{confirm:{visible:false},cancel:{visible:false}},timer:100}) }, 1500)
@@ -868,6 +875,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		/* Load page content */
 		usb_disks(tab_usbdisks);
 		detect_usb_disk_change(tab_usbdisks);
+		ping_poll(tab_usbdisks);
 	});
 </script>
 

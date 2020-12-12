@@ -522,6 +522,19 @@ switch ($_POST['action']) {
 		@unlink($paths['reload']);
 		break;
 
+	case 'update_ping':
+		global $paths;
+
+		/* Refresh the ping status in then background. */
+		$config_file = $paths["samba_mount"];
+		$samba_mounts = @parse_ini_file($config_file, true);
+		if (is_array($samba_mounts)) {
+			foreach ($samba_mounts as $device => $mount) {
+				$mount['is_alive']	= is_samba_server_online($mount['ip'], FALSE);
+			}
+		}
+		break;
+
 	case 'get_content_json':
 		unassigned_log("Starting json reply action [get_content_json]", "DEBUG");
 		$time = -microtime(true);
