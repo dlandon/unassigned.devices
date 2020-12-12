@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.12.11">
+<!ENTITY version   "2020.12.11a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"3963d5ab2f98631a5060494cda2ecd8c">
+<!ENTITY MD5		"f68199440da5f8e579e41fa09fdbecff">
 ]>
 
 <PLUGIN name="&name;"
@@ -28,6 +28,7 @@
 - Add: Change disk device name and device designation for 6.9 compatibility.
 - Fix: Remove open files display.  This capability has presented a lot of issues, is not useful enough to keep, and real estate space is at a premium.
 - Fix: Auto mount remote shares failing on reboot.
+- Fix: Block double quote from udev disk information.
 
 ###2020.12.10a
 - Add: Check for open files on an interval instead of every refresh of the UI.
