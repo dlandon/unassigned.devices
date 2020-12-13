@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.12.13a">
+<!ENTITY version   "2020.12.13b">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"71a39013892e5b7b78071e155e31565d">
+<!ENTITY MD5		"fdd4e1ed06e9a0e59dc435183ed7e2c0">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Flash drives show as spun down.  Thay are always spun up.
+- Fix: Try to cut down on screen refreshes when a disk device is mounted.
+- Fix: Change 'Rescan Disks' to simulate hotplug event to Unraid.
+
+###2020.12.13a
 - Fix: Change device name format to conform to Unraid standards.
 - Fix: Spin up/down spinner on wrong device icon.
 - Add: Cancel buttons to add remote share and format disk.
