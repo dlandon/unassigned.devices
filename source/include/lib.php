@@ -709,6 +709,7 @@ global $paths;
 }
 
 function remove_config_disk($sn) {
+
 	$config_file = $GLOBALS["paths"]["config_file"];
 	$config = @parse_ini_file($config_file, true);
 	if ( isset($config[$source]) ) {

@@ -16,8 +16,12 @@ $docroot = $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 require_once("$docroot/plugins/{$plugin}/include/lib.php");
 
 $COMMAND = $argv[1];
-$DEVNAME = (isset($_ENV['DEVNAME'])) ? $_ENV['DEVNAME'] : ( isset($argv[2]) ? $argv[2] : NULL );
-$DEVNAME = (file_exists($DEVNAME)) ? realpath($DEVNAME) : $DEVNAME;
+if ($COMMAND != 'spindown') {
+	$DEVNAME = (isset($_ENV['DEVNAME'])) ? $_ENV['DEVNAME'] : ( isset($argv[2]) ? $argv[2] : NULL );
+	$DEVNAME = (file_exists($DEVNAME)) ? realpath($DEVNAME) : $DEVNAME;
+} else {
+	$DEVNAME = $argv[2];
+}
 $remove  = [];
 if (! $DEVNAME) die("Fail: device not defined.\n");
 
@@ -264,6 +268,13 @@ function unassigned_reload() {
 	}
 }
 
+function unassigned_spin_down() {
+	global $DEVNAME;
+
+	$dev = basename($DEVNAME);
+	spin_disk(TRUE, $dev);
+}
+
 function addFile($file)
 {
 	global $remove;
@@ -303,16 +314,22 @@ switch ($COMMAND) {
 		unassigned_reload();
 		break;
 
+	case 'spindown':
+		unassigned_spin_down();
+		break;
+
 	case 'refresh':
 		break;
 
 	default:
 		unassigned_log("Error: 'rc.unassigned {$argv[1]} {$argv[2]}' not understood");
-		unassigned_log("rc.unassigned usage: 'mount','umount','reload', 'refresh'");
+		unassigned_log("rc.unassigned usage: 'mount','umount','reload', 'spindown', 'refresh'");
 		exit(0);
 		break;
 }
 
-array_map(function($f){@unlink($f);}, $remove);
-@touch($paths['reload']);
+if ($COMMAND != 'spindown') {
+	array_map(function($f){@unlink($f);}, $remove);
+	@touch($paths['reload']);
+}
 ?>
