@@ -12,12 +12,11 @@
 
 $plugin = "unassigned.devices";
 /* $VERBOSE=TRUE; */
-$version = parse_ini_file("/etc/unraid-version");
 
 $paths = [  "smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"smb_usb_shares"	=> "/etc/samba/unassigned-shares",
 			"usb_mountpoint"	=> "/mnt/disks",
-			"remote_mountpoint"	=> (version_compare($version['version'],"6.8.9", ">")) ? "/mnt/remotes" : "/mnt/disks",
+			"remote_mountpoint"	=> "/mnt/remotes",
 			"device_log"		=> "/tmp/{$plugin}/",
 			"config_file"		=> "/tmp/{$plugin}/config/{$plugin}.cfg",
 			"state"				=> "/var/state/{$plugin}/{$plugin}.ini",
