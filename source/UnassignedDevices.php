@@ -497,6 +497,7 @@ switch ($_POST['action']) {
 	case 'detect':
 		global $paths;
 
+		/* Check to see if disk status has changed. */
 		$status = array();
 		$tc = $paths["dev_status"];
 		$previous = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
@@ -525,7 +526,7 @@ switch ($_POST['action']) {
 	case 'update_ping':
 		global $paths;
 
-		/* Refresh the ping status in then background. */
+		/* Refresh the ping status in the background. */
 		$config_file = $paths["samba_mount"];
 		$samba_mounts = @parse_ini_file($config_file, true);
 		if (is_array($samba_mounts)) {
