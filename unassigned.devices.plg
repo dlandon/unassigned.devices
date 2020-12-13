@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.12.11a">
+<!ENTITY version   "2020.12.13">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"f68199440da5f8e579e41fa09fdbecff">
+<!ENTITY MD5		"f2757955794f180c18a9e3e71f6d8482">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,14 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Change device name format to conform to Unraid standards.
+- Fix: Spin up/down spinner on wrong device icon.
+- Add: Cancel buttons to add remote share and format disk.
+- Add: Update disk status when a change is detected (disk spin up or down).
+- Add: Update remote server status every 15 seconds.
+- Add: Spin down option to rc.unassigned script.
+
+###2020.12.11a
 - Add: Display temperature on UD page when disk marked as pass through.
 - Add: Change disk device name and device designation for 6.9 compatibility.
 - Fix: Remove open files display.  This capability has presented a lot of issues, is not useful enough to keep, and real estate space is at a premium.
