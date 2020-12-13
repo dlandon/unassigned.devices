@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.12.13">
+<!ENTITY version   "2020.12.13a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"f2757955794f180c18a9e3e71f6d8482">
+<!ENTITY MD5		"71a39013892e5b7b78071e155e31565d">
 ]>
 
 <PLUGIN name="&name;"
@@ -30,6 +30,7 @@
 - Add: Update disk status when a change is detected (disk spin up or down).
 - Add: Update remote server status every 15 seconds.
 - Add: Spin down option to rc.unassigned script.
+- Add: Enabled the /mnt/remotes/ mount point for older versions of Unraid.
 
 ###2020.12.11a
 - Add: Display temperature on UD page when disk marked as pass through.
