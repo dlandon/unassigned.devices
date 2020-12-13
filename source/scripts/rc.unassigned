@@ -330,6 +330,8 @@ switch ($COMMAND) {
 
 if ($COMMAND != 'spindown') {
 	array_map(function($f){@unlink($f);}, $remove);
-	@touch($paths['reload']);
+	if (! is_file($paths['reload'])) {
+		@touch($paths['reload']);
+	}
 }
 ?>

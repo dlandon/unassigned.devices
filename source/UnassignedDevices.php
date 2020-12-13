@@ -509,7 +509,7 @@ switch ($_POST['action']) {
 				$status[$name]['running'] = $d['spundown'] == '0' ? "yes" : "no";
 				$curr = $status[$name]['running'];
 				$prev = $previous[$name]['running'];
-				if ($curr != $prev) {
+				if (! is_file($GLOBALS['paths']['reload']) && ($curr != $prev)) {
 					@touch($GLOBALS['paths']['reload']);
 				}
 			}
