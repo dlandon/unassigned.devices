@@ -252,6 +252,8 @@ function make_mount_button($device) {
 
 switch ($_POST['action']) {
 	case 'get_content':
+		global $paths;
+
 		unassigned_log("Starting page render [get_content]", "DEBUG");
 		$time		 = -microtime(true);
 
@@ -604,7 +606,12 @@ switch ($_POST['action']) {
 		break;
 
 	case 'rescan_disks':
-		exec("/sbin/udevadm trigger --action=change 2>&1");
+		$tc = $paths["hotplug_status"];
+		$hotplug = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : "no";
+		if ($hotplug == "no") {
+			file_put_contents($tc, json_encode('yes'));
+			@touch($GLOBALS['paths']['reload']);
+		}
 		break;
 
 	case 'format_disk':

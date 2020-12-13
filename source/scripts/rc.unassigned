@@ -143,7 +143,10 @@ function unassigned_mount() {
 	/* Tell Unraid to update devs.ini file of unassigned devices. */
 	if (isset($_ENV['DEVTYPE']) && ($_ENV['DEVTYPE'] == "partition")) {
 		$tc = $paths["hotplug_status"];
-		file_put_contents($tc, json_encode('yes'));
+		$hotplug = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : "no";
+		if ($hotplug == "no") {
+			file_put_contents($tc, json_encode('yes'));
+		}
 	}
 }
 
@@ -246,7 +249,7 @@ function unassigned_umount() {
 					} else {
 						execute_script($info, "ERROR_UNMOUNT");
 					}
-				} else {
+		3		} else {
 					unassigned_log("Remote ISO File share '{$info['device']}' is not mounted and cannot be unmounted.");
 				}
 			}
@@ -256,7 +259,10 @@ function unassigned_umount() {
 	/* Tell Unraid to update devs.ini file of unassigned devices. */
 	if (isset($_ENV['DEVTYPE']) && ($_ENV['DEVTYPE'] == "disk")) {
 		$tc = $paths["hotplug_status"];
-		file_put_contents($tc, json_encode('yes'));
+		$hotplug = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : "no";
+		if ($hotplug == "no") {
+			file_put_contents($tc, json_encode('yes'));
+		}
 	}
 }
 
