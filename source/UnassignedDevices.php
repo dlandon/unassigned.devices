@@ -257,6 +257,8 @@ switch ($_POST['action']) {
 		unassigned_log("Starting page render [get_content]", "DEBUG");
 		$time		 = -microtime(true);
 
+		/* Update mount status */
+		exec("/bin/mount > {$paths['mount']}");
 		/* Check for a recent hot plug event. */
 		$tc = $paths["hotplug_status"];
 		$hotplug = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : "no";
@@ -387,7 +389,7 @@ switch ($_POST['action']) {
 		echo "<tbody>";
 		$ds1 = time();
 		$samba_mounts = get_samba_mounts();
-		unassigned_log("get_samba_mounts: ".(time() - $ds1)."s","DEBUG");
+		unassigned_log("get_samba_mounts: ".($ds1 - microtime(true))."s!","DEBUG");
 		if (count($samba_mounts)) {
 			foreach ($samba_mounts as $mount)
 			{

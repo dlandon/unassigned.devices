@@ -759,7 +759,7 @@ function is_mounted($dev, $dir=FALSE) {
 
 	$rc = FALSE;
 	if ($dev != "") {
-		$data = timed_exec(2, "/sbin/mount");
+		$data = timed_exec(1, "/sbin/mount");
 		$append = ($dir) ? " " : " on";
 		$rc = (strpos($data, $dev.$append) != 0) ? TRUE : FALSE;
 	}
@@ -770,7 +770,7 @@ function luks_fs_type($dev) {
 
 	$rc = "luks";
 	if ($dev != "") {
-		$return = timed_exec(2, "/sbin/mount | /bin/grep $dev | /bin/awk '{print $5}'");
+		$return = shell_exec( "/bin/cat /proc/mounts | /bin/grep $dev | /bin/awk '{print $3}'");
 		$rc = $return == "" ? $rc : $return;
 	}
 	return $rc;
@@ -1585,7 +1585,7 @@ function get_unassigned_disks() {
 function get_all_disks_info($bus="all") {
 
 	unassigned_log("Starting get_all_disks_info.", "DEBUG");
-	$d1 = time();
+	$time = -microtime(true);
 	$ud_disks = get_unassigned_disks();
 	if (is_array($ud_disks)) {
 		foreach ($ud_disks as $key => $disk) {
@@ -1604,7 +1604,7 @@ function get_all_disks_info($bus="all") {
 		unassigned_log("Error: unable to get unassigned disks.");
 		$ud_disks = array();
 	}
-	unassigned_log("Total time: ".(time() - $d1)."s", "DEBUG");
+	unassigned_log("Total time: ".($time + microtime(true))."s!", "DEBUG");
 	usort($ud_disks, create_function('$a, $b','$key="device";if ($a[$key] == $b[$key]) return 0; return ($a[$key] < $b[$key]) ? -1 : 1;'));
 	return $ud_disks;
 }
