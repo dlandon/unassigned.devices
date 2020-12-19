@@ -271,12 +271,12 @@ function is_samba_server_online($ip, $mounted, $background=TRUE) {
 	return $is_alive;
 }
 
-function is_script_running($cmd) {
+function is_script_running($cmd, $user=FALSE) {
 	global $paths;
 
 	$is_running = FALSE;
 	if ($cmd != "") {
-		$script_name = basename($cmd);
+		$script_name = $cmd;
 		$tc = $paths['script_run'];
 		$script_run = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 		if (isset($script_run[$script_name])) {
@@ -284,9 +284,9 @@ function is_script_running($cmd) {
 		} else {
 			$was_running = FALSE;
 		}
-
-		$is_running = shell_exec("/usr/bin/ps -ef | /bin/grep '".basename($cmd)."' | /bin/grep -v 'grep'") != "" ? TRUE : FALSE;
-			$script_run[$script_name] = array('running' => $is_running ? 'yes' : 'no');
+		$user_scripts = $user ? "| grep 'user.scripts'" : "";
+		$is_running = shell_exec("/usr/bin/ps -ef | /bin/grep '".basename($cmd)."' | /bin/grep -v 'grep' {$user_scripts}") != "" ? TRUE : FALSE;
+			$script_run[$script_name] = array('running' => $is_running ? 'yes' : 'no','user' => $user ? 'yes' : 'no');
 			file_put_contents($tc, json_encode($script_run));
 		if (($was_running) && (! $is_running)) {
 			@touch($GLOBALS['paths']['reload']);
@@ -1307,12 +1307,14 @@ function get_samba_mounts() {
 				}
 			}
 			$stats = get_device_stats($mount['mountpoint'], $mount['is_alive']);
-			$mount['size']  	= intval($stats[0])*1024;
-			$mount['used']  	= intval($stats[1])*1024;
-			$mount['avail'] 	= intval($stats[2])*1024;
-			$mount['target']	= $mount['mountpoint'];
-			$mount['prog_name']	= basename($mount['command'], ".sh");
-			$mount['logfile']	= $paths['device_log'].$mount['prog_name'].".log";
+			$mount['size']			= intval($stats[0])*1024;
+			$mount['used']			= intval($stats[1])*1024;
+			$mount['avail']			= intval($stats[2])*1024;
+			$mount['target']		= $mount['mountpoint'];
+			$mount['prog_name']		= basename($mount['command'], ".sh");
+			$mount['command']		= get_samba_config($mount['device'],"command");
+			$mount['uer_command']	= get_samba_config($mount['device'],"user_command");
+			$mount['logfile']		= $paths['device_log'].$mount['prog_name'].".log";
 			$o[] = $mount;
 		}
 	} else {
@@ -1490,6 +1492,8 @@ function get_iso_mounts() {
 			$mount['used']  = intval($stats[1])*1024;
 			$mount['avail'] = intval($stats[2])*1024;
 			$mount['prog_name'] = basename($mount['command'], ".sh");
+			$mount['command']		= get_samba_config($mount['device'],"command");
+			$mount['uer_command']	= get_samba_config($mount['device'],"user_command");
 			$mount['logfile'] = $paths['device_log'].$mount['prog_name'].".log";
 			$o[] = $mount;
 		}
@@ -1649,12 +1653,13 @@ function get_disk_info($device, $reload=FALSE){
 	$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV, $reload) : get_udev_info($device, NULL, $reload);
 	$device = realpath($device);
 	$disk['serial_short'] = isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
-	$disk['serial']		= "{$attrs['ID_MODEL']}_{$disk['serial_short']}";
-	$disk['device']		= $device;
-	$disk['dev']		= get_disk_dev($device);
-	$disk['ssd']		= is_disk_ssd($device);
-	$disk['running']	= is_disk_running($device);
-	$disk['command']	= get_config($disk['serial'],"command.1");
+	$disk['serial']			= "{$attrs['ID_MODEL']}_{$disk['serial_short']}";
+	$disk['device']			= $device;
+	$disk['dev']			= get_disk_dev($device);
+	$disk['ssd']			= is_disk_ssd($device);
+	$disk['running']		= is_disk_running($device);
+	$disk['command']		= get_config($disk['serial'],"command.1");
+	$disk['user_command']	= get_config($disk['serial'],"user_command.1");
 	return $disk;
 }
 
@@ -1716,6 +1721,7 @@ function get_partition_info($device, $reload=FALSE){
 		$disk['read_only']		= is_read_only($disk['serial']);
 		$disk['shared']			= config_shared($disk['serial'], $disk['part'], strpos($attrs['DEVPATH'],"usb"));
 		$disk['command']		= get_config($disk['serial'], "command.{$disk['part']}");
+		$disk['user_command']	= get_config($disk['serial'], "user_command.{$disk['part']}");
 		$disk['command_bg']		= get_config($disk['serial'], "command_bg.{$disk['part']}");
 		$disk['prog_name']		= basename($disk['command'], ".sh");
 		$disk['logfile']		= $paths['device_log'].$disk['prog_name'].".log";

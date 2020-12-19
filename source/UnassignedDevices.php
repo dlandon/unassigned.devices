@@ -234,7 +234,7 @@ function make_mount_button($device) {
 		$button = sprintf($button, $context, 'format', 'disabled', 'fa fa-circle-o-notch fa-spin', ' '._('Formatting...'));
 	} elseif ($mounted) {
 		$cmd = $device['command'];
-		$script_running = is_script_running($cmd);
+		$script_running = ((is_script_running($cmd)) || (is_script_running($device['user_command'], TRUE)));;
 		if ($script_running) {
 			$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-circle-o-notch fa-spin', ' '._('Running...'));
 		} else {
@@ -408,9 +408,7 @@ switch ($_POST['action']) {
 				}
 
 				$disabled = $is_alive ? "enabled" : "disabled";
-				$cmd = get_samba_config($mount['device'],"command");
-				$script_running = is_script_running($cmd);
-				if ($script_running) {
+				if ($mount['mounted'] && (is_script_running($mount['command']) || is_script_running($mount['user_command'], TRUE))) {
 					echo "<td><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i>"." "._("Running")."...</button></td>";
 				} else {
 					echo "<td>".($mounted ? "<button class='mount' device ='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>"._('Unmount')."</button>" : "<button class='mount'device ='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>"._('Mount')."</button>")."</td>";
@@ -447,9 +445,7 @@ switch ($_POST['action']) {
 						</td>";
 				}
 				$disabled = $is_alive ? "enabled":"disabled";
-				$cmd = $mount['command'];
-				$script_running = is_script_running($cmd);
-				if ($script_running) {
+				if ($mount['mounted'] && (is_script_running($mount['command']) || is_script_running($mount['user_command'], TRUE))) {
 					echo "<td><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i> "._('Running')."...</button></td>";
 				} else {
 					echo "<td>".($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>"._('Unmount')."</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>"._('Mount')."</button>")."</td>";
@@ -547,7 +543,8 @@ switch ($_POST['action']) {
 		if (is_array($script_run)) {
 			foreach ($script_run as $key => $script) {
 				if ($script['running'] == 'yes') {
-					is_script_running($key);
+					$user = 
+					is_script_running($key, $script['user'] = "yes" ? TRUE : FALSE);
 				}
 			}
 		}
@@ -573,6 +570,7 @@ switch ($_POST['action']) {
 		$part = urldecode(($_POST['part']));
 		$cmd = urldecode(($_POST['command']));
 		set_config($serial, "command_bg.{$part}", urldecode($_POST['background']));
+		set_config($serial, "user_command.{$part}", urldecode($_POST['user_command']));
 		echo json_encode(array( 'result' => set_config($serial, "command.{$part}", $cmd)));
 		break;
 
@@ -755,7 +753,8 @@ switch ($_POST['action']) {
 	case 'set_samba_command':
 		$device = urldecode(($_POST['device']));
 		$cmd = urldecode(($_POST['command']));
-		set_samba_config($device, "command_bg", urldecode($_POST['background'])) ;
+		set_samba_config($device, "command_bg", urldecode($_POST['background']));
+		set_samba_config($device, "user_command", urldecode($_POST['user_command']));
 		echo json_encode(array( 'result' => set_samba_config($device, "command", $cmd)));
 		break;
 
@@ -791,7 +790,8 @@ switch ($_POST['action']) {
 	case 'set_iso_command':
 		$device = urldecode(($_POST['device']));
 		$cmd = urldecode(($_POST['command']));
-		set_iso_config($device, "command_bg", urldecode($_POST['background'])) ;
+		set_iso_config($device, "command_bg", urldecode($_POST['background']));
+		set_iso_config($device, "user_command", urldecode($_POST['user_command']));
 		echo json_encode(array( 'result' => set_iso_config($device, "command", $cmd)));
 		break;
 

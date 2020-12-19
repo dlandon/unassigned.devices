@@ -324,9 +324,6 @@ switch ($COMMAND) {
 		unassigned_spin_down();
 		break;
 
-	case 'refresh':
-		break;
-
 	default:
 		unassigned_log("Error: 'rc.unassigned {$argv[1]} {$argv[2]}' not understood");
 		unassigned_log("rc.unassigned usage: 'mount','umount','reload', 'spindown', 'refresh'");

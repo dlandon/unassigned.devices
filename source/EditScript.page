@@ -26,7 +26,7 @@ require_once("plugins/{$plugin}/include/lib.php");
 function safe_filename($string) {
 	$string = preg_replace('~[^0-9a-z -_]~i', '', $string);
 	/* Remove special characters from file name */
-	$string = str_replace( array("(", ")"), "", $string);
+	$string = str_replace( array("(", ")", "$"), "", $string);
 	return preg_replace('~[ ]~i', '_', $string);
 }
 
@@ -38,6 +38,12 @@ if (isset($_GET['s'])) {
 	$file = get_config($serial,"command.{$partition}");
 	if (! file_exists($file)) {
 		set_config($serial,"command.{$partition}","");
+		$file = "";
+	}
+	$user_file = get_config($serial,"user_command.{$partition}");
+	if (! file_exists($user_file) || ! $file) {
+		set_config($serial,"user_command.{$partition}","");
+		$user_file = "";
 	}
 	if (! $file ) {
 		$file = safe_filename("/boot/config/plugins/{$plugin}/".urldecode($_GET['l'])).".sh";
@@ -49,6 +55,12 @@ if (isset($_GET['s'])) {
 	$file = get_samba_config($device,"command");
 	if (! file_exists($file)) {
 		set_samba_config($device,"command","");
+		$file = "";
+	}
+	$user_file = get_samba_config($device,"user_command");
+	if (! file_exists($user_file) || ! $file) {
+		set_samba_config($device,"user_command","");
+		$user_file = "";
 	}
 	if (! $file ) {
 		$file = safe_filename("/boot/config/plugins/{$plugin}/".urldecode($_GET['l'])).".sh";
@@ -60,6 +72,12 @@ if (isset($_GET['s'])) {
 	$file = get_iso_config($device,"command");
 	if (! file_exists($file)) {
 		set_iso_config($device,"command","");
+		$file = "";
+	}
+	$user_file = get_iso_config($device,"user_command");
+	if (! file_exists($user_file) || ! $file) {
+		set_iso_config($device,"user_command","");
+		$user_file = "";
 	}
 	if (! $file ) {
 		$file = safe_filename("/boot/config/plugins/{$plugin}/".urldecode($_GET['l'])).".sh";
@@ -114,7 +132,7 @@ case \$ACTION in
 esac
 EOT;
 
-$prompt=_("Remove Script File");
+$prompt=_("Delete Script File");
 $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$file}\");'><i class='fa fa-times-circle' style='color:red;font-size: 25px;'></i></a> " : "";
 ?>
 
@@ -141,7 +159,8 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 <input type="hidden" name="#include" value="/webGui/include/update.file.php">
 
 
-<input type="text" title='_(Enter Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>/','sh',false,true);" autocomplete="off" value="<?=$file;?>"><?=$remove;?>
+<strong>_(Script File)_:</strong>
+<span>&nbsp;&nbsp;&nbsp;<input type="text" title='_(Enter Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>/','sh',false,true);" autocomplete="off" value="<?=$file;?>"><?=$remove;?></span>
 
 :ud_edit_script_choose_name_plug:
 > Choose your script name from the file selection dropdown, or enter your desired script name.
@@ -152,6 +171,15 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 :ud_edit_script_run_background_plug:
 > Turn on the 'Run in Background' to have the script run as a background task.  This can keep the Unassigned Devices UI from hanging when the script is run from the UI.
 :end
+
+<? if (is_dir("/boot/config/plugins/user.scripts/scripts/")):?>
+<strong>_(User Script)_:</strong>
+<span><input type="text" title='_(Enter User Script File Name)_.' name="#user_file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/user.scripts/scripts/','',false,true);" autocomplete="off" placeholder="Enter User Script to check for running" value="<?=$user_file;?>"></span>
+
+:ud_edit_user_script_choose_name_plug:
+> If you have the User Scripts plugin installed, you can have Unassigned Devices show the running status of the User Script.
+:end
+<?endif;?>
 
 <br />
 <strong>_(Script content)_:</strong>
@@ -177,26 +205,22 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 	$("input[name=run_background]").each(function(){var checked = $(this).is(":checked");$(this).switchButton({labels_placement: "right", checked:checked,on_label:"_(Run in background)_",off_label:"_(Run in background)_"});});
 	<?if (isset($_GET['s'])):?>
 		$( "form" ).submit(function( event ) {
-			$.post("/plugins/<?=$plugin;?>/UnassignedDevices.php",{action:"set_command",serial:"<?=$serial;?>",command:$("input[name='#file']").val(),part:"<?=$partition;?>",background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault();},"json");
+			$.post("/plugins/<?=$plugin;?>/UnassignedDevices.php",{action:"set_command",serial:"<?=$serial;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val(),part:"<?=$partition;?>",background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault();},"json");
 		});
 	<?endif;?>
 	<?if (isset($_GET['d'])):?>
 		$( "form" ).submit(function( event ) {
-			$.post("/plugins/<?=$plugin;?>/UnassignedDevices.php",{action:"set_samba_command",device:"<?=$device;?>",command:$("input[name='#file']").val(), background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault()},"json");
+			$.post("/plugins/<?=$plugin;?>/UnassignedDevices.php",{action:"set_samba_command",device:"<?=$device;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val(),background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault()},"json");
 		});
 	<?endif;?>
 	<?if (isset($_GET['i'])):?>
 		$( "form" ).submit(function( event ) {
-			$.post("/plugins/<?=$plugin;?>/UnassignedDevices.php",{action:"set_iso_command",device:"<?=$device;?>",command:$("input[name='#file']").val(), background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault()},"json");
+			$.post("/plugins/<?=$plugin;?>/UnassignedDevices.php",{action:"set_iso_command",device:"<?=$device;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val(),background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault()},"json");
 		});
 	<?endif;?>
 
 	function setDefault(form) {
 		form.elements['text'].value = <?=json_encode($default_text);?>;
-	}
-
-	function load(el) {
-		$.get($( el ).val(),function(data){ $( 'textarea' ).val(data);});
 	}
 
 	function openFileBrowser(el, root, filter, on_folders, on_files) {
@@ -216,7 +240,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 			filter: filter,
 			allowBrowsing : true
 			},
-			function(file){if(on_files){p.val(file);$(ft).slideUp('fast',function (){$(ft).remove();});load(p);}},
+			function(file){if(on_files){p.val(file);$(ft).slideUp('fast',function (){$(ft).remove();});}},
 			function(folder){if(on_folders){p.val(folder);$(ft).slideUp('fast',function (){$(ft).remove();});}}
 		);
 		// Format fileTree according to parent position, height and width
