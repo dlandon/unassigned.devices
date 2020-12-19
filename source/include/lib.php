@@ -284,7 +284,12 @@ function is_script_running($cmd, $user=FALSE) {
 		} else {
 			$was_running = FALSE;
 		}
-		$user_scripts = $user ? "| grep 'user.scripts'" : "";
+		$user_scripts = "";
+		if ($user) {
+			$path_info = pathinfo($cmd);
+			$cmd = $path_info['dirname'];
+			$user_scripts = "| grep 'user.scripts'";
+		}
 		$is_running = shell_exec("/usr/bin/ps -ef | /bin/grep '".basename($cmd)."' | /bin/grep -v 'grep' {$user_scripts}") != "" ? TRUE : FALSE;
 			$script_run[$script_name] = array('running' => $is_running ? 'yes' : 'no','user' => $user ? 'yes' : 'no');
 			file_put_contents($tc, json_encode($script_run));
