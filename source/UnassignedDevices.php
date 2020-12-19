@@ -110,7 +110,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 	$out = array();
 
 	$mounted =	$partition['mounted'];
-	$cmd = get_config($disk['serial'],"command.{$partition['part']}");
+	$cmd = $partition['command'];
 	if ($mounted && is_file($cmd)) {
 		$script_partition = $partition['fstype'] == "crypto_LUKS" ? $partition['luks'] : $partition['device'];
 		$script_running = is_script_running($cmd);
@@ -447,7 +447,7 @@ switch ($_POST['action']) {
 						</td>";
 				}
 				$disabled = $is_alive ? "enabled":"disabled";
-				$cmd = get_iso_config($mount['device'],"command");
+				$cmd = $mount['command'];
 				$script_running = is_script_running($cmd);
 				if ($script_running) {
 					echo "<td><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i> "._('Running')."...</button></td>";
