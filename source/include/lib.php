@@ -37,7 +37,8 @@ $paths = [  "smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"scripts"			=> "/tmp/{$plugin}/scripts/",
 			"credentials"		=> "/tmp/{$plugin}/credentials",
 			"authentication"	=> "/tmp/{$plugin}/authentication",
-			"luks_pass"			=> "/tmp/{$plugin}/luks_pass"
+			"luks_pass"			=> "/tmp/{$plugin}/luks_pass",
+			"script_run"		=> "/tmp/{$plugin}/script_run"
 		];
 
 $docroot = $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
@@ -271,12 +272,27 @@ function is_samba_server_online($ip, $mounted, $background=TRUE) {
 }
 
 function is_script_running($cmd) {
+	global $paths;
 
-	$rc = FALSE;
+	$is_running = FALSE;
 	if ($cmd != "") {
-		$rc = shell_exec("/usr/bin/ps -ef | /bin/grep '".basename($cmd)."' | /bin/grep -v 'grep'") != "" ? TRUE : FALSE;
+		$script_name = basename($cmd);
+		$tc = $paths['script_run'];
+		$script_run = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+		if (isset($script_run[$script_name])) {
+			$was_running = ($script_run[$script_name]['running'] == 'yes') ? TRUE : FALSE;
+		} else {
+			$was_running = FALSE;
+		}
+
+		$is_running = shell_exec("/usr/bin/ps -ef | /bin/grep '".basename($cmd)."' | /bin/grep -v 'grep'") != "" ? TRUE : FALSE;
+			$script_run[$script_name] = array('running' => $is_running ? 'yes' : 'no');
+			file_put_contents($tc, json_encode($script_run));
+		if (($was_running) && (! $is_running)) {
+			@touch($GLOBALS['paths']['reload']);
+		}		
 	}
-	return($rc);
+	return($is_running);
 }
 
 function get_temp($dev, $running) {

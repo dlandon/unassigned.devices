@@ -267,6 +267,12 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		setTimeout(ping_poll, 15000, tabnum);
 	}
 
+	function update_script_running(tabnum)
+	{
+		$.post(UDURL,{action:"update_script_running"});
+		setTimeout(update_script_running, 3000, tabnum);
+	}
+
 	function detect_usb_disk_change(tabnum) {
 		if ($('#tab'+tabnum).is(':checked')) {
 			clearTimeout(timers.usbdisks);
@@ -879,6 +885,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		usb_disks(tab_usbdisks);
 		detect_usb_disk_change(tab_usbdisks);
 		ping_poll(tab_usbdisks);
+		update_script_running(tab_usbdisks);
 	});
 </script>
 

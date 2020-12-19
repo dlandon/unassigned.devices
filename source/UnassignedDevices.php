@@ -538,6 +538,21 @@ switch ($_POST['action']) {
 		}
 		break;
 
+	case 'update_script_running':
+		global $paths;
+
+		/* Refresh the script running status. */
+		$tc = $paths['script_run'];
+		$script_run = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+		if (is_array($script_run)) {
+			foreach ($script_run as $key => $script) {
+				if ($script['running'] == 'yes') {
+					is_script_running($key);
+				}
+			}
+		}
+		break;
+
 	case 'get_content_json':
 		unassigned_log("Starting json reply action [get_content_json]", "DEBUG");
 		$time = -microtime(true);

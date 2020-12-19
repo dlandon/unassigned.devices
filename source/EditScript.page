@@ -90,9 +90,6 @@ case \$ACTION in
   'ADD' )
     # do your stuff here
 	/usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Device mounted" -i "normal"
-
-	# This will refresh the UD webpage when the script is finished.
-	/usr/local/sbin/rc.unassigned refresh \$DEVICE
   ;;
 
   'UNMOUNT' )
