@@ -31,6 +31,7 @@ function safe_filename($string) {
 }
 
 $background = "checked";
+$disabled = "";
 
 if (isset($_GET['s'])) {
 	$serial = $_GET['s'];
@@ -84,6 +85,10 @@ if (isset($_GET['s'])) {
 	} else {
 		$background = (get_iso_config($device,"command_bg") == "true" ) ? "checked" : "";
 	}
+}
+
+if (! file_exists($file)) {
+	$disabled = "disabled";
 }
 
 $text = @file_get_contents($file);
@@ -174,7 +179,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 
 <? if (is_dir("/boot/config/plugins/user.scripts/scripts/")):?>
 <strong>_(User Script)_:</strong>
-<span><input type="text" title='_(Enter User Script File Name)_.' name="#user_file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/user.scripts/scripts/','',false,true);" autocomplete="off" placeholder="Enter User Script to check for running" value="<?=$user_file;?>"></span>
+<span><input type="text" title='_(Enter User Script File Name)_.' name="#user_file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/user.scripts/scripts/','',false,true);" autocomplete="off" placeholder="Enter User Script to check for running" value="<?=$user_file;?>" <?=$disabled?>></span>
 
 :ud_edit_user_script_choose_name_plug:
 > If you have the User Scripts plugin installed, you can have Unassigned Devices show the running status of the User Script.
