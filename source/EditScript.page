@@ -25,6 +25,8 @@ require_once("plugins/{$plugin}/include/lib.php");
 
 function safe_filename($string) {
 	$string = preg_replace('~[^0-9a-z -_]~i', '', $string);
+	/* Remove special characters from file name */
+	$string = str_replace( array("(", ")"), "", $string);
 	return preg_replace('~[ ]~i', '_', $string);
 }
 
@@ -38,7 +40,7 @@ if (isset($_GET['s'])) {
 		set_config($serial,"command.{$partition}","");
 	}
 	if (! $file ) {
-		$file = "/boot/config/plugins/{$plugin}/".( preg_replace("%\s+%", "_", urldecode($_GET['l'])) ).".sh";
+		$file = safe_filename("/boot/config/plugins/{$plugin}/".urldecode($_GET['l'])).".sh";
 	} else {
 		$background = (get_config($serial,"command_bg.{$partition}") == "true" ) ? "checked" : "";
 	}
@@ -49,7 +51,7 @@ if (isset($_GET['s'])) {
 		set_samba_config($device,"command","");
 	}
 	if (! $file ) {
-		$file = "/boot/config/plugins/{$plugin}/".( preg_replace("%\s+%", "_", urldecode($_GET['l'])) ).".sh";
+		$file = safe_filename("/boot/config/plugins/{$plugin}/".urldecode($_GET['l'])).".sh";
 	} else {
 		$background = (get_samba_config($device,"command_bg") == "true" ) ? "checked" : "";
 	}
@@ -60,7 +62,7 @@ if (isset($_GET['s'])) {
 		set_iso_config($device,"command","");
 	}
 	if (! $file ) {
-		$file = "/boot/config/plugins/{$plugin}/".( preg_replace("%\s+%", "_", urldecode($_GET['l'])) ).".sh";
+		$file = safe_filename("/boot/config/plugins/{$plugin}/".urldecode($_GET['l'])).".sh";
 	} else {
 		$background = (get_iso_config($device,"command_bg") == "true" ) ? "checked" : "";
 	}
