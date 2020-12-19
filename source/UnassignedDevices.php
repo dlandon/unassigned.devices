@@ -257,10 +257,8 @@ switch ($_POST['action']) {
 		unassigned_log("Starting page render [get_content]", "DEBUG");
 		$time		 = -microtime(true);
 
-		/* Update mount status */
-		exec("/bin/mount > {$paths['mount']}");
 		/* Check for a recent hot plug event. */
-		$tc = $paths["hotplug_status"];
+		$tc = $paths['hotplug_status'];
 		$hotplug = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : "no";
 		if ($hotplug == "yes") {
 			exec("/usr/local/sbin/emcmd 'cmdHotplug=apply'");
@@ -503,9 +501,9 @@ switch ($_POST['action']) {
 
 		/* Check to see if disk status has changed. */
 		$status = array();
-		$tc = $paths["dev_status"];
+		$tc = $paths['dev_status'];
 		$previous = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-		$sf	= $paths["dev_state"];
+		$sf	= $paths['dev_state'];
 		if (is_file($sf)) {
 			$devs = parse_ini_file($sf, true);
 			foreach ($devs as $d) {
@@ -531,7 +529,7 @@ switch ($_POST['action']) {
 		global $paths;
 
 		/* Refresh the ping status in the background. */
-		$config_file = $paths["samba_mount"];
+		$config_file = $paths['samba_mount'];
 		$samba_mounts = @parse_ini_file($config_file, true);
 		if (is_array($samba_mounts)) {
 			foreach ($samba_mounts as $device => $mount) {
@@ -608,7 +606,7 @@ switch ($_POST['action']) {
 		break;
 
 	case 'rescan_disks':
-		$tc = $paths["hotplug_status"];
+		$tc = $paths['hotplug_status'];
 		$hotplug = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : "no";
 		if ($hotplug == "no") {
 			file_put_contents($tc, json_encode('yes'));

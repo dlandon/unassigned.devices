@@ -171,7 +171,7 @@ function exist_in_file($file, $val) {
 function get_device_stats($mountpoint, $active=TRUE) {
 	global $paths, $plugin;
 
-	$tc = $paths["df_status"];
+	$tc = $paths['df_status'];
 	$df_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 	$rc = "";
 	if (file_exists($mountpoint)) {
@@ -189,9 +189,9 @@ function get_disk_dev($dev) {
 	global $paths;
 
 	$rc		= basename($dev);
-	$sf		= $paths["dev_state"];
+	$sf		= $paths['dev_state'];
 	if (is_file($sf)) {
-		$devs = parse_ini_file($paths["dev_state"], true);
+		$devs = parse_ini_file($paths['dev_state'], true);
 		foreach ($devs as $d) {
 			if (($d['device'] == basename($dev)) && isset($d['name'])) {
 				$rc = $d['name'];
@@ -207,9 +207,9 @@ function get_disk_reads_writes($dev) {
 
 	$dev	= (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev) ;
 	$rc		= array();
-	$sf		= $paths["dev_state"];
+	$sf		= $paths['dev_state'];
 	if (is_file($sf)) {
-		$devs = parse_ini_file($paths["dev_state"], true);
+		$devs = parse_ini_file($paths['dev_state'], true);
 		foreach ($devs as $d) {
 			if (($d['device'] == basename($dev)) && isset($d['numReads']) && isset($d['numWrites'])) {
 				$rc[] = $d['numReads'];
@@ -226,7 +226,7 @@ function is_disk_running($dev) {
 
 	$rc			= FALSE;
 	$run_devs	= FALSE;
-	$sf = $paths["dev_state"];
+	$sf = $paths['dev_state'];
 	if (is_file($sf)) {
 		$devs = parse_ini_file($sf, true);
 		foreach ($devs as $d) {
@@ -238,7 +238,7 @@ function is_disk_running($dev) {
 		}
 	}
 	if (! $run_devs) {
-		$tc = $paths["run_status"];
+		$tc = $paths['run_status'];
 		$run_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 		if (isset($run_status[$dev]) && (time() - $run_status[$dev]['timestamp']) < 60) {
 			$rc = ($run_status[$dev]['running'] == 'yes') ? TRUE : FALSE;
@@ -257,7 +257,7 @@ function is_samba_server_online($ip, $mounted, $background=TRUE) {
 
 	$is_alive = FALSE;
 	$server = $ip;
-	$tc = $paths["ping_status"];
+	$tc = $paths['ping_status'];
 	$ping_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 	if (isset($ping_status[$server])) {
 		$is_alive = ($ping_status[$server]['online'] == 'yes') ? TRUE : FALSE;
@@ -285,9 +285,9 @@ function get_temp($dev, $running) {
 	$rc	= "*";
 	if ($running) {
 		$temp = "";
-		$sf = $paths["dev_state"];
+		$sf = $paths['dev_state'];
 		if (is_file($sf)) {
-			$devs = parse_ini_file($paths["dev_state"], true);
+			$devs = parse_ini_file($paths['dev_state'], true);
 			foreach ($devs as $d) {
 				if (($d['device'] == basename($dev)) && isset($d['temp'])) {
 					$temp = $d['temp'];
@@ -297,7 +297,7 @@ function get_temp($dev, $running) {
 			}
 		}
 		if ($temp == "") {
-			$tc = $paths["hdd_temp"];
+			$tc = $paths['hdd_temp'];
 			$temps = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 			if (isset($temps[$dev]) && (time() - $temps[$dev]['timestamp']) < $var['poll_attributes'] ) {
 				$rc = $temps[$dev]['temp'];
@@ -779,7 +779,7 @@ function luks_fs_type($dev) {
 function get_mount_params($fs, $dev, $ro = FALSE) {
 	global $paths, $use_netbios;
 
-	$config_file	= $paths["config_file"];
+	$config_file	= $paths['config_file'];
 	$config			= @parse_ini_file($config_file, true);
 	if (($config['Config']['discard'] != "no") && ($fs != "cifs") && ($fs != "nfs")) {
 		$discard = is_disk_ssd($dev) ? ",discard" : "";;
@@ -1259,7 +1259,7 @@ function get_samba_mounts() {
 	global $paths;
 
 	$o = array();
-	$config_file = $paths["samba_mount"];
+	$config_file = $paths['samba_mount'];
 	$samba_mounts = @parse_ini_file($config_file, true);
 	if (is_array($samba_mounts)) {
 		foreach ($samba_mounts as $device => $mount) {
@@ -1309,7 +1309,7 @@ function do_mount_samba($info) {
 	global $use_netbios, $paths;
 
 	$rc = FALSE;
-	$config_file	= $paths["config_file"];
+	$config_file	= $paths['config_file'];
 	$config			= @parse_ini_file($config_file, true);
 	/* Be sure the server status is current */
 	$info['is_alive'] = is_samba_server_online($info['ip'], FALSE);
@@ -1456,7 +1456,7 @@ function get_iso_mounts() {
 	global $paths;
 
 	$o = array();
-	$config_file = $paths["iso_mount"];
+	$config_file = $paths['iso_mount'];
 	$iso_mounts = @parse_ini_file($config_file, true);
 	if (is_array($iso_mounts)) {
 		foreach ($iso_mounts as $device => $mount) {
@@ -1898,7 +1898,7 @@ function setSleepTime($device) {
 	global $paths;
 
 	$run_devs = FALSE;
-	$sf = $paths["dev_state"];
+	$sf = $paths['dev_state'];
 	if (is_file($sf)) {
 		$devs = parse_ini_file($paths["dev_state"], true);
 		foreach ($devs as $d) {

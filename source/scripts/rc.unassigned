@@ -142,7 +142,7 @@ function unassigned_mount() {
 
 	/* Tell Unraid to update devs.ini file of unassigned devices. */
 	if (isset($_ENV['DEVTYPE']) && ($_ENV['DEVTYPE'] == "partition")) {
-		$tc = $paths["hotplug_status"];
+		$tc = $paths['hotplug_status'];
 		$hotplug = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : "no";
 		if ($hotplug == "no") {
 			file_put_contents($tc, json_encode('yes'));
@@ -258,7 +258,7 @@ function unassigned_umount() {
 
 	/* Tell Unraid to update devs.ini file of unassigned devices. */
 	if (isset($_ENV['DEVTYPE']) && ($_ENV['DEVTYPE'] == "disk")) {
-		$tc = $paths["hotplug_status"];
+		$tc = $paths['hotplug_status'];
 		$hotplug = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : "no";
 		if ($hotplug == "no") {
 			file_put_contents($tc, json_encode('yes'));
@@ -291,7 +291,7 @@ function addFile($file)
 function export_disk($disk, $add) {
 	global $paths;
 
-	$info = MiscUD::get_json($paths["mounted"]);
+	$info = MiscUD::get_json($paths['mounted']);
 	$dev  = $disk['device'];
 	if ($add)
 	{
@@ -304,7 +304,7 @@ function export_disk($disk, $add) {
 	{
 		unset($info[$dev]);
 	}
-	$info = MiscUD::save_json($paths["mounted"], $info);	
+	$info = MiscUD::save_json($paths['mounted'], $info);	
 }
 
 switch ($COMMAND) {
