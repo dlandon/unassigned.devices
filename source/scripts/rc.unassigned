@@ -325,6 +325,9 @@ switch ($COMMAND) {
 		unassigned_spin_down();
 		break;
 
+	case 'refresh':
+		break;
+
 	default:
 		unassigned_log("Error: 'rc.unassigned {$argv[1]} {$argv[2]}' not understood");
 		unassigned_log("rc.unassigned usage: 'mount','umount','reload', 'spindown', 'refresh'");
@@ -335,7 +338,6 @@ switch ($COMMAND) {
 if ($COMMAND != 'spindown') {
 	array_map(function($f){@unlink($f);}, $remove);
 	if (! is_file($paths['reload'])) {
-unassigned_log("*** rc-unassigned reload");
 		@touch($paths['reload']);
 	}
 }

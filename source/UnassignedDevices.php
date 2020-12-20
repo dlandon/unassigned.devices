@@ -528,7 +528,18 @@ switch ($_POST['action']) {
 		$samba_mounts = @parse_ini_file($config_file, true);
 		if (is_array($samba_mounts)) {
 			foreach ($samba_mounts as $device => $mount) {
-				$mount['is_alive']	= is_samba_server_online($mount['ip'], FALSE);
+				$tc = $paths['ping_status'];
+				$ping_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+				$server = $mount['ip'];
+				$changed = ($ping_status[$server]['changed'] == 'yes') ? TRUE : FALSE;
+				is_samba_server_online($server, FALSE);
+				if (! is_file($GLOBALS['paths']['reload']) && ($changed)) {
+					$no_pings = $ping_status[$server]['no_pings'];
+					$online = $ping_status[$server]['online'];
+					$ping_status[$server] = array('timestamp' => time(), 'no_pings' => $no_pings, 'online' => $online, 'changed' => 'no');
+					file_put_contents($tc, json_encode($ping_status));
+					@touch($GLOBALS['paths']['reload']);
+				}
 			}
 		}
 		break;

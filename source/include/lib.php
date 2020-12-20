@@ -295,7 +295,6 @@ function is_script_running($cmd, $user=FALSE) {
 		$script_run[$script_name] = array('running' => $is_running ? 'yes' : 'no','user' => $user ? 'yes' : 'no');
 		file_put_contents($tc, json_encode($script_run));
 		if (($was_running) && (! $is_running)) {
-unassigned_log("*** script running reload");
 			@touch($GLOBALS['paths']['reload']);
 		}		
 	}

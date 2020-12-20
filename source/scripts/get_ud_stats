@@ -47,6 +47,7 @@ function ping_server($tc, $ip, $mounted) {
 
 	$server = $ip;
 	$ping_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+	$was_alive = ($ping_status[$server]['online'] == 'yes') ? TRUE : FALSE;
 	$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
 	$no_pings = isset($ping_status[$server]['no_pings']) ? $ping_status[$server]['no_pings'] : 0;
 	if (! $is_alive && ! is_ip($ip))
@@ -70,7 +71,12 @@ function ping_server($tc, $ip, $mounted) {
 	} else {
 		$no_pings = 0;
 	}
-	$ping_status[$server] = array('timestamp' => time(), 'no_pings' => $no_pings, 'online' => $is_alive ? 'yes' : 'no');
+	if ($was_alive != $is_alive) {
+		$changed = TRUE;
+	} else {
+		$changed = FALSE;
+	}
+	$ping_status[$server] = array('timestamp' => time(), 'no_pings' => $no_pings, 'online' => $is_alive ? 'yes' : 'no', 'changed' => $changed ? 'yes' : 'no');
 	file_put_contents($tc, json_encode($ping_status));
 }
 

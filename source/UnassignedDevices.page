@@ -287,7 +287,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 				diskinfo = data.diskinfo;
 				if (do_reload)
 				{
-					setTimeout(usb_disks, 500, tabnum);
+					usb_disks(tabnum);
 				}
 			},"json").always(function()
 			{
