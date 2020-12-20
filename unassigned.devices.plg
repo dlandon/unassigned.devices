@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.12.13b">
+<!ENTITY version   "2020.12.20">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"fdd4e1ed06e9a0e59dc435183ed7e2c0">
+<!ENTITY MD5		"ac404e7c3e78cf877b8620d028042b66">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Don't allow parenthesis or dollar sign in script filename.
+- Add: Can now set a User Sript so 'Running' indicator on a mounted device will show when a User Script is running on that device.
+- Fix: Remove spinner and cut down on excessive refreshing of UD page.
+
+###2020.12.13b
 - Fix: Flash drives show as spun down.  Thay are always spun up.
 - Fix: Try to cut down on screen refreshes when a disk device is mounted.
 - Fix: Change 'Rescan Disks' to simulate hotplug event to Unraid.
