@@ -104,7 +104,7 @@ function render_used_and_free_disk($disk, $mounted) {
 }
 
 function render_partition($disk, $partition, $total=FALSE) {
-	global $plugin, $paths, $echo;
+	global $plugin;
 
 	if (! isset($partition['device'])) return array();
 	$out = array();
@@ -212,9 +212,9 @@ function make_mount_button($device) {
 	}
 	$is_mounting	= array_values(preg_grep("@/mounting_".basename($device['device'])."@i", listDir(dirname($paths['mounting']))))[0];
 	$is_mounting	= (time() - filemtime($is_mounting) < 300) ? TRUE : FALSE;
-	$is_unmounting	= array_values(preg_grep("@/unmounting_".basename($device['device'])."@i", listDir(dirname($paths['mounting']))))[0];
+	$is_unmounting	= array_values(preg_grep("@/unmounting_".basename($device['device'])."@i", listDir(dirname($paths['unmounting']))))[0];
 	$is_unmounting	= (time() - filemtime($is_unmounting) < 300) ? TRUE : FALSE;
-	$is_formatting	= array_values(preg_grep("@/formatting_".basename($device['device'])."@i", listDir(dirname($paths['mounting']))))[0];
+	$is_formatting	= array_values(preg_grep("@/formatting_".basename($device['device'])."@i", listDir(dirname($paths['formatting']))))[0];
 	$is_formatting	= (time() - filemtime($is_formatting) < 300) ? TRUE : FALSE;
 
 	$dev			= basename($device['device']);

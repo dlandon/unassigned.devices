@@ -207,10 +207,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		{
 			opt = (op == "mount") ? "<?=_('Mounting')?>" : "<?=_('Unmounting')?>";
 			text = "<i class='fa fa-circle-o-notch fa-spin'></i> " + opt;
-			if (! data.status)
-			{
-				setTimeout(usb_disks,1500);
-			}
 			$("button[device='"+device+"']").prop('disabled',true);
 			$("button[device='"+device+"']").html( text );
 		}, "json");
@@ -227,11 +223,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		if (! diskinfo)
 		{
 			tableWidths = $("#usb_devices_list > table > thead > tr").children("td").map(function(i,v){return $(this).getHiddenDimensions().outerWidth;});
-
-			if ( !$('#spin_div').length ) {
-				$('#spinner').html("<tr><td colspan='8'><div id='spin_div' class='spinner'></div></td></tr>");
-			}
-			$("#usb_devices_list").html( $('div.spinner').html(unraid_logo) );
 			$("#usb_devices_list > table > thead > tr").children("td").each(function(i,v)
 			{
 				if (i in tableWidths)
@@ -270,7 +261,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	function update_script_running(tabnum)
 	{
 		$.post(UDURL,{action:"update_script_running"});
-		setTimeout(update_script_running, 3000, tabnum);
+		setTimeout(update_script_running, 5000, tabnum);
 	}
 
 	function detect_usb_disk_change(tabnum) {
@@ -644,7 +635,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 > + '/usr/local/sbin/rc.unassigned umount all' - all devices and SMB/NFS mounts are unmounted in preparation for shutting down the array.
 > + '/usr/local/sbin/rc.unassigned mount /dev/sdX' - mount device sdX where 'X' is the device designator.
 > + '/usr/local/sbin/rc.unassigned umount /dev/sdX' - unmount device sdX where 'X' is the device designator. You can use this command in a UD script to unmount the device when the script has completed.
-> + '/usr/local/sbin/rc.unassigned refresh /dev/sdX' - used at the end of the 'ADD' case of a script so the 'Running' indicator will be updated.
 > + '/usr/local/sbin/rc.unassigned spindown devX' - spin down a disk.  The devX is the device name in the UD page.  If the device name is 'Dev 1', then use dev1 as the device to spin down.  SSDs will not spin down.
 >
 > Be careful using the /dev/sdX designation because it can change after a reboot.
@@ -1314,12 +1304,5 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			});
 		</script>
 	</div>
-</div>
-
-<div style="display: none;">
-	<table class='disk_status wide usb_disks'>
-		<tbody id="spinner">
-		</tbody>
-	</table>
 </div>
 <?endif;?>

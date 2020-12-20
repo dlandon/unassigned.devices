@@ -87,7 +87,7 @@ if (isset($_GET['s'])) {
 	}
 }
 
-if (! file_exists($file)) {
+if ((! file_exists($file)) || (! is_dir("/boot/config/plugins/user.scripts/scripts/"))) {
 	$disabled = "disabled";
 }
 
@@ -177,7 +177,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 > Turn on the 'Run in Background' to have the script run as a background task.  This can keep the Unassigned Devices UI from hanging when the script is run from the UI.
 :end
 
-<? if (is_dir("/boot/config/plugins/user.scripts/scripts/") && (! $_GET['i'])):?>
+<? if (! $_GET['i']):?>
 <strong>_(User Script)_:</strong>
 <span><input type="text" title='_(Enter User Script File Name)_.' name="#user_file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/user.scripts/scripts/','',false,true);" autocomplete="off" placeholder="Enter the User Script that will be using this device" value="<?=$user_file;?>" <?=$disabled?>></span>
 

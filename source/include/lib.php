@@ -295,6 +295,7 @@ function is_script_running($cmd, $user=FALSE) {
 		$script_run[$script_name] = array('running' => $is_running ? 'yes' : 'no','user' => $user ? 'yes' : 'no');
 		file_put_contents($tc, json_encode($script_run));
 		if (($was_running) && (! $is_running)) {
+unassigned_log("*** script running reload");
 			@touch($GLOBALS['paths']['reload']);
 		}		
 	}
@@ -764,8 +765,6 @@ function is_disk_ssd($device) {
 }
 
 function spin_disk($down, $dev) {
-global $paths;
-
 	if ($down) {
 		exec("/usr/local/sbin/emcmd cmdSpindown=$dev");
 	} else {
@@ -949,7 +948,7 @@ function do_mount_local($info) {
 }
 
 function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE, $nfs = FALSE) {
-global $paths;
+	global $paths;
 
 	$rc = FALSE;
 	if ( is_mounted($dev) && is_mounted($dir, TRUE) ) {

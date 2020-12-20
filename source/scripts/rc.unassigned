@@ -26,7 +26,7 @@ $remove  = [];
 if (! $DEVNAME) die("Fail: device not defined.\n");
 
 function unassigned_mount() {
-	global $DEVNAME, $paths, $remove;
+	global $DEVNAME, $paths;
 
 	# Mount local disks
 	foreach(get_unassigned_disks() as $name => $disk) {
@@ -88,7 +88,7 @@ function unassigned_mount() {
 					continue;
 				}
 				unassigned_log("Remote SMB/NFS share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
-				addFile(sprintf($paths['unmounting'],basename($info['device'])));
+				addFile(sprintf($paths['mounting'],basename($info['device'])));
 				if (do_mount( $info )) {
 					if ($info['smb_share']) {
 						add_smb_share($info['mountpoint'], $info['device'], FALSE);
@@ -120,7 +120,7 @@ function unassigned_mount() {
 					continue;
 				}
 				unassigned_log("ISO File share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
-				addFile(sprintf($paths['unmounting'],basename($info['device'])));
+				addFile(sprintf($paths['mounting'],basename($info['device'])));
 				if (do_mount( $info )) {
 					add_smb_share($info['mountpoint'], $info['device'], FALSE);
 					add_nfs_share($info['mountpoint']);
@@ -151,7 +151,7 @@ function unassigned_mount() {
 }
 
 function unassigned_umount() {
-	global $DEVNAME, $paths, $remove;
+	global $DEVNAME, $paths;
 
 	$force = ($DEVNAME == "all") ? TRUE : FALSE;
 
@@ -284,6 +284,7 @@ function unassigned_spin_down() {
 function addFile($file)
 {
 	global $remove;
+
 	@touch($file);
 	$remove[] = $file;
 }
@@ -334,6 +335,7 @@ switch ($COMMAND) {
 if ($COMMAND != 'spindown') {
 	array_map(function($f){@unlink($f);}, $remove);
 	if (! is_file($paths['reload'])) {
+unassigned_log("*** rc-unassigned reload");
 		@touch($paths['reload']);
 	}
 }
