@@ -223,6 +223,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		if (! diskinfo)
 		{
 			tableWidths = $("#usb_devices_list > table > thead > tr").children("td").map(function(i,v){return $(this).getHiddenDimensions().outerWidth;});
+
 			$("#usb_devices_list > table > thead > tr").children("td").each(function(i,v)
 			{
 				if (i in tableWidths)
@@ -872,6 +873,11 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		}
 
 		/* Load page content */
+		if ( !$('#spin_div').length ) {
+			$('#spinner').html("<tr><td colspan='8'><div id='spin_div' class='spinner'></div></td></tr>");
+		}
+		$("#usb_devices_list").html( $('div.spinner').html(unraid_logo) );
+
 		usb_disks(tab_usbdisks);
 		detect_usb_disk_change(tab_usbdisks);
 		ping_poll(tab_usbdisks);
@@ -1304,5 +1310,12 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			});
 		</script>
 	</div>
+</div>
+
+<div style="display: none;">
+	<table class='disk_status wide usb_disks'>
+		<tbody id="spinner">
+		</tbody>
+	</table>
 </div>
 <?endif;?>
