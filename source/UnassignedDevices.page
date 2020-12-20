@@ -191,7 +191,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 	function disk_op(el, op, device) {
 		/* add spinning and disable button */
-		$("button[device='"+device+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> "+(op == "mount" ? "<?=_('Mounting')?>..." : "<?=_('Unmounting')?>..."));
+		$("button[device='"+device+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> "+(op == "mount" ? "<?=_('Mounting')?>" : "<?=_('Unmounting')?>"));
 		$("button[device='"+device+"']").prop("disabled","true");
 		/* disable partition buttons */
 		td = $("button[device='"+device+"']").closest('td');
@@ -205,7 +205,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		}
 		$.post(UDURL,{'action':op,'device':device},function(data)
 		{
-			opt = (op == "mount") ? "<?=_('Mounting')?>..." : "<?=_('Unmounting')?>...";
+			opt = (op == "mount") ? "<?=_('Mounting')?>" : "<?=_('Unmounting')?>";
 			text = "<i class='fa fa-circle-o-notch fa-spin'></i> " + opt;
 			if (! data.status)
 			{
@@ -325,7 +325,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	function load_hosts(el, action) {
 		var target = $(el).parents("div").find("*[name='IP']");
 		var old = $(el).html();
-		$(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> <?=_('Searching');?>...");
+		$(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> <?=_('Searching');?>");
 		$.post(UDURL,{'action': action, 'var': vars, 'network': network, 'workgroup': workgroup}).done(function(data)
 		{
 			$(el).html(old);
@@ -351,7 +351,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	function load_shares(el, ip, user, pass, action) {
 		var old = $(el).html();
 		var target = $(el).parents("div").find("*[name='SHARE']");
-		$(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> <?=_('Loading');?>...");
+		$(el).html("<i class='fa fa-circle-o-notch fa-spin'></i> <?=_('Loading');?>");
 		var opts = new Object();
 		opts["action"] = action;
 		opts["IP"] = ip;
@@ -644,7 +644,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 > + '/usr/local/sbin/rc.unassigned umount all' - all devices and SMB/NFS mounts are unmounted in preparation for shutting down the array.
 > + '/usr/local/sbin/rc.unassigned mount /dev/sdX' - mount device sdX where 'X' is the device designator.
 > + '/usr/local/sbin/rc.unassigned umount /dev/sdX' - unmount device sdX where 'X' is the device designator. You can use this command in a UD script to unmount the device when the script has completed.
-> + '/usr/local/sbin/rc.unassigned refresh /dev/sdX' - used at the end of the 'ADD' case of a script so the 'Running...' indicator will be updated.
+> + '/usr/local/sbin/rc.unassigned refresh /dev/sdX' - used at the end of the 'ADD' case of a script so the 'Running' indicator will be updated.
 > + '/usr/local/sbin/rc.unassigned spindown devX' - spin down a disk.  The devX is the device name in the UD page.  If the device name is 'Dev 1', then use dev1 as the device to spin down.  SSDs will not spin down.
 >
 > Be careful using the /dev/sdX designation because it can change after a reboot.
@@ -981,7 +981,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	</div>
 	<div data-survey-done data-survey-done-wait="true">
 		$("button[device='"+surveyOption.device+"']").prop('disabled',true);
-		$("button[device='"+surveyOption.device+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> <?=_('Formatting');?>...");
+		$("button[device='"+surveyOption.device+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> <?=_('Formatting');?>");
 		$.post(UDURL,{action:"format_"+surveyOption.type,device:surveyOption.device, fs:surveyData["FS"], pass:surveyData["PASS"]}, function(data)
 		{
 			$("button[device='"+surveyOption.device+"']").prop('disabled',true);
@@ -1016,7 +1016,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	</div>
 	<div data-survey-done >
 		$("span[device='"+surveyOption.device+surveyOption.partition+"']").prop('disabled',true);
-		$("span[device='"+surveyOption.device+surveyOption.partition+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> <?=_('Removing');?>...");
+		$("span[device='"+surveyOption.device+surveyOption.partition+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> <?=_('Removing');?>");
 		$.post(UDURL,{action:"rm_partition",device:surveyOption.device,partition:surveyOption.partition}).done(function(data)
 		{
 			usb_disks(tab_usbdisks);

@@ -177,12 +177,12 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 > Turn on the 'Run in Background' to have the script run as a background task.  This can keep the Unassigned Devices UI from hanging when the script is run from the UI.
 :end
 
-<? if (is_dir("/boot/config/plugins/user.scripts/scripts/")):?>
+<? if (is_dir("/boot/config/plugins/user.scripts/scripts/") && (! $_GET['i'])):?>
 <strong>_(User Script)_:</strong>
-<span><input type="text" title='_(Enter User Script File Name)_.' name="#user_file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/user.scripts/scripts/','',false,true);" autocomplete="off" placeholder="Enter User Script to check for running" value="<?=$user_file;?>" <?=$disabled?>></span>
+<span><input type="text" title='_(Enter User Script File Name)_.' name="#user_file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/user.scripts/scripts/','',false,true);" autocomplete="off" placeholder="Enter the User Script that will be using this device" value="<?=$user_file;?>" <?=$disabled?>></span>
 
 :ud_edit_user_script_choose_name_plug:
-> If you have the User Scripts plugin installed, you can have Unassigned Devices show the running status of the User Script.
+> If you have the User Scripts plugin installed, you can have Unassigned Devices show the running status of the User Script that will be using this device.
 :end
 <?endif;?>
 
@@ -220,7 +220,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 	<?endif;?>
 	<?if (isset($_GET['i'])):?>
 		$( "form" ).submit(function( event ) {
-			$.post("/plugins/<?=$plugin;?>/UnassignedDevices.php",{action:"set_iso_command",device:"<?=$device;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val(),background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault()},"json");
+			$.post("/plugins/<?=$plugin;?>/UnassignedDevices.php",{action:"set_iso_command",device:"<?=$device;?>",command:$("input[name='#file']").val(),background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault()},"json");
 		});
 	<?endif;?>
 

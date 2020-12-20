@@ -113,8 +113,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 	$cmd = $partition['command'];
 	if ($mounted && is_file($cmd)) {
 		$script_partition = $partition['fstype'] == "crypto_LUKS" ? $partition['luks'] : $partition['device'];
-		$script_running = is_script_running($cmd);
-		if (! $script_running) {
+		if ((! is_script_running($cmd)) & (! is_script_running($partition['user_command'], TRUE))) {
 			$fscheck = "<a title='"._("Execute Script as udev simulating a device being installed")."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/script.php?device={$script_partition}&type="._('Done')."\",\"Execute Script\",600,900);'><i class='fa fa-flash partition-script'></i></a>{$partition['part']}";
 		} else {
 			$fscheck = "<i class='fa fa-flash partition-script'></i>{$partition['part']}";
@@ -227,16 +226,16 @@ function make_mount_button($device) {
 		$disable = $preclearing ? "disabled" : $disable;
 		$button = sprintf($button, $context, 'format', $disable, 'fa fa-erase', _('Format'));
 	} elseif ($is_mounting) {
-		$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-circle-o-notch fa-spin', ' '._('Mounting...'));
+		$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-circle-o-notch fa-spin', ' '._('Mounting'));
 	} elseif ($is_unmounting) {
-		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-circle-o-notch fa-spin', ' '._('Unmounting...'));
+		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-circle-o-notch fa-spin', ' '._('Unmounting'));
 	} elseif ($is_formatting) {
-		$button = sprintf($button, $context, 'format', 'disabled', 'fa fa-circle-o-notch fa-spin', ' '._('Formatting...'));
+		$button = sprintf($button, $context, 'format', 'disabled', 'fa fa-circle-o-notch fa-spin', ' '._('Formatting'));
 	} elseif ($mounted) {
 		$cmd = $device['command'];
 		$script_running = ((is_script_running($cmd)) || (is_script_running($device['user_command'], TRUE)));;
 		if ($script_running) {
-			$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-circle-o-notch fa-spin', ' '._('Running...'));
+			$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-circle-o-notch fa-spin', ' '._('Running'));
 		} else {
 			$disable = ! isset($device['partitions'][0]['mountpoint']) || is_mounted($device['partitions'][0]['mountpoint'], TRUE) ? $disable : "disabled";
 			$disable = ! isset($device['mountpoint']) || is_mounted($device['mountpoint'], TRUE) ? $disable : "disabled";
@@ -409,7 +408,7 @@ switch ($_POST['action']) {
 
 				$disabled = $is_alive ? "enabled" : "disabled";
 				if ($mount['mounted'] && (is_script_running($mount['command']) || is_script_running($mount['user_command'], TRUE))) {
-					echo "<td><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i>"." "._("Running")."...</button></td>";
+					echo "<td><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i>"." "._("Running")."</button></td>";
 				} else {
 					echo "<td>".($mounted ? "<button class='mount' device ='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>"._('Unmount')."</button>" : "<button class='mount'device ='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>"._('Mount')."</button>")."</td>";
 				}
@@ -446,7 +445,7 @@ switch ($_POST['action']) {
 				}
 				$disabled = $is_alive ? "enabled":"disabled";
 				if ($mount['mounted'] && (is_script_running($mount['command']) || is_script_running($mount['user_command'], TRUE))) {
-					echo "<td><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i> "._('Running')."...</button></td>";
+					echo "<td><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i> "._('Running')."</button></td>";
 				} else {
 					echo "<td>".($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>"._('Unmount')."</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>"._('Mount')."</button>")."</td>";
 				}
@@ -542,9 +541,9 @@ switch ($_POST['action']) {
 		$script_run = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 		if (is_array($script_run)) {
 			foreach ($script_run as $key => $script) {
-				if ($script['running'] == 'yes') {
-					$user = 
-					is_script_running($key, $script['user'] = "yes" ? TRUE : FALSE);
+				if ($script['running'] == "yes") {
+					$user = ($script['user'] == "yes") ? TRUE : FALSE;
+					is_script_running($key, $user);
 				}
 			}
 		}
@@ -791,7 +790,6 @@ switch ($_POST['action']) {
 		$device = urldecode(($_POST['device']));
 		$cmd = urldecode(($_POST['command']));
 		set_iso_config($device, "command_bg", urldecode($_POST['background']));
-		set_iso_config($device, "user_command", urldecode($_POST['user_command']));
 		echo json_encode(array( 'result' => set_iso_config($device, "command", $cmd)));
 		break;
 
