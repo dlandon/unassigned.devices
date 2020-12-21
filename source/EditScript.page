@@ -42,7 +42,7 @@ if (isset($_GET['s'])) {
 		$file = "";
 	}
 	$user_file = get_config($serial,"user_command.{$partition}");
-	if (! file_exists($user_file) || ! $file) {
+	if ((($user_file) && (! file_exists($user_file))) || (($user_file) && (! $file))) {
 		set_config($serial,"user_command.{$partition}","");
 		$user_file = "";
 	}
@@ -59,7 +59,7 @@ if (isset($_GET['s'])) {
 		$file = "";
 	}
 	$user_file = get_samba_config($device,"user_command");
-	if (! file_exists($user_file) || ! $file) {
+	if ((($user_file) && (! file_exists($user_file))) || (($user_file) && (! $file))) {
 		set_samba_config($device,"user_command","");
 		$user_file = "";
 	}
@@ -74,11 +74,6 @@ if (isset($_GET['s'])) {
 	if (! file_exists($file)) {
 		set_iso_config($device,"command","");
 		$file = "";
-	}
-	$user_file = get_iso_config($device,"user_command");
-	if (! file_exists($user_file) || ! $file) {
-		set_iso_config($device,"user_command","");
-		$user_file = "";
 	}
 	if (! $file ) {
 		$file = safe_filename("/boot/config/plugins/{$plugin}/".urldecode($_GET['l'])).".sh";
