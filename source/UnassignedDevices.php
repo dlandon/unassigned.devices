@@ -532,7 +532,8 @@ switch ($_POST['action']) {
 				$ping_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 				$server = $mount['ip'];
 				$changed = ($ping_status[$server]['changed'] == 'yes') ? TRUE : FALSE;
-				is_samba_server_online($server, FALSE);
+				$mounted = is_mounted($device);
+				is_samba_server_online($server, $mounted);
 				if (! is_file($GLOBALS['paths']['reload']) && ($changed)) {
 					$no_pings = $ping_status[$server]['no_pings'];
 					$online = $ping_status[$server]['online'];
