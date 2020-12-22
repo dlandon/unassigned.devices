@@ -138,7 +138,8 @@ function render_partition($disk, $partition, $total=FALSE) {
 	$temp = my_temp($disk['temperature']);
 	$mbutton = make_mount_button($partition);
 
-	$out[] = "<tr class='toggle-parts toggle-".basename($disk['device'])."' name='toggle-".basename($disk['device'])."' style='display:none'>";
+	get_config("Config", "show_all_partitions") != 'yes' ? $style = "style='display:none;'" : $style = "";
+	$out[] = "<tr class='toggle-parts toggle-".basename($disk['device'])."' name='toggle-".basename($disk['device'])."' $style>";
 	$out[] = "<td></td>";
 	$out[] = "<td>{$mpoint}</td>";
 	$out[] = "<td class='mount'>{$mbutton}</td>";
@@ -289,8 +290,9 @@ switch ($_POST['action']) {
 				if ( $p	&& ! ($is_precleared || $preclearing) )
 				{
 					$add_toggle = TRUE;
+					get_config("Config", "show_all_partitions") != 'yes' ? $class = "'fa fa-plus-square fa-append'" : $class = "'fa fa-minus-square fa-append'";
 					$hdd_serial .="<span title='"._("Click to view/hide partitions and mount points")."' class='exec toggle-hdd' hdd='{$disk_name}'>
-									<i class='fa fa-plus-square fa-append'></i></span>";
+									<i class=$class></i></span>";
 				}
 				else
 				{
