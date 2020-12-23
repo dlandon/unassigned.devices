@@ -743,7 +743,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			{
 				$.post(UDURL,{action:"automount",serial:$(this).attr("serial"),status:$(this).is(":checked")},function(data)
 				{
-					$(this).prop("checked",data.automount);
+					$(this).prop("checked",data.result);
 				},"json");
 			});
 		}
@@ -754,7 +754,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			{
 				$.post(UDURL,{action:"samba_automount",device:$(this).attr("device"),status:$(this).is(":checked")},function(data)
 				{
-					$(this).prop("checked",data.automount);
+					$(this).prop("checked",data.result);
 				},"json");
 			});
 		}
@@ -765,7 +765,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			{
 				$.post(UDURL,{action:"iso_automount",device:$(this).attr("device"),status:$(this).is(":checked")},function(data)
 				{
-					$(this).prop("checked",data.automount);
+					$(this).prop("checked",data.result);
 				},"json");
 			});
 		}

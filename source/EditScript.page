@@ -202,7 +202,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 </form>
 
 <script>
-	var UDURL		= '/plugins/<?=$plugin;?>/UnassignedDevices.php';
+	var UDURL = '/plugins/<?=$plugin;?>/UnassignedDevices.php';
 
 	$("input[name=run_background]").each(function(){var checked = $(this).is(":checked");$(this).switchButton({labels_placement: "right", checked:checked,on_label:"_(Run in background)_",off_label:"_(Run in background)_"});});
 	<?if (isset($_GET['s'])):?>

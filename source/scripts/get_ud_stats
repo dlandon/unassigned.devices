@@ -84,7 +84,6 @@ function df_status($tc, $mountpoint) {
 
 	$df_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 	$rc = trim(timed_exec(2,"/bin/df '{$mountpoint}' --output=size,used,avail | /bin/grep -v '1K-blocks' 2>/dev/null"));
-unassigned_log("*** mount point ".$mountpoint." rc ".$rc);
 	$df_status[$mountpoint] = array('timestamp' => time(), 'stats' => $rc);
 	file_put_contents($tc, json_encode($df_status));
 }

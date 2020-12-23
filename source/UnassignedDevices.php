@@ -573,7 +573,7 @@ switch ($_POST['action']) {
 	case 'automount':
 		$serial = urldecode(($_POST['serial']));
 		$status = urldecode(($_POST['status']));
-		echo json_encode(array( 'automount' => toggle_automount($serial, $status) ));
+		echo json_encode(array( 'result' => toggle_automount($serial, $status) ));
 		break;
 
 	case 'set_command':
@@ -594,7 +594,6 @@ switch ($_POST['action']) {
 		$info = json_decode(html_entity_decode($_POST['info']), true);
 		$status = urldecode(($_POST['status']));
 		$result = toggle_share($info['serial'], $info['part'],$status);
-		echo json_encode(array( 'result' => $result));
 		if ($result && strlen($info['target']) && $info['mounted']) {
 			add_smb_share($info['mountpoint'], $info['label']);
 			add_nfs_share($info['mountpoint']);
@@ -602,6 +601,7 @@ switch ($_POST['action']) {
 			rm_smb_share($info['mountpoint'], $info['label']);
 			rm_nfs_share($info['mountpoint']);
 		}
+		echo json_encode(array( 'result' => $result));
 		break;
 
 	case 'toggle_read_only':
@@ -739,20 +739,19 @@ switch ($_POST['action']) {
 	case 'samba_automount':
 		$device = urldecode(($_POST['device']));
 		$status = urldecode(($_POST['status']));
-		echo json_encode(array( 'automount' => toggle_samba_automount($device, $status) ));
+		echo json_encode(array( 'result' => toggle_samba_automount($device, $status) ));
 		break;
 
 	case 'samba_share':
 		$device = urldecode(($_POST['device']));
 		$status = urldecode(($_POST['status']));
-		echo json_encode(array( 'share' => toggle_samba_share($device, $status) ));
+		echo json_encode(array( 'result' => toggle_samba_share($device, $status) ));
 		break;
 
 	case 'toggle_samba_share':
 		$info = json_decode(html_entity_decode($_POST['info']), true);
 		$status = urldecode(($_POST['status']));
 		$result = toggle_samba_share($info['device'], $status);
-		echo json_encode(array( 'result' => $result));
 		if ($result && strlen($info['target']) && $info['mounted']) {
 			add_smb_share($info['mountpoint'], $info['device']);
 			add_nfs_share($info['mountpoint']);
@@ -760,6 +759,7 @@ switch ($_POST['action']) {
 			rm_smb_share($info['mountpoint'], $info['device']);
 			rm_nfs_share($info['mountpoint']);
 		}
+		echo json_encode(array( 'result' => $result));
 		break;
 
 	case 'set_samba_command':
@@ -796,7 +796,7 @@ switch ($_POST['action']) {
 	case 'iso_automount':
 		$device = urldecode(($_POST['device']));
 		$status = urldecode(($_POST['status']));
-		echo json_encode(array( 'automount' => toggle_iso_automount($device, $status) ));
+		echo json_encode(array( 'result' => toggle_iso_automount($device, $status) ));
 		break;
 
 	case 'set_iso_command':
