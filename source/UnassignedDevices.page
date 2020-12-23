@@ -270,7 +270,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			clearTimeout(timers.usbdisks);
 			if ( $("tr.toggle-parts").find("input[name='mountpoint']:visible").length )
 			{
-				timers.usbdisks=setTimeout('detect_usb_disk_change('+tabnum+')',1000);
+				timers.usbdisks=setTimeout('detect_usb_disk_change('+tabnum+')',500);
 				return false;
 			}
 			$.post(UDURL,{action:"detect"},function(data)
@@ -292,7 +292,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 				}
 			},"json").always(function()
 			{
-				timers.usbdisks=setTimeout('detect_usb_disk_change('+tabnum+')',1000);
+				timers.usbdisks=setTimeout('detect_usb_disk_change('+tabnum+')',500);
 			});
 		} else {
 			clearTimeout(timers.usbdisks);
@@ -835,7 +835,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		/* Add icons to Tab/Title bar */
 		addButtonTab('<a title="<?=_("Unassigned Devices Settings");?>" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>',
 								 "<?=_('Unassigned Devices');?>");
-		addButtonTab('<a style="cursor:pointer;" onclick="$.post(\''+UDURL+'\',{\'action\':\'rescan_disks\'});" title="<?=_("Rescan Disks");?>"><i class="fa fa-refresh"></i></a>',
+		addButtonTab('<a style="cursor:pointer;" onclick="$.post(\''+UDURL+'\',{\'action\':\'rescan_disks\'});" title="<?=_("Refresh Disks and Configuration");?>"><i class="fa fa-refresh"></i></a>',
 								 "<?=_('Unassigned Devices');?>");
 		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch On to Show Historical Devices");?>"><input type="checkbox" class="historical-switch"></a>',
 								 "<?=_('Unassigned Devices');?>");
