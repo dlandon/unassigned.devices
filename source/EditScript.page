@@ -202,20 +202,22 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 </form>
 
 <script>
+	var UDURL		= '/plugins/<?=$plugin;?>/UnassignedDevices.php';
+
 	$("input[name=run_background]").each(function(){var checked = $(this).is(":checked");$(this).switchButton({labels_placement: "right", checked:checked,on_label:"_(Run in background)_",off_label:"_(Run in background)_"});});
 	<?if (isset($_GET['s'])):?>
 		$( "form" ).submit(function( event ) {
-			$.post("/plugins/<?=$plugin;?>/UnassignedDevices.php",{action:"set_command",serial:"<?=$serial;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val(),part:"<?=$partition;?>",background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault();},"json");
+			$.post(UDURL,{action:"set_command",serial:"<?=$serial;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val(),part:"<?=$partition;?>",background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault();},"json");
 		});
 	<?endif;?>
 	<?if (isset($_GET['d'])):?>
 		$( "form" ).submit(function( event ) {
-			$.post("/plugins/<?=$plugin;?>/UnassignedDevices.php",{action:"set_samba_command",device:"<?=$device;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val(),background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault()},"json");
+			$.post(UDURL,{action:"set_samba_command",device:"<?=$device;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val(),background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault()},"json");
 		});
 	<?endif;?>
 	<?if (isset($_GET['i'])):?>
 		$( "form" ).submit(function( event ) {
-			$.post("/plugins/<?=$plugin;?>/UnassignedDevices.php",{action:"set_iso_command",device:"<?=$device;?>",command:$("input[name='#file']").val(),background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault()},"json");
+			$.post(UDURL,{action:"set_iso_command",device:"<?=$device;?>",command:$("input[name='#file']").val(),background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault()},"json");
 		});
 	<?endif;?>
 
