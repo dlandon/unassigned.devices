@@ -630,6 +630,7 @@ switch ($_POST['action']) {
 		break;
 
 	case 'rescan_disks':
+		exec("plugins/{$plugin}/scripts/copy_config.sh");
 		$tc = $paths['hotplug_status'];
 		$hotplug = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : "no";
 		if ($hotplug == "no") {
