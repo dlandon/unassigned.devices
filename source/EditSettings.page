@@ -1,4 +1,4 @@
-Title="Edit Script"
+Title="Edit Settings"
 ---
 <?php
 /* Copyright 2015, Guilherme Jardim
@@ -18,7 +18,7 @@ $translations = file_exists("$docroot/webGui/include/Translations.php");
 require_once "$docroot/plugins/$plugin/include/Legacy.php";
 ?>
 <?if (! $translations):?>
-<?eval('?>'.parse_file("$docroot/plugins/$plugin/EditScript.page"))?>
+<?eval('?>'.parse_file("$docroot/plugins/$plugin/EditSettings.page"))?>
 <?else:?>
 <?
 require_once("plugins/{$plugin}/include/lib.php");
@@ -31,13 +31,17 @@ function safe_filename($string) {
 }
 
 $background = "checked";
+$part = "";
+$disk_setting = TRUE;
+$show_switches = TRUE;
 $disabled = "";
 
 if (isset($_GET['s'])) {
 	$serial = $_GET['s'];
 	$partition = $_GET['p'];
+	$mount_point = $_GET['l'];
 	$file = get_config($serial,"command.{$partition}");
-	if (! file_exists($file)) {
+	if (($file) && (! file_exists($file))) {
 		set_config($serial,"command.{$partition}","");
 		$file = "";
 	}
@@ -51,10 +55,31 @@ if (isset($_GET['s'])) {
 	} else {
 		$background = (get_config($serial,"command_bg.{$partition}") == "true" ) ? "checked" : "";
 	}
+	$pass_through = get_config($serial,"pass_through");
+	if ($pass_through == "yes") {
+		$pass_through = "checked";
+		$read_only = "";
+		$automount = "";
+		$show_partitions = "";
+	} else {
+		$pass_through = "";
+		$read_only = (get_config($serial,"read_only") == "yes" ) ? "checked" : "";
+		$automount = (get_config($serial,"automount") == "yes" ) ? "checked" : "";
+		$show_partitions = (get_config($serial,"show_partitions") == "yes" ) ? "checked" : "";
+	}
+	$width = "50%";
+	$automount_action = "automount";
+	$ud_device = $serial;
+	$background_action = "background";
+	if (! $_GET['t']) {
+		$disk_setting = FALSE;
+		$show_switches = FALSE;
+	}
 } else if (isset($_GET['d'])) {
 	$device = $_GET['d'];
+	$mount_point = $_GET['l'];
 	$file = get_samba_config($device,"command");
-	if (! file_exists($file)) {
+	if (($file) && (! file_exists($file))) {
 		set_samba_config($device,"command","");
 		$file = "";
 	}
@@ -68,10 +93,17 @@ if (isset($_GET['s'])) {
 	} else {
 		$background = (get_samba_config($device,"command_bg") == "true" ) ? "checked" : "";
 	}
+	$automount = (get_samba_config($device,"automount") == "yes" ) ? "checked" : "";
+	$width = "18%";
+	$automount_action = "samba_automount";
+	$ud_device = $device;
+	$background_action = "samba_background";
+	$disk_setting = FALSE;
 } else if (isset($_GET['i'])) {
 	$device = $_GET['i'];
+	$mount_point = $_GET['l'];
 	$file = get_iso_config($device,"command");
-	if (! file_exists($file)) {
+	if (($file) && (! file_exists($file))) {
 		set_iso_config($device,"command","");
 		$file = "";
 	}
@@ -80,6 +112,13 @@ if (isset($_GET['s'])) {
 	} else {
 		$background = (get_iso_config($device,"command_bg") == "true" ) ? "checked" : "";
 	}
+
+	$automount = (get_iso_config($device,"automount") == "yes" ) ? "checked" : "";
+	$witdh = "20%";
+	$automount_action = "iso_automount";
+	$ud_device = $device;
+	$background_action = "iso_background";
+	$disk_setting = FALSE;
 }
 
 if ((! file_exists($file)) || (! is_dir("/boot/config/plugins/user.scripts/scripts/"))) {
@@ -142,6 +181,8 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.switchbutton.css')?>">
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.filetree.css')?>" >
 
+<script type="text/javascript" src="<?autov('/plugins/'.$plugin.'/assets/arrive.min.js')?>"></script>
+
 <style type="text/css">
 	.fileTree {
 		border: solid 1px #BBB;
@@ -158,6 +199,33 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 <form markdown="1" method="POST" action="/update.php" target="progressFrame">
 <input type="hidden" name="#include" value="/webGui/include/update.file.php">
 
+<?if ($disk_setting):?>
+<p><strong>_(Disk Serial)_: </strong><?=$serial?></p>
+<?else:?>
+<p><strong>_(Mount Point)_: </strong><?=$mount_point?></p>
+<?endif;?>
+
+<table style='width: <?=$width?>;' class='usb_disks'><thead><tr><td></td><td></td><td></td><td></td></tr></thead>
+<tr>
+
+<?if ($show_switches):?>
+<?if (isset($_GET['s'])):?>
+<td title='_(Turn on to mark this Device as passed through to a VM or Docker)_.'><input type='checkbox' class='passthrough-switch'></td>
+<td title='_(Turn on to Mount Device Read only)_.'><input type='checkbox' class='readonly-switch'></td>
+<?endif;?>
+
+<td title='_(Turn on to Mount Device when Array is Started)_.'><input type='checkbox' class='automount-switch'></td>
+
+<?if (isset($_GET['s'])):?>
+<td title='_(Turn on to show all partitions on this device by default)_.'><input type='checkbox' class='partitions-switch'></td>
+<?endif;?>
+<?endif;?>
+</tr>
+</table>
+
+:ud_edit_script_device_settings_plug:
+> Select the options for this device/mount point.  These changes are made immediately.  You don't need to click 'Save; to save them.
+:end
 
 <strong>_(Script File)_:</strong>
 <span>&nbsp;&nbsp;&nbsp;<input type="text" title='_(Enter Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>/','sh',false,true);" autocomplete="off" value="<?=$file;?>"><?=$remove;?></span>
@@ -166,7 +234,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 > Choose your script name from the file selection dropdown, or enter your desired script name.
 :end
 
-<span title='_(Turn on to run Script File in the background)_.'><input type="checkbox" name="run_background" <?=$background;?>></span>
+<span title='_(Turn on to run Script File in the background)_.'><input type="checkbox" class="background-switch"></span>
 
 :ud_edit_script_run_background_plug:
 > Turn on the 'Run in Background' to have the script run as a background task.  This can keep the Unassigned Devices UI from hanging when the script is run from the UI.
@@ -196,28 +264,72 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 
 <button type="button" title='_(Load the default script)_.' onclick="setDefault(this.form)">_(Default Script)_</button>
 <input type="reset" title='_(Undo your changes since last Save)_.' value='_(Reset)_'/>
-<input type="submit" title='_(Save your changes and save to Script File)_.' value='_(Save)_'/>
+<input type="submit" title='_(Save your Script File file changes)_.' value='_(Save)_'/>
 <button type="button" onclick="done()">_(Done)_</button>
 
 </form>
 
 <script>
-	var UDURL = '/plugins/<?=$plugin;?>/UnassignedDevices.php';
+	var UDURL		= '/plugins/<?=$plugin;?>/UnassignedDevices.php';
 
-	$("input[name=run_background]").each(function(){var checked = $(this).is(":checked");$(this).switchButton({labels_placement: "right", checked:checked,on_label:"_(Run in background)_",off_label:"_(Run in background)_"});});
+	$('.passthrough-switch').switchButton({ labels_placement: "right", on_label: "<?=_('Pass Through');?>", off_label: "<?=_('Pass Through');?>", checked:"<?=$pass_through;?>" });
+	$('.passthrough-switch').change(function()
+	{
+		$.post(UDURL,{action:"toggle_pass_through",serial:"<?=$serial?>",status:$(this).is(":checked")},function(data)
+		{
+			$(this).prop("checked",data.result);
+		},"json");
+	});
+
+	$('.readonly-switch').switchButton({ labels_placement: "right", on_label: "<?=_('Read Only');?>", off_label: "<?=_('Read Only');?>", checked:"<?=$read_only;?>" });
+	$('.readonly-switch').change(function()
+	{
+		$.post(UDURL,{action:"toggle_read_only",serial:"<?=$serial?>",status:$(this).is(":checked")},function(data)
+		{
+			$(this).prop("checked",data.result);
+		},"json");
+	});
+
+	$('.automount-switch').switchButton({ labels_placement: "right", on_label: "<?=_('Automount');?>", off_label: "<?=_('Automount');?>", checked:"<?=$automount;?>" });
+	$('.automount-switch').change(function()
+	{
+		$.post(UDURL,{action:"<?=$automount_action?>",device:"<?=$ud_device?>",status:$(this).is(":checked")},function(data)
+		{
+			$(this).prop("checked",data.result);
+		},"json");
+	});
+
+	$('.partitions-switch').switchButton({ labels_placement: "right", on_label: "<?=_('Show Partitions');?>", off_label: "<?=_('Show Partitions');?>", checked:"<?=$show_partitions;?>" });
+	$('.partitions-switch').change(function()
+	{
+		$.post(UDURL,{action:"show_partitions",serial:"<?=$serial?>",status:$(this).is(":checked")},function(data)
+		{
+			$(this).prop("checked",data.result);
+		},"json");
+	});
+
+	$('.background-switch').switchButton({ labels_placement: "right", on_label: "<?=_('Run in Background');?>", off_label: "<?=_('Run in Backround');?>", checked:"<?=$background;?>" });
+	$('.background-switch').change(function()
+	{
+		$.post(UDURL,{action:"<?=$background_action?>",device:"<?=$ud_device?>",part:"<?=$partition;?>",status:$(this).is(":checked")},function(data)
+		{
+			$(this).prop("checked",data.result);
+		},"json");
+	});
+
 	<?if (isset($_GET['s'])):?>
 		$( "form" ).submit(function( event ) {
-			$.post(UDURL,{action:"set_command",serial:"<?=$serial;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val(),part:"<?=$partition;?>",background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault();},"json");
+			$.post(UDURL,{action:"set_command",serial:"<?=$serial;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()},function(data){event.preventDefault()},"json");
 		});
 	<?endif;?>
 	<?if (isset($_GET['d'])):?>
 		$( "form" ).submit(function( event ) {
-			$.post(UDURL,{action:"set_samba_command",device:"<?=$device;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val(),background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault()},"json");
+			$.post(UDURL,{action:"set_samba_command",device:"<?=$device;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()},function(data){event.preventDefault()},"json");
 		});
 	<?endif;?>
 	<?if (isset($_GET['i'])):?>
 		$( "form" ).submit(function( event ) {
-			$.post(UDURL,{action:"set_iso_command",device:"<?=$device;?>",command:$("input[name='#file']").val(),background:$("input[name='run_background']").is(":checked")},function(data){event.preventDefault()},"json");
+			$.post(UDURL,{action:"set_iso_command",device:"<?=$device;?>",command:$("input[name='#file']").val()},function(data){event.preventDefault()},"json");
 		});
 	<?endif;?>
 

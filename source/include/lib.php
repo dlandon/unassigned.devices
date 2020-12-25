@@ -296,7 +296,7 @@ function is_script_running($cmd, $user=FALSE) {
 		file_put_contents($tc, json_encode($script_run));
 		if (($was_running) && (! $is_running)) {
 			@touch($GLOBALS['paths']['reload']);
-		}		
+		}
 	}
 	return($is_running);
 }
@@ -661,7 +661,7 @@ function toggle_automount($sn, $status) {
 	$config = @parse_ini_file($config_file, true);
 	$config[$sn]["automount"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
-	return ($config[$sn]["automount"] == "yes") ? TRUE : FALSE;
+	return ($config[$sn]["automount"] == "yes") ? 'true' : 'false';
 }
 
 function toggle_read_only($sn, $status) {
@@ -669,7 +669,7 @@ function toggle_read_only($sn, $status) {
 	$config = @parse_ini_file($config_file, true);
 	$config[$sn]["read_only"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
-	return ($config[$sn]["read_only"] == "yes") ? TRUE : FALSE;
+	return ($config[$sn]["read_only"] == "yes") ? 'true' : 'false';
 }
 
 function toggle_pass_through($sn, $status) {
@@ -678,7 +678,7 @@ function toggle_pass_through($sn, $status) {
 	$config[$sn]["pass_through"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
 	@touch($GLOBALS['paths']['reload']);
-	return ($config[$sn]["pass_through"] == "yes") ? TRUE : FALSE;
+	return ($config[$sn]["pass_through"] == "yes") ? 'true' : 'false';
 }
 
 function execute_script($info, $action, $testing = FALSE) { 

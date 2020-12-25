@@ -45,27 +45,24 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	table.usb_disks {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
 	table.usb_disks thead tr>td{text-align:left;width:8%;}
 	table.usb_disks tr>td{text-align:left;white-space:nowrap;}
-	table.usb_disks tr>td+td+td+td{text-align:center;width:auto;}
-	table.usb_disks tr>td+td+td+td+td{text-align:right;}
 	table.usb_disks tr>td+td+td+td+td+td+td{text-align:left;}
-	table.usb_disks tr>td+td+td+td+td+td+td+td+td+td+td{text-align:right;}
+	table.usb_disks tr>td+td+td+td+td+td+td+td{text-align:right;}
+	table.usb_disks tr>td+td+td+td+td+td+td+td+td+td+td+td{text-align:center;}
 
 	table.usb_absent {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
 	table.usb_absent thead tr>td{text-align:left;width:8%;}
 	table.usb_absent tr>td{text-align:left;white-space:nowrap;}
 	table.usb_absent tr>td+td{text-align:left;width:auto;}
-	table.usb_absent tr>td+td+td+td+td+td+td{text-align:left;}
-	table.usb_absent tr>td+td+td+td+td+td+td+td+td{text-align:center;}
+	table.usb_absent tr>td+td+td{text-align:left;}
+	table.usb_absent tr>td+td+td+td+td{text-align:center;}
 
 	table.samba_mounts {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
 	table.samba_mounts thead tr>td{text-align:left;width:8%;}
-	table.samba_mounts tr>td{text-align:left;white-space:nowrap;witdh:auto;}
+	table.samba_mounts tr>td{text-align:left;white-space:nowrap;}
 	table.samba_mounts tr>td+td{text-align:left;width:auto;}
-	table.samba_mounts tr>td+td+td{text-align:right;}
 	table.samba_mounts tr>td+td+td+td+td{text-align:center;}
-	table.samba_mounts tr>td+td+td+td+td+td+td+td+td{text-align:left;}
-	table.samba_mounts tr>td+td+td+td+td+td+td+td+td+td+td{text-align:left;}
-	table.samba_mounts tr>td+td+td+td+td+td+td+td+td+td+td+td+td{text-align:right}
+	table.samba_mounts tr>td+td+td+td+td+td{text-align:left;}
+	table.samba_mounts tr>td+td+td+td+td+td+td+td+td{text-align:center}
 
 	button.mount {padding:2px 4px 3px 6px;margin:1px 0px 1px 0px;}
 	i.partition-hdd{margin:5px; 0px; 0px; 0px;}
@@ -737,40 +734,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		checkbox = $(this);
 		checkbox.each(function(){var checked = $(this).is(":checked");$(this).switchButton({show_labels: false, checked:checked});});
 
-		if (checkbox.hasClass("automount"))
-		{
-			checkbox.change(function()
-			{
-				$.post(UDURL,{action:"automount",serial:$(this).attr("serial"),status:$(this).is(":checked")},function(data)
-				{
-					$(this).prop("checked",data.result);
-				},"json");
-			});
-		}
 
-		else if (checkbox.hasClass("samba_automount"))
-		{
-			checkbox.change(function()
-			{
-				$.post(UDURL,{action:"samba_automount",device:$(this).attr("device"),status:$(this).is(":checked")},function(data)
-				{
-					$(this).prop("checked",data.result);
-				},"json");
-			});
-		}
-
-		else if (checkbox.hasClass("iso_automount"))
-		{
-			checkbox.change(function()
-			{
-				$.post(UDURL,{action:"iso_automount",device:$(this).attr("device"),status:$(this).is(":checked")},function(data)
-				{
-					$(this).prop("checked",data.result);
-				},"json");
-			});
-		}
-
-		else if (checkbox.hasClass("toggle_share"))
+		if (checkbox.hasClass("toggle_share"))
 		{
 			checkbox.change(function()
 			{
@@ -786,28 +751,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			checkbox.change(function()
 			{
 				$.post(UDURL,{action:"toggle_samba_share",info:$(this).attr("info"),status:$(this).is(":checked")},function(data)
-				{
-					$(this).prop("checked",data.result);
-				},"json");
-			});
-		}
-
-		else if (checkbox.hasClass("toggle_read_only"))
-		{
-			checkbox.change(function()
-			{
-				$.post(UDURL,{action:"toggle_read_only",serial:$(this).attr("serial"),status:$(this).is(":checked")},function(data)
-				{
-					$(this).prop("checked",data.result);
-				},"json");
-			});
-		}
-
-		else if (checkbox.hasClass("toggle_pass_through"))
-		{
-			checkbox.change(function()
-			{
-				$.post(UDURL,{action:"toggle_pass_through",serial:$(this).attr("serial"),status:$(this).is(":checked")},function(data)
 				{
 					$(this).prop("checked",data.result);
 				},"json");
