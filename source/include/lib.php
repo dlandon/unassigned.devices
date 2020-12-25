@@ -714,6 +714,15 @@ global $paths;
 					sleep(1);
 				}
 				$cmd = isset($info['serial']) ? "$command_script > /tmp/{$info['serial']}.log 2>&1 $bg" : "$command_script > /tmp/".preg_replace('~[^\w]~i', '', $info['device']).".log 2>&1 $bg";
+
+				/* Set state as script running. */
+				$script_name = $info['command'];
+				$tc = $paths['script_run'];
+				$script_run = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+				$script_run[$script_name] = array('running' => 'yes','user' => 'no');
+				file_put_contents($tc, json_encode($script_run));
+
+				/* Run the script. */
 				exec($cmd, $out, $return);
 				if ($return) {
 					unassigned_log("Error: device script failed with return '{$return}'");
