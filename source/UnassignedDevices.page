@@ -44,23 +44,23 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 <style>
 	table.usb_disks {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
 	table.usb_disks thead tr>td{text-align:left;width:8%;}
-	table.usb_disks tr>td{text-align:left;white-space:nowrap;}
+	table.usb_disks tr>td{text-align:left;}
 	table.usb_disks tr>td+td+td+td+td+td+td{text-align:left;}
 	table.usb_disks tr>td+td+td+td+td+td+td+td{text-align:right;}
 	table.usb_disks tr>td+td+td+td+td+td+td+td+td+td+td+td{text-align:center;}
 
 	table.usb_absent {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
 	table.usb_absent thead tr>td{text-align:left;width:8%;}
-	table.usb_absent tr>td{text-align:left;white-space:nowrap;}
-	table.usb_absent tr>td+td{text-align:left;width:auto;}
+	table.usb_absent tr>td{text-align:left;}
+	table.usb_absent tr>td+td{text-align:left;}
 	table.usb_absent tr>td+td+td{text-align:left;}
 	table.usb_absent tr>td+td+td+td+td{text-align:center;}
 
 	table.samba_mounts {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
 	table.samba_mounts thead tr>td{text-align:left;width:8%;}
-	table.samba_mounts tr>td{text-align:left;white-space:nowrap;}
-	table.samba_mounts tr>td+td{text-align:left;width:auto;}
-	table.samba_mounts tr>td+td+td+td+td{text-align:center;}
+	table.samba_mounts tr>td{text-align:left;}
+	table.samba_mounts tr>td+td{text-align:left;}
+	table.samba_mounts tr>td+td+td+td{text-align:center;}
 	table.samba_mounts tr>td+td+td+td+td+td{text-align:left;}
 	table.samba_mounts tr>td+td+td+td+td+td+td+td+td{text-align:center}
 
@@ -1081,7 +1081,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 				<label class="image-radio-label image-radio-linux" for="{0}"></label>
 				<input type="radio" id="{1}" name="PROTOCOL" value="SMB" required="">
 				<label class="image-radio-label image-radio-windows" for="{1}"></label>
-				<p style='color:red;'><?=_('WARNING: Use caution when using a remote share local mount in a Docker container or VM for critical data');?>.  <?=_('Media mapped to apps like Plex should not be a problem');?>.  <?=_('Remote share mounts are dependent on a solid and reliable network connection and that can difficult to achieve');?>. <?=_('If the remote share goes offline, you may have problems');?>!</p>
+				<p><?=_('WARNING: Use caution when using a remote share local mount in a Docker Container or VM for critical data');?>.  <?=_('Media mapped to apps like Plex should not be a problem');?>.  <?=_('Remote share mounts are dependent on a solid and reliable network connection and that can difficult to achieve');?>. <?=_('If the remote share goes offline, you may have problems');?>!</p>
 			</div>
 		</div>
 	</div>

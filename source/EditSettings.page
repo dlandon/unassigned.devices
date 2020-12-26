@@ -200,9 +200,9 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 <input type="hidden" name="#include" value="/webGui/include/update.file.php">
 
 <?if ($disk_setting):?>
-<p><strong>_(Disk Serial)_: </strong><?=$serial?></p>
+<strong>_(Disk Serial)_: </strong><?=$serial?>
 <?else:?>
-<p><strong>_(Mount Point)_: </strong><?=$mount_point?></p>
+<strong>_(Mount Point)_: </strong><?=$mount_point?>
 <?endif;?>
 
 <table style='width: <?=$width?>;' class='usb_disks'><thead><tr><td></td><td></td><td></td><td></td></tr></thead>
@@ -210,7 +210,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 
 <?if ($show_switches):?>
 <?if (isset($_GET['s'])):?>
-<td title='_(Turn on to mark this Device as passed through to a VM or Docker)_.'><input type='checkbox' class='passthrough-switch'></td>
+<td title='_(Turn on to mark this Device as passed through to a VM or Docker Container)_.'><input type='checkbox' class='passthrough-switch'></td>
 <td title='_(Turn on to Mount Device Read only)_.'><input type='checkbox' class='readonly-switch'></td>
 <?endif;?>
 

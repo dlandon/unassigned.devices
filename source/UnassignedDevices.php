@@ -190,7 +190,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 function make_mount_button($device) {
 	global $paths, $Preclear;
 
-	$button = "<span style='width:auto;text-align:right;'><button device='{$device['device']}' class='mount' context='%s' role='%s' %s><i class='%s'></i>%s</button></span>";
+	$button = "<span><button device='{$device['device']}' class='mount' context='%s' role='%s' %s><i class='%s'></i>%s</button></span>";
 
 	if (isset($device['partitions'])) {
 		$mounted = isset($device['mounted']) ? $device['mounted'] : in_array(TRUE, array_map(function($ar){return $ar['mounted'];}, $device['partitions']));
