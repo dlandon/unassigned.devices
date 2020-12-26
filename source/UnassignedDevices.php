@@ -163,7 +163,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 		$out[] = "<td></td>";
 	}
 
-	$out[] = "<td title='"._("Turn on to Share Device with SMB and/or NFS")."'><input type='checkbox' class='toggle_share' info='".htmlentities(json_encode($partition))."' ".(($partition['shared']) ? 'checked':'')." /></td>";
+	$out[] = "<td></td>";
 	if ($total) {
 		$mounted_disk = FALSE;
 		foreach ($disk['partitions'] as $part) {
@@ -182,7 +182,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 		$out[] = render_used_and_free($partition, $mounted);
 	}
 	$out[] = "<td><a title='"._("View Device Script Log")."' href='/Main/ScriptLog?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><i class='fa fa-align-left'></i></a>";
-	$out[] = "&nbsp;&nbsp;<a title='"._("Edit Device Settings and Script")."' href='/Main/EditSettings?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."&t=".$total."'><i class='fa fa-gear'></i></a></td>";
+	$out[] = "&nbsp;&nbsp;<a title='"._("Edit Device Settings and Script")."' href='/Main/EditSettings?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."&i=".urlencode(json_encode($partition))."&t=".$total."'><i class='fa fa-gear'></i></a></td>";
 	$out[] = "</tr>";
 	return $out;
 }
@@ -259,7 +259,7 @@ switch ($_POST['action']) {
 
 		/* Disk devices */
 		$disks = get_all_disks_info();
-		echo "<table class='show-disks disk_status wide usb_disks'><thead><tr><td>"._('Device')."</td><td>"._('Identification')."</td><td></td><td>"._('Temp').".</td><td>"._('Reads')."</td><td>"._('Writes')."</td><td>"._('Share')."</td><td>"._('FS')."</td><td>"._('Size')."</td><td>"._('Used')."</td><td>"._('Free')."</td><td>"._('Settings')."</td></tr></thead>";
+		echo "<table class='show-disks disk_status wide usb_disks'><thead><tr><td>"._('Device')."</td><td>"._('Identification')."</td><td></td><td>"._('Temp').".</td><td>"._('Reads')."</td><td>"._('Writes')."</td><td></td><td>"._('FS')."</td><td>"._('Size')."</td><td>"._('Used')."</td><td>"._('Free')."</td><td>"._('Settings')."</td></tr></thead>";
 		echo "<tbody>";
 		if ( count($disks) ) {
 			foreach ($disks as $disk) {
@@ -284,9 +284,11 @@ switch ($_POST['action']) {
 				{
 					$add_toggle = TRUE;
 
-					get_config($disk['serial'], "show_partitions") != 'yes' ? $class = "'fa fa-plus-square fa-append'" : $class = "'fa fa-minus-square fa-append'";
-					$hdd_serial .="<span title='"._("Click to view/hide partitions and mount points")."' class='exec toggle-hdd' hdd='{$disk_name}'>
-									<i class=$class></i></span>";
+					if (get_config($disk['serial'], "show_partitions") != 'yes') {
+						$hdd_serial .="<span title='"._("Click to view/hide partitions and mount points")."' class='exec toggle-hdd' hdd='{$disk_name}'><i class='fa fa-plus-square fa-append'></i></span>";
+					} else {
+						$hdd_serial .="<span><i class='fa fa-minus-square fa-append grey-orb'></i></span>";
+					}
 				}
 				else
 				{
@@ -370,7 +372,7 @@ switch ($_POST['action']) {
 		/* SAMBA Mounts */
 		echo "<div id='smb_tab' class='show-shares'>";
 		echo "<div id='title' class='show-disks'><span class='left'><img src='/plugins/$plugin/icons/smbsettings.png' class='icon'>"._('SMB Shares')." &nbsp;|&nbsp;<img src='/plugins/$plugin/icons/nfs.png' class='icon'>"._('NFS Shares')." &nbsp;|&nbsp;<img src='/plugins/$plugin/icons/iso.png' class='icon' style='width:16px;'>"._('ISO File Shares')."</span></div>";
-		echo "<table class='disk_status wide samba_mounts'><thead><tr><td>"._('Share Type')."</td><td>"._('Source')."</td><td>"._('Mount point')."</td><td></td><td>"._('Remove')."</td><td><td></td></td><td>".('Share')."</td><td>"._('Size')."</td><td>"._('Used')."</td><td>"._('Free')."</td><td>"._('Settings')."</td></tr></thead>";
+		echo "<table class='disk_status wide samba_mounts'><thead><tr><td>"._('Share Type')."</td><td>"._('Source')."</td><td>"._('Mount point')."</td><td></td><td>"._('Remove')."</td><td><td></td><td></td></td><td>"._('Size')."</td><td>"._('Used')."</td><td>"._('Free')."</td><td>"._('Settings')."</td></tr></thead>";
 		echo "<tbody>";
 		$ds1 = time();
 		$samba_mounts = get_samba_mounts();
@@ -401,12 +403,11 @@ switch ($_POST['action']) {
 					echo "<td>".($mounted ? "<button class='mount' device ='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>"._('Unmount')."</button>" : "<button class='mount'device ='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>"._('Mount')."</button>")."</td>";
 				}
 				echo $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount['name']}\");' title='"._("Remove Remote SMB/NFS Share")."'> <i class='fa fa-remove hdd'></i></a></td>";
-				echo "<td></td><td></td>";
-				echo "<td title='"._("Turn on to Share Remote Mount with SMB and/or NFS")."'><input type='checkbox' class='toggle_samba_share' info='".htmlentities(json_encode($mount))."' ".(($mount['smb_share']) ? 'checked':'')." /></td>";
+				echo "<td></td><td></td><td></td>";
 				echo "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				echo render_used_and_free($mount, $mounted);
 				echo "<td><a title='"._("View Remote SMB/NFS Script Log")."' href='/Main/ScriptLog?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><i class='fa fa-align-left'></i></a>";
-				echo "&nbsp;&nbsp;<a title='"._("Edit Remote SMB/NFS Settings and Script")."' href='/Main/EditSettings?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><i class='fa fa-gear'></i></a></td>";
+				echo "&nbsp;&nbsp;<a title='"._("Edit Remote SMB/NFS Settings and Script")."' href='/Main/EditSettings?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."&i=".urlencode(json_encode($mount))."'><i class='fa fa-gear'></i></a></td>";
 				echo "</tr>";
 			}
 		}
@@ -464,7 +465,7 @@ switch ($_POST['action']) {
 				$ct .= "<tr><td><i class='fa fa-minus-circle orb grey-orb'></i>"._("missing")."</td><td>$serial"." ($mountpoint)</td>";
 				$ct .="<td></td><td></td>";
 				$ct .= "<td title='"._("Remove Device configuration")."'><a style='color:#CC0000;font-weight:bold;cursor:pointer;' onclick='remove_disk_config(\"{$serial}\")'><i class='fa fa-remove hdd'></a></td>";
-				$ct .= "<td><a title='"._("Edit Device Settings and Script")."' href='/Main/EditSettings?s=".urlencode($serial)."&l=".urlencode(basename($mountpoint))."&p=".urlencode("1")."'><i class='fa fa-gear'></i></a></td><tr>";
+				$ct .= "<td><a title='"._("Edit Historical Device Settings and Script")."' href='/Main/EditSettings?s=".urlencode($serial)."&l=".urlencode(basename($mountpoint))."&p=".urlencode("1")."&t=TRUE'><i class='fa fa-gear'></i></a></td><tr>";
 			}
 		}
 		if (strlen($ct)) {
@@ -500,6 +501,12 @@ switch ($_POST['action']) {
 		echo json_encode(array("reload" => is_file($paths['reload']), "diskinfo" => 0));
 		break;
 
+	case 'refresh_page':
+		if (! is_file($GLOBALS['paths']['reload'])) {
+			@touch($GLOBALS['paths']['reload']);
+		}
+		break;
+
 	case 'remove_hook':
 		@unlink($paths['reload']);
 		break;
@@ -524,22 +531,6 @@ switch ($_POST['action']) {
 					$ping_status[$server] = array('timestamp' => time(), 'no_pings' => $no_pings, 'online' => $online, 'changed' => 'no');
 					file_put_contents($tc, json_encode($ping_status));
 					@touch($GLOBALS['paths']['reload']);
-				}
-			}
-		}
-		break;
-
-	case 'update_script_running':
-		global $paths;
-
-		/* Refresh the script running status. */
-		$tc = $paths['script_run'];
-		$script_run = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-		if (is_array($script_run)) {
-			foreach ($script_run as $key => $script) {
-				if ($script['running'] == "yes") {
-					$user = ($script['user'] == "yes") ? TRUE : FALSE;
-					is_script_running($key, $user);
 				}
 			}
 		}

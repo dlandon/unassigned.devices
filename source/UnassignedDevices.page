@@ -44,25 +44,23 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 <style>
 	table.usb_disks {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
 	table.usb_disks thead tr>td{text-align:left;width:8%;}
-	table.usb_disks tr>td{text-align:left;}
-	table.usb_disks tr>td+td+td+td+td+td+td{text-align:left;}
-	table.usb_disks tr>td+td+td+td+td+td+td+td{text-align:right;}
-	table.usb_disks tr>td+td+td+td+td+td+td+td+td+td+td+td{text-align:center;}
+	table.usb_disks tr>td+td{text-align:left;}
+	table.usb_disks tr>td+td+td{text-align:center;}
+	table.usb_disks tr>td+td+td+td+td+td{text-align:right;}
+	table.usb_disks tr>td+td+td+td+td+td+td+td+td+td+td{text-align:center;}
 
 	table.usb_absent {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
 	table.usb_absent thead tr>td{text-align:left;width:8%;}
-	table.usb_absent tr>td{text-align:left;}
 	table.usb_absent tr>td+td{text-align:left;}
 	table.usb_absent tr>td+td+td{text-align:left;}
 	table.usb_absent tr>td+td+td+td+td{text-align:center;}
 
 	table.samba_mounts {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
 	table.samba_mounts thead tr>td{text-align:left;width:8%;}
-	table.samba_mounts tr>td{text-align:left;}
 	table.samba_mounts tr>td+td{text-align:left;}
 	table.samba_mounts tr>td+td+td+td{text-align:center;}
-	table.samba_mounts tr>td+td+td+td+td+td{text-align:left;}
-	table.samba_mounts tr>td+td+td+td+td+td+td+td+td{text-align:center}
+	table.samba_mounts tr>td+td+td+td+td{text-align:left;}
+	table.samba_mounts tr>td+td+td+td+td+td+td+td{text-align:center}
 
 	button.mount {padding:2px 4px 3px 6px;margin:1px 0px 1px 0px;}
 	i.partition-hdd{margin:5px; 0px; 0px; 0px;}
@@ -188,7 +186,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 	function disk_op(el, op, device) {
 		/* add spinning and disable button */
-		$("button[device='"+device+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> "+(op == "mount" ? "<?=_('Mounting')?>" : "<?=_('Unmounting')?>"));
+		$("button[device='"+device+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> "+(op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
 		$("button[device='"+device+"']").prop("disabled","true");
 		/* disable partition buttons */
 		td = $("button[device='"+device+"']").closest('td');
@@ -202,7 +200,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		}
 		$.post(UDURL,{'action':op,'device':device},function(data)
 		{
-			opt = (op == "mount") ? "<?=_('Mounting')?>" : "<?=_('Unmounting')?>";
+			opt = (op == "mount") ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>";
 			text = "<i class='fa fa-circle-o-notch fa-spin'></i> " + opt;
 			$("button[device='"+device+"']").prop('disabled',true);
 			$("button[device='"+device+"']").html( text );
@@ -256,10 +254,10 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		setTimeout(ping_poll, 15000, tabnum);
 	}
 
-	function update_script_running(tabnum)
+	function refresh_page(tabnum)
 	{
-		$.post(UDURL,{action:"update_script_running"});
-		setTimeout(update_script_running, 5000, tabnum);
+		$.post(UDURL,{action:"refresh_page"});
+		setTimeout(refresh_page, 3000, tabnum);
 	}
 
 	function detect_usb_disk_change(tabnum) {
@@ -729,35 +727,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		tr.find("button[role=format]").click(function(){format_disk(this, $(this).attr("context"), $(this).attr("device"));});
 	});
 
-	$("#usb_devices_list").arrive("input[type='checkbox']",{onceOnly:false},function()
-	{
-		checkbox = $(this);
-		checkbox.each(function(){var checked = $(this).is(":checked");$(this).switchButton({show_labels: false, checked:checked});});
-
-
-		if (checkbox.hasClass("toggle_share"))
-		{
-			checkbox.change(function()
-			{
-				$.post(UDURL,{action:"toggle_share",info:$(this).attr("info"),status:$(this).is(":checked")},function(data)
-				{
-					$(this).prop("checked",data.result);
-				},"json");
-			});
-		}
-
-		else if (checkbox.hasClass("toggle_samba_share"))
-		{
-			checkbox.change(function()
-			{
-				$.post(UDURL,{action:"toggle_samba_share",info:$(this).attr("info"),status:$(this).is(":checked")},function(data)
-				{
-					$(this).prop("checked",data.result);
-				},"json");
-			});
-		}
-	});
-
 	$( "#usb_devices_list" ).arrive(".show-shares", {onceOnly:false}, function()
 	{
 		$(this).css("display", $(".shares-switch").is(":checked") ? "block" : "none");
@@ -824,7 +793,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		usb_disks(tab_usbdisks);
 		detect_usb_disk_change(tab_usbdisks);
 		ping_poll(tab_usbdisks);
-		update_script_running(tab_usbdisks);
+		refresh_page(tab_usbdisks);
 	});
 </script>
 

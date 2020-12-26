@@ -31,7 +31,7 @@ function safe_filename($string) {
 }
 
 $background = "checked";
-$part = "";
+$partition = "";
 $disk_setting = TRUE;
 $show_switches = TRUE;
 $disabled = "";
@@ -40,6 +40,7 @@ if (isset($_GET['s'])) {
 	$serial = $_GET['s'];
 	$partition = $_GET['p'];
 	$mount_point = $_GET['l'];
+	$info = $_GET['i'];
 	$file = get_config($serial,"command.{$partition}");
 	if (($file) && (! file_exists($file))) {
 		set_config($serial,"command.{$partition}","");
@@ -61,23 +62,28 @@ if (isset($_GET['s'])) {
 		$read_only = "";
 		$automount = "";
 		$show_partitions = "";
+		$share = "";
 	} else {
 		$pass_through = "";
 		$read_only = (get_config($serial,"read_only") == "yes" ) ? "checked" : "";
 		$automount = (get_config($serial,"automount") == "yes" ) ? "checked" : "";
 		$show_partitions = (get_config($serial,"show_partitions") == "yes" ) ? "checked" : "";
+		$share = (get_config($serial, "share.{$partition}") == "yes" ) ? "checked" : "";
 	}
 	$width = "50%";
 	$automount_action = "automount";
 	$ud_device = $serial;
 	$background_action = "background";
+	$share_action = "toggle_share";
 	if (! $_GET['t']) {
+unassigned_log("*** here 1");
 		$disk_setting = FALSE;
 		$show_switches = FALSE;
 	}
 } else if (isset($_GET['d'])) {
 	$device = $_GET['d'];
 	$mount_point = $_GET['l'];
+	$info = $_GET['i'];
 	$file = get_samba_config($device,"command");
 	if (($file) && (! file_exists($file))) {
 		set_samba_config($device,"command","");
@@ -94,10 +100,12 @@ if (isset($_GET['s'])) {
 		$background = (get_samba_config($device,"command_bg") == "true" ) ? "checked" : "";
 	}
 	$automount = (get_samba_config($device,"automount") == "yes" ) ? "checked" : "";
+	$share = (get_samba_config($device, "smb_share") == "yes" ) ? "checked" : "";
 	$width = "18%";
 	$automount_action = "samba_automount";
 	$ud_device = $device;
 	$background_action = "samba_background";
+	$share_action = "toggle_samba_share";
 	$disk_setting = FALSE;
 } else if (isset($_GET['i'])) {
 	$device = $_GET['i'];
@@ -200,12 +208,12 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 <input type="hidden" name="#include" value="/webGui/include/update.file.php">
 
 <?if ($disk_setting):?>
-<strong>_(Disk Serial)_: </strong><?=$serial?>
+<strong>_(Disk Serial)_: </strong><?=$serial;?>
 <?else:?>
-<strong>_(Mount Point)_: </strong><?=$mount_point?>
+<strong>_(Mount Point)_: </strong><?=$mount_point;?>
 <?endif;?>
 
-<table style='width: <?=$width?>;' class='usb_disks'><thead><tr><td></td><td></td><td></td><td></td></tr></thead>
+<table style='width: <?=$width;?>;' class='usb_disks'><thead><tr><td></td><td></td><td></td><td></td></tr></thead>
 <tr>
 
 <?if ($show_switches):?>
@@ -215,7 +223,11 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 <?endif;?>
 
 <td title='_(Turn on to Mount Device when Array is Started)_.'><input type='checkbox' class='automount-switch'></td>
+<?endif;?>
 
+<td title='_(Turn on to Share Device with SMB and/or NFS)_.'><input type='checkbox' class='share-switch' info='<?=$info?>'></td>
+
+<?if ($show_switches):?>
 <?if (isset($_GET['s'])):?>
 <td title='_(Turn on to show all partitions on this device by default)_.'><input type='checkbox' class='partitions-switch'></td>
 <?endif;?>
@@ -242,7 +254,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 
 <? if (! $_GET['i']):?>
 <strong>_(User Script)_:</strong>
-<span><input type="text" title='_(Enter User Script File Name)_.' name="#user_file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/user.scripts/scripts/','',false,true);" autocomplete="off" placeholder="Enter the User Script that will be using this device" value="<?=$user_file;?>" <?=$disabled?>></span>
+<span><input type="text" title='_(Enter User Script File Name)_.' name="#user_file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/user.scripts/scripts/','',false,true);" autocomplete="off" placeholder="Enter the User Script that will be using this device" value="<?=$user_file;?>" <?=$disabled;?>></span>
 
 :ud_edit_user_script_choose_name_plug:
 > If you have the User Scripts plugin installed, you can have Unassigned Devices show the running status of the User Script that will be using this device.
@@ -275,7 +287,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 	$('.passthrough-switch').switchButton({ labels_placement: "right", on_label: "<?=_('Pass Through');?>", off_label: "<?=_('Pass Through');?>", checked:"<?=$pass_through;?>" });
 	$('.passthrough-switch').change(function()
 	{
-		$.post(UDURL,{action:"toggle_pass_through",serial:"<?=$serial?>",status:$(this).is(":checked")},function(data)
+		$.post(UDURL,{action:"toggle_pass_through",serial:"<?=$serial;?>",status:$(this).is(":checked")},function(data)
 		{
 			$(this).prop("checked",data.result);
 		},"json");
@@ -284,7 +296,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 	$('.readonly-switch').switchButton({ labels_placement: "right", on_label: "<?=_('Read Only');?>", off_label: "<?=_('Read Only');?>", checked:"<?=$read_only;?>" });
 	$('.readonly-switch').change(function()
 	{
-		$.post(UDURL,{action:"toggle_read_only",serial:"<?=$serial?>",status:$(this).is(":checked")},function(data)
+		$.post(UDURL,{action:"toggle_read_only",serial:"<?=$serial;?>",status:$(this).is(":checked")},function(data)
 		{
 			$(this).prop("checked",data.result);
 		},"json");
@@ -293,7 +305,16 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 	$('.automount-switch').switchButton({ labels_placement: "right", on_label: "<?=_('Automount');?>", off_label: "<?=_('Automount');?>", checked:"<?=$automount;?>" });
 	$('.automount-switch').change(function()
 	{
-		$.post(UDURL,{action:"<?=$automount_action?>",device:"<?=$ud_device?>",status:$(this).is(":checked")},function(data)
+		$.post(UDURL,{action:"<?=$automount_action?>",device:"<?=$ud_device;?>",status:$(this).is(":checked")},function(data)
+		{
+			$(this).prop("checked",data.result);
+		},"json");
+	});
+
+	$('.share-switch').switchButton({ labels_placement: "right", on_label: "<?=_('Share');?>", off_label: "<?=_('Share');?>", checked:"<?=$share;?>" });
+	$('.share-switch').change(function()
+	{
+		$.post(UDURL,{action:"<?=$share_action;?>",info:$(this).attr("info"),status:$(this).is(":checked")},function(data)
 		{
 			$(this).prop("checked",data.result);
 		},"json");
@@ -302,7 +323,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 	$('.partitions-switch').switchButton({ labels_placement: "right", on_label: "<?=_('Show Partitions');?>", off_label: "<?=_('Show Partitions');?>", checked:"<?=$show_partitions;?>" });
 	$('.partitions-switch').change(function()
 	{
-		$.post(UDURL,{action:"show_partitions",serial:"<?=$serial?>",status:$(this).is(":checked")},function(data)
+		$.post(UDURL,{action:"show_partitions",serial:"<?=$serial;?>",status:$(this).is(":checked")},function(data)
 		{
 			$(this).prop("checked",data.result);
 		},"json");
@@ -311,7 +332,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 	$('.background-switch').switchButton({ labels_placement: "right", on_label: "<?=_('Run in Background');?>", off_label: "<?=_('Run in Backround');?>", checked:"<?=$background;?>" });
 	$('.background-switch').change(function()
 	{
-		$.post(UDURL,{action:"<?=$background_action?>",device:"<?=$ud_device?>",part:"<?=$partition;?>",status:$(this).is(":checked")},function(data)
+		$.post(UDURL,{action:"<?=$background_action;?>",device:"<?=$ud_device;?>",part:"<?=$partition;?>",status:$(this).is(":checked")},function(data)
 		{
 			$(this).prop("checked",data.result);
 		},"json");
