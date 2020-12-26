@@ -40,7 +40,7 @@ if (isset($_GET['s'])) {
 	$serial = $_GET['s'];
 	$partition = $_GET['p'];
 	$mount_point = $_GET['l'];
-	$info = $_GET['i'];
+	$info = $_GET['m'];
 	$file = get_config($serial,"command.{$partition}");
 	if (($file) && (! file_exists($file))) {
 		set_config($serial,"command.{$partition}","");
@@ -76,14 +76,13 @@ if (isset($_GET['s'])) {
 	$background_action = "background";
 	$share_action = "toggle_share";
 	if (! $_GET['t']) {
-unassigned_log("*** here 1");
 		$disk_setting = FALSE;
 		$show_switches = FALSE;
 	}
 } else if (isset($_GET['d'])) {
 	$device = $_GET['d'];
 	$mount_point = $_GET['l'];
-	$info = $_GET['i'];
+	$info = $_GET['m'];
 	$file = get_samba_config($device,"command");
 	if (($file) && (! file_exists($file))) {
 		set_samba_config($device,"command","");
