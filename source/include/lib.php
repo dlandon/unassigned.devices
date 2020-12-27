@@ -175,7 +175,7 @@ function get_device_stats($mountpoint, $active=TRUE) {
 	$tc = $paths['df_status'];
 	$df_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 	$rc = "";
-	if (file_exists($mountpoint)) {
+	if (is_mounted($mountpoint, TRUE)) {
 		if (isset($df_status[$mountpoint])) {
 			$rc = $df_status[$mountpoint]['stats'];
 		}
