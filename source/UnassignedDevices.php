@@ -177,7 +177,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 	$title .= _("Share").": ";
 	$title .= ($partition['shared'] == 'yes') ? "On" : "Off";
 
-	$out[] = "<td><a title='$title' href='/Main/EditSettings?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."&m=".urlencode(json_encode($partition))."&t=".$total."'><i class='fa fa-gear'></i></a></td>";
+	$out[] = "<td><a title='$title' href='/Main/EditSettings?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."&m=".urlencode(json_encode($partition))."&t=".$total."'><i class='fa fa-gears'></i></a></td>";
 	$out[] = "<td></td><td></td>";
 	if ($total) {
 		$mounted_disk = FALSE;
@@ -425,7 +425,7 @@ switch ($_POST['action']) {
 				$title .= "   "._("Share").": ";
 				$title .= ($mount['smb_share'] == 'yes') ? "On" : "Off";
 
-				echo "<td><a title='$title' href='/Main/EditSettings?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."&m=".urlencode(json_encode($mount))."'><i class='fa fa-gear'></i></a></td>";
+				echo "<td><a title='$title' href='/Main/EditSettings?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."&m=".urlencode(json_encode($mount))."'><i class='fa fa-gears'></i></a></td>";
 				echo "<td></td><td></td><td></td>";
 				echo "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				echo render_used_and_free($mount, $mounted);
@@ -465,7 +465,7 @@ switch ($_POST['action']) {
 				$title .= "\n"._("Automount").": ";
 				$title .= ($mount['automount'] == 'yes') ? "On" : "Off";
 
-				echo "<td><a title='$title' href='/Main/EditSettings?i=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><i class='fa fa-gear'></i></a></td>";
+				echo "<td><a title='$title' href='/Main/EditSettings?i=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><i class='fa fa-gears'></i></a></td>";
 				echo "<td></td><td></td><td></td>";
 				echo "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				echo render_used_and_free($mount, $mounted);
@@ -491,7 +491,7 @@ switch ($_POST['action']) {
 				$mountpoint	= basename(get_config($serial, "mountpoint.1"));
 				$ct .= "<tr><td><i class='fa fa-minus-circle orb grey-orb'></i>"._("missing")."</td><td>$serial"." ($mountpoint)</td>";
 				$ct .= "<td></td><td></td><td></td><td></td><td></td><td></td>";
-				$ct .= "<td><a title='"._("Edit Historical Device Settings and Script")."' href='/Main/EditSettings?s=".urlencode($serial)."&l=".urlencode(basename($mountpoint))."&p=".urlencode("1")."&t=TRUE'><i class='fa fa-gear'></i></a></td>";
+				$ct .= "<td><a title='"._("Edit Historical Device Settings and Script")."' href='/Main/EditSettings?s=".urlencode($serial)."&l=".urlencode(basename($mountpoint))."&p=".urlencode("1")."&t=TRUE'><i class='fa fa-gears'></i></a></td>";
 				$ct .= "<td title='"._("Remove Device configuration")."'><a style='color:#CC0000;font-weight:bold;cursor:pointer;' onclick='remove_disk_config(\"{$serial}\")'><i class='fa fa-remove hdd'></a></td></tr>";
 			}
 		}
