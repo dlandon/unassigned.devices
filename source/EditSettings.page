@@ -235,9 +235,10 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 </tr>
 </table>
 <?endif;?>
+<button type="button" onclick="done()">_(Done)_</button>
 
 :ud_edit_script_device_settings_plug:
-> Select the options for this device/mount point.  These changes are made immediately.  You don't need to click 'Save; to save them.
+> Select the options for this device/mount point.  These changes are made immediately.  You don't need to click 'Save' to save them.
 :end
 
 <strong>_(Script File)_:</strong>

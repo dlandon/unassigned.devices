@@ -155,7 +155,7 @@ function listDir($root) {
 function safe_name($string, $convert_spaces=TRUE) {
 	$string = stripcslashes($string);
 	/* Convert single and double quote to underscore */
-	$string = str_replace( array("'",'"'), "_", $string);
+	$string = str_replace( array("'",'"', "?"), "_", $string);
 	if ($convert_spaces) {
 		$string = str_replace(" " , "_", $string);
 	}

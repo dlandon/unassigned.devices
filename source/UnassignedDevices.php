@@ -162,7 +162,22 @@ function render_partition($disk, $partition, $total=FALSE) {
 		$out[] = "<td></td><td></td>";
 	}
 
-	$out[] = "<td><a title='"._("Edit Device Settings and Script")."' href='/Main/EditSettings?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."&m=".urlencode(json_encode($partition))."&t=".$total."'><i class='fa fa-gear'></i></a></td>";
+	$title = _("Edit Device Settings and Script").".";
+	if ($total) {
+		$title .= "\n"._("Pass Through").":  ";
+		$title .= ($partition['pass_through'] == 'yes') ? "On" : "Off";
+		$title .= "   "._("Read Only").": ";
+		$title .= ($partition['read_only'] == 'yes') ? "On" : "Off";
+		$title .= "   "._("Automount").": ";
+		$title .= ($partition['automount'] == 'yes') ? "On" : "Off";
+		$title .=  "   ";
+	} else {
+		$title .= "\n";
+	}
+	$title .= _("Share").": ";
+	$title .= ($partition['shared'] == 'yes') ? "On" : "Off";
+
+	$out[] = "<td><a title='$title' href='/Main/EditSettings?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."&m=".urlencode(json_encode($partition))."&t=".$total."'><i class='fa fa-gear'></i></a></td>";
 	$out[] = "<td></td><td></td>";
 	if ($total) {
 		$mounted_disk = FALSE;
@@ -403,7 +418,14 @@ switch ($_POST['action']) {
 					echo "<td>".($mounted ? "<button class='mount' device ='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>"._('Unmount')."</button>" : "<button class='mount'device ='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>"._('Mount')."</button>")."</td>";
 				}
 				echo $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount['name']}\");' title='"._("Remove Remote SMB/NFS Share")."'> <i class='fa fa-remove hdd'></i></a></td>";
-				echo "<td><a title='"._("Edit Remote SMB/NFS Settings and Script")."' href='/Main/EditSettings?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."&m=".urlencode(json_encode($mount))."'><i class='fa fa-gear'></i></a></td>";
+
+				$title = _("Edit Remote SMB/NFS Settings and Script").".";
+				$title .= "\n"._("Automount").": ";
+				$title .= ($mount['automount'] == 'yes') ? "On" : "Off";
+				$title .= "   "._("Share").": ";
+				$title .= ($mount['smb_share'] == 'yes') ? "On" : "Off";
+
+				echo "<td><a title='$title' href='/Main/EditSettings?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."&m=".urlencode(json_encode($mount))."'><i class='fa fa-gear'></i></a></td>";
 				echo "<td></td><td></td><td></td>";
 				echo "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				echo render_used_and_free($mount, $mounted);
@@ -438,7 +460,12 @@ switch ($_POST['action']) {
 					echo "<td>".($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>"._('Unmount')."</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>"._('Mount')."</button>")."</td>";
 				}
 				echo $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec' style='color:#CC0000;font-weight:bold;' onclick='remove_iso_config(\"{$mount['device']}\");' title='"._("Remove ISO File Share")."'> <i class='fa fa-remove hdd'></i></a></td>";
-				echo "<td><a title='"._("Edit ISO File Settings and Script")."' href='/Main/EditSettings?i=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><i class='fa fa-gear'></i></a></td>";
+
+				$title = _("Edit ISO File Settings and Script").".";
+				$title .= "\n"._("Automount").": ";
+				$title .= ($mount['automount'] == 'yes') ? "On" : "Off";
+
+				echo "<td><a title='$title' href='/Main/EditSettings?i=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><i class='fa fa-gear'></i></a></td>";
 				echo "<td></td><td></td><td></td>";
 				echo "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				echo render_used_and_free($mount, $mounted);
@@ -568,7 +595,6 @@ switch ($_POST['action']) {
 		$serial = urldecode(($_POST['serial']));
 		$part = urldecode(($_POST['part']));
 		$cmd = urldecode(($_POST['command']));
-		set_config($serial, "command_bg.{$part}", urldecode($_POST['background']));
 		set_config($serial, "user_command.{$part}", urldecode($_POST['user_command']));
 		echo json_encode(array( 'result' => set_config($serial, "command.{$part}", $cmd)));
 		break;
