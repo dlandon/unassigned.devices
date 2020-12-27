@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.12.20a">
+<!ENTITY version   "2020.12.27">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"917176461bb8b834530ccfc1c32bdbb4">
+<!ENTITY MD5		"457ae4202dd4ef6aad6891653c4939e1">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,15 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: UD now refreshes the page automatically so reads and writes and all other status is kept up to date, every 3 seconds the same as the array pages.
+- Add: Moved Pass Through, Read Only, Automount, and Share switches to a new Edit Settings page to allow smooth page refreshes.
+- Add: Script editing is now done in the Edit Settings page.
+- Add: Settings icon for each UD device to set settings switches scriipt.
+- Add: New Show Partitions switch on the settings page so partitions can be shown by device.
+- Add: Tool Tip on the settings icon to show current switch settings.
+- Fix: A lot of code cleanup.
+
+###2020.12.20a
 - Fix: Don't allow parenthesis or dollar sign in script filename.
 - Add: Can now set a User Sript so 'Running' indicator on a mounted device will show when a User Script is running on that device.
 - Fix: Move spinner to page refresh and cut down on excessive refreshing of UD page.
