@@ -291,7 +291,7 @@ function is_script_running($cmd, $user=FALSE) {
 		} else {
 			$source = "unassigned.devices";
 		}
-		$is_running = shell_exec("/usr/bin/ps -ef | /bin/grep '".basename($cmd)."' | /bin/grep -v 'grep' | grep '{$source}'") != "" ? TRUE : FALSE;
+		$is_running = shell_exec("/usr/bin/ps -ef | /bin/grep '".basename($cmd)."' | /bin/grep -v 'grep' | /bin/grep '{$source}'") != "" ? TRUE : FALSE;
 		$script_run[$script_name] = array('running' => $is_running ? 'yes' : 'no','user' => $user ? 'yes' : 'no');
 		file_put_contents($tc, json_encode($script_run));
 		if (($was_running) && (! $is_running)) {
@@ -1302,7 +1302,7 @@ function decrypt_data($data) {
 
 function is_samba_automount($sn) {
 	$auto = get_samba_config($sn, "automount");
-	return ( ($auto) ? ( ($auto == "yes") ? TRUE : FALSE ) : TRUE);
+	return ( ($auto) ? ( ($auto == "yes") ? TRUE : FALSE ) : FALSE);
 }
 
 function is_samba_share($sn) {
@@ -1509,7 +1509,7 @@ function set_iso_config($source, $var, $val) {
 
 function is_iso_automount($sn) {
 	$auto = get_iso_config($sn, "automount");
-	return ( ($auto) ? ( ($auto == "yes") ? TRUE : FALSE ) : TRUE);
+	return ( ($auto) ? ( ($auto == "yes") ? TRUE : FALSE ) : FALSE);
 }
 
 function get_iso_mounts() {
