@@ -199,13 +199,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		} else if (part) {
 			tr.prev('tr.toggle-disk').find('.mount').html(td.html());
 		}
-		$.post(UDURL,{'action':op,'device':device},function(data)
-		{
-			opt = (op == "mount") ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>";
-			text = "<i class='fa fa-circle-o-notch fa-spin'></i> " + opt;
-			$("button[device='"+device+"']").prop('disabled',true);
-			$("button[device='"+device+"']").html( text );
-		}, "json");
+		$.post(UDURL,{'action':op,'device':device});
 	}
 
 	function pin_tab(n) {

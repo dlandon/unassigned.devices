@@ -209,7 +209,6 @@ function make_mount_button($device) {
 	$is_formatting	= array_values(preg_grep("@/formatting_".basename($device['device'])."@i", listDir(dirname($paths['formatting']))))[0];
 	$is_formatting	= (time() - filemtime($is_formatting) < 300) ? TRUE : FALSE;
 
-	$dev			= basename($device['device']);
 	$preclearing	= $Preclear ? $Preclear->isRunning(basename($device['device'])) : false;
 	if ($device['size'] == 0) {
 		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-erase', _('Mount'));

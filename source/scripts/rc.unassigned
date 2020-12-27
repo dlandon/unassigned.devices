@@ -53,7 +53,11 @@ function unassigned_mount() {
 				} elseif ($info['device'] != "") {
 					unassigned_log("Disk found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
 					unassigned_log("Adding disk '{$info['device']}'...");
-					addFile(sprintf($paths['mounting'],basename($info['device'])));
+					if ($info['fstype'] != "crypto_LUKS") {
+						addFile(sprintf($paths['mounting'],basename($info['device'])));
+					} else {
+						addFile(sprintf($paths['mounting'],basename($info['luks'])));
+					}
 					if (do_mount( $info )) 
 					{
 						$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV, $reload) : get_udev_info($device, NULL, $reload);
@@ -336,7 +340,6 @@ switch ($COMMAND) {
 }
 
 if ($COMMAND != 'spindown') {
-	array_map(function($f){@unlink($f);}, $remove);
 	if (! is_file($paths['reload'])) {
 		@touch($paths['reload']);
 	}

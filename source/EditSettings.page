@@ -212,10 +212,10 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 <strong>_(Mount Point)_: </strong><?=$mount_point;?>
 <?endif;?>
 
+<?if ($show_switches):?>
 <table style='width: <?=$width;?>;' class='usb_disks'><thead><tr><td></td><td></td><td></td><td></td></tr></thead>
 <tr>
-
-<?if ($show_switches):?>
+&nbsp;
 <?if (isset($_GET['s'])):?>
 <td title='_(Turn on to mark this Device as passed through to a VM or Docker Container)_.'><input type='checkbox' class='passthrough-switch'></td>
 <td title='_(Turn on to Mount Device Read only)_.'><input type='checkbox' class='readonly-switch'></td>
@@ -224,15 +224,17 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 <td title='_(Turn on to Mount Device when Array is Started)_.'><input type='checkbox' class='automount-switch'></td>
 <?endif;?>
 
+<?if (! isset($_GET['i'])):?>
 <td title='_(Turn on to Share Device with SMB and/or NFS)_.'><input type='checkbox' class='share-switch' info='<?=$info?>'></td>
+<?endif;?>
 
 <?if ($show_switches):?>
 <?if (isset($_GET['s'])):?>
 <td title='_(Turn on to show all partitions on this device by default)_.'><input type='checkbox' class='partitions-switch'></td>
 <?endif;?>
-<?endif;?>
 </tr>
 </table>
+<?endif;?>
 
 :ud_edit_script_device_settings_plug:
 > Select the options for this device/mount point.  These changes are made immediately.  You don't need to click 'Save; to save them.
@@ -283,7 +285,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 <script>
 	var UDURL		= '/plugins/<?=$plugin;?>/UnassignedDevices.php';
 
-	$('.passthrough-switch').switchButton({ labels_placement: "right", on_label: "<?=_('Pass Through');?>", off_label: "<?=_('Pass Through');?>", checked:"<?=$pass_through;?>" });
+	$('.passthrough-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Pass Through');?>", off_label: "<?=_('Pass Through');?>", checked:"<?=$pass_through;?>" });
 	$('.passthrough-switch').change(function()
 	{
 		$.post(UDURL,{action:"toggle_pass_through",serial:"<?=$serial;?>",status:$(this).is(":checked")},function(data)
@@ -292,7 +294,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 		},"json");
 	});
 
-	$('.readonly-switch').switchButton({ labels_placement: "right", on_label: "<?=_('Read Only');?>", off_label: "<?=_('Read Only');?>", checked:"<?=$read_only;?>" });
+	$('.readonly-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Read Only');?>", off_label: "<?=_('Read Only');?>", checked:"<?=$read_only;?>" });
 	$('.readonly-switch').change(function()
 	{
 		$.post(UDURL,{action:"toggle_read_only",serial:"<?=$serial;?>",status:$(this).is(":checked")},function(data)
@@ -301,7 +303,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 		},"json");
 	});
 
-	$('.automount-switch').switchButton({ labels_placement: "right", on_label: "<?=_('Automount');?>", off_label: "<?=_('Automount');?>", checked:"<?=$automount;?>" });
+	$('.automount-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Automount');?>", off_label: "<?=_('Automount');?>", checked:"<?=$automount;?>" });
 	$('.automount-switch').change(function()
 	{
 		$.post(UDURL,{action:"<?=$automount_action?>",device:"<?=$ud_device;?>",status:$(this).is(":checked")},function(data)
@@ -310,7 +312,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 		},"json");
 	});
 
-	$('.share-switch').switchButton({ labels_placement: "right", on_label: "<?=_('Share');?>", off_label: "<?=_('Share');?>", checked:"<?=$share;?>" });
+	$('.share-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Share');?>", off_label: "<?=_('Share');?>", checked:"<?=$share;?>" });
 	$('.share-switch').change(function()
 	{
 		$.post(UDURL,{action:"<?=$share_action;?>",info:$(this).attr("info"),status:$(this).is(":checked")},function(data)
@@ -319,7 +321,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 		},"json");
 	});
 
-	$('.partitions-switch').switchButton({ labels_placement: "right", on_label: "<?=_('Show Partitions');?>", off_label: "<?=_('Show Partitions');?>", checked:"<?=$show_partitions;?>" });
+	$('.partitions-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Show Partitions');?>", off_label: "<?=_('Show Partitions');?>", checked:"<?=$show_partitions;?>" });
 	$('.partitions-switch').change(function()
 	{
 		$.post(UDURL,{action:"show_partitions",serial:"<?=$serial;?>",status:$(this).is(":checked")},function(data)
@@ -328,7 +330,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 		},"json");
 	});
 
-	$('.background-switch').switchButton({ labels_placement: "right", on_label: "<?=_('Run in Background');?>", off_label: "<?=_('Run in Backround');?>", checked:"<?=$background;?>" });
+	$('.background-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Run in Background');?>", off_label: "<?=_('Run in Backround');?>", checked:"<?=$background;?>" });
 	$('.background-switch').change(function()
 	{
 		$.post(UDURL,{action:"<?=$background_action;?>",device:"<?=$ud_device;?>",part:"<?=$partition;?>",status:$(this).is(":checked")},function(data)
@@ -339,7 +341,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 
 	<?if (isset($_GET['s'])):?>
 		$( "form" ).submit(function( event ) {
-			$.post(UDURL,{action:"set_command",serial:"<?=$serial;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()},function(data){event.preventDefault()},"json");
+			$.post(UDURL,{action:"set_command",serial:"<?=$serial;?>",part:"<?=$partition;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()},function(data){event.preventDefault()},"json");
 		});
 	<?endif;?>
 	<?if (isset($_GET['d'])):?>
