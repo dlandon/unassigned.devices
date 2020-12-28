@@ -505,7 +505,6 @@ switch ($_POST['action']) {
 	case 'detect':
 		global $paths;
 
-
 		/* Check to see if disk status has changed. */
 		$status = array();
 		$tc = $paths['dev_status'];
