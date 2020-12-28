@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.12.27">
+<!ENTITY version   "2020.12.28">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"457ae4202dd4ef6aad6891653c4939e1">
+<!ENTITY MD5		"8fe1fb609aa1938cd9d253db17674fe1">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Refresh when there are no unassigned drives.
+- Fix: Did some more table adjustments for disk drives.
+
+###2020.12.27
 - Add: UD now refreshes the page automatically so reads and writes and all other status is kept up to date, every 3 seconds the same as the array pages.
 - Add: Moved Pass Through, Read Only, Automount, and Share switches to a new Edit Settings page to allow smooth page refreshes.
 - Add: Script editing is now done in the Edit Settings page.
