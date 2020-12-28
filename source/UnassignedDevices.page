@@ -444,6 +444,11 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		}
 	}
 
+	function rescan_disks() {
+		$.post(UDURL,{action:"rescan_disks"});
+		swalShowResult(true);
+	}
+
 	function swalShowResult(success) {
 		opts = (success) ? {title:"<?=_('Success')?>!",icon:"success"} : {title:"<?=_('Fail')?>!",icon:"error"};
 		swal2({title:opts.title,icon:opts.icon,text:" ",buttons:{confirm:{visible:false},cancel:{visible:false}},timer:1800});
@@ -742,7 +747,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		/* Add icons to Tab/Title bar */
 		addButtonTab('<a title="<?=_("Unassigned Devices Settings");?>" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>',
 								 "<?=_('Unassigned Devices');?>");
-		addButtonTab('<a style="cursor:pointer;" onclick="$.post(\''+UDURL+'\',{\'action\':\'rescan_disks\'});" title="<?=_("Refresh Disks and Configuration");?>"><i class="fa fa-refresh"></i></a>',
+		addButtonTab('<a style="cursor:pointer;" onclick="rescan_disks()" title="<?=_("Refresh Disks and Configuration");?>"><i class="fa fa-refresh"></i></a>',
 								 "<?=_('Unassigned Devices');?>");
 		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch On to Show Historical Devices");?>"><input type="checkbox" class="historical-switch"></a>',
 								 "<?=_('Unassigned Devices');?>");
