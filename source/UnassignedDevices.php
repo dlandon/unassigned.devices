@@ -178,7 +178,6 @@ function render_partition($disk, $partition, $total=FALSE) {
 	$title .= ($partition['shared'] == 'yes') ? "On" : "Off";
 
 	$out[] = "<td><a title='$title' href='/Main/EditSettings?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."&m=".urlencode(json_encode($partition))."&t=".$total."'><i class='fa fa-gears'></i></a></td>";
-	$out[] = "<td></td><td></td>";
 	if ($total) {
 		$mounted_disk = FALSE;
 		foreach ($disk['partitions'] as $part) {
@@ -272,7 +271,8 @@ switch ($_POST['action']) {
 
 		/* Disk devices */
 		$disks = get_all_disks_info();
-		echo "<table class='show-disks disk_status wide usb_disks'><thead><tr><td>"._('Device')."</td><td>"._('Identification')."</td><td></td><td>"._('Temp').".</td><td>"._('Reads')."</td><td>"._('Writes')."</td><td>"._('Settings')."</td><td></td><td></td><td>"._('FS')."</td><td>"._('Size')."</td><td>"._('Used')."</td><td>"._('Free')."</td><td>"._('Log')."</td></tr></thead>";
+		echo "<div id='disks_tab' class='show-disks'>";
+		echo "<table class='disk_status wide disk_mounts'><thead><tr><td>"._('Device')."</td><td>"._('Identification')."</td><td></td><td>"._('Temp').".</td><td>"._('Reads')."</td><td>"._('Writes')."</td><td>"._('Settings')."</td><td>"._('FS')."</td><td>"._('Size')."</td><td>"._('Used')."</td><td>"._('Free')."</td><td>"._('Log')."</td></tr></thead>";
 		echo "<tbody>";
 		if ( count($disks) ) {
 			foreach ($disks as $disk) {
@@ -357,15 +357,14 @@ switch ($_POST['action']) {
 				/* Settings */
 				echo ($p)?$p[6]:"<td>-</td>";
 				/* Filler */
-				echo ($p)?$p[7]:"<td>-</td>";
 				/* File system */
-				echo ($p)?$p[8]:"<td>-</td>";
+				echo ($p)?$p[7]:"<td>-</td>";
 				/* Disk size */
 				echo "<td>".my_scale($disk['size'],$unit)." {$unit}</td>";
 				/* Disk used and free space */
-				echo ($p)?$p[9]:"<td>-</td><td>-</td>";
-				/* Log and script buttons */
-				echo ($p)?$p[10]:"<td>-</td>";
+				echo ($p)?$p[8]:"<td>-</td><td>-</td>";
+				/* Log button */
+				echo ($p)?$p[9]:"<td>-</td>";
 				echo "</tr>";
 				if ($add_toggle)
 				{
@@ -380,9 +379,9 @@ switch ($_POST['action']) {
 				}
 			}
 		} else {
-			echo "<tr><td colspan='15' style='text-align:center;'>"._('No Unassigned Disks available').".</td></tr>";
+			echo "<tr><td colspan='12' style='text-align:center;'>"._('No Unassigned Disks available').".</td></tr>";
 		}
-		echo "</tbody></table>";
+		echo "</tbody></table></div>";
 
 		/* SAMBA Mounts */
 		echo "<div id='smb_tab' class='show-shares'>";
@@ -474,9 +473,10 @@ switch ($_POST['action']) {
 			}
 		}
 		if (! count($samba_mounts) && ! count($iso_mounts)) {
-			echo "<tr><td colspan='14' style='text-align:center;'>"._('No Remote SMB/NFS or ISO File Shares configured').".</td></tr>";
+			echo "<tr><td colspan='13' style='text-align:center;'>"._('No Remote SMB/NFS or ISO File Shares configured').".</td></tr>";
 		}
 		echo "</tbody></table>";
+
 		echo "<button onclick='add_samba_share()'>"._('Add Remote SMB/NFS Share')."</button>";
 		echo "<button onclick='add_iso_share()'>"._('Add ISO File Share')."</button></div>";
 

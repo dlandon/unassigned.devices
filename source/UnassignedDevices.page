@@ -42,14 +42,14 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 <script type="text/javascript" src="<?autov('/plugins/'.$plugin.'/assets/arrive.min.js')?>"></script>
 
 <style>
-	table.usb_disks {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
-	table.usb_disks thead tr>td{text-align:left;width:8%;}
-	table.usb_disks tr>td+td{text-align:left;}
-	table.usb_disks tr>td+td+td{text-align:center;}
-	table.usb_disks tr>td+td+td+td{text-align:right;}
-	table.usb_disks tr>td+td+td+td+td+td+td{text-align:center;}
-	table.usb_disks tr>td+td+td+td+td+td+td+td{text-align:right;}
-	table.usb_disks tr>td+td+td+td+td+td+td+td+td+td+td+td+td+td{text-align:center;}
+	table.disk_mounts {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
+	table.disk_mounts thead tr>td{text-align:left;width:8%;}
+	table.disk_mounts tr>td+td{text-align:left;}
+	table.disk_mounts tr>td+td+td{text-align:center;}
+	table.disk_mounts tr>td+td+td+td{text-align:right;}
+	table.disk_mounts tr>td+td+td+td+td+td+td{text-align:center;}
+	table.disk_mounts tr>td+td+td+td+td+td+td+td{text-align:right;}
+	table.disk_mounts tr>td+td+td+td+td+td+td+td+td+td+td+td{text-align:center;}
 
 	table.usb_absent {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
 	table.usb_absent thead tr>td{text-align:left;width:8%;}
