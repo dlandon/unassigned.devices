@@ -56,18 +56,10 @@ if (isset($_GET['s'])) {
 	} else {
 		$background = (get_config($serial,"command_bg.{$partition}") == "true" ) ? "checked" : "";
 	}
-	$pass_through = get_config($serial,"pass_through");
-	if ($pass_through == "yes") {
-		$pass_through = "checked";
-		$read_only = "";
-		$automount = "";
-		$share = "";
-	} else {
-		$pass_through = "";
-		$read_only = (get_config($serial,"read_only") == "yes" ) ? "checked" : "";
-		$automount = (get_config($serial,"automount") == "yes" ) ? "checked" : "";
-		$share = (get_config($serial, "share.{$partition}") == "yes" ) ? "checked" : "";
-	}
+	$pass_through = (get_config($serial,"pass_through") == "yes") ? "checked" : "";
+	$read_only = (get_config($serial,"read_only") == "yes" ) ? "checked" : "";
+	$automount = (get_config($serial,"automount") == "yes" ) ? "checked" : "";
+	$share = (get_config($serial, "share.{$partition}") == "yes" ) ? "checked" : "";
 	$show_partitions = (get_config($serial,"show_partitions") == "yes" ) ? "checked" : "";
 	$width = "50%";
 	$automount_action = "automount";
