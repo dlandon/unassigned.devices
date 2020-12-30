@@ -61,15 +61,14 @@ if (isset($_GET['s'])) {
 		$pass_through = "checked";
 		$read_only = "";
 		$automount = "";
-		$show_partitions = "";
 		$share = "";
 	} else {
 		$pass_through = "";
 		$read_only = (get_config($serial,"read_only") == "yes" ) ? "checked" : "";
 		$automount = (get_config($serial,"automount") == "yes" ) ? "checked" : "";
-		$show_partitions = (get_config($serial,"show_partitions") == "yes" ) ? "checked" : "";
 		$share = (get_config($serial, "share.{$partition}") == "yes" ) ? "checked" : "";
 	}
+	$show_partitions = (get_config($serial,"show_partitions") == "yes" ) ? "checked" : "";
 	$width = "50%";
 	$automount_action = "automount";
 	$ud_device = $serial;
