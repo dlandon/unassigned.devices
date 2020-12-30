@@ -30,7 +30,6 @@ $paths = [  "smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"dev_state"			=> "/usr/local/emhttp/state/devs.ini",
 			"samba_mount"		=> "/tmp/{$plugin}/config/samba_mount.cfg",
 			"iso_mount"			=> "/tmp/{$plugin}/config/iso_mount.cfg",
-			"reload"			=> "/var/state/{$plugin}/reload.state",
 			"unmounting"		=> "/var/state/{$plugin}/unmounting_%s.state",
 			"mounting"			=> "/var/state/{$plugin}/mounting_%s.state",
 			"formatting"		=> "/var/state/{$plugin}/formatting_%s.state",
@@ -295,7 +294,7 @@ function is_script_running($cmd, $user=FALSE) {
 		$script_run[$script_name] = array('running' => $is_running ? 'yes' : 'no','user' => $user ? 'yes' : 'no');
 		file_put_contents($tc, json_encode($script_run));
 		if (($was_running) && (! $is_running)) {
-			@touch($GLOBALS['paths']['reload']);
+			publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
 		}
 	}
 	return($is_running);
@@ -1983,5 +1982,20 @@ function setSleepTime($device) {
 			timed_exec(5, "/usr/sbin/hdparm -S0 $device 2>&1");
 		}
 	}
+}
+
+function curl_socket($socket, $url, $postdata = NULL) {
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_UNIX_SOCKET_PATH, $socket);
+    if ($postdata !== NULL) {
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postdata);
+    }
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_exec($ch);
+    curl_close($ch);
+}
+function publish($endpoint, $message){
+    curl_socket("/var/run/nginx.socket", "http://localhost/pub/$endpoint?buffer_length=1", $message);
 }
 ?>

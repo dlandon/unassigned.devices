@@ -255,40 +255,13 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		setTimeout(refresh_page, 3000, tabnum);
 	}
 
-	function detect_usb_disk_change(tabnum) {
-		if ($('#tab'+tabnum).is(':checked')) {
-			clearTimeout(timers.usbdisks);
-			if ( $("tr.toggle-parts").find("input[name='mountpoint']:visible").length )
-			{
-				timers.usbdisks=setTimeout('detect_usb_disk_change('+tabnum+')',500);
-				return false;
-			}
-			$.post(UDURL,{action:"detect"},function(data)
-			{
-				do_reload = false;
-				if (diskinfo && diskinfo !== data.diskinfo)
-				{
-					do_reload = true;
-				}
-				if(data.reload)
-				{
-					do_reload = true;
-					$.post(UDURL,{action:"remove_hook"});
-				}
-				diskinfo = data.diskinfo;
-				if (do_reload)
-				{
-					usb_disks(tabnum);
-				}
-			},"json").always(function()
-			{
-				timers.usbdisks=setTimeout('detect_usb_disk_change('+tabnum+')',500);
-			});
-		} else {
-			clearTimeout(timers.usbdisks);
+	var ud_Reload = new NchanSubscriber('/sub/reload');
+	ud_Reload.on('message',function(data) {
+		if (data) {
+			usb_disks(tab_usbdisks);
 		}
-		return false;
-	}
+		ud_Reload.start();
+	});
 
 	function showInput() {
 		$(this).off('click');
@@ -302,7 +275,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		$(this).siblings('span').show();
 		$(this).siblings('span').click(showInput);
 	}
-
 
 	function load_hosts(el, action) {
 		var target = $(el).parents("div").find("*[name='IP']");
@@ -683,8 +655,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		$.getScript( '/plugins/<?=$plugin;?>/assets/sweetalert2.js');
 	}
 
-	$('#tab'+tab_usbdisks).bind({click:function() {pin_tab(tab_usbdisks); detect_usb_disk_change(tab_usbdisks);}});
-
 	/* Remove or hide diskio toggle */
 	tabElement = get_tab_title_by_name("<?=_('Unassigned Devices')?>");
 	if (tabElement.prop("nodeName") == "DIV")
@@ -785,9 +755,9 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		}
 
 		usb_disks(tab_usbdisks);
-		detect_usb_disk_change(tab_usbdisks);
 		ping_poll(tab_usbdisks);
 		refresh_page(tab_usbdisks);
+		ud_Reload.start();
 	});
 </script>
 
@@ -810,7 +780,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		if (opts.ISO_FILE) {
 			$.post("/plugins/unassigned.devices/UnassignedDevices.php",opts).done(function(data)
 			{
-				usb_disks(tab_usbdisks);
 				swalShowResult((data == "true") ? true : false);
 			},"json").fail(function(){swalShowResult(false);});
 		}
@@ -921,7 +890,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		$("span[device='"+surveyOption.device+surveyOption.partition+"']").html("<i class='fa fa-circle-o-notch fa-spin'></i> <?=_('Removing');?>");
 		$.post(UDURL,{action:"rm_partition",device:surveyOption.device,partition:surveyOption.partition}).done(function(data)
 		{
-			usb_disks(tab_usbdisks);
 			swalShowResult((data == "true") ? true : false);
 		},"json").fail(function(){swalShowResult(false);});
 	</div>
@@ -954,7 +922,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	<div data-survey-done>
 		$.post(UDURL,{action:"remove_iso_config",device:surveyOption}).done(function(data)
 		{
-			usb_disks(tab_usbdisks);
 			swalShowResult((data == "true") ? true : false);
 		},"json").fail(function(){swalShowResult(false);});
 	</div>
@@ -987,7 +954,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	<div data-survey-done>
 		$.post(UDURL,{action:"remove_config",serial:surveyOption}).done(function(data)
 		{
-			usb_disks(tab_usbdisks);
 			swalShowResult((data == "true") ? true : false);
 		},"json").fail(function(){swalShowResult(false);});
 	</div>
@@ -1020,7 +986,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	<div data-survey-done>
 		$.post(UDURL,{action:"remove_samba_config",device:surveyOption}).done(function(data)
 		{
-			usb_disks(tab_usbdisks);
 			swalShowResult((data == "true") ? true : false);
 		},"json").fail(function(){swalShowResult(false);});
 	</div>
@@ -1116,7 +1081,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		if (opts.SHARE && opts.IP) {
 			$.post(UDURL,opts).done(function(data)
 			{
-				usb_disks(tab_usbdisks);
 				swalShowResult((data == "true") ? true : false);
 			},"json").fail(function(){swalShowResult(false);});
 		}
@@ -1147,7 +1111,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	<div data-survey-done data-survey-done-wait="true">
 		$.post(UDURL,{action:"chg_mountpoint",serial:surveyOption.serial,partition:surveyOption.partition,device:surveyOption.device,fstype:surveyOption.fstype,mountpoint:surveyData['MOUNTPOINT']}).done(function(data)
 		{
-			usb_disks(tab_usbdisks);
 			swalShowResult((data == "true") ? true : false);
 		},"json").fail(function(){swalShowResult(false);});
 	</div>
@@ -1176,7 +1139,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	<div data-survey-done data-survey-done-wait="true">
 		$.post(UDURL,{action:"chg_samba_mountpoint",device:surveyOption.device,mountpoint:surveyData['MOUNTPOINT']}).done(function(data)
 		{
-			usb_disks(tab_usbdisks);
 			swalShowResult((data == "true") ? true : false);
 		},"json").fail(function(){swalShowResult(false);});
 	</div>
@@ -1205,7 +1167,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	<div data-survey-done data-survey-done-wait="true">
 		$.post(UDURL,{action:"chg_iso_mountpoint",device:surveyOption.device,mountpoint:surveyData['MOUNTPOINT']}).done(function(data)
 		{
-			usb_disks(tab_usbdisks);
 			swalShowResult((data == "true") ? true : false);
 		},"json").fail(function(){swalShowResult(false);});
 	</div>

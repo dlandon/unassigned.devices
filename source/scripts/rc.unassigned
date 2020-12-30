@@ -339,9 +339,5 @@ switch ($COMMAND) {
 		break;
 }
 
-if ($COMMAND != 'spindown') {
-	if (! is_file($paths['reload'])) {
-		@touch($paths['reload']);
-	}
-}
+publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
 ?>

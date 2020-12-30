@@ -502,39 +502,8 @@ switch ($_POST['action']) {
 		unassigned_log("Total render time: ".($time + microtime(true))."s", "DEBUG");
 		break;
 
-	case 'detect':
-		global $paths;
-
-		/* Check to see if disk status has changed. */
-		$status = array();
-		$tc = $paths['dev_status'];
-		$previous = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-		$sf	= $paths['dev_state'];
-		if (is_file($sf)) {
-			$devs = parse_ini_file($sf, true);
-			foreach ($devs as $d) {
-				$name = $d['name'];
-				$status[$name]['running'] = $d['spundown'] == '0' ? "yes" : "no";
-				$curr = $status[$name]['running'];
-				$prev = $previous[$name]['running'];
-				if (! is_file($GLOBALS['paths']['reload']) && ($curr != $prev)) {
-					@touch($GLOBALS['paths']['reload']);
-				}
-			}
-			file_put_contents($tc, json_encode($status));
-		}
-
-		echo json_encode(array("reload" => is_file($paths['reload']), "diskinfo" => 0));
-		break;
-
 	case 'refresh_page':
-		if (! is_file($GLOBALS['paths']['reload'])) {
-			@touch($GLOBALS['paths']['reload']);
-		}
-		break;
-
-	case 'remove_hook':
-		@unlink($paths['reload']);
+		publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
 		break;
 
 	case 'update_ping':
@@ -551,12 +520,12 @@ switch ($_POST['action']) {
 				$changed = ($ping_status[$server]['changed'] == 'yes') ? TRUE : FALSE;
 				$mounted = is_mounted($device);
 				is_samba_server_online($server, $mounted);
-				if (! is_file($GLOBALS['paths']['reload']) && ($changed)) {
+				if ($changed) {
 					$no_pings = $ping_status[$server]['no_pings'];
 					$online = $ping_status[$server]['online'];
 					$ping_status[$server] = array('timestamp' => time(), 'no_pings' => $no_pings, 'online' => $online, 'changed' => 'no');
 					file_put_contents($tc, json_encode($ping_status));
-					@touch($GLOBALS['paths']['reload']);
+					publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
 				}
 			}
 		}
@@ -600,6 +569,7 @@ switch ($_POST['action']) {
 
 	case 'remove_config':
 		$serial = urldecode(($_POST['serial']));
+		publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
 		echo json_encode(remove_config_disk($serial));
 		break;
 
@@ -648,7 +618,7 @@ switch ($_POST['action']) {
 		$hotplug = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : "no";
 		if ($hotplug == "no") {
 			file_put_contents($tc, json_encode('yes'));
-			@touch($GLOBALS['paths']['reload']);
+			publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
 		}
 		break;
 
@@ -741,11 +711,13 @@ switch ($_POST['action']) {
 			/* Refresh the ping status */
 			is_samba_server_online($ip, FALSE);
 		}
+		publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
 		echo json_encode($rc);
 		break;
 
 	case 'remove_samba_config':
 		$device = urldecode(($_POST['device']));
+		publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
 		echo json_encode(remove_config_samba($device));
 		break;
 
@@ -803,11 +775,13 @@ switch ($_POST['action']) {
 			unassigned_log("ISO File '{$file}' not found.");
 			$rc = FALSE;
 		}
+		publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
 		echo json_encode($rc);
 		break;
 
 	case 'remove_iso_config':
 		$device = urldecode(($_POST['device']));
+		publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
 		echo json_encode(remove_config_iso($device));
 		break;
 
@@ -833,6 +807,7 @@ switch ($_POST['action']) {
 	case 'rm_partition':
 		$device = urldecode($_POST['device']);
 		$partition = urldecode($_POST['partition']);
+		publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
 		echo json_encode(remove_partition($device, $partition));
 		break;
 
@@ -852,18 +827,21 @@ switch ($_POST['action']) {
 		$device	= urldecode($_POST['device']);
 		$fstype	= urldecode($_POST['fstype']);
 		$mountpoint	= basename(safe_name(urldecode($_POST['mountpoint']), FALSE));
+		publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
 		echo json_encode(change_mountpoint($serial, $partition, $device, $fstype, $mountpoint));
 		break;
 
 	case 'chg_samba_mountpoint':
 		$device = urldecode($_POST['device']);
 		$mountpoint = basename(safe_name(basename(urldecode($_POST['mountpoint'])), FALSE));
+		publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
 		echo json_encode(change_samba_mountpoint($device, $mountpoint));
 		break;
 
 	case 'chg_iso_mountpoint':
 		$device = urldecode($_POST['device']);
 		$mountpoint = basename(safe_name(basename(urldecode($_POST['mountpoint'])), FALSE));
+		publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
 		echo json_encode(change_iso_mountpoint($device, $mountpoint));
 		break;
 	}
