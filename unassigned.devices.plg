@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.12.28">
+<!ENTITY version   "2020.12.31">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"8fe1fb609aa1938cd9d253db17674fe1">
+<!ENTITY MD5		"c7ae8d98e3ac63c0fd863b04a4a93dff">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,13 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Success dialog when 'Refresh Disks and Configuration' icon is clicked.
+- Add: Asynchrounous event handling to improve responsiveness.
+- Fix: Can't change 'Show Parititions' switch when disk is set as pass through.
+- Fix: Remove spinner.  It is unnecessary and just slows things down.
+- Fix: Mounting and Unmounting status on samba and iso mounts turns off too soon.
+
+###2020.12.28
 - Fix: Refresh when there are no unassigned drives.
 - Fix: Did some more table adjustments for disk drives.
 
