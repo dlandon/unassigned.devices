@@ -339,5 +339,6 @@ switch ($COMMAND) {
 		break;
 }
 
+array_map(function($f){@unlink($f);}, $remove);
 publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
 ?>

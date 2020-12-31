@@ -951,9 +951,6 @@ function do_mount_local($info) {
 					/* Be sure device stats are current. */
 					get_device_stats($dir);
 
-					/* Remove mounting state file. */
-					@unlink(sprintf($paths['mounting'],basename($info['device'])));
-					@unlink(sprintf($paths['mounting'],basename($info['luks'])));
 					break;
 				} else {
 					sleep(0.5);
@@ -994,9 +991,6 @@ function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE, $nfs = FALSE) {
 						@unlink($link);
 					}
 				}
-				/* Remove unmounting state files. */
-				@unlink(sprintf($paths['unmounting'],basename($dir)));
-				@unlink(sprintf($paths['unmounting'],basename($dev)));
 
 				unassigned_log("Successfully unmounted '{$dev}'");
 				$rc = TRUE;
@@ -1433,9 +1427,6 @@ function do_mount_samba($info) {
 				if ((get_config("Config", "symlinks") == "yes" ) && (dirname($dir) == $paths['remote_mountpoint'])) {
 					exec("/bin/ln -s '{$dir}/' '{$link}'");
 				}
-				/* Remove mounting state file. */
-				@unlink(sprintf($paths['mounting'],basename($info['device'])));
-
 				unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
 				$rc = TRUE;
 
@@ -1451,6 +1442,7 @@ function do_mount_samba($info) {
 	} else {
 		unassigned_log("Remote SMB/NFS server '{$info['ip']}' is offline and share '{$info['device']}' cannot be mounted."); 
 	}
+sleep(10);
 	return $rc;
 }
 
@@ -1557,9 +1549,6 @@ function do_mount_iso($info) {
 			if (is_mounted($dev)) {
 				unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
 				$rc = TRUE;
-
-				/* Remove mounting state file. */
-				@unlink(sprintf($paths['mounting'],basename($info['device'])));
 
 				/* Be sure device stats are current. */
 				get_device_stats($dir);

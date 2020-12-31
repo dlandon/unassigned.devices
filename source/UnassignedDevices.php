@@ -414,7 +414,17 @@ switch ($_POST['action']) {
 				if ($mount['mounted'] && (is_script_running($mount['command']) || is_script_running($mount['user_command'], TRUE))) {
 					echo "<td><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i>"." "._("Running")."</button></td>";
 				} else {
-					echo "<td>".($mounted ? "<button class='mount' device ='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>"._('Unmount')."</button>" : "<button class='mount'device ='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>"._('Mount')."</button>")."</td>";
+					$is_mounting	= array_values(preg_grep("@/mounting_".basename($mount['device'])."@i", listDir(dirname($paths['mounting']))))[0];
+					$is_mounting	= (time() - filemtime($is_mounting) < 300) ? TRUE : FALSE;
+					$is_unmounting	= array_values(preg_grep("@/unmounting_".basename($mount['device'])."@i", listDir(dirname($paths['unmounting']))))[0];
+					$is_unmounting	= (time() - filemtime($is_unmounting) < 300) ? TRUE : FALSE;
+					if ($is_mounting) {
+						echo "<td><button class='mount' disabled><i class='fa fa-circle-o-notch fa-spin'></i>"._('Mounting')."</button>";
+					} elseif ($is_unmounting) {
+						echo "<td><button class='mount' disabled><i class='fa fa-circle-o-notch fa-spin'></i>"._('Unounting')."</button>";
+					} else {
+						echo "<td>".($mounted ? "<button class='mount' device ='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>"._('Unmount')."</button>" : "<button class='mount'device ='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>"._('Mount')."</button>")."</td>";
+					}
 				}
 				echo $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount['name']}\");' title='"._("Remove Remote SMB/NFS Share")."'> <i class='fa fa-remove hdd'></i></a></td>";
 
@@ -456,7 +466,17 @@ switch ($_POST['action']) {
 				if ($mount['mounted'] && (is_script_running($mount['command']) || is_script_running($mount['user_command'], TRUE))) {
 					echo "<td><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i> "._('Running')."</button></td>";
 				} else {
-					echo "<td>".($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>"._('Unmount')."</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>"._('Mount')."</button>")."</td>";
+					$is_mounting	= array_values(preg_grep("@/mounting_".basename($mount['device'])."@i", listDir(dirname($paths['mounting']))))[0];
+					$is_mounting	= (time() - filemtime($is_mounting) < 300) ? TRUE : FALSE;
+					$is_unmounting	= array_values(preg_grep("@/unmounting_".basename($mount['device'])."@i", listDir(dirname($paths['unmounting']))))[0];
+					$is_unmounting	= (time() - filemtime($is_unmounting) < 300) ? TRUE : FALSE;
+					if ($is_mounting) {
+						echo "<td><button class='mount' disabled><i class='fa fa-circle-o-notch fa-spin'></i>"._('Mounting')."</button>";
+					} elseif ($is_unmounting) {
+						echo "<td><button class='mount' disabled><i class='fa fa-circle-o-notch fa-spin'></i>"._('Unounting')."</button>";
+					} else {
+						echo "<td>".($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>"._('Unmount')."</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>"._('Mount')."</button>")."</td>";
+					}
 				}
 				echo $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec' style='color:#CC0000;font-weight:bold;' onclick='remove_iso_config(\"{$mount['device']}\");' title='"._("Remove ISO File Share")."'> <i class='fa fa-remove hdd'></i></a></td>";
 
