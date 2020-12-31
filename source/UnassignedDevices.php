@@ -138,7 +138,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 	$temp = my_temp($disk['temperature']);
 	$mbutton = make_mount_button($partition);
 
-	get_config($disk['serial'], "show_partitions") != 'yes' ? $style = "style='display:none;'" : $style = "";
+	($disk['show_partitions'] != 'yes') ? $style = "style='display:none;'" : $style = "";
 	$out[] = "<tr class='toggle-parts toggle-".basename($disk['device'])."' name='toggle-".basename($disk['device'])."' $style>";
 	$out[] = "<td></td>";
 	$out[] = "<td>{$mpoint}</td>";
@@ -195,7 +195,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 		$out[] = "<td>".my_scale($partition['size'], $unit)." $unit</td>";
 		$out[] = render_used_and_free($partition, $mounted);
 	}
-	$out[] = "<td><a title='"._("View Device Script Log")."' href='/Main/ScriptLog?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><i class='fa fa-align-left'></i></a></td>";
+	$out[] = "<td><a title='"._("View Device Script Log")."' href='/Main/ScriptLog?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><i class='fa fa-align-left".( $partition['command'] ? "":" grey-orb" )."'></i></a></td>";
 	$out[] = "</tr>";
 	return $out;
 }
@@ -297,7 +297,7 @@ switch ($_POST['action']) {
 				{
 					$add_toggle = TRUE;
 
-					if (get_config($disk['serial'], "show_partitions") != 'yes') {
+					if ($disk['show_partitions'] != 'yes') {
 						$hdd_serial .="<span title='"._("Click to view/hide partitions and mount points")."' class='exec toggle-hdd' hdd='{$disk_name}'><i class='fa fa-plus-square fa-append'></i></span>";
 					} else {
 						$hdd_serial .="<span><i class='fa fa-minus-square fa-append grey-orb'></i></span>";
@@ -438,7 +438,8 @@ switch ($_POST['action']) {
 				echo "<td></td><td></td><td></td>";
 				echo "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				echo render_used_and_free($mount, $mounted);
-				echo "<td><a title='"._("View Remote SMB/NFS Script Log")."' href='/Main/ScriptLog?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><i class='fa fa-align-left'></i></a></td>";
+
+				echo "<td><a title='"._("View Remote SMB/NFS Script Log")."' href='/Main/ScriptLog?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><i class='fa fa-align-left".( $mount['command'] ? "":" grey-orb" )."'></i></a></td>";
 				echo "</tr>";
 			}
 		}
@@ -488,7 +489,7 @@ switch ($_POST['action']) {
 				echo "<td></td><td></td><td></td>";
 				echo "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				echo render_used_and_free($mount, $mounted);
-				echo "<td><a title='"._("View ISO File Script Log")."' href='/Main/ScriptLog?i=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><i class='fa fa-align-left'></i></a></td>";
+				echo "<td><a title='"._("View ISO File Script Log")."' href='/Main/ScriptLog?i=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><i class='fa fa-align-left".( $mount['command'] ? "":" grey-orb" )."'></i></a></td>";
 				echo "</tr>";
 			}
 		}

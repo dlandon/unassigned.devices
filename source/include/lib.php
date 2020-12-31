@@ -1683,14 +1683,15 @@ function get_disk_info($device, $reload=FALSE){
 	$disk = array();
 	$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV, $reload) : get_udev_info($device, NULL, $reload);
 	$device = realpath($device);
-	$disk['serial_short'] = isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
-	$disk['serial']			= "{$attrs['ID_MODEL']}_{$disk['serial_short']}";
-	$disk['device']			= $device;
-	$disk['dev']			= get_disk_dev($device);
-	$disk['ssd']			= is_disk_ssd($device);
-	$disk['running']		= is_disk_running($device);
-	$disk['command']		= get_config($disk['serial'],"command.1");
-	$disk['user_command']	= get_config($disk['serial'],"user_command.1");
+	$disk['serial_short']		= isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
+	$disk['serial']				= "{$attrs['ID_MODEL']}_{$disk['serial_short']}";
+	$disk['device']				= $device;
+	$disk['dev']				= get_disk_dev($device);
+	$disk['ssd']				= is_disk_ssd($device);
+	$disk['running']			= is_disk_running($device);
+	$disk['command']			= get_config($disk['serial'],"command.1");
+	$disk['user_command']		= get_config($disk['serial'],"user_command.1");
+	$disk['show_partitions']	= get_config($disk['serial'],"show_partitions");
 	return $disk;
 }
 
@@ -1983,6 +1984,7 @@ function curl_socket($socket, $url, $postdata = NULL) {
     curl_exec($ch);
     curl_close($ch);
 }
+
 function publish($endpoint, $message){
     curl_socket("/var/run/nginx.socket", "http://localhost/pub/$endpoint?buffer_length=1", $message);
 }
