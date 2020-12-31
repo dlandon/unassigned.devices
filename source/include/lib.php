@@ -1442,7 +1442,6 @@ function do_mount_samba($info) {
 	} else {
 		unassigned_log("Remote SMB/NFS server '{$info['ip']}' is offline and share '{$info['device']}' cannot be mounted."); 
 	}
-sleep(10);
 	return $rc;
 }
 

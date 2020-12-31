@@ -70,7 +70,7 @@ function unassigned_mount() {
 						/* Update the partition info */
 						$info = get_partition_info($partition, true);
 						export_disk($info, true);
-					} else {
+					} elseif (! is_mounted($info['device'])) {
 						unassigned_log("Partition '{$info['label']}' cannot be mounted.");
 						setSleepTime($device);
 						execute_script($info, "ERROR_MOUNT");
