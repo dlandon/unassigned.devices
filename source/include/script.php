@@ -42,7 +42,7 @@ if ( isset($_GET['device']) && isset($_GET['type']) ) {
 	$command = execute_script($info, 'ADD', TRUE);
 	if ($command != "") {
 		$command = $command." 2>&1";
-		@touch($GLOBALS['paths']['reload']);
+		publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
 		putenv("OWNER=udev");
 		write_log($command."</ br></ br>");
 		$proc = popen($command, 'r');
