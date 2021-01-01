@@ -388,9 +388,9 @@ switch ($_POST['action']) {
 		echo "<div id='title' class='show-disks samba_mounts'><span class='left'><img src='/plugins/$plugin/icons/smbsettings.png' class='icon'>"._('SMB Shares')." &nbsp;|&nbsp;<img src='/plugins/$plugin/icons/nfs.png' class='icon'>"._('NFS Shares')." &nbsp;|&nbsp;<img src='/plugins/$plugin/icons/iso.png' class='icon' style='width:16px;'>"._('ISO File Shares')."</span></div>";
 		echo "<table class='disk_status wide samba_mounts'><thead><tr><td>"._('Share Type')."</td><td>"._('Source')."</td><td>"._('Mount point')."</td><td></td><td>"._('Remove')."</td><td>"._('Settings')."</td><td></td><td></td><td></td><td>"._('Size')."</td><td>"._('Used')."</td><td>"._('Free')."</td><td>"._('Log')."</td></tr></thead>";
 		echo "<tbody>";
-		$ds1 = time();
+		$ds1 = -microtime(true);
 		$samba_mounts = get_samba_mounts();
-		unassigned_log("get_samba_mounts: ".($ds1 - microtime(true))."s!","DEBUG");
+		unassigned_log("get_samba_mounts: ".($ds1 + microtime(true))."s!","DEBUG");
 		if (count($samba_mounts)) {
 			foreach ($samba_mounts as $mount)
 			{
@@ -520,7 +520,7 @@ switch ($_POST['action']) {
 			echo "<div class='show-disks'><div class='show-historical' id='smb_tab'><div id='title'><span class='left'><img src='/plugins/{$plugin}/icons/historical.png' class='icon'>"._('Historical Devices')."</span></div>";
 			echo "<table class='disk_status wide usb_absent'><thead><tr><td>"._('Device')."</td><td>"._('Serial Number (Mount Point)')."</td><td></td><td></td><td></td><td></td><td></td><td></td><td>"._('Settings')."</td><td>"._('Remove')."</td></tr></thead><tbody>{$ct}</tbody></table></div></div>";
 		}
-		unassigned_log("Total render time: ".($time + microtime(true))."s", "DEBUG");
+		unassigned_log("Total get_content render time: ".($time + microtime(true))."s", "DEBUG");
 		break;
 
 	case 'refresh_page':
@@ -557,7 +557,7 @@ switch ($_POST['action']) {
 		$time = -microtime(true);
 		$disks = get_all_disks_info();
 		echo json_encode($disks);
-		unassigned_log("Total render time: ".($time + microtime(true))."s", "DEBUG");
+		unassigned_log("Total get_content_json render time: ".($time + microtime(true))."s", "DEBUG");
 		break;
 
 	/*	CONFIG	*/

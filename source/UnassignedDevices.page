@@ -202,11 +202,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		$.post(UDURL,{'action':op,'device':device});
 	}
 
-	function pin_tab(n) {
-		$.removeCookie('one',{path:'/'});
-		$.cookie('tab','tab'+n,{path:'/'});
-	}
-
 	function usb_disks(tabnum)
 	{
 		/* save table widths */
@@ -318,11 +313,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 				target.replaceWith("<input type='text' name='SHARE' class='swal-content__input' autocomplete='off' required>");
 			}
 		});
-	}
-
-	function getVal(el, name) {
-		el = $(el).find("*[name="+name+"]");
-		return value = ( $(el).attr('type') == 'checkbox' ) ? ($(el).is(':checked') ? "on" : "off") : $(el).val();
 	}
 
 	function get_tab_title_by_name(name) {

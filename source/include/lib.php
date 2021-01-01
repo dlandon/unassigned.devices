@@ -1357,6 +1357,7 @@ function do_mount_samba($info) {
 	$rc = FALSE;
 	$config_file	= $paths['config_file'];
 	$config			= @parse_ini_file($config_file, true);
+
 	/* Be sure the server status is current */
 	$info['is_alive'] = is_samba_server_online($info['ip'], FALSE);
 	if ($info['is_alive']) {
