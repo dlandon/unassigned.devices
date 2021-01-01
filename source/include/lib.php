@@ -945,12 +945,10 @@ function do_mount_local($info) {
 			for ($i=0; $i < 5; $i++) {
 				if (is_mounted($dev)) {
 					@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
+
 					unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
+
 					$rc = TRUE;
-
-					/* Be sure device stats are current. */
-					get_device_stats($dir);
-
 					break;
 				} else {
 					sleep(0.5);
@@ -1428,10 +1426,8 @@ function do_mount_samba($info) {
 					exec("/bin/ln -s '{$dir}/' '{$link}'");
 				}
 				unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
-				$rc = TRUE;
 
-				/* Be sure device stats are current. */
-				get_device_stats($dir);
+				$rc = TRUE;
 			} else {
 				@rmdir($dir);
 				unassigned_log("Mount of '{$dev}' failed. Error message: '$o'.");
@@ -1547,10 +1543,8 @@ function do_mount_iso($info) {
 			$o = timed_exec(10, $cmd." 2>&1");
 			if (is_mounted($dev)) {
 				unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
-				$rc = TRUE;
 
-				/* Be sure device stats are current. */
-				get_device_stats($dir);
+				$rc = TRUE;
 			} else {
 				@rmdir($dir);
 				unassigned_log("Mount of '{$dev}' failed. Error message: $o");
