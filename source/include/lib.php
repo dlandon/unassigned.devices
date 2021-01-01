@@ -335,69 +335,6 @@ function get_temp($dev, $running) {
 	return $rc;
 }
 
-function verify_precleared($dev) {
-
-	$cleared        = TRUE;
-	$disk_blocks    = intval(trim(timed_exec(2, "/sbin/blockdev --getsz $dev | /bin/awk '{ print $1 }' 2>/dev/null")));
-	$max_mbr_blocks = hexdec("0xFFFFFFFF");
-	$over_mbr_size  = ( $disk_blocks >= $max_mbr_blocks ) ? TRUE : FALSE;
-	$pattern        = $over_mbr_size ? array("00000", "00000", "00002", "00000", "00000", "00255", "00255", "00255") : 
-									   array("00000", "00000", "00000", "00000", "00000", "00000", "00000", "00000");
-
-	$b["mbr1"] = trim(timed_exec(10, "/usr/bin/dd bs=446 count=1 if={$dev} 2>/dev/null | /bin/sum | /bin/awk '{print $1}'"));
-	$b["mbr2"] = trim(timed_exec(5, "/usr/bin/dd bs=1 count=48 skip=462 if={$dev} 2>/dev/null | /bin/sum | /bin/awk '{print $1}'"));
-	$b["mbr3"] = trim(timed_exec(5, "/usr/bin/dd bs=1 count=1  skip=450 if={$dev} 2>/dev/null | /bin/sum | /bin/awk '{print $1}'"));
-	$b["mbr4"] = trim(timed_exec(5, "/usr/bin/dd bs=1 count=1  skip=511 if={$dev} 2>/dev/null | /bin/sum | /bin/awk '{print $1}'"));
-	$b["mbr5"] = trim(timed_exec(5, "/usr/bin/dd bs=1 count=1  skip=510 if={$dev} 2>/dev/null | /bin/sum | /bin/awk '{print $1}'"));
-
-	foreach (range(0,15) as $n) {
-		$b["byte{$n}"] = trim(timed_exec(2, "/usr/bin/dd bs=1 count=1 skip=".(446+$n)." if={$dev} 2>/dev/null | /bin/sum | /bin/awk '{print $1}'"));
-		$b["byte{$n}h"] = sprintf("%02x",$b["byte{$n}"]);
-	}
-
-	unassigned_log("Verifying '$dev' for preclear signature.", "DEBUG");
-
-	if ( $b["mbr1"] != "00000" || $b["mbr2"] != "00000" || $b["mbr3"] != "00000" || $b["mbr4"] != "00170" || $b["mbr5"] != "00085" ) {
-		unassigned_log("Failed test 1: MBR signature not valid.", "DEBUG"); 
-		$cleared = FALSE;
-	}
-
-	/* verify signature */
-	foreach ($pattern as $key => $value) {
-		if ($b["byte{$key}"] != $value) {
-			unassigned_log("Failed test 2: signature pattern $key ['$value'] != '".$b["byte{$key}"]."'", "DEBUG");
-			$cleared = FALSE;
-		}
-	}
-
-	$sc = hexdec("0x{$b['byte11h']}{$b['byte10h']}{$b['byte9h']}{$b['byte8h']}");
-	$sl = hexdec("0x{$b['byte15h']}{$b['byte14h']}{$b['byte13h']}{$b['byte12h']}");
-	switch ($sc) {
-		case 63:
-		case 64:
-			$partition_size = $disk_blocks - $sc;
-			break;
-
-		case 1:
-			if ( ! $over_mbr_size) {
-				unassigned_log("Failed test 3: start sector ($sc) is invalid.", "DEBUG");
-				$cleared = FALSE;
-			}
-			$partition_size = $max_mbr_blocks;
-			break;
-
-		default:
-			unassigned_log("Failed test 4: start sector ($sc) is invalid.", "DEBUG");
-			$cleared = FALSE;
-			break;
-	}
-
-	if ( $partition_size != $sl ) {
-		unassigned_log("Failed test 5: disk size doesn't match.", "DEBUG");
-		$cleared = FALSE;
-	}
-	return $cleared;
-}
 
 function get_format_cmd($dev, $fs) {
 	switch ($fs) {
@@ -1732,9 +1669,6 @@ function get_partition_info($device, $reload=FALSE){
 		}
 		$disk['mounted']	= is_mounted($disk['device']);
 		$disk['pass_through']	= (! $disk['mounted']) ? is_pass_through($disk['serial']) : FALSE;
-		if ( (! $disk['pass_through']) && (! $disk['fstype']) ) {
-			$disk['fstype'] = (verify_precleared($disk['disk'])) ? "precleared" : $disk['fstype'];
-		}
 		$disk['target'] = str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep {$disk['device']} | /bin/awk '{print $2}'")));
 		$stats = get_device_stats($disk['mountpoint']);
 		$disk['size']		= intval($stats[0])*1024;
