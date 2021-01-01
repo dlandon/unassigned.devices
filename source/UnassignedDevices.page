@@ -526,17 +526,17 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 <?=$Preclear ? $Preclear->html() : "";?>
 
 :unassgned_devices_switches_plug:
-> Turn on the **Shares** switch to change the web page to show shares. Turn off the **Shares** switch to change the web page to hide shares.
->
 > Turn on the **Disks** switch to change the web page to show disk devices. Turn off the **Diskss** switch to change the web page to hide disk devices.
 >
-> Turn on the **Partitions** switch to show all disk device partitions. Turn off **Partitons** switch to switch back to not show disk device partitions.
+> Turn on the **Shares** switch to change the web page to show shares. Turn off the **Shares** switch to change the web page to hide shares.
 >
-> Click on the <i style='color:black;font-weight:bold;' class="fa fa-refresh"></i> icon to rescan disks.
+> Turn on the **Historical** switch to show Historical disk devices. Turn off **Hstorical** switch to switch back to not show Historical disk devices.
+>
+> Click on the <i style='color:black;font-weight:bold;' class="fa fa-refresh"></i> icon to refresh disks and configuration.
 >
 > Click on the <i style='color:black;font-weight:bold;' class="fa fa-gear"></i> icon to go to the UD Settings.
 >
-> You can spin a disk up or down by clicking on the disk ball indicator.  Applies to version 6.9 and later only.
+> You can spin a disk up or down by clicking on the disk ball <i class='fa fa-circle orb green-orb'></i>or <i class='fa fa-circle orb grey-orb'></i>indicator.  Applies to version 6.9 RC2 and later only.
 :end
 
 <div id="usb_devices_list">
