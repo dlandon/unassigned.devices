@@ -263,19 +263,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		ud_Reload.start();
 	});
 
-	function showInput() {
-		$(this).off('click');
-		$(this).siblings('input').each(function(){$(this).show();});
-		$(this).siblings('input').focus();
-		$(this).hide();
-	}
-
-	function hideInput() {
-		$(this).hide();
-		$(this).siblings('span').show();
-		$(this).siblings('span').click(showInput);
-	}
-
 	function load_hosts(el, action) {
 		var target = $(el).parents("div").find("*[name='IP']");
 		var old = $(el).html();
@@ -688,8 +675,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 				}
 			});
 		});
-		tr.find( "span.text" ).click(showInput);
-		tr.find( "input[name='mountpoint']" ).blur(hideInput);
 		tr.find( "button[role$=mount]" ).on( "click", function()
 		{
 			disk_op(this, $(this).attr("role"), $(this).attr("device"));
