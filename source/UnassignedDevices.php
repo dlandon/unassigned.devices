@@ -283,9 +283,7 @@ switch ($_POST['action']) {
 				$preclearing	= $Preclear ? $Preclear->isRunning($disk_name) : false;
 				$is_precleared	= ($disk['partitions'][0]['fstype'] == "precleared") ? true : false;
 				$flash			= ($disk['partitions'][0]['fstype'] == "vfat") ? true : false;
-				if ( ($mounted || ! $preclearing) ) {
-					$disk['temperature'] = $disk['temperature'] ? $disk['temperature'] : get_temp(substr($disk['device'],0,10), $disk['running']);
-				}
+				$disk['temperature'] = $disk['temperature'] ? $disk['temperature'] : get_temp(substr($disk['device'],0,10), $disk['running']);
 				$temp = my_temp($disk['temperature']);
 
 				$mbutton = make_mount_button($disk);
@@ -350,13 +348,18 @@ switch ($_POST['action']) {
 				echo "<td class='mount'>{$mbutton}</td>";
 				/* Disk temperature */
 				echo "<td>{$temp}</td>";
+
+				if (! $p) {
+					$rw	= get_disk_reads_writes($disk['device']);
+					$reads = $rw[0];
+					$writes = $rw[1];
+				}
 				/* Reads */
-				echo ($p)?$p[4]:"<td>-</td>";
+				echo ($p)?$p[4]:"<td>".my_scale($reads,$unit,0,null,1)."</td>";
 				/* Writes */
-				echo ($p)?$p[5]:"<td>-</td>";
+				echo ($p)?$p[5]:"<td>".my_scale($writes,$unit,0,null,1)."</td>";
 				/* Settings */
 				echo ($p)?$p[6]:"<td>-</td>";
-				/* Filler */
 				/* File system */
 				echo ($p)?$p[7]:"<td>-</td>";
 				/* Disk size */
