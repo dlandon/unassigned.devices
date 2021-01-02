@@ -378,9 +378,6 @@ function format_disk($dev, $fs, $pass) {
 		}
 	}
 
-	/* Set the formatting state. */
-	@touch(sprintf($paths['formatting'],basename($info['device'])));
-
 	$max_mbr_blocks = hexdec("0xFFFFFFFF");
 	$disk_blocks    = intval(trim(shell_exec("/sbin/blockdev --getsz $dev  | /bin/awk '{ print $1 }' 2>/dev/null")));
 	$disk_schema    = ( $disk_blocks >= $max_mbr_blocks ) ? "gpt" : "msdos";
@@ -457,9 +454,6 @@ function format_disk($dev, $fs, $pass) {
 		if ($o)
 		{
 			unassigned_log("luksFormat error: ".$o);
-
-			/* Clear the formatting state. */
-			@unlink(sprintf($paths['formatting'],basename($info['device'])));
 			return FALSE;
 		}
 		$mapper = "format_".basename($dev);
@@ -480,9 +474,6 @@ function format_disk($dev, $fs, $pass) {
 		if ($o && stripos($o, "warning") === FALSE)
 		{
 			unassigned_log("luksOpen result: ".$o);
-
-			/* Clear the formatting state. */
-			@unlink(sprintf($paths['formatting'],basename($info['device'])));
 			return FALSE;
 		}
 		exec(get_format_cmd("/dev/mapper/{$mapper}", $fs),$out, $return);
@@ -498,9 +489,6 @@ function format_disk($dev, $fs, $pass) {
 	if ($return)
 	{
 		unassigned_log("Format disk '{$dev}' with '$fs' filesystem failed!  Result:\n".implode(PHP_EOL, $out));
-
-		/* Clear the formatting state. */
-		@unlink(sprintf($paths['formatting'],basename($info['device'])));
 		return FALSE;
 	}
 	if ($out) {
@@ -517,9 +505,6 @@ function format_disk($dev, $fs, $pass) {
 
 	sleep(3);
 	exec("/usr/sbin/partprobe {$dev}");
-
-	/* Clear the formatting state. */
-	@unlink(sprintf($paths['formatting'],basename($info['device'])));
 
 	return TRUE;
 }
