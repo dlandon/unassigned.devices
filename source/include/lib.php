@@ -372,7 +372,7 @@ function format_disk($dev, $fs, $pass) {
 
 	/* Making sure it doesn't have partitions */
 	foreach (get_all_disks_info() as $d) {
-		if ($d['device'] == $dev && count($d['partitions']) && $d['partitions'][0]['fstype'] != "precleared") {
+		if ($d['device'] == $dev && count($d['partitions'])) {
 			unassigned_log("Aborting format: disk '{$dev}' has '".count($d['partitions'])."' partition(s).");
 			return FALSE;
 		}

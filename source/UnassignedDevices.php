@@ -207,13 +207,13 @@ function make_mount_button($device) {
 
 	if (isset($device['partitions'])) {
 		$mounted = isset($device['mounted']) ? $device['mounted'] : in_array(TRUE, array_map(function($ar){return $ar['mounted'];}, $device['partitions']));
-		$disable = count(array_filter($device['partitions'], function($p){ if (! empty($p['fstype']) && $p['fstype'] != "precleared") return TRUE;})) ? "" : "disabled";
-		$format	 = (isset($device['partitions']) && ! count($device['partitions'])) || $device['partitions'][0]['fstype'] == "precleared" ? true : false;
+		$disable = count(array_filter($device['partitions'], function($p){ if (! empty($p['fstype'])) return TRUE;})) ? "" : "disabled";
+		$format	 = (isset($device['partitions']) && ! count($device['partitions'])) ? true : false;
 		$context = "disk";
 	} else {
 		$mounted =	$device['mounted'];
-		$disable = (! empty($device['fstype']) && $device['fstype'] != "crypto_LUKS" && $device['fstype'] != "precleared") ? "" : "disabled";
-		$format	 = ((isset($device['fstype']) && empty($device['fstype'])) || $device['fstype'] == "precleared") ? true : false;
+		$disable = (! empty($device['fstype']) && $device['fstype'] != "crypto_LUKS") ? "" : "disabled";
+		$format	 = ((isset($device['fstype']) && empty($device['fstype']))) ? true : false;
 		$context = "partition";
 	}
 	$is_mounting	= array_values(preg_grep("@/mounting_".basename($device['device'])."@i", listDir(dirname($paths['mounting']))))[0];
@@ -224,7 +224,7 @@ function make_mount_button($device) {
 	$is_formatting	= (time() - filemtime($is_formatting) < 300) ? TRUE : FALSE;
 
 	$preclearing	= $Preclear ? $Preclear->isRunning(basename($device['device'])) : false;
-	if ($device['size'] == 0) {
+	if (($device['size'] == 0) && (! $is_unmounting)) {
 		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-erase', _('Mount'));
 	} elseif ($format) {
 		$disable = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled") ? "" : "disabled";
@@ -281,7 +281,6 @@ switch ($_POST['action']) {
 				$disk_dev		= $disk['dev'];
 				$p				= (count($disk['partitions']) > 0) ? render_partition($disk, $disk['partitions'][0], TRUE) : FALSE;
 				$preclearing	= $Preclear ? $Preclear->isRunning($disk_name) : false;
-				$is_precleared	= ($disk['partitions'][0]['fstype'] == "precleared") ? true : false;
 				$flash			= ($disk['partitions'][0]['fstype'] == "vfat") ? true : false;
 				$disk['temperature'] = $disk['temperature'] ? $disk['temperature'] : get_temp(substr($disk['device'],0,10), $disk['running']);
 				$temp = my_temp($disk['temperature']);
@@ -291,18 +290,14 @@ switch ($_POST['action']) {
 				$preclear_link = ($disk['size'] !== 0 && ! $disk['partitions'][0]['fstype'] && ! $mounted && $Preclear && ! $preclearing  && get_config("Config", "destructive_mode") == "enabled") ? "&nbsp;&nbsp;".$Preclear->Link($disk_name, "icon") : "";
 
 				$hdd_serial = "<a href=\"#\" title='"._("Disk Log Information")."' onclick=\"openBox('/webGui/scripts/disk_log&amp;arg1={$disk_name}','Disk Log Information',600,900,false);return false\"><i class='fa fa-hdd-o icon'></i></a>";
-				if ( $p	&& ! ($is_precleared || $preclearing) )
-				{
+				if ($p) {
 					$add_toggle = TRUE;
-
 					if ($disk['show_partitions'] != 'yes') {
 						$hdd_serial .="<span title='"._("Click to view/hide partitions and mount points")."' class='exec toggle-hdd' hdd='{$disk_name}'><i class='fa fa-plus-square fa-append'></i></span>";
 					} else {
 						$hdd_serial .="<span><i class='fa fa-minus-square fa-append grey-orb'></i></span>";
 					}
-				}
-				else
-				{
+				} else {
 					$add_toggle = FALSE;
 					$hdd_serial .= "<span class='toggle-hdd' hdd='{$disk_name}'></span>";
 				}
