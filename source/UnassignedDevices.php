@@ -224,12 +224,19 @@ function make_mount_button($device) {
 	$is_formatting	= (time() - filemtime($is_formatting) < 300) ? TRUE : FALSE;
 
 	$preclearing	= $Preclear ? $Preclear->isRunning(basename($device['device'])) : false;
+
+	$is_preclearing = shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep '{$device['device']}' | /bin/grep -v 'grep'") != "" ? TRUE : FALSE;
+
 	if (($device['size'] == 0) && (! $is_unmounting)) {
 		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-erase', _('Mount'));
 	} elseif ($format) {
 		$disable = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled") ? "" : "disabled";
-		$disable = $preclearing ? "disabled" : $disable;
-		$button = sprintf($button, $context, 'format', $disable, 'fa fa-erase', _('Format'));
+		if ($is_preclearing) {
+			$button = sprintf($button, $context, 'format', 'disabled', 'fa fa-circle-o-notch fa-spin', " "._('Preclear'));
+		} else {
+			$disable = $preclearing ? "disabled" : $disable;
+			$button = sprintf($button, $context, 'format', $disable, 'fa fa-erase', _('Format'));
+		}
 	} elseif ($is_mounting) {
 		$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-circle-o-notch fa-spin', ' '._('Mounting'));
 	} elseif ($is_unmounting) {
