@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2020.12.31">
+<!ENTITY version   "2021.01.01">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"c7ae8d98e3ac63c0fd863b04a4a93dff">
+<!ENTITY MD5		"e781bd4e243399908e6c1a7acc1a4ac1">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,12 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Code cleanup.
+- Fix: Only show last 25 lines of a script log.
+- Fix: Update help text.
+- Fix: Remove preclear signature check on a disk without a file system.  It causes constant disk reads and keeps the disk spun up.  UD will not show 'preclear' on a disk.
+
+###2020.12.31
 - Add: Success dialog when 'Refresh Disks and Configuration' icon is clicked.
 - Add: Asynchrounous event handling to improve responsiveness.
 - Fix: Can't change 'Show Parititions' switch when disk is set as pass through.
