@@ -628,7 +628,7 @@ function is_automount($sn, $usb=FALSE) {
 	$auto = get_config($sn, "automount");
 	$auto_usb = get_config("Config", "automount_usb");
 	$pass_through = get_config($sn, "pass_through");
-	return ( ($pass_through != "yes" && $auto == "yes") || ( $usb && $auto_usb == "yes" ) ) ? TRUE : FALSE;
+	return ( (($pass_through != "yes") && ($auto == "yes")) || ($usb && $auto_usb == "yes") ) ? TRUE : FALSE;
 }
 
 function is_read_only($sn) {
@@ -986,7 +986,7 @@ function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE, $nfs = FALSE) {
 function config_shared($sn, $part, $usb=FALSE) {
 	$share = get_config($sn, "share.{$part}");
 	$auto_usb = get_config("Config", "automount_usb");
-	return ($share == "yes" || (! $share && $usb == TRUE && $auto_usb == "yes")) ? TRUE : FALSE; 
+	return (($share == "yes") || ($usb && $auto_usb == "yes")) ? TRUE : FALSE; 
 }
 
 function toggle_share($serial, $part, $status) {
@@ -1057,7 +1057,7 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 			$c[]	= "";
 			$c[]	= "include = $share_conf";
 
-			/* Do some cleanup/
+			/* Do some cleanup */
 			$smb_extra_includes = array_unique(preg_grep("/include/i", $c));
 			foreach($smb_extra_includes as $key => $inc) if( ! is_file(parse_ini_string($inc)['include'])) unset($smb_extra_includes[$key]); 
 			$c		= array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_extra_includes);
@@ -1098,7 +1098,8 @@ function rm_smb_share($dir, $share_name) {
 		}
 		if (exist_in_file($paths['smb_extra'], $share_conf)) {
 			$c = (is_file($paths['smb_extra'])) ? @file($paths['smb_extra'],FILE_IGNORE_NEW_LINES) : array();
-			# Do Cleanup
+
+			/* Do some cleanup. */
 			$smb_extra_includes = array_unique(preg_grep("/include/i", $c));
 			foreach($smb_extra_includes as $key => $inc) if (! is_file(parse_ini_string($inc)['include'])) unset($smb_extra_includes[$key]); 
 			$c = array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_extra_includes);
@@ -1296,6 +1297,7 @@ function get_samba_mounts() {
 			$mount['device'] = $device;
 			$mount['name']   = $device;
 
+			/* Set the mount protocol. */
 			if ($mount['protocol'] == "NFS") {
 				$mount['fstype'] = "nfs";
 				$path = basename($mount['path']);
@@ -1445,6 +1447,7 @@ function toggle_samba_share($source, $status) {
 	return ($config[$source]["smb_share"] == "yes") ? TRUE : FALSE;
 }
 
+/* Remove the samba remote mount configuration. */
 function remove_config_samba($source) {
 	$config_file = $GLOBALS["paths"]["samba_mount"];
 	$config = @parse_ini_file($config_file, true);
@@ -1696,7 +1699,8 @@ function get_partition_info($device) {
 		$disk['serial_short']	= isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
 		$disk['serial']			= "{$attrs['ID_MODEL']}_{$disk['serial_short']}";
 		$disk['device']			= $device;
-		/* Grab partition number */
+
+		/* Get partition number */
 		preg_match_all("#(.*?)(\d+$)#", $device, $matches);
 		$disk['part']			= $matches[2][0];
 		$disk['disk']			= $matches[1][0];
