@@ -49,12 +49,14 @@ if (! isset($var)){
 	$var = @parse_ini_file("$docroot/state/var.ini");
 }
 
+/* See if NETBIOS is enabled on Unraid. */
 if ((! isset($var['USE_NETBIOS']) || ((isset($var['USE_NETBIOS'])) && ($var['USE_NETBIOS'] == "yes")))) {
 	$use_netbios = "yes";
 } else {
 	$use_netbios = "no";
 }
 
+/* See if the preclear plugin is installed. */
 if ( is_file( "plugins/preclear.disk/assets/lib.php" ) )
 {
 	require_once( "plugins/preclear.disk/assets/lib.php" );
@@ -141,6 +143,7 @@ function unassigned_log($m, $type = "NOTICE") {
 	exec($cmd);
 }
 
+/* Get a list of directories at $root. */
 function listDir($root) {
 	$iter = new RecursiveIteratorIterator(
 			new RecursiveDirectoryIterator($root, 
@@ -156,9 +159,11 @@ function listDir($root) {
 
 /* Remove characters that will cause issues in names. */
 function safe_name($string, $convert_spaces=TRUE) {
+
 	$string = stripcslashes($string);
 	/* Convert single and double quote to underscore */
 	$string = str_replace( array("'",'"', "?"), "_", $string);
+	/* Convert spaces to underscore. */
 	if ($convert_spaces) {
 		$string = str_replace(" " , "_", $string);
 	}
@@ -174,16 +179,22 @@ function exist_in_file($file, $val) {
 }
 
 /* Get the size, used, and free space on a mount point. */
-function get_device_stats($mountpoint, $active=TRUE) {
+function get_device_stats($mountpoint, $mounted, $active=TRUE) {
 	global $paths, $plugin;
 
-	$tc = $paths['df_status'];
-	$df_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-	$rc = "";
-	if (is_mounted($mountpoint, TRUE)) {
+	/* Get current state. */
+	$tc			= $paths['df_status'];
+	$df_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+	$rc			= "";
+
+	/* Get the device stats if it is mounted. */
+	if ($mounted) {
+		/* Get the current device stats. */
 		if (isset($df_status[$mountpoint])) {
 			$rc = $df_status[$mountpoint]['stats'];
 		}
+
+		/* Run the stats script to update the state file. */
 		if (($active) && ((time() - $df_status[$mountpoint]['timestamp']) > 90) ) {
 			exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats df_status {$tc} '{$mountpoint}' &");
 		}
@@ -195,9 +206,11 @@ function get_device_stats($mountpoint, $active=TRUE) {
 function get_disk_dev($dev) {
 	global $paths;
 
+	/* Get the current state. */
 	$rc		= basename($dev);
 	$sf		= $paths['dev_state'];
 	if (is_file($sf)) {
+		/* Get the devX designation for this device. */
 		$devs = parse_ini_file($paths['dev_state'], true);
 		foreach ($devs as $d) {
 			if (($d['device'] == basename($dev)) && isset($d['name'])) {
@@ -213,10 +226,12 @@ function get_disk_dev($dev) {
 function get_disk_reads_writes($dev) {
 	global $paths;
 
+	/* Convert the $dev withoout partition. */
 	$dev	= (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev) ;
 	$rc		= array();
 	$sf		= $paths['dev_state'];
 	if (is_file($sf)) {
+		/* Get the number of reads and writes for this device. */
 		$devs = parse_ini_file($paths['dev_state'], true);
 		foreach ($devs as $d) {
 			if (($d['device'] == basename($dev)) && isset($d['numReads']) && isset($d['numWrites'])) {
@@ -236,6 +251,7 @@ function is_disk_running($dev) {
 	$rc			= FALSE;
 	$run_devs	= FALSE;
 	$sf = $paths['dev_state'];
+	/* Check for devs.ini file to get the current spindown state. */
 	if (is_file($sf)) {
 		$devs = parse_ini_file($sf, true);
 		foreach ($devs as $d) {
@@ -246,6 +262,8 @@ function is_disk_running($dev) {
 			}
 		}
 	}
+
+	/* If the spindown can't be gotten from the devs.ini file, do hdparm to get it. */
 	if (! $run_devs) {
 		$tc = $paths['run_status'];
 		$run_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
@@ -265,8 +283,8 @@ function is_disk_running($dev) {
 function is_samba_server_online($ip, $mounted, $background=TRUE) {
 	global $paths, $plugin;
 
-	$is_alive = FALSE;
-	$server = $ip;
+	$is_alive	= FALSE;
+	$server		= $ip;
 	$tc = $paths['ping_status'];
 	$ping_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 	if (isset($ping_status[$server])) {
@@ -274,7 +292,9 @@ function is_samba_server_online($ip, $mounted, $background=TRUE) {
 	}
 	if ((time() - $ping_status[$server]['timestamp']) > 15 ) {
 		$bk = $background ? "&" : "";
-		exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats ping {$tc} {$ip} {$mounted} $bk");
+
+		/* Run the stats script to update the state file. */
+		exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats ping {$tc} {$ip} {$mounted} {$bk}");
 	}
 
 	return $is_alive;
@@ -285,15 +305,20 @@ function is_script_running($cmd, $user=FALSE) {
 	global $paths;
 
 	$is_running = FALSE;
+	/* Check for a command file. */
 	if ($cmd != "") {
 		$script_name = $cmd;
 		$tc = $paths['script_run'];
 		$script_run = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+
+		/* Check to see if the script was running. */
 		if (isset($script_run[$script_name])) {
 			$was_running = ($script_run[$script_name]['running'] == 'yes') ? TRUE : FALSE;
 		} else {
 			$was_running = FALSE;
 		}
+
+		/* Set up for ps to find the right script. */
 		if ($user) {
 			$path_info = pathinfo($cmd);
 			$cmd = $path_info['dirname'];
@@ -301,8 +326,12 @@ function is_script_running($cmd, $user=FALSE) {
 		} else {
 			$source = "unassigned.devices";
 		}
+
+		/* Check if the script is currently running. */
 		$is_running = shell_exec("/usr/bin/ps -ef | /bin/grep '".basename($cmd)."' | /bin/grep -v 'grep' | /bin/grep '{$source}'") != "" ? TRUE : FALSE;
 		$script_run[$script_name] = array('running' => $is_running ? 'yes' : 'no','user' => $user ? 'yes' : 'no');
+
+		/* Update the current running state. */
 		file_put_contents($tc, json_encode($script_run));
 		if (($was_running) && (! $is_running)) {
 			publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
@@ -316,37 +345,37 @@ function get_temp($dev, $running) {
 	global $var, $paths;
 
 	$rc	= "*";
-	if ($running) {
-		$temp = "";
-		$sf = $paths['dev_state'];
-		if (is_file($sf)) {
-			$devs = parse_ini_file($paths['dev_state'], true);
-			foreach ($devs as $d) {
-				if (($d['device'] == basename($dev)) && isset($d['temp'])) {
-					$temp = $d['temp'];
-					$rc = $temp;
-					break;
-				}
+	$temp = "";
+	$sf = $paths['dev_state'];
+	/* Get temperature from the devs.ini file. */
+	if (is_file($sf)) {
+		$devs = parse_ini_file($paths['dev_state'], true);
+		foreach ($devs as $d) {
+			if (($d['device'] == basename($dev)) && isset($d['temp'])) {
+				$temp = $d['temp'];
+				$rc = $temp;
+				break;
 			}
 		}
-		if ($temp == "") {
-			$tc = $paths['hdd_temp'];
-			$temps = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-			if (isset($temps[$dev]) && (time() - $temps[$dev]['timestamp']) < $var['poll_attributes'] ) {
-				$rc = $temps[$dev]['temp'];
-			} else {
-				$cmd	= "/usr/sbin/smartctl -n standby -A $dev | /bin/awk 'BEGIN{t=\"*\"} $1==\"Temperature:\"{t=$2;exit};$1==190||$1==194{t=$10;exit} END{print t}'";
-				$temp	= trim(timed_exec(10, $cmd));
-				$temp	= ($temp < 128) ? $temp : "*";
-				$temps[$dev] = array('timestamp' => time(), 'temp' => $temp);
-				file_put_contents($tc, json_encode($temps));
-				$rc = $temp;
-			}
+	}
+
+	/* If devs.ini does not exist, then query the disk for the temperature. */
+	if (($running) && ($temp == "")) {
+		$tc = $paths['hdd_temp'];
+		$temps = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+		if (isset($temps[$dev]) && (time() - $temps[$dev]['timestamp']) < $var['poll_attributes'] ) {
+			$rc = $temps[$dev]['temp'];
+		} else {
+			$cmd	= "/usr/sbin/smartctl -n standby -A $dev | /bin/awk 'BEGIN{t=\"*\"} $1==\"Temperature:\"{t=$2;exit};$1==190||$1==194{t=$10;exit} END{print t}'";
+			$temp	= trim(timed_exec(10, $cmd));
+			$temp	= ($temp < 128) ? $temp : "*";
+			$temps[$dev] = array('timestamp' => time(), 'temp' => $temp);
+			file_put_contents($tc, json_encode($temps));
+			$rc = $temp;
 		}
 	}
 	return $rc;
 }
-
 
 /* Get the format command bases on file system to be formatted. */
 function get_format_cmd($dev, $fs) {
@@ -395,7 +424,7 @@ function format_disk($dev, $fs, $pass) {
 	$max_mbr_blocks = hexdec("0xFFFFFFFF");
 	$disk_blocks    = intval(trim(shell_exec("/sbin/blockdev --getsz $dev  | /bin/awk '{ print $1 }' 2>/dev/null")));
 	$disk_schema    = ( $disk_blocks >= $max_mbr_blocks ) ? "gpt" : "msdos";
-	$parted_fs = ($fs == 'exfat') ? "fat32" : $fs;
+	$parted_fs		= ($fs == 'exfat') ? "fat32" : $fs;
 	unassigned_log("Device '{$dev}' block size: {$disk_blocks}");
 
 	unassigned_log("Clearing partition table of disk '$dev'.");
@@ -416,6 +445,7 @@ function format_disk($dev, $fs, $pass) {
 		if ($disk_schema == "gpt") {
 			unassigned_log("Creating Unraid compatible gpt partition on disk '{$dev}'.");
 			shell_exec("/sbin/sgdisk -Z {$dev}");
+
 			/* Alignment is 4,096 for spinners and 1Mb for SSD */
 			$alignment = $is_ssd ? "" : "-a 8";
 			$o = shell_exec("/sbin/sgdisk -o {$alignment} -n 1:32K:0 {$dev}");
@@ -459,11 +489,11 @@ function format_disk($dev, $fs, $pass) {
 		if ($pass == "") {
 			$o = shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
 		} else {
-			$luks	= basename($dev);
-			$luks_pass_file = "{$paths['luks_pass']}_".$luks;
+			$luks			= basename($dev);
+			$luks_pass_file	= "{$paths['luks_pass']}_".$luks;
 			file_put_contents($luks_pass_file, $pass);
-			$cmd	= $cmd." -d {$luks_pass_file}";
-			$o = shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+			$cmd			= $cmd." -d {$luks_pass_file}";
+			$o				= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
 		}
 		if ($o)
 		{
@@ -479,9 +509,9 @@ function format_disk($dev, $fs, $pass) {
 		if ($pass == "") {
 			$o = exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
 		} else {
-			$luks	= basename($dev);
-			$luks_pass_file = "{$paths['luks_pass']}_".$luks;
-			$cmd	= $cmd." -d {$luks_pass_file}";
+			$luks			= basename($dev);
+			$luks_pass_file	= "{$paths['luks_pass']}_".$luks;
+			$cmd			= $cmd." -d {$luks_pass_file}";
 			$o = shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
 			exec("/bin/shred -u '$luks_pass_file'");
 		}
@@ -556,13 +586,13 @@ function benchmark() {
 	array_shift($params);
 	$time     = -microtime(true); 
 	$out      = call_user_func_array($function, $params);
-	$time    += microtime(true); 
+	$time	 += microtime(true); 
 	$type     = ($time > 10) ? "INFO" : "DEBUG";
 	unassigned_log("benchmark: $function(".implode(",", $params).") took ".sprintf('%f', $time)."s.", $type);
 	return $out;
 }
 
-/* Run a command and time it oout if it takes too long. */
+/* Run a command and time it out if it takes too long. */
 function timed_exec($timeout=10, $cmd) {
 	$time		= -microtime(true); 
 	$out		= shell_exec("/usr/bin/timeout ".$timeout." ".$cmd);
@@ -656,6 +686,7 @@ function execute_script($info, $action, $testing = FALSE) {
 		}
 	}
 
+	/* If there is a command, execute the script. */
 	if ($cmd) {
 		$command_script = $paths['scripts'].basename($cmd);
 		copy($cmd, $command_script);
@@ -669,13 +700,6 @@ function execute_script($info, $action, $testing = FALSE) {
 					sleep(1);
 				}
 				$cmd = isset($info['serial']) ? "$command_script > /tmp/{$info['serial']}.log 2>&1 $bg" : "$command_script > /tmp/".preg_replace('~[^\w]~i', '', $info['device']).".log 2>&1 $bg";
-
-				/* Set state as script running. */
-				$script_name = $info['command'];
-				$tc = $paths['script_run'];
-				$script_run = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-				$script_run[$script_name] = array('running' => 'yes','user' => 'no');
-				file_put_contents($tc, json_encode($script_run));
 
 				/* Run the script. */
 				exec($cmd, $out, $return);
@@ -871,11 +895,11 @@ function do_mount($info) {
 function do_mount_local($info) {
 	global $paths;
 
-	$rc = FALSE;
-	$dev = $info['device'];
-	$dir = $info['mountpoint'];
-	$fs  = $info['fstype'];
-	$ro  = ($info['read_only'] == 'yes') ? TRUE : FALSE;
+	$rc		= FALSE;
+	$dev	= $info['device'];
+	$dir	= $info['mountpoint'];
+	$fs		= $info['fstype'];
+	$ro		= ($info['read_only'] == 'yes') ? TRUE : FALSE;
 	if (! is_mounted($dev) || ! is_mounted($dir, TRUE)) {
 		if ($fs) {
 			@mkdir($dir, 0777, TRUE);
@@ -1029,15 +1053,18 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 		unassigned_log("Adding SMB share '$share_name'.");
 		file_put_contents($share_conf, $share_cont);
 		if (! exist_in_file($paths['smb_extra'], $share_conf)) {
-			$c = (is_file($paths['smb_extra'])) ? @file($paths['smb_extra'],FILE_IGNORE_NEW_LINES) : array();
-			$c[] = ""; $c[] = "include = $share_conf";
-			# Do Cleanup
+			$c		= (is_file($paths['smb_extra'])) ? @file($paths['smb_extra'],FILE_IGNORE_NEW_LINES) : array();
+			$c[]	= "";
+			$c[]	= "include = $share_conf";
+
+			/* Do some cleanup/
 			$smb_extra_includes = array_unique(preg_grep("/include/i", $c));
 			foreach($smb_extra_includes as $key => $inc) if( ! is_file(parse_ini_string($inc)['include'])) unset($smb_extra_includes[$key]); 
-			$c = array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_extra_includes);
-			$c = preg_replace('/\n\s*\n\s*\n/s', PHP_EOL.PHP_EOL, implode(PHP_EOL, $c));
+			$c		= array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_extra_includes);
+			$c		= preg_replace('/\n\s*\n\s*\n/s', PHP_EOL.PHP_EOL, implode(PHP_EOL, $c));
 			file_put_contents($paths['smb_extra'], $c);
 
+			/* If the recyce bin plugin is installed, add the recycle bin to the share. */
 			if ($recycle_bin) {
 				/* Add the recycle bin parameters if plugin is installed */
 				$recycle_script = "plugins/recycle.bin/scripts/configure_recycle_bin";
@@ -1060,6 +1087,7 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 function rm_smb_share($dir, $share_name) {
 	global $paths, $var;
 
+	/* If samba is enabled remove the share. */
 	if ( ($var['shareSMBEnabled'] != "no") ) {
 		/* Remove special characters from share name */
 		$share_name = str_replace( array("(", ")"), "", basename($dir));
@@ -1292,7 +1320,7 @@ function get_samba_mounts() {
 					$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$path}";
 				}
 			}
-			$stats = get_device_stats($mount['mountpoint'], $mount['is_alive']);
+			$stats = get_device_stats($mount['mountpoint'], $mount['mounted'], $mount['is_alive']);
 			$mount['size']			= intval($stats[0])*1024;
 			$mount['used']			= intval($stats[1])*1024;
 			$mount['avail']			= intval($stats[2])*1024;
@@ -1474,7 +1502,7 @@ function get_iso_mounts() {
 			$mount['target']		= $mount['mountpoint'];
 			$is_alive				= is_file($mount['file']);
 			$mount['mounted']		= is_mounted($mount['device']);
-			$stats					= get_device_stats($mount['mountpoint']);
+			$stats					= get_device_stats($mount['mountpoint'], $mount['mounted']);
 			$mount['size']			= intval($stats[0])*1024;
 			$mount['used']			= intval($stats[1])*1024;
 			$mount['avail']			= intval($stats[2])*1024;
@@ -1641,7 +1669,7 @@ function get_udev_info($device, $udev=NULL) {
 
 /* Get information on specific disk device. */
 function get_disk_info($device) {
-//dfl
+
 	$disk = array();
 	$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV) : get_udev_info($device, NULL);
 	$device = realpath($device);
@@ -1701,7 +1729,7 @@ function get_partition_info($device) {
 		$disk['mounted']		= is_mounted($disk['device']);
 		$disk['pass_through']	= (! $disk['mounted']) ? is_pass_through($disk['serial']) : FALSE;
 		$disk['target']			= str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep {$disk['device']} | /bin/awk '{print $2}'")));
-		$stats					= get_device_stats($disk['mountpoint']);
+		$stats					= get_device_stats($disk['mountpoint'], $disk['mounted']);
 		$disk['size']			= intval($stats[0])*1024;
 		$disk['used']			= intval($stats[1])*1024;
 		$disk['avail']			= intval($stats[2])*1024;
@@ -1935,6 +1963,7 @@ function setSleepTime($device) {
 	}
 }
 
+/* Setup a socket for publish events. */
 function curl_socket($socket, $url, $postdata = NULL) {
 	$ch = curl_init($url);
 	curl_setopt($ch, CURLOPT_UNIX_SOCKET_PATH, $socket);
@@ -1947,6 +1976,7 @@ function curl_socket($socket, $url, $postdata = NULL) {
 	curl_close($ch);
 }
 
+/* Trigger an event. */
 function publish($endpoint, $message){
 	curl_socket("/var/run/nginx.socket", "http://localhost/pub/$endpoint?buffer_length=1", $message);
 }
