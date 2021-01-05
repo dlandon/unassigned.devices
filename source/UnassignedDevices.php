@@ -426,7 +426,7 @@ switch ($_POST['action']) {
 					if ($is_mounting) {
 						echo "<td><button class='mount' disabled><i class='fa fa-circle-o-notch fa-spin'></i> "._('Mounting')."</button></td>";
 					} elseif ($is_unmounting) {
-						echo "<td><button class='mount' disabled><i class='fa fa-circle-o-notch fa-spin'></i> "._('Unounting')."</button></td>";
+						echo "<td><button class='mount' disabled><i class='fa fa-circle-o-notch fa-spin'></i> "._('Unmounting')."</button></td>";
 					} else {
 						echo "<td>".($mounted ? "<button class='mount' device ='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>"._('Unmount')."</button>" : "<button class='mount'device ='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>"._('Mount')."</button>")."</td>";
 					}
@@ -479,7 +479,7 @@ switch ($_POST['action']) {
 					if ($is_mounting) {
 						echo "<td><button class='mount' disabled><i class='fa fa-circle-o-notch fa-spin'></i> "._('Mounting')."</button></td>";
 					} elseif ($is_unmounting) {
-						echo "<td><button class='mount' disabled><i class='fa fa-circle-o-notch fa-spin'></i> "._('Unounting')."</button></td>";
+						echo "<td><button class='mount' disabled><i class='fa fa-circle-o-notch fa-spin'></i> "._('Unmounting')."</button></td>";
 					} else {
 						echo "<td>".($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>"._('Unmount')."</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>"._('Mount')."</button>")."</td>";
 					}
