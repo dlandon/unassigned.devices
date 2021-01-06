@@ -56,10 +56,10 @@ if (isset($_GET['s'])) {
 	} else {
 		$background = (get_config($serial,"command_bg.{$partition}") == "true" ) ? "checked" : "";
 	}
-	$pass_through = (get_config($serial,"pass_through") == "yes") ? "checked" : "";
-	$read_only = (get_config($serial,"read_only") == "yes" ) ? "checked" : "";
-	$automount = (get_config($serial,"automount") == "yes" ) ? "checked" : "";
-	$share = (get_config($serial, "share.{$partition}") == "yes" ) ? "checked" : "";
+	$pass_through = (is_pass_through($serial)) ? "checked" : "";
+	$read_only = (is_read_only($serial)) ? "checked" : "";
+	$automount = (is_automount($serial)) ? "checked" : "";
+	$share = (config_shared($disk['serial'], $disk['part'], strpos($attrs['DEVPATH'],"usb"))) ? "checked" : "";
 	$show_partitions = (get_config($serial,"show_partitions") == "yes" ) ? "checked" : "";
 	$width = "50%";
 	$automount_action = "automount";
@@ -89,8 +89,8 @@ if (isset($_GET['s'])) {
 	} else {
 		$background = (get_samba_config($device,"command_bg") == "true" ) ? "checked" : "";
 	}
-	$automount = (get_samba_config($device,"automount") == "yes" ) ? "checked" : "";
-	$share = (get_samba_config($device, "smb_share") == "yes" ) ? "checked" : "";
+	$automount = (is_samba_automount($device)) ? "checked" : "";
+	$share = (is_samba_share($device)) ? "checked" : "";
 	$width = "18%";
 	$automount_action = "samba_automount";
 	$ud_device = $device;
@@ -111,7 +111,7 @@ if (isset($_GET['s'])) {
 		$background = (get_iso_config($device,"command_bg") == "true" ) ? "checked" : "";
 	}
 
-	$automount = (get_iso_config($device,"automount") == "yes" ) ? "checked" : "";
+	$automount = (is_iso_automount($device)) ? "checked" : "";
 	$witdh = "20%";
 	$automount_action = "iso_automount";
 	$ud_device = $device;
