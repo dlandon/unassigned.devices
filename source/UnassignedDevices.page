@@ -255,7 +255,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		if (data) {
 			usb_disks(tab_usbdisks);
 		}
-		ud_Reload.start();
 	});
 
 	function load_hosts(el, action) {
