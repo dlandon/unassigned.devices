@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2021.01.01">
+<!ENTITY version   "2021.01.09">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"e781bd4e243399908e6c1a7acc1a4ac1">
+<!ENTITY MD5		"3adbc415798ce659adcf79f186ba45c0">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,13 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Remove all checks for a 'precleared' file format.
+- Add: Indicator for preclear script running.  The 'Format' button will show 'Preclear' when the preclear plugin or docker script is running.  Should also apply to other preclear scripts.
+- Fix: Edit Settings switches not defaulting properly when switch is not defined in configuration.
+- Fix: Java Script error.
+- Fix: More code cleanup.
+
+###2021.01.01
 - Fix: Code cleanup.
 - Fix: Only show last 25 lines of a script log.
 - Fix: Update help text.
