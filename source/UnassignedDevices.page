@@ -240,14 +240,16 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 	function ping_poll(tabnum)
 	{
-		$.post(UDURL,{action:"update_ping"});
-		setTimeout(ping_poll, 15000, tabnum);
+		$.post(UDURL,{action:"update_ping"}).done(function() {
+			setTimeout(ping_poll, 15000, tabnum);
+		});
 	}
 
 	function refresh_page(tabnum)
 	{
-		$.post(UDURL,{action:"refresh_page"});
-		setTimeout(refresh_page, 3000, tabnum);
+		$.post(UDURL,{action:"refresh_page"}).done(function() {
+			setTimeout(refresh_page, 3000, tabnum);
+		});
 	}
 
 	var ud_Reload = new NchanSubscriber('/sub/reload');
