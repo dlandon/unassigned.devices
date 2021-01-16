@@ -1105,8 +1105,8 @@ function rm_smb_share($dir, $share_name) {
 			$c = array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_extra_includes);
 			$c = preg_replace('/\n\s*\n\s*\n/s', PHP_EOL.PHP_EOL, implode(PHP_EOL, $c));
 			file_put_contents($paths['smb_extra'], $c);
-			timed_exec(5, "/usr/bin/smbcontrol $(/usr/bin/cat /var/run/smbd.pid 2>/dev/null) close-share '{$share_name}' 2>&1");
-			timed_exec(5, "/usr/bin/smbcontrol $(/usr/bin/cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
+			timed_exec(5, "/usr/bin/smbcontrol $(/bin/cat /var/run/smbd.pid 2>/dev/null) close-share '{$share_name}' 2>&1");
+			timed_exec(5, "/usr/bin/smbcontrol $(/bin/cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
 		}
 	}
 	return TRUE;
@@ -1935,10 +1935,24 @@ function change_iso_mountpoint($dev, $mountpoint) {
 
 /* Change the xfs disk UUID. */
 function change_UUID($dev) {
+	global $plugin;
 
 	sleep(1);
-	$rc = timed_exec(10, "/usr/sbin/xfs_admin -U generate {$dev}");
-	unassigned_log("Changing disk '{$dev}' UUID. Result: ".$rc);
+	$dev	= (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev) ;
+	$fs_type = "";
+	foreach (get_all_disks_info() as $d) {
+		if ($d['device'] == $dev) {
+			$fs_type = $d['partitions'][0]['fstype'];
+			break;
+		}
+	}
+	if ($fs_type == "crypto_LUKS") {
+		timed_exec(1, "plugins/{$plugin}/scripts/luks_uuid.sh {$dev}1");
+		$rc = "success";
+	} else {
+		$rc = timed_exec(10, "/usr/sbin/xfs_admin -U generate {$dev}");
+	}
+	unassigned_log("Changing disk '{$dev}' UUID. Result: {$rc}");
 }
 
 /* If the disk is not a SSD, set the spin down timer if allowed by settings. */
