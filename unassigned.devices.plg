@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2021.01.09">
+<!ENTITY version   "2021.01.16">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"3adbc415798ce659adcf79f186ba45c0">
+<!ENTITY MD5		"9325f9c85a7d835285bbecdaaf2902bc">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Stop polling when the server is rebooted to prevent 503 error.
+- Fix: Share switch not showing correct setting in Edit Settings.
+- Fix: Add ability to change UUID on encrypted disks.
+
+###2021.01.09
 - Fix: Remove all checks for a 'precleared' file format.
 - Add: Indicator for preclear script running.  The 'Format' button will show 'Preclear' when the preclear plugin or docker script is running.  Should also apply to other preclear scripts.
 - Fix: Edit Settings switches not defaulting properly when switch is not defined in configuration.
