@@ -62,7 +62,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 			file_put_contents($luks_pass_file, $pass);
 			$cmd	= $cmd." -d $luks_pass_file";
 			$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
-			@unlink("$luks_pass_file");
+			exec("/bin/shred -u '$luks_pass_file'");
 		}
 		if ($o != "") {
 			echo("luksOpen error: ".$o."<br />");

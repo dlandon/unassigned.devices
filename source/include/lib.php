@@ -1964,7 +1964,7 @@ function change_UUID($dev) {
 			file_put_contents($luks_pass_file, $pass);
 			$cmd	= $cmd." -d $luks_pass_file";
 			$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
-			@unlink("$luks_pass_file");
+			exec("/bin/shred -u '$luks_pass_file'");
 		}
 		if ($o != "") {
 			unassigned_log("luksOpen error: ".$o);
@@ -1973,7 +1973,7 @@ function change_UUID($dev) {
 		$rc = timed_exec(1, "/usr/sbin/xfs_admin -U generate /dev/mapper/{$mapper}");
 		shell_exec("/sbin/cryptsetup luksClose ".$mapper);
 	} else {
-		$rc = timed_exec(1, "/usr/sbin/xfs_admin -U generate {$dev}");
+		$rc = timed_exec(1, "/usr/sbin/xfs_admin -U generate {$dev}1");
 	}
 	unassigned_log("Changing disk '{$dev}' UUID. Result: {$rc}");
 }
