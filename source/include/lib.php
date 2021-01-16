@@ -1937,20 +1937,43 @@ function change_iso_mountpoint($dev, $mountpoint) {
 function change_UUID($dev) {
 	global $plugin;
 
-	sleep(1);
 	$dev	= (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev) ;
 	$fs_type = "";
 	foreach (get_all_disks_info() as $d) {
 		if ($d['device'] == $dev) {
-			$fs_type = $d['partitions'][0]['fstype'];
+			$fs_type	= $d['partitions'][0]['fstype'];
+			$serial		= $d['partitions'][0]['serial'];
+			$luks		= $d['partitions'][0]['luks'];
 			break;
 		}
 	}
 	if ($fs_type == "crypto_LUKS") {
 		timed_exec(1, "plugins/{$plugin}/scripts/luks_uuid.sh {$dev}1");
-		$rc = "success";
+		$mapper	= basename($dev);
+		$cmd	= "luksOpen {$luks} {$mapper}";
+		$pass	= decrypt_data(get_config($serial, "pass"));
+		if ($pass == "") {
+			if (file_exists($var['luksKeyfile'])) {
+				$cmd	= $cmd." -d {$var['luksKeyfile']}";
+				$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+			} else {
+				$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
+			}
+		} else {
+			$luks_pass_file = "{$paths['luks_pass']}_".basename($luks);
+			file_put_contents($luks_pass_file, $pass);
+			$cmd	= $cmd." -d $luks_pass_file";
+			$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+			@unlink("$luks_pass_file");
+		}
+		if ($o != "") {
+			unassigned_log("luksOpen error: ".$o);
+			return;
+		}
+		$rc = timed_exec(1, "/usr/sbin/xfs_admin -U generate /dev/mapper/{$mapper}");
+		shell_exec("/sbin/cryptsetup luksClose ".$mapper);
 	} else {
-		$rc = timed_exec(10, "/usr/sbin/xfs_admin -U generate {$dev}");
+		$rc = timed_exec(1, "/usr/sbin/xfs_admin -U generate {$dev}");
 	}
 	unassigned_log("Changing disk '{$dev}' UUID. Result: {$rc}");
 }
