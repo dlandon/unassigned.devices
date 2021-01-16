@@ -59,7 +59,7 @@ if (isset($_GET['s'])) {
 	$pass_through = (is_pass_through($serial)) ? "checked" : "";
 	$read_only = (is_read_only($serial)) ? "checked" : "";
 	$automount = (is_automount($serial)) ? "checked" : "";
-	$share = (config_shared($disk['serial'], $disk['part'], strpos($attrs['DEVPATH'],"usb"))) ? "checked" : "";
+	$share = (config_shared($serial, $partition, strpos($attrs['DEVPATH'],"usb"))) ? "checked" : "";
 	$show_partitions = (get_config($serial,"show_partitions") == "yes" ) ? "checked" : "";
 	$width = "50%";
 	$automount_action = "automount";
