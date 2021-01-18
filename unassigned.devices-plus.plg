@@ -156,6 +156,7 @@ removepkg parted-3.3-x86_64-1 2>/dev/null
 removepkg exfat-utils-1.3.0-x86_64-1_slonly 2>/dev/null
 removepkg fuse-exfat-1.3.0-x86_64-1_slonly.txz 2>/dev/null
 removepkg hfsprogs-332.25-x86_64-2sl 2>/dev/null
+removepkg libfsapfs-20181215-x86_64-1_slonly.txz 2>/dev/null
 removepkg libbsd-0.8.7-x86_64-1_slonly 2>/dev/null
 
 # Remove possible leftovers
