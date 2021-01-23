@@ -127,11 +127,11 @@ function render_partition($disk, $partition, $total=FALSE) {
 	$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && (! $disk['partitions'][0]['pass_through'])) ? "<span title='"._("Remove Partition")."' device='{$partition['device']}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i></span>" : "";
 	$mpoint = "<span>{$fscheck}";
 	$mount_point = basename($partition['mountpoint']);
+	$device = ($partition['fstype'] == "crypto_LUKS") ? $partition['luks'] : $partition['device'];
 	if ($mounted) {
 		$mpoint .= "<i class='fa fa-folder-open partition-hdd'></i><a title='"._("Browse Disk Share")."' href='/Main/Browse?dir={$partition['mountpoint']}'>{$mount_point}</a></span>";
 	} else {
 		$mount_point = basename($partition['mountpoint']);
-		$device = ($partition['fstype'] == "crypto_LUKS") ? $partition['luks'] : $partition['device'];
 		$mpoint .= "<i class='fa fa-pencil partition-hdd'></i><a title='"._("Change Disk Mount Point")."' class='exec' onclick='chg_mountpoint(\"{$partition['serial']}\",\"{$partition['part']}\",\"{$device}\",\"{$partition['fstype']}\",\"{$mount_point}\");'>{$mount_point}</a>";
 		$mpoint .= "{$rm_partition}</span>";
 	}
@@ -177,7 +177,10 @@ function render_partition($disk, $partition, $total=FALSE) {
 	$title .= _("Share").": ";
 	$title .= ($partition['shared'] == 'yes') ? "On" : "Off";
 
-	$out[] = "<td><a title='$title' href='/Main/EditSettings?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."&m=".urlencode(json_encode($partition))."&t=".$total."'><i class='fa fa-gears'></i></a></td>";
+	$dev	= basename($device);
+	$device	= (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev) ;
+	$serial = $partition['serial']." (".$device.")";
+	$out[] = "<td><a title='$title' href='/Main/EditSettings?s=".urlencode($serial)."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."&m=".urlencode(json_encode($partition))."&t=".$total."'><i class='fa fa-gears'></i></a></td>";
 	if ($total) {
 		$mounted_disk = FALSE;
 		foreach ($disk['partitions'] as $part) {
