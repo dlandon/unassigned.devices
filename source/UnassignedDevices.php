@@ -291,7 +291,6 @@ switch ($_POST['action']) {
 				$disk_dev		= $disk['dev'];
 				$p				= (count($disk['partitions']) > 0) ? render_partition($disk, $disk['partitions'][0], TRUE) : FALSE;
 				$preclearing	= $Preclear ? $Preclear->isRunning($disk_name) : false;
-				$flash			= ($disk['partitions'][0]['fstype'] == "vfat") ? true : false;
 				$disk['temperature'] = $disk['temperature'] ? $disk['temperature'] : get_temp(substr($disk['device'],0,10), $disk['running']);
 				$temp = my_temp($disk['temperature']);
 
@@ -324,7 +323,7 @@ switch ($_POST['action']) {
 					$disk_display = substr($disk_dev, 0, 3)." ".substr($disk_dev, 3);
 					$disk_display = ucfirst($disk_display);
 				}
-				if ( $flash || $preclearing ) {
+				if ( $preclearing ) {
 					echo "<td><i class='fa fa-circle orb green-orb'></i>{$disk_display}</td>";
 				} else {
 					echo "<td>";
