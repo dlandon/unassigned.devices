@@ -27,6 +27,7 @@ $paths = [  "smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"df_status"			=> "/var/state/{$plugin}/df_status.json",
 			"dev_status"		=> "/var/state/{$plugin}/devs_status.json",
 			"hotplug_status"	=> "/var/state/{$plugin}/hotplug_status.json",
+			"diskio"			=> "/var/state/{$plugin}/diskio.json",
 			"dev_state"			=> "/usr/local/emhttp/state/devs.ini",
 			"samba_mount"		=> "/tmp/{$plugin}/config/samba_mount.cfg",
 			"iso_mount"			=> "/tmp/{$plugin}/config/iso_mount.cfg",
@@ -231,12 +232,30 @@ function get_disk_reads_writes($dev) {
 	$rc		= array();
 	$sf		= $paths['dev_state'];
 	if (is_file($sf)) {
+		/* Get the diskio state for the last reads and writes to calculate the read and write rates. */
+		$tc = $paths['diskio'];
+		$diskio = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+
 		/* Get the number of reads and writes for this device. */
 		$devs = parse_ini_file($paths['dev_state'], true);
 		foreach ($devs as $d) {
 			if (($d['device'] == basename($dev)) && isset($d['numReads']) && isset($d['numWrites'])) {
+				$device = $d['device'];
 				$rc[] = $d['numReads'];
 				$rc[] = $d['numWrites'];
+				$time = isset($diskio[$device]['time']) ? microtime(true) - $diskio[$device]['time'] : 0;
+				if ($time != 0)
+				{
+					$rc[] = ($d['numReads'] - $diskio[$device]['reads'])*512 / $time;
+					$rc[] = ($d['numWrites'] - $diskio[$device]['writes'])*512 / $time;
+				} else {
+					$rc[] = 0;
+					$rc[] = 0;
+				}
+				$diskio[$device]['time'] = microtime(true);
+				$diskio[$device]['reads'] = $d['numReads'];
+				$diskio[$device]['writes'] = $d['numWrites'];
+				file_put_contents($tc, json_encode($diskio));
 				break;
 			}
 		}
@@ -1740,6 +1759,8 @@ function get_partition_info($device) {
 		$rw						= get_disk_reads_writes($disk_device);
 		$disk['reads']			= $rw[0];
 		$disk['writes']			= $rw[1];
+		$disk['read_rate']		= $rw[2];
+		$disk['write_rate']		= $rw[3];
 		$disk['owner']			= (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
 		$disk['automount']		= is_automount($disk['serial'], strpos($attrs['DEVPATH'],"usb"));
 		$disk['read_only']		= is_read_only($disk['serial']);

@@ -104,7 +104,10 @@ function render_used_and_free_disk($disk, $mounted) {
 }
 
 function render_partition($disk, $partition, $total=FALSE) {
-	global $plugin;
+	global $plugin, $paths;
+
+	$tc = $paths['diskio'];
+	$diskio = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 
 	if (! isset($partition['device'])) return array();
 	$out = array();
@@ -155,8 +158,13 @@ function render_partition($disk, $partition, $total=FALSE) {
 
 	/* Reads and writes */
 	if ($total) {
-		$out[] = "<td>".my_scale($part['reads'],$unit,0,null,1)."</td>";
-		$out[] = "<td>".my_scale($part['writes'],$unit,0,null,1)."</td>";
+		if ($diskio['disk_io'] == 0) {
+			$out[] = "<td>".my_scale($part['reads'],$unit,0,null,1)."</td>";
+			$out[] = "<td>".my_scale($part['writes'],$unit,0,null,1)."</td>";
+		} else {
+			$out[] = "<td>".my_scale($part['read_rate']*1024,$unit,1)." $unit/s</td>";
+			$out[] = "<td>".my_scale($part['write_rate']*1024,$unit,1)." $unit/s</td>";
+		}
 	} else {
 		$out[] = "<td></td>";
 		$out[] = "<td></td><td></td>";
@@ -531,6 +539,13 @@ switch ($_POST['action']) {
 		break;
 
 	case 'refresh_page':
+		global $paths;
+
+		$display = urldecode($_POST['disk_display']);
+		$tc = $paths['diskio'];
+		$diskio = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+		$diskio['disk_io'] = $display;
+		file_put_contents($tc, json_encode($diskio));
 		publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
 		break;
 

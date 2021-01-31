@@ -247,13 +247,15 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 	function refresh_page(tabnum)
 	{
-		$.post(UDURL,{action:"refresh_page"}).done(function() {
+		diskio = $.cookie('diskio')===undefined ? 0 : 1;
+		$.post(UDURL,{action:"refresh_page",disk_display:diskio}).done(function() {
 			setTimeout(refresh_page, 3000, tabnum);
 		});
 	}
 
 	var ud_Reload = new NchanSubscriber('/sub/reload');
-	ud_Reload.on('message',function(data) {
+	ud_Reload.on('message',function(data)
+	{
 		if (data) {
 			usb_disks(tab_usbdisks);
 		}
@@ -631,20 +633,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	{
 		$('head').append( $('<link rel="stylesheet" type="text/css" />').attr('href', '<?autov("/plugins/${plugin}/assets/sweetalert2.css");?>') );
 		$.getScript( '/plugins/<?=$plugin;?>/assets/sweetalert2.js');
-	}
-
-	/* Remove or hide diskio toggle */
-	tabElement = get_tab_title_by_name("<?=_('Unassigned Devices')?>");
-	if (tabElement.prop("nodeName") == "DIV")
-	{
-		tabElement.addClass("disable_diskio");
-	 	$(function()
-	 	{
-	 		tabElement.find("i.toggle").remove();
-	 	});
-	} else if (tabElement.prop("nodeName") == "INPUT")
-	{
-		tabElement.bind({click:function() {$('i.toggle').hide('slow');}});
 	}
 
 	/* Bind Arrive events */
