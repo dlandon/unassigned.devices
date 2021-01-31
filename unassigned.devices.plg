@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2021.01.16b">
+<!ENTITY version   "2021.01.31">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"883a75cf96f6de9e32b93ab021ff9440">
+<!ENTITY MD5		"4aed25895737944570a3b36573012310">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Device to Edit Settings serial number.
+- Fix: Allow vfat formatted disk to be spun down.
+- Add: Disk read/write speed (B/s).
+
+###2021.01.16b
 - Fix: Stop polling when the server is rebooted to prevent 503 error.
 - Fix: Share switch not showing correct setting in Edit Settings.
 - Fix: Add ability to change UUID on encrypted disks.
