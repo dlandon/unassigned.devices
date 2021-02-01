@@ -38,6 +38,7 @@ $disabled = "";
 
 if (isset($_GET['s'])) {
 	$serial = $_GET['s'];
+	$device = $_GET['b'];
 	$partition = $_GET['p'];
 	$mount_point = $_GET['l'];
 	$info = $_GET['m'];
@@ -64,6 +65,7 @@ if (isset($_GET['s'])) {
 	$width = "50%";
 	$automount_action = "automount";
 	$ud_device = $serial;
+	$serial = $serial." (".$device.")";
 	$background_action = "background";
 	$share_action = "toggle_share";
 	if (! $_GET['t']) {
@@ -280,7 +282,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 	$('.passthrough-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Pass Through');?>", off_label: "<?=_('Pass Through');?>", checked:"<?=$pass_through;?>" });
 	$('.passthrough-switch').change(function()
 	{
-		$.post(UDURL,{action:"toggle_pass_through",serial:"<?=$serial;?>",status:$(this).is(":checked")},function(data)
+		$.post(UDURL,{action:"toggle_pass_through",serial:"<?=$ud_device;?>",status:$(this).is(":checked")},function(data)
 		{
 			$(this).prop("checked",data.result);
 		},"json");
@@ -289,7 +291,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 	$('.readonly-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Read Only');?>", off_label: "<?=_('Read Only');?>", checked:"<?=$read_only;?>" });
 	$('.readonly-switch').change(function()
 	{
-		$.post(UDURL,{action:"toggle_read_only",serial:"<?=$serial;?>",status:$(this).is(":checked")},function(data)
+		$.post(UDURL,{action:"toggle_read_only",serial:"<?=$ud_device;?>",status:$(this).is(":checked")},function(data)
 		{
 			$(this).prop("checked",data.result);
 		},"json");
@@ -316,7 +318,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 	$('.partitions-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Show Partitions');?>", off_label: "<?=_('Show Partitions');?>", checked:"<?=$show_partitions;?>" });
 	$('.partitions-switch').change(function()
 	{
-		$.post(UDURL,{action:"show_partitions",serial:"<?=$serial;?>",status:$(this).is(":checked")},function(data)
+		$.post(UDURL,{action:"show_partitions",serial:"<?=$ud_device;?>",status:$(this).is(":checked")},function(data)
 		{
 			$(this).prop("checked",data.result);
 		},"json");
@@ -333,7 +335,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 
 	<?if (isset($_GET['s'])):?>
 		$( "form" ).submit(function( event ) {
-			$.post(UDURL,{action:"set_command",serial:"<?=$serial;?>",part:"<?=$partition;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()},function(data){event.preventDefault()},"json");
+			$.post(UDURL,{action:"set_command",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()},function(data){event.preventDefault()},"json");
 		});
 	<?endif;?>
 	<?if (isset($_GET['d'])):?>

@@ -187,8 +187,8 @@ function render_partition($disk, $partition, $total=FALSE) {
 
 	$dev	= basename($device);
 	$device	= (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev) ;
-	$serial = $partition['serial']." (".$device.")";
-	$out[] = "<td><a title='$title' href='/Main/EditSettings?s=".urlencode($serial)."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."&m=".urlencode(json_encode($partition))."&t=".$total."'><i class='fa fa-gears'></i></a></td>";
+	$serial = $partition['serial'];
+	$out[] = "<td><a title='$title' href='/Main/EditSettings?s=".urlencode($serial)."&b=".urlencode($device)."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."&m=".urlencode(json_encode($partition))."&t=".$total."'><i class='fa fa-gears'></i></a></td>";
 	if ($total) {
 		$mounted_disk = FALSE;
 		foreach ($disk['partitions'] as $part) {
