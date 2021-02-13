@@ -227,32 +227,30 @@ function get_disk_dev($dev) {
 function get_disk_reads_writes($dev) {
 	global $paths;
 
-	/* Convert the $dev withoout partition. */
+	$micro_time = microtime(true);
+	/* Convert the $dev without partition. */
 	$dev	= (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev) ;
-	$rc		= array();
+	$rc		= array(0, 0, 0, 0);
 	$sf		= $paths['dev_state'];
 	if (is_file($sf)) {
 		/* Get the diskio state for the last reads and writes to calculate the read and write rates. */
 		$tc = $paths['diskio'];
 		$diskio = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-
 		/* Get the number of reads and writes for this device. */
 		$devs = parse_ini_file($paths['dev_state'], true);
 		foreach ($devs as $d) {
 			if (($d['device'] == basename($dev)) && isset($d['numReads']) && isset($d['numWrites'])) {
 				$device = $d['device'];
-				$rc[] = $d['numReads'];
-				$rc[] = $d['numWrites'];
-				$time = isset($diskio[$device]['time']) ? microtime(true) - $diskio[$device]['time'] : 0;
+				$rc[0] = $d['numReads'];
+				$rc[1] = $d['numWrites'];
+				$time = isset($diskio[$device]['time']) ? $micro_time - $diskio[$device]['time'] : 0;
 				if ($time != 0)
 				{
-					$rc[] = ($d['numReads'] - $diskio[$device]['reads'])*512 / $time;
-					$rc[] = ($d['numWrites'] - $diskio[$device]['writes'])*512 / $time;
-				} else {
-					$rc[] = 0;
-					$rc[] = 0;
+					/* Calculate the read and write rates. */
+					$rc[2] = ($d['numReads'] - $diskio[$device]['reads']) * 512 / $time;
+					$rc[3] = ($d['numWrites'] - $diskio[$device]['writes']) * 512 / $time;
 				}
-				$diskio[$device]['time'] = microtime(true);
+				$diskio[$device]['time'] = $micro_time;
 				$diskio[$device]['reads'] = $d['numReads'];
 				$diskio[$device]['writes'] = $d['numWrites'];
 				file_put_contents($tc, json_encode($diskio));
@@ -1700,6 +1698,11 @@ function get_disk_info($device) {
 	$disk['device']				= $device;
 	$disk['dev']				= get_disk_dev($device);
 	$disk['ssd']				= is_disk_ssd($device);
+	$rw						= get_disk_reads_writes($device);
+	$disk['reads']			= $rw[0];
+	$disk['writes']			= $rw[1];
+	$disk['read_rate']		= $rw[2];
+	$disk['write_rate']		= $rw[3];
 	$disk['running']			= is_disk_running($device);
 	$disk['command']			= get_config($disk['serial'],"command.1");
 	$disk['user_command']		= get_config($disk['serial'],"user_command.1");
@@ -1756,11 +1759,6 @@ function get_partition_info($device) {
 		$disk['size']			= intval($stats[0])*1024;
 		$disk['used']			= intval($stats[1])*1024;
 		$disk['avail']			= intval($stats[2])*1024;
-		$rw						= get_disk_reads_writes($disk_device);
-		$disk['reads']			= $rw[0];
-		$disk['writes']			= $rw[1];
-		$disk['read_rate']		= $rw[2];
-		$disk['write_rate']		= $rw[3];
 		$disk['owner']			= (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
 		$disk['automount']		= is_automount($disk['serial'], strpos($attrs['DEVPATH'],"usb"));
 		$disk['read_only']		= is_read_only($disk['serial']);

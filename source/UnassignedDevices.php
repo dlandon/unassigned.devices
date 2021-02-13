@@ -159,11 +159,11 @@ function render_partition($disk, $partition, $total=FALSE) {
 	/* Reads and writes */
 	if ($total) {
 		if ($diskio['disk_io'] == 0) {
-			$out[] = "<td>".my_scale($part['reads'],$unit,0,null,1)."</td>";
-			$out[] = "<td>".my_scale($part['writes'],$unit,0,null,1)."</td>";
+			$out[] = "<td>".my_scale($disk['reads'],$unit,0,null,1)."</td>";
+			$out[] = "<td>".my_scale($disk['writes'],$unit,0,null,1)."</td>";
 		} else {
-			$out[] = "<td>".my_scale($part['read_rate']*1024,$unit,1)." $unit/s</td>";
-			$out[] = "<td>".my_scale($part['write_rate']*1024,$unit,1)." $unit/s</td>";
+			$out[] = "<td>".my_scale($disk['read_rate']*1024,$unit,1)." $unit/s</td>";
+			$out[] = "<td>".my_scale($disk['write_rate']*1024,$unit,1)." $unit/s</td>";
 		}
 	} else {
 		$out[] = "<td></td>";
