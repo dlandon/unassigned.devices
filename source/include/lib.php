@@ -244,15 +244,30 @@ function get_disk_reads_writes($dev) {
 				$rc[0] = $d['numReads'];
 				$rc[1] = $d['numWrites'];
 				$time = isset($diskio[$device]['time']) ? $micro_time - $diskio[$device]['time'] : 0;
-				if ($time != 0)
+				if ($time >= 3.0)
 				{
-					/* Calculate the read and write rates. */
-					$rc[2] = ($d['numReads'] - $diskio[$device]['reads']) * 512 / $time;
-					$rc[3] = ($d['numWrites'] - $diskio[$device]['writes']) * 512 / $time;
+					if ($time < 10.0)
+					{
+						/* Calculate the read and write rates. */
+						$read_rate = ($d['numReads'] - $diskio[$device]['reads']) * 512 / $time;
+						$write_rate = ($d['numWrites'] - $diskio[$device]['writes']) * 512 / $time;
+						$diskio[$device]['read_rate'] = $read_rate;
+						$diskio[$device]['write_rate'] = $write_rate;
+					} else {
+						$read_rate = 0;
+						$write_rate = 0;
+					}
+				} else {
+					$read_rate = $diskio[$device]['read_rate'];
+					$write_rate = $diskio[$device]['write_rate'];
 				}
+				$rc[2] = $read_rate;
+				$rc[3] = $write_rate;
 				$diskio[$device]['time'] = $micro_time;
 				$diskio[$device]['reads'] = $d['numReads'];
 				$diskio[$device]['writes'] = $d['numWrites'];
+				$diskio[$device]['read_rate'] = $read_rate;
+				$diskio[$device]['write_rate'] = $write_rate;
 				file_put_contents($tc, json_encode($diskio));
 				break;
 			}
@@ -1698,11 +1713,11 @@ function get_disk_info($device) {
 	$disk['device']				= $device;
 	$disk['dev']				= get_disk_dev($device);
 	$disk['ssd']				= is_disk_ssd($device);
-	$rw						= get_disk_reads_writes($device);
-	$disk['reads']			= $rw[0];
-	$disk['writes']			= $rw[1];
-	$disk['read_rate']		= $rw[2];
-	$disk['write_rate']		= $rw[3];
+	$rw							= get_disk_reads_writes($device);
+	$disk['reads']				= $rw[0];
+	$disk['writes']				= $rw[1];
+	$disk['read_rate']			= $rw[2];
+	$disk['write_rate']			= $rw[3];
 	$disk['running']			= is_disk_running($device);
 	$disk['command']			= get_config($disk['serial'],"command.1");
 	$disk['user_command']		= get_config($disk['serial'],"user_command.1");
