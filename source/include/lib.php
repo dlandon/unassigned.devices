@@ -223,11 +223,10 @@ function get_disk_dev($dev) {
 	return $rc;
 }
 
-/* Get the reads and writes from devs.ini. */
+/* Get the reads and writes from ud_diskio.sh task. */
 function get_disk_reads_writes($dev) {
 	global $paths;
 
-	$micro_time = microtime(true);
 	/* Convert the $dev without partition. */
 	$dev	= (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev) ;
 	$rc		= array(0, 0, 0, 0);
@@ -236,39 +235,16 @@ function get_disk_reads_writes($dev) {
 		/* Get the diskio state for the last reads and writes to calculate the read and write rates. */
 		$tc = $paths['diskio'];
 		$diskio = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-		/* Get the number of reads and writes for this device. */
+
+		/* Get the number of reads and writes and rates for this device. */
 		$devs = parse_ini_file($paths['dev_state'], true);
 		foreach ($devs as $d) {
 			if (($d['device'] == basename($dev)) && isset($d['numReads']) && isset($d['numWrites'])) {
 				$device = $d['device'];
-				$rc[0] = $d['numReads'];
-				$rc[1] = $d['numWrites'];
-				$time = isset($diskio[$device]['time']) ? $micro_time - $diskio[$device]['time'] : 0;
-				if ($time >= 3.0)
-				{
-					if ($time < 10.0)
-					{
-						/* Calculate the read and write rates. */
-						$read_rate = ($d['numReads'] - $diskio[$device]['reads']) * 512 / $time;
-						$write_rate = ($d['numWrites'] - $diskio[$device]['writes']) * 512 / $time;
-						$diskio[$device]['read_rate'] = $read_rate;
-						$diskio[$device]['write_rate'] = $write_rate;
-					} else {
-						$read_rate = 0;
-						$write_rate = 0;
-					}
-				} else {
-					$read_rate = $diskio[$device]['read_rate'];
-					$write_rate = $diskio[$device]['write_rate'];
-				}
-				$rc[2] = $read_rate;
-				$rc[3] = $write_rate;
-				$diskio[$device]['time'] = $micro_time;
-				$diskio[$device]['reads'] = $d['numReads'];
-				$diskio[$device]['writes'] = $d['numWrites'];
-				$diskio[$device]['read_rate'] = $read_rate;
-				$diskio[$device]['write_rate'] = $write_rate;
-				file_put_contents($tc, json_encode($diskio));
+				$rc[0] = $diskio[$device]['reads'];
+				$rc[1] = $diskio[$device]['writes'];
+				$rc[2] = $diskio[$device]['read_rate'];
+				$rc[3] = $diskio[$device]['write_rate'];
 				break;
 			}
 		}

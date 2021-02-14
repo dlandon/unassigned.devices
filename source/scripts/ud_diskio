@@ -1,0 +1,65 @@
+#!/usr/bin/php
+<?php
+/* Copyright 2020-2021, Dan Landon
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+
+$plugin = "unassigned.devices";
+$pid_file = "/var/run/ud_diskio.pid";
+
+$sf = "/usr/local/emhttp/state/devs.ini";
+$tc = "/var/state/{$plugin}/diskio.json";
+$ds = "/usr/local/emhttp/state/devs.ini";
+
+
+if (! file_exists($pid_file)) {
+
+	/* Create pid to show ud.diskio is running. */
+	file_put_contents($pid_file, getmypid());
+
+	while (true)
+	{
+		$micro_time = microtime(true);
+		if (is_file($sf)) {
+			/* Get the diskio state for the last reads and writes to calculate the read and write rates. */
+			$diskio = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+
+			/* Get the number of reads and writes for this device. */
+			$devs = parse_ini_file($ds, true);
+			foreach ($devs as $d) {
+				/* Get the device. */
+				$device = $d['device'];
+
+				/* This is the time interval between samples. */
+				$time = isset($diskio[$device]['time']) ? $micro_time - $diskio[$device]['time'] : 0;
+				if ($time > 0)
+				{
+					/* Calculate the read and write rates. */
+					$diskio[$device]['read_rate'] = ($d['numReads'] - $diskio[$device]['reads']) * 512 / $time;
+					$diskio[$device]['write_rate'] = ($d['numWrites'] - $diskio[$device]['writes']) * 512 / $time;
+				} else {
+					$diskio[$device]['read_rate'] = 0;
+					$diskio[$device]['write_rate'] = 0;
+				}
+				$diskio[$device]['time'] = $micro_time;
+				$diskio[$device]['reads'] = $d['numReads'];
+				$diskio[$device]['writes'] = $d['numWrites'];
+				file_put_contents($tc, json_encode($diskio));
+			}
+		}
+
+		sleep(3);
+	}
+
+	@unlink($pid_file);
+} else {
+	echo("ud_diskio already running\n");
+}
+
+?>

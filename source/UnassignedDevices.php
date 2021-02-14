@@ -546,8 +546,11 @@ switch ($_POST['action']) {
 		$display = urldecode($_POST['disk_display']);
 		$tc = $paths['diskio'];
 		$diskio = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-		$diskio['disk_io'] = $display;
-		file_put_contents($tc, json_encode($diskio));
+		if ($diskio['disk_io'] != $display)
+		{
+			$diskio['disk_io'] = $display;
+			file_put_contents($tc, json_encode($diskio));
+		}
 		publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
 		break;
 
