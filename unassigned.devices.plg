@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2021.02.13a">
+<!ENTITY version   "2021.02.14">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"beebc0c816414fcf026ffed6fc2f1789">
+<!ENTITY MD5		"ae451665489602d019b4750a031be813">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Background task to keep the reads and writes rates current.
+
+###2021,02.13a
 - Fix: Disk read/write speed calculations.
 - Fix: Mounting indicator when a remote share source contains a parenthesis character.
 
@@ -1264,6 +1267,9 @@ Unassigned devices background start script.
 # Copy configuration files to tmp file system.
 /usr/local/emhttp/plugins/&name;/scripts/copy_config.sh 2>/dev/null
 
+# Start the background diskio update script
+/usr/local/emhttp/plugins/&name;/scripts/ud_diskio 2>/dev/null
+
 # Remove the background start script.
 rm -f /tmp/start_unassigned_devices 2>/dev/null
 </INLINE>
@@ -1500,6 +1506,10 @@ rm -rf /usr/local/emhttp/plugins/&name; 2>/dev/null
 
 # Remove unassigned_devices from smb-extra.conf.
 at -M -f /tmp/&name;/remove-smb-extra now 2>/dev/null
+
+# Kill ud_diskio task.
+kill `cat /var/run/ud_diskio.pid` 2>/dev/null
+rm /var/run/ud_diskio.pid >/dev/null
 
 # Remove the tmp directory.
 rm -r /tmp/&name; 2>/dev/null
