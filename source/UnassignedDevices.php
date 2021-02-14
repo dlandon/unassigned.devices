@@ -429,7 +429,9 @@ switch ($_POST['action']) {
 				if ($mount['mounted'] && (is_script_running($mount['command']) || is_script_running($mount['user_command'], TRUE))) {
 					echo "<td><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i>"." "._("Running")."</button></td>";
 				} else {
-					$is_mounting	= array_values(preg_grep("@/mounting_".basename($mount['device'])."@i", listDir(dirname($paths['mounting']))))[0];
+					/* Remove special characters */
+					$mount_device = str_replace( array("(", ")"), "", basename($mount['device']));
+					$is_mounting	= array_values(preg_grep("@/mounting_".$mount_device."@i", listDir(dirname($paths['mounting']))))[0];
 					$is_mounting	= (time() - filemtime($is_mounting) < 300) ? TRUE : FALSE;
 					$is_unmounting	= array_values(preg_grep("@/unmounting_".basename($mount['device'])."@i", listDir(dirname($paths['unmounting']))))[0];
 					$is_unmounting	= (time() - filemtime($is_unmounting) < 300) ? TRUE : FALSE;
