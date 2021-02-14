@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2021.02.13">
+<!ENTITY version   "2021.02.13a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"a6ac29d1d42f0c8113fdfecf25e99dd2">
+<!ENTITY MD5		"beebc0c816414fcf026ffed6fc2f1789">
 ]>
 
 <PLUGIN name="&name;"
@@ -25,6 +25,7 @@
 ##&name;
 ###&version;
 - Fix: Disk read/write speed calculations.
+- Fix: Mounting indicator when a remote share source contains a parenthesis character.
 
 ###2021.01.31a
 - Add: Device to Edit Settings serial number.
