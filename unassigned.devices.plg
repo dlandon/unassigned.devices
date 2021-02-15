@@ -1267,6 +1267,10 @@ Unassigned devices background start script.
 # Copy configuration files to tmp file system.
 /usr/local/emhttp/plugins/&name;/scripts/copy_config.sh 2>/dev/null
 
+# Kill ud_diskio task.
+kill `cat /var/run/ud_diskio.pid` 2>/dev/null
+rm -f /var/run/ud_diskio.pid 2>/dev/null
+
 # Start the background diskio update script
 /usr/local/emhttp/plugins/&name;/scripts/ud_diskio 2>/dev/null
 
@@ -1509,7 +1513,7 @@ at -M -f /tmp/&name;/remove-smb-extra now 2>/dev/null
 
 # Kill ud_diskio task.
 kill `cat /var/run/ud_diskio.pid` 2>/dev/null
-rm /var/run/ud_diskio.pid >/dev/null
+rm -f /var/run/ud_diskio.pid 2>/dev/null
 
 # Remove the tmp directory.
 rm -r /tmp/&name; 2>/dev/null
