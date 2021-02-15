@@ -158,6 +158,8 @@ function render_partition($disk, $partition, $total=FALSE) {
 
 	/* Reads and writes */
 	if ($total) {
+//		$out[] = "<td><span class='diskio'>".my_scale($disk['read_rate']*1024,$unit,1)." $unit/s</span><span class='number'>".my_number($disk['reads'])."</span></td>";
+//		$out[] = "<td><span class='diskio'>".my_scale($disk['write_rate']*1024,$unit,1)." $unit/s</span><span class='number'>".my_number($disk['writes'])."</span></td>";
 		if ($diskio['disk_io'] == 0) {
 			$out[] = "<td>".my_number($disk['reads'])."</td>";
 			$out[] = "<td>".my_number($disk['writes'])."</td>";
@@ -172,7 +174,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 
 	$title = _("Edit Device Settings and Script").".";
 	if ($total) {
-		$title .= "\n"._("Pass Through").":  ";
+		$title .= "\n"._("Passed Through").":  ";
 		$title .= ($partition['pass_through'] == 'yes') ? "On" : "Off";
 		$title .= "   "._("Read Only").": ";
 		$title .= ($partition['read_only'] == 'yes') ? "On" : "Off";

@@ -279,7 +279,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 <script>
 	var UDURL		= '/plugins/<?=$plugin;?>/UnassignedDevices.php';
 
-	$('.passthrough-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Pass Through');?>", off_label: "<?=_('Pass Through');?>", checked:"<?=$pass_through;?>" });
+	$('.passthrough-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Passed Through');?>", off_label: "<?=_('Passed Through');?>", checked:"<?=$pass_through;?>" });
 	$('.passthrough-switch').change(function()
 	{
 		$.post(UDURL,{action:"toggle_pass_through",serial:"<?=$ud_device;?>",status:$(this).is(":checked")},function(data)
