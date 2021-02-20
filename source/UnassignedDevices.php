@@ -51,6 +51,10 @@ function netmasks($netmask, $rev = false)
 	return $rev ? array_flip($netmasks)[$netmask] : $netmasks[$netmask];
 }
 
+function my_diskio($data) {
+	return my_scale($data,$unit,1)." $unit/s";
+}
+
 function render_used_and_free($partition, $mounted) {
 	global $display;
 
@@ -158,18 +162,15 @@ function render_partition($disk, $partition, $total=FALSE) {
 
 	/* Reads and writes */
 	if ($total) {
-//		$out[] = "<td><span class='diskio'>".my_scale($disk['read_rate']*1024,$unit,1)." $unit/s</span><span class='number'>".my_number($disk['reads'])."</span></td>";
-//		$out[] = "<td><span class='diskio'>".my_scale($disk['write_rate']*1024,$unit,1)." $unit/s</span><span class='number'>".my_number($disk['writes'])."</span></td>";
 		if ($diskio['disk_io'] == 0) {
 			$out[] = "<td>".my_number($disk['reads'])."</td>";
 			$out[] = "<td>".my_number($disk['writes'])."</td>";
 		} else {
-			$out[] = "<td>".my_scale($disk['read_rate']*1024,$unit,1)." $unit/s</td>";
-			$out[] = "<td>".my_scale($disk['write_rate']*1024,$unit,1)." $unit/s</td>";
+			$out[] = "<td>".my_diskio($disk['read_rate'])."</td>";
+			$out[] = "<td>".my_diskio($disk['write_rate'])."</td>";
 		}
 	} else {
-		$out[] = "<td></td>";
-		$out[] = "<td></td><td></td>";
+		$out[] = "<td></td><td></td><td></td>";
 	}
 
 	$title = _("Edit Device Settings and Script").".";

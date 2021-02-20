@@ -243,8 +243,8 @@ function get_disk_reads_writes($dev) {
 				$device = $d['device'];
 				$rc[0] = $diskio[$device]['reads'];
 				$rc[1] = $diskio[$device]['writes'];
-				$rc[2] = $diskio[$device]['read_rate'];
-				$rc[3] = $diskio[$device]['write_rate'];
+				$rc[2] = $diskio[$device]['read_rate']*512;
+				$rc[3] = $diskio[$device]['write_rate']*512;
 				break;
 			}
 		}
