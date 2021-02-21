@@ -223,28 +223,30 @@ function get_disk_dev($dev) {
 	return $rc;
 }
 
-/* Get the reads and writes from ud_diskio.sh task. */
+/* Get the reads and writes from diskload.ini. */
 function get_disk_reads_writes($dev) {
 	global $paths;
 
 	/* Convert the $dev without partition. */
 	$dev	= (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev) ;
+	$dev	= basename($dev);
 	$rc		= array(0, 0, 0, 0);
 	$sf		= $paths['dev_state'];
 	if (is_file($sf)) {
-		/* Get the diskio state for the last reads and writes to calculate the read and write rates. */
-		$tc = $paths['diskio'];
-		$diskio = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-
 		/* Get the number of reads and writes and rates for this device. */
-		$devs = parse_ini_file($paths['dev_state'], true);
+		$devs = parse_ini_file($sf, true);
 		foreach ($devs as $d) {
-			if (($d['device'] == basename($dev)) && isset($d['numReads']) && isset($d['numWrites'])) {
-				$device = $d['device'];
-				$rc[0] = $diskio[$device]['reads'];
-				$rc[1] = $diskio[$device]['writes'];
-				$rc[2] = $diskio[$device]['read_rate']*512;
-				$rc[3] = $diskio[$device]['write_rate']*512;
+			if (($d['device'] == $dev) && isset($d['numReads']) && isset($d['numWrites'])) {
+				$diskio= @(array)parse_ini_file('state/diskload.ini');
+			    $data = explode(' ',$diskio[$dev] ?? '0 0');
+				/* Reads. */
+				$rc[0] = $d['numReads'];
+				/* Writes. */
+				$rc[1] = $d['numWrites'];
+				/* Read rate. */
+				$rc[2] = $data[0];
+				/* Write rate. */
+				$rc[3] = $data[1];
 				break;
 			}
 		}
