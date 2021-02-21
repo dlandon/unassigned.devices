@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2021.02.14">
+<!ENTITY version   "2021.02.21">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"ae451665489602d019b4750a031be813">
+<!ENTITY MD5		"7eb34dd45355a62fa8bb20f622377f05">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Switch to using Unraid diskload for read and write rates.
+- Fix: Change 'Pass Through' to 'Passed Through' to clarify what pass through means.
+
+###2021.02.14
 - Add: Background task to keep the reads and writes rates current.
 
 ###2021,02.13a
@@ -1510,10 +1514,6 @@ rm -rf /usr/local/emhttp/plugins/&name; 2>/dev/null
 
 # Remove unassigned_devices from smb-extra.conf.
 at -M -f /tmp/&name;/remove-smb-extra now 2>/dev/null
-
-# Kill ud_diskio task.
-kill `cat /var/run/ud_diskio.pid` 2>/dev/null
-rm -f /var/run/ud_diskio.pid 2>/dev/null
 
 # Remove the tmp directory.
 rm -r /tmp/&name; 2>/dev/null
