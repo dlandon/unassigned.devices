@@ -252,7 +252,7 @@ function is_disk_running($dev) {
 
 	$rc			= FALSE;
 	$run_devs	= FALSE;
-	$sf = $paths['dev_state'];
+	$sf			= $paths['dev_state'];
 	/* Check for devs.ini file to get the current spindown state. */
 	if (is_file($sf)) {
 		$devs = parse_ini_file($sf, true);
@@ -346,9 +346,9 @@ function is_script_running($cmd, $user=FALSE) {
 function get_temp($dev, $running) {
 	global $var, $paths;
 
-	$rc	= "*";
-	$temp = "";
-	$sf = $paths['dev_state'];
+	$rc		= "*";
+	$temp	= "";
+	$sf		= $paths['dev_state'];
 	/* Get temperature from the devs.ini file. */
 	if (is_file($sf)) {
 		$devs = parse_ini_file($paths['dev_state'], true);
@@ -1986,8 +1986,8 @@ function change_UUID($dev) {
 function setSleepTime($device) {
 	global $paths;
 
-	$run_devs = FALSE;
-	$sf = $paths['dev_state'];
+	$run_devs	= FALSE;
+	$sf			= $paths['dev_state'];
 	if (is_file($sf)) {
 		$devs = parse_ini_file($paths["dev_state"], true);
 		foreach ($devs as $d) {
@@ -2022,7 +2022,7 @@ function curl_socket($socket, $url, $postdata = NULL) {
 }
 
 /* Trigger an event. */
-function publish($endpoint, $message){
+function publish($endpoint, $message) {
 	curl_socket("/var/run/nginx.socket", "http://localhost/pub/$endpoint?buffer_length=1", $message);
 }
 ?>
