@@ -40,7 +40,7 @@ function unassigned_mount() {
 					continue;
 				}
 				if ( $info['pass_through'] ) {
-					unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' is set as pass through.");
+					unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' is set as passed through.");
 					continue;
 				}
 				if (! $info['automount'] && ( $DEVNAME == "auto" || $DEVNAME == "autodevices" || isset($_ENV['DEVNAME']) )) {

@@ -231,26 +231,18 @@ function get_disk_reads_writes($dev) {
 	$dev	= (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev) ;
 	$dev	= basename($dev);
 	$rc		= array(0, 0, 0, 0);
-	$sf		= $paths['dev_state'];
-	if (is_file($sf)) {
-		/* Get the number of reads and writes and rates for this device. */
-		$devs = parse_ini_file($sf, true);
-		foreach ($devs as $d) {
-			if (($d['device'] == $dev) && isset($d['numReads']) && isset($d['numWrites'])) {
-				$diskio= @(array)parse_ini_file('state/diskload.ini');
-			    $data = explode(' ',$diskio[$dev] ?? '0 0');
-				/* Reads. */
-				$rc[0] = $d['numReads'];
-				/* Writes. */
-				$rc[1] = $d['numWrites'];
-				/* Read rate. */
-				$rc[2] = $data[0];
-				/* Write rate. */
-				$rc[3] = $data[1];
-				break;
-			}
-		}
-	}
+	$diskio	= @(array)parse_ini_file('state/diskload.ini');
+	$data	= explode(' ',$diskio[$dev] ?? '0 0 0 0');
+
+	/* Reads. */
+	$rc[0] = $data[2];
+	/* Writes. */
+	$rc[1] = $data[3];
+	/* Read rate. */
+	$rc[2] = $data[0];
+	/* Write rate. */
+	$rc[3] = $data[1];
+
 	return $rc;
 }
 
