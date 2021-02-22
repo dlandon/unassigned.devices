@@ -212,7 +212,7 @@ function get_disk_dev($dev) {
 	$sf		= $paths['dev_state'];
 	if (is_file($sf)) {
 		/* Get the devX designation for this device. */
-		$devs = parse_ini_file($paths['dev_state'], true);
+		$devs = parse_ini_file($sf, true);
 		foreach ($devs as $d) {
 			if (($d['device'] == basename($dev)) && isset($d['name'])) {
 				$rc = $d['name'];
@@ -247,7 +247,7 @@ function get_disk_reads_writes($dev) {
 }
 
 /* Check to see if the disk is spinning. */
-function is_disk_running($dev) {
+function is_disk_running($ud_dev) {
 	global $paths;
 
 	$rc			= FALSE;
@@ -255,13 +255,10 @@ function is_disk_running($dev) {
 	$sf			= $paths['dev_state'];
 	/* Check for devs.ini file to get the current spindown state. */
 	if (is_file($sf)) {
-		$devs = parse_ini_file($sf, true);
-		foreach ($devs as $d) {
-			if (($d['device'] == basename($dev)) && isset($d['spundown'])) {
-				$rc =($d['spundown'] == '0') ? TRUE : FALSE;
-				$run_devs = TRUE;
-				break;
-			}
+		$devs	= parse_ini_file($sf, true);
+		if (isset($devs[$ud_dev])) {
+			$rc	= ($devs[$ud_dev]['spundown'] == '0') ? TRUE : FALSE;
+			$run_devs	= TRUE;
 		}
 	}
 
@@ -343,7 +340,7 @@ function is_script_running($cmd, $user=FALSE) {
 }
 
 /* Get disk temperature. */
-function get_temp($dev, $running) {
+function get_temp($ud_dev, $running) {
 	global $var, $paths;
 
 	$rc		= "*";
@@ -351,13 +348,10 @@ function get_temp($dev, $running) {
 	$sf		= $paths['dev_state'];
 	/* Get temperature from the devs.ini file. */
 	if (is_file($sf)) {
-		$devs = parse_ini_file($paths['dev_state'], true);
-		foreach ($devs as $d) {
-			if (($d['device'] == basename($dev)) && isset($d['temp'])) {
-				$temp = $d['temp'];
-				$rc = $temp;
-				break;
-			}
+		$devs = parse_ini_file($sf, true);
+		if (isset($devs[$ud_dev])) {
+			$temp = $devs[$ud_dev]['temp'];
+			$rc = $temp;
 		}
 	}
 
@@ -1681,14 +1675,14 @@ function get_disk_info($device) {
 	$disk['serial_short']		= isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
 	$disk['serial']				= "{$attrs['ID_MODEL']}_{$disk['serial_short']}";
 	$disk['device']				= $device;
-	$disk['dev']				= get_disk_dev($device);
+	$disk['ud_dev']				= get_disk_dev($device);
 	$disk['ssd']				= is_disk_ssd($device);
 	$rw							= get_disk_reads_writes($device);
 	$disk['reads']				= $rw[0];
 	$disk['writes']				= $rw[1];
 	$disk['read_rate']			= $rw[2];
 	$disk['write_rate']			= $rw[3];
-	$disk['running']			= is_disk_running($device);
+	$disk['running']			= is_disk_running($disk['ud_dev']);
 	$disk['command']			= get_config($disk['serial'],"command.1");
 	$disk['user_command']		= get_config($disk['serial'],"user_command.1");
 	$disk['show_partitions']	= get_config($disk['serial'],"show_partitions");
@@ -1989,7 +1983,7 @@ function setSleepTime($device) {
 	$run_devs	= FALSE;
 	$sf			= $paths['dev_state'];
 	if (is_file($sf)) {
-		$devs = parse_ini_file($paths["dev_state"], true);
+		$devs = parse_ini_file($sf, true);
 		foreach ($devs as $d) {
 			if (($d['device'] == basename($device)) && isset($d['spundown'])) {
 				$run_devs = TRUE;

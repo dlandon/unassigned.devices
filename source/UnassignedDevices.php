@@ -299,10 +299,10 @@ switch ($_POST['action']) {
 			foreach ($disks as $disk) {
 				$mounted		= isset($disk['mounted']) ? $disk['mounted'] : in_array(TRUE, array_map(function($ar){return is_mounted($ar['device']);}, $disk['partitions']));
 				$disk_name		= basename($disk['device']);
-				$disk_dev		= $disk['dev'];
+				$disk_dev		= $disk['ud_dev'];
 				$p				= (count($disk['partitions']) > 0) ? render_partition($disk, $disk['partitions'][0], TRUE) : FALSE;
 				$preclearing	= $Preclear ? $Preclear->isRunning($disk_name) : false;
-				$disk['temperature'] = $disk['temperature'] ? $disk['temperature'] : get_temp(substr($disk['device'],0,10), $disk['running']);
+				$disk['temperature'] = $disk['temperature'] ? $disk['temperature'] : get_temp($disk['ud_dev'], $disk['running']);
 				$temp = my_temp($disk['temperature']);
 
 				$mbutton = make_mount_button($disk);
