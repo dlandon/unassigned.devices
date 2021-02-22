@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2021.02.21">
+<!ENTITY version   "2021.02.21a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"7eb34dd45355a62fa8bb20f622377f05">
+<!ENTITY MD5		"9501dc1fd44573c611afa4bb781d7396">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,7 +24,7 @@
 <CHANGES>
 ##&name;
 ###&version;
-- Fix: Switch to using Unraid diskload for read and write rates.
+- Fix: Switch to using Unraid diskload for reads, writes, and read and write rates.
 - Fix: Change 'Pass Through' to 'Passed Through' to clarify what pass through means.
 
 ###2021.02.14
