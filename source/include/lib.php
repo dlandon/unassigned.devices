@@ -68,6 +68,10 @@ else
 	$Preclear = null;
 }
 
+/* Get the current diskio setting. */
+$tc		= $paths['diskio'];
+$diskio = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+
 #########################################################
 #############        MISC FUNCTIONS        ##############
 #########################################################
@@ -180,7 +184,7 @@ function exist_in_file($file, $val) {
 }
 
 /* Get the size, used, and free space on a mount point. */
-function get_device_stats($mountpoint, $mounted, $active=TRUE) {
+function get_device_stats($mountpoint, $mounted, $active = TRUE) {
 	global $paths, $plugin;
 
 	/* Get current state. */
@@ -225,8 +229,6 @@ function get_disk_dev($dev) {
 
 /* Get the reads and writes from diskload.ini. */
 function get_disk_reads_writes($dev) {
-	global $paths;
-
 	/* Convert the $dev without partition. */
 	$dev	= (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev) ;
 	$dev	= basename($dev);
@@ -264,8 +266,8 @@ function is_disk_running($ud_dev) {
 
 	/* If the spindown can't be gotten from the devs.ini file, do hdparm to get it. */
 	if (! $run_devs) {
-		$tc = $paths['run_status'];
-		$run_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+		$tc			= $paths['run_status'];
+		$run_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 		if (isset($run_status[$dev]) && (time() - $run_status[$dev]['timestamp']) < 60) {
 			$rc = ($run_status[$dev]['running'] == 'yes') ? TRUE : FALSE;
 		} else {
@@ -282,10 +284,10 @@ function is_disk_running($ud_dev) {
 function is_samba_server_online($ip, $mounted, $background=TRUE) {
 	global $paths, $plugin;
 
-	$is_alive	= FALSE;
-	$server		= $ip;
-	$tc = $paths['ping_status'];
-	$ping_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+	$is_alive		= FALSE;
+	$server			= $ip;
+	$tc				= $paths['ping_status'];
+	$ping_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 	if (isset($ping_status[$server])) {
 		$is_alive = ($ping_status[$server]['online'] == 'yes') ? TRUE : FALSE;
 	}
@@ -306,9 +308,9 @@ function is_script_running($cmd, $user=FALSE) {
 	$is_running = FALSE;
 	/* Check for a command file. */
 	if ($cmd != "") {
-		$script_name = $cmd;
-		$tc = $paths['script_run'];
-		$script_run = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+		$script_name	= $cmd;
+		$tc				= $paths['script_run'];
+		$script_run		= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 
 		/* Check to see if the script was running. */
 		if (isset($script_run[$script_name])) {
@@ -357,8 +359,8 @@ function get_temp($ud_dev, $running) {
 
 	/* If devs.ini does not exist, then query the disk for the temperature. */
 	if (($running) && ($temp == "")) {
-		$tc = $paths['hdd_temp'];
-		$temps = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+		$tc		= $paths['hdd_temp'];
+		$temps	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 		if (isset($temps[$dev]) && (time() - $temps[$dev]['timestamp']) < $var['poll_attributes'] ) {
 			$rc = $temps[$dev]['temp'];
 		} else {
@@ -787,7 +789,7 @@ function luks_fs_type($dev) {
 
 /* Get the mount parameters based on the file system. */
 function get_mount_params($fs, $dev, $ro = FALSE) {
-	global $paths, $use_netbios;
+	global $paths;
 
 	$config_file	= $paths['config_file'];
 	$config			= @parse_ini_file($config_file, true);
@@ -1302,10 +1304,10 @@ function get_samba_mounts() {
 				$path = $mount['path'];
 			}
 
-			$mount['mounted']	= is_mounted(($mount['fstype'] == "cifs") ? "//".$mount['ip']."/".$mount['path'] : $mount['device']);
-			$mount['is_alive']	= is_samba_server_online($mount['ip'], $mount['mounted']);
-			$mount['automount'] = is_samba_automount($mount['name']);
-			$mount['smb_share'] = is_samba_share($mount['name']);
+			$mount['mounted']		= is_mounted(($mount['fstype'] == "cifs") ? "//".$mount['ip']."/".$mount['path'] : $mount['device']);
+			$mount['is_alive']		= is_samba_server_online($mount['ip'], $mount['mounted']);
+			$mount['automount']		= is_samba_automount($mount['name']);
+			$mount['smb_share']		= is_samba_share($mount['name']);
 			if (! $mount['mountpoint']) {
 				$mount['mountpoint'] = "{$paths['usb_mountpoint']}/{$mount['ip']}_{$path}";
 				if (! $mount['mounted'] || ! is_mounted($mount['mountpoint'], TRUE) || is_link($mount['mountpoint'])) {
@@ -1318,7 +1320,7 @@ function get_samba_mounts() {
 					$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$path}";
 				}
 			}
-			$stats = get_device_stats($mount['mountpoint'], $mount['mounted'], $mount['is_alive']);
+			$stats					= get_device_stats($mount['mountpoint'], $mount['mounted'], $mount['is_alive']);
 			$mount['size']			= intval($stats[0])*1024;
 			$mount['used']			= intval($stats[1])*1024;
 			$mount['avail']			= intval($stats[2])*1024;
@@ -1492,8 +1494,8 @@ function get_iso_mounts() {
 	$iso_mounts = @parse_ini_file($config_file, true);
 	if (is_array($iso_mounts)) {
 		foreach ($iso_mounts as $device => $mount) {
-			$mount['device'] = $device;
-			$mount['fstype'] = "loop";
+			$mount['device']		= $device;
+			$mount['fstype']		= "loop";
 			$mount['automount'] = is_iso_automount($mount['device']);
 			if (! $mount["mountpoint"]) {
 				$mount["mountpoint"] = preg_replace("%\s+%", "_", "{$paths['usb_mountpoint']}/{$mount['share']}");
@@ -1619,7 +1621,7 @@ function get_unassigned_disks() {
 }
 
 /* Get all the disk information for each disk device. */
-function get_all_disks_info($bus="all") {
+function get_all_disks_info($bus = "all") {
 
 	unassigned_log("Starting get_all_disks_info.", "DEBUG");
 	$time = -microtime(true);
@@ -1628,12 +1630,12 @@ function get_all_disks_info($bus="all") {
 		foreach ($ud_disks as $key => $disk) {
 			$dp = time();
 			if ($disk['type'] != $bus && $bus != "all") continue;
-			$disk['size'] = intval(trim(timed_exec(5, "/bin/lsblk -nb -o size ".realpath($key)." 2>/dev/null")));
-			$disk = array_merge($disk, get_disk_info($key));
+			$disk['size']	= intval(trim(timed_exec(5, "/bin/lsblk -nb -o size ".realpath($key)." 2>/dev/null")));
+			$disk			= array_merge($disk, get_disk_info($key));
 			foreach ($disk['partitions'] as $k => $p) {
 				if ($p) $disk['partitions'][$k] = get_partition_info($p);
 			}
-			$ud_disks[$key] = $disk;
+			$ud_disks[$key]	= $disk;
 			unassigned_log("Getting [".realpath($key)."] info: ".(time() - $dp)."s", "DEBUG");
 		}
 	} else {
@@ -1668,9 +1670,9 @@ function get_udev_info($device, $udev=NULL) {
 /* Get information on specific disk device. */
 function get_disk_info($device) {
 
-	$disk = array();
-	$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV) : get_udev_info($device, NULL);
-	$device = realpath($device);
+	$disk						= array();
+	$attrs						= (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV) : get_udev_info($device, NULL);
+	$device						= realpath($device);
 	$disk['serial_short']		= isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
 	$disk['serial']				= "{$attrs['ID_MODEL']}_{$disk['serial_short']}";
 	$disk['device']				= $device;
@@ -1693,9 +1695,9 @@ function get_disk_info($device) {
 function get_partition_info($device) {
 	global $_ENV, $paths;
 
-	$disk = array();
-	$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV) : get_udev_info($device, NULL);
-	$device = realpath($device);
+	$disk	= array();
+	$attrs	= (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV) : get_udev_info($device, NULL);
+	$device	= realpath($device);
 	if ($attrs['DEVTYPE'] == "partition") {
 		$disk['serial_short']	= isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
 		$disk['serial']			= "{$attrs['ID_MODEL']}_{$disk['serial_short']}";
@@ -1706,7 +1708,7 @@ function get_partition_info($device) {
 		$disk['part']			= $matches[2][0];
 		$disk['disk']			= $matches[1][0];
 		if (strpos($disk['disk'], "nvme") !== false) {
-			$disk['disk']		=  rtrim($disk['disk'], "p");
+			$disk['disk'] =  rtrim($disk['disk'], "p");
 		}
 		if (isset($attrs['ID_FS_LABEL'])){
 			$disk['label'] = safe_name($attrs['ID_FS_LABEL_ENC']);
@@ -1726,7 +1728,7 @@ function get_partition_info($device) {
 			empty_mountpoint:
 			$disk['mountpoint'] = $disk['target'] ? $disk['target'] : preg_replace("%\s+%", "_", sprintf("%s/%s", $paths['usb_mountpoint'], $disk['label']));
 		}
-		$disk['luks']	= safe_name($disk['device']);
+		$disk['luks']			= safe_name($disk['device']);
 		if ($disk['fstype'] == "crypto_LUKS") {
 			$disk['device'] = "/dev/mapper/".safe_name(basename($disk['mountpoint']));
 		}

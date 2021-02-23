@@ -108,10 +108,7 @@ function render_used_and_free_disk($disk, $mounted) {
 }
 
 function render_partition($disk, $partition, $total=FALSE) {
-	global $plugin, $paths;
-
-	$tc = $paths['diskio'];
-	$diskio = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+	global $plugin, $diskio;
 
 	if (! isset($partition['device'])) return array();
 	$out = array();
@@ -276,14 +273,14 @@ function make_mount_button($device) {
 
 switch ($_POST['action']) {
 	case 'get_content':
-		global $paths;
+		global $paths, $diskio;
 
 		unassigned_log("Starting page render [get_content]", "DEBUG");
 		$time		 = -microtime(true);
 
 		/* Check for a recent hot plug event. */
-		$tc = $paths['hotplug_status'];
-		$hotplug = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : "no";
+		$tc			= $paths['hotplug_status'];
+		$hotplug	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : "no";
 		if ($hotplug == "yes") {
 			exec("/usr/local/sbin/emcmd 'cmdHotplug=apply'");
 			file_put_contents($tc, json_encode('no'));
@@ -363,14 +360,19 @@ switch ($_POST['action']) {
 				echo "<td>{$temp}</td>";
 
 				if (! $p) {
-					$rw	= get_disk_reads_writes($disk['device']);
-					$reads = $rw[0];
-					$writes = $rw[1];
+					$rw = get_disk_reads_writes($disk['device']);
+					if ($diskio['disk_io'] == 0) {
+						$reads		= my_number($rw[0]);
+						$writes		= my_number($rw[1]);
+					} else {
+						$reads		= my_diskio($rw[2]);
+						$writes		= my_diskio($rw[3]);
+					}
 				}
 				/* Reads */
-				echo ($p)?$p[4]:"<td>".my_number($reads)."</td>";
+				echo ($p)?$p[4]:"<td>".$reads."</td>";
 				/* Writes */
-				echo ($p)?$p[5]:"<td>".my_numbe($writes)."</td>";
+				echo ($p)?$p[5]:"<td>".$writes."</td>";
 				/* Settings */
 				echo ($p)?$p[6]:"<td>-</td>";
 				/* File system */
@@ -542,14 +544,13 @@ switch ($_POST['action']) {
 		break;
 
 	case 'refresh_page':
-		global $paths;
+		global $diskio;
 
 		$display = urldecode($_POST['disk_display']);
-		$tc = $paths['diskio'];
-		$diskio = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 		if ($diskio['disk_io'] != $display)
 		{
-			$diskio['disk_io'] = $display;
+			$diskio['disk_io']	= $display;
+			$tc					= $paths['diskio'];
 			file_put_contents($tc, json_encode($diskio));
 		}
 		publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
