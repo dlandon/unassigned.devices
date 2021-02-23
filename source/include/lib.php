@@ -1628,7 +1628,6 @@ function get_all_disks_info($bus="all") {
 		foreach ($ud_disks as $key => $disk) {
 			$dp = time();
 			if ($disk['type'] != $bus && $bus != "all") continue;
-			$disk['temperature'] = "";
 			$disk['size'] = intval(trim(timed_exec(5, "/bin/lsblk -nb -o size ".realpath($key)." 2>/dev/null")));
 			$disk = array_merge($disk, get_disk_info($key));
 			foreach ($disk['partitions'] as $k => $p) {
@@ -1683,6 +1682,7 @@ function get_disk_info($device) {
 	$disk['read_rate']			= $rw[2];
 	$disk['write_rate']			= $rw[3];
 	$disk['running']			= is_disk_running($disk['ud_dev']);
+	$disk['temperature']		= get_temp($disk['ud_dev'], $disk['running']);
 	$disk['command']			= get_config($disk['serial'],"command.1");
 	$disk['user_command']		= get_config($disk['serial'],"user_command.1");
 	$disk['show_partitions']	= get_config($disk['serial'],"show_partitions");
@@ -1727,7 +1727,6 @@ function get_partition_info($device) {
 			$disk['mountpoint'] = $disk['target'] ? $disk['target'] : preg_replace("%\s+%", "_", sprintf("%s/%s", $paths['usb_mountpoint'], $disk['label']));
 		}
 		$disk['luks']	= safe_name($disk['device']);
-		$disk_device	= $disk['device'];
 		if ($disk['fstype'] == "crypto_LUKS") {
 			$disk['device'] = "/dev/mapper/".safe_name(basename($disk['mountpoint']));
 		}
@@ -1798,7 +1797,7 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 }
 
 /* Check for a duplicate share name when changing the mount point. */
-function check_for_duplicate_share($dev, $mountpoint, $fstype="") {
+function check_for_duplicate_share($dev, $mountpoint, $fstype = "") {
 
 	$rc = TRUE;
 
@@ -1991,6 +1990,7 @@ function setSleepTime($device) {
 			}
 		}
 	}
+
 	if (! $run_devs && get_config("Config", "spin_down") == 'yes') {
 		if (! is_disk_ssd($device)) {
 			unassigned_log("Issue spin down timer for device '{$device}'.");

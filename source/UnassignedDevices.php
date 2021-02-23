@@ -142,7 +142,6 @@ function render_partition($disk, $partition, $total=FALSE) {
 		$mpoint .= "<i class='fa fa-pencil partition-hdd'></i><a title='"._("Change Disk Mount Point")."' class='exec' onclick='chg_mountpoint(\"{$partition['serial']}\",\"{$partition['part']}\",\"{$device}\",\"{$partition['fstype']}\",\"{$mount_point}\");'>{$mount_point}</a>";
 		$mpoint .= "{$rm_partition}</span>";
 	}
-	$temp = my_temp($disk['temperature']);
 	$mbutton = make_mount_button($partition);
 
 	($disk['show_partitions'] != 'yes') ? $style = "style='display:none;'" : $style = "";
@@ -302,8 +301,7 @@ switch ($_POST['action']) {
 				$disk_dev		= $disk['ud_dev'];
 				$p				= (count($disk['partitions']) > 0) ? render_partition($disk, $disk['partitions'][0], TRUE) : FALSE;
 				$preclearing	= $Preclear ? $Preclear->isRunning($disk_name) : false;
-				$disk['temperature'] = $disk['temperature'] ? $disk['temperature'] : get_temp($disk['ud_dev'], $disk['running']);
-				$temp = my_temp($disk['temperature']);
+				$temp			= my_temp($disk['temperature']);
 
 				$mbutton = make_mount_button($disk);
 
@@ -370,9 +368,9 @@ switch ($_POST['action']) {
 					$writes = $rw[1];
 				}
 				/* Reads */
-				echo ($p)?$p[4]:"<td>".my_scale($reads,$unit,0,null,1)."</td>";
+				echo ($p)?$p[4]:"<td>".my_number($reads)."</td>";
 				/* Writes */
-				echo ($p)?$p[5]:"<td>".my_scale($writes,$unit,0,null,1)."</td>";
+				echo ($p)?$p[5]:"<td>".my_numbe($writes)."</td>";
 				/* Settings */
 				echo ($p)?$p[6]:"<td>-</td>";
 				/* File system */
