@@ -3,13 +3,13 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2021.03.06">
+<!ENTITY version   "2021.03.06a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"12b845feb2c12ca8687017c94b9ee667">
+<!ENTITY MD5		"12bb1b5b69ae1de90bedbf9cb7386d0a">
 ]>
 
 <PLUGIN name="&name;"
@@ -25,6 +25,7 @@
 ##&name;
 ###&version;
 - Fix: Code cleanup and handling of dev.ini (Unassigned Devies).
+- Fix: 'nan' in reads/writes.
 
 ###2021.02.21a
 - Fix: Switch to using Unraid diskload for reads, writes, and read and write rates.
