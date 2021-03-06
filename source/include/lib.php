@@ -237,13 +237,13 @@ function get_disk_reads_writes($dev) {
 	$data	= explode(' ',$diskio[$dev] ?? '0 0 0 0');
 
 	/* Reads. */
-	$rc[0] = $data[2];
+	$rc[0] = is_nan($data[2]) ? 0 : $data[2];
 	/* Writes. */
-	$rc[1] = $data[3];
+	$rc[1] = is_nan($data[3]) ? 0 : $data[3];
 	/* Read rate. */
-	$rc[2] = $data[0];
+	$rc[2] = is_nan($data[0]) ? 0 : $data[0];
 	/* Write rate. */
-	$rc[3] = $data[1];
+	$rc[3] = is_nan($data[1]) ? 0 : $data[1];
 
 	return $rc;
 }
