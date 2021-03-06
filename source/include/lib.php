@@ -228,18 +228,27 @@ function get_disk_dev($dev) {
 }
 
 /* Get the reads and writes from diskload.ini. */
-function get_disk_reads_writes($dev) {
+function get_disk_reads_writes($ud_dev, $dev) {
+	global $paths;
+
+	$rc = array(0, 0, 0, 0);
+
+	$sf	= $paths['dev_state'];
+	/* Check for devs.ini file to get the current reads and writes. */
+	if (is_file($sf)) {
+		$devs	= parse_ini_file($sf, true);
+		if (isset($devs[$ud_dev])) {
+			$rc[0] = $devs[$ud_dev]['numReads'];
+			$rc[1] = $devs[$ud_dev]['numWrites'];
+		}
+	}
+
 	/* Convert the $dev without partition. */
 	$dev	= (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev) ;
 	$dev	= basename($dev);
-	$rc		= array(0, 0, 0, 0);
 	$diskio	= @(array)parse_ini_file('state/diskload.ini');
 	$data	= explode(' ',$diskio[$dev] ?? '0 0 0 0');
 
-	/* Reads. */
-	$rc[0] = is_nan($data[2]) ? 0 : $data[2];
-	/* Writes. */
-	$rc[1] = is_nan($data[3]) ? 0 : $data[3];
 	/* Read rate. */
 	$rc[2] = is_nan($data[0]) ? 0 : $data[0];
 	/* Write rate. */
@@ -1678,7 +1687,7 @@ function get_disk_info($device) {
 	$disk['device']				= $device;
 	$disk['ud_dev']				= get_disk_dev($device);
 	$disk['ssd']				= is_disk_ssd($device);
-	$rw							= get_disk_reads_writes($device);
+	$rw							= get_disk_reads_writes($disk['ud_dev'], $device);
 	$disk['reads']				= $rw[0];
 	$disk['writes']				= $rw[1];
 	$disk['read_rate']			= $rw[2];

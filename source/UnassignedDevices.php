@@ -360,7 +360,7 @@ switch ($_POST['action']) {
 				echo "<td>{$temp}</td>";
 
 				if (! $p) {
-					$rw = get_disk_reads_writes($disk['device']);
+					$rw = get_disk_reads_writes($disk['ud_dev'], $disk['device']);
 					if ($diskio['disk_io'] == 0) {
 						$reads		= my_number($rw[0]);
 						$writes		= my_number($rw[1]);
