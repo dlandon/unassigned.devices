@@ -351,7 +351,7 @@ function is_script_running($cmd, $user=FALSE) {
 }
 
 /* Get disk temperature. */
-function get_temp($ud_dev, $running) {
+function get_temp($ud_dev, $dev, $running) {
 	global $var, $paths;
 
 	$rc		= "*";
@@ -1693,7 +1693,7 @@ function get_disk_info($device) {
 	$disk['read_rate']			= $rw[2];
 	$disk['write_rate']			= $rw[3];
 	$disk['running']			= is_disk_running($disk['ud_dev']);
-	$disk['temperature']		= get_temp($disk['ud_dev'], $disk['running']);
+	$disk['temperature']		= get_temp($disk['ud_dev'], $disk['device'], $disk['running']);
 	$disk['command']			= get_config($disk['serial'],"command.1");
 	$disk['user_command']		= get_config($disk['serial'],"user_command.1");
 	$disk['show_partitions']	= get_config($disk['serial'],"show_partitions");
