@@ -330,7 +330,7 @@ switch ($_POST['action']) {
 					$disk_display = ucfirst($disk_display);
 				}
 				if ( $preclearing ) {
-					echo "<td><i class='fa fa-circle orb green-orb'></i>{$disk_display}</td>";
+					echo "<td><i class='fa fa-circle orb ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>{$disk_display}</td>";
 				} else {
 					echo "<td>";
 					if (strpos($disk_dev, "dev") === FALSE) {
