@@ -3,7 +3,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices-plus">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2021.03.19">
+<!ENTITY version   "2021.01.24">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/unassigned.devices/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
@@ -23,7 +23,10 @@
 <CHANGES>
 ##&name;
 ###&version;
-- Update parted package.
+- Fi: Remove libfsapfs package.
+
+###2021.01.21
+- Add: libfsapfs package to support apfs file systems.
 
 ###2020.05.22
 - Fix: Update support link.
@@ -69,11 +72,11 @@ rm -rf /usr/local/emhttp/plugins/&name;/* 2>/dev/null
 </FILE>
 
 <!--
-parted-3.4-x86_64-2.txz
+parted-3.3-x86_64-1.txz
 -->
-<FILE Name="&packages;/parted-3.4-x86_64-2.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/parted-3.4-x86_64-2.txz"</URL>
-<MD5>6df9026349b56b4e4beea086bc2afeb0</MD5>
+<FILE Name="&packages;/parted-3.3-x86_64-1.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/parted-3.3-x86_64-1.txz"</URL>
+<MD5>0f298896be48094a690a19cdc5e0c1e6</MD5>
 </FILE>
 
 <!--
@@ -130,7 +133,7 @@ echo ""
 echo "-----------------------------------------------------------"
 echo " &name; has been installed."
 echo " Copyright 2015, gfjardim"
-echo " Copyright 2016-2021, &author;"
+echo " Copyright 2016-2020, &author;"
 echo " Version: &version;"
 echo "-----------------------------------------------------------"
 echo ""
@@ -144,7 +147,7 @@ The 'remove' script.
 <INLINE>
 
 # Remove all installed packages.
-removepkg parted-3.4-x86_64-2 2>/dev/null
+removepkg parted-3.3-x86_64-1 2>/dev/null
 removepkg exfat-utils-1.3.0-x86_64-1_slonly 2>/dev/null
 removepkg fuse-exfat-1.3.0-x86_64-1_slonly.txz 2>/dev/null
 removepkg hfsprogs-332.25-x86_64-2sl 2>/dev/null
