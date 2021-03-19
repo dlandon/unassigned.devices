@@ -679,6 +679,12 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	$(function()
 	{
 		/* Add icons to Tab/Title bar */
+		$('#tab4').bind({click:function() {$('i.toggle').show('slow');}});
+		if ($.cookie('diskio')===undefined) {
+			$('i.toggle').removeClass('fa-tachometer').addClass('fa-list');
+		} else {
+			$('i.toggle').removeClass('fa-list').addClass('fa-tachometer');
+		}
 		addButtonTab('<a title="<?=_("Unassigned Devices Settings");?>" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>',
 								 "<?=_('Unassigned Devices');?>");
 		addButtonTab('<a style="cursor:pointer;" onclick="rescan_disks()" title="<?=_("Refresh Disks and Configuration");?>"><i class="fa fa-refresh"></i></a>',
