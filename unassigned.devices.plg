@@ -3,13 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2021.03.09">
+<!ENTITY version   "2021.03.20">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY packages	"/boot/config/plugins/&name;/packages">
-<!ENTITY MD5		"98ea3d6b52f50c172143c834b8f93fab">
+<!ENTITY MD5		"73e83d218a05096371b27825e1ac5ca6">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +23,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Temperature display on lagacy Unraid versions.
+- Fix: Change plugin bundle installation location.
+- Fix: Diskio icon not showing when switching from 'Array Operation' to 'Unassigned Devices' tab.
+
+###2021.03.09
 - Fix: Plugin permissions.
 
 ###2021.03.06b
@@ -1258,14 +1262,14 @@ The 'pre-install' script.
 rm -rf /usr/local/emhttp/plugins/&name;/* 2>/dev/null
 
 # Remove old 'bundle' files.
-rm -f $(ls &packages;/*.tgz 2>/dev/null | grep -v '&version;')
+rm -f $(ls /boot/config/plugins/&name;/*.tgz 2>/dev/null | grep -v '&version;')
 </INLINE>
 </FILE>
 
 <!--
 Get the plugin bundle.
 -->
-<FILE Name="&packages;/&name;-&version;.tgz">
+<FILE Name="/boot/config/plugins/&name;/&name;-&version;.tgz">
 <URL>"&gitURL;/&name;-&version;.tgz"</URL>
 <MD5>&MD5;</MD5>
 </FILE>
@@ -1376,10 +1380,10 @@ mkdir /tmp/&name; 2>/dev/null
 mkdir /boot/config/plugins/&name; 2>/dev/null
 
 # Remove old packages
-find "&packages;/" -type f -iname "*.txz" -delete
+find "/boot/config/plugins/&name;/" -type f -iname "*.txz" -delete
 
 # Install the 'bundle'.
-tar -xf &packages;/&name;-&version;.tgz -C /usr/local/emhttp/plugins 2>/dev/null
+tar -xf /boot/config/plugins/&name;/&name;-&version;.tgz -C /usr/local/emhttp/plugins 2>/dev/null
 
 # move the rules file
 mv /usr/local/emhttp/plugins/&name;/99_persistent_unassigned.rules /etc/udev/rules.d/
@@ -1454,9 +1458,8 @@ if [[ -e /usr/local/emhttp/plugins/dynamix/OpenDevices.page ]]; then
 fi
 
 # Clean out old plugin packages
-find /boot/config/plugins/&name; -maxdepth 1 -type f -iname "*.t*z" -delete
-find &packages; -type f -iname "&name;*.txz" ! -iname "*&version;*" -delete
-find &packages; -type f -iname "&name;*.md5" ! -iname "*&version;*" -delete
+find /boot/config/plugins/&name; -type f -iname "&name;*.txz" ! -iname "*&version;*" -delete
+find /boot/config/plugins/&name; -type f -iname "&name;*.md5" ! -iname "*&version;*" -delete
 
 # reload udev rules
 udevadm control --reload-rules
@@ -1499,12 +1502,11 @@ fi
 rmdir /mnt/remotes 2>/dev/null
 
 # Remove installed packages
-find "&packages;/" -type f -iname "*.txz" -delete
+find "/boot/config/plugins/&name;/" -type f -iname "*.txz" -delete
 
 # Remove possible leftovers
 rm -rf /usr/local/emhttp/plugins/&name; \
-       /var/state/&name; \
-       &packages;
+       /var/state/&name;
 
 rm -f /tmp/plugins/&name;.plg \
       /usr/local/sbin/rc.unassigned \
