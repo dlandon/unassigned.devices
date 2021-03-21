@@ -38,7 +38,7 @@ $disabled = "";
 
 if (isset($_GET['s'])) {
 	$serial = $_GET['s'];
-	$device = $_GET['b'];
+	$device = isset($_GET['b']) ? $_GET['b'] : $_GET['l'];
 	$partition = $_GET['p'];
 	$mount_point = $_GET['l'];
 	$info = $_GET['m'];
