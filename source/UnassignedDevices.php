@@ -532,13 +532,13 @@ switch ($_POST['action']) {
 				$mountpoint	= basename(get_config($serial, "mountpoint.1"));
 				$ct .= "<tr><td><i class='fa fa-minus-circle orb grey-orb'></i>"._("missing")."</td><td>$serial"." ($mountpoint)</td>";
 				$ct .= "<td></td><td></td><td></td><td></td><td></td><td></td>";
-				$ct .= "<td><a title='"._("Edit Historical Device Settings and Script")."' href='/Main/EditSettings?s=".urlencode($serial)."&l=".urlencode(basename($mountpoint))."&p=".urlencode("1")."&t=TRUE'><i class='fa fa-gears'></i></a></td>";
-				$ct .= "<td title='"._("Remove Device configuration")."'><a style='color:#CC0000;font-weight:bold;cursor:pointer;' onclick='remove_disk_config(\"{$serial}\")'><i class='fa fa-remove hdd'></a></td></tr>";
+				$ct .= "<td title='"._("Remove Device configuration")."'><a style='color:#CC0000;font-weight:bold;cursor:pointer;' onclick='remove_disk_config(\"{$serial}\")'><i class='fa fa-remove hdd'></a></td>";
+				$ct .= "<td><a title='"._("Edit Historical Device Settings and Script")."' href='/Main/EditSettings?s=".urlencode($serial)."&l=".urlencode(basename($mountpoint))."&p=".urlencode("1")."&t=TRUE'><i class='fa fa-gears'></i></a></td></tr>";
 			}
 		}
 		if (strlen($ct)) {
 			echo "<div class='show-disks'><div class='show-historical' id='smb_tab'><div id='title'><span class='left'><img src='/plugins/{$plugin}/icons/historical.png' class='icon'>"._('Historical Devices')."</span></div>";
-			echo "<table class='disk_status wide usb_absent'><thead><tr><td>"._('Device')."</td><td>"._('Serial Number (Mount Point)')."</td><td></td><td></td><td></td><td></td><td></td><td></td><td>"._('Settings')."</td><td>"._('Remove')."</td></tr></thead><tbody>{$ct}</tbody></table></div></div>";
+			echo "<table class='disk_status wide usb_absent'><thead><tr><td>"._('Device')."</td><td>"._('Serial Number (Mount Point)')."</td><td></td><td></td><td></td><td></td><td></td><td></td><td>"._('Remove')."</td><td>"._('Settings')."</td></tr></thead><tbody>{$ct}</tbody></table></div></div>";
 		}
 		unassigned_log("Total get_content render time: ".($time + microtime(true))."s", "DEBUG");
 		break;
