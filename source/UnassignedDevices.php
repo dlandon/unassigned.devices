@@ -172,17 +172,17 @@ function render_partition($disk, $partition, $total=FALSE) {
 	$title = _("Edit Device Settings and Script").".";
 	if ($total) {
 		$title .= "\n"._("Passed Through").":  ";
-		$title .= ($partition['pass_through'] == 'yes') ? "On" : "Off";
+		$title .= ($partition['pass_through'] == 'yes') ? "Yes" : "No";
 		$title .= "   "._("Read Only").": ";
-		$title .= ($partition['read_only'] == 'yes') ? "On" : "Off";
+		$title .= ($partition['read_only'] == 'yes') ? "Yes" : "No";
 		$title .= "   "._("Automount").": ";
-		$title .= ($partition['automount'] == 'yes') ? "On" : "Off";
+		$title .= ($partition['automount'] == 'yes') ? "Yes" : "No";
 		$title .=  "   ";
 	} else {
 		$title .= "\n";
 	}
 	$title .= _("Share").": ";
-	$title .= ($partition['shared'] == 'yes') ? "On" : "Off";
+	$title .= ($partition['shared'] == 'yes') ? "Yes" : "No";
 
 	$dev	= basename($device);
 	$device	= (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev) ;
@@ -450,9 +450,9 @@ switch ($_POST['action']) {
 
 				$title = _("Edit Remote SMB/NFS Settings and Script").".";
 				$title .= "\n"._("Automount").": ";
-				$title .= ($mount['automount'] == 'yes') ? "On" : "Off";
+				$title .= ($mount['automount'] == 'yes') ? "Yes" : "No";
 				$title .= "   "._("Share").": ";
-				$title .= ($mount['smb_share'] == 'yes') ? "On" : "Off";
+				$title .= ($mount['smb_share'] == 'yes') ? "Yes" : "No";
 
 				echo "<td><a title='$title' href='/Main/EditSettings?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."&m=".urlencode(json_encode($mount))."'><i class='fa fa-gears'></i></a></td>";
 				echo "<td></td><td></td><td></td>";
@@ -503,7 +503,7 @@ switch ($_POST['action']) {
 
 				$title = _("Edit ISO File Settings and Script").".";
 				$title .= "\n"._("Automount").": ";
-				$title .= ($mount['automount'] == 'yes') ? "On" : "Off";
+				$title .= ($mount['automount'] == 'yes') ? "Yes" : "No";
 
 				echo "<td><a title='$title' href='/Main/EditSettings?i=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><i class='fa fa-gears'></i></a></td>";
 				echo "<td></td><td></td><td></td>";
