@@ -23,7 +23,7 @@
 <CHANGES>
 ##&name;
 ###&version;
-- Fix: Temperature display on lagacy Unraid versions.
+- Fix: Temperature display on legacy Unraid versions.
 - Fix: Change plugin bundle installation location.
 - Fix: Diskio icon not showing when switching from 'Array Operation' to 'Unassigned Devices' tab.
 
@@ -31,7 +31,7 @@
 - Fix: Plugin permissions.
 
 ###2021.03.06b
-- Fix: Code cleanup and handling of dev.ini (Unassigned Devies).
+- Fix: Code cleanup and handling of dev.ini (Unassigned Devices).
 - Fix: 'nan' in reads/writes.
 - Fix: Reads and writes counters not clearing.
 
@@ -71,8 +71,8 @@
 
 ###2020.12.31
 - Add: Success dialog when 'Refresh Disks and Configuration' icon is clicked.
-- Add: Asynchrounous event handling to improve responsiveness.
-- Fix: Can't change 'Show Parititions' switch when disk is set as pass through.
+- Add: Asynchronous event handling to improve responsiveness.
+- Fix: Can't change 'Show Partitions' switch when disk is set as pass through.
 - Fix: Remove spinner.  It is unnecessary and just slows things down.
 - Fix: Mounting and Unmounting status on samba and iso mounts turns off too soon.
 
@@ -91,11 +91,11 @@
 
 ###2020.12.20a
 - Fix: Don't allow parenthesis or dollar sign in script filename.
-- Add: Can now set a User Sript so 'Running' indicator on a mounted device will show when a User Script is running on that device.
+- Add: Can now set a User Script so 'Running' indicator on a mounted device will show when a User Script is running on that device.
 - Fix: Move spinner to page refresh and cut down on excessive refreshing of UD page.
 
 ###2020.12.13b
-- Fix: Flash drives show as spun down.  Thay are always spun up.
+- Fix: Flash drives show as spun down.  They are always spun up.
 - Fix: Try to cut down on screen refreshes when a disk device is mounted.
 - Fix: Change 'Rescan Disks' to simulate hotplug event to Unraid.
 
@@ -125,7 +125,7 @@
 - Add: Beginning with 6.9, you can manually spin up/down disks by clicking on the disk device active ball, the same as an array device.
 
 ###2020.12.06a
-- Fix: Nvme termerature not showing.
+- Fix: Nvme temperature not showing.
 - Fix: Clean up some device designations.
 - Fix: Remove command file check to keep drive spun down.
 
@@ -329,7 +329,7 @@
 - Fix: Adjusted some table layout.
 
 ###2020.04.27
-- Fix: Add 'plus' back to expand disk partitons and remove highlight color on disk serial number.
+- Fix: Add 'plus' back to expand disk partitions and remove highlight color on disk serial number.
 
 ###2020.04.26b
 - Fix: Some UI changes to line things up better.  Some style sheet changes.
@@ -386,7 +386,7 @@
 
 ###2020.02.02
 - Fix: Default auto mount to off.
-- Remove: Ext4 file format.  Ext4 is not used by unraid.  Ext4 disks can still be mounted.
+- Remove: Ext4 file format.  Ext4 is not used by Unraid.  Ext4 disks can still be mounted.
 - Add: 'Pass Through' switch to designate a physical disk as passed to a VM or Docker so UD won't mount the disk.
 
 ###2020.01.28
@@ -396,7 +396,7 @@
 - Fix: Improved randomness in key and iv generation.
 
 ###2020.01.19a
-- Fix: Paswword encryption/decryption issues.
+- Fix: Password encryption/decryption issues.
 
 ###2020.01.15
 - Fix: SMB server lookup.  Thanks to gfjardim.
@@ -450,7 +450,7 @@
 ###2019.12.14
 - Fix: Extend mount and umount command time outs.
 - Fix: Cut down on event logging.
-- FIx: Intermittent issue with disks not unmounting.
+- Fix: Intermittent issue with disks not unmounting.
 
 ###2019.12.08
 - Fix: Remove nmblookup to find smb shares.  It is no longer necessary.
@@ -654,7 +654,7 @@
 
 ###2018.01.08b
 - Add: Detection for an attempt to mount a null device.
-- Fix: Don't add null devices to the unassigned devces list.
+- Fix: Don't add null devices to the unassigned devices list.
 
 ###2018.01.07c
 - Fix: Remove the preclear rc.diskinfo for disk status in UD.  It's not really necessary and is causing too many support issues.
@@ -1195,7 +1195,7 @@
 
 ###2015.04.24a
 - Fix webGui being hammered with update requests
-- Fix mounting all disks if no devide was supplied
+- Fix mounting all disks if no device was supplied
 - Set sleep time (15 minutes) to mounted disks
 
 ###2015.04.24
