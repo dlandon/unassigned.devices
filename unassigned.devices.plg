@@ -1447,7 +1447,7 @@ chown nobody:users /mnt/remotes
 at -M -f /tmp/&name;/add-smb-extra now 2>/dev/null
 
 # Create a scripts directory to run UD device scripts
-mkdir - /tmp/&name;/scripts
+mkdir -p /tmp/&name;/scripts
 
 # mount disks
 at -M -f /tmp/start_unassigned_devices now 2>/dev/null
