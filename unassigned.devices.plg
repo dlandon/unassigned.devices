@@ -23,6 +23,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Minor UI modifications.
+
+###2021.03.20
 - Fix: Temperature display on legacy Unraid versions.
 - Fix: Change plugin bundle installation location.
 - Fix: Diskio icon not showing when switching from 'Array Operation' to 'Unassigned Devices' tab.
@@ -1373,11 +1376,11 @@ The 'post-install' script.
 <FILE Run="/bin/bash">
 <INLINE>
 # Create logs directory.
-mkdir /tmp/&name; 2>/dev/null
+mkdir -p /tmp/&name;
 
 # Install the plugin bundle.
 # Create plugin directory
-mkdir /boot/config/plugins/&name; 2>/dev/null
+mkdir -p /boot/config/plugins/&name;
 
 # Remove old packages
 find "/boot/config/plugins/&name;/" -type f -iname "*.txz" -delete
