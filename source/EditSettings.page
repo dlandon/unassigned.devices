@@ -252,7 +252,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 <span><input type="text" title='_(Enter User Script File Name)_.' name="#user_file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/user.scripts/scripts/','',false,true);" autocomplete="off" placeholder="Enter the User Script that will be using this device" value="<?=$user_file;?>" <?=$disabled;?>></span>
 
 :ud_edit_user_script_choose_name_plug:
-> If you have the User Scripts plugin installed, you can have Unassigned Devices show the running status of the User Script that will be using this device.
+> If you have the User Scripts plugin installed, you can have Unassigned Devices show the running status of the User Script that will be using this device.  This field will only be enabled when a Script File exists.
 :end
 <?endif;?>
 
@@ -358,7 +358,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 		if (on_files   === undefined) on_files = true;
 		if (! filter && ! on_files)   filter = 'HIDE_FILES_FILTER';
 		p = $(el);
-		// Skip is fileTree is already open
+		// Skip if fileTree is already open
 		if ( p.next().hasClass('fileTree') ){return null;}
 		// create a random id
 		var r = Math.floor((Math.random()*1000)+1);
