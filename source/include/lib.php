@@ -1375,14 +1375,19 @@ function do_mount_samba($info) {
 				file_put_contents("$credentials_file", "username=".($info['user'] ? $info['user'] : 'guest')."\n");
 				file_put_contents("$credentials_file", "password=".decrypt_data($info['pass'])."\n", FILE_APPEND);
 				file_put_contents("$credentials_file", "domain=".$info['domain']."\n", FILE_APPEND);
-				$ver	= "";
-				$params	= sprintf(get_mount_params($fs, $dev), $ver);
-				$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
-				unassigned_log("Mount SMB share '$dev' using SMB default protocol.");
-				unassigned_log("Mount SMB command: $cmd");
-				$o		= timed_exec(10, $cmd." 2>&1");
+				/* If the smb version is not required, just mount the remote share with no version. */
+				if (get_config("Config", "smb_version") != "yes" ) {
+					$ver	= "";
+					$params	= sprintf(get_mount_params($fs, $dev), $ver);
+					$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
+					unassigned_log("Mount SMB share '$dev' using SMB default protocol.");
+					unassigned_log("Mount SMB command: $cmd");
+					$o		= timed_exec(10, $cmd." 2>&1");
+				}
 				if (! is_mounted($dev) && strpos($o, "Permission denied") === FALSE) {
-					unassigned_log("SMB default protocol mount failed: {$o}.");
+					if (get_config("Config", "smb_version") != "yes" ) {
+						unassigned_log("SMB default protocol mount failed: {$o}.");
+					}
 					$ver	= ",vers=3.0";
 					$params	= sprintf(get_mount_params($fs, $dev), $ver);
 					$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";

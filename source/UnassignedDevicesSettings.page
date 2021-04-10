@@ -200,6 +200,18 @@ _(Legacy Mount Point Compatibility)_?
 > If you do not need the backwards compatibility, leave it set to **No**.
 :end
 
+_(Specify SMB Version when Mounting Remote Shares)_?
+: <select name="smb_version" size="1">
+  <?=mk_option($cfg["Config"]["smb_version"], "no", "_(No)_");?>
+  <?=mk_option($cfg["Config"]["smb_version"], "yes", "_(Yes)_");?>
+  </select>
+
+:ud_settings_specify_smb_vers_plug:
+> Set 'No' for Unassigned Devices to first try to mount remote shares by not setting the SMB version when mounting.
+> Set 'Yes' for Unassigned Devices to only mount SMB remote shares specifying the SMB version.
+> Some remote servers need to have the version specified.
+:end
+
 &nbsp;
 : <input type="submit" name="#apply" value='_(Apply)_'><input type="button" value='_(Done)_' onclick="done()">
 </form>
