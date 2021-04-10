@@ -207,8 +207,10 @@ _(Specify SMB Version when Mounting Remote Shares)_?
   </select>
 
 :ud_settings_specify_smb_vers_plug:
-> Set 'No' for Unassigned Devices to first try to mount remote shares by not setting the SMB version when mounting.
-> Set 'Yes' for Unassigned Devices to only mount SMB remote shares specifying the SMB version.
+> Set to **No** for Unassigned Devices to first try to mount remote shares by not setting the SMB version when mounting.
+>
+> Set to **Yes** for Unassigned Devices to only mount SMB remote shares specifying the SMB version.
+>
 > Some remote servers need to have the version specified.
 :end
 
