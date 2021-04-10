@@ -432,18 +432,18 @@ function format_disk($dev, $fs, $pass) {
 	$disk_blocks    = intval(trim(shell_exec("/sbin/blockdev --getsz $dev  | /bin/awk '{ print $1 }' 2>/dev/null")));
 	$disk_schema    = ( $disk_blocks >= $max_mbr_blocks ) ? "gpt" : "msdos";
 	$parted_fs		= ($fs == 'exfat') ? "fat32" : $fs;
-	unassigned_log("Device '{$dev}' block size: {$disk_blocks}");
+	unassigned_log("Device '{$dev}' block size: {$disk_blocks}.");
 
-	unassigned_log("Clearing partition table of disk '$dev'.");
+	unassigned_log("Clearing partition table of disk '{$dev}'.");
 	$o = trim(shell_exec("/usr/bin/dd if=/dev/zero of={$dev} bs=2M count=1 2>&1"));
 	if ($o != "") {
-		unassigned_log("Clear partition result:\n$o");
+		unassigned_log("Clear partition result:\n{$o}");
 	}
 
 	unassigned_log("Reloading disk '{$dev}' partition table.");
 	$o = trim(shell_exec("/usr/sbin/hdparm -z {$dev} 2>&1"));
 	if ($o != "") {
-		unassigned_log("Reload partition table result:\n$o");
+		unassigned_log("Reload partition table result:\n{$o}");
 	}
 	shell_exec("/sbin/udevadm trigger --action=change {$dev}");
 
@@ -457,7 +457,7 @@ function format_disk($dev, $fs, $pass) {
 			$alignment = $is_ssd ? "" : "-a 8";
 			$o = shell_exec("/sbin/sgdisk -o {$alignment} -n 1:32K:0 {$dev}");
 			if ($o != "") {
-				unassigned_log("Create gpt partition table result:\n$o");
+				unassigned_log("Create gpt partition table result:\n{$o}");
 			}
 		} else {
 			unassigned_log("Creating Unraid compatible mbr partition on disk '{$dev}'.");
@@ -465,24 +465,24 @@ function format_disk($dev, $fs, $pass) {
 			$start_sector = $is_ssd ? "2048" : "64";
 			$o = shell_exec("/usr/local/sbin/mkmbr.sh {$dev} {$start_sector}");
 			if ($o != "") {
-				unassigned_log("Create mbr partition table result:\n$o");
+				unassigned_log("Create mbr partition table result:\n{$o}");
 			}
 		}
 		unassigned_log("Reloading disk '{$dev}' partition table.");
 		$o = trim(shell_exec("/usr/sbin/hdparm -z {$dev} 2>&1"));
 		if ($o != "") {
-			unassigned_log("Reload partition table result:\n$o");
+			unassigned_log("Reload partition table result:\n{$o}");
 		}
 	} else {
 		unassigned_log("Creating a 'gpt' partition table on disk '{$dev}'.");
 		$o = trim(shell_exec("/usr/sbin/parted {$dev} --script -- mklabel gpt 2>&1"));
 		if ($o != "") {
-			unassigned_log("Create 'gpt' partition table result:\n$o");
+			unassigned_log("Create 'gpt' partition table result:\n{$o}");
 		}
 
 		$o = trim(shell_exec("/usr/sbin/parted -a optimal {$dev} --script -- mkpart primary $parted_fs 0% 100% 2>&1"));
 		if ($o != "") {
-			unassigned_log("Create primary partition result:\n$o");
+			unassigned_log("Create primary partition result:\n{$o}");
 		}
 	}
 
@@ -504,7 +504,7 @@ function format_disk($dev, $fs, $pass) {
 		}
 		if ($o)
 		{
-			unassigned_log("luksFormat error: ".$o);
+			unassigned_log("luksFormat error: {$o}");
 			return FALSE;
 		}
 		$mapper = "format_".basename($dev);
@@ -524,7 +524,7 @@ function format_disk($dev, $fs, $pass) {
 		}
 		if ($o && stripos($o, "warning") === FALSE)
 		{
-			unassigned_log("luksOpen result: ".$o);
+			unassigned_log("luksOpen result: {$o}");
 			return FALSE;
 		}
 		exec(get_format_cmd("/dev/mapper/{$mapper}", $fs),$out, $return);
@@ -539,18 +539,18 @@ function format_disk($dev, $fs, $pass) {
 	}
 	if ($return)
 	{
-		unassigned_log("Format disk '{$dev}' with '$fs' filesystem failed!  Result:\n".implode(PHP_EOL, $out));
+		unassigned_log("Format disk '{$dev}' with '{$fs}' filesystem failed:\n".implode(PHP_EOL, $out));
 		return FALSE;
 	}
 	if ($out) {
-		unassigned_log("Format disk '{$dev}' with '$fs' filesystem result:\n".implode(PHP_EOL, $out));
+		unassigned_log("Format disk '{$dev}' with '{$fs}' filesystem:\n".implode(PHP_EOL, $out));
 	}
 
 	sleep(3);
 	unassigned_log("Reloading disk '{$dev}' partition table.");
 	$o = trim(shell_exec("/usr/sbin/hdparm -z {$dev} 2>&1"));
 	if ($o != "") {
-		unassigned_log("Reload partition table result:\n$o");
+		unassigned_log("Reload partition table result:\n{$o}");
 	}
 	shell_exec("/sbin/udevadm trigger --action=change {$dev}");
 
@@ -577,7 +577,7 @@ function remove_partition($dev, $part) {
 	unassigned_log("Removing partition '{$part}' from disk '{$dev}'.");
 	$out = shell_exec("/usr/sbin/parted {$dev} --script -- rm {$part} 2>&1");
 	if ($out != "") {
-		unassigned_log("Remove parition failed result '{$out}'");
+		unassigned_log("Remove parition failed: '{$out}'.");
 		$rc = FALSE;
 	}
 	shell_exec("/sbin/udevadm trigger --action=change {$dev}");
@@ -689,7 +689,7 @@ function execute_script($info, $action, $testing = FALSE) {
 		unassigned_log("Running common script: '".basename($common_script)."'");
 		exec($common_script, $out, $return);
 		if ($return) {
-			unassigned_log("Error: common script failed with return '{$return}'");
+			unassigned_log("Error: common script failed: '{$return}'");
 		}
 	}
 
@@ -711,7 +711,7 @@ function execute_script($info, $action, $testing = FALSE) {
 				/* Run the script. */
 				exec($cmd, $out, $return);
 				if ($return) {
-					unassigned_log("Error: device script failed with return '{$return}'");
+					unassigned_log("Error: device script failed: '{$return}'");
 				}
 			} else {
 				return $command_script;
@@ -730,12 +730,12 @@ function remove_config_disk($sn) {
 	$config_file = $GLOBALS["paths"]["config_file"];
 	$config = @parse_ini_file($config_file, true);
 	if ( isset($config[$source]) ) {
-		unassigned_log("Removing configuration '$source'.");
+		unassigned_log("Removing configuration '{$source}'.");
 	}
 	$command = $config[$source]['command'];
 	if ( isset($command) && is_file($command) ) {
 		@unlink($command);
-		unassigned_log("Removing script '$command'.");
+		unassigned_log("Removing script '{$command}'.");
 	}
 	unset($config[$sn]);
 	save_ini_file($config_file, $config);
@@ -884,7 +884,7 @@ function do_mount($info) {
 				exec("/bin/shred -u '$luks_pass_file'");
 			}
 			if ($o && stripos($o, "warning") === FALSE) {
-				unassigned_log("luksOpen result: ".$o);
+				unassigned_log("luksOpen result: {$o}");
 				shell_exec("/sbin/cryptsetup luksClose ".basename($info['device']));
 			} else {
 				$rc = do_mount_local($info);
@@ -916,10 +916,10 @@ function do_mount_local($info) {
 				$device = $info['luks'];
 				$cmd = "/sbin/mount -o ".get_mount_params($fs, $device, $ro)." '{$dev}' '{$dir}'";
 			}
-			unassigned_log("Mount drive command: $cmd");
+			unassigned_log("Mount drive command: {$cmd}");
 			$o = shell_exec($cmd." 2>&1");
 			if ($o != "" && $fs == "ntfs" && is_mounted($dev)) {
-				unassigned_log("Mount warning: $o");
+				unassigned_log("Mount warning: {$o}.");
 			}
 			for ($i=0; $i < 5; $i++) {
 				if (is_mounted($dev)) {
@@ -937,7 +937,7 @@ function do_mount_local($info) {
 				if ($fs == "crypto_LUKS" ) {
 					shell_exec("/sbin/cryptsetup luksClose ".basename($info['device']));
 				}
-				unassigned_log("Mount of '{$dev}' failed. Error message: $o");
+				unassigned_log("Mount of '{$dev}' failed: '{$o}'");
 				@rmdir($dir);
 			}
 		} else {
@@ -955,9 +955,9 @@ function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE, $nfs = FALSE) {
 
 	$rc = FALSE;
 	if ( is_mounted($dev) && is_mounted($dir, TRUE) ) {
-		unassigned_log("Unmounting '{$dev}'...");
+		unassigned_log("Unmounting '{$dev}'.");
 		$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : "")." '{$dev}' 2>&1";
-		unassigned_log("Unmount cmd: $cmd");
+		unassigned_log("Unmount cmd: {$cmd}");
 		$timeout = ($smb || $nfs) ? ($force ? 30 : 10) : 90;
 		$o = timed_exec($timeout, $cmd);
 		for ($i=0; $i < 5; $i++) {
@@ -978,7 +978,7 @@ function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE, $nfs = FALSE) {
 			}
 		}
 		if (! $rc) {
-			unassigned_log("Unmount of '{$dev}' failed. Error message: $o"); 
+			unassigned_log("Unmount of '{$dev}' failed: '{$o}'"); 
 		}
 	} else {
 		unassigned_log("Cannot unmount '{$dev}'.  UD did not mount the device.");
@@ -1057,7 +1057,7 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 		if (! is_dir($paths['smb_usb_shares'])) @mkdir($paths['smb_usb_shares'],0755,TRUE);
 		$share_conf = preg_replace("#\s+#", "_", realpath($paths['smb_usb_shares'])."/".$share_name.".conf");
 
-		unassigned_log("Adding SMB share '$share_name'.");
+		unassigned_log("Adding SMB share '{$share_name}'.");
 		file_put_contents($share_conf, $share_cont);
 		if (! exist_in_file($paths['smb_extra'], $share_conf)) {
 			$c		= (is_file($paths['smb_extra'])) ? @file($paths['smb_extra'],FILE_IGNORE_NEW_LINES) : array();
@@ -1078,7 +1078,7 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 				if (is_file($recycle_script)) {
 					$recycle_bin_cfg = parse_ini_file( "/boot/config/plugins/recycle.bin/recycle.bin.cfg" );
 					if ($recycle_bin_cfg['INCLUDE_UD'] == "yes") {
-						unassigned_log("Enabling the Recycle Bin on share '$share_name'.");
+						unassigned_log("Enabling the Recycle Bin on share '{$share_name}'.");
 						timed_exec(5, "{$recycle_script} {$share_conf}");
 					}
 				}
@@ -1101,7 +1101,7 @@ function rm_smb_share($dir, $share_name) {
 		$share_conf = preg_replace("#\s+#", "_", realpath($paths['smb_usb_shares'])."/".$share_name.".conf");
 		if (is_file($share_conf)) {
 			@unlink($share_conf);
-			unassigned_log("Removing SMB share '$share_name'");
+			unassigned_log("Removing SMB share '{$share_name}'");
 		}
 		if (exist_in_file($paths['smb_extra'], $share_conf)) {
 			$c = (is_file($paths['smb_extra'])) ? @file($paths['smb_extra'],FILE_IGNORE_NEW_LINES) : array();
@@ -1125,7 +1125,7 @@ function add_nfs_share($dir) {
 
 	if ( ($var['shareNFSEnabled'] == "yes") && (get_config("Config", "nfs_export") == "yes") ) {
 		$reload = FALSE;
-		unassigned_log("Adding NFS share '$dir'.");
+		unassigned_log("Adding NFS share '{$dir}'.");
 		foreach (array("/etc/exports","/etc/exports-") as $file) {
 			if (! exist_in_file($file, "\"{$dir}\"")) {
 				$c = (is_file($file)) ? @file($file,FILE_IGNORE_NEW_LINES) : array();
@@ -1154,7 +1154,7 @@ function rm_nfs_share($dir) {
 
 	if ( ($var['shareNFSEnabled'] == "yes") && (get_config("Config", "nfs_export") == "yes") ) {
 		$reload = FALSE;
-		unassigned_log("Removing NFS share '$dir'.");
+		unassigned_log("Removing NFS share '{$dir}'.");
 		foreach (array("/etc/exports","/etc/exports-") as $file) {
 			if ( exist_in_file($file, "\"{$dir}\"") && strlen($dir)) {
 				$c = (is_file($file)) ? @file($file,FILE_IGNORE_NEW_LINES) : array();
@@ -1365,10 +1365,10 @@ function do_mount_samba($info) {
 			if ($fs == "nfs") {
 				$params	= get_mount_params($fs, $dev);
 				$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
-				unassigned_log("Mount NFS command: $cmd");
+				unassigned_log("Mount NFS command: {$cmd}");
 				$o		= timed_exec(10, $cmd." 2>&1");
 				if ($o != "") {
-					unassigned_log("NFS mount failed: {$o}.");
+					unassigned_log("NFS mount failed: '{$o}'.");
 				}
 			} else {
 				$credentials_file = "{$paths['credentials']}_".basename($dev);
@@ -1380,42 +1380,42 @@ function do_mount_samba($info) {
 					$ver	= "";
 					$params	= sprintf(get_mount_params($fs, $dev), $ver);
 					$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
-					unassigned_log("Mount SMB share '$dev' using SMB default protocol.");
-					unassigned_log("Mount SMB command: $cmd");
+					unassigned_log("Mount SMB share '{$dev}' using SMB default protocol.");
+					unassigned_log("Mount SMB command: {$cmd}");
 					$o		= timed_exec(10, $cmd." 2>&1");
 				}
 				if (! is_mounted($dev) && strpos($o, "Permission denied") === FALSE) {
 					if (get_config("Config", "smb_version") != "yes" ) {
-						unassigned_log("SMB default protocol mount failed: {$o}.");
+						unassigned_log("SMB default protocol mount failed: '{$o}'.");
 					}
 					$ver	= ",vers=3.0";
 					$params	= sprintf(get_mount_params($fs, $dev), $ver);
 					$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
-					unassigned_log("Mount SMB share '$dev' using SMB3 protocol.");
-					unassigned_log("Mount SMB command: $cmd");
+					unassigned_log("Mount SMB share '{$dev}' using SMB3 protocol.");
+					unassigned_log("Mount SMB command: {$cmd}");
 					$o		= timed_exec(10, $cmd." 2>&1");
 				}
 				if (! is_mounted($dev) && strpos($o, "Permission denied") === FALSE) {
-					unassigned_log("SMB3 mount failed: {$o}.");
+					unassigned_log("SMB3 mount failed: '{$o}'.");
 					/* If the mount failed, try to mount with samba vers=2.0. */
 					$ver	= ",vers=2.0";
 					$params	= sprintf(get_mount_params($fs, $dev), $ver);
 					$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
-					unassigned_log("Mount SMB share '$dev' using SMB2 protocol.");
-					unassigned_log("Mount SMB command: $cmd");
+					unassigned_log("Mount SMB share '{$dev}' using SMB2 protocol.");
+					unassigned_log("Mount SMB command: {$cmd}");
 					$o		= timed_exec(10, $cmd." 2>&1");
 				}
 				if ((! is_mounted($dev) && $use_netbios == 'yes') && strpos($o, "Permission denied") === FALSE) {
-					unassigned_log("SMB2 mount failed: {$o}.");
+					unassigned_log("SMB2 mount failed: '{$o}'.");
 					/* If the mount failed, try to mount with samba vers=1.0. */
 					$ver	= ",sec=ntlm,vers=1.0";
 					$params	= sprintf(get_mount_params($fs, $dev), $ver);
 					$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
-					unassigned_log("Mount SMB share '$dev' using SMB1 protocol.");
-					unassigned_log("Mount SMB command: $cmd");
+					unassigned_log("Mount SMB share '{$dev}' using SMB1 protocol.");
+					unassigned_log("Mount SMB command: {$cmd}");
 					$o		= timed_exec(10, $cmd." 2>&1");
 					if ($o != "") {
-						unassigned_log("SMB1 mount failed: {$o}.");
+						unassigned_log("SMB1 mount failed: '{$o}'.");
 						$rc = FALSE;
 					}
 				}
@@ -1432,7 +1432,7 @@ function do_mount_samba($info) {
 				$rc = TRUE;
 			} else {
 				@rmdir($dir);
-				unassigned_log("Mount of '{$dev}' failed. Error message: '$o'.");
+				unassigned_log("Mount of '{$dev}' failed: '{$o}'.");
 			}
 		} else {
 			unassigned_log("Share '{$dev}' already mounted.");
@@ -1464,12 +1464,12 @@ function remove_config_samba($source) {
 	$config_file = $GLOBALS["paths"]["samba_mount"];
 	$config = @parse_ini_file($config_file, true);
 	if ( isset($config[$source]) ) {
-		unassigned_log("Removing configuration '$source'.");
+		unassigned_log("Removing configuration '{$source}'.");
 	}
 	$command = $config[$source]['command'];
 	if ( isset($command) && is_file($command) ) {
 		@unlink($command);
-		unassigned_log("Removing script '$command'.");
+		unassigned_log("Removing script '{$command}'.");
 	}
 	unset($config[$source]);
 	save_ini_file($config_file, $config);
@@ -1552,13 +1552,13 @@ function do_mount_iso($info) {
 				$rc = TRUE;
 			} else {
 				@rmdir($dir);
-				unassigned_log("Mount of '{$dev}' failed. Error message: $o");
+				unassigned_log("Mount of '{$dev}' failed: '{$o}'");
 			}
 		} else {
-			unassigned_log("Share '$dev' already mounted.");
+			unassigned_log("Share '{$dev}' already mounted.");
 		}
 	} else {
-		unassigned_log("Error: ISO file '$info[file]' is missing and cannot be mounted.");
+		unassigned_log("Error: ISO file '{$info[file]}' is missing and cannot be mounted.");
 	}
 	return $rc;
 }
@@ -1576,12 +1576,12 @@ function remove_config_iso($source) {
 	$config_file = $GLOBALS["paths"]["iso_mount"];
 	$config = @parse_ini_file($config_file, true);
 	if ( isset($config[$source]) ) {
-		unassigned_log("Removing configuration '$source'.");
+		unassigned_log("Removing configuration '{$source}'.");
 	}
 	$command = $config[$source]['command'];
 	if ( isset($command) && is_file($command) ) {
 		@unlink($command);
-		unassigned_log("Removing script '$command'.");
+		unassigned_log("Removing script '{$command}'.");
 	}
 	unset($config[$source]);
 	save_ini_file($config_file, $config);
@@ -1617,7 +1617,7 @@ function get_unassigned_disks() {
 	}
 
 	foreach ($unraid_disks as $k) {$o .= "  $k\n";};
-	unassigned_log("UNRAID DISKS:\n$o", "DEBUG");
+	unassigned_log("UNRAID DISKS:\n{$o}", "DEBUG");
 
 	/* Create the array of unassigned devices. */
 	foreach ($paths as $path => $d) {
@@ -1627,7 +1627,7 @@ function get_unassigned_disks() {
 				$m = array_values(preg_grep("|$d.*-part\d+|", $paths));
 				natsort($m);
 				$ud_disks[$d] = array("device"=>$path,"type"=>"ata", "partitions"=>$m);
-				unassigned_log("Unassigned disk: '$d'.", "DEBUG");
+				unassigned_log("Unassigned disk: '{$d}'.", "DEBUG");
 			}
 		}
 	}
@@ -1671,12 +1671,12 @@ function get_udev_info($device, $udev=NULL) {
 		save_ini_file($paths['state'], $state);
 		return $udev;
 	} else if (array_key_exists($device, $state)) {
-		unassigned_log("Using udev cache for '$device'.", "DEBUG");
+		unassigned_log("Using udev cache for '{$device}'.", "DEBUG");
 		return $state[$device];
 	} else {
 		$state[$device] = parse_ini_string(str_replace(array("$","!","\"","."), "", timed_exec(5,"/sbin/udevadm info --query=property --path $(/sbin/udevadm info -q path -n $device 2>/dev/null) 2>/dev/null")));
 		save_ini_file($paths['state'], $state);
-		unassigned_log("Not using udev cache for '$device'.", "DEBUG");
+		unassigned_log("Not using udev cache for '{$device}'.", "DEBUG");
 		return $state[$device];
 	}
 }
@@ -1980,7 +1980,7 @@ function change_UUID($dev) {
 			exec("/bin/shred -u '$luks_pass_file'");
 		}
 		if ($o != "") {
-			unassigned_log("luksOpen error: ".$o);
+			unassigned_log("luksOpen error: {$o}");
 			return;
 		}
 		$rc = timed_exec(1, "/usr/sbin/xfs_admin -U generate /dev/mapper/{$mapper}");
