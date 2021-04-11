@@ -5,6 +5,9 @@ if [ -z ${DOCROOT} ];then
 	DOCROOT="/usr/local/emhttp"
 fi
 
+# Set up log filter to remove excessive log messages.
+${DOCROOT}/plugins/unassigned.devices/scripts/rc.log.filter
+
 logger "Mounting 'Auto Mount' Remote Shares..." -t"unassigned.devices"
 # Wait until network is ready
 timer=30
