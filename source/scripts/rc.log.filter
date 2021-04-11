@@ -14,7 +14,7 @@ $docroot = $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $rsyslog_conf = "/etc/rsyslog.conf";
 $filter_file ="/etc/rsyslog.d/03-blocklist-ud_extra.conf";
 
-$filter = ":programname,contains,\"rpcbind\" stop\n";
+$filter = ":msg,contains,\"to getport/addr\" stop\n";
 file_put_contents($filter_file, $filter);
 
 /* Setup log rules */
