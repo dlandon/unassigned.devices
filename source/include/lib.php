@@ -1961,7 +1961,7 @@ function change_UUID($dev) {
 		}
 	}
 	if ($fs_type == "crypto_LUKS") {
-		timed_exec(1, "plugins/{$plugin}/scripts/luks_uuid.sh {$dev}1");
+		timed_exec(10, "plugins/{$plugin}/scripts/luks_uuid.sh {$dev}1");
 		$mapper	= basename($dev);
 		$cmd	= "luksOpen {$luks} {$mapper}";
 		$pass	= decrypt_data(get_config($serial, "pass"));
@@ -1983,10 +1983,10 @@ function change_UUID($dev) {
 			unassigned_log("luksOpen error: {$o}");
 			return;
 		}
-		$rc = timed_exec(1, "/usr/sbin/xfs_admin -U generate /dev/mapper/{$mapper}");
+		$rc = timed_exec(10, "/usr/sbin/xfs_admin -U generate /dev/mapper/{$mapper}");
 		shell_exec("/sbin/cryptsetup luksClose ".$mapper);
 	} else {
-		$rc = timed_exec(1, "/usr/sbin/xfs_admin -U generate {$dev}1");
+		$rc = timed_exec(10, "/usr/sbin/xfs_admin -U generate {$dev}1");
 	}
 	unassigned_log("Changing disk '{$dev}' UUID. Result: {$rc}");
 }
