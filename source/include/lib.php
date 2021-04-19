@@ -604,7 +604,7 @@ function timed_exec($timeout=10, $cmd) {
 	$time		= -microtime(true); 
 	$out		= shell_exec("/usr/bin/timeout ".$timeout." ".$cmd);
 	$time		+= microtime(true);
-	if ($time >= $timeout) {
+	if ($time > $timeout) {
 		unassigned_log("Error: shell_exec(".$cmd.") took longer than ".sprintf('%d', $timeout)."s!");
 		$out	= "command timed out";
 	} else {
@@ -845,7 +845,7 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 			break;
 
 		case 'nfs':
-			return "rw,hard,timeo=600,retrans=10";
+			return "rw,noac,hard,timeo=600,retrans=10";
 			break;
 
 		default:
@@ -1071,7 +1071,7 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 			$c		= preg_replace('/\n\s*\n\s*\n/s', PHP_EOL.PHP_EOL, implode(PHP_EOL, $c));
 			file_put_contents($paths['smb_extra'], $c);
 
-			/* If the recyce bin plugin is installed, add the recycle bin to the share. */
+			/* If the recycle bin plugin is installed, add the recycle bin to the share. */
 			if ($recycle_bin) {
 				/* Add the recycle bin parameters if plugin is installed */
 				$recycle_script = "plugins/recycle.bin/scripts/configure_recycle_bin";
@@ -1079,7 +1079,7 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 					$recycle_bin_cfg = parse_ini_file( "/boot/config/plugins/recycle.bin/recycle.bin.cfg" );
 					if ($recycle_bin_cfg['INCLUDE_UD'] == "yes") {
 						unassigned_log("Enabling the Recycle Bin on share '{$share_name}'.");
-						timed_exec(5, "{$recycle_script} {$share_conf}");
+						shell_exec("{$recycle_script} '{$share_conf}'");
 					}
 				}
 			}
