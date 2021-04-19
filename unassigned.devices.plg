@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2021.04.17">
+<!ENTITY version   "2021.04.19">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"952d0b2747d139891831f8c046558949">
+<!ENTITY MD5		"825097b22929f5b57427e8fbdf48e217">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,6 +23,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+Fix: Setting up Recycle Bin on UD devices.
+Add: Add 'noac' to NFS mounts to disable caching.
+
+### 2021.04.17
 - Fix: Rename UDAppend.page 'usr' variable.
 - Fix: Extend change UUID command timeouts to 10 seconds.
 - Fix: Add 'cache=none' to CIFS mounts to disable oplocks.
