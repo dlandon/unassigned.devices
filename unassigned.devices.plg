@@ -23,8 +23,8 @@
 <CHANGES>
 ##&name;
 ###&version;
-Fix: Setting up Recycle Bin on UD devices.
-Add: Add 'noac' to NFS mounts to disable caching.
+- Fix: Setting up Recycle Bin on UD devices.
+- Add: Add 'noac' to NFS mounts to disable caching.
 
 ### 2021.04.17
 - Fix: Rename UDAppend.page 'usr' variable.
