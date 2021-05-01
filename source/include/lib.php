@@ -919,7 +919,16 @@ function do_mount_local($info) {
 		if ($fs) {
 			@mkdir($dir, 0777, TRUE);
 			if ($fs != "crypto_LUKS") {
-				$cmd = "/sbin/mount -t $fs -o ".get_mount_params($fs, $dev, $ro)." '{$dev}' '{$dir}'";
+				if ($fs == "apfs") {
+					$password = decrypt_data(get_config($info['serial'], "pass"));
+					$recovery = "";
+					if ($password != "") {
+						$recovery = "-r ".$password." ";
+					}
+					$cmd = "/usr/bin/apfs-fuse {$recovery}'{$dev}' '{$dir}'";
+				} else {
+					$cmd = "/sbin/mount -t $fs -o ".get_mount_params($fs, $dev, $ro)." '{$dev}' '{$dir}'";
+				}
 			} else {
 				$device = $info['luks'];
 				$cmd = "/sbin/mount -o ".get_mount_params($fs, $device, $ro)." '{$dev}' '{$dir}'";

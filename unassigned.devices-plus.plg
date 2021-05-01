@@ -3,7 +3,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices-plus">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2021.05.01">
+<!ENTITY version   "2021.05.01a">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/unassigned.devices/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
@@ -23,7 +23,7 @@
 <CHANGES>
 ##&name;
 ###&version;
-- Add: Packages for mounting apfs disks.
+- Add: apfs-fuse package for mounting apfs disks.
 
 ###2021.01.24
 - Fix: Remove libfsapfs package.
@@ -123,14 +123,6 @@ apfsfuse-v20200708-x86_64-1.txz
 </FILE>
 
 <!--
-fuse3-3.10.1-x86_64-1.txz
--->
-<FILE Name="&packages;/fuse3-3.10.1-x86_64-1.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/fuse3-3.10.1-x86_64-1.txz"</URL>
-<MD5>09d396da8fedf1eac7dfc42396058385</MD5>
-</FILE>
-
-<!--
 README.md
 -->
 <FILE Name="/usr/local/emhttp/plugins/&name;/README.md">
@@ -172,7 +164,6 @@ removepkg fuse-exfat-1.3.0-x86_64-1_slonly.txz 2>/dev/null
 removepkg hfsprogs-332.25-x86_64-2sl 2>/dev/null
 removepkg libbsd-0.8.7-x86_64-1_slonly 2>/dev/null
 removepkg apfsfuse-v20200708-x86_64-1.txz 2>/dev/null
-removepkg fuse3-3.10.1-x86_64-1.txz 2>/dev/null
 
 # Remove possible leftovers
 rm -rf /usr/local/emhttp/plugins/&name; \

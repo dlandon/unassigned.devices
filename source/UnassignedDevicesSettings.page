@@ -38,7 +38,7 @@ foreach (get_all_disks_info() as $d) {
 		$a['label'] = $d['serial'];
 		$uuid_devices[] = $a;
 	}
-	if ($d['partitions'][0]['fstype'] == "crypto_LUKS") {
+	if ($d['partitions'][0]['fstype'] == "crypto_LUKS" || $d['partitions'][1]['fstype'] == "apfs") {
 		$a = array();
 		$a['label'] = $d['serial'];
 		$encrypt_devices[] = $a;
@@ -333,7 +333,7 @@ _(Enter Disk Password)_:
 : <input type="password" name="password" class="wide" maxlength="100" value="">
   
 :ud_settings_disk_pass_plug:
-> Select the disk that you want to set a Password.  This is the password for this disk only and does not affect the array password/passphrase.  Leave password blank to use the array password/passphrase.
+> Select the disk that you want to set a Password.  This is the password for this disk only and does not affect the array password/passphrase.  Leave password blank to use the array password/passphrase for luks encrypted disks.
 :end
 
 &nbsp;
