@@ -840,12 +840,20 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 			break;
 
 		case 'cifs':
+			$enable_caching = "cache=none,";
+			if (get_config("Config", "favor_reliability") == "no") {
+				$enable_caching = "";
+			}
 			$credentials_file = "{$paths['credentials']}_".basename($dev);
-			return "cache=none,rw,nounix,iocharset=utf8,file_mode=0777,dir_mode=0777,uid=99,gid=100%s,credentials='$credentials_file'";
+			return $enable_caching."rw,nounix,iocharset=utf8,file_mode=0777,dir_mode=0777,uid=99,gid=100%s,credentials='$credentials_file'";
 			break;
 
 		case 'nfs':
-			return "rw,noac,hard,timeo=600,retrans=10";
+			$enable_caching = "noac,";
+			if (get_config("Config", "favor_reliability") == "no") {
+				$enable_caching = "";
+			}
+			return $enable_caching."rw,hard,timeo=600,retrans=10";
 			break;
 
 		default:
