@@ -923,9 +923,9 @@ function do_mount_local($info) {
 					$password = decrypt_data(get_config($info['serial'], "pass"));
 					$recovery = "";
 					if ($password != "") {
-						$recovery = "-r ".$password." ";
+						$recovery = ",pass=".$password;
 					}
-					$cmd = "/usr/bin/apfs-fuse {$recovery}'{$dev}' '{$dir}'";
+					$cmd = "/usr/bin/apfs-fuse -o uid=99,gid=100,allow_other{$recovery} '{$dev}' '{$dir}'";
 				} else {
 					$cmd = "/sbin/mount -t $fs -o ".get_mount_params($fs, $dev, $ro)." '{$dev}' '{$dir}'";
 				}
