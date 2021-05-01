@@ -38,7 +38,12 @@ foreach (get_all_disks_info() as $d) {
 		$a['label'] = $d['serial'];
 		$uuid_devices[] = $a;
 	}
-	if ($d['partitions'][0]['fstype'] == "crypto_LUKS" || $d['partitions'][1]['fstype'] == "apfs") {
+	if ($d['partitions'][0]['fstype'] == "crypto_LUKS" && (! $d['partitions'][0]['mounted'])) {
+		$a = array();
+		$a['label'] = $d['serial'];
+		$encrypt_devices[] = $a;
+	}
+	if ($d['partitions'][1]['fstype'] == "apfs" && (! $d['partitions'][1]['mounted'])) {
 		$a = array();
 		$a['label'] = $d['serial'];
 		$encrypt_devices[] = $a;
