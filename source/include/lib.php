@@ -923,7 +923,7 @@ function do_mount_local($info) {
 					$password = decrypt_data(get_config($info['serial'], "pass"));
 					$recovery = "";
 					if ($password != "") {
-						$recovery = ",pass=".$password;
+						$recovery = ",pass='".$password."'";
 					}
 					$cmd = "/usr/bin/apfs-fuse -o uid=99,gid=100,allow_other{$recovery} '{$dev}' '{$dir}'";
 				} else {
@@ -933,7 +933,8 @@ function do_mount_local($info) {
 				$device = $info['luks'];
 				$cmd = "/sbin/mount -o ".get_mount_params($fs, $device, $ro)." '{$dev}' '{$dir}'";
 			}
-			unassigned_log("Mount drive command: {$cmd}");
+			$str = str_replace($recovery, ",pass='*****'", $cmd);
+			unassigned_log("Mount drive command: {$str}");
 			$o = shell_exec($cmd." 2>&1");
 			if ($o != "" && $fs == "ntfs" && is_mounted($dev)) {
 				unassigned_log("Mount warning: {$o}.");
