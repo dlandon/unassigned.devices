@@ -845,7 +845,7 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 				$enable_caching = "";
 			}
 			$credentials_file = "{$paths['credentials']}_".basename($dev);
-			return $enable_caching."rw,nounix,iocharset=utf8,file_mode=0777,dir_mode=0777,uid=99,gid=100%s,credentials='$credentials_file'";
+			return $enable_caching."rw,noserverino,nounix,iocharset=utf8,file_mode=0666,dir_mode=0777,uid=99,gid=100%s,credentials='$credentials_file'";
 			break;
 
 		case 'nfs':
@@ -853,7 +853,7 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 			if (get_config("Config", "favor_reliability") == "no") {
 				$enable_caching = "";
 			}
-			return $enable_caching."rw,hard,timeo=600,retrans=10";
+			return $enable_caching."rw,noacl,hard,timeo=600,retrans=10";
 			break;
 
 		default:
