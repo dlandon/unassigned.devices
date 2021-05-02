@@ -25,7 +25,7 @@
 ###&version;
 - Add: Setting to control CIFS and NFS remote share caching option when mounting.
 - Add: Apfs disk format support.  Disks are mounted read only.  Encrypted apfs disks can be mounted.
-= Add: NFS and CIFS mount parameters to try to help with remote mounts going off line.
+- Add: NFS and CIFS mount parameters to try to help with remote mounts going off line.
 
 ###2021.04.19
 - Fix: Setting up Recycle Bin on UD devices.
