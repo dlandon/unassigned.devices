@@ -219,20 +219,6 @@ _(Specify SMB Version when Mounting Remote Shares)_?
 > Some remote servers need to have the version specified.
 :end
 
-_(Favor reliability on Remote Share Mounts)_?
-: <select name="favor_reliability" size="1">
-  <?=mk_option($cfg["Config"]["favor_reliability"], "yes", "_(Yes)_");?>
-  <?=mk_option($cfg["Config"]["favor_reliability"], "no", "_(No)_");?>
-  </select>
-
-:ud_settings_favor_reliability_plug:
-> Set to **Yes** for Unassigned Devices to mount Remote Shares without caching for more reliabile connections.
->
-> Set to **No** for Unassigned Devices to mount Remote Shares with caching to potentially improve speed.
->
-> Setting this to **No** can improve speed in connections potentially at the expense of reliability.
-:end
-
 &nbsp;
 : <input type="submit" name="#apply" value='_(Apply)_'><input type="button" value='_(Done)_' onclick="done()">
 </form>
