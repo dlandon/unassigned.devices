@@ -141,7 +141,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 	}
 	$mbutton = make_mount_button($partition);
 
-	($disk['show_partitions'] != 'yes') ? $style = "style='display:none;'" : $style = "";
+	($disk['show_partitions'] != 'yes') || $disk['partitions'][0]['pass_through'] ? $style = "style='display:none;'" : $style = "";
 	$out[] = "<tr class='toggle-parts toggle-".basename($disk['device'])."' name='toggle-".basename($disk['device'])."' $style>";
 	$out[] = "<td></td>";
 	$out[] = "<td>{$mpoint}</td>";
@@ -265,7 +265,11 @@ function make_mount_button($device) {
 		}
 	} else {
 		$disable = ($device['partitions'][0]['pass_through'] || $preclearing ) ? "disabled" : $disable;
-		$button = sprintf($button, $context, 'mount', $disable, 'fa fa-import', _('Mount'));
+		if (! $device['partitions'][0]['pass_through']) {
+			$button = sprintf($button, $context, 'mount', $disable, 'fa fa-import', _('Mount'));	
+		} else {
+			$button = sprintf($button, $context, 'mount', $disable, 'fa fa-import', _('Passed'));	
+		}
 	}
 	return $button;
 }
