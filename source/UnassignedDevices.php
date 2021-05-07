@@ -668,6 +668,13 @@ switch ($_POST['action']) {
 
 	case 'rescan_disks':
 		exec("plugins/{$plugin}/scripts/copy_config.sh");
+		$sf = $paths['dev_state'];
+		if (is_file($sf)) {
+			$devs = parse_ini_file($sf, true);
+			foreach ($devs as $d) {
+				shell_exec("/sbin/udevadm trigger --action=change /dev/{$d['device']}");
+			}
+		}
 		$tc = $paths['hotplug_status'];
 		$hotplug = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : "no";
 		if ($hotplug == "no") {
