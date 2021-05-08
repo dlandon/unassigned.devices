@@ -19,6 +19,11 @@ $COMMAND = $argv[1];
 if ($COMMAND != 'spindown') {
 	$DEVNAME = (isset($_ENV['DEVNAME'])) ? $_ENV['DEVNAME'] : ( isset($argv[2]) ? $argv[2] : NULL );
 	$DEVNAME = (file_exists($DEVNAME)) ? realpath($DEVNAME) : $DEVNAME;
+	$sf = $paths['dev_state'];
+	if (is_file($sf) && (strpos(basename($DEVNAME), 'dev') !== FALSE)) {
+		$devs = parse_ini_file($sf, true);
+		$DEVNAME = isset($devs[$DEVNAME]) ? $devs[$DEVNAME]['device'] : $DEVNAME;
+	}
 } else {
 	$DEVNAME = $argv[2];
 }
