@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2021.05.04">
+<!ENTITY version   "2021.05.10">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"7e8a69b762fe1ccb49d3bbf027f83dc7">
+<!ENTITY MD5		"2e596c91024ae9700b9bfd66ef9a8952">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,6 +23,12 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Show 'Passed' on mount button when disk is set to passed through.  Don't show partition information.
+- Add: Rescan disks so UD can be updated with any disk changes, like a disk formatted by a VM.  Unraid 6.9 and later.
+- Add: Mount and unmount devices using Unraid 6.9 devX name.  This name is always the same for a UD device and doesn't change like the sdX device name.
+- Add: Remove the Unassigned Devices bundle when uninstalling so it will be downloaded when re-installed.
+
+###2021.05.04
 - Fix: Remove the cache setting for CIFS and NFS mounts that tried to resolve the stale file handle problem.
 - Add: Mask apfs password in log.
 
@@ -1553,6 +1559,9 @@ at -M -f /tmp/&name;/remove-smb-extra now 2>/dev/null
 
 # Remove the tmp directory.
 rm -r /tmp/&name; 2>/dev/null
+
+# Remove the unassigned devices bundle so it will be downloaded if re-installed.
+rm -rf /boot/config/plugins/&name;/&name;-&version;.tgz
 
 # Remove Unassigned Devices Plus plugin
 if [ -f /var/log/plugins/&name;-plus.plg ] ; then
