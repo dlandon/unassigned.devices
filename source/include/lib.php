@@ -509,9 +509,9 @@ function format_disk($dev, $fs, $pass) {
 		}
 		$mapper = "format_".basename($dev);
 		if (strpos($dev, "nvme") !== false) {
-			$cmd	= "luksOpen {$dev}p1 ".$mapper;
+			$cmd	= "luksOpen {$dev}p1 '".$mapper."'";
 		} else {
-			$cmd	= "luksOpen {$dev}1 ".$mapper;
+			$cmd	= "luksOpen {$dev}1 '".$mapper."'";
 		}
 		if ($pass == "") {
 			$o = exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
@@ -867,7 +867,7 @@ function do_mount($info) {
 		if (! is_mounted($info['device']) || ! is_mounted($info['mountpoint'], TRUE)) {
 			$luks	= basename($info['device']);
 			$discard = is_disk_ssd($info['luks']) ? "--allow-discards" : "";
-			$cmd	= "luksOpen $discard {$info['luks']} {$luks}";
+			$cmd	= "luksOpen $discard {$info['luks']} '{$luks}'";
 			$pass	= decrypt_data(get_config($info['serial'], "pass"));
 			if ($pass == "") {
 				if (file_exists($var['luksKeyfile'])) {
@@ -1675,7 +1675,7 @@ function get_all_disks_info($bus = "all") {
 function get_udev_info($device, $udev=NULL) {
 	global $paths;
 
-	$state = is_file($paths['state']) ? @parse_ini_file($paths['state'], true) : array();
+	$state = is_file($paths['state']) ? @parse_ini_file($paths['state'], true, INI_SCANNER_RAW) : array();
 	if ($udev) {
 		$state[$device] = $udev;
 		save_ini_file($paths['state'], $state);
@@ -1684,7 +1684,7 @@ function get_udev_info($device, $udev=NULL) {
 		unassigned_log("Using udev cache for '{$device}'.", "DEBUG");
 		return $state[$device];
 	} else {
-		$state[$device] = parse_ini_string(str_replace(array("$","!","\"","."), "", timed_exec(5,"/sbin/udevadm info --query=property --path $(/sbin/udevadm info -q path -n $device 2>/dev/null) 2>/dev/null")));
+		$state[$device] = parse_ini_string(timed_exec(5,"/sbin/udevadm info --query=property --path $(/sbin/udevadm info -q path -n $device 2>/dev/null) 2>/dev/null"), INI_SCANNER_RAW);
 		save_ini_file($paths['state'], $state);
 		unassigned_log("Not using udev cache for '{$device}'.", "DEBUG");
 		return $state[$device];
@@ -1973,7 +1973,7 @@ function change_UUID($dev) {
 	if ($fs_type == "crypto_LUKS") {
 		timed_exec(10, "plugins/{$plugin}/scripts/luks_uuid.sh {$dev}1");
 		$mapper	= basename($dev);
-		$cmd	= "luksOpen {$luks} {$mapper}";
+		$cmd	= "luksOpen {$luks} '{$mapper}'";
 		$pass	= decrypt_data(get_config($serial, "pass"));
 		if ($pass == "") {
 			if (file_exists($var['luksKeyfile'])) {

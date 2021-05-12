@@ -48,7 +48,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 	write_log("FS: $fs<br /><br />");
 	if ($fs == "crypto_LUKS") {
 		$mapper	= basename($device);
-		$cmd	= "luksOpen {$luks} {$mapper}";
+		$cmd	= "luksOpen {$luks} '{$mapper}'";
 		$pass	= decrypt_data(get_config($serial, "pass"));
 		if ($pass == "") {
 			if (file_exists($var['luksKeyfile'])) {
