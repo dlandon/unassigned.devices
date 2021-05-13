@@ -35,7 +35,7 @@ $partition = "";
 $disk_setting = TRUE;
 $show_switches = TRUE;
 $disabled = "";
-$default_file = "";
+$default_file = safe_filename("/boot/config/plugins/{$plugin}/".urldecode($_GET['l'])).".sh";
 $fstype = "";
 $volume = "";
 
@@ -55,9 +55,7 @@ if (isset($_GET['s'])) {
 		set_config($serial,"user_command.{$partition}","");
 		$user_file = "";
 	}
-	if (! $file ) {
-		$default_file = safe_filename("/boot/config/plugins/{$plugin}/".urldecode($_GET['l'])).".sh";
-	} else {
+	if ($file) {
 		$background = (get_config($serial,"command_bg.{$partition}") == "true" ) ? "checked" : "";
 	}
 	$pass_through = (is_pass_through($serial)) ? "checked" : "";
@@ -91,9 +89,7 @@ if (isset($_GET['s'])) {
 		set_samba_config($device,"user_command","");
 		$user_file = "";
 	}
-	if (! $file ) {
-		$default_file = safe_filename("/boot/config/plugins/{$plugin}/".urldecode($_GET['l'])).".sh";
-	} else {
+	if ($file) {
 		$background = (get_samba_config($device,"command_bg") == "true" ) ? "checked" : "";
 	}
 	$automount = (is_samba_automount($device)) ? "checked" : "";
@@ -112,9 +108,7 @@ if (isset($_GET['s'])) {
 		set_iso_config($device,"command","");
 		$file = "";
 	}
-	if (! $file ) {
-		$default_file = safe_filename("/boot/config/plugins/{$plugin}/".urldecode($_GET['l'])).".sh";
-	} else {
+	if ($file) {
 		$background = (get_iso_config($device,"command_bg") == "true" ) ? "checked" : "";
 	}
 
