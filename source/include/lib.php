@@ -917,7 +917,9 @@ function do_mount_local($info) {
 					if ($password != "") {
 						$recovery = ",pass='".$password."'";
 					}
-					$cmd = "/usr/bin/apfs-fuse -o uid=99,gid=100,allow_other{$recovery} '{$dev}' '{$dir}'";
+					$vol = get_config($info['serial'], "volume.{$info['part']}");
+					$vol = ($vol != "") ? ",vol=".$vol : ",vol=0";
+					$cmd = "/usr/bin/apfs-fuse -o uid=99,gid=100,allow_other{$vol}{$recovery} '{$dev}' '{$dir}'";
 				} else {
 					$cmd = "/sbin/mount -t $fs -o ".get_mount_params($fs, $dev, $ro)." '{$dev}' '{$dir}'";
 				}

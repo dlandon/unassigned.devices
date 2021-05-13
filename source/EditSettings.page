@@ -35,6 +35,8 @@ $partition = "";
 $disk_setting = TRUE;
 $show_switches = TRUE;
 $disabled = "";
+$fstype = "";
+$volume = "";
 
 if (isset($_GET['s'])) {
 	$serial = $_GET['s'];
@@ -72,6 +74,8 @@ if (isset($_GET['s'])) {
 		$disk_setting = FALSE;
 		$show_switches = FALSE;
 	}
+	$fstype = $_GET['f'];
+	$volume = ($fstype == "apfs") ? get_config($ud_device, "volume.{$partition}") : "0";
 } else if (isset($_GET['d'])) {
 	$device = $_GET['d'];
 	$mount_point = $_GET['l'];
@@ -226,13 +230,28 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 <td title='_(Turn on to show all partitions on this device by default)_.'><input type='checkbox' class='partitions-switch'></td>
 <?endif;?>
 </tr>
-</table>
 <?endif;?>
-<button type="button" onclick="done()">_(Done)_</button>
+</table>
 
 :ud_edit_script_device_settings_plug:
 > Select the options for this device/mount point.  These changes are made immediately.  You don't need to click 'Save' to save them.
 :end
+
+<button type="button" onclick="done()">_(Done)_</button>
+
+<?if ($fstype == "apfs"):?>
+<div style="float:left">
+_(Volume)_
+: <input type="text" name="#volume" class="narrow" maxlength="3" value="<?=$volume;?>" placeholder="0">
+</div>
+<br />
+
+:ud_apfs_volume_plug:
+> Enter the volume to mount on this apfs partition.
+:end
+
+<br />
+<?endif;?>
 
 <strong>_(Script File)_:</strong>
 <span>&nbsp;&nbsp;&nbsp;<input type="text" title='_(Enter Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>/','sh',false,true);" autocomplete="off" value="<?=$file;?>"><?=$remove;?></span>
@@ -271,7 +290,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 
 <button type="button" title='_(Load the default script)_.' onclick="setDefault(this.form)">_(Default Script)_</button>
 <input type="reset" title='_(Undo your changes since last Save)_.' value='_(Reset)_'/>
-<input type="submit" title='_(Save your Script File file changes)_.' value='_(Save)_'/>
+<input type="submit" title='_(Save your changes)_.' value='_(Save)_'/>
 <button type="button" onclick="done()">_(Done)_</button>
 
 </form>
@@ -337,6 +356,11 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 		$( "form" ).submit(function( event ) {
 			$.post(UDURL,{action:"set_command",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()},function(data){event.preventDefault()},"json");
 		});
+		<?if ($fstype == "apfs"):?>
+			$( "form" ).submit(function( event ) {
+				$.post(UDURL,{action:"set_volume",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",volume:$("input[name='#volume']").val()},function(data){event.preventDefault()},"json");
+			});
+		<?endif;?>
 	<?endif;?>
 	<?if (isset($_GET['d'])):?>
 		$( "form" ).submit(function( event ) {

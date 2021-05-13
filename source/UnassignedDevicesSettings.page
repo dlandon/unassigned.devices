@@ -320,7 +320,6 @@ _(Select Disk)_:
   </select>
 
 _(Enter Disk Password)_:
-
 : <input type="password" name="password" class="wide" maxlength="100" value="">
   
 :ud_settings_disk_pass_plug:

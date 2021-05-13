@@ -187,7 +187,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 	$dev	= basename($device);
 	$device	= (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev) ;
 	$serial = $partition['serial'];
-	$out[] = "<td><a title='$title' href='/Main/EditSettings?s=".urlencode($serial)."&b=".urlencode($device)."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."&m=".urlencode(json_encode($partition))."&t=".$total."'><i class='fa fa-gears'></i></a></td>";
+	$out[] = "<td><a title='$title' href='/Main/EditSettings?s=".urlencode($serial)."&b=".urlencode($device)."&f=".urlencode($fstype)."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."&m=".urlencode(json_encode($partition))."&t=".$total."'><i class='fa fa-gears'></i></a></td>";
 	if ($total) {
 		$mounted_disk = FALSE;
 		foreach ($disk['partitions'] as $part) {
@@ -619,6 +619,13 @@ switch ($_POST['action']) {
 		$cmd = urldecode(($_POST['command']));
 		set_config($serial, "user_command.{$part}", urldecode($_POST['user_command']));
 		echo json_encode(array( 'result' => set_config($serial, "command.{$part}", $cmd)));
+		break;
+
+	case 'set_volume':
+		$serial = urldecode(($_POST['serial']));
+		$part = urldecode(($_POST['part']));
+		$vol = urldecode(($_POST['volume']));
+		echo json_encode(array( 'result' => set_config($serial, "volume.{$part}", $vol)));
 		break;
 
 	case 'remove_config':
