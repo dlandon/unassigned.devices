@@ -35,6 +35,7 @@ $partition = "";
 $disk_setting = TRUE;
 $show_switches = TRUE;
 $disabled = "";
+$default_file = "";
 $fstype = "";
 $volume = "";
 
@@ -55,7 +56,7 @@ if (isset($_GET['s'])) {
 		$user_file = "";
 	}
 	if (! $file ) {
-		$file = safe_filename("/boot/config/plugins/{$plugin}/".urldecode($_GET['l'])).".sh";
+		$default_file = safe_filename("/boot/config/plugins/{$plugin}/".urldecode($_GET['l'])).".sh";
 	} else {
 		$background = (get_config($serial,"command_bg.{$partition}") == "true" ) ? "checked" : "";
 	}
@@ -91,7 +92,7 @@ if (isset($_GET['s'])) {
 		$user_file = "";
 	}
 	if (! $file ) {
-		$file = safe_filename("/boot/config/plugins/{$plugin}/".urldecode($_GET['l'])).".sh";
+		$default_file = safe_filename("/boot/config/plugins/{$plugin}/".urldecode($_GET['l'])).".sh";
 	} else {
 		$background = (get_samba_config($device,"command_bg") == "true" ) ? "checked" : "";
 	}
@@ -112,7 +113,7 @@ if (isset($_GET['s'])) {
 		$file = "";
 	}
 	if (! $file ) {
-		$file = safe_filename("/boot/config/plugins/{$plugin}/".urldecode($_GET['l'])).".sh";
+		$default_file = safe_filename("/boot/config/plugins/{$plugin}/".urldecode($_GET['l'])).".sh";
 	} else {
 		$background = (get_iso_config($device,"command_bg") == "true" ) ? "checked" : "";
 	}
@@ -375,6 +376,7 @@ _(Volume)_
 
 	function setDefault(form) {
 		form.elements['text'].value = <?=json_encode($default_text);?>;
+		form.elements['#file'].value = <?=json_encode($default_file);?>;
 	}
 
 	function openFileBrowser(el, root, filter, on_folders, on_files) {
