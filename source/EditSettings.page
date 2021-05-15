@@ -242,7 +242,7 @@ _(Volume)_
 <br />
 
 :ud_apfs_volume_plug:
-> Enter the volume to mount on this apfs partition.
+> Enter the volume to mount on this apfs partition. Click **Save** to commit this setting.
 :end
 
 <br />
