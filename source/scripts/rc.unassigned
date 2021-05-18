@@ -223,7 +223,7 @@ function unassigned_umount() {
 					$nfs = $info['fstype'] == "nfs" ? TRUE : FALSE;
 					if ( do_unmount(($info['fstype'] == "cifs") ? "//".$info['ip']."/".$info['path'] : $info['device'], $info['mountpoint'], $force, $smb, $nfs) ) {
 						if ( rm_smb_share($info['mountpoint'], $info['device']) ) {
-							unassigned_log("Share '{$info['device']}' unmount successfull.");
+							unassigned_log("Share '{$info['device']}' unmount successful.");
 							execute_script($info, "REMOVE");
 							export_disk($info, false);
 						}
@@ -253,7 +253,7 @@ function unassigned_umount() {
 					unassigned_log("Unmounting ISO File Share '{$info['device']}'...");
 					if ( do_unmount($info['device'], $info['mountpoint'], $force) ) {
 						if ( rm_smb_share($info['mountpoint'], $info['device']) && rm_nfs_share($info['mountpoint']) ) {
-							unassigned_log("Share '{$info['device']}' unmount successfull.");
+							unassigned_log("Share '{$info['device']}' unmount successful.");
 							execute_script($info, "REMOVE");
 							export_disk($info, false);
 						}
