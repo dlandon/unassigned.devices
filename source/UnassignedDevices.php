@@ -242,22 +242,22 @@ function make_mount_button($device) {
 	} elseif ($format) {
 		$disable = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled") ? "" : "disabled";
 		if ($is_preclearing) {
-			$button = sprintf($button, $context, 'format', 'disabled', 'fa fa-circle-o-notch fa-spin', " "._('Preclear'));
+			$button = sprintf($button, $context, 'format', 'disabled', 'fa fa-spinner fa-spin', " "._('Preclear'));
 		} else {
 			$disable = $preclearing ? "disabled" : $disable;
 			$button = sprintf($button, $context, 'format', $disable, 'fa fa-erase', _('Format'));
 		}
 	} elseif ($is_mounting) {
-		$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-circle-o-notch fa-spin', ' '._('Mounting'));
+		$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-spinner fa-spin', ' '._('Mounting'));
 	} elseif ($is_unmounting) {
-		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-circle-o-notch fa-spin', ' '._('Unmounting'));
+		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-spinner fa-spin', ' '._('Unmounting'));
 	} elseif ($is_formatting) {
-		$button = sprintf($button, $context, 'format', 'disabled', 'fa fa-circle-o-notch fa-spin', ' '._('Formatting'));
+		$button = sprintf($button, $context, 'format', 'disabled', 'fa fa-spinner fa-spin', ' '._('Formatting'));
 	} elseif ($mounted) {
 		$cmd = $device['command'];
 		$script_running = ((is_script_running($cmd)) || (is_script_running($device['user_command'], TRUE)));;
 		if ($script_running) {
-			$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-circle-o-notch fa-spin', ' '._('Running'));
+			$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-spinner fa-spin', ' '._('Running'));
 		} else {
 			$disable = ! isset($device['partitions'][0]['mountpoint']) || is_mounted($device['partitions'][0]['mountpoint'], TRUE) ? $disable : "disabled";
 			$disable = ! isset($device['mountpoint']) || is_mounted($device['mountpoint'], TRUE) ? $disable : "disabled";
@@ -434,7 +434,7 @@ switch ($_POST['action']) {
 
 				$disabled = $is_alive ? "enabled" : "disabled";
 				if ($mount['mounted'] && (is_script_running($mount['command']) || is_script_running($mount['user_command'], TRUE))) {
-					echo "<td><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i>"." "._("Running")."</button></td>";
+					echo "<td><button class='mount' disabled> <i class='fa fa-spinner fa-spin'></i>"." "._("Running")."</button></td>";
 				} else {
 					/* Remove special characters */
 					$mount_device = str_replace( array("(", ")"), "", basename($mount['device']));
@@ -443,9 +443,9 @@ switch ($_POST['action']) {
 					$is_unmounting	= array_values(preg_grep("@/unmounting_".basename($mount['device'])."@i", listDir(dirname($paths['unmounting']))))[0];
 					$is_unmounting	= (time() - filemtime($is_unmounting) < 300) ? TRUE : FALSE;
 					if ($is_mounting) {
-						echo "<td><button class='mount' disabled><i class='fa fa-circle-o-notch fa-spin'></i> "._('Mounting')."</button></td>";
+						echo "<td><button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Mounting')."</button></td>";
 					} elseif ($is_unmounting) {
-						echo "<td><button class='mount' disabled><i class='fa fa-circle-o-notch fa-spin'></i> "._('Unmounting')."</button></td>";
+						echo "<td><button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Unmounting')."</button></td>";
 					} else {
 						echo "<td>".($mounted ? "<button class='mount' device ='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>"._('Unmount')."</button>" : "<button class='mount'device ='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>"._('Mount')."</button>")."</td>";
 					}
@@ -489,16 +489,16 @@ switch ($_POST['action']) {
 				}
 				$disabled = $is_alive ? "enabled":"disabled";
 				if ($mount['mounted'] && (is_script_running($mount['command']) || is_script_running($mount['user_command'], TRUE))) {
-					echo "<td><button class='mount' disabled> <i class='fa fa-circle-o-notch fa-spin'></i> "._('Running')."</button></td>";
+					echo "<td><button class='mount' disabled> <i class='fa fa-spinner fa-spin'></i> "._('Running')."</button></td>";
 				} else {
 					$is_mounting	= array_values(preg_grep("@/mounting_".basename($mount['device'])."@i", listDir(dirname($paths['mounting']))))[0];
 					$is_mounting	= (time() - filemtime($is_mounting) < 300) ? TRUE : FALSE;
 					$is_unmounting	= array_values(preg_grep("@/unmounting_".basename($mount['device'])."@i", listDir(dirname($paths['unmounting']))))[0];
 					$is_unmounting	= (time() - filemtime($is_unmounting) < 300) ? TRUE : FALSE;
 					if ($is_mounting) {
-						echo "<td><button class='mount' disabled><i class='fa fa-circle-o-notch fa-spin'></i> "._('Mounting')."</button></td>";
+						echo "<td><button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Mounting')."</button></td>";
 					} elseif ($is_unmounting) {
-						echo "<td><button class='mount' disabled><i class='fa fa-circle-o-notch fa-spin'></i> "._('Unmounting')."</button></td>";
+						echo "<td><button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Unmounting')."</button></td>";
 					} else {
 						echo "<td>".($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>"._('Unmount')."</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>"._('Mount')."</button>")."</td>";
 					}
