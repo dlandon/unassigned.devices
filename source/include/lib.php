@@ -729,10 +729,10 @@ function remove_config_disk($sn) {
 
 	$config_file = $GLOBALS["paths"]["config_file"];
 	$config = @parse_ini_file($config_file, true);
-	if ( isset($config[$source]) ) {
-		unassigned_log("Removing configuration '{$source}'.");
+	if ( isset($config[$sn]) ) {
+		unassigned_log("Removing configuration '{$sn}'.");
 	}
-	$command = $config[$source]['command'];
+	$command = $config[$sn]['command.1'];
 	if ( isset($command) && is_file($command) ) {
 		@unlink($command);
 		unassigned_log("Removing script '{$command}'.");
