@@ -732,10 +732,14 @@ function remove_config_disk($sn) {
 	if ( isset($config[$sn]) ) {
 		unassigned_log("Removing configuration '{$sn}'.");
 	}
-	$command = $config[$sn]['command.1'];
-	if ( isset($command) && is_file($command) ) {
-		@unlink($command);
-		unassigned_log("Removing script '{$command}'.");
+	/* Remove up to three partition script files. */
+	for ($i = 1; $i <= 3; $i++) {
+		$command = "command.".$i;
+		$cmd = $config[$sn][$command];
+		if ( isset($cmd) && is_file($cmd) ) {
+			@unlink($cmd);
+			unassigned_log("Removing script '{$cmd}'.");
+		}
 	}
 	unset($config[$sn]);
 	save_ini_file($config_file, $config);
