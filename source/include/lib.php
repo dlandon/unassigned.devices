@@ -1882,7 +1882,7 @@ function check_for_duplicate_share($dev, $mountpoint, $fstype = "") {
 
 /* Change disk mount point and update the physical disk label. */
 function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
-	global $paths;
+	global $paths, $var;
 
 	$rc = TRUE;
 	if ($mountpoint != "") {
@@ -1912,6 +1912,34 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 
 				case 'crypto_LUKS';
 					timed_exec(20, "/sbin/cryptsetup config $dev --label '$mountpoint' 2>/dev/null");
+					$mapper	= basename($mountpoint);
+					$cmd	= "luksOpen {$dev} '{$mapper}'";
+					$pass	= decrypt_data(get_config($serial, "pass"));
+					$cmd	= "luksOpen {$dev} '{$mapper}'";
+					if ($pass == "") {
+						if (file_exists($var['luksKeyfile'])) {
+							$cmd	= $cmd." -d {$var['luksKeyfile']}";
+							$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+						} else {
+							$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
+						}
+					} else {
+						$luks_pass_file = "{$paths['luks_pass']}_".basename($dev);
+						file_put_contents($luks_pass_file, $pass);
+						$cmd	= $cmd." -d $luks_pass_file";
+						$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+						exec("/bin/shred -u '$luks_pass_file'");
+					}
+					if ($o != "") {
+						unassigned_log("Change disk label luksOpen error: ".$o);
+						return FALSE;
+					}
+					/* Try xfs label change. */
+					timed_exec(20, "/usr/sbin/xfs_admin -L '$mountpoint' '/dev/mapper/$mapper' 2>/dev/null");
+
+					/* Try btrfs label change. */
+					timed_exec(20, "/sbin/btrfs filesystem label '/dev/mapper/$mapper' '$mountpoint' 2>/dev/null");
+					shell_exec("/sbin/cryptsetup luksClose ".$mapper);
 				break;
 			}
 		}
