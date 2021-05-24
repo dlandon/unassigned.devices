@@ -1911,7 +1911,6 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 				break;
 
 				case 'crypto_LUKS';
-					timed_exec(20, "/sbin/cryptsetup config $dev --label '$mountpoint' 2>/dev/null");
 					$mapper	= basename($mountpoint);
 					$cmd	= "luksOpen {$dev} '{$mapper}'";
 					$pass	= decrypt_data(get_config($serial, "pass"));
