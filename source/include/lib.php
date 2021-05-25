@@ -984,7 +984,8 @@ function do_unmount($dev, $dir, $force = FALSE, $smb=FALSE, $nfs=FALSE) {
 
 	$rc = FALSE;
 	if ( is_mounted($dev) && is_mounted($dir, TRUE) ) {
-		unassigned_log("Unmounting '{$dev}'.");
+		unassigned_log("Synchingng file system on '{$dir}'.");
+		timed_exec(10, "/bin/sync -f {$dir}");
 		$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : "")." '{$dev}' 2>&1";
 		unassigned_log("Unmount cmd: {$cmd}");
 		$timeout = ($smb || $nfs) ? ($force ? 30 : 10) : 90;
