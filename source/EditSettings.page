@@ -150,21 +150,28 @@ case \$ACTION in
 
   'UNMOUNT' )
     # do your stuff here
+
+	# sync the file system to commit all writes to disk
+	sync -f $MOUNTPOINT
+
 	/usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Device unmounting" -i "normal"
   ;;
 
   'REMOVE' )
     # do your stuff here
+
 	/usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Device unmounted" -i "normal"
   ;;
 
   'ERROR_MOUNT' )
     # do your stuff here
+
 	/usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Error mounting device" -i "alert"
   ;;
 
   'ERROR_UNMOUNT' )
     # do your stuff here
+
 	/usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Error unmounting device" -i "alert"
   ;;
 esac
