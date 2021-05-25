@@ -251,6 +251,7 @@ function get_disk_reads_writes($ud_dev, $dev) {
 
 	/* Read rate. */
 	$rc[2] = is_nan($data[0]) ? 0 : $data[0];
+
 	/* Write rate. */
 	$rc[3] = is_nan($data[1]) ? 0 : $data[1];
 
@@ -330,11 +331,11 @@ function is_script_running($cmd, $user=FALSE) {
 
 		/* Set up for ps to find the right script. */
 		if ($user) {
-			$path_info = pathinfo($cmd);
-			$cmd = $path_info['dirname'];
-			$source = "user.scripts";
+			$path_info	= pathinfo($cmd);
+			$cmd		= $path_info['dirname'];
+			$source		= "user.scripts";
 		} else {
-			$source = "unassigned.devices";
+			$source		= "unassigned.devices";
 		}
 
 		/* Check if the script is currently running. */
@@ -361,8 +362,8 @@ function get_temp($ud_dev, $dev, $running) {
 	if (is_file($sf)) {
 		$devs = parse_ini_file($sf, true);
 		if (isset($devs[$ud_dev])) {
-			$temp = $devs[$ud_dev]['temp'];
-			$rc = $temp;
+			$temp	= $devs[$ud_dev]['temp'];
+			$rc		= $temp;
 		}
 	}
 
@@ -378,13 +379,13 @@ function get_temp($ud_dev, $dev, $running) {
 			$temp	= ($temp < 128) ? $temp : "*";
 			$temps[$dev] = array('timestamp' => time(), 'temp' => $temp);
 			file_put_contents($tc, json_encode($temps));
-			$rc = $temp;
+			$rc		= $temp;
 		}
 	}
 	return $rc;
 }
 
-/* Get the format command bases on file system to be formatted. */
+/* Get the format command based on file system to be formatted. */
 function get_format_cmd($dev, $fs) {
 	switch ($fs) {
 		case 'xfs':
@@ -420,7 +421,7 @@ function get_format_cmd($dev, $fs) {
 function format_disk($dev, $fs, $pass) {
 	global $paths;
 
-	/* Making sure it doesn't have partitions */
+	/* Make sure it doesn't have partitions. */
 	foreach (get_all_disks_info() as $d) {
 		if ($d['device'] == $dev && count($d['partitions'])) {
 			unassigned_log("Aborting format: disk '{$dev}' has '".count($d['partitions'])."' partition(s).");
@@ -445,6 +446,8 @@ function format_disk($dev, $fs, $pass) {
 	if ($o != "") {
 		unassigned_log("Reload partition table result:\n{$o}");
 	}
+
+	/* Update udev. */
 	shell_exec("/sbin/udevadm trigger --action=change {$dev}");
 
 	if ($fs == "xfs" || $fs == "xfs-encrypted" || $fs == "btrfs" || $fs == "btrfs-encrypted") {
@@ -552,9 +555,13 @@ function format_disk($dev, $fs, $pass) {
 	if ($o != "") {
 		unassigned_log("Reload partition table result:\n{$o}");
 	}
+
+	/* Update udev. */
 	shell_exec("/sbin/udevadm trigger --action=change {$dev}");
 
 	sleep(3);
+
+	/* Refresh partition information. */
 	exec("/usr/sbin/partprobe {$dev}");
 
 	return TRUE;
@@ -580,8 +587,13 @@ function remove_partition($dev, $part) {
 		unassigned_log("Remove parition failed: '{$out}'.");
 		$rc = FALSE;
 	}
+
+	/* Undate udev info. */
 	shell_exec("/sbin/udevadm trigger --action=change {$dev}");
+
 	sleep(5);
+
+	/* Refresh partition information. */
 	exec("/usr/sbin/partprobe {$dev}");
 	return $rc;
 }
@@ -599,7 +611,7 @@ function benchmark() {
 	return $out;
 }
 
-/* Run a command and time it out if it takes too long. */
+/* Run a command and time out if it takes too long. */
 function timed_exec($timeout=10, $cmd) {
 	$time		= -microtime(true); 
 	$out		= shell_exec("/usr/bin/timeout ".$timeout." ".$cmd);
@@ -611,6 +623,17 @@ function timed_exec($timeout=10, $cmd) {
 		unassigned_log("Timed Exec: shell_exec(".$cmd.") took ".sprintf('%f', $time)."s!", "DEBUG");
 	}
 	return $out;
+}
+
+/* Find the file system of a luks device. */
+function luks_fs_type($dev) {
+
+	$rc = "luks";
+	if ($dev != "") {
+		$return = shell_exec( "/bin/cat /proc/mounts | /bin/grep $dev | /bin/awk '{print $3}'");
+		$rc = $return == "" ? $rc : $return;
+	}
+	return $rc;
 }
 
 #########################################################
@@ -673,9 +696,10 @@ function toggle_pass_through($sn, $status) {
 }
 
 /* Execute the device script. */
-function execute_script($info, $action, $testing = FALSE) { 
+function execute_script($info, $action, $testing=FALSE) { 
 	global $paths;
 
+	/* Set environment variables. */
 	putenv("ACTION={$action}");
 	foreach ($info as $key => $value) {
 		putenv(strtoupper($key)."={$value}");
@@ -785,17 +809,6 @@ function is_mounted($dev, $dir=FALSE) {
 		$data = timed_exec(1, "/sbin/mount");
 		$append = ($dir) ? " " : " on";
 		$rc = (strpos($data, $dev.$append) != 0) ? TRUE : FALSE;
-	}
-	return $rc;
-}
-
-/* Find the file system of a luks device. */
-function luks_fs_type($dev) {
-
-	$rc = "luks";
-	if ($dev != "") {
-		$return = shell_exec( "/bin/cat /proc/mounts | /bin/grep $dev | /bin/awk '{print $3}'");
-		$rc = $return == "" ? $rc : $return;
 	}
 	return $rc;
 }
@@ -931,7 +944,7 @@ function do_mount_local($info) {
 				$device = $info['luks'];
 				$cmd = "/sbin/mount -o ".get_mount_params($fs, $device, $ro)." '{$dev}' '{$dir}'";
 			}
-			$str = str_replace($recovery, ",pass='*****'", $cmd);
+			$str = str_replace($recovery, ", pass='*****'", $cmd);
 			unassigned_log("Mount drive command: {$str}");
 			$o = shell_exec($cmd." 2>&1");
 			if ($o != "" && $fs == "ntfs" && is_mounted($dev)) {
@@ -966,7 +979,7 @@ function do_mount_local($info) {
 }
 
 /* Unmount a device. */
-function do_unmount($dev, $dir, $force = FALSE, $smb = FALSE, $nfs = FALSE) {
+function do_unmount($dev, $dir, $force = FALSE, $smb=FALSE, $nfs=FALSE) {
 	global $paths;
 
 	$rc = FALSE;
@@ -1144,19 +1157,19 @@ function add_nfs_share($dir) {
 		unassigned_log("Adding NFS share '{$dir}'.");
 		foreach (array("/etc/exports","/etc/exports-") as $file) {
 			if (! exist_in_file($file, "\"{$dir}\"")) {
-				$c = (is_file($file)) ? @file($file,FILE_IGNORE_NEW_LINES) : array();
-				$fsid = 200 + count(preg_grep("@^\"@", $c));
-				$nfs_sec = get_config("Config", "nfs_security");
+				$c			= (is_file($file)) ? @file($file,FILE_IGNORE_NEW_LINES) : array();
+				$fsid		= 200 + count(preg_grep("@^\"@", $c));
+				$nfs_sec	= get_config("Config", "nfs_security");
 				$sec = "";
 				if ( $nfs_sec == "private" ) {
-					$sec = get_config("Config", "nfs_rule");
+					$sec	= get_config("Config", "nfs_rule");
 				} else {
-					$sec = "*(sec=sys,rw,insecure,anongid=100,anonuid=99,all_squash)";
+					$sec	= "*(sec=sys,rw,insecure,anongid=100,anonuid=99,all_squash)";
 				}
-				$c[] = "\"{$dir}\" -async,no_subtree_check,fsid={$fsid} {$sec}";
-				$c[] = "";
+				$c[]		= "\"{$dir}\" -async,no_subtree_check,fsid={$fsid} {$sec}";
+				$c[]		= "";
 				file_put_contents($file, implode(PHP_EOL, $c));
-				$reload = TRUE;
+				$reload		= TRUE;
 			}
 		}
 		if ($reload) shell_exec("/usr/sbin/exportfs -ra 2>/dev/null");
@@ -1173,11 +1186,11 @@ function rm_nfs_share($dir) {
 		unassigned_log("Removing NFS share '{$dir}'.");
 		foreach (array("/etc/exports","/etc/exports-") as $file) {
 			if ( exist_in_file($file, "\"{$dir}\"") && strlen($dir)) {
-				$c = (is_file($file)) ? @file($file,FILE_IGNORE_NEW_LINES) : array();
-				$c = preg_grep("@\"{$dir}\"@i", $c, PREG_GREP_INVERT);
-				$c[] = "";
+				$c		= (is_file($file)) ? @file($file,FILE_IGNORE_NEW_LINES) : array();
+				$c		= preg_grep("@\"{$dir}\"@i", $c, PREG_GREP_INVERT);
+				$c[]	= "";
 				file_put_contents($file, implode(PHP_EOL, $c));
-				$reload = TRUE;
+				$reload	= TRUE;
 			}
 		}
 		if ($reload) shell_exec("/usr/sbin/exportfs -ra 2>/dev/null");
@@ -1352,7 +1365,7 @@ function get_samba_mounts() {
 			$mount['target']		= $mount['mountpoint'];
 			$mount['prog_name']		= basename($mount['command'], ".sh");
 			$mount['command']		= get_samba_config($mount['device'],"command");
-			$mount['uer_command']	= get_samba_config($mount['device'],"user_command");
+			$mount['user_command']	= get_samba_config($mount['device'],"user_command");
 			$mount['logfile']		= $paths['device_log'].$mount['prog_name'].".log";
 			$o[] = $mount;
 		}
@@ -1539,7 +1552,7 @@ function get_iso_mounts() {
 			$mount['avail']			= intval($stats[2])*1024;
 			$mount['prog_name']		= basename($mount['command'], ".sh");
 			$mount['command']		= get_samba_config($mount['device'],"command");
-			$mount['uer_command']	= get_samba_config($mount['device'],"user_command");
+			$mount['user_command']	= get_samba_config($mount['device'],"user_command");
 			$mount['logfile']		= $paths['device_log'].$mount['prog_name'].".log";
 			$o[] = $mount;
 		}
@@ -1760,7 +1773,7 @@ function get_partition_info($device) {
 		}
 		$disk['luks']			= safe_name($disk['device']);
 		if ($disk['fstype'] == "crypto_LUKS") {
-			$disk['device'] = "/dev/mapper/".safe_name(basename($disk['mountpoint']));
+			$disk['device']		= "/dev/mapper/".safe_name(basename($disk['mountpoint']));
 		}
 		$disk['mounted']		= is_mounted($disk['device']);
 		$disk['pass_through']	= (! $disk['mounted']) ? is_pass_through($disk['serial']) : FALSE;
@@ -1868,10 +1881,10 @@ function check_for_duplicate_share($dev, $mountpoint, $fstype = "") {
 		}
 	}
 
-	/* Merge samba shares and ud shares */
+	/* Merge samba shares and ud shares. */
 	$shares = array_merge($smb_shares, $ud_shares);
 
-	/* See if the share name is already being used */
+	/* See if the share name is already being used. */
 	if (is_array($shares) && in_array($mountpoint, $shares)) {
 		unassigned_log("Error: Cannot use that mount point!  Share '{$mountpoint}' is already being used in the array or another unassigned device.");
 		$rc = FALSE;
@@ -2062,7 +2075,7 @@ function setSleepTime($device) {
 }
 
 /* Setup a socket for publish events. */
-function curl_socket($socket, $url, $postdata = NULL) {
+function curl_socket($socket, $url, $postdata=NULL) {
 	$ch = curl_init($url);
 	curl_setopt($ch, CURLOPT_UNIX_SOCKET_PATH, $socket);
 	if ($postdata !== NULL) {
