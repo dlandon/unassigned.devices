@@ -772,9 +772,11 @@ switch ($_POST['action']) {
 			set_samba_config("{$device}", "protocol", $protocol);
 			set_samba_config("{$device}", "ip", (is_ip($ip) ? $ip : strtoupper($ip)));
 			set_samba_config("{$device}", "path", $path);
-			set_samba_config("{$device}", "user", $user);
-			set_samba_config("{$device}", "domain", $domain);
-			set_samba_config("{$device}", "pass", encrypt_data($pass));
+			if ($protocol == "SMB") {
+				set_samba_config("{$device}", "user", $user);
+				set_samba_config("{$device}", "domain", $domain);
+				set_samba_config("{$device}", "pass", encrypt_data($pass));
+			}
 			set_samba_config("{$device}", "share", safe_name($share, FALSE));
 
 			/* Refresh the ping status */
