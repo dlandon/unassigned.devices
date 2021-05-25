@@ -152,7 +152,7 @@ case \$ACTION in
     # do your stuff here
 
 	# sync the file system to commit all writes to disk
-	sync -f $MOUNTPOINT
+	sync -f \$MOUNTPOINT
 
 	/usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Device unmounting" -i "normal"
   ;;
@@ -176,9 +176,6 @@ case \$ACTION in
   ;;
 esac
 EOT;
-
-$prompt=_("Delete Script File");
-$remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$file}\");'><i class='fa fa-times-circle' style='color:red;font-size: 25px;'></i></a> " : "";
 ?>
 
 <script type="text/javascript" src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
@@ -236,7 +233,7 @@ $remove = is_file($file) ? "<a title='$prompt' class='exec' onclick='rmfile(\"{$
 </table>
 
 :ud_edit_script_device_settings_plug:
-> Select the options for this device/mount point.  These changes are made immediately.  You don't need to click 'Save' to save them.
+> Select the options for this device/mount point.  These changes are made immediately.  You don't need to click ***Save*** to save them.
 :end
 
 <button type="button" onclick="done()">_(Done)_</button>
@@ -256,7 +253,7 @@ _(Volume)_
 <?endif;?>
 
 <strong>_(Script File)_:</strong>
-<span>&nbsp;&nbsp;&nbsp;<input type="text" title='_(Enter Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>/','sh',false,true);" autocomplete="off" value="<?=$file;?>"><?=$remove;?></span>
+<span>&nbsp;&nbsp;&nbsp;<input type="text" title='_(Enter Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>/','sh',false,true);" autocomplete="off" value="<?=$file;?>"></span>
 
 :ud_edit_script_choose_name_plug:
 > Choose your script name from the file selection dropdown, or enter your desired script name.
@@ -291,6 +288,9 @@ _(Volume)_
 :end
 
 <button type="button" title='_(Load the default script)_.' onclick="setDefault(this.form)">_(Default Script)_</button>
+<?if (is_file($file)):?>
+<button type="button" title='_(Delete Script File)_.' onclick='rmfile("<?=$file;?>");'>_(Delete)_</button>
+<?endif;?>
 <input type="reset" title='_(Undo your changes since last Save)_.' value='_(Reset)_'/>
 <input type="submit" title='_(Save your changes)_.' value='_(Save)_'/>
 <button type="button" onclick="done()">_(Done)_</button>
@@ -378,6 +378,7 @@ _(Volume)_
 	function setDefault(form) {
 		form.elements['text'].value = <?=json_encode($default_text);?>;
 		form.elements['#file'].value = <?=json_encode($default_file);?>;
+		<?$file=$default_file;?>
 	}
 
 	function openFileBrowser(el, root, filter, on_folders, on_files) {
