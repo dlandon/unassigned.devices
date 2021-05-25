@@ -946,7 +946,11 @@ function do_mount_local($info) {
 			}
 			$str = str_replace($recovery, ", pass='*****'", $cmd);
 			unassigned_log("Mount drive command: {$str}");
-			$o = shell_exec($cmd." 2>&1");
+			if (($fs == "apfs") && ! (is_file("/usr/bin/apfs-fuse"))) {
+				$o = "Install Unassigned Devices Plus to mount an apfs file system";
+			} else {
+				$o = shell_exec($cmd." 2>&1");
+			}
 			if ($o != "" && $fs == "ntfs" && is_mounted($dev)) {
 				unassigned_log("Mount warning: {$o}.");
 			}
