@@ -1691,7 +1691,6 @@ function get_all_disks_info($bus = "all") {
 		$ud_disks = array();
 	}
 	unassigned_log("Total time: ".($time + microtime(true))."s!", "DEBUG");
-	usort($ud_disks, create_function('$a, $b','$key="device";if ($a[$key] == $b[$key]) return 0; return ($a[$key] < $b[$key]) ? -1 : 1;'));
 	return $ud_disks;
 }
 
