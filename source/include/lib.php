@@ -1641,7 +1641,7 @@ function get_unassigned_disks() {
 			$paths[$r] = $p;
 		}
 	}
-	natsort($paths);
+	ksort($paths, SORT_NATURAL);
 
 	/* Get all unraid disk devices (array disks, cache, and pool devices) */
 	foreach ($disks as $d) {
