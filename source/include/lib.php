@@ -1273,7 +1273,7 @@ function reload_shares() {
 
 function get_samba_config($source, $var) {
 	$config_file = $GLOBALS["paths"]["samba_mount"];
-	$config = @parse_ini_file($config_file, true);
+	$config = @parse_ini_file($config_file, true, INI_SCANNER_RAW);
 	return (isset($config[$source][$var])) ? $config[$source][$var] : FALSE;
 }
 
@@ -1516,7 +1516,7 @@ function remove_config_samba($source) {
 
 function get_iso_config($source, $var) {
 	$config_file = $GLOBALS["paths"]["iso_mount"];
-	$config = @parse_ini_file($config_file, true);
+	$config = @parse_ini_file($config_file, true, INI_SCANNER_RAW);
 	return (isset($config[$source][$var])) ? $config[$source][$var] : FALSE;
 }
 
@@ -1556,8 +1556,8 @@ function get_iso_mounts() {
 			$mount['used']			= intval($stats[1])*1024;
 			$mount['avail']			= intval($stats[2])*1024;
 			$mount['prog_name']		= basename($mount['command'], ".sh");
-			$mount['command']		= get_samba_config($mount['device'],"command");
-			$mount['user_command']	= get_samba_config($mount['device'],"user_command");
+			$mount['command']		= get_iso_config($mount['device'],"command");
+			$mount['user_command']	= get_iso_config($mount['device'],"user_command");
 			$mount['logfile']		= $paths['device_log'].$mount['prog_name'].".log";
 			$o[] = $mount;
 		}
