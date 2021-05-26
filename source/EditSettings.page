@@ -235,7 +235,7 @@ EOT;
 <?if ($fstype == "apfs"):?>
 <div style="float:left">
 _(Volume)_
-: <input type="text" name="#volume" class="narrow" maxlength="3" value="<?=$volume;?>" placeholder="0">
+: <input type="text" name="#volume" class="narrow" style="width:10%" maxlength="1" value="<?=$volume;?>" placeholder="0">
 </div>
 <br />
 
@@ -247,7 +247,7 @@ _(Volume)_
 <?endif;?>
 
 <strong>_(Script File)_:</strong>
-<span>&nbsp;&nbsp;&nbsp;<input type="text" title='_(Enter Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>/','sh',false,true);" autocomplete="off" value="<?=$file;?>"></span>
+<span><input type="text" title='_(Enter Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>/','sh',false,true);" autocomplete="off" value="<?=$file;?>" placeholder="Click the 'Default' button to select the default Script File"></span>
 
 :ud_edit_script_choose_name_plug:
 > Choose your script name from the file selection dropdown, or enter your desired script name.
