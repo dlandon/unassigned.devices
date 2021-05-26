@@ -122,7 +122,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 		} else {
 			$fscheck = "<i class='fa fa-flash partition-script'></i>{$partition['part']}";
 		}
-	} elseif ( (! $mounted && $partition['fstype'] != 'btrfs') ) {
+	} elseif ( (! $mounted && $partition['fstype'] != 'btrfs' && $partition['fstype'] != 'apfs') ) {
 		$fscheck = "<a title='"._('File System Check')."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i></a>{$partition['part']}";
 	} else {
 		$fscheck = "<i class='fa fa-check partition-hdd'></i>{$partition['part']}";

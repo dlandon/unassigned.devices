@@ -121,7 +121,7 @@ $text = @file_get_contents($file);
 $default_text = <<<EOT
 #!/bin/bash
 PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin
-## Available variables: 
+## Available variables:
 # AVAIL      : available space
 # USED       : used space
 # SIZE       : partition size
@@ -138,6 +138,7 @@ PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin
 case \$ACTION in
   'ADD' )
     # do your stuff here
+
 	/usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Device mounted" -i "normal"
   ;;
 
@@ -371,7 +372,6 @@ _(Volume)_
 	function setDefault(form) {
 		form.elements['text'].value = <?=json_encode($default_text);?>;
 		form.elements['#file'].value = <?=json_encode($default_file);?>;
-		<?$file=$default_file;?>
 	}
 
 	function openFileBrowser(el, root, filter, on_folders, on_files) {
