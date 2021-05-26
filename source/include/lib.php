@@ -704,8 +704,6 @@ function execute_script($info, $action, $testing=FALSE) {
 	foreach ($info as $key => $value) {
 		putenv(strtoupper($key)."={$value}");
 	}
-	$cmd = $info['command'];
-	$bg = ($info['command_bg'] == "true" && $action == "ADD") ? "&" : "";
 	if ($common_cmd = get_config("Config", "common_cmd")) {
 		$common_script = $paths['scripts'].basename($common_cmd);
 		copy($common_cmd, $common_script);
@@ -718,6 +716,8 @@ function execute_script($info, $action, $testing=FALSE) {
 	}
 
 	/* If there is a command, execute the script. */
+	$cmd = $info['command'];
+	$bg = ($info['command_bg'] != "false" && $action == "ADD") ? "&" : "";
 	if ($cmd) {
 		$command_script = $paths['scripts'].basename($cmd);
 		copy($cmd, $command_script);
