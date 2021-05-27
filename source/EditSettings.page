@@ -139,14 +139,14 @@ case \$ACTION in
   'ADD' )
     # do your stuff here
 
+	# sync the file system to commit all writes to disk
+	sync -f \$MOUNTPOINT
+
 	/usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Device mounted" -i "normal"
   ;;
 
   'UNMOUNT' )
     # do your stuff here
-
-	# sync the file system to commit all writes to disk
-	sync -f \$MOUNTPOINT
 
 	/usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Device unmounting" -i "normal"
   ;;
