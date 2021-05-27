@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2021.05.23">
+<!ENTITY version   "2021.05.26">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"55f7b8dd68a3cf412b5ed37c99daa0ac">
+<!ENTITY MD5		"0af36175f9bc61ecce4f731cc8ad338e">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,6 +23,19 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Change disk label for encrypted disks when mount point is changed.
+- Fix: Don't save credentials to samba config file for NFS shares.  NFS does not use credentials.
+- Add: Sync file system to commit all writes before unmounting.  You will see 'Unmounting' status while the file system is sync'd.  This could take a while.
+- Add: Detect when UD plus is not installed when mounting apfs file system and show warning message in log.
+- Fix: Background script switch handling and default operation.
+- Add: Delete button for deleting script file and remove red X delete.
+- Fix: Change UD disk sorting order to natural so /dev/sdaa shows up at the bottom of the list.
+- Fix: Disable file system check on apfs formatted disk.
+- Fix: Minor cosmetic changes to Edit Settings.
+- Fix: Remove some excessive logging.
+- Fix: Device scripts issues with SMB/NFS and ISO mounts with special characters.
+
+###2021.05.23
 - Fix: Fix historical device removal not removing command script files.
 - Fix: Don't show blank mount point in historical devices.
 
