@@ -1075,11 +1075,20 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 				$hidden = "\n\tbrowseable = yes";
 			}
 			$force_user = ( get_config("Config", "force_user") != "no" ) ? "\n\tforce User = nobody" : "";
+			if (($config["case_names"] == "") || ($config["case_names"] == "auto")) {
+				$case_names = "\n\tcase sensitive = auto\n\tpreserve case = yes\n\tshort preserve case = yes";
+			} elseif ($config["case_names"] == "yes") {
+				$case_names = "\n\tcase sensitive = yes\n\tpreserve case = yes\n\tshort preserve case = yes";
+			} elseif ($config["case_names"] == "force") {
+				$case_names = "\n\tcase sensitive = yes\n\tpreserve case = no\n\tshort preserve case = no";
+			} else {
+				$case_names = "";
+			}
 			if (count($valid_users)) {
 				$valid_users = "\n\tvalid users = ".implode(', ', $valid_users);
 				$write_users = count($write_users) ? "\n\twrite list = ".implode(', ', $write_users) : "";
 				$read_users = count($read_users) ? "\n\tread list = ".implode(', ', $read_users) : "";
-				$share_cont =  "[{$share_name}]\n\tpath = {$dir}{$hidden}{$force_user}{$valid_users}{$write_users}{$read_users}{$vfs_objects}";
+				$share_cont =  "[{$share_name}]\n\tpath = {$dir}{$hidden}{$force_user}{$valid_users}{$write_users}{$read_users}{$case_names}{$vfs_objects}";
 			} else {
 				$share_cont =  "[{$share_name}]\n\tpath = {$dir}{$hidden}\n\tinvalid users = @users";
 				unassigned_log("Error: No valid smb users defined.  Share '{$dir}' cannot be accessed.");

@@ -232,6 +232,23 @@ _(Enable SMB Security)_?
   <?=mk_option($cfg['Config']["smb_security"], "hidden", "_(Yes (hidden))_");?>
   </select>
 
+_(Case-sensitive names)_:
+: <select name="case_names" size="1">
+  <?=mk_option($cfg["Config"]["case_names"], "auto", "_(Auto)_");?>
+  <?=mk_option($cfg["Config"]["case_names"], "yes", "_(Yes)_");?>
+  <?=mk_option($cfg["Config"]["case_names"], "force", "_(Force lower)_");?>
+  </select>
+
+:ud_settings_case_sensitive_plug:
+> Controls whether filenames are case-sensitive.
+>
+> The default setting of **Auto** allows clients that support case sensitive filenames (Linux CIFSVFS) to tell the Samba server on a per-packet basis that they wish to access the file system in a case-sensitive manner (to support UNIX case sensitive semantics). No Windows system supports case-sensitive filenames so setting this option to auto is the same as setting it to No for them; however, the case of filenames passed by a Windows client will be preserved. This setting can result in reduced performance with very large directories because Samba must do a filename search and match on passed names.
+>
+> A setting of **Yes** means that files are created with the case that the client passes, and only accessible using this same case. This will speed very large directory access, but some Windows applications may not function properly with this setting. For example, if "MyFile" is created but a Windows app attempts to open "MYFILE" (which is permitted in Windows), it will not be found.
+>
+> A value of **Forced lower** is special: the case of all incoming client filenames, not just new filenames, will be set to lower-case. In other words, no matter what mixed case name is created on the Windows side, it will be stored and accessed in all lower-case. This ensures all Windows apps will properly find any file regardless of case, but case will not be preserved in folder listings. Note this setting should only be configured for new shares.
+:end
+
 <div id="smb_security" style="display: <?=($cfg['Config']["smb_security"] == "no" || $cfg['Config']["smb_security"] == "" ? "none" : "block");?>">
 	<?php foreach ($users as $user): ?>
 	<?php if ($user['name'] == "root"): continue; endif;?>
