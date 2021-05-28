@@ -209,9 +209,14 @@ EOT;
 <?if (isset($_GET['s'])):?>
 <td title='_(Turn on to mark this Device as passed through to a VM or Docker Container)_.'><input type='checkbox' class='passthrough-switch'></td>
 <td title='_(Turn on to Mount Device Read only)_.'><input type='checkbox' class='readonly-switch'></td>
+<td title='_(Turn on to Mount Device when Plugged in or Array is Started)_.'><input type='checkbox' class='automount-switch'></td>
 <?endif;?>
-
-<td title='_(Turn on to Mount Device when Array is Started)_.'><input type='checkbox' class='automount-switch'></td>
+<?if (isset($_GET['d'])):?>
+<td title='_(Turn on to Mount Remote SMB/NFS Share when Array is Started)_.'><input type='checkbox' class='automount-switch'></td>
+<?endif;?>
+<?if (isset($_GET['i'])):?>
+<td title='_(Turn on to Mount ISO File when Array is Started)_.'><input type='checkbox' class='automount-switch'></td>
+<?endif;?>
 <?endif;?>
 
 <?if (! isset($_GET['i'])):?>
