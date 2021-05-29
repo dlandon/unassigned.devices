@@ -64,7 +64,7 @@ if (isset($_GET['s'])) {
 	$width = "50%";
 	$automount_action = "automount";
 	$ud_device = $serial;
-	$serial = $serial." (".$device.")";
+	$serial = $serial." ".$device;
 	$background_action = "background";
 	$share_action = "toggle_share";
 	if (! $_GET['t']) {
@@ -255,7 +255,7 @@ _(Volume)_
 <span><input type="text" title='_(Enter Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>/','sh',false,true);" autocomplete="off" value="<?=$file;?>" placeholder="_(Click the 'Default' button to select the default Script File)_"></span>
 
 :ud_edit_script_choose_name_plug:
-> Choose your script name from the file selection dropdown, or enter your desired script name.
+> This is the Script File that runs when the device is mounted. Choose your Script File name from the file selection dropdown, or enter your desired script name.
 :end
 
 <span title='_(Turn on to run Script File in the background)_.'><input type="checkbox" class="background-switch"></span>
