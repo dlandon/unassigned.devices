@@ -497,13 +497,14 @@ function format_disk($dev, $fs, $pass) {
 			$cmd = "luksFormat {$dev}1";
 		}
 		if ($pass == "") {
-			$o = shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
+			$o				= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
 		} else {
 			$luks			= basename($dev);
 			$luks_pass_file	= "{$paths['luks_pass']}_".$luks;
 			file_put_contents($luks_pass_file, $pass);
 			$cmd			= $cmd." -d {$luks_pass_file}";
 			$o				= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+			exec("/bin/shred -u '$luks_pass_file'");
 		}
 		if ($o)
 		{
@@ -522,7 +523,7 @@ function format_disk($dev, $fs, $pass) {
 			$luks			= basename($dev);
 			$luks_pass_file	= "{$paths['luks_pass']}_".$luks;
 			$cmd			= $cmd." -d {$luks_pass_file}";
-			$o = shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+			$o				= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
 			exec("/bin/shred -u '$luks_pass_file'");
 		}
 		if ($o && stripos($o, "warning") === FALSE)

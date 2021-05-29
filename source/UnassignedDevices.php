@@ -349,7 +349,7 @@ switch ($_POST['action']) {
 								echo "<a title='"._("Click to spin up device")."' class='exec' onclick='spin_up_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle orb grey-orb'></i></a>";
 							}
 						} else {
-							echo "<i class='fa fa-circle orb ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>";
+							echo "<i title='"._("SSD cannot be spun down")."' class='fa fa-circle orb ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>";
 						}
 					}
 					echo ($disk['partitions'][0]['fstype'] == "crypto_LUKS" ? "<i class='fa fa-lock orb'></i>" : "");
@@ -420,7 +420,7 @@ switch ($_POST['action']) {
 				$mounted = $mount['mounted'];
 				echo "<tr>";
 				$protocol = $mount['protocol'] == "NFS" ? "nfs" : "smb";
-				printf( "<td><i class='fa fa-circle orb %s'></i>%s</td>", ( $is_alive ? "green-orb" : "grey-orb" ), $protocol);
+				printf( "<td><i class='fa fa-circle orb %s' title='"._("Remote Share is")." %s'></i>%s</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ), $protocol);
 				echo "<td>{$mount['name']}";
 				$mount_point = basename($mount['mountpoint']);
 				if ($mounted) {
@@ -475,7 +475,7 @@ switch ($_POST['action']) {
 				$mounted = $mount['mounted'];
 				$is_alive = is_file($mount['file']);
 				echo "<tr>";
-				printf( "<td><i class='fa fa-circle orb %s'></i>iso</td>", ( $is_alive ? "green-orb" : "grey-orb" ));
+				printf( "<td><i class='fa fa-circle orb %s' title='"._("ISO File is")." %s'></i>iso</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ));
 				$devname = basename($mount['device']);
 				echo "<td>{$mount['device']}</td>";
 				$mount_point = basename($mount['mountpoint']);
@@ -702,7 +702,6 @@ switch ($_POST['action']) {
 
 	/*	SAMBA	*/
 	case 'list_samba_hosts':
-		/* $workgroup = urldecode($_POST['workgroup']); */
 		$network = $_POST['network'];
 		$names = [];
 		foreach ($network as $iface)
@@ -717,8 +716,6 @@ switch ($_POST['action']) {
 			natsort($names);
 		}
 		echo implode(PHP_EOL, $names);
-		/* exec("/usr/bin/nmblookup --option='disable netbios'='No' '$workgroup' | awk '{print $1}'", $output); */
-		/* echo timed_exec(10, "/usr/bin/smbtree --servers --no-pass | grep -v -P '^\w+' | tr -d '\\' | awk '{print $1}' | sort"); */
 		break;
 
 	case 'list_samba_shares':
