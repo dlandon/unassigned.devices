@@ -64,7 +64,7 @@ if (isset($_GET['s'])) {
 	$width = "50%";
 	$automount_action = "automount";
 	$ud_device = $serial;
-	$serial = $serial." ".$device;
+	$serial .= ($device) ? " (".$device.")" : "";
 	$background_action = "background";
 	$share_action = "toggle_share";
 	if (! $_GET['t']) {
