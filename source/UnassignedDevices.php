@@ -344,12 +344,12 @@ switch ($_POST['action']) {
 						$str = "Device?name";
 						if (! $disk['ssd']) {
 							if ($disk['running']) {
-								echo "<a title='"._("Click to spin down device")."' class='exec' onclick='spin_down_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle orb green-orb'></i></a>";
+								echo "<a class='exec info' onclick='spin_down_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle orb green-orb'></i><span>"._("Click to spin down device")."</span></a>";
 							} else {
-								echo "<a title='"._("Click to spin up device")."' class='exec' onclick='spin_up_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle orb grey-orb'></i></a>";
+								echo "<a class='exec info' onclick='spin_up_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle orb grey-orb'></i><span>"._("Click to spin up device")."</span></a>";
 							}
 						} else {
-							echo "<i title='"._("SSD cannot be spun down")."' class='fa fa-circle orb ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>";
+							echo "<a class='info'><i class='fa fa-circle orb ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i><span>"._("SSD cannot be spun down")."</span>";
 						}
 					}
 					echo ($disk['partitions'][0]['fstype'] == "crypto_LUKS" ? "<i class='fa fa-lock orb'></i>" : "");
@@ -420,7 +420,7 @@ switch ($_POST['action']) {
 				$mounted = $mount['mounted'];
 				echo "<tr>";
 				$protocol = $mount['protocol'] == "NFS" ? "nfs" : "smb";
-				printf( "<td><i class='fa fa-circle orb %s' title='"._("Remote Share is")." %s'></i>%s</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ), $protocol);
+				printf( "<td><a class='info'><i class='fa fa-circle orb %s'></i><span>"._("Remote Share is")." %s</span></a>%s</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ), $protocol);
 				echo "<td>{$mount['name']}";
 				$mount_point = basename($mount['mountpoint']);
 				if ($mounted) {
@@ -475,7 +475,7 @@ switch ($_POST['action']) {
 				$mounted = $mount['mounted'];
 				$is_alive = is_file($mount['file']);
 				echo "<tr>";
-				printf( "<td><i class='fa fa-circle orb %s' title='"._("ISO File is")." %s'></i>iso</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ));
+				printf( "<td><a class='info'><i class='fa fa-circle orb %s'></i><span>"._("ISO File is")." %s</span>iso</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ));
 				$devname = basename($mount['device']);
 				echo "<td>{$mount['device']}</td>";
 				$mount_point = basename($mount['mountpoint']);
