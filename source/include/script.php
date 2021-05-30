@@ -30,7 +30,7 @@ function write_log($string) {
 	if (empty($string)) {
 		return;
 	}
-	$string = str_replace("\n", "<br>", $string);
+	$string = str_replace("\n", "<br \>", $string);
 	$string = str_replace('"', "\\\"", trim($string));
 	echo "<script>addLog(\"{$string}\");</script>";
 	@flush();
@@ -44,7 +44,7 @@ if ( isset($_GET['device']) && isset($_GET['type']) ) {
 		$command = $command." 2>&1";
 		publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
 		putenv("OWNER=udev");
-		write_log($command."</ br></ br>");
+		write_log($command."<br \><br \>");
 		$proc = popen($command, 'r');
 		while (! feof($proc)) {
 			write_log(fgets($proc));

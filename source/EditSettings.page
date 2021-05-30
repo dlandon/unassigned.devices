@@ -261,7 +261,7 @@ _(Volume)_
 <span title='_(Turn on to run Script File in the background)_.'><input type="checkbox" class="background-switch"></span>
 
 :ud_edit_script_run_background_plug:
-> Turn on the 'Run in Background' to have the script run as a background task.  This can keep the Unassigned Devices UI from hanging when the script is run from the UI.
+> Turn on the **Run in Background** to have the script run as a background task.  This can keep the Unassigned Devices UI from hanging when the script is run from the UI.
 :end
 
 <? if (! $_GET['i']):?>
@@ -284,6 +284,8 @@ _(Volume)_
 >
 > Click the **Default Script** button to initialize the edit box with a default script.
 > You still need to click **Save** in order to commit the change.
+>
+> Click **Delete** to delete the script file.
 :end
 
 <button type="button" title='_(Load the default script)_.' onclick="setDefault(this.form)">_(Default Script)_</button>
