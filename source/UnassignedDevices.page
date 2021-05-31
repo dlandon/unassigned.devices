@@ -17,7 +17,7 @@ Tag="unlink"
 $plugin = "unassigned.devices";
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $translations = file_exists("$docroot/webGui/include/Translations.php");
-require_once "$docroot/plugins/$plugin/include/Legacy.php";
+//require_once "$docroot/plugins/$plugin/include/Legacy.php";
 ?>
 <?if (! $translations):?>
 <?eval('?>'.parse_file("$docroot/plugins/$plugin/UnassignedDevices.page"))?>
@@ -686,16 +686,17 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		} else {
 			$('i.toggle').removeClass('fa-list').addClass('fa-tachometer');
 		}
-		addButtonTab('<a style="cursor:pointer" title="<?=_("Unassigned Devices Settings");?>" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>',
+		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Unassigned Devices Settings");?>" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>',
 								 "<?=_('Unassigned Devices');?>");
-		addButtonTab('<a style="cursor:pointer" onclick="rescan_disks()" title="<?=_("Refresh Disks and Configuration");?>"><i class="fa fa-refresh"></i></a>',
+		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Refresh Disks and Configuration");?>" onclick="rescan_disks()"><i class="fa fa-refresh"></i></a>',
 								 "<?=_('Unassigned Devices');?>");
-		addButtonTab('<a style="cursor:pointer" title="<?=_("Switch On to Show Historical Devices");?>"><input type="checkbox" class="historical-switch"></a>',
+		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Switch On to Show Historical Devices");?>"><input type="checkbox" class="historical-switch"></a>',
 								 "<?=_('Unassigned Devices');?>");
-		addButtonTab('<a style="cursor:pointer" title="<?=_("Switch On to Show SMB/NFS/ISO Shares");?>"><input type="checkbox" class="shares-switch"></a>',
+		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Switch On to Show SMB/NFS/ISO Shares");?>"><input type="checkbox" class="shares-switch"></a>',
 								 "<?=_('Unassigned Devices');?>");
-		addButtonTab('<a style="cursor:pointer" title="<?=_("Switch On to Show Disk Devices");?>"><input type="checkbox" class="disks-switch"></a>',
+		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Switch On to Show Disk Devices");?>"><input type="checkbox" class="disks-switch"></a>',
 								 "<?=_('Unassigned Devices');?>");
+		$('.tooltip').tooltipster({delay:100,trigger:'custom',triggerOpen:{mouseenter:true},triggerClose:{click:false,scroll:true,mouseleave:true}});
 
 		/* Add switchButton to Tab/Title bar */
 		$('.disks-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Disks');?>", off_label: "<?=_('Disks');?>", checked: $.cookie('unassigned-disks-view') != 'false'});
