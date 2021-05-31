@@ -686,15 +686,15 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		} else {
 			$('i.toggle').removeClass('fa-list').addClass('fa-tachometer');
 		}
-		addButtonTab('<a title="<?=_("Unassigned Devices Settings");?>" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>',
+		addButtonTab('<a style="cursor:pointer" title="<?=_("Unassigned Devices Settings");?>" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>',
 								 "<?=_('Unassigned Devices');?>");
-		addButtonTab('<a style="cursor:pointer;" onclick="rescan_disks()" title="<?=_("Refresh Disks and Configuration");?>"><i class="fa fa-refresh"></i></a>',
+		addButtonTab('<a style="cursor:pointer" onclick="rescan_disks()" title="<?=_("Refresh Disks and Configuration");?>"><i class="fa fa-refresh"></i></a>',
 								 "<?=_('Unassigned Devices');?>");
-		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch On to Show Historical Devices");?>"><input type="checkbox" class="historical-switch"></a>',
+		addButtonTab('<a style="cursor:pointer" title="<?=_("Switch On to Show Historical Devices");?>"><input type="checkbox" class="historical-switch"></a>',
 								 "<?=_('Unassigned Devices');?>");
-		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch On to Show SMB/NFS/ISO Shares");?>"><input type="checkbox" class="shares-switch"></a>',
+		addButtonTab('<a style="cursor:pointer" title="<?=_("Switch On to Show SMB/NFS/ISO Shares");?>"><input type="checkbox" class="shares-switch"></a>',
 								 "<?=_('Unassigned Devices');?>");
-		addButtonTab('<a style="cursor:pointer;" title="<?=_("Switch On to Show Disk Devices");?>"><input type="checkbox" class="disks-switch"></a>',
+		addButtonTab('<a style="cursor:pointer" title="<?=_("Switch On to Show Disk Devices");?>"><input type="checkbox" class="disks-switch"></a>',
 								 "<?=_('Unassigned Devices');?>");
 
 		/* Add switchButton to Tab/Title bar */
