@@ -118,17 +118,17 @@ function render_partition($disk, $partition, $total=FALSE) {
 	if ($mounted && is_file($cmd)) {
 		$script_partition = $partition['fstype'] == "crypto_LUKS" ? $partition['luks'] : $partition['device'];
 		if ((! is_script_running($cmd)) & (! is_script_running($partition['user_command'], TRUE))) {
-			$fscheck = "<a title='"._("Execute Script as udev simulating a device being installed")."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/script.php?device={$script_partition}&type="._('Done')."\",\"Execute Script\",600,900);'><i class='fa fa-flash partition-script'></i></a>{$partition['part']}";
+			$fscheck = "<a class='info' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/script.php?device={$script_partition}&type="._('Done')."\",\"Execute Script\",600,900);'><i class='fa fa-flash partition-script'></i><span>"._("Execute Script as udev simulating a device being installed")."</span></a>{$partition['part']}";
 		} else {
 			$fscheck = "<i class='fa fa-flash partition-script'></i>{$partition['part']}";
 		}
 	} elseif ( (! $mounted && $partition['fstype'] != 'btrfs' && $partition['fstype'] != 'apfs') ) {
-		$fscheck = "<a title='"._('File System Check')."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i></a>{$partition['part']}";
+		$fscheck = "<a class='exec info' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i><span>"._('File System Check')."</span></a>{$partition['part']}";
 	} else {
 		$fscheck = "<i class='fa fa-check partition-hdd'></i>{$partition['part']}";
 	}
 
-	$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && (! $disk['partitions'][0]['pass_through'])) ? "<span title='"._("Remove Partition")."' device='{$partition['device']}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i></span>" : "";
+	$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && (! $disk['partitions'][0]['pass_through'])) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i><span>"._("Remove Partition")."</a></span>" : "";
 	$mpoint = "<span>{$fscheck}";
 	$mount_point = basename($partition['mountpoint']);
 	$device = ($partition['fstype'] == "crypto_LUKS") ? $partition['luks'] : $partition['device'];
@@ -312,7 +312,7 @@ switch ($_POST['action']) {
 				if ($p) {
 					$add_toggle = TRUE;
 					if ($disk['show_partitions'] != 'yes') {
-						$hdd_serial .="<span title='"._("Click to view/hide partitions and mount points")."' class='exec toggle-hdd' hdd='{$disk_name}'><i class='fa fa-plus-square fa-append'></i></span>";
+						$hdd_serial .="<span class='exec toggle-hdd' hdd='{$disk_name}'><a style='cursor:pointer' class='info'><i class='fa fa-plus-square fa-append'></i><span>"._("Click to view/hide partitions and mount points")."</span></a></span>";
 					} else {
 						$hdd_serial .="<span><i class='fa fa-minus-square fa-append grey-orb'></i></span>";
 					}
@@ -353,7 +353,7 @@ switch ($_POST['action']) {
 						}
 					}
 					echo ($disk['partitions'][0]['fstype'] == "crypto_LUKS" ? "<i class='fa fa-lock orb'></i>" : "");
-					echo "<a title= '"._("SMART Attributes on")." ".$disk_display."' href='/Main/{$str}={$disk_dev}'> {$disk_display}</a>";
+					echo "<a class='info' href='/Main/{$str}={$disk_dev}'> {$disk_display}<span>"._("SMART Attributes on")." ".$disk_display."</span></a>";
 					echo "</td>";
 				}
 				/* Device serial number */
