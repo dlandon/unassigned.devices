@@ -353,7 +353,7 @@ switch ($_POST['action']) {
 						}
 					}
 					echo ($disk['partitions'][0]['fstype'] == "crypto_LUKS" ? "<i class='fa fa-lock orb'></i>" : "");
-					echo "<a class='info' href='/Main/{$str}={$disk_dev}'> {$disk_display}<span>"._("SMART Attributes on")." ".$disk_display."</span></a>";
+					echo "<a href='/Main/{$str}={$disk_dev}'> {$disk_display}<span>"."</span></a>";
 					echo "</td>";
 				}
 				/* Device serial number */
