@@ -1428,7 +1428,7 @@ function do_mount_samba($info) {
 					unassigned_log("Mount SMB command: {$cmd}");
 					$o		= timed_exec(10, $cmd." 2>&1");
 				}
-				if (! is_mounted($dev) && strpos($o, "Permission denied") === FALSE) {
+				if (! is_mounted($dev) && (strpos($o, "Permission denied") === FALSE) && (strpos($o, "Network is unreachable") === FALSE)) {
 					if (get_config("Config", "smb_version") != "yes" ) {
 						unassigned_log("SMB default protocol mount failed: '{$o}'.");
 					}
@@ -1439,7 +1439,7 @@ function do_mount_samba($info) {
 					unassigned_log("Mount SMB command: {$cmd}");
 					$o		= timed_exec(10, $cmd." 2>&1");
 				}
-				if (! is_mounted($dev) && strpos($o, "Permission denied") === FALSE) {
+				if (! is_mounted($dev) && (strpos($o, "Permission denied") === FALSE) && (strpos($o, "Network is unreachable") === FALSE)) {
 					unassigned_log("SMB3 mount failed: '{$o}'.");
 					/* If the mount failed, try to mount with samba vers=2.0. */
 					$ver	= ",vers=2.0";
@@ -1449,7 +1449,7 @@ function do_mount_samba($info) {
 					unassigned_log("Mount SMB command: {$cmd}");
 					$o		= timed_exec(10, $cmd." 2>&1");
 				}
-				if ((! is_mounted($dev) && $use_netbios == 'yes') && strpos($o, "Permission denied") === FALSE) {
+				if ((! is_mounted($dev) && ($use_netbios == 'yes')) && (strpos($o, "Permission denied") === FALSE) && (strpos($o, "Network is unreachable") === FALSE)) {
 					unassigned_log("SMB2 mount failed: '{$o}'.");
 					/* If the mount failed, try to mount with samba vers=1.0. */
 					$ver	= ",sec=ntlm,vers=1.0";
