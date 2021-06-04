@@ -33,7 +33,7 @@ function safe_filename($string) {
 $background = "checked";
 $partition = "";
 $disk_setting = TRUE;
-$show_switches = TRUE;
+$show_device_switches = TRUE;
 $disabled = "";
 $default_file = safe_filename("/boot/config/plugins/{$plugin}/".urldecode($_GET['l'])).".sh";
 $fstype = "";
@@ -69,7 +69,7 @@ if (isset($_GET['s'])) {
 	$share_action = "toggle_share";
 	if (! $_GET['t']) {
 		$disk_setting = FALSE;
-		$show_switches = FALSE;
+		$show_device_switches = FALSE;
 	}
 	$fstype = $_GET['f'];
 	$volume = ($fstype == "apfs") ? get_config($ud_device, "volume.{$partition}") : "0";
@@ -206,7 +206,7 @@ EOT;
 <tr>
 &nbsp;
 
-<?if ($show_switches):?>
+<?if ($show_device_switches):?>
 <?if (isset($_GET['s'])):?>
 <td title='_(Mark this Device as passed through to a VM or Docker Container)_.'><input type='checkbox' class='passthrough-switch'></td>
 <td title='_(Mount Device Read only)_.'><input type='checkbox' class='readonly-switch'></td>
@@ -215,7 +215,7 @@ EOT;
 <?endif;?>
 
 <?if (isset($_GET['d'])):?>
-<td title='_(Mount Remote SMB/NFS Share when Array is Started)_.'><input type='checkbox' class='automount-switch'></td>
+<td title='_(Mount Remote SMB or NFS Share when Array is Started)_.'><input type='checkbox' class='automount-switch'></td>
 <?endif;?>
 
 <?if (isset($_GET['i'])):?>
@@ -223,13 +223,11 @@ EOT;
 <?endif;?>
 
 <?if (! isset($_GET['i'])):?>
-<td title='_(Share Device with SMB and/or NFS)_.'><input type='checkbox' class='share-switch' info='<?=$info?>'></td>
+<td title='_(Share Device with SMB and NFS)_.'><input type='checkbox' class='share-switch' info='<?=$info?>'></td>
 <?endif;?>
 
-<?if ($show_switches):?>
-<?if (isset($_GET['s'])):?>
+<?if ((isset($_GET['s'])) && ($show_device_switches)):?>
 <td title='_(Show all partitions on this device by default)_.'><input type='checkbox' class='partitions-switch'></td>
-<?endif;?>
 <?endif;?>
 
 </tr>
