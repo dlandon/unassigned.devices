@@ -254,11 +254,9 @@ _(Volume)_
 
 <br />
 <?endif;?>
-</form>
 
-<form class="js-confirm-leave" markdown="1" method="POST" action="/update.php" target="progressFrame">
 <strong>_(Script File)_:</strong>
-<span><input type="text" title='_(Enter Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>/','sh',false,true);" autocomplete="off" value="<?=$file;?>" placeholder="_(Click the 'Default' button to select the default Script File)_"></span>
+<input type="text" title='_(Enter Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>/','sh',false,true);" autocomplete="off" value="<?=$file;?>" placeholder="_(Click the 'Default' button to select the default Script File)_">
 
 :ud_edit_script_choose_name_plug:
 > This is the Script File that runs when the device is mounted. Choose your Script File name from the file selection dropdown, or enter your desired script name.
@@ -272,7 +270,7 @@ _(Volume)_
 
 <? if (! $_GET['i']):?>
 <strong>_(User Script)_:</strong>
-<span><input type="text" title='_(Enter User Script File Name)_.' name="#user_file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/user.scripts/scripts/','',false,true);" autocomplete="off" placeholder="_(Enter the User Script that will be using this device)_" value="<?=$user_file;?>" <?=$disabled;?>></span>
+<input type="text" title='_(Enter User Script File Name)_.' name="#user_file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/user.scripts/scripts/','',false,true);" autocomplete="off" placeholder="_(Enter the User Script that will be using this device)_" value="<?=$user_file;?>" <?=$disabled;?>>
 
 :ud_edit_user_script_choose_name_plug:
 > If you have the User Scripts plugin installed, you can have Unassigned Devices show the running status of the User Script that will be using this device.  This field will only be enabled when a Script File exists.
@@ -383,8 +381,10 @@ _(Volume)_
 	<?endif;?>
 
 	function setDefault(form) {
+		/* Set the default values. */
 		form.elements['text'].value = <?=json_encode($default_text);?>;
 		form.elements['#file'].value = <?=json_encode($default_file);?>;
+
 		/* Create a new 'change' event. */
 		var event = new Event('change');
 
@@ -397,10 +397,13 @@ _(Volume)_
 		if (on_files   === undefined) on_files = true;
 		if (! filter && ! on_files)   filter = 'HIDE_FILES_FILTER';
 		p = $(el);
+
 		/* Skip if fileTree is already open. */
 		if ( p.next().hasClass('fileTree') ){return null;}
+
 		/* create a random id. */
 		var r = Math.floor((Math.random()*1000)+1);
+
 		/* Add a new span and load fileTree. */
 		p.after("<span id='fileTree"+r+"' class='textarea fileTree'></span>");
 		var ft = $('#fileTree'+r);
@@ -412,12 +415,21 @@ _(Volume)_
 			function(file){if(on_files){p.val(file);$(ft).slideUp('fast',function (){$(ft).remove();});}},
 			function(folder){if(on_folders){p.val(folder);$(ft).slideUp('fast',function (){$(ft).remove();});}}
 		);
+
 		/* Format fileTree according to parent position, height and width. */
 		ft.css({'left':p.position().left,'top':( p.position().top + p.outerHeight() ),'width':(p.width()+2) });
+
 		/* Close if click elsewhere. */
 		$(document).mouseup(function(e){if (! ft.is(e.target) && ft.has(e.target).length === 0){$(ft).slideUp('fast',function (){$(ft).remove();});}});
+
 		/* Open fileTree. */
 		ft.slideDown('fast');
+
+		/* Create a new 'change' event. */
+		var event = new Event('change');
+
+		/* Trigger a change event. */
+		el.form.dispatchEvent(event);
 	}
 
 	function rmfile(file) {
