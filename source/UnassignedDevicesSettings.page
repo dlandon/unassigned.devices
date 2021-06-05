@@ -254,7 +254,8 @@ _(Specify SMB Version when Mounting Remote Shares)_?
 :end
 
 &nbsp;
-: <input type="submit" name="#apply" value='_(Apply)_'><input type="button" value='_(Done)_' onclick="done()">
+: <input type="submit" name="#apply" value='_(Apply)_'>
+<button type="button" onclick="done()">_(Done)_</button>
 </form>
 
 <div id="title" class="nocontrol">_(SMB Security)_</div>
@@ -320,7 +321,8 @@ _(Add)_ 'force user = nobody' _(to SMB share config)_?
 :end
 
 &nbsp;
-: <input type="submit" name="#apply" value='_(Apply)_'><input type="button" value='_(Done)_' onclick="done()">
+: <input type="submit" name="#apply" value='_(Apply)_'>
+<button type="button" value='_(Done)_' onclick="done()">_(Done)_</button>
 </form>
 
 <div id="title" class="nocontrol">_(NFS Settings)_</div>
@@ -357,7 +359,8 @@ _(Enable NFS export)_?
 :end
 
 &nbsp;
-: <input type="submit" name="#apply" value='_(Apply)_'><input type="button" value='_(Done)_' onclick="done()">
+: <input type="submit" name="#apply" value='_(Apply)_'>
+<button type="button" value='_(Done)_' onclick="done()">_(done)_</button>
 </form>
 
 <div id="title" class="nocontrol">_(Set Encrypted Disk Password)_</div>
