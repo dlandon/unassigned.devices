@@ -424,12 +424,6 @@ _(Volume)_
 
 		/* Open fileTree. */
 		ft.slideDown('fast');
-
-		/* Create a new 'change' event. */
-		var event = new Event('change');
-
-		/* Trigger a change event. */
-		el.form.dispatchEvent(event);
 	}
 
 	function rmfile(file) {
