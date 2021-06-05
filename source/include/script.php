@@ -44,7 +44,7 @@ if ( isset($_GET['device']) && isset($_GET['type']) ) {
 		$command = $command." 2>&1";
 		publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
 		putenv("OWNER=udev");
-		write_log(_("Executing").": ".$command."<br \><br \>");
+		write_log(_("Executing").": ".basename($command)."<br \><br \>");
 		$proc = popen($command, 'r');
 		while (! feof($proc)) {
 			write_log(fgets($proc));
