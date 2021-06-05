@@ -238,7 +238,9 @@ EOT;
 :end
 
 <button type="button" onclick="done()">_(Done)_</button>
+</form>
 
+<form class="js-confirm-leave" markdown="1" method="POST" action="/update.php" target="progressFrame">
 <?if ($fstype == "apfs"):?>
 <div style="float:left">
 _(Volume)_
@@ -252,7 +254,9 @@ _(Volume)_
 
 <br />
 <?endif;?>
+</form>
 
+<form class="js-confirm-leave" markdown="1" method="POST" action="/update.php" target="progressFrame">
 <strong>_(Script File)_:</strong>
 <span><input type="text" title='_(Enter Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>/','sh',false,true);" autocomplete="off" value="<?=$file;?>" placeholder="_(Click the 'Default' button to select the default Script File)_"></span>
 
@@ -381,6 +385,11 @@ _(Volume)_
 	function setDefault(form) {
 		form.elements['text'].value = <?=json_encode($default_text);?>;
 		form.elements['#file'].value = <?=json_encode($default_file);?>;
+		/* Create a new 'change' event. */
+		var event = new Event('change');
+
+		/* Trigger a change event. */
+		form.dispatchEvent(event);
 	}
 
 	function openFileBrowser(el, root, filter, on_folders, on_files) {
