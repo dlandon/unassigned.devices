@@ -134,6 +134,12 @@ if (version_compare($version['version'],"6.8.9", ">")) {
 
 		/* Open fileTree */
 		ft.slideDown('fast');
+
+		/* Create a new 'change' event. */
+		var event = new Event('change');
+
+		/* Trigger a change event. */
+		el.form.dispatchEvent(event);
 	} 
 
 	function prepareSecurity(el) {
