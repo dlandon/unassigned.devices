@@ -234,13 +234,13 @@ EOT;
 </table>
 
 :ud_edit_script_device_settings_plug:
-> Select the options for this device/mount point.  These changes are made immediately.  You don't need to click ***Save*** to save them.
+> Select the options for this device/mount point.  These changes are made immediately.  You don't need to click **Save** to save them.
 :end
 
 <button type="button" onclick="done()">_(Done)_</button>
 </form>
 
-<form class="js-confirm-leave" markdown="1" method="POST" action="/update.php" target="progressFrame">
+<form markdown="1" method="POST" action="/update.php" target="progressFrame">
 <?if ($fstype == "apfs"):?>
 <div style="float:left">
 _(Volume)_
@@ -424,12 +424,6 @@ _(Volume)_
 
 		/* Open fileTree. */
 		ft.slideDown('fast');
-
-		/* Create a new 'change' event. */
-		var event = new Event('change');
-
-		/* Trigger a change event. */
-		el.form.dispatchEvent(event);
 	}
 
 	function rmfile(file) {
