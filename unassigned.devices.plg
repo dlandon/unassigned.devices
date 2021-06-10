@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2021.05.26a">
+<!ENTITY version   "2021.06.10">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"b82187b4affd9aa4f6a2be8d3d47f69f">
+<!ENTITY MD5		"348b116c1eefca17f6a28435871623e9">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,6 +23,15 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Filename case setting for SMB shares.
+- Fix: Automount tooltip to match the type of mount - Disk/SMB/NFS/ISO.
+- Fix: Minor help changes.
+- Add: Disk spin up/down tooltips in Unraid style.
+- Add: Tooltips to SMB/NFS and ISO file orbs in Unraid style.
+- Add: Switches and icon tooltips in upper right of UD page are now in Unraid style.
+- Add: Don't continue SMB mounts if network is unreachable.
+
+###2021.05.26a
 - Add: Change disk label for encrypted disks when mount point is changed.
 - Fix: Don't save credentials to samba config file for NFS shares.  NFS does not use credentials.
 - Add: Sync file system to commit all writes before unmounting.  You will see 'Unmounting' status while the file system is sync'd.  This could take a while.
@@ -1432,7 +1441,6 @@ The 'post-install' script.
 # Create logs directory.
 mkdir -p /tmp/&name;
 
-# Install the plugin bundle.
 # Create plugin directory
 mkdir -p /boot/config/plugins/&name;
 
@@ -1442,7 +1450,7 @@ find "/boot/config/plugins/&name;/" -type f -iname "*.txz" -delete
 # Install the 'bundle'.
 tar -xf /boot/config/plugins/&name;/&name;-&version;.tgz -C /usr/local/emhttp/plugins 2>/dev/null
 
-# move the rules file
+# Move the rules file
 mv /usr/local/emhttp/plugins/&name;/99_persistent_unassigned.rules /etc/udev/rules.d/
 chmod 644 -R /etc/udev/rules.d/99_persistent_unassigned.rules 2>/dev/null
 
@@ -1456,12 +1464,12 @@ chmod +x /usr/local/emhttp/plugins/&name;/scripts/* /usr/local/emhttp/plugins/&n
 ln -sf /usr/local/emhttp/plugins/&name;/scripts/rc.unassigned /usr/local/sbin
 ln -sf /usr/local/emhttp/plugins/&name;/scripts/mkmbr.sh /usr/local/sbin
 
-# create state folder and mount point
+# Create state folder and mount points
 rm -rf /var/state/&name;
 mkdir -p /mnt/disks /mnt/remotes /var/state/&name;
 chmod 777 /var/state/&name;
 
-# create a tmpfs mountpoint at /mnt/disks
+# Create a tmpfs mountpoint at /mnt/disks
 # to make sure that writting to an unmounted device doesn't fill all rootfs
 # ps: tmpfs mountpoint will only be created if no disks are mounted yet
 mounted_disks="n"
@@ -1479,7 +1487,7 @@ if ! mountpoint -q /mnt/disks 2>/dev/null; then
 fi
 chown nobody:users /mnt/disks
 
-# create a tmpfs mountpoint at /mnt/remotes
+# Create a tmpfs mountpoint at /mnt/remotes
 # to make sure that a CIFS connection dropout doesn't fill all rootfs
 # ps: tmpfs mountpoint will only be created if no remote mounts are mounted yet
 mounted_remotes="n"
@@ -1503,7 +1511,7 @@ at -M -f /tmp/&name;/add-smb-extra now 2>/dev/null
 # Create a scripts directory to run UD device scripts
 mkdir -p /tmp/&name;/scripts
 
-# mount disks
+# Mount disks
 at -M -f /tmp/start_unassigned_devices now 2>/dev/null
 
 # Rename original Dynamix page
@@ -1567,7 +1575,7 @@ rm -f /tmp/plugins/&name;.plg \
 	  /usr/local/sbin/mkmbr.sh \
       /etc/udev/rules.d/99_persistent_unassigned.rules
 
-# reload udev rules
+# Reload udev rules
 udevadm control --reload-rules
 
 # Restore original Dynamix page
