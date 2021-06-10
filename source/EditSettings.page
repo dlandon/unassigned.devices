@@ -193,7 +193,7 @@ EOT;
 	}
 </style>
 
-<form markdown="1" method="POST" action="/update.php" target="progressFrame">
+<form markdown="1" name="edit_settings" method="POST" action="/update.php" target="progressFrame">
 <input type="hidden" name="#include" value="/webGui/include/update.file.php">
 
 <?if ($disk_setting):?>
@@ -238,9 +238,7 @@ EOT;
 :end
 
 <button type="button" onclick="done()">_(Done)_</button>
-</form>
 
-<form markdown="1" method="POST" action="/update.php" target="progressFrame">
 <?if ($fstype == "apfs"):?>
 <div style="float:left">
 _(Volume)_
@@ -297,9 +295,8 @@ _(Volume)_
 <button type="button" title='_(Delete Script File)_.' onclick='rmfile("<?=$file;?>");'>_(Delete)_</button>
 <?endif;?>
 <input type="reset" title='_(Undo your changes since last Save)_.' value='_(Reset)_'/>
-<input type="submit" title='_(Save your changes)_.' value='_(Save)_'/>
+<input type="submit" title='_(Save your Script File changes)_.' value='_(Save)_'/>
 <button type="button" onclick="done()">_(Done)_</button>
-
 </form>
 
 <script>
