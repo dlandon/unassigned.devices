@@ -1535,7 +1535,7 @@ echo " Version: &version;"
 echo ""
 echo " Note:"
 echo " Install the Unassigned Devices Plus plugin if you need to"
-echo " mount exFAT or HFS+ file formats, or format disks."
+echo " mount exFAT, HFS+, apfs file formats or format disks."
 if [ $mounted_disks == "y" ] || [ $mounted_remotes == "y" ]; then
   echo ""
   echo " PLEASE REBOOT YOUR SERVER "
