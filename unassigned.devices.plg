@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2021.06.10">
+<!ENTITY version   "2021.06.11">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"348b116c1eefca17f6a28435871623e9">
+<!ENTITY MD5		"382ad113ca9c84d2f22d694ae49bc4ed">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,6 +23,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Unknown php parse_file() error.
+
+###2021.06.10
 - Add: Filename case setting for SMB shares.
 - Fix: Automount tooltip to match the type of mount - Disk/SMB/NFS/ISO.
 - Fix: Minor help changes.
