@@ -1420,7 +1420,8 @@ function do_mount_samba($info) {
 				file_put_contents("$credentials_file", "password=".decrypt_data($info['pass'])."\n", FILE_APPEND);
 				file_put_contents("$credentials_file", "domain=".$info['domain']."\n", FILE_APPEND);
 				/* If the smb version is not required, just mount the remote share with no version. */
-				if (get_config("Config", "smb_version") != "yes" ) {
+				$smb_version = (get_config("Config", "smb_version") == "yes") ?  TRUE : FALSE;
+				if (! $smb_version) {
 					$ver	= "";
 					$params	= sprintf(get_mount_params($fs, $dev), $ver);
 					$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
@@ -1429,7 +1430,7 @@ function do_mount_samba($info) {
 					$o		= timed_exec(10, $cmd." 2>&1");
 				}
 				if (! is_mounted($dev) && (strpos($o, "Permission denied") === FALSE) && (strpos($o, "Network is unreachable") === FALSE)) {
-					if (get_config("Config", "smb_version") != "yes" ) {
+					if (! $smb_version) {
 						unassigned_log("SMB default protocol mount failed: '{$o}'.");
 					}
 					$ver	= ",vers=3.0";
