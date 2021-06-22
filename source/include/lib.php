@@ -1744,7 +1744,7 @@ function get_disk_info($device) {
 	$disk['temperature']		= get_temp($disk['ud_dev'], $disk['device'], $disk['running']);
 	$disk['command']			= get_config($disk['serial'],"command.1");
 	$disk['user_command']		= get_config($disk['serial'],"user_command.1");
-	$disk['show_partitions']	= get_config($disk['serial'],"show_partitions");
+	$disk['show_partitions']	= (get_config($disk['serial'], "show_partitions") == "yes") ? TRUE : FALSE;
 	return $disk;
 }
 

@@ -141,7 +141,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 	}
 	$mbutton = make_mount_button($partition);
 
-	($disk['show_partitions'] != 'yes') || $disk['partitions'][0]['pass_through'] ? $style = "style='display:none;'" : $style = "";
+	(! $disk['show_partitions']) || $disk['partitions'][0]['pass_through'] ? $style = "style='display:none;'" : $style = "";
 	$out[] = "<tr class='toggle-parts toggle-".basename($disk['device'])."' name='toggle-".basename($disk['device'])."' $style>";
 	$out[] = "<td></td>";
 	$out[] = "<td>{$mpoint}</td>";
@@ -311,7 +311,7 @@ switch ($_POST['action']) {
 				$hdd_serial = "<a class='info' href=\"#\" onclick=\"openBox('/webGui/scripts/disk_log&amp;arg1={$disk_name}','Disk Log Information',600,900,false);return false\"><i class='fa fa-hdd-o icon'></i><span>"._("Disk Log Information")."</span></a>";
 				if ($p) {
 					$add_toggle = TRUE;
-					if ($disk['show_partitions'] != 'yes') {
+					if (! $disk['show_partitions']) {
 						$hdd_serial .="<span title ='"._("Click to view/hide partitions and mount points")."' class='exec toggle-hdd' hdd='{$disk_name}'><i class='fa fa-plus-square fa-append'></i></span>";
 					} else {
 						$hdd_serial .="<span><i class='fa fa-minus-square fa-append grey-orb'></i></span>";
