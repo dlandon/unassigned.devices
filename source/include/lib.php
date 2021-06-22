@@ -1381,7 +1381,7 @@ function get_samba_mounts() {
 			$mount['prog_name']		= basename($mount['command'], ".sh");
 			$mount['command']		= get_samba_config($mount['device'],"command");
 			$mount['user_command']	= get_samba_config($mount['device'],"user_command");
-			$mount['logfile']		= $paths['device_log'].$mount['prog_name'].".log";
+			$mount['logfile']		= ($mount['prog_name'] != "") ? $paths['device_log'].$mount['prog_name'].".log" : "";
 			$o[] = $mount;
 		}
 	} else {
@@ -1568,7 +1568,7 @@ function get_iso_mounts() {
 			$mount['prog_name']		= basename($mount['command'], ".sh");
 			$mount['command']		= get_iso_config($mount['device'],"command");
 			$mount['user_command']	= get_iso_config($mount['device'],"user_command");
-			$mount['logfile']		= $paths['device_log'].$mount['prog_name'].".log";
+			$mount['logfile']		= ($mount['prog_name'] != "") ? $paths['device_log'].$mount['prog_name'].".log" : "";
 			$o[] = $mount;
 		}
 	} else {
@@ -1804,7 +1804,7 @@ function get_partition_info($device) {
 		$disk['user_command']	= get_config($disk['serial'], "user_command.{$disk['part']}");
 		$disk['command_bg']		= get_config($disk['serial'], "command_bg.{$disk['part']}");
 		$disk['prog_name']		= basename($disk['command'], ".sh");
-		$disk['logfile']		= $paths['device_log'].$disk['prog_name'].".log";
+		$disk['logfile']		= ($disk['prog_name'] != "") ? $paths['device_log'].$disk['prog_name'].".log" : "";
 		return $disk;
 	}
 }
