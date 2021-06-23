@@ -760,7 +760,7 @@ function remove_config_disk($sn) {
 		unassigned_log("Removing configuration '{$sn}'.");
 	}
 	/* Remove up to three partition script files. */
-	for ($i = 1; $i <= 3; $i++) {
+	for ($i = 1; $i <= 5; $i++) {
 		$command = "command.".$i;
 		$cmd = $config[$sn][$command];
 		if ( isset($cmd) && is_file($cmd) ) {
