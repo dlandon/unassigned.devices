@@ -44,6 +44,9 @@ function unassigned_mount() {
 					unassigned_log("Disk '{$device}' does not have a serial number and cannot be mounted.");
 					continue;
 				}
+				if (array_values(preg_grep("@/formatting_".basename($device)."@i", listDir(dirname($paths['formatting']))))[0]) {
+					continue;
+				}
 				if ( $info['pass_through'] ) {
 					unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' is set as passed through.");
 					continue;
