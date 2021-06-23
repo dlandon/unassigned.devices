@@ -504,6 +504,7 @@ function format_disk($dev, $fs, $pass) {
 			file_put_contents($luks_pass_file, $pass);
 			$cmd			= $cmd." -d {$luks_pass_file}";
 			$o				= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+			$pass 			= "";
 			exec("/bin/shred -u '$luks_pass_file'");
 		}
 		if ($o)
@@ -524,6 +525,7 @@ function format_disk($dev, $fs, $pass) {
 			$luks_pass_file	= "{$paths['luks_pass']}_".$luks;
 			$cmd			= $cmd." -d {$luks_pass_file}";
 			$o				= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+			$pass 			= "";
 			exec("/bin/shred -u '$luks_pass_file'");
 		}
 		if ($o && stripos($o, "warning") === FALSE)
@@ -899,6 +901,7 @@ function do_mount($info) {
 				file_put_contents($luks_pass_file, $pass);
 				$cmd	= $cmd." -d $luks_pass_file";
 				$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+				$pass 			= "";
 				exec("/bin/shred -u '$luks_pass_file'");
 			}
 			if ($o && stripos($o, "warning") === FALSE) {
@@ -1419,6 +1422,7 @@ function do_mount_samba($info) {
 				file_put_contents("$credentials_file", "username=".($info['user'] ? $info['user'] : 'guest')."\n");
 				file_put_contents("$credentials_file", "password=".decrypt_data($info['pass'])."\n", FILE_APPEND);
 				file_put_contents("$credentials_file", "domain=".$info['domain']."\n", FILE_APPEND);
+
 				/* If the smb version is not required, just mount the remote share with no version. */
 				$smb_version = (get_config("Config", "smb_version") == "yes") ?  TRUE : FALSE;
 				if (! $smb_version) {
@@ -1798,7 +1802,7 @@ function get_partition_info($device) {
 		$disk['used']			= intval($stats[1])*1024;
 		$disk['avail']			= intval($stats[2])*1024;
 		$disk['owner']			= (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
-		$disk['automount']		= is_automount($disk['serial'], strpos($attrs['DEVPATH'],"usb"));
+		$disk['automount']		= is_automount($disk['serial']);
 		$disk['read_only']		= is_read_only($disk['serial']);
 		$disk['shared']			= config_shared($disk['serial'], $disk['part'], strpos($attrs['DEVPATH'],"usb"));
 		$disk['command']		= get_config($disk['serial'], "command.{$disk['part']}");
@@ -1955,6 +1959,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 						file_put_contents($luks_pass_file, $pass);
 						$cmd	= $cmd." -d $luks_pass_file";
 						$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+						$pass 	= "";
 						exec("/bin/shred -u '$luks_pass_file'");
 					}
 					if ($o != "") {
@@ -2048,6 +2053,7 @@ function change_UUID($dev) {
 			file_put_contents($luks_pass_file, $pass);
 			$cmd	= $cmd." -d $luks_pass_file";
 			$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+			$pass 	= "";
 			exec("/bin/shred -u '$luks_pass_file'");
 		}
 		if ($o != "") {
