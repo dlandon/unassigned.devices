@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2021.06.11">
+<!ENTITY version   "2021.06.23">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"382ad113ca9c84d2f22d694ae49bc4ed">
+<!ENTITY MD5		"9d6d703500ea7290eff82d318a54f727">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,6 +23,15 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Sync on a mount point with blanks in the name.
+- Fix: Don't create a log file if there is no device script file.
+- Fix: Code cleanup in show partitions and smb version setting.
+- Fix: Remove up to 5 script files when deleting a device.
+- Fix: Format failure on encrypted disk.
+- Fix: Don't attempt to mount a disk if it is being formatted.
+- Fix: Setting automount and share now override the automount USB disk setting.
+
+###2021.06.11
 - Fix: Unknown php parse_file() error.
 
 ###2021.06.10
