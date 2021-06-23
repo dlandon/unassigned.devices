@@ -522,6 +522,7 @@ function format_disk($dev, $fs, $pass) {
 		} else {
 			$luks			= basename($dev);
 			$luks_pass_file	= "{$paths['luks_pass']}_".$luks;
+			file_put_contents($luks_pass_file, $pass);
 			$cmd			= $cmd." -d {$luks_pass_file}";
 			$o				= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
 			exec("/bin/shred -u '$luks_pass_file'");
