@@ -660,7 +660,7 @@ function is_automount($sn, $usb=FALSE) {
 	$auto = get_config($sn, "automount");
 	$auto_usb = get_config("Config", "automount_usb");
 	$pass_through = get_config($sn, "pass_through");
-	return ( (($pass_through != "yes") && ($auto == "yes")) || ($usb && $auto_usb == "yes") ) ? TRUE : FALSE;
+	return ( (($pass_through != "yes") && ($auto == "yes")) || ($usb && $auto_usb == "yes" && $auto == "") ) ? TRUE : FALSE;
 }
 
 function is_read_only($sn) {
@@ -1029,7 +1029,7 @@ function do_unmount($dev, $dir, $force=FALSE, $smb=FALSE, $nfs=FALSE) {
 function config_shared($sn, $part, $usb=FALSE) {
 	$share = get_config($sn, "share.{$part}");
 	$auto_usb = get_config("Config", "automount_usb");
-	return (($share == "yes") || ($usb && $auto_usb == "yes")) ? TRUE : FALSE; 
+	return (($share == "yes") || ($usb && $auto_usb == "yes" && $share == "")) ? TRUE : FALSE; 
 }
 
 function toggle_share($serial, $part, $status) {
