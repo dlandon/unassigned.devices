@@ -558,6 +558,9 @@ function format_disk($dev, $fs, $pass) {
 		unassigned_log("Reload partition table result:\n{$o}");
 	}
 
+	/* Clear the $pass variable. */
+	unset($pass);
+
 	/* Update udev. */
 	shell_exec("/sbin/udevadm trigger --action=change {$dev}");
 
@@ -901,6 +904,7 @@ function do_mount($info) {
 				$cmd	= $cmd." -d $luks_pass_file";
 				$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
 				exec("/bin/shred -u '$luks_pass_file'");
+				unset($pass);
 			}
 			if ($o && stripos($o, "warning") === FALSE) {
 				unassigned_log("luksOpen result: {$o}");
@@ -1466,6 +1470,7 @@ function do_mount_samba($info) {
 					}
 				}
 				exec("/bin/shred -u '$credentials_file'");
+				unset($pass);
 			}
 			if (is_mounted($dev)) {
 				@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
@@ -1957,6 +1962,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 						$cmd	= $cmd." -d $luks_pass_file";
 						$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
 						exec("/bin/shred -u '$luks_pass_file'");
+						unset($pass);
 					}
 					if ($o != "") {
 						unassigned_log("Change disk label luksOpen error: ".$o);
@@ -2050,6 +2056,7 @@ function change_UUID($dev) {
 			$cmd	= $cmd." -d $luks_pass_file";
 			$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
 			exec("/bin/shred -u '$luks_pass_file'");
+			unset($pass);
 		}
 		if ($o != "") {
 			unassigned_log("luksOpen error: {$o}");
