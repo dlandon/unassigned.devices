@@ -860,7 +860,7 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 
 		case 'cifs':
 			$credentials_file = "{$paths['credentials']}_".basename($dev);
-			return "rw,noserverino,nounix,iocharset=utf8,file_mode=0666,dir_mode=0777,uid=99,gid=100%s,credentials='$credentials_file'";
+			return "rw,noserverino,nounix,iocharset=utf8,file_mode=0777,dir_mode=0777,uid=99,gid=100%s,credentials='$credentials_file'";
 			break;
 
 		case 'nfs':
