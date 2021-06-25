@@ -1873,6 +1873,9 @@ function check_for_duplicate_share($dev, $mountpoint, $fstype = "") {
 
 	/* Get all shares from the smb configuration file. */
 	$smb_shares = array_keys($smb_config);
+	$smb_shares = array_flip($smb_shares);
+	$smb_shares	= array_change_key_case($smb_shares, CASE_UPPER);
+	$smb_shares = array_flip($smb_shares);
 
 	$ud_shares = array();
 	/* Get all disk mounts */
@@ -1881,7 +1884,7 @@ function check_for_duplicate_share($dev, $mountpoint, $fstype = "") {
 			$device = ($fstype == 'crypto_LUKS') ? $p['luks'] : $p['device'];
 			if ($device != $dev) {
 				$s = basename($p['mountpoint']);
-				$ud_shares[] .= $s;
+				$ud_shares[] .= strtoupper($s);
 			}
 		}
 	}
@@ -1890,7 +1893,7 @@ function check_for_duplicate_share($dev, $mountpoint, $fstype = "") {
 	foreach (get_samba_mounts() as $name => $info) {
 		if ($info['device'] != $dev) {
 			$s = basename($info['mountpoint']);
-			$ud_shares[] .= $s;
+			$ud_shares[] .= strtoupper($s);
 		}
 	}
 
@@ -1898,7 +1901,7 @@ function check_for_duplicate_share($dev, $mountpoint, $fstype = "") {
 	foreach (get_iso_mounts() as $name => $info) {
 		if ($info['device'] != $dev) {
 			$s = basename($info['mountpoint']);
-			$ud_shares[] .= $s;
+			$ud_shares[] .= strtoupper($s);
 		}
 	}
 
