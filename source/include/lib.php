@@ -250,10 +250,10 @@ function get_disk_reads_writes($ud_dev, $dev) {
 	$data	= explode(' ',$diskio[$dev] ?? '0 0 0 0');
 
 	/* Read rate. */
-	$rc[2] = is_nan($data[0]) ? 0 : $data[0];
+	$rc[2] = is_numeric($data[0]) ? $data[0] : 0;
 
 	/* Write rate. */
-	$rc[3] = is_nan($data[1]) ? 0 : $data[1];
+	$rc[3] = is_numeric($data[1]) ? $data[1] : 0;
 
 	return $rc;
 }
