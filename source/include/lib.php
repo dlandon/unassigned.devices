@@ -1094,7 +1094,7 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 				$valid_users = "\n\tvalid users = ".implode(', ', $valid_users);
 				$write_users = count($write_users) ? "\n\twrite list = ".implode(', ', $write_users) : "";
 				$read_users = count($read_users) ? "\n\tread list = ".implode(', ', $read_users) : "";
-				$share_cont =  "[{$share_name}]\n\tpath = {$dir}{$hidden}{$force_user}{$valid_users}{$write_users}{$read_users}{$case_names}{$vfs_objects}";
+				$share_cont =  "[{$share_name}]\n\tpath = {$dir}{$hidden}{$force_user}{$valid_users}{$write_users}{$read_users}{$vfs_objects}{$case_names}";
 			} else {
 				$share_cont =  "[{$share_name}]\n\tpath = {$dir}{$hidden}\n\tinvalid users = @users";
 				unassigned_log("Error: No valid smb users defined.  Share '{$dir}' cannot be accessed.");
