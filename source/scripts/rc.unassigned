@@ -33,7 +33,7 @@ if (! $DEVNAME) die("Fail: device not defined.\n");
 function unassigned_mount() {
 	global $DEVNAME, $paths;
 
-	# Mount local disks
+	/* Mount local disks. */
 	foreach(get_unassigned_disks() as $name => $disk) {
 		$device = $disk['device'];
 		foreach ($disk['partitions'] as $partition)
@@ -90,7 +90,7 @@ function unassigned_mount() {
 		}
 	}
 
-	# Mount Remote SMB/NFS mounts
+	/* Mount Remote SMB/NFS mounts. */
 	if (strpos($DEVNAME, "//") === 0 || strpos($DEVNAME, ":/") || $DEVNAME == "auto" || $DEVNAME == "autoshares") {
 		foreach (get_samba_mounts() as $info) {
 			$device = $info['device'];
@@ -123,7 +123,7 @@ function unassigned_mount() {
 		}
 	}
 
-	# Mount ISO File mounts
+	/* Mount ISO File mounts. */
 	if (strpos($DEVNAME, "/mnt") === 0 || $DEVNAME == "auto" || $DEVNAME == "autodevices") {
 		foreach (get_iso_mounts() as $info) {
 			$device = $info['device'];
@@ -168,7 +168,7 @@ function unassigned_umount() {
 
 	$force = ($DEVNAME == "all") ? TRUE : FALSE;
 
-	# Deal with local disks
+	/* Deal with local disks. */
 	foreach(get_unassigned_disks() as $disk) {
 		$device = $disk['device'];
 		foreach ($disk['partitions'] as $partition) {
@@ -205,7 +205,7 @@ function unassigned_umount() {
 		}
 	}
 
-	# Deal with Remote SMB/NFS mounts
+	/* Deal with Remote SMB/NFS mounts. */
 	if (strpos($DEVNAME, "//") === 0 || strpos($DEVNAME, ":/") || $DEVNAME == "auto" || $DEVNAME == "all") {
 		foreach (get_samba_mounts() as $info) {
 			$device = $info['device'];
@@ -237,7 +237,7 @@ function unassigned_umount() {
 		}
 	}
 
-	# Deal with ISO File mounts
+	/* Deal with ISO File mounts. */
 	if (strpos($DEVNAME, "/mnt") === 0 || $DEVNAME == "auto" || $DEVNAME == "all") {
 		foreach (get_iso_mounts() as $info) {
 			$device = $info['device'];
