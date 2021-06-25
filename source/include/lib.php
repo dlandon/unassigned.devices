@@ -1909,7 +1909,7 @@ function check_for_duplicate_share($dev, $mountpoint, $fstype = "") {
 	$shares = array_merge($smb_shares, $ud_shares);
 
 	/* See if the share name is already being used. */
-	if (is_array($shares) && in_array($mountpoint, $shares)) {
+	if (is_array($shares) && in_array(strtoupper($mountpoint), $shares)) {
 		unassigned_log("Error: Cannot use that mount point!  Share '{$mountpoint}' is already being used in the array or another unassigned device.");
 		$rc = FALSE;
 	}
