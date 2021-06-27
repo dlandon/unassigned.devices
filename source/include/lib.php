@@ -941,7 +941,7 @@ function do_mount_local($info) {
 						$recovery = ",pass='".$password."'";
 					}
 					$vol = get_config($info['serial'], "volume.{$info['part']}");
-					$vol = ($vol != "") ? ",vol=".$vol : ",vol=0";
+					$vol = ($vol != 0) ? ",vol=".$vol : "";
 					$cmd = "/usr/bin/apfs-fuse -o uid=99,gid=100,allow_other{$vol}{$recovery} '{$dev}' '{$dir}'";
 				} else {
 					$cmd = "/sbin/mount -t $fs -o ".get_mount_params($fs, $dev, $ro)." '{$dev}' '{$dir}'";
@@ -956,6 +956,12 @@ function do_mount_local($info) {
 				$o = "Install Unassigned Devices Plus to mount an apfs file system";
 			} else {
 				$o = shell_exec($cmd." 2>&1");
+			}
+			if ($fs == "apfs") {
+				/* Remove all password variables. */
+				unset($password);
+				unset($recovery);
+				unset($cmd);
 			}
 			if ($o != "" && $fs == "ntfs" && is_mounted($dev)) {
 				unassigned_log("Mount warning: {$o}.");
