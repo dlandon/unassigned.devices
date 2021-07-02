@@ -727,6 +727,16 @@ switch ($_POST['action']) {
 		file_put_contents("{$paths['authentication']}", "username=".$user."\n");
 		file_put_contents("{$paths['authentication']}", "password=".$pass."\n", FILE_APPEND);
 		file_put_contents("{$paths['authentication']}", "domain=".$domain."\n", FILE_APPEND);
+		/* See if we need to add this server to the hosts file. */
+		if (! is_ip($ip)) {
+			shell_exec("/bin/sed -i '/".$ip."$/d' /etc/hosts");
+			$ip_address = shell_exec("/sbin/arp -a {$ip} | grep -v local");
+			if (strpos($ip_address, "no match found") === FALSE) {
+				$ip_array = explode(" ", $ip_address);
+				$ip_address = str_replace(array("(", ")"), "", $ip_array[1]);
+				shell_exec("/bin/echo -e '".$ip_address."''\t''".$ip."' >> /etc/hosts" );
+			}
+		}
 		$list = shell_exec("/usr/bin/smbclient -t2 -g -L '$ip' --authentication-file='{$paths['authentication']}' 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}' | sort");
 		exec("/bin/shred -u ".$paths['authentication']);
 		echo $list;
