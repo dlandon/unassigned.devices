@@ -1373,9 +1373,10 @@ function get_samba_mounts() {
 			$mount['automount']		= is_samba_automount($mount['name']);
 			$mount['smb_share']		= is_samba_share($mount['name']);
 			if (! $mount['mountpoint']) {
-				$mount['mountpoint'] = "{$paths['usb_mountpoint']}/{$mount['ip']}_{$path}";
+				$ip_str = str_replace(".local", "", $mount['ip']);
+				$mount['mountpoint'] = "{$paths['usb_mountpoint']}/{$ip_str}_{$path}";
 				if (! $mount['mounted'] || ! is_mounted($mount['mountpoint'], TRUE) || is_link($mount['mountpoint'])) {
-					$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$mount['ip']}_{$path}";
+					$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$ip_str}_{$path}";
 				}
 			} else {
 				$path = basename($mount['mountpoint']);
@@ -1426,16 +1427,6 @@ function do_mount_samba($info) {
 					unassigned_log("NFS mount failed: '{$o}'.");
 				}
 			} else {
-				/* See if we need to add this server to the hosts file. */
-				if (! is_ip($info['ip'])) {
-					shell_exec("/bin/sed -i '/".$info['ip']."$/d' /etc/hosts");
-					$ip_address = shell_exec("/sbin/arp -a {$info['ip']} | grep -v local");
-					if (strpos($ip_address, "no match found") === FALSE) {
-						$ip_array = explode(" ", $ip_address);
-						$ip_address = str_replace(array("(", ")"), "", $ip_array[1]);
-						shell_exec("/bin/echo -e '".$ip_address."''\t''".$info['ip']."' >> /etc/hosts" );
-					}
-				}
 				$credentials_file = "{$paths['credentials']}_".basename($dev);
 				file_put_contents("$credentials_file", "username=".($info['user'] ? $info['user'] : 'guest')."\n");
 				file_put_contents("$credentials_file", "password=".decrypt_data($info['pass'])."\n", FILE_APPEND);

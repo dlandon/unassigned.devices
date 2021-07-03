@@ -727,17 +727,15 @@ switch ($_POST['action']) {
 		file_put_contents("{$paths['authentication']}", "username=".$user."\n");
 		file_put_contents("{$paths['authentication']}", "password=".$pass."\n", FILE_APPEND);
 		file_put_contents("{$paths['authentication']}", "domain=".$domain."\n", FILE_APPEND);
-		/* See if we need to add this server to the hosts file. */
+		/* See if this server needs the .local reference for dns lookup. */
+		$ip_str = $ip;
 		if (! is_ip($ip)) {
-			shell_exec("/bin/sed -i '/".$ip."$/d' /etc/hosts");
 			$ip_address = shell_exec("/sbin/arp -a {$ip} | grep -v local");
 			if (strpos($ip_address, "no match found") === FALSE) {
-				$ip_array = explode(" ", $ip_address);
-				$ip_address = str_replace(array("(", ")"), "", $ip_array[1]);
-				shell_exec("/bin/echo -e '".$ip_address."''\t''".$ip."' >> /etc/hosts" );
+				$ip_str .= ".local";
 			}
 		}
-		$list = shell_exec("/usr/bin/smbclient -t2 -g -L '$ip' --authentication-file='{$paths['authentication']}' 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}' | sort");
+		$list = shell_exec("/usr/bin/smbclient -t2 -g -L '$ip_str' --authentication-file='{$paths['authentication']}' 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}' | sort");
 		exec("/bin/shred -u ".$paths['authentication']);
 		echo $list;
 		break;
@@ -778,7 +776,15 @@ switch ($_POST['action']) {
 			$device = ($protocol == "NFS") ? "{$ip}:{$path}" : "//".strtoupper($ip)."/{$share}";
 			$device = str_replace("$", "", $device);
 			set_samba_config("{$device}", "protocol", $protocol);
-			set_samba_config("{$device}", "ip", (is_ip($ip) ? $ip : strtoupper($ip)));
+			/* See if this server needs the .local reference for dns lookup. */
+			$ip_str = strtoupper($ip);
+			if (! is_ip($ip)) {
+				$ip_address = shell_exec("/sbin/arp -a {$ip} | grep -v local");
+				if (strpos($ip_address, "no match found") === FALSE) {
+					$ip_str .= ".local";
+				}
+			}
+			set_samba_config("{$device}", "ip", (is_ip($ip) ? $ip : $ip_str));
 			set_samba_config("{$device}", "path", $path);
 			if ($protocol == "SMB") {
 				set_samba_config("{$device}", "user", $user);
