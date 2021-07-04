@@ -1433,7 +1433,9 @@ function do_mount_samba($info) {
 					if ((strpos($ip_address, "no match found") === FALSE) && $ip_address != "") {
 						$ip_array = explode(" ", $ip_address);
 						$ip_address = str_replace(array("(", ")"), "", $ip_array[1]);
-						shell_exec("/bin/echo -e '".$ip_address."''\t''".$info['ip']."' >> /etc/hosts" );
+						if (is_ip($ip_address)) {
+							shell_exec("/bin/echo -e '".$ip_address."''\t''".$info['ip']."' >> /etc/hosts" );
+						}
 					}
 				}
 				$credentials_file = "{$paths['credentials']}_".basename($dev);

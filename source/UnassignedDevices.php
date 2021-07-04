@@ -734,7 +734,9 @@ switch ($_POST['action']) {
 			if ((strpos($ip_address, "no match found") === FALSE) && $ip_address != "") {
 				$ip_array = explode(" ", $ip_address);
 				$ip_address = str_replace(array("(", ")"), "", $ip_array[1]);
-				shell_exec("/bin/echo -e '".$ip_address."''\t''".$ip."' >> /etc/hosts" );
+				if (is_ip($ip_address)) {
+					shell_exec("/bin/echo -e '".$ip_address."''\t''".$ip."' >> /etc/hosts" );
+				}
 			}
 		}
 		$list = shell_exec("/usr/bin/smbclient -t2 -g -L '{$ip}' --authentication-file='{$paths['authentication']}' 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}' | sort");
