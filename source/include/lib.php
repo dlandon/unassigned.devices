@@ -1428,9 +1428,9 @@ function do_mount_samba($info) {
 			} else {
 				/* See if we need to add this server to the hosts file. */
 				if (! is_ip($info['ip'])) {
-					shell_exec("/bin/sed -i '/".$info['ip']."$/d' /etc/hosts");
+					shell_exec("/bin/sed -i '/".$info['ip']."/d' /etc/hosts");
 					$ip_address = shell_exec("/sbin/arp -a {$info['ip']} | grep -v local");
-					if (strpos($ip_address, "no match found") === FALSE) {
+					if ((strpos($ip_address, "no match found") === FALSE) && $ip_address != "") {
 						$ip_array = explode(" ", $ip_address);
 						$ip_address = str_replace(array("(", ")"), "", $ip_array[1]);
 						shell_exec("/bin/echo -e '".$ip_address."''\t''".$info['ip']."' >> /etc/hosts" );
