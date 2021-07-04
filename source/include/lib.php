@@ -967,7 +967,7 @@ function do_mount_local($info) {
 				unassigned_log("Mount warning: {$o}.");
 			}
 			for ($i=0; $i < 5; $i++) {
-				if (is_mounted($dev)) {
+				if (is_mounted($dev) && is_mounted($dir, TRUE)) {
 					@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
 
 					unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
@@ -1007,7 +1007,7 @@ function do_unmount($dev, $dir, $force=FALSE, $smb=FALSE, $nfs=FALSE) {
 		$timeout = ($smb || $nfs) ? ($force ? 30 : 10) : 90;
 		$o = timed_exec($timeout, $cmd);
 		for ($i=0; $i < 5; $i++) {
-			if (! is_mounted($dev)) {
+			if (! is_mounted($dev)  && ! is_mounted($dir, TRUE)) {
 				if (is_dir($dir)) {
 					@rmdir($dir);
 					$link = $paths['usb_mountpoint']."/".basename($dir);
@@ -1488,7 +1488,7 @@ function do_mount_samba($info) {
 				exec("/bin/shred -u '$credentials_file'");
 				unset($pass);
 			}
-			if (is_mounted($dev)) {
+			if (is_mounted($dev) && is_mounted($dir, TRUE)) {
 				@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
 				$link = $paths['usb_mountpoint']."/";
 				if ((get_config("Config", "symlinks") == "yes" ) && (dirname($dir) == $paths['remote_mountpoint'])) {
@@ -1613,7 +1613,7 @@ function do_mount_iso($info) {
 			$cmd = "/sbin/mount -ro loop '{$dev}' '{$dir}'";
 			unassigned_log("Mount iso command: mount -ro loop '{$dev}' '{$dir}'");
 			$o = timed_exec(10, $cmd." 2>&1");
-			if (is_mounted($dev)) {
+			if (is_mounted($dev) && is_mounted($dir, TRUE)) {
 				unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
 
 				$rc = TRUE;
