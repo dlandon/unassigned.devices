@@ -1426,18 +1426,6 @@ function do_mount_samba($info) {
 					unassigned_log("NFS mount failed: '{$o}'.");
 				}
 			} else {
-				/* See if we need to add this server to the hosts file. */
-				if (! is_ip($info['ip'])) {
-					shell_exec("/bin/sed -i '/".$info['ip']."/d' /etc/hosts");
-					$ip_address = shell_exec("/sbin/arp -a {$info['ip']} | grep -v local");
-					if ((strpos($ip_address, "no match found") === FALSE) && $ip_address != "") {
-						$ip_array = explode(" ", $ip_address);
-						$ip_address = str_replace(array("(", ")"), "", $ip_array[1]);
-						if (is_ip($ip_address)) {
-							shell_exec("/bin/echo -e '".$ip_address."''\t''".$info['ip']."' >> /etc/hosts" );
-						}
-					}
-				}
 				$credentials_file = "{$paths['credentials']}_".basename($dev);
 				file_put_contents("$credentials_file", "username=".($info['user'] ? $info['user'] : 'guest')."\n");
 				file_put_contents("$credentials_file", "password=".decrypt_data($info['pass'])."\n", FILE_APPEND);
