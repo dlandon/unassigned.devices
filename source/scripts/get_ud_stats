@@ -45,6 +45,17 @@ function is_ip($str) {
 
 function ping_server($tc, $ip, $mounted) {
 
+	/* See if we need to add this server to the hosts file. */
+	if (! is_ip($ip)) {
+		shell_exec("/bin/sed -i '/".$ip."/d' /etc/hosts");
+		$ip_address = shell_exec("/sbin/arp -a {$ip} | grep -v local");
+		if ((strpos($ip_address, "no match found") === FALSE) && $ip_address != "") {
+			$ip_array = explode(" ", $ip_address);
+			$ip_address = str_replace(array("(", ")"), "", $ip_array[1]);
+			shell_exec("/bin/echo -e '".$ip_address."''\t''".$ip."' >> /etc/hosts" );
+		}
+	}
+
 	$server = $ip;
 	$ping_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 	$was_alive = ($ping_status[$server]['online'] == 'yes') ? TRUE : FALSE;
