@@ -843,9 +843,9 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		</script>
 	</div>
 <?else:?>
-	<div data-question data-question-title="<?=_('You cannot Format this disk');?>!">
+	<div data-question data-question-title="<?=_('Partition and Format Disk');?>">
 		<div data-question-content>
-			<p><span style="font-weight:bold;"><?=_('Note');?>:</span> <?=_('You must enable Destructive Mode in the UD Settings and the Pre-clear log has to be deleted for this device');?>.</p>
+			<p><?=_('You must enable the Destructive Mode in UD Settings before you can Format this disk');?>.</p>
 		</div>
 	</div>
 	<div data-survey-done data-survey-done-wait="false">
