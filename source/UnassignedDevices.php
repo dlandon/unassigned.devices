@@ -240,11 +240,10 @@ function make_mount_button($device) {
 	if (($device['size'] == 0) && (! $is_unmounting)) {
 		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-erase', _('Mount'));
 	} elseif ($format) {
-		$disable = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled") ? "" : "disabled";
 		if ($is_preclearing) {
 			$button = sprintf($button, $context, 'format', 'disabled', 'fa fa-spinner fa-spin', " "._('Preclear'));
 		} else {
-			$disable = $preclearing ? "disabled" : $disable;
+			$disable = $preclearing ? "disabled" : "";
 			$button = sprintf($button, $context, 'format', $disable, 'fa fa-erase', _('Format'));
 		}
 	} elseif ($is_mounting) {

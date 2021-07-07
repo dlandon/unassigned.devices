@@ -60,7 +60,7 @@ if (isset($_GET['s'])) {
 	$read_only = (is_read_only($serial)) ? "checked" : "";
 	$automount = (is_automount($serial)) ? "checked" : "";
 	$share = (config_shared($serial, $partition, strpos($attrs['DEVPATH'],"usb"))) ? "checked" : "";
-	$show_partitions = (get_config($serial,"show_partitions") == "yes" ) ? "checked" : "";
+	$show_partitions = (get_config($serial,"show_partitions") == "no" ) ? "" : "checked";
 	$width = "50%";
 	$automount_action = "automount";
 	$ud_device = $serial;
