@@ -775,6 +775,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 </div>
 
 <div style="display:none;" data-survey-name="format_disk" data-survey-title="<?=_('Partition and Format Disk');?>">
+<?if (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled"):?>
 	<div data-question data-question-title="<?=_('Choose File System Format');?>">
 		<div data-question-format>
 			[surveyOption.type,surveyOption.device]
@@ -834,6 +835,22 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			swalShowResult(data.status);
 		},"json").fail(function(){swalShowResult(false);});
 	</div>
+	<div>
+		<script type="text/javascript">
+			$(function() {
+				window.format_disk = function(bt, type, device){doUnassignedDevicesSurvey("format_disk",{el:bt,type:type,device:device});}
+			});
+		</script>
+	</div>
+<?else:?>
+	<div data-question data-question-title="<?=_('You cannot Format this disk');?>!">
+		<div data-question-content>
+			<p><span style="font-weight:bold;"><?=_('Note');?>:</span> <?=_('You must enable Destructive Mode in the UD Settings and the Pre-clear log has to be deleted for this device');?>.</p>
+		</div>
+	</div>
+	<div data-survey-done data-survey-done-wait="false">
+	</div>
+<?endif;?>
 	<div>
 		<script type="text/javascript">
 			$(function() {
