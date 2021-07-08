@@ -26,8 +26,8 @@
 - Fix: Prevent 'NaN' display on read/write speeds when a new device is installed.
 - Fix: Check for a duplicate share name ignoring case when changing the mount point.
 - Fix: Windows 10 remote share not mounting.
-- Fix: Default 'Show Partitions' to 'On'.  You can then set it to 'Off' in Settings as desired.
-- Fix: Display dialog when user wants to format a disk and 'Destructive Mode' is disabled explaining that it meeds to be enabled.
+- Fix: Default 'Show Partitions' to 'On'.  You can then set it to 'Off' in device Settings as desired.
+- Fix: Display dialog when user wants to format a disk and 'Destructive Mode' is disabled explaining that it needs to be enabled.
 
 ###2021.06.23
 - Fix: Sync on a mount point with blanks in the name.
