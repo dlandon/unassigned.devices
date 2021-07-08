@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2021.06.23">
+<!ENTITY version   "2021.07.08">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"9d6d703500ea7290eff82d318a54f727">
+<!ENTITY MD5		"2c9b9a3c7c35e3348bffc8b0afa695ad">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,6 +23,13 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Prevent 'NaN' display on read/write speeds when a new device is installed.
+- Fix: Check for a duplicate share name ignoring case when changing the mount point.
+- Fix: Windows 10 remote share not mounting.
+- Fix: Default 'Show Partitions' to 'On'.  You can then set it to 'Off' in Settings as desired.
+- Fix: Display dialog when user wants to format a disk and 'Destructive Mode' is disabled explaining that it meeds to be enabled.
+
+###2021.06.23
 - Fix: Sync on a mount point with blanks in the name.
 - Fix: Don't create a log file if there is no device script file.
 - Fix: Code cleanup in show partitions and smb version setting.
