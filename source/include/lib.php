@@ -207,6 +207,12 @@ function get_device_stats($mountpoint, $mounted, $active = TRUE) {
 	return preg_split('/\s+/', $rc);
 }
 
+function base_device($dev) {
+	/* Remove the partition and return the base device. */
+	return (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev);
+}
+
+
 /* Get the devX designation for this device from the devs.ini. */
 function get_disk_dev($dev) {
 	global $paths;
@@ -243,9 +249,8 @@ function get_disk_reads_writes($ud_dev, $dev) {
 		}
 	}
 
-	/* Convert the $dev without partition. */
-	$dev	= (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev) ;
-	$dev	= basename($dev);
+	/* Get the base device - remove the partition. */
+	$dev	= base_device(basename($dev));
 	$diskio	= @(array)parse_ini_file('state/diskload.ini');
 	$data	= explode(' ',$diskio[$dev] ?? '0 0 0 0');
 
@@ -779,7 +784,8 @@ function remove_config_disk($sn) {
 function is_disk_ssd($device) {
 
 	$rc		= FALSE;
-	$device	= (strpos($device, "nvme") !== false) ? preg_replace("#\d+p#i", "", $device) : preg_replace("#\d+#i", "", $device) ;
+	/* Get the base device - remove the partition. */
+	$device	= base_device(basename($device));
 	if (strpos($device, "nvme") === false) {
 		$file = "/sys/block/".basename($device)."/queue/rotational";
 		if (is_file($file)) {
@@ -1029,6 +1035,7 @@ function do_unmount($dev, $dir, $force=FALSE, $smb=FALSE, $nfs=FALSE) {
 	} else {
 		unassigned_log("Cannot unmount '{$dev}'.  UD did not mount the device.");
 	}
+
 	return $rc;
 }
 
@@ -2047,7 +2054,8 @@ function change_iso_mountpoint($dev, $mountpoint) {
 function change_UUID($dev) {
 	global $plugin;
 
-	$dev	= (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev) ;
+	/* Get the base device - remove the partition. */
+	$dev	= base_device(basename($dev));
 	$fs_type = "";
 	foreach (get_all_disks_info() as $d) {
 		if ($d['device'] == $dev) {
