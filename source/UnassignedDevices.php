@@ -145,7 +145,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 	$out[] = "<tr class='toggle-parts toggle-".basename($disk['device'])."' name='toggle-".basename($disk['device'])."' $style>";
 	$out[] = "<td></td>";
 	$out[] = "<td>{$mpoint}</td>";
-	$out[] = "<td class='mount'>{$mbutton}</td>";
+	$out[] = (count($disk['partitions']) > 1) ? "<td class='mount'>{$mbutton}</td>" : "<td></td>";
 	$fstype = $partition['fstype'];
 	if ($total) {
 		foreach ($disk['partitions'] as $part) {
