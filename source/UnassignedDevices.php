@@ -145,7 +145,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 	$out[] = "<tr class='toggle-parts toggle-".basename($disk['device'])."' name='toggle-".basename($disk['device'])."' $style>";
 	$out[] = "<td></td>";
 	$out[] = "<td>{$mpoint}</td>";
-	$out[] = (count($disk['partitions']) > 1) ? "<td class='mount'>{$mbutton}</td>" : "<td></td>";
+	$out[] = ((count($disk['partitions']) > 1) && ($mounted)) ? "<td class='mount'>{$mbutton}</td>" : "<td></td>";
 	$fstype = $partition['fstype'];
 	if ($total) {
 		foreach ($disk['partitions'] as $part) {
@@ -253,13 +253,23 @@ function make_mount_button($device) {
 	} elseif ($is_formatting) {
 		$button = sprintf($button, $context, 'format', 'disabled', 'fa fa-spinner fa-spin', ' '._('Formatting'));
 	} elseif ($mounted) {
-		$cmd = $device['command'];
-		$script_running = ((is_script_running($cmd)) || (is_script_running($device['user_command'], TRUE)));;
+		if (! isset($device['partitions'])) {
+			$cmd = $device['command'];
+			$user_cmd = $device['user_command'];
+			$script_running = ((is_script_running($cmd)) || (is_script_running($user_cmd, TRUE)));;
+		} else {
+			foreach ($device['partitions'] as $part) {
+				$cmd = $part['command'];
+				$user_cmd = $part['user_command'];
+				$script_running = ((is_script_running($cmd)) || (is_script_running($user_cmd, TRUE)));;
+				if ($script_running) {
+					break;
+				}
+			}
+		}
 		if ($script_running) {
 			$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-spinner fa-spin', ' '._('Running'));
 		} else {
-			$disable = ! isset($device['partitions'][0]['mountpoint']) || is_mounted($device['partitions'][0]['mountpoint'], TRUE) ? $disable : "disabled";
-			$disable = ! isset($device['mountpoint']) || is_mounted($device['mountpoint'], TRUE) ? $disable : "disabled";
 			$button = sprintf($button, $context, 'umount', $disable, 'fa fa-export', _('Unmount'));
 		}
 	} else {
