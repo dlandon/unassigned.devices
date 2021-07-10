@@ -254,7 +254,7 @@ _(Volume)_
 <?endif;?>
 
 <strong>_(Script File)_:</strong>
-<input type="text" title='_(Enter Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>/','sh',false,true);" autocomplete="off" value="<?=$file;?>" placeholder="_(Click the 'Default' button to select the default Script File)_">
+<input type="text" title='_(Enter Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>/','sh',false,true);" autocomplete="off" value="<?=$file;?>" placeholder="_(Click the 'Default Script' button to select the default Script File)_">
 
 :ud_edit_script_choose_name_plug:
 > This is the Script File that runs when the device is mounted. Choose your Script File name from the file selection dropdown, or enter your desired script name.
