@@ -229,9 +229,6 @@ function make_mount_button($device) {
 	$is_mounting	= array_values(preg_grep("@/mounting_".basename($device['device'])."@i", listDir(dirname($paths['mounting']))))[0];
 	$is_mounting	= (time() - filemtime($is_mounting) < 300) ? TRUE : FALSE;
 	$is_unmounting	= array_values(preg_grep("@/unmounting_".basename($device['device'])."@i", listDir(dirname($paths['unmounting']))))[0];
-	if (! $is_unmounting) {
-		$is_unmounting	= array_values(preg_grep("@/unmounting_".basename(base_device($device['device']))."@i", listDir(dirname($paths['unmounting']))))[0];
-	}
 	$is_unmounting	= (time() - filemtime($is_unmounting) < 300) ? TRUE : FALSE;
 	$is_formatting	= array_values(preg_grep("@/formatting_".basename($device['device'])."@i", listDir(dirname($paths['formatting']))))[0];
 	$is_formatting	= (time() - filemtime($is_formatting) < 300) ? TRUE : FALSE;
