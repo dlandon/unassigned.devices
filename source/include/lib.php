@@ -1072,7 +1072,7 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 				$vfs_objects .= "catia fruit streams_xattr";
 			}
 		}
-		$vfs_objects .= "\n";
+		$vfs_objects .= "";
 
 		if (($config["smb_security"] == "yes") || ($config["smb_security"] == "hidden")) {
 			$read_users = $write_users = $valid_users = array();
