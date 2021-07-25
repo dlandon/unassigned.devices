@@ -134,7 +134,8 @@ function unassigned_mount() {
 					continue;
 				}
 				unassigned_log("ISO File share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
-				addFile(sprintf($paths['mounting'],basename($info['device'])));
+				$mount_device = str_replace( array("(", ")"), "", basename($info['device']));
+				addFile(sprintf($paths['mounting'],$mount_device));
 				if (do_mount( $info )) {
 					add_smb_share($info['mountpoint'], FALSE);
 					add_nfs_share($info['mountpoint']);
@@ -222,7 +223,6 @@ function unassigned_umount() {
 				$force = $info['is_alive'] ? $force : TRUE;
 				if ( is_mounted(($info['fstype'] == "cifs") ? "//".$info['ip']."/".$info['path'] : $info['device']) ) {
 					/* Remove special characters */
-					$mount_device = str_replace( array("(", ")"), "", basename($info['device'])."_".$info['fstype']);
 					addFile(sprintf($paths['unmounting'],$mount_device));
 					unassigned_log("Removing Remote SMB/NFS share '{$info['device']}'...");
 					execute_script($info, "UNMOUNT");
@@ -254,7 +254,8 @@ function unassigned_umount() {
 				}
 				unassigned_log("ISO File share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
 				if ( is_mounted($info['device']) ) {
-					addFile(sprintf($paths['unmounting'],basename($info['device'])));
+					$mount_device = str_replace( array("(", ")"), "", basename($info['device']));
+					addFile(sprintf($paths['unmounting'],$mount_device));
 					unassigned_log("Removing ISO File share '{$info['device']}'...");
 					execute_script($info, "UNMOUNT");
 					unassigned_log("Unmounting ISO File Share '{$info['device']}'...");
@@ -302,7 +303,6 @@ function addFile($file)
 {
 	global $remove;
 
-unassigned_log("*** addFile ".$file);
 	@touch($file);
 	$remove[] = $file;
 
