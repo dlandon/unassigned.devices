@@ -185,7 +185,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 	$title .= ($partition['shared'] == 'yes') ? "Yes" : "No";
 
 	$dev	= basename($device);
-	$device	= (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev) ;
+	$device	= base_device($dev) ;
 	$serial = $partition['serial'];
 	$out[] = "<td><a class='info' href='/Main/EditSettings?s=".urlencode($serial)."&b=".urlencode($device)."&f=".urlencode($fstype)."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."&m=".urlencode(json_encode($partition))."&t=".$total."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 	if ($total) {
@@ -226,6 +226,7 @@ function make_mount_button($device) {
 		$format	 = ((isset($device['fstype']) && empty($device['fstype']))) ? true : false;
 		$context = "partition";
 	}
+
 	$is_mounting	= array_values(preg_grep("@/mounting_".basename($device['device'])."@i", listDir(dirname($paths['mounting']))))[0];
 	$is_mounting	= (time() - filemtime($is_mounting) < 300) ? TRUE : FALSE;
 	$is_unmounting	= array_values(preg_grep("@/unmounting_".basename($device['device'])."@i", listDir(dirname($paths['unmounting']))))[0];
@@ -249,7 +250,7 @@ function make_mount_button($device) {
 	} elseif ($is_mounting) {
 		$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-spinner fa-spin', ' '._('Mounting'));
 	} elseif ($is_unmounting) {
-		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-spinner fa-spin', ' '._('Unmounting'));
+		$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-spinner fa-spin', ' '._('Unmounting'));
 	} elseif ($is_formatting) {
 		$button = sprintf($button, $context, 'format', 'disabled', 'fa fa-spinner fa-spin', ' '._('Formatting'));
 	} elseif ($mounted) {
@@ -280,6 +281,7 @@ function make_mount_button($device) {
 			$button = sprintf($button, $context, 'mount', $disable, 'fa fa-import', _('Passed'));	
 		}
 	}
+
 	return $button;
 }
 
@@ -313,7 +315,7 @@ switch ($_POST['action']) {
 				$preclearing	= $Preclear ? $Preclear->isRunning($disk_name) : false;
 				$temp			= my_temp($disk['temperature']);
 
-				$mbutton = make_mount_button($disk);
+				$mbutton		= make_mount_button($disk);
 
 				$preclear_link = ($disk['size'] !== 0 && ! $disk['partitions'][0]['fstype'] && ! $mounted && $Preclear && ! $preclearing  && get_config("Config", "destructive_mode") == "enabled") ? "&nbsp;&nbsp;".$Preclear->Link($disk_name, "icon") : "";
 
@@ -650,10 +652,10 @@ switch ($_POST['action']) {
 		$status = urldecode(($_POST['status']));
 		$result = toggle_share($info['serial'], $info['part'],$status);
 		if ($result && strlen($info['target']) && $info['mounted']) {
-			add_smb_share($info['mountpoint'], $info['label']);
+			add_smb_share($info['mountpoint']);
 			add_nfs_share($info['mountpoint']);
 		} elseif ($info['mounted']) {
-			rm_smb_share($info['mountpoint'], $info['label']);
+			rm_smb_share($info['mountpoint']);
 			rm_nfs_share($info['mountpoint']);
 		}
 		echo json_encode(array( 'result' => $result));
@@ -817,10 +819,10 @@ switch ($_POST['action']) {
 		$status = urldecode(($_POST['status']));
 		$result = toggle_samba_share($info['device'], $status);
 		if ($result && strlen($info['target']) && $info['mounted']) {
-			add_smb_share($info['mountpoint'], $info['device']);
+			add_smb_share($info['mountpoint']);
 			add_nfs_share($info['mountpoint']);
 		} elseif ($info['mounted']) {
-			rm_smb_share($info['mountpoint'], $info['device']);
+			rm_smb_share($info['mountpoint']);
 			rm_nfs_share($info['mountpoint']);
 		}
 		echo json_encode(array( 'result' => $result));

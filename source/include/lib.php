@@ -1035,7 +1035,6 @@ function do_unmount($dev, $dir, $force=FALSE, $smb=FALSE, $nfs=FALSE) {
 	} else {
 		unassigned_log("Cannot unmount '{$dev}'.  UD did not mount the device.");
 	}
-
 	return $rc;
 }
 
@@ -1056,7 +1055,7 @@ function toggle_share($serial, $part, $status) {
 }
 
 /* Add mountpoint to samba. */
-function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
+function add_smb_share($dir, $recycle_bin=TRUE) {
 	global $paths, $var, $users;
 
 	if ( ($var['shareSMBEnabled'] != "no") ) {
@@ -1153,7 +1152,7 @@ function add_smb_share($dir, $share_name, $recycle_bin=TRUE) {
 }
 
 /* Remove a samba share. */
-function rm_smb_share($dir, $share_name) {
+function rm_smb_share($dir) {
 	global $paths, $var;
 
 	/* If samba is enabled remove the share. */
@@ -1240,7 +1239,7 @@ function remove_shares() {
 			if ( $info['mounted'] ) {
 				$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV) : get_udev_info($device, NULL);
 				if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'],"usb"))) {
-					rm_smb_share($info['target'], $info['label']);
+					rm_smb_share($info['target']);
 					rm_nfs_share($info['target']);
 				}
 			}
@@ -1250,14 +1249,14 @@ function remove_shares() {
 	/* SMB Mounts */
 	foreach (get_samba_mounts() as $name => $info) {
 		if ( $info['mounted'] ) {
-			rm_smb_share($info['mountpoint'], $info['device']);
+			rm_smb_share($info['mountpoint']);
 		}
 	}
 
 	/* ISO File Mounts */
 	foreach (get_iso_mounts() as $name => $info) {
 		if ( $info['mounted'] ) {
-			rm_smb_share($info['mountpoint'], $info['device']);
+			rm_smb_share($info['mountpoint']);
 			rm_nfs_share($info['mountpoint']);
 		}
 	}
@@ -1272,7 +1271,7 @@ function reload_shares() {
 			if ( $info['mounted'] ) {
 				$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV) : get_udev_info($device, NULL);
 				if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'],"usb"))) {
-					add_smb_share($info['mountpoint'], $info['label']);
+					add_smb_share($info['mountpoint']);
 					add_nfs_share($info['mountpoint']);
 				}
 			}
@@ -1282,14 +1281,14 @@ function reload_shares() {
 	/* SMB Mounts */
 	foreach (get_samba_mounts() as $name => $info) {
 		if ( $info['mounted'] ) {
-			add_smb_share($info['mountpoint'], $info['device'], FALSE);
+			add_smb_share($info['mountpoint'], FALSE);
 		}
 	}
 
 	/* ISO File Mounts */
 	foreach (get_iso_mounts() as $name => $info) {
 		if ( $info['mounted'] ) {
-			add_smb_share($info['mountpoint'], $info['device'], FALSE);
+			add_smb_share($info['mountpoint'], FALSE);
 			add_nfs_share($info['mountpoint']);
 		}
 	}
