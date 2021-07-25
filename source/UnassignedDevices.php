@@ -448,7 +448,7 @@ switch ($_POST['action']) {
 					echo "<td><button class='mount' disabled> <i class='fa fa-spinner fa-spin'></i>"." "._("Running")."</button></td>";
 				} else {
 					/* Remove special characters */
-					$mount_device = str_replace( array("(", ")"), "", basename($mount['device']).$mount['fstype']);
+					$mount_device = str_replace( array("(", ")"), "", basename($mount['device'])."_".$mount['fstype']);
 					$is_mounting	= array_values(preg_grep("@/mounting_".$mount_device."@i", listDir(dirname($paths['mounting']))))[0];
 					$is_mounting	= (time() - filemtime($is_mounting) < 300) ? TRUE : FALSE;
 					$is_unmounting	= array_values(preg_grep("@/unmounting_".$mount_device."@i", listDir(dirname($paths['unmounting']))))[0];
