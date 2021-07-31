@@ -223,6 +223,7 @@ function unassigned_umount() {
 				$force = $info['is_alive'] ? $force : TRUE;
 				if ( is_mounted(($info['fstype'] == "cifs") ? "//".$info['ip']."/".$info['path'] : $info['device']) ) {
 					/* Remove special characters */
+					$mount_device = str_replace( array("(", ")"), "", basename($info['device'])."_".$info['fstype']);
 					addFile(sprintf($paths['unmounting'],$mount_device));
 					unassigned_log("Removing Remote SMB/NFS share '{$info['device']}'...");
 					execute_script($info, "UNMOUNT");
