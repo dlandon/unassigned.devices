@@ -207,8 +207,8 @@ function get_device_stats($mountpoint, $mounted, $active = TRUE) {
 	return preg_split('/\s+/', $rc);
 }
 
+/* Remove the partition and return the base device. */
 function base_device($dev) {
-	/* Remove the partition and return the base device. */
 	return (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev);
 }
 
@@ -869,7 +869,7 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 
 		case 'cifs':
 			$credentials_file = "{$paths['credentials']}_".basename($dev);
-			return "rw,noserverino,nounix,iocharset=utf8,file_mode=0666,dir_mode=0777,uid=99,gid=100%s,credentials='$credentials_file'";
+			return "rw,noserverino,nounix,iocharset=utf8,uid=99,gid=100%s,credentials='$credentials_file'";
 			break;
 
 		case 'nfs':
@@ -1415,7 +1415,7 @@ function do_mount_samba($info) {
 	$config_file	= $paths['config_file'];
 	$config			= @parse_ini_file($config_file, true);
 
-	/* Be sure the server status is current */
+	/* Be sure the server online status is current. */
 	$info['is_alive'] = is_samba_server_online($info['ip'], FALSE);
 	if ($info['is_alive']) {
 		$dir = $info['mountpoint'];
@@ -1672,7 +1672,7 @@ function get_unassigned_disks() {
 	}
 	ksort($paths, SORT_NATURAL);
 
-	/* Get all unraid disk devices (array disks, cache, and pool devices) */
+	/* Get all unraid disk devices (array disks, cache, and pool devices). */
 	foreach ($disks as $d) {
 		if ($d['device']) {
 			$unraid_disks[] = "/dev/".$d['device'];

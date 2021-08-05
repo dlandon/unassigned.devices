@@ -210,6 +210,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 	return $out;
 }
 
+/* Format the mount button based on status of the device. */
 function make_mount_button($device) {
 	global $paths, $Preclear;
 
