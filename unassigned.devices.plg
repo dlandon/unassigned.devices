@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2021.07.27">
+<!ENTITY version   "2021.08.05">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"b7f7107e471c121fbde5f84d73679c6a">
+<!ENTITY MD5		"e6f1affcc99afd13c0b1ac82fb68653e">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,6 +23,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: 'Unmounting' reversion on SMB/NFS shares.
+- Fix: Remove file_mode and dir_mode from CIFS mounts.  The share on Unraid should inherit file and directory permissions from the remote share and allow executible permission to be set on files.
+
+###2021.07.27
 - Fix: Code cleanup.
 - Fix: Fix encrypted disk 'Unmounting' status.
 - Fix: SMB/NFS and ISO file 'Mounting' and 'Unmounting' status.
