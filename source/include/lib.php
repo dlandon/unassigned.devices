@@ -300,7 +300,7 @@ function is_disk_running($ud_dev, $dev) {
 	return $rc;
 }
 
-/* Is the disk spinning up or down. */
+/* Check for disk spinning up or down. */
 function is_disk_spin($ud_dev, $running) {
 	global $paths;
 
