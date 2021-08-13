@@ -355,10 +355,14 @@ switch ($_POST['action']) {
 					} else {
 						$str = "Device?name";
 						if (! $disk['ssd']) {
-							if ($disk['running']) {
-								echo "<a style='cursor:pointer' class='exec info' onclick='spin_down_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle orb green-orb'></i><span>"._("Click to spin down device")."</span></a>";
+							if (! is_disk_spin($disk['ud_dev'], $disk['running'])) {
+								if ($disk['running']) {
+									echo "<a style='cursor:pointer' class='exec info' onclick='spin_down_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle orb green-orb'></i><span>"._("Click to spin down device")."</span></a>";
+								} else {
+									echo "<a style='cursor:pointer' class='exec info' onclick='spin_up_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle orb grey-orb'></i><span>"._("Click to spin up device")."</span></a>";
+								}
 							} else {
-								echo "<a style='cursor:pointer' class='exec info' onclick='spin_up_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle orb grey-orb'></i><span>"._("Click to spin up device")."</span></a>";
+								echo "<a class='info'><i class='fa fa-refresh fa-spin orb grey-orb'></i>";
 							}
 						} else {
 							echo "<a class='info'><i class='fa fa-circle orb ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i><span>"._("SSD cannot be spun down")."</span>";
@@ -897,11 +901,23 @@ switch ($_POST['action']) {
 
 	case 'spin_down_disk':
 		$device = urldecode($_POST['device']);
+
+		/* Set the spinning_down state. */
+		$tc = $paths['run_status'];
+		$run_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+		$run_status[$device]['spin'] = 'down';
+		file_put_contents($tc, json_encode($run_status));
 		echo json_encode(spin_disk(TRUE, $device));
 		break;
 
 	case 'spin_up_disk':
 		$device = urldecode($_POST['device']);
+
+		/* Set the spinning_up state. */
+		$tc = $paths['run_status'];
+		$run_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+		$run_status[$device]['spin'] = 'up';
+		file_put_contents($tc, json_encode($run_status));
 		echo json_encode(spin_disk(FALSE, $device));
 		break;
 

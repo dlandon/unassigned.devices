@@ -264,35 +264,77 @@ function get_disk_reads_writes($ud_dev, $dev) {
 }
 
 /* Check to see if the disk is spinning. */
-function is_disk_running($ud_dev) {
+function is_disk_running($ud_dev, $dev) {
 	global $paths;
 
 	$rc			= FALSE;
 	$run_devs	= FALSE;
 	$sf			= $paths['dev_state'];
+
 	/* Check for devs.ini file to get the current spindown state. */
 	if (is_file($sf)) {
 		$devs	= parse_ini_file($sf, true);
 		if (isset($devs[$ud_dev])) {
-			$rc	= ($devs[$ud_dev]['spundown'] == '0') ? TRUE : FALSE;
+			$rc			= ($devs[$ud_dev]['spundown'] == '0') ? TRUE : FALSE;
+			$device		= $ud_dev;
 			$run_devs	= TRUE;
 		}
 	}
+	$tc = $paths['run_status'];
+	$run_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 
 	/* If the spindown can't be gotten from the devs.ini file, do hdparm to get it. */
 	if (! $run_devs) {
-		$tc			= $paths['run_status'];
-		$run_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 		if (isset($run_status[$dev]) && (time() - $run_status[$dev]['timestamp']) < 60) {
-			$rc = ($run_status[$dev]['running'] == 'yes') ? TRUE : FALSE;
+			$rc		= ($run_status[$dev]['running'] == 'yes') ? TRUE : FALSE;
 		} else {
-			$state = trim(timed_exec(10, "/usr/sbin/hdparm -C $dev 2>/dev/null | /bin/grep -c standby"));
-			$rc = ($state == 0) ? TRUE : FALSE;
-			$run_status[$dev] = array('timestamp' => time(), 'running' => $rc ? 'yes' : 'no');
+			$state	= trim(timed_exec(10, "/usr/sbin/hdparm -C $dev 2>/dev/null | /bin/grep -c standby"));
+			$rc		= ($state == 0) ? TRUE : FALSE;
+		}
+		$device		= $dev;
+	}
+	$spin = is_null($run_status[$device]['spin']) ? "" : $run_status[$device]['spin'];
+	$run_status[$device] = array('timestamp' => time(), 'running' => $rc ? 'yes' : 'no', 'spin' => $spin);
+	file_put_contents($tc, json_encode($run_status));
+
+	return $rc;
+}
+
+/* Is the disk spinning up or down. */
+function is_disk_spin($ud_dev, $running) {
+	global $paths;
+
+	$rc = FALSE;
+	$tc = $paths['run_status'];
+	$run_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+
+	/* Is disk spinning up or down? */
+	if (isset($run_status[$ud_dev]['spin'])) {
+		switch ($run_status[$ud_dev]['spin']) {
+			case "up":
+				if (! $running) {
+					$rc = TRUE;
+				} 
+				break;
+
+			case "down":
+				if ($running) {
+					$rc = TRUE;
+				}
+				break;
+
+			default:
+				break;
+		}
+
+		if (! $rc && $run_status[$ud_dev]['spin'] != '') {
+			$run_status[$ud_dev]['spin'] = '';
 			file_put_contents($tc, json_encode($run_status));
 		}
 	}
-	return $rc;
+
+	return($rc);
+
 }
 
 /* Check to see if a samba server is online by pinging it. */
@@ -1759,7 +1801,7 @@ function get_disk_info($device) {
 	$disk['writes']				= $rw[1];
 	$disk['read_rate']			= $rw[2];
 	$disk['write_rate']			= $rw[3];
-	$disk['running']			= is_disk_running($disk['ud_dev']);
+	$disk['running']			= is_disk_running($disk['ud_dev'], $disk['device']);
 	$disk['temperature']		= get_temp($disk['ud_dev'], $disk['device'], $disk['running']);
 	$disk['command']			= get_config($disk['serial'],"command.1");
 	$disk['user_command']		= get_config($disk['serial'],"user_command.1");
