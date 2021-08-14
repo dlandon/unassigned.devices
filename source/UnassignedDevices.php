@@ -48,6 +48,7 @@ function netmasks($netmask, $rev = false)
 					"255.255.128.0" 	=> "17",
 					"255.255.0.0"		=> "16",
 				];
+
 	return $rev ? array_flip($netmasks)[$netmask] : $netmasks[$netmask];
 }
 
@@ -74,6 +75,7 @@ function render_used_and_free($partition, $mounted) {
 	} else {
 		$o = "<td>-</td><td>-</td>";
 	}
+
 	return $o;
 }
 
@@ -104,6 +106,7 @@ function render_used_and_free_disk($disk, $mounted) {
 	} else {
 		$o = "<td>-</td><td>-</td>";
 	}
+
 	return $o;
 }
 
@@ -207,6 +210,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 	}
 	$out[] = "<td><a title='"._("View Device Script Log")."' href='/Main/ScriptLog?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><i class='fa fa-align-left".( $partition['command'] ? "":" grey-orb" )."'></i></a></td>";
 	$out[] = "</tr>";
+
 	return $out;
 }
 
@@ -689,7 +693,8 @@ switch ($_POST['action']) {
 
 	case 'umount':
 		$device = urldecode($_POST['device']);
-		exec("plugins/{$plugin}/scripts/rc.unassigned umount '$device' &>/dev/null", $out, $return);
+		exec("plugins/{$plugin}/scripts
+		rc.unassigned umount '$device' &>/dev/null", $out, $return);
 		echo json_encode(["status" => $return ? false : true ]);
 		break;
 

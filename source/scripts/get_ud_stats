@@ -26,7 +26,7 @@ function unassigned_log($m, $type = "NOTICE") {
 	exec($cmd);
 }
 
-function timed_exec($timeout=10, $cmd) {
+function timed_exec($timeout = 10, $cmd) {
 	$time		= -microtime(true); 
 	$out		= shell_exec("/usr/bin/timeout ".$timeout." ".$cmd);
 	$time		+= microtime(true);
@@ -46,6 +46,7 @@ function is_ip($str) {
 function ping_server($tc, $ip, $mounted) {
 
 	$server = $ip;
+
 	/* See if we need to add this server to the hosts file. */
 	if (! is_ip($ip)) {
 		shell_exec("/bin/sed -i '/".$ip."/d' /etc/hosts");
@@ -94,7 +95,7 @@ function ping_server($tc, $ip, $mounted) {
 function df_status($tc, $mountpoint) {
 
 	$df_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-	$rc = trim(timed_exec(2,"/bin/df '{$mountpoint}' --output=size,used,avail | /bin/grep -v '1K-blocks' 2>/dev/null"));
+	$rc = trim(timed_exec(5, "/bin/df '{$mountpoint}' --output=size,used,avail | /bin/grep -v '1K-blocks' 2>/dev/null"));
 	$df_status[$mountpoint] = array('timestamp' => time(), 'stats' => $rc);
 	file_put_contents($tc, json_encode($df_status));
 }

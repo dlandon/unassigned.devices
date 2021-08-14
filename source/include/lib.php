@@ -159,6 +159,7 @@ function listDir($root) {
 	foreach ($iter as $path => $fileinfo) {
 		if (! $fileinfo->isDir()) $paths[] = $path;
 	}
+
 	return $paths;
 }
 
@@ -166,8 +167,10 @@ function listDir($root) {
 function safe_name($string, $convert_spaces = TRUE) {
 
 	$string = stripcslashes($string);
+
 	/* Convert single and double quote to underscore */
 	$string = str_replace( array("'", '"', "?"), "_", $string);
+
 	/* Convert spaces to underscore. */
 	if ($convert_spaces) {
 		$string = str_replace(" " , "_", $string);
@@ -175,6 +178,7 @@ function safe_name($string, $convert_spaces = TRUE) {
 	$string = htmlentities($string, ENT_QUOTES, 'UTF-8');
 	$string = html_entity_decode($string, ENT_QUOTES, 'UTF-8');
 	$string = preg_replace('/[^A-Za-z0-9\-_] /', '', $string);
+
 	return trim($string);
 }
 
@@ -218,11 +222,11 @@ function base_device($dev) {
 function get_disk_dev($dev) {
 	global $paths;
 
-	/* Get the current state. */
 	$rc		= basename($dev);
 	$sf		= $paths['dev_state'];
+
+	/* Check for devs.ini file and get the devX designation for this device. */
 	if (is_file($sf)) {
-		/* Get the devX designation for this device. */
 		$devs = parse_ini_file($sf, true);
 		foreach ($devs as $d) {
 			if (($d['device'] == basename($dev)) && isset($d['name'])) {
@@ -231,6 +235,7 @@ function get_disk_dev($dev) {
 			}
 		}
 	}
+
 	return $rc;
 }
 
@@ -264,15 +269,16 @@ function get_disk_reads_writes($ud_dev, $dev) {
 	return $rc;
 }
 
-/* Check to see if the disk is spinning. */
+/* Check to see if the disk is spinning up or down. */
 function is_disk_running($ud_dev, $dev) {
 	global $paths;
 
 	$rc			= FALSE;
 	$run_devs	= FALSE;
 	$sf			= $paths['dev_state'];
+	$tc			= $paths['run_status'];
 
-	/* Check for devs.ini file to get the current spindown state. */
+	/* Check for dev state file to get the current spindown state. */
 	if (is_file($sf)) {
 		$devs	= parse_ini_file($sf, true);
 		if (isset($devs[$ud_dev])) {
@@ -281,11 +287,10 @@ function is_disk_running($ud_dev, $dev) {
 			$run_devs	= TRUE;
 		}
 	}
-	$tc = $paths['run_status'];
-	$run_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 
-	/* If the spindown can't be gotten from the devs.ini file, do hdparm to get it. */
+	/* If the spindown can't be gotten from the dev state, do hdparm to get it. */
 	if (! $run_devs) {
+		$run_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 		if (isset($run_status[$dev]) && (time() - $run_status[$dev]['timestamp']) < 60) {
 			$rc		= ($run_status[$dev]['running'] == 'yes') ? TRUE : FALSE;
 		} else {
@@ -294,6 +299,7 @@ function is_disk_running($ud_dev, $dev) {
 		}
 		$device		= $dev;
 	}
+
 	$spin = isset($run_status[$device]['spin']) ? $run_status[$device]['spin'] : "";
 	$run_status[$device] = array('timestamp' => time(), 'running' => $rc ? 'yes' : 'no', 'spin' => $spin);
 	file_put_contents($tc, json_encode($run_status));
@@ -328,6 +334,7 @@ function is_disk_spin($ud_dev, $running) {
 				break;
 		}
 
+		/* See if we need to update the run spin status. */
 		if (! $rc && $run_status[$ud_dev]['spin'] != '') {
 			$run_status[$ud_dev]['spin'] = '';
 			file_put_contents($tc, json_encode($run_status));
@@ -412,6 +419,7 @@ function get_temp($ud_dev, $dev, $running) {
 	$rc		= "*";
 	$temp	= "";
 	$sf		= $paths['dev_state'];
+
 	/* Get temperature from the devs.ini file. */
 	if (is_file($sf)) {
 		$devs = parse_ini_file($sf, true);
@@ -436,6 +444,7 @@ function get_temp($ud_dev, $dev, $running) {
 			$rc		= $temp;
 		}
 	}
+
 	return $rc;
 }
 
@@ -468,6 +477,7 @@ function get_format_cmd($dev, $fs) {
 			$rc = FALSE;
 			break;
 	}
+
 	return $rc;
 }
 
@@ -654,6 +664,7 @@ function remove_partition($dev, $part) {
 
 	/* Refresh partition information. */
 	exec("/usr/sbin/partprobe {$dev}");
+
 	return $rc;
 }
 
@@ -667,11 +678,12 @@ function benchmark() {
 	$time	 += microtime(true); 
 	$type     = ($time > 10) ? "INFO" : "DEBUG";
 	unassigned_log("benchmark: $function(".implode(",", $params).") took ".sprintf('%f', $time)."s.", $type);
+
 	return $out;
 }
 
 /* Run a command and time out if it takes too long. */
-function timed_exec($timeout=10, $cmd) {
+function timed_exec($timeout = 10, $cmd) {
 	$time		= -microtime(true); 
 	$out		= shell_exec("/usr/bin/timeout ".$timeout." ".$cmd);
 	$time		+= microtime(true);
@@ -681,6 +693,7 @@ function timed_exec($timeout=10, $cmd) {
 	} else {
 		unassigned_log("Timed Exec: shell_exec(".$cmd.") took ".sprintf('%f', $time)."s!", "DEBUG");
 	}
+
 	return $out;
 }
 
@@ -692,6 +705,7 @@ function luks_fs_type($dev) {
 		$return = shell_exec( "/bin/cat /proc/mounts | /bin/grep $dev | /bin/awk '{print $3}'");
 		$rc = $return == "" ? $rc : $return;
 	}
+
 	return $rc;
 }
 
@@ -845,6 +859,7 @@ function is_disk_ssd($device) {
 	} else {
 		$rc = TRUE;
 	}
+
 	return $rc;
 }
 
@@ -866,10 +881,11 @@ function is_mounted($dev, $dir=FALSE) {
 
 	$rc = FALSE;
 	if ($dev != "") {
-		$data = timed_exec(1, "/sbin/mount");
-		$append = ($dir) ? " " : " on";
-		$rc = (strpos($data, $dev.$append) != 0) ? TRUE : FALSE;
+		$data	= timed_exec(1, "/sbin/mount");
+		$append	= ($dir) ? " " : " on";
+		$rc		= (strpos($data, $dev.$append) != 0) ? TRUE : FALSE;
 	}
+
 	return $rc;
 }
 
@@ -877,6 +893,7 @@ function is_mounted($dev, $dir=FALSE) {
 function get_mount_params($fs, $dev, $ro = FALSE) {
 	global $paths;
 
+	$rc				= "";
 	$config_file	= $paths['config_file'];
 	$config			= @parse_ini_file($config_file, true);
 	if (($config['Config']['discard'] != "no") && ($fs != "cifs") && ($fs != "nfs")) {
@@ -887,48 +904,50 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 	$rw	= $ro ? "ro" : "rw";
 	switch ($fs) {
 		case 'hfsplus':
-			return "force,{$rw},users,async,umask=000";
+			$rc = "force,{$rw},users,async,umask=000";
 			break;
 
 		case 'xfs':
-			return "{$rw},noatime,nodiratime{$discard}";
+			$rc = "{$rw},noatime,nodiratime{$discard}";
 			break;
 
 		case 'btrfs':
-			return "{$rw},auto,async,noatime,nodiratime{$discard}";
+			$rc = "{$rw},auto,async,noatime,nodiratime{$discard}";
 			break;
 
 		case 'exfat':
-			return "{$rw},auto,async,noatime,nodiratime,nodev,nosuid,umask=000";
+			$rc = "{$rw},auto,async,noatime,nodiratime,nodev,nosuid,umask=000";
 
 		case 'vfat':
-			return "{$rw},auto,async,noatime,nodiratime,nodev,nosuid,iocharset=utf8,umask=000";
+			$rc = "{$rw},auto,async,noatime,nodiratime,nodev,nosuid,iocharset=utf8,umask=000";
 
 		case 'ntfs':
-			return "{$rw},auto,async,noatime,nodiratime,nodev,nosuid,nls=utf8,umask=000";
+			$rc = "{$rw},auto,async,noatime,nodiratime,nodev,nosuid,nls=utf8,umask=000";
 			break;
 
 		case 'crypto_LUKS':
-			return "{$rw},noatime,nodiratime{$discard}";
+			$rc = "{$rw},noatime,nodiratime{$discard}";
 			break;
 
 		case 'ext4':
-			return "{$rw},auto,noatime,nodiratime,async,nodev,nosuid{$discard}";
+			$rc = "{$rw},auto,noatime,nodiratime,async,nodev,nosuid{$discard}";
 			break;
 
 		case 'cifs':
 			$credentials_file = "{$paths['credentials']}_".basename($dev);
-			return "rw,noserverino,nounix,iocharset=utf8,uid=99,gid=100%s,credentials='$credentials_file'";
+			$rc = "rw,noserverino,nounix,iocharset=utf8,uid=99,gid=100%s,credentials='$credentials_file'";
 			break;
 
 		case 'nfs':
-			return "rw,noacl,hard,timeo=600,retrans=10";
+			$rc = "rw,noacl,hard,timeo=600,retrans=10";
 			break;
 
 		default:
-			return "{$rw},auto,async,noatime,nodiratime";
+			$rc = "{$rw},auto,async,noatime,nodiratime";
 			break;
 	}
+
+	return $rc;
 }
 
 /* Mount a device. */
@@ -973,6 +992,7 @@ function do_mount($info) {
 	} else {
 		$rc = do_mount_local($info);
 	}
+
 	return $rc;
 }
 
@@ -1046,6 +1066,7 @@ function do_mount_local($info) {
 	} else {
 		unassigned_log("Drive '{$dev}' already mounted.");
 	}
+
 	return $rc;
 }
 
@@ -1084,6 +1105,7 @@ function do_unmount($dev, $dir, $force=FALSE, $smb=FALSE, $nfs=FALSE) {
 	} else {
 		unassigned_log("Cannot unmount '{$dev}'.  UD did not mount the device.");
 	}
+
 	return $rc;
 }
 
@@ -1197,6 +1219,7 @@ function add_smb_share($dir, $recycle_bin=TRUE) {
 
 		timed_exec(5, "$(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
 	}
+
 	return TRUE;
 }
 
@@ -1226,6 +1249,7 @@ function rm_smb_share($dir) {
 			timed_exec(5, "/usr/bin/smbcontrol $(/bin/cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
 		}
 	}
+
 	return TRUE;
 }
 
@@ -1255,6 +1279,7 @@ function add_nfs_share($dir) {
 		}
 		if ($reload) shell_exec("/usr/sbin/exportfs -ra 2>/dev/null");
 	}
+
 	return TRUE;
 }
 
@@ -1276,6 +1301,7 @@ function rm_nfs_share($dir) {
 		}
 		if ($reload) shell_exec("/usr/sbin/exportfs -ra 2>/dev/null");
 	}
+
 	return TRUE;
 }
 
@@ -1453,6 +1479,7 @@ function get_samba_mounts() {
 	} else {
 		unassigned_log("Error: unable to get the samba mounts.");
 	}
+
 	return $o;
 }
 
@@ -1552,6 +1579,7 @@ function do_mount_samba($info) {
 	} else {
 		unassigned_log("Remote SMB/NFS server '{$info['ip']}' is offline and share '{$info['device']}' cannot be mounted."); 
 	}
+
 	return $rc;
 }
 
@@ -1642,6 +1670,7 @@ function get_iso_mounts() {
 	} else {
 		unassigned_log("Error: unable to get the ISO mounts.");
 	}
+
 	return $o;
 }
 
@@ -1672,6 +1701,7 @@ function do_mount_iso($info) {
 	} else {
 		unassigned_log("Error: ISO file '{$info[file]}' is missing and cannot be mounted.");
 	}
+
 	return $rc;
 }
 
@@ -1715,7 +1745,7 @@ function get_unassigned_disks() {
 	foreach (listDir("/dev/disk/by-id/") as $p) {
 		$r = realpath($p);
 		/* Only /dev/sd*, /dev/hd*, and /dev/nvme* devices. */
-		if (! is_bool(strpos($r, "/dev/sd")) || !is_bool(strpos($r, "/dev/hd")) || !is_bool(strpos($r, "/dev/nvme"))) {
+		if ((! is_bool(strpos($r, "/dev/sd"))) || (! is_bool(strpos($r, "/dev/hd"))) || (! is_bool(strpos($r, "/dev/nvme")))) {
 			$paths[$r] = $p;
 		}
 	}
@@ -1743,6 +1773,7 @@ function get_unassigned_disks() {
 			}
 		}
 	}
+
 	return $ud_disks;
 }
 
@@ -1769,6 +1800,7 @@ function get_all_disks_info($bus = "all") {
 		$ud_disks = array();
 	}
 	unassigned_log("Total time: ".($time + microtime(true))."s!", "DEBUG");
+
 	return $ud_disks;
 }
 
@@ -1813,6 +1845,7 @@ function get_disk_info($device) {
 	$disk['command']			= get_config($disk['serial'],"command.1");
 	$disk['user_command']		= get_config($disk['serial'],"user_command.1");
 	$disk['show_partitions']	= (get_config($disk['serial'], "show_partitions") == "no") ? FALSE : TRUE;
+
 	return $disk;
 }
 
@@ -1847,10 +1880,8 @@ function get_partition_info($device) {
 			$disk['label'] = (count(preg_grep("%".$matches[1][0]."%i", $all_disks)) > 2) ? $disk['label']."-part".$matches[2][0] : $disk['label'];
 		}
 		$disk['fstype'] = safe_name($attrs['ID_FS_TYPE']);
-		if ( $disk['mountpoint'] = get_config($disk['serial'], "mountpoint.{$disk['part']}") ) {
-			if (! $disk['mountpoint'] ) goto empty_mountpoint;
-		} else {
-			empty_mountpoint:
+		$disk['mountpoint'] = get_config($disk['serial'], "mountpoint.{$disk['part']}");
+		if ( ($mountpoint === FALSE) || (! $disk['mountpoint']) ) { 
 			$disk['mountpoint'] = $disk['target'] ? $disk['target'] : preg_replace("%\s+%", "_", sprintf("%s/%s", $paths['usb_mountpoint'], $disk['label']));
 		}
 		$disk['luks']			= safe_name($disk['device']);
@@ -1873,6 +1904,7 @@ function get_partition_info($device) {
 		$disk['command_bg']		= get_config($disk['serial'], "command_bg.{$disk['part']}");
 		$disk['prog_name']		= basename($disk['command'], ".sh");
 		$disk['logfile']		= ($disk['prog_name'] != "") ? $paths['device_log'].$disk['prog_name'].".log" : "";
+	
 		return $disk;
 	}
 }
@@ -1920,6 +1952,7 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 			$cmd = array('ro'=>false,'rw'=>false);
 		break;
 	}
+
 	return $cmd[$type] ? sprintf($cmd[$type], $dev) : "";
 }
 
@@ -2104,7 +2137,7 @@ function change_UUID($dev) {
 		}
 	}
 	if ($fs_type == "crypto_LUKS") {
-		timed_exec(10, "plugins/{$plugin}/scripts/luks_uuid.sh {$dev}1");
+		timed_exec(20, "plugins/{$plugin}/scripts/luks_uuid.sh {$dev}1");
 		$mapper	= basename($dev);
 		$cmd	= "luksOpen {$luks} '{$mapper}'";
 		$pass	= decrypt_data(get_config($serial, "pass"));
@@ -2130,7 +2163,7 @@ function change_UUID($dev) {
 		$rc = timed_exec(10, "/usr/sbin/xfs_admin -U generate /dev/mapper/{$mapper}");
 		shell_exec("/sbin/cryptsetup luksClose ".$mapper);
 	} else {
-		$rc = timed_exec(10, "/usr/sbin/xfs_admin -U generate {$dev}1");
+		$rc = timed_exec(20, "/usr/sbin/xfs_admin -U generate {$dev}1");
 	}
 	unassigned_log("Changing disk '{$dev}' UUID. Result: {$rc}");
 }
@@ -2141,6 +2174,8 @@ function setSleepTime($device) {
 
 	$run_devs	= FALSE;
 	$sf			= $paths['dev_state'];
+
+	/* Check for devs.ini file and get the spundown state. */
 	if (is_file($sf)) {
 		$devs = parse_ini_file($sf, true);
 		foreach ($devs as $d) {
@@ -2151,6 +2186,7 @@ function setSleepTime($device) {
 		}
 	}
 
+	/* If devs.ini does not exist, do the spindown using the disk timer. */
 	if (! $run_devs && get_config("Config", "spin_down") == 'yes') {
 		if (! is_disk_ssd($device)) {
 			unassigned_log("Issue spin down timer for device '{$device}'.");
