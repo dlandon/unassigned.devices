@@ -163,7 +163,7 @@ function listDir($root) {
 }
 
 /* Remove characters that will cause issues in names. */
-function safe_name($string, $convert_spaces=TRUE) {
+function safe_name($string, $convert_spaces = TRUE) {
 
 	$string = stripcslashes($string);
 	/* Convert single and double quote to underscore */
@@ -238,8 +238,8 @@ function get_disk_reads_writes($ud_dev, $dev) {
 	global $paths;
 
 	$rc = array(0, 0, 0, 0);
-
 	$sf	= $paths['dev_state'];
+
 	/* Check for devs.ini file to get the current reads and writes. */
 	if (is_file($sf)) {
 		$devs	= parse_ini_file($sf, true);
@@ -293,14 +293,14 @@ function is_disk_running($ud_dev, $dev) {
 		}
 		$device		= $dev;
 	}
-	$spin = is_null($run_status[$device]['spin']) ? "" : $run_status[$device]['spin'];
+	$spin = isset($run_status[$device]['spin']) ? $run_status[$device]['spin'] : "";
 	$run_status[$device] = array('timestamp' => time(), 'running' => $rc ? 'yes' : 'no', 'spin' => $spin);
 	file_put_contents($tc, json_encode($run_status));
 
 	return $rc;
 }
 
-/* Check for disk spinning up or down. */
+/* Check for disk in the process of spinning up or down. */
 function is_disk_spin($ud_dev, $running) {
 	global $paths;
 
@@ -338,21 +338,27 @@ function is_disk_spin($ud_dev, $running) {
 }
 
 /* Check to see if a samba server is online by pinging it. */
-function is_samba_server_online($ip, $mounted, $background=TRUE) {
+function is_samba_server_online($ip, $mounted, $background = TRUE) {
 	global $paths, $plugin;
 
 	$is_alive		= FALSE;
 	$server			= $ip;
 	$tc				= $paths['ping_status'];
+
+	/* Update server online status immediately if not set to run in background. */
+	$ping_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+	if ((! $background) || (time() - $ping_status[$server]['timestamp']) > 15 ) {
+		/* Set background if we don't need immediate update. */
+		$bk = $background ? "&" : "";
+
+		/* Run the stats script to update the ping state file. */
+		exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats ping {$tc} {$ip} {$mounted} {$bk}");
+	}
+
+	/* Get the updated ping status. */
 	$ping_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 	if (isset($ping_status[$server])) {
 		$is_alive = ($ping_status[$server]['online'] == 'yes') ? TRUE : FALSE;
-	}
-	if ((time() - $ping_status[$server]['timestamp']) > 15 ) {
-		$bk = $background ? "&" : "";
-
-		/* Run the stats script to update the state file. */
-		exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats ping {$tc} {$ip} {$mounted} {$bk}");
 	}
 
 	return $is_alive;
@@ -1458,7 +1464,7 @@ function do_mount_samba($info) {
 	$config			= @parse_ini_file($config_file, true);
 
 	/* Be sure the server online status is current. */
-	$info['is_alive'] = is_samba_server_online($info['ip'], FALSE);
+	$info['is_alive'] = is_samba_server_online($info['ip'], TRUE, FALSE);
 	if ($info['is_alive']) {
 		$dir = $info['mountpoint'];
 		$fs  = $info['fstype'];

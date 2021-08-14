@@ -745,7 +745,7 @@ switch ($_POST['action']) {
 		file_put_contents("{$paths['authentication']}", "username=".$user."\n");
 		file_put_contents("{$paths['authentication']}", "password=".$pass."\n", FILE_APPEND);
 		file_put_contents("{$paths['authentication']}", "domain=".$domain."\n", FILE_APPEND);
-		is_samba_server_online($ip, FALSE, FALSE);
+		is_samba_server_online($ip, TRUE, FALSE);
 		$list = shell_exec("/usr/bin/smbclient -t2 -g -L '{$ip}' --authentication-file='{$paths['authentication']}' 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}' | sort");
 		exec("/bin/shred -u ".$paths['authentication']);
 		echo $list;
@@ -797,7 +797,7 @@ switch ($_POST['action']) {
 			set_samba_config("{$device}", "share", safe_name($share, FALSE));
 
 			/* Refresh the ping status */
-			is_samba_server_online($ip, FALSE);
+			is_samba_server_online($ip, TRUE, FALSE);
 		}
 		publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
 		echo json_encode($rc);
