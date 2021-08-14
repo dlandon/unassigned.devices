@@ -187,23 +187,24 @@ function exist_in_file($file, $val) {
 function get_device_stats($mountpoint, $mounted, $active = TRUE) {
 	global $paths, $plugin;
 
-	/* Get current state. */
-	$tc			= $paths['df_status'];
-	$df_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 	$rc			= "";
+	$tc			= $paths['df_status'];
 
 	/* Get the device stats if it is mounted. */
 	if ($mounted) {
-		/* Get the current device stats. */
-		if (isset($df_status[$mountpoint])) {
-			$rc = $df_status[$mountpoint]['stats'];
-		}
-
+		$df_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 		/* Run the stats script to update the state file. */
 		if (($active) && ((time() - $df_status[$mountpoint]['timestamp']) > 90) ) {
 			exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats df_status {$tc} '{$mountpoint}' &");
 		}
+
+		/* Get the updated device stats. */
+		$df_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+		if (isset($df_status[$mountpoint])) {
+			$rc = $df_status[$mountpoint]['stats'];
+		}
 	}
+
 	return preg_split('/\s+/', $rc);
 }
 
