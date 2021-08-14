@@ -52,10 +52,12 @@ function netmasks($netmask, $rev = false)
 	return $rev ? array_flip($netmasks)[$netmask] : $netmasks[$netmask];
 }
 
+/* Get the diskio scale based on the current setting. */
 function my_diskio($data) {
 	return my_scale($data,$unit,1)." $unit/s";
 }
 
+/* Get the used and free space for a partition and render for html. */
 function render_used_and_free($partition, $mounted) {
 	global $display;
 
@@ -79,6 +81,7 @@ function render_used_and_free($partition, $mounted) {
 	return $o;
 }
 
+/* Get the used and free space for a disk and render for html. */
 function render_used_and_free_disk($disk, $mounted) {
 	global $display;
 
@@ -110,6 +113,7 @@ function render_used_and_free_disk($disk, $mounted) {
 	return $o;
 }
 
+/* Get the partition information and render for html. */
 function render_partition($disk, $partition, $total=FALSE) {
 	global $plugin, $diskio;
 
@@ -910,11 +914,11 @@ switch ($_POST['action']) {
 		/* Set the spinning_down state. */
 		$tc = $paths['run_status'];
 		$run_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-		if ($run_status[$device]['spundown'] == '0') {
+		if ($run_status[$device]['running'] == 'yes') {
 			$run_status[$device]['spin'] = 'down';
 			file_put_contents($tc, json_encode($run_status));
+			echo json_encode(spin_disk(TRUE, $device));
 		}
-		echo json_encode(spin_disk(TRUE, $device));
 		break;
 
 	case 'spin_up_disk':
@@ -923,11 +927,11 @@ switch ($_POST['action']) {
 		/* Set the spinning_up state. */
 		$tc = $paths['run_status'];
 		$run_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-		if ($run_status[$device]['spundown'] != '0') {
+		if ($run_status[$device]['running'] == 'no') {
 			$run_status[$device]['spin'] = 'up';
 			file_put_contents($tc, json_encode($run_status));
+			echo json_encode(spin_disk(FALSE, $device));
 		}
-		echo json_encode(spin_disk(FALSE, $device));
 		break;
 
 	case 'chg_mountpoint':

@@ -289,8 +289,8 @@ function is_disk_running($ud_dev, $dev) {
 	}
 
 	/* If the spindown can't be gotten from the dev state, do hdparm to get it. */
+	$run_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 	if (! $run_devs) {
-		$run_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 		if (isset($run_status[$dev]) && (time() - $run_status[$dev]['timestamp']) < 60) {
 			$rc		= ($run_status[$dev]['running'] == 'yes') ? TRUE : FALSE;
 		} else {
@@ -340,7 +340,6 @@ function is_disk_spin($ud_dev, $running) {
 			file_put_contents($tc, json_encode($run_status));
 		}
 	}
-
 	return($rc);
 
 }
