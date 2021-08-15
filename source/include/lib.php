@@ -2026,21 +2026,21 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 			switch ($fstype) {
 				case 'xfs';
 					timed_exec(20, "/usr/sbin/xfs_admin -L '$mountpoint' $dev 2>/dev/null");
-				break;
+					break;
 
 				case 'btrfs';
 					timed_exec(20, "/sbin/btrfs filesystem label $dev '$mountpoint' 2>/dev/null");
-				break;
+					break;
 
 				case 'ntfs';
 					$mountpoint = substr($mountpoint, 0, 31);
 					timed_exec(20, "/sbin/ntfslabel $dev '$mountpoint' 2>/dev/null");
-				break;
+					break;
 
 				case 'vfat';
 					$mountpoint = substr(strtoupper($mountpoint), 0, 10);
 					timed_exec(20, "/sbin/fatlabel $dev '$mountpoint' 2>/dev/null");
-				break;
+					break;
 
 				case 'crypto_LUKS';
 					$mapper	= basename($mountpoint);
@@ -2072,7 +2072,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 					/* Try btrfs label change. */
 					timed_exec(20, "/sbin/btrfs filesystem label '/dev/mapper/$mapper' '$mountpoint' 2>/dev/null");
 					shell_exec("/sbin/cryptsetup luksClose ".$mapper);
-				break;
+					break;
 			}
 		}
 	} else {
