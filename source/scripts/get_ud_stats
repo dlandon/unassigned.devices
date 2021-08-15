@@ -26,6 +26,7 @@ function unassigned_log($m, $type = "NOTICE") {
 	exec($cmd);
 }
 
+/* Run a command and time out if it doesn't complete in the $timeout number of seconds. */
 function timed_exec($timeout = 10, $cmd) {
 	$time		= -microtime(true); 
 	$out		= shell_exec("/usr/bin/timeout ".$timeout." ".$cmd);
@@ -39,10 +40,12 @@ function timed_exec($timeout = 10, $cmd) {
 	return $out;
 }
 
+/* Confirm we have a good ip address. */
 function is_ip($str) {
 	return filter_var($str, FILTER_VALIDATE_IP);
 }
 
+/* Ping the remote server to check for it being on-line. */
 function ping_server($tc, $ip, $mounted) {
 
 	$server = $ip;
@@ -58,19 +61,21 @@ function ping_server($tc, $ip, $mounted) {
 		}
 	}
 
-	$ping_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-	$was_alive = ($ping_status[$server]['online'] == 'yes') ? TRUE : FALSE;
-	$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
-	$no_pings = isset($ping_status[$server]['no_pings']) ? $ping_status[$server]['no_pings'] : 0;
+	/* Check the last ping status. */
+	$ping_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+	$was_alive		= ($ping_status[$server]['online'] == 'yes') ? TRUE : FALSE;
+	$is_alive		= (trim(exec("/bin/ping -c 1 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+	$no_pings		= isset($ping_status[$server]['no_pings']) ? $ping_status[$server]['no_pings'] : 0;
 	if (! $is_alive && ! is_ip($server))
 	{
-		$ip = trim(timed_exec(5, "/usr/bin/nmblookup {$server} | /bin/head -n1 | /bin/awk '{print $1}'"));
+		$ip			= trim(timed_exec(5, "/usr/bin/nmblookup {$server} | /bin/head -n1 | /bin/awk '{print $1}'"));
 		if (is_ip($ip))
 		{
 			$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
 		}
 	}
 	if (! $is_alive) {
+		/* Check for three consecutive negative pings before declaring it is off-line. */
 		$no_pings++;
 		if (($no_pings <= 3) && ($ping_status[$server]['online'] == 'yes')) {
 			$is_alive = TRUE;
@@ -92,10 +97,11 @@ function ping_server($tc, $ip, $mounted) {
 	file_put_contents($tc, json_encode($ping_status));
 }
 
+/* Get the sizem, used, and free space on device. */
 function df_status($tc, $mountpoint) {
 
-	$df_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-	$rc = trim(timed_exec(5, "/bin/df '{$mountpoint}' --output=size,used,avail | /bin/grep -v '1K-blocks' 2>/dev/null"));
+	$df_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+	$rc			= trim(timed_exec(5, "/bin/df '{$mountpoint}' --output=size,used,avail | /bin/grep -v '1K-blocks' 2>/dev/null"));
 	$df_status[$mountpoint] = array('timestamp' => time(), 'stats' => $rc);
 	file_put_contents($tc, json_encode($df_status));
 }

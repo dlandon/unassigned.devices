@@ -277,8 +277,8 @@ function unassigned_umount() {
 
 	/* Tell Unraid to update devs.ini file of unassigned devices. */
 	if (isset($_ENV['DEVTYPE']) && ($_ENV['DEVTYPE'] == "disk")) {
-		$tc = $paths['hotplug_status'];
-		$hotplug = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : "no";
+		$tc			= $paths['hotplug_status'];
+		$hotplug	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : "no";
 		if ($hotplug == "no") {
 			file_put_contents($tc, json_encode('yes'));
 		}
@@ -293,6 +293,7 @@ function unassigned_reload() {
 	}
 }
 
+/* Spin down a disk using Unraid api. */
 function unassigned_spin_down() {
 	global $DEVNAME;
 
@@ -300,6 +301,7 @@ function unassigned_spin_down() {
 	spin_disk(TRUE, $dev);
 }
 
+/* Add status file so mount buttons will show current status of operation. */
 function addFile($file)
 {
 	global $remove;
@@ -312,6 +314,7 @@ function addFile($file)
 
 }
 
+/* Update json mounted disk status. */
 function export_disk($disk, $add) {
 	global $paths;
 
@@ -353,7 +356,7 @@ switch ($COMMAND) {
 
 	default:
 		unassigned_log("Error: 'rc.unassigned {$argv[1]} {$argv[2]}' not understood");
-		unassigned_log("rc.unassigned usage: 'mount','umount','reload', 'spindown', 'refresh'");
+		unassigned_log("rc.unassigned usage: 'mount', 'umount', 'reload', 'spindown', 'refresh'");
 		exit(0);
 		break;
 }

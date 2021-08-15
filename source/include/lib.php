@@ -1264,7 +1264,7 @@ function add_nfs_share($dir) {
 				$c			= (is_file($file)) ? @file($file,FILE_IGNORE_NEW_LINES) : array();
 				$fsid		= 200 + count(preg_grep("@^\"@", $c));
 				$nfs_sec	= get_config("Config", "nfs_security");
-				$sec = "";
+				$sec		= "";
 				if ( $nfs_sec == "private" ) {
 					$sec	= get_config("Config", "nfs_rule");
 				} else {
@@ -1401,19 +1401,21 @@ function encrypt_data($data) {
 
 	$val = openssl_encrypt($data, 'aes256', $key, $options=0, $iv);
 	$val = str_replace("\n", "", $val);
+
 	return($val);
 }
 
 /* Decrypt passwords. */
 function decrypt_data($data) {
-	$key = get_config("Config", "key");
-	$iv = get_config("Config", "iv");
-	$val = openssl_decrypt($data, 'aes256', $key, $options=0, $iv);
+	$key	= get_config("Config", "key");
+	$iv		= get_config("Config", "iv");
+	$val	= openssl_decrypt($data, 'aes256', $key, $options=0, $iv);
 
 	if (! preg_match("//u", $val)) {
 		unassigned_log("Warning: Password is not UTF-8 encoded");
 		$val = "";
 	}
+
 	return($val);
 }
 
@@ -2197,7 +2199,7 @@ function setSleepTime($device) {
 	}
 }
 
-/* Setup a socket for publish events. */
+/* Setup a socket for nchan publish events. */
 function curl_socket($socket, $url, $postdata=NULL) {
 	$ch = curl_init($url);
 	curl_setopt($ch, CURLOPT_UNIX_SOCKET_PATH, $socket);
@@ -2210,7 +2212,7 @@ function curl_socket($socket, $url, $postdata=NULL) {
 	curl_close($ch);
 }
 
-/* Trigger an event. */
+/* Trigger an nchan event. */
 function publish($endpoint, $message) {
 	curl_socket("/var/run/nginx.socket", "http://localhost/pub/$endpoint?buffer_length=1", $message);
 }

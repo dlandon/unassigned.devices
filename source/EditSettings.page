@@ -30,95 +30,95 @@ function safe_filename($string) {
 	return preg_replace('~[ ]~i', '_', $string);
 }
 
-$background = "checked";
-$partition = "";
-$disk_setting = TRUE;
-$show_device_switches = TRUE;
-$disabled = "";
-$default_file = safe_filename("/boot/config/plugins/{$plugin}/".urldecode($_GET['l'])).".sh";
-$fstype = "";
-$volume = "";
+$background				= "checked";
+$partition				= "";
+$disk_setting			= TRUE;
+$show_device_switches	= TRUE;
+$disabled				= "";
+$default_file			= safe_filename("/boot/config/plugins/{$plugin}/".urldecode($_GET['l'])).".sh";
+$fstype					= "";
+$volume					= "";
 
 if (isset($_GET['s'])) {
-	$serial = $_GET['s'];
-	$device = isset($_GET['b']) ? $_GET['b'] : $_GET['l'];
-	$partition = $_GET['p'];
-	$mount_point = $_GET['l'];
-	$info = $_GET['m'];
-	$file = get_config($serial,"command.{$partition}");
+	$serial				= $_GET['s'];
+	$device				= isset($_GET['b']) ? $_GET['b'] : $_GET['l'];
+	$partition			= $_GET['p'];
+	$mount_point		= $_GET['l'];
+	$info				= $_GET['m'];
+	$file				= get_config($serial, "command.{$partition}");
 	if (($file) && (! file_exists($file))) {
-		set_config($serial,"command.{$partition}","");
-		$file = "";
+		set_config($serial,"command.{$partition}", "");
+		$file			= "";
 	}
-	$user_file = get_config($serial,"user_command.{$partition}");
+	$user_file			= get_config($serial,"user_command.{$partition}");
 	if ((($user_file) && (! file_exists($user_file))) || (($user_file) && (! $file))) {
-		set_config($serial,"user_command.{$partition}","");
-		$user_file = "";
+		set_config($serial,"user_command.{$partition}", "");
+		$user_file		= "";
 	}
-	$background = (get_config($serial,"command_bg.{$partition}") != "false" ) ? "checked" : "";
-	$pass_through = (is_pass_through($serial)) ? "checked" : "";
-	$read_only = (is_read_only($serial)) ? "checked" : "";
-	$automount = (is_automount($serial)) ? "checked" : "";
-	$share = (config_shared($serial, $partition, strpos($attrs['DEVPATH'],"usb"))) ? "checked" : "";
-	$show_partitions = (get_config($serial,"show_partitions") == "no" ) ? "" : "checked";
-	$width = "50%";
-	$automount_action = "automount";
-	$ud_device = $serial;
-	$serial .= ($device) ? " (".$device.")" : "";
-	$background_action = "background";
-	$share_action = "toggle_share";
+	$background			= (get_config($serial, "command_bg.{$partition}") != "false" ) ? "checked" : "";
+	$pass_through		= (is_pass_through($serial)) ? "checked" : "";
+	$read_only			= (is_read_only($serial)) ? "checked" : "";
+	$automount			= (is_automount($serial)) ? "checked" : "";
+	$share				= (config_shared($serial, $partition, strpos($attrs['DEVPATH'],"usb"))) ? "checked" : "";
+	$show_partitions	= (get_config($serial, "show_partitions") == "no" ) ? "" : "checked";
+	$width				= "50%";
+	$automount_action	= "automount";
+	$ud_device			= $serial;
+	$serial 			.= ($device) ? " (".$device.")" : "";
+	$background_action	= "background";
+	$share_action		= "toggle_share";
 	if (! $_GET['t']) {
-		$disk_setting = FALSE;
-		$show_device_switches = FALSE;
+		$disk_setting			= FALSE;
+		$show_device_switches	= FALSE;
 	}
-	$fstype = $_GET['f'];
-	$volume = ($fstype == "apfs") ? get_config($ud_device, "volume.{$partition}") : "0";
+	$fstype				= $_GET['f'];
+	$volume				= ($fstype == "apfs") ? get_config($ud_device, "volume.{$partition}") : "0";
 } else if (isset($_GET['d'])) {
-	$device = $_GET['d'];
-	$mount_point = $_GET['l'];
-	$info = $_GET['m'];
-	$file = get_samba_config($device,"command");
+	$device				= $_GET['d'];
+	$mount_point		= $_GET['l'];
+	$info				= $_GET['m'];
+	$file				= get_samba_config($device, "command");
 	if (($file) && (! file_exists($file))) {
 		set_samba_config($device,"command","");
-		$file = "";
+		$file			= "";
 	}
-	$user_file = get_samba_config($device,"user_command");
+	$user_file			= get_samba_config($device, "user_command");
 	if ((($user_file) && (! file_exists($user_file))) || (($user_file) && (! $file))) {
 		set_samba_config($device,"user_command","");
-		$user_file = "";
+		$user_file		= "";
 	}
-	$background = (get_samba_config($device,"command_bg") != "false" ) ? "checked" : "";
-	$automount = (is_samba_automount($device)) ? "checked" : "";
-	$share = (is_samba_share($device)) ? "checked" : "";
-	$width = "18%";
-	$automount_action = "samba_automount";
-	$ud_device = $device;
-	$background_action = "samba_background";
-	$share_action = "toggle_samba_share";
-	$disk_setting = FALSE;
+	$background			= (get_samba_config($device, "command_bg") != "false" ) ? "checked" : "";
+	$automount			= (is_samba_automount($device)) ? "checked" : "";
+	$share				= (is_samba_share($device)) ? "checked" : "";
+	$width				= "18%";
+	$automount_action	= "samba_automount";
+	$ud_device			= $device;
+	$background_action	= "samba_background";
+	$share_action		= "toggle_samba_share";
+	$disk_setting		= FALSE;
 } else if (isset($_GET['i'])) {
-	$device = $_GET['i'];
-	$mount_point = $_GET['l'];
-	$file = get_iso_config($device,"command");
+	$device				= $_GET['i'];
+	$mount_point		= $_GET['l'];
+	$file				= get_iso_config($device, "command");
 	if (($file) && (! file_exists($file))) {
 		set_iso_config($device,"command","");
-		$file = "";
+		$file			= "";
 	}
-	$background = (get_iso_config($device,"command_bg") != "false" ) ? "checked" : "";
-	$automount = (is_iso_automount($device)) ? "checked" : "";
-	$witdh = "20%";
-	$automount_action = "iso_automount";
-	$ud_device = $device;
-	$background_action = "iso_background";
-	$disk_setting = FALSE;
+	$background			= (get_iso_config($device, "command_bg") != "false" ) ? "checked" : "";
+	$automount			= (is_iso_automount($device)) ? "checked" : "";
+	$witdh				= "20%";
+	$automount_action	= "iso_automount";
+	$ud_device			= $device;
+	$background_action	= "iso_background";
+	$disk_setting		= FALSE;
 }
 
 if ((! file_exists($file)) || (! is_dir("/boot/config/plugins/user.scripts/scripts/"))) {
 	$disabled = "disabled";
 }
 
-$text = @file_get_contents($file);
-$default_text = <<<EOT
+$text			= @file_get_contents($file);
+$default_text	= <<<EOT
 #!/bin/bash
 PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin
 ## Available variables:
@@ -398,7 +398,7 @@ _(Volume)_
 		/* Skip if fileTree is already open. */
 		if ( p.next().hasClass('fileTree') ){return null;}
 
-		/* create a random id. */
+		/* Create a random id. */
 		var r = Math.floor((Math.random()*1000)+1);
 
 		/* Add a new span and load fileTree. */
