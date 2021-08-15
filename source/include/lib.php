@@ -1388,12 +1388,12 @@ function set_samba_config($source, $var, $val) {
 /* Encrypt passwords. */
 function encrypt_data($data) {
 	$key = get_config("Config", "key");
-	if ($key || strlen($key) != 32) {
+	if ((! $key) || strlen($key) != 32) {
 		$key = substr(base64_encode(openssl_random_pseudo_bytes(32)), 0, 32);
 		set_config("Config", "key", $key);
 	}
 	$iv = get_config("Config", "iv");
-	if ($iv || strlen($iv) != 16) {
+	if ((! $iv) || strlen($iv) != 16) {
 		$iv = substr(base64_encode(openssl_random_pseudo_bytes(16)), 0, 16);
 		set_config("Config", "iv", $iv);
 	}
@@ -1406,6 +1406,7 @@ function encrypt_data($data) {
 
 /* Decrypt passwords. */
 function decrypt_data($data) {
+
 	$key	= get_config("Config", "key");
 	$iv		= get_config("Config", "iv");
 	$val	= openssl_decrypt($data, 'aes256', $key, $options=0, $iv);
