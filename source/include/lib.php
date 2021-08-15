@@ -915,9 +915,11 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 
 		case 'exfat':
 			$rc = "{$rw},auto,async,noatime,nodiratime,nodev,nosuid,umask=000";
+			break;
 
 		case 'vfat':
 			$rc = "{$rw},auto,async,noatime,nodiratime,nodev,nosuid,iocharset=utf8,umask=000";
+			break;
 
 		case 'ntfs':
 			$rc = "{$rw},auto,async,noatime,nodiratime,nodev,nosuid,nls=utf8,umask=000";
