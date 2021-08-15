@@ -299,7 +299,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		$.post(UDURL, opts).done(function(data)
 		{
 			$(el).html(old);
-			if (data != "") {
+			if (data) {
 				var shares = data.split('\n');
 				if (shares.length) {
 					var add = "<select name='SHARE' class='swal-content__input' required>";

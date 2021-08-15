@@ -99,9 +99,9 @@ if (version_compare($version['version'],"6.8.9", ">")) {
 
 <script type="text/javascript">
 	function openFileBrowser(el, root, filter, on_folders, on_files, close_on_select) {
-		if (on_folders === undefined) on_folders = true;
-		if (on_files   === undefined) on_files = true;
-		if (! filter && ! on_files)   filter = 'HIDE_FILES_FILTER';
+		if (on_folders	=== undefined)	on_folders = true;
+		if (on_files	=== undefined)	on_files = true;
+		if (! filter && ! on_files)		filter = 'HIDE_FILES_FILTER';
 		if (! root.trim() ) root = '/mnt/user/';
 		var p = $(el);
 
@@ -154,7 +154,7 @@ _(Common Script)_:
 : <input type="text" name="common_cmd" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>/','sh',false,true,true);" value="<?=$cfg['Config']['common_cmd'];?>">
 
 :ud_settings_common_script_plug:
-> If set, this script will run before the device script.  The action is in the environment variable **$ACTION**. Be sure you reference all commands with their full path.
+> If set, this script will run before the device script. The action is in the environment variable **$ACTION**. Be sure you reference all commands with their full path.
 :end
 
 _(Destructive Mode)_:
@@ -184,7 +184,7 @@ _(Mount SSDs with 'discard' option)_?
   </select>
 
 :ud_settings_discard_plug:
-> Mount SSDs that support discard with 'discard' option.  If you are using the SSD Trim Settings to do a periodic trim of SSDs you can set this to **No**.
+> Mount SSDs that support discard with 'discard' option. If you are using the SSD Trim Settings to do a periodic trim of SSDs you can set this to **No**.
 :end
 
 _(Spin down disks)_?
@@ -194,7 +194,7 @@ _(Spin down disks)_?
   </select><?if (version_compare($version['version'],"6.8.9", ">")):?>&nbsp;_(Disk spin down is managed by Unraid)_.<?endif;?>
 
 :ud_settings_spin_down_plug:
-> Set to **Yes** to set a 15 minute disk spin down timer.  Set to **No** to keep disks spun up.  Unraid version 6.9 and higher manages disk spin down.
+> Set to **Yes** to set a 15 minute disk spin down timer. Set to **No** to keep disks spun up. Unraid version 6.9 and higher manages disk spin down.
 :end
 
 _(Legacy Mount Point Compatibility)_?
@@ -242,12 +242,12 @@ _(Enable SMB Security)_?
 :ud_settings_smb_security_plug:
 > Set the user level of SMB Security.
 >
-> + Set to **Yes** to enable SMB Security on SMB shares.  Set access by user to allow access and whether or not the user can write to the share.
-> + Set to **Hidden** to enable SMB Security on SMB shares that will not be visible.  Set access by user to allow access and whether or not the user can write to the share.
+> + Set to **Yes** to enable SMB Security on SMB shares. Set access by user to allow access and whether or not the user can write to the share.
+> + Set to **Hidden** to enable SMB Security on SMB shares that will not be visible. Set access by user to allow access and whether or not the user can write to the share.
 > + Set to **No** will share devices, SMB/NFS, and iso Mounts Public with read and write access.
 :end
 
-<div id="smb_security" style="display: <?=($cfg['Config']["smb_security"] == "no" || $cfg['Config']["smb_security"] == "" ? "none" : "block");?>">
+<div id="smb_security" style="display: <?=($cfg['Config']["smb_security"] == "no" || (! $cfg['Config']["smb_security"]) ? "none" : "block");?>">
 	<?php foreach ($users as $user): ?>
 	<?php if ($user['name'] == "root"): continue; endif;?>
 	<dl>
@@ -287,9 +287,9 @@ _(Add)_ 'force user = nobody' _(to SMB share config)_?
   </select>
 
 :ud_settings_force_user_plug:
-> There are times when permissions on SMB shares aren't handled as expected.  Turning this feature on can help with those permissions.
+> There are times when permissions on SMB shares aren't handled as expected. Turning this feature on can help with those permissions.
 > This applies to all devices mounted with Unassigned Devices.
-> The down side is that it overrides Linux group permissions.  If you are unsure about whether or not this is necessary, leave it enabled.
+> The down side is that it overrides Linux group permissions. If you are unsure about whether or not this is necessary, leave it enabled.
 :end
 
 &nbsp;
@@ -326,7 +326,7 @@ _(Enable NFS export)_?
 </div>
 
 :ud_settings_nfs_shares_plug:
-> Set to **Yes** to export NFS shares.  Shares are exported Public with read and write access or Private with the rule you set.  Access is controlled with permission settings on files and folders.
+> Set to **Yes** to export NFS shares. Shares are exported Public with read and write access or Private with the rule you set. Access is controlled with permission settings on files and folders.
 :end
 
 &nbsp;
@@ -347,7 +347,7 @@ _(Enter Disk Password)_:
 : <input type="password" name="password" class="wide" maxlength="100" value="">
   
 :ud_settings_disk_pass_plug:
-> Select the disk that you want to set a Password.  This is the password for this disk only and does not affect the array password/passphrase.  Leave password blank to use the array password/passphrase for luks encrypted disks.
+> Select the disk that you want to set a Password. This is the password for this disk only and does not affect the array password/passphrase. Leave password blank to use the array password/passphrase for luks encrypted disks.
 :end
 
 &nbsp;
@@ -368,7 +368,7 @@ _(Select Disk to change UUID)_:
   </select>
   
 :ud_settings_change_uuid_plug:
-> Select the disk that you want to change the UUID.  This is useful when a XFS formatted disk has been removed from the array and has the same UUID as an array disk.  Drive must be unmounted to change the UUID.
+> Select the disk that you want to change the UUID. This is useful when a XFS formatted disk has been removed from the array and has the same UUID as an array disk. Drive must be unmounted to change the UUID.
 :end
 
 &nbsp;

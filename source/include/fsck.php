@@ -50,7 +50,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 		$mapper	= basename($device);
 		$cmd	= "luksOpen {$luks} '{$mapper}'";
 		$pass	= decrypt_data(get_config($serial, "pass"));
-		if ($pass == "") {
+		if (! $pass) {
 			if (file_exists($var['luksKeyfile'])) {
 				$cmd	= $cmd." -d {$var['luksKeyfile']}";
 				$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
@@ -65,7 +65,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 			unset($pass);
 			exec("/bin/shred -u '$luks_pass_file'");
 		}
-		if ($o != "") {
+		if ($o) {
 			echo("luksOpen error: ".$o."<br />");
 			return;
 		}

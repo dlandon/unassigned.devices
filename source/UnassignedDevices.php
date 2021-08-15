@@ -64,12 +64,12 @@ function render_used_and_free($partition, $mounted) {
 	if (strlen($partition['target']) && $mounted) {
 		$free_pct = $partition['size'] ? round(100*$partition['avail']/$partition['size']) : 0;
 		$used_pct = 100-$free_pct;
-	    if ($display['text'] % 10 == 0) {
+		if ($display['text'] % 10 == 0) {
 			$o = "<td>".my_scale($partition['used'], $unit)." $unit</td>";
 		} else {
 			$o = "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'></span><span>".my_scale($partition['used'], $unit)." $unit</span></div></td>";
 		}
-	    if ($display['text'] < 10 ? $display['text'] % 10 == 0 : $display['text'] % 10 != 0) {
+		if ($display['text'] < 10 ? $display['text'] % 10 == 0 : $display['text'] % 10 != 0) {
 			$o .= "<td>".my_scale($partition['avail'], $unit)." $unit</td>";
 		} else {
 			$o .= "<td><div class='usage-disk'><span style='margin:0;width:$free_pct%' class='".usage_color($display,$free_pct,true)."'></span><span>".my_scale($partition['avail'], $unit)." $unit</span></div></td>";
@@ -96,12 +96,12 @@ function render_used_and_free_disk($disk, $mounted) {
 		}
 		$free_pct = $size ? round(100*$avail/$size) : 0;
 		$used_pct = 100-$free_pct;
-	    if ($display['text'] % 10 == 0) {
+		if ($display['text'] % 10 == 0) {
 			$o = "<td>".my_scale($used, $unit)." $unit</td>";
 		} else {
 			$o = "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'></span><span>".my_scale($used, $unit)." $unit</span></div></td>";
 		}
-	    if ($display['text'] < 10 ? $display['text'] % 10 == 0 : $display['text'] % 10 != 0) {
+		if ($display['text'] < 10 ? $display['text'] % 10 == 0 : $display['text'] % 10 != 0) {
 			$o .= "<td>".my_scale($avail, $unit)." $unit</td>";
 		} else {
 			$o .= "<td><div class='usage-disk'><span style='margin:0;width:$free_pct%' class='".usage_color($display,$free_pct,true)."'></span><span>".my_scale($avail, $unit)." $unit</span></div></td>";
@@ -178,23 +178,23 @@ function render_partition($disk, $partition, $total=FALSE) {
 
 	$title = _("Edit Device Settings and Script");
 	if ($total) {
-		$title .= "<br />"._("Passed Through").":  ";
+		$title .= "<br />"._("Passed Through").": ";
 		$title .= ($partition['pass_through'] == 'yes') ? "Yes" : "No";
 		$title .= "<br />"._("Read Only").": ";
 		$title .= ($partition['read_only'] == 'yes') ? "Yes" : "No";
 		$title .= "<br />"._("Automount").": ";
 		$title .= ($partition['automount'] == 'yes') ? "Yes" : "No";
-		$title .=  "<br />";
+		$title .= "<br />";
 	} else {
 		$title .= "<br />";
 	}
 	$title .= _("Share").": ";
 	$title .= ($partition['shared'] == 'yes') ? "Yes" : "No";
 
-	$dev	= basename($device);
-	$device	= base_device($dev) ;
-	$serial = $partition['serial'];
-	$out[] = "<td><a class='info' href='/Main/EditSettings?s=".urlencode($serial)."&b=".urlencode($device)."&f=".urlencode($fstype)."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."&m=".urlencode(json_encode($partition))."&t=".$total."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+	$dev		= basename($device);
+	$device		= base_device($dev) ;
+	$serial		= $partition['serial'];
+	$out[]		= "<td><a class='info' href='/Main/EditSettings?s=".urlencode($serial)."&b=".urlencode($device)."&f=".urlencode($fstype)."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."&m=".urlencode(json_encode($partition))."&t=".$total."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 	if ($total) {
 		$mounted_disk = FALSE;
 		foreach ($disk['partitions'] as $part) {
@@ -299,9 +299,6 @@ switch ($_POST['action']) {
 	case 'get_content':
 		global $paths, $diskio;
 
-		unassigned_log("Starting page render [get_content]", "DEBUG");
-		$time		 = -microtime(true);
-
 		/* Check for a recent hot plug event. */
 		$tc			= $paths['hotplug_status'];
 		$hotplug	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : "no";
@@ -326,7 +323,7 @@ switch ($_POST['action']) {
 
 				$mbutton		= make_mount_button($disk);
 
-				$preclear_link = ($disk['size'] !== 0 && ! $disk['partitions'][0]['fstype'] && ! $mounted && $Preclear && ! $preclearing  && get_config("Config", "destructive_mode") == "enabled") ? "&nbsp;&nbsp;".$Preclear->Link($disk_name, "icon") : "";
+				$preclear_link = ($disk['size'] !== 0 && ! $disk['partitions'][0]['fstype'] && ! $mounted && $Preclear && ! $preclearing && get_config("Config", "destructive_mode") == "enabled") ? "&nbsp;&nbsp;".$Preclear->Link($disk_name, "icon") : "";
 
 				$hdd_serial = "<a class='info' href=\"#\" onclick=\"openBox('/webGui/scripts/disk_log&amp;arg1={$disk_name}','Disk Log Information',600,900,false);return false\"><i class='fa fa-hdd-o icon'></i><span>"._("Disk Log Information")."</span></a>";
 				if ($p) {
@@ -436,7 +433,6 @@ switch ($_POST['action']) {
 		echo "<tbody>";
 		$ds1 = -microtime(true);
 		$samba_mounts = get_samba_mounts();
-		unassigned_log("get_samba_mounts: ".($ds1 + microtime(true))."s!","DEBUG");
 		if (count($samba_mounts)) {
 			foreach ($samba_mounts as $mount)
 			{
@@ -572,7 +568,6 @@ switch ($_POST['action']) {
 			echo "<div class='show-disks'><div class='show-historical' id='smb_tab'><div id='title'><span class='left'><img src='/plugins/{$plugin}/icons/historical.png' class='icon'>"._('Historical Devices')."</span></div>";
 			echo "<table class='disk_status wide usb_absent'><thead><tr><td>"._('Device')."</td><td>"._('Serial Number (Mount Point)')."</td><td></td><td>"._('Remove')."</td><td>"._('Settings')."</td><td></td><td></td><td></td><td></td><td></td></tr></thead><tbody>{$ct}</tbody></table></div></div>";
 		}
-		unassigned_log("Total get_content render time: ".($time + microtime(true))."s", "DEBUG");
 		break;
 
 	case 'refresh_page':
@@ -596,11 +591,11 @@ switch ($_POST['action']) {
 		$samba_mounts = @parse_ini_file($config_file, true);
 		if (is_array($samba_mounts)) {
 			foreach ($samba_mounts as $device => $mount) {
-				$tc = $paths['ping_status'];
-				$ping_status = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-				$server = $mount['ip'];
-				$changed = ($ping_status[$server]['changed'] == 'yes') ? TRUE : FALSE;
-				$mounted = is_mounted($device);
+				$tc				= $paths['ping_status'];
+				$ping_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+				$server			= $mount['ip'];
+				$changed		= ($ping_status[$server]['changed'] == 'yes') ? TRUE : FALSE;
+				$mounted		= is_mounted($device);
 				is_samba_server_online($server, $mounted);
 				if ($changed) {
 					$no_pings = $ping_status[$server]['no_pings'];
@@ -614,11 +609,8 @@ switch ($_POST['action']) {
 		break;
 
 	case 'get_content_json':
-		unassigned_log("Starting json reply action [get_content_json]", "DEBUG");
-		$time = -microtime(true);
-		$disks = get_all_disks_info();
+		$disks	= get_all_disks_info();
 		echo json_encode($disks);
-		unassigned_log("Total get_content_json render time: ".($time + microtime(true))."s", "DEBUG");
 		break;
 
 	/*	CONFIG	*/
@@ -711,8 +703,8 @@ switch ($_POST['action']) {
 				shell_exec("/sbin/udevadm trigger --action=change /dev/{$d['device']}");
 			}
 		}
-		$tc = $paths['hotplug_status'];
-		$hotplug = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : "no";
+		$tc			= $paths['hotplug_status'];
+		$hotplug	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : "no";
 		if ($hotplug == "no") {
 			file_put_contents($tc, json_encode('yes'));
 			publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));

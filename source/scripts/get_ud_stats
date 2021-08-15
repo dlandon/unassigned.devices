@@ -54,9 +54,9 @@ function ping_server($tc, $ip, $mounted) {
 	if (! is_ip($ip)) {
 		shell_exec("/bin/sed -i '/".$ip."/d' /etc/hosts");
 		$ip = shell_exec("/sbin/arp -a {$ip} | grep -v local");
-		if ((strpos($ip, "no match found") === FALSE) && $ip != "") {
-			$ip_array = explode(" ", $ip);
-			$ip = str_replace(array("(", ")"), "", $ip_array[1]);
+		if ((strpos($ip, "no match found") === FALSE) && $ip) {
+			$ip_array	= explode(" ", $ip);
+			$ip			= str_replace(array("(", ")"), "", $ip_array[1]);
 			shell_exec("/bin/echo -e '".$ip."''\t''".$server."' >> /etc/hosts" );
 		}
 	}

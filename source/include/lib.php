@@ -13,7 +13,7 @@
 $plugin = "unassigned.devices";
 /* $VERBOSE=TRUE; */
 
-$paths = [  "smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
+$paths = [	"smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"smb_usb_shares"	=> "/etc/samba/unassigned-shares",
 			"usb_mountpoint"	=> "/mnt/disks",
 			"remote_mountpoint"	=> "/mnt/remotes",
@@ -41,10 +41,11 @@ $paths = [  "smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"script_run"		=> "/tmp/{$plugin}/script_run"
 		];
 
-$docroot = $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-$users = @parse_ini_file("$docroot/state/users.ini", true);
-$disks = @parse_ini_file("$docroot/state/disks.ini", true);
+$docroot	= $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+$users		= @parse_ini_file("$docroot/state/users.ini", true);
+$disks		= @parse_ini_file("$docroot/state/disks.ini", true);
 
+/* Read Unraid variables file. Used to determine disks not assigned to the array and other array parameters. */
 if (! isset($var)){
 	if (! is_file("$docroot/state/var.ini")) shell_exec("/usr/bin/wget -qO /dev/null localhost:$(ss -napt | /bin/grep emhttp | /bin/grep -Po ':\K\d+') >/dev/null");
 	$var = @parse_ini_file("$docroot/state/var.ini");
@@ -72,9 +73,9 @@ else
 $tc		= $paths['diskio'];
 $diskio = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 
-#########################################################
-#############        MISC FUNCTIONS        ##############
-#########################################################
+########################################################
+#############		MISC FUNCTIONS        ##############
+########################################################
 
 class MiscUD
 {
@@ -377,7 +378,7 @@ function is_script_running($cmd, $user=FALSE) {
 
 	$is_running = FALSE;
 	/* Check for a command file. */
-	if ($cmd != "") {
+	if ($cmd) {
 		$script_name	= $cmd;
 		$tc				= $paths['script_run'];
 		$script_run		= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
@@ -429,7 +430,7 @@ function get_temp($ud_dev, $dev, $running) {
 	}
 
 	/* If devs.ini does not exist, then query the disk for the temperature. */
-	if (($running) && ($temp == "")) {
+	if (($running) && (! $temp)) {
 		$tc		= $paths['hdd_temp'];
 		$temps	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 		if (isset($temps[$dev]) && (time() - $temps[$dev]['timestamp']) < $var['poll_attributes'] ) {
@@ -493,20 +494,20 @@ function format_disk($dev, $fs, $pass) {
 	}
 
 	$max_mbr_blocks = hexdec("0xFFFFFFFF");
-	$disk_blocks    = intval(trim(shell_exec("/sbin/blockdev --getsz $dev  | /bin/awk '{ print $1 }' 2>/dev/null")));
-	$disk_schema    = ( $disk_blocks >= $max_mbr_blocks ) ? "gpt" : "msdos";
+	$disk_blocks	= intval(trim(shell_exec("/sbin/blockdev --getsz $dev | /bin/awk '{ print $1 }' 2>/dev/null")));
+	$disk_schema	= ( $disk_blocks >= $max_mbr_blocks ) ? "gpt" : "msdos";
 	$parted_fs		= ($fs == 'exfat') ? "fat32" : $fs;
 	unassigned_log("Device '{$dev}' block size: {$disk_blocks}.");
 
 	unassigned_log("Clearing partition table of disk '{$dev}'.");
 	$o = trim(shell_exec("/usr/bin/dd if=/dev/zero of={$dev} bs=2M count=1 2>&1"));
-	if ($o != "") {
+	if ($o) {
 		unassigned_log("Clear partition result:\n{$o}");
 	}
 
 	unassigned_log("Reloading disk '{$dev}' partition table.");
 	$o = trim(shell_exec("/usr/sbin/hdparm -z {$dev} 2>&1"));
-	if ($o != "") {
+	if ($o) {
 		unassigned_log("Reload partition table result:\n{$o}");
 	}
 
@@ -522,7 +523,7 @@ function format_disk($dev, $fs, $pass) {
 			/* Alignment is 4,096 for spinners and 1Mb for SSD */
 			$alignment = $is_ssd ? "" : "-a 8";
 			$o = shell_exec("/sbin/sgdisk -o {$alignment} -n 1:32K:0 {$dev}");
-			if ($o != "") {
+			if ($o) {
 				unassigned_log("Create gpt partition table result:\n{$o}");
 			}
 		} else {
@@ -530,24 +531,24 @@ function format_disk($dev, $fs, $pass) {
 			/* Alignment is 4,096 for spinners and 1Mb for SSD */
 			$start_sector = $is_ssd ? "2048" : "64";
 			$o = shell_exec("/usr/local/sbin/mkmbr.sh {$dev} {$start_sector}");
-			if ($o != "") {
+			if ($o) {
 				unassigned_log("Create mbr partition table result:\n{$o}");
 			}
 		}
 		unassigned_log("Reloading disk '{$dev}' partition table.");
 		$o = trim(shell_exec("/usr/sbin/hdparm -z {$dev} 2>&1"));
-		if ($o != "") {
+		if ($o) {
 			unassigned_log("Reload partition table result:\n{$o}");
 		}
 	} else {
 		unassigned_log("Creating a 'gpt' partition table on disk '{$dev}'.");
 		$o = trim(shell_exec("/usr/sbin/parted {$dev} --script -- mklabel gpt 2>&1"));
-		if ($o != "") {
+		if ($o) {
 			unassigned_log("Create 'gpt' partition table result:\n{$o}");
 		}
 
 		$o = trim(shell_exec("/usr/sbin/parted -a optimal {$dev} --script -- mkpart primary $parted_fs 0% 100% 2>&1"));
-		if ($o != "") {
+		if ($o) {
 			unassigned_log("Create primary partition result:\n{$o}");
 		}
 	}
@@ -559,7 +560,7 @@ function format_disk($dev, $fs, $pass) {
 		} else {
 			$cmd = "luksFormat {$dev}1";
 		}
-		if ($pass == "") {
+		if (! $pass) {
 			$o				= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
 		} else {
 			$luks			= basename($dev);
@@ -580,7 +581,7 @@ function format_disk($dev, $fs, $pass) {
 		} else {
 			$cmd	= "luksOpen {$dev}1 '".$mapper."'";
 		}
-		if ($pass == "") {
+		if (! $pass) {
 			$o = exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
 		} else {
 			$luks			= basename($dev);
@@ -617,7 +618,7 @@ function format_disk($dev, $fs, $pass) {
 	sleep(3);
 	unassigned_log("Reloading disk '{$dev}' partition table.");
 	$o = trim(shell_exec("/usr/sbin/hdparm -z {$dev} 2>&1"));
-	if ($o != "") {
+	if ($o) {
 		unassigned_log("Reload partition table result:\n{$o}");
 	}
 
@@ -651,7 +652,7 @@ function remove_partition($dev, $part) {
 	}
 	unassigned_log("Removing partition '{$part}' from disk '{$dev}'.");
 	$out = shell_exec("/usr/sbin/parted {$dev} --script -- rm {$part} 2>&1");
-	if ($out != "") {
+	if ($out) {
 		unassigned_log("Remove parition failed: '{$out}'.");
 		$rc = FALSE;
 	}
@@ -669,13 +670,13 @@ function remove_partition($dev, $part) {
 
 /* Procedure to determine the time a command takes to run. */
 function benchmark() {
-	$params   = func_get_args();
-	$function = $params[0];
+	$params		= func_get_args();
+	$function	= $params[0];
 	array_shift($params);
-	$time     = -microtime(true); 
-	$out      = call_user_func_array($function, $params);
-	$time	 += microtime(true); 
-	$type     = ($time > 10) ? "INFO" : "DEBUG";
+	$time		= -microtime(true); 
+	$out		= call_user_func_array($function, $params);
+	$time	   += microtime(true); 
+	$type		= ($time > 10) ? "INFO" : "DEBUG";
 	unassigned_log("benchmark: $function(".implode(",", $params).") took ".sprintf('%f', $time)."s.", $type);
 
 	return $out;
@@ -689,8 +690,6 @@ function timed_exec($timeout = 10, $cmd) {
 	if ($time > $timeout) {
 		unassigned_log("Error: shell_exec(".$cmd.") took longer than ".sprintf('%d', $timeout)."s!");
 		$out	= "command timed out";
-	} else {
-		unassigned_log("Timed Exec: shell_exec(".$cmd.") took ".sprintf('%f', $time)."s!", "DEBUG");
 	}
 
 	return $out;
@@ -700,16 +699,16 @@ function timed_exec($timeout = 10, $cmd) {
 function luks_fs_type($dev) {
 
 	$rc = "luks";
-	if ($dev != "") {
-		$return = shell_exec( "/bin/cat /proc/mounts | /bin/grep $dev | /bin/awk '{print $3}'");
-		$rc = $return == "" ? $rc : $return;
+	if ($dev) {
+		$return	= shell_exec( "/bin/cat /proc/mounts | /bin/grep $dev | /bin/awk '{print $3}'");
+		$rc		= (! $return) ? $rc : $return;
 	}
 
 	return $rc;
 }
 
 #########################################################
-############        CONFIG FUNCTIONS        #############
+############		CONFIG FUNCTIONS		#############
 #########################################################
 
 function get_config($sn, $var) {
@@ -730,7 +729,7 @@ function is_automount($sn, $usb=FALSE) {
 	$auto = get_config($sn, "automount");
 	$auto_usb = get_config("Config", "automount_usb");
 	$pass_through = get_config($sn, "pass_through");
-	return ( (($pass_through != "yes") && ($auto == "yes")) || ($usb && $auto_usb == "yes" && $auto == "") ) ? TRUE : FALSE;
+	return ( (($pass_through != "yes") && ($auto == "yes")) || ($usb && $auto_usb == "yes" && (! $auto)) ) ? TRUE : FALSE;
 }
 
 function is_read_only($sn) {
@@ -872,14 +871,14 @@ function spin_disk($down, $dev) {
 }
 
 #########################################################
-############        MOUNT FUNCTIONS        ##############
+############		MOUNT FUNCTIONS			#############
 #########################################################
 
 /* Is a device mounted? */
 function is_mounted($dev, $dir=FALSE) {
 
 	$rc = FALSE;
-	if ($dev != "") {
+	if ($dev) {
 		$data	= timed_exec(1, "/sbin/mount");
 		$append	= ($dir) ? " " : " on";
 		$rc		= (strpos($data, $dev.$append) != 0) ? TRUE : FALSE;
@@ -964,7 +963,7 @@ function do_mount($info) {
 			$discard = is_disk_ssd($info['luks']) ? "--allow-discards" : "";
 			$cmd	= "luksOpen $discard {$info['luks']} '{$luks}'";
 			$pass	= decrypt_data(get_config($info['serial'], "pass"));
-			if ($pass == "") {
+			if (! $pass) {
 				if (file_exists($var['luksKeyfile'])) {
 					$cmd	= $cmd." -d {$var['luksKeyfile']}";
 					$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
@@ -1011,7 +1010,7 @@ function do_mount_local($info) {
 				if ($fs == "apfs") {
 					$password = decrypt_data(get_config($info['serial'], "pass"));
 					$recovery = "";
-					if ($password != "") {
+					if ($password) {
 						$recovery = ",pass='".$password."'";
 					}
 					$vol = get_config($info['serial'], "volume.{$info['part']}");
@@ -1037,7 +1036,7 @@ function do_mount_local($info) {
 				unset($recovery);
 				unset($cmd);
 			}
-			if ($o != "" && $fs == "ntfs" && is_mounted($dev)) {
+			if ($o && $fs == "ntfs" && is_mounted($dev)) {
 				unassigned_log("Mount warning: {$o}.");
 			}
 			for ($i=0; $i < 5; $i++) {
@@ -1082,7 +1081,7 @@ function do_unmount($dev, $dir, $force=FALSE, $smb=FALSE, $nfs=FALSE) {
 		$timeout = ($smb || $nfs) ? ($force ? 30 : 10) : 90;
 		$o = timed_exec($timeout, $cmd);
 		for ($i=0; $i < 5; $i++) {
-			if (! is_mounted($dev)  && ! is_mounted($dir, TRUE)) {
+			if (! is_mounted($dev) && ! is_mounted($dir, TRUE)) {
 				if (is_dir($dir)) {
 					@rmdir($dir);
 					$link = $paths['usb_mountpoint']."/".basename($dir);
@@ -1102,20 +1101,20 @@ function do_unmount($dev, $dir, $force=FALSE, $smb=FALSE, $nfs=FALSE) {
 			unassigned_log("Unmount of '{$dev}' failed: '{$o}'"); 
 		}
 	} else {
-		unassigned_log("Cannot unmount '{$dev}'.  UD did not mount the device.");
+		unassigned_log("Cannot unmount '{$dev}'. UD did not mount the device.");
 	}
 
 	return $rc;
 }
 
 #########################################################
-############        SHARE FUNCTIONS         #############
+############		SHARE FUNCTIONS			#############
 #########################################################
 
 function config_shared($sn, $part, $usb=FALSE) {
 	$share = get_config($sn, "share.{$part}");
 	$auto_usb = get_config("Config", "automount_usb");
-	return (($share == "yes") || ($usb && $auto_usb == "yes" && $share == "")) ? TRUE : FALSE; 
+	return (($share == "yes") || ($usb && $auto_usb == "yes" && (! $share))) ? TRUE : FALSE; 
 }
 
 function toggle_share($serial, $part, $status) {
@@ -1163,7 +1162,7 @@ function add_smb_share($dir, $recycle_bin=TRUE) {
 				$hidden = "\n\tbrowseable = yes";
 			}
 			$force_user = ( get_config("Config", "force_user") != "no" ) ? "\n\tforce User = nobody" : "";
-			if (($config["case_names"] == "") || ($config["case_names"] == "auto")) {
+			if (($config["case_names"]) || ($config["case_names"] == "auto")) {
 				$case_names = "\n\tcase sensitive = auto\n\tpreserve case = yes\n\tshort preserve case = yes";
 			} elseif ($config["case_names"] == "yes") {
 				$case_names = "\n\tcase sensitive = yes\n\tpreserve case = yes\n\tshort preserve case = yes";
@@ -1173,13 +1172,13 @@ function add_smb_share($dir, $recycle_bin=TRUE) {
 				$case_names = "";
 			}
 			if (count($valid_users)) {
-				$valid_users = "\n\tvalid users = ".implode(', ', $valid_users);
-				$write_users = count($write_users) ? "\n\twrite list = ".implode(', ', $write_users) : "";
-				$read_users = count($read_users) ? "\n\tread list = ".implode(', ', $read_users) : "";
-				$share_cont =  "[{$share_name}]\n\tpath = {$dir}{$hidden}{$force_user}{$valid_users}{$write_users}{$read_users}{$vfs_objects}{$case_names}";
+				$valid_users	= "\n\tvalid users = ".implode(', ', $valid_users);
+				$write_users	= count($write_users) ? "\n\twrite list = ".implode(', ', $write_users) : "";
+				$read_users		= count($read_users) ? "\n\tread list = ".implode(', ', $read_users) : "";
+				$share_cont		= "[{$share_name}]\n\tpath = {$dir}{$hidden}{$force_user}{$valid_users}{$write_users}{$read_users}{$vfs_objects}{$case_names}";
 			} else {
-				$share_cont =  "[{$share_name}]\n\tpath = {$dir}{$hidden}\n\tinvalid users = @users";
-				unassigned_log("Error: No valid smb users defined.  Share '{$dir}' cannot be accessed.");
+				$share_cont 	= "[{$share_name}]\n\tpath = {$dir}{$hidden}\n\tinvalid users = @users";
+				unassigned_log("Error: No valid smb users defined. Share '{$dir}' cannot be accessed.");
 			}
 		} else {
 			$share_cont = "[{$share_name}]\n\tpath = {$dir}\n\tread only = No{$force_user}\n\tguest ok = Yes{$vfs_objects}";
@@ -1369,7 +1368,7 @@ function reload_shares() {
 }
 
 #########################################################
-############        SAMBA FUNCTIONS         #############
+############		SAMBA FUNCTIONS			#############
 #########################################################
 
 function get_samba_config($source, $var) {
@@ -1389,12 +1388,12 @@ function set_samba_config($source, $var, $val) {
 /* Encrypt passwords. */
 function encrypt_data($data) {
 	$key = get_config("Config", "key");
-	if ($key == "" || strlen($key) != 32) {
+	if ($key || strlen($key) != 32) {
 		$key = substr(base64_encode(openssl_random_pseudo_bytes(32)), 0, 32);
 		set_config("Config", "key", $key);
 	}
 	$iv = get_config("Config", "iv");
-	if ($iv == "" || strlen($iv) != 16) {
+	if ($iv || strlen($iv) != 16) {
 		$iv = substr(base64_encode(openssl_random_pseudo_bytes(16)), 0, 16);
 		set_config("Config", "iv", $iv);
 	}
@@ -1438,8 +1437,8 @@ function get_samba_mounts() {
 	$samba_mounts = @parse_ini_file($config_file, true);
 	if (is_array($samba_mounts)) {
 		foreach ($samba_mounts as $device => $mount) {
-			$mount['device'] = $device;
-			$mount['name']   = $device;
+			$mount['device']	= $device;
+			$mount['name']		= $device;
 
 			/* Set the mount protocol. */
 			if ($mount['protocol'] == "NFS") {
@@ -1474,7 +1473,7 @@ function get_samba_mounts() {
 			$mount['prog_name']		= basename($mount['command'], ".sh");
 			$mount['command']		= get_samba_config($mount['device'],"command");
 			$mount['user_command']	= get_samba_config($mount['device'],"user_command");
-			$mount['logfile']		= ($mount['prog_name'] != "") ? $paths['device_log'].$mount['prog_name'].".log" : "";
+			$mount['logfile']		= ($mount['prog_name']) ? $paths['device_log'].$mount['prog_name'].".log" : "";
 			$o[] = $mount;
 		}
 	} else {
@@ -1495,9 +1494,9 @@ function do_mount_samba($info) {
 	/* Be sure the server online status is current. */
 	$info['is_alive'] = is_samba_server_online($info['ip'], TRUE, FALSE);
 	if ($info['is_alive']) {
-		$dir = $info['mountpoint'];
-		$fs  = $info['fstype'];
-		$dev = ($fs == "cifs") ? "//".$info['ip']."/".$info['path'] : $info['device'];
+		$dir	= $info['mountpoint'];
+		$fs		= $info['fstype'];
+		$dev	= ($fs == "cifs") ? "//".$info['ip']."/".$info['path'] : $info['device'];
 		if (! is_mounted($dev) || ! is_mounted($dir, TRUE)) {
 			@mkdir($dir, 0777, TRUE);
 			if ($fs == "nfs") {
@@ -1505,7 +1504,7 @@ function do_mount_samba($info) {
 				$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
 				unassigned_log("Mount NFS command: {$cmd}");
 				$o		= timed_exec(10, $cmd." 2>&1");
-				if ($o != "") {
+				if ($o) {
 					unassigned_log("NFS mount failed: '{$o}'.");
 				}
 			} else {
@@ -1514,7 +1513,7 @@ function do_mount_samba($info) {
 				file_put_contents("$credentials_file", "password=".decrypt_data($info['pass'])."\n", FILE_APPEND);
 				file_put_contents("$credentials_file", "domain=".$info['domain']."\n", FILE_APPEND);
 				/* If the smb version is not required, just mount the remote share with no version. */
-				$smb_version = (get_config("Config", "smb_version") == "yes") ?  TRUE : FALSE;
+				$smb_version = (get_config("Config", "smb_version") == "yes") ? TRUE : FALSE;
 				if (! $smb_version) {
 					$ver	= "";
 					$params	= sprintf(get_mount_params($fs, $dev), $ver);
@@ -1553,7 +1552,7 @@ function do_mount_samba($info) {
 					unassigned_log("Mount SMB share '{$dev}' using SMB1 protocol.");
 					unassigned_log("Mount SMB command: {$cmd}");
 					$o		= timed_exec(10, $cmd." 2>&1");
-					if ($o != "") {
+					if ($o) {
 						unassigned_log("SMB1 mount failed: '{$o}'.");
 						$rc = FALSE;
 					}
@@ -1618,7 +1617,7 @@ function remove_config_samba($source) {
 }
 
 #########################################################
-############      ISO FILE FUNCTIONS        #############
+############		ISO FILE FUNCTIONS		#############
 #########################################################
 
 function get_iso_config($source, $var) {
@@ -1665,7 +1664,7 @@ function get_iso_mounts() {
 			$mount['prog_name']		= basename($mount['command'], ".sh");
 			$mount['command']		= get_iso_config($mount['device'],"command");
 			$mount['user_command']	= get_iso_config($mount['device'],"user_command");
-			$mount['logfile']		= ($mount['prog_name'] != "") ? $paths['device_log'].$mount['prog_name'].".log" : "";
+			$mount['logfile']		= ($mount['prog_name']) ? $paths['device_log'].$mount['prog_name'].".log" : "";
 			$o[] = $mount;
 		}
 	} else {
@@ -1733,7 +1732,7 @@ function remove_config_iso($source) {
 
 
 #########################################################
-############         DISK FUNCTIONS         #############
+############		DISK FUNCTIONS			#############
 #########################################################
 
 /* Get an array of all unassigned disks. */
@@ -1759,18 +1758,16 @@ function get_unassigned_disks() {
 		}
 	}
 
-	foreach ($unraid_disks as $k) {$o .= "  $k\n";};
-	unassigned_log("UNRAID DISKS:\n{$o}", "DEBUG");
+	foreach ($unraid_disks as $k) {$o .= " $k\n";};
 
 	/* Create the array of unassigned devices. */
 	foreach ($paths as $path => $d) {
-		if (($d != "") && (preg_match("#^(.(?!wwn|part))*$#", $d))) {
+		if ($d && (preg_match("#^(.(?!wwn|part))*$#", $d))) {
 			if (! in_array($path, $unraid_disks)) {
 				if (in_array($path, array_map(function($ar){return $ar['device'];}, $ud_disks)) ) continue;
 				$m = array_values(preg_grep("|$d.*-part\d+|", $paths));
 				natsort($m);
 				$ud_disks[$d] = array("device"=>$path,"type"=>"ata", "partitions"=>$m);
-				unassigned_log("Unassigned disk: '{$d}'.", "DEBUG");
 			}
 		}
 	}
@@ -1781,8 +1778,6 @@ function get_unassigned_disks() {
 /* Get all the disk information for each disk device. */
 function get_all_disks_info($bus = "all") {
 
-	unassigned_log("Starting get_all_disks_info.", "DEBUG");
-	$time = -microtime(true);
 	$ud_disks = get_unassigned_disks();
 	if (is_array($ud_disks)) {
 		foreach ($ud_disks as $key => $disk) {
@@ -1794,13 +1789,11 @@ function get_all_disks_info($bus = "all") {
 				if ($p) $disk['partitions'][$k] = get_partition_info($p);
 			}
 			$ud_disks[$key]	= $disk;
-			unassigned_log("Getting [".realpath($key)."] info: ".(time() - $dp)."s", "DEBUG");
 		}
 	} else {
 		unassigned_log("Error: unable to get unassigned disks.");
 		$ud_disks = array();
 	}
-	unassigned_log("Total time: ".($time + microtime(true))."s!", "DEBUG");
 
 	return $ud_disks;
 }
@@ -1815,12 +1808,10 @@ function get_udev_info($device, $udev=NULL) {
 		save_ini_file($paths['state'], $state);
 		return $udev;
 	} else if (array_key_exists($device, $state)) {
-		unassigned_log("Using udev cache for '{$device}'.", "DEBUG");
 		return $state[$device];
 	} else {
 		$state[$device] = parse_ini_string(timed_exec(5,"/sbin/udevadm info --query=property --path $(/sbin/udevadm info -q path -n $device 2>/dev/null) 2>/dev/null"), INI_SCANNER_RAW);
 		save_ini_file($paths['state'], $state);
-		unassigned_log("Not using udev cache for '{$device}'.", "DEBUG");
 		return $state[$device];
 	}
 }
@@ -1867,7 +1858,7 @@ function get_partition_info($device) {
 		$disk['part']			= $matches[2][0];
 		$disk['disk']			= $matches[1][0];
 		if (strpos($disk['disk'], "nvme") !== false) {
-			$disk['disk'] =  rtrim($disk['disk'], "p");
+			$disk['disk']		= rtrim($disk['disk'], "p");
 		}
 		if (isset($attrs['ID_FS_LABEL'])){
 			$disk['label'] = safe_name($attrs['ID_FS_LABEL_ENC']);
@@ -1904,7 +1895,7 @@ function get_partition_info($device) {
 		$disk['user_command']	= get_config($disk['serial'], "user_command.{$disk['part']}");
 		$disk['command_bg']		= get_config($disk['serial'], "command_bg.{$disk['part']}");
 		$disk['prog_name']		= basename($disk['command'], ".sh");
-		$disk['logfile']		= ($disk['prog_name'] != "") ? $paths['device_log'].$disk['prog_name'].".log" : "";
+		$disk['logfile']		= ($disk['prog_name']) ? $paths['device_log'].$disk['prog_name'].".log" : "";
 	
 		return $disk;
 	}
@@ -1951,7 +1942,7 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 
 		default:
 			$cmd = array('ro'=>false,'rw'=>false);
-		break;
+			break;
 	}
 
 	return $cmd[$type] ? sprintf($cmd[$type], $dev) : "";
@@ -1963,8 +1954,8 @@ function check_for_duplicate_share($dev, $mountpoint, $fstype = "") {
 	$rc = TRUE;
 
 	/* Parse the samba config file. */
-	$smb_file =  "/etc/samba/smb-shares.conf";
-	$smb_config = parse_ini_file($smb_file, true);
+	$smb_file 	= "/etc/samba/smb-shares.conf";
+	$smb_config	= parse_ini_file($smb_file, true);
 
 	/* Get all shares from the smb configuration file. */
 	$smb_shares = array_keys($smb_config);
@@ -2005,7 +1996,7 @@ function check_for_duplicate_share($dev, $mountpoint, $fstype = "") {
 
 	/* See if the share name is already being used. */
 	if (is_array($shares) && in_array(strtoupper($mountpoint), $shares)) {
-		unassigned_log("Error: Cannot use that mount point!  Share '{$mountpoint}' is already being used in the array or another unassigned device.");
+		unassigned_log("Error: Cannot use that mount point! Share '{$mountpoint}' is already being used in the array or another unassigned device.");
 		$rc = FALSE;
 	}
 
@@ -2017,7 +2008,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 	global $paths, $var;
 
 	$rc = TRUE;
-	if ($mountpoint != "") {
+	if ($mountpoint) {
 		$rc = check_for_duplicate_share($dev, $mountpoint, $fstype);
 		if ($rc) {
 			$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
@@ -2047,7 +2038,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 					$cmd	= "luksOpen {$dev} '{$mapper}'";
 					$pass	= decrypt_data(get_config($serial, "pass"));
 					$cmd	= "luksOpen {$dev} '{$mapper}'";
-					if ($pass == "") {
+					if (! $pass) {
 						if (file_exists($var['luksKeyfile'])) {
 							$cmd	= $cmd." -d {$var['luksKeyfile']}";
 							$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
@@ -2062,7 +2053,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 						exec("/bin/shred -u '$luks_pass_file'");
 						unset($pass);
 					}
-					if ($o != "") {
+					if ($o) {
 						unassigned_log("Change disk label luksOpen error: ".$o);
 						return FALSE;
 					}
@@ -2076,7 +2067,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 			}
 		}
 	} else {
-		unassigned_log("Error: Cannot change mount point!  Mount point is blank.");
+		unassigned_log("Error: Cannot change mount point! Mount point is blank.");
 		$rc = FALSE;
 	}
 
@@ -2088,14 +2079,14 @@ function change_samba_mountpoint($dev, $mountpoint) {
 	global $paths;
 
 	$rc = TRUE;
-	if ($mountpoint != "") {
+	if ($mountpoint) {
 		$rc = check_for_duplicate_share($dev, $mountpoint);
 		if ($rc) {
 			$mountpoint = $mountpoint;
 			set_samba_config($dev, "mountpoint", $mountpoint);
 		}
 	} else {
-		unassigned_log("Cannot change mount point!  Mount point is blank.");
+		unassigned_log("Cannot change mount point! Mount point is blank.");
 		$rc = FALSE;
 	}
 
@@ -2107,7 +2098,7 @@ function change_iso_mountpoint($dev, $mountpoint) {
 	global $paths;
 
 	$rc = TRUE;
-	if ($mountpoint != "") {
+	if ($mountpoint) {
 		$rc = check_for_duplicate_share($dev, $mountpoint);
 		if ($rc) {
 			$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
@@ -2115,7 +2106,7 @@ function change_iso_mountpoint($dev, $mountpoint) {
 		} else {
 		}
 	} else {
-		unassigned_log("Cannot change mount point!  Mount point is blank.");
+		unassigned_log("Cannot change mount point! Mount point is blank.");
 		$rc = FALSE;
 	}
 
@@ -2142,7 +2133,7 @@ function change_UUID($dev) {
 		$mapper	= basename($dev);
 		$cmd	= "luksOpen {$luks} '{$mapper}'";
 		$pass	= decrypt_data(get_config($serial, "pass"));
-		if ($pass == "") {
+		if (! $pass) {
 			if (file_exists($var['luksKeyfile'])) {
 				$cmd	= $cmd." -d {$var['luksKeyfile']}";
 				$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
@@ -2157,7 +2148,7 @@ function change_UUID($dev) {
 			exec("/bin/shred -u '$luks_pass_file'");
 			unset($pass);
 		}
-		if ($o != "") {
+		if ($o) {
 			unassigned_log("luksOpen error: {$o}");
 			return;
 		}

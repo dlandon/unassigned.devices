@@ -27,7 +27,7 @@ if ($COMMAND != 'spindown') {
 } else {
 	$DEVNAME = $argv[2];
 }
-$remove  = [];
+$remove = [];
 if (! $DEVNAME) die("Fail: device not defined.\n");
 
 function unassigned_mount() {
@@ -170,7 +170,7 @@ function unassigned_umount() {
 
 	$force = ($DEVNAME == "all") ? TRUE : FALSE;
 
-	/* Deal with local disks. */
+	/* Unmount local disks. */
 	foreach(get_unassigned_disks() as $disk) {
 		$device = $disk['device'];
 		foreach ($disk['partitions'] as $partition) {
@@ -211,7 +211,7 @@ function unassigned_umount() {
 		}
 	}
 
-	/* Deal with Remote SMB/NFS mounts. */
+	/* Unmount Remote SMB/NFS mounts. */
 	if (strpos($DEVNAME, "//") === 0 || strpos($DEVNAME, ":/") || $DEVNAME == "auto" || $DEVNAME == "all") {
 		foreach (get_samba_mounts() as $info) {
 			$device = $info['device'];
@@ -245,7 +245,7 @@ function unassigned_umount() {
 		}
 	}
 
-	/* Deal with ISO File mounts. */
+	/* Unmount ISO File mounts. */
 	if (strpos($DEVNAME, "/mnt") === 0 || $DEVNAME == "auto" || $DEVNAME == "all") {
 		foreach (get_iso_mounts() as $info) {
 			$device = $info['device'];
@@ -275,7 +275,7 @@ function unassigned_umount() {
 		}
 	}
 
-	/* Tell Unraid to update devs.ini file of unassigned devices. */
+	/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
 	if (isset($_ENV['DEVTYPE']) && ($_ENV['DEVTYPE'] == "disk")) {
 		$tc			= $paths['hotplug_status'];
 		$hotplug	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : "no";
@@ -285,6 +285,7 @@ function unassigned_umount() {
 	}
 }
 
+/* Update udev disk info. */
 function unassigned_reload() {
 	if (isset($_ENV['DEVLINKS'])) {
 		foreach (explode(" ", $_ENV['DEVLINKS']) as $link) {
@@ -318,8 +319,8 @@ function addFile($file)
 function export_disk($disk, $add) {
 	global $paths;
 
-	$info = MiscUD::get_json($paths['mounted']);
-	$dev  = $disk['device'];
+	$info	= MiscUD::get_json($paths['mounted']);
+	$dev	= $disk['device'];
 	if ($add)
 	{
 		if (isset($disk["pass"])) {
