@@ -907,6 +907,7 @@ switch ($_POST['action']) {
 		$tc = $paths['run_status'];
 		$run_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 		if ($run_status[$device]['running'] == 'yes') {
+			$run_status[$device]['spin_time'] = time();
 			$run_status[$device]['spin'] = 'down';
 			file_put_contents($tc, json_encode($run_status));
 			echo json_encode(spin_disk(TRUE, $device));
@@ -920,6 +921,7 @@ switch ($_POST['action']) {
 		$tc = $paths['run_status'];
 		$run_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 		if ($run_status[$device]['running'] == 'no') {
+			$run_status[$device]['spin_time'] = time();
 			$run_status[$device]['spin'] = 'up';
 			file_put_contents($tc, json_encode($run_status));
 			echo json_encode(spin_disk(FALSE, $device));

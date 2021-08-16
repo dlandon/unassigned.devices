@@ -301,8 +301,9 @@ function is_disk_running($ud_dev, $dev) {
 		$device		= $dev;
 	}
 
-	$spin = isset($run_status[$device]['spin']) ? $run_status[$device]['spin'] : "";
-	$run_status[$device] = array('timestamp' => time(), 'running' => $rc ? 'yes' : 'no', 'spin' => $spin);
+	$spin		= isset($run_status[$device]['spin']) ? $run_status[$device]['spin'] : "";
+	$spin_time	= isset($run_status[$device]['spin']) ? $run_status[$device]['spin_time'] : 0;
+	$run_status[$device] = array('timestamp' => time(), 'running' => $rc ? 'yes' : 'no', 'spin_time' => $spin_time, 'spin' => $spin);
 	file_put_contents($tc, json_encode($run_status));
 
 	return $rc;
@@ -318,15 +319,16 @@ function is_disk_spin($ud_dev, $running) {
 
 	/* Is disk spinning up or down? */
 	if (isset($run_status[$ud_dev]['spin'])) {
+		/* Stop checking if it takes too long. */
 		switch ($run_status[$ud_dev]['spin']) {
 			case "up":
-				if (! $running) {
+				if ((! $running) && ((time() - $run_status[$ud_dev]['spin_time']) < 15)) {
 					$rc = TRUE;
 				} 
 				break;
 
 			case "down":
-				if ($running) {
+				if (($running) && ((time() - $run_status[$ud_dev]['spin_time']) < 15)) {
 					$rc = TRUE;
 				}
 				break;
@@ -336,13 +338,14 @@ function is_disk_spin($ud_dev, $running) {
 		}
 
 		/* See if we need to update the run spin status. */
-		if (! $rc && $run_status[$ud_dev]['spin'] != '') {
+		if ((! $rc) && $run_status[$ud_dev]['spin'] != '') {
 			$run_status[$ud_dev]['spin'] = '';
+			$run_status[$ud_dev]['spin_time'] = 0;
 			file_put_contents($tc, json_encode($run_status));
 		}
 	}
-	return($rc);
 
+	return($rc);
 }
 
 /* Check to see if a samba server is online by pinging it. */
