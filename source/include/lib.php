@@ -338,8 +338,8 @@ function is_disk_spin($ud_dev, $running) {
 		}
 
 		/* See if we need to update the run spin status. */
-		if ((! $rc) && $run_status[$ud_dev]['spin'] != '') {
-			$run_status[$ud_dev]['spin'] = '';
+		if ((! $rc) && ($run_status[$ud_dev]['spin'])) {
+			$run_status[$ud_dev]['spin'] = "";
 			$run_status[$ud_dev]['spin_time'] = 0;
 			file_put_contents($tc, json_encode($run_status));
 		}
@@ -2123,8 +2123,6 @@ function change_iso_mountpoint($dev, $mountpoint) {
 function change_UUID($dev) {
 	global $plugin;
 
-	/* Get the base device - remove the partition. */
-	$dev	= base_device(basename($dev));
 	$fs_type = "";
 	foreach (get_all_disks_info() as $d) {
 		if ($d['device'] == $dev) {
@@ -2134,6 +2132,7 @@ function change_UUID($dev) {
 			break;
 		}
 	}
+
 	if ($fs_type == "crypto_LUKS") {
 		timed_exec(20, "plugins/{$plugin}/scripts/luks_uuid.sh {$dev}1");
 		$mapper	= basename($dev);

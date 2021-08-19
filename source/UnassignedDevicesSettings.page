@@ -59,7 +59,10 @@ if (count($_POST)) {
 		reload_shares();
 		unassigned_log("Share settings updated.");
 	} else if (($_POST['#command'] == "UUID") && (isset($_POST['change_uuid']))) {
-		$dev = substr($_POST['change_uuid'], 1, 8)."1";
+		$dev = $_POST['change_uuid'];
+		$first	= strpos($dev, "(") + 1;
+		$last	= strpos($dev, ")") - 1;
+		$dev = substr($_POST['change_uuid'], $first, $last);
 		change_UUID($dev);
 	} else if ($_POST['#command'] == "chg_pass") {
 		$serial = $_POST['set_pass'];
