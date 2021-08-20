@@ -145,7 +145,7 @@ function unassigned_log($m, $type = "NOTICE") {
 	$m		= print_r($m,true);
 	$m		= str_replace("\n", " ", $m);
 	$m		= str_replace('"', "'", $m);
-	$cmd	= "/usr/bin/logger ".'"'.$m.'"'." -t".$plugin;
+	$cmd	= "/usr/bin/logger"." ".escapeshellarg($m)." -t ".escapeshellarg($plugin);
 	exec($cmd);
 }
 
@@ -200,7 +200,8 @@ function get_device_stats($mountpoint, $mounted, $active = TRUE) {
 		$df_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 		/* Run the stats script to update the state file. */
 		if (($active) && ((time() - $df_status[$mountpoint]['timestamp']) > 90) ) {
-			exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats df_status {$tc} '{$mountpoint}' &");
+			$cmd = "/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats df_status"." ". escapeshellarg($tc)." ".escapeshellarg($mountpoint)." &";
+			exec($cmd);
 		}
 
 		/* Get the updated device stats. */
@@ -363,7 +364,8 @@ function is_samba_server_online($ip, $mounted, $background = TRUE) {
 		$bk = $background ? "&" : "";
 
 		/* Run the stats script to update the ping state file. */
-		exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats ping {$tc} {$ip} {$mounted} {$bk}");
+		$cmd = escapeshellcmd("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats ping")." ".escapeshellarg($tc)." ".escapeshellarg($ip)." ".escapeshellarg($mounted)." ".$bk;
+		exec($cmd);
 	}
 
 	/* Get the updated ping status. */
@@ -403,7 +405,8 @@ function is_script_running($cmd, $user=FALSE) {
 		}
 
 		/* Check if the script is currently running. */
-		$is_running = shell_exec("/usr/bin/ps -ef | /bin/grep '".basename($cmd)."' | /bin/grep -v 'grep' | /bin/grep '{$source}'") != "" ? TRUE : FALSE;
+		$command = "/usr/bin/ps -ef | /bin/grep '".basename($cmd)."' | /bin/grep -v 'grep' | /bin/grep '{$source}'";
+		$is_running = shell_exec($command) != "" ? TRUE : FALSE;
 		$script_run[$script_name] = array('running' => $is_running ? 'yes' : 'no','user' => $user ? 'yes' : 'no');
 
 		/* Update the current running state. */
@@ -1692,7 +1695,7 @@ function do_mount_iso($info) {
 			@mkdir($dir, 0777, TRUE);
 			$cmd = "/sbin/mount -ro loop '{$dev}' '{$dir}'";
 			unassigned_log("Mount iso command: mount -ro loop '{$dev}' '{$dir}'");
-			$o = timed_exec(10, $cmd." 2>&1");
+			$o = timed_exec(15, $cmd." 2>&1");
 			if (is_mounted($dev) && is_mounted($dir, TRUE)) {
 				unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
 
