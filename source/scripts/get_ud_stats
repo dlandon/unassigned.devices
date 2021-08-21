@@ -10,8 +10,10 @@
  * all copies or substantial portions of the Software.
  */
 
-$plugin = "unassigned.devices";
-$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+$plugin			= "unassigned.devices";
+$docroot		= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+$config_file	= "/tmp/{$plugin}/config/samba_mount.cfg";
+$tc 			= "/var/state/{$plugin}/ping_status.json";
 
 $COMMAND = $argv[1];
 
@@ -50,10 +52,9 @@ function exist_in_file($file, $text) {
 	return (preg_grep("%{$text}%", @file($file))) ? TRUE : FALSE;
 }
 
-/* Ping the remote server to check for it being on-line. */
-function ping_server($tc, $ip, $mounted) {
-
-	$server = $ip;
+/* Is the server currently on line. */
+function is_server_online($server) {
+	global $tc;
 
 	/* See if we need to add this server to the hosts file. */
 	if (! is_ip($ip)) {
@@ -72,7 +73,7 @@ function ping_server($tc, $ip, $mounted) {
 	/* Check the last ping status. */
 	$ping_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 	$was_alive		= ($ping_status[$server]['online'] == 'yes') ? TRUE : FALSE;
-	$is_alive		= (trim(exec("/bin/ping -c 1 -W 1 ".escapeshellarg($ip)." >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+	$is_alive		= (trim(exec("/bin/ping -c 1 -W 1 ".escapeshellarg($server)." >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
 	$no_pings		= isset($ping_status[$server]['no_pings']) ? $ping_status[$server]['no_pings'] : 0;
 	if (! $is_alive && ! is_ip($server))
 	{
@@ -105,6 +106,29 @@ function ping_server($tc, $ip, $mounted) {
 	file_put_contents($tc, json_encode($ping_status));
 }
 
+/* Ping the remote server to check for it being on-line. */
+function ping_servers() {
+	global $config_file, $tc;
+
+	/* Refresh the ping status. */
+	$samba_mounts	= @parse_ini_file($config_file, true);
+	if (is_array($samba_mounts)) {
+		foreach ($samba_mounts as $device => $mount) {
+			$ping_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+			$server			= $mount['ip'];
+			$changed		= ($ping_status[$server]['changed'] == 'yes') ? TRUE : FALSE;
+			is_server_online($server);
+			if ($changed) {
+				$no_pings = $ping_status[$server]['no_pings'];
+				$online = $ping_status[$server]['online'];
+				$ping_status[$server] = array('timestamp' => time(), 'no_pings' => $no_pings, 'online' => $online, 'changed' => 'no');
+				file_put_contents($tc, json_encode($ping_status));
+			}
+		}
+	}
+
+}
+
 /* Get the sizem, used, and free space on device. */
 function df_status($tc, $mountpoint) {
 
@@ -116,7 +140,7 @@ function df_status($tc, $mountpoint) {
 
 switch ($COMMAND) {
 	case 'ping':
-		ping_server($argv[2], $argv[3], $argv[4]);
+		ping_servers();
 		break;
 
 	case 'df_status':
