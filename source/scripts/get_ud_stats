@@ -22,14 +22,14 @@ function unassigned_log($m, $type = "NOTICE") {
 	$m		= print_r($m,true);
 	$m		= str_replace("\n", " ", $m);
 	$m		= str_replace('"', "'", $m);
-	$cmd	= "/usr/bin/logger ".'"'.$m.'"'." -t".$plugin;
+	$cmd	= "/usr/bin/logger ".'"'.escapeshellarg($m).'"'." -t".escapeshellarg($plugin);
 	exec($cmd);
 }
 
 /* Run a command and time out if it doesn't complete in the $timeout number of seconds. */
 function timed_exec($timeout = 10, $cmd) {
 	$time		= -microtime(true); 
-	$out		= shell_exec("/usr/bin/timeout ".$timeout." ".$cmd);
+	$out		= shell_exec("/usr/bin/timeout ".escapeshellarg($timeout)." ".$cmd);
 	$time		+= microtime(true);
 	if ($time >= $timeout) {
 		unassigned_log("Error: shell_exec(".$cmd.") took longer than ".sprintf('%d', $timeout)."s!");
@@ -45,6 +45,11 @@ function is_ip($str) {
 	return filter_var($str, FILTER_VALIDATE_IP);
 }
 
+/* Check for text in a file. */
+function exist_in_file($file, $text) {
+	return (preg_grep("%{$text}%", @file($file))) ? TRUE : FALSE;
+}
+
 /* Ping the remote server to check for it being on-line. */
 function ping_server($tc, $ip, $mounted) {
 
@@ -52,26 +57,29 @@ function ping_server($tc, $ip, $mounted) {
 
 	/* See if we need to add this server to the hosts file. */
 	if (! is_ip($ip)) {
-		shell_exec("/bin/sed -i '/".$ip."/d' /etc/hosts");
-		$ip = shell_exec("/sbin/arp -a {$ip} | grep -v local");
-		if ((strpos($ip, "no match found") === FALSE) && $ip) {
-			$ip_array	= explode(" ", $ip);
-			$ip			= str_replace(array("(", ")"), "", $ip_array[1]);
-			shell_exec("/bin/echo -e '".$ip."''\t''".$server."' >> /etc/hosts" );
+		$ip = shell_exec("/sbin/arp -a ".escapeshellarg($server)." | grep -v local");
+		if ((strpos($ip, "no match found") !== FALSE) && $ip) {
+			shell_exec("/bin/sed -i '/".escapeshellarg($server)."/d' /etc/hosts");
+			$ip = shell_exec("/sbin/arp -a ".escapeshellarg($server)." | grep -v local");
+		}
+		$ip_array	= explode(" ", $ip);
+		$ip			= str_replace(array("(", ")"), "", $ip_array[1]);
+		if (is_ip($ip) && (! exist_in_file("/etc/hosts", $ip))) {
+			shell_exec("/bin/echo -e '".escapeshellarg($ip)."''\t''".escapeshellarg($server)."' >> /etc/hosts" );
 		}
 	}
 
 	/* Check the last ping status. */
 	$ping_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 	$was_alive		= ($ping_status[$server]['online'] == 'yes') ? TRUE : FALSE;
-	$is_alive		= (trim(exec("/bin/ping -c 1 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+	$is_alive		= (trim(exec("/bin/ping -c 1 -W 1 ".escapeshellarg($ip)." >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
 	$no_pings		= isset($ping_status[$server]['no_pings']) ? $ping_status[$server]['no_pings'] : 0;
 	if (! $is_alive && ! is_ip($server))
 	{
-		$ip			= trim(timed_exec(5, "/usr/bin/nmblookup {$server} | /bin/head -n1 | /bin/awk '{print $1}'"));
+		$ip			= trim(timed_exec(5, "/usr/bin/nmblookup ".escapeshellarg($server)." | /bin/head -n1 | /bin/awk '{print $1}'"));
 		if (is_ip($ip))
 		{
-			$is_alive = (trim(exec("/bin/ping -c 1 -W 1 {$ip} >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+			$is_alive = (trim(exec("/bin/ping -c 1 -W 1 ".escapeshellarg($ip)." >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
 		}
 	}
 	if (! $is_alive) {
@@ -101,7 +109,7 @@ function ping_server($tc, $ip, $mounted) {
 function df_status($tc, $mountpoint) {
 
 	$df_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-	$rc			= trim(timed_exec(5, "/bin/df '{$mountpoint}' --output=size,used,avail | /bin/grep -v '1K-blocks' 2>/dev/null"));
+	$rc			= trim(timed_exec(5, "/bin/df ".escapeshellarg($mountpoint)." --output=size,used,avail | /bin/grep -v '1K-blocks' 2>/dev/null"));
 	$df_status[$mountpoint] = array('timestamp' => time(), 'stats' => $rc);
 	file_put_contents($tc, json_encode($df_status));
 }
