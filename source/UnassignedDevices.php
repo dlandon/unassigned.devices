@@ -587,25 +587,8 @@ switch ($_POST['action']) {
 		global $paths;
 
 		/* Refresh the ping status in the background. */
-		$config_file = $paths['samba_mount'];
-		$samba_mounts = @parse_ini_file($config_file, true);
-		if (is_array($samba_mounts)) {
-			foreach ($samba_mounts as $device => $mount) {
-				$tc				= $paths['ping_status'];
-				$ping_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-				$server			= $mount['ip'];
-				$changed		= ($ping_status[$server]['changed'] == 'yes') ? TRUE : FALSE;
-				$mounted		= is_mounted($device);
-				is_samba_server_online($server, $mounted);
-				if ($changed) {
-					$no_pings = $ping_status[$server]['no_pings'];
-					$online = $ping_status[$server]['online'];
-					$ping_status[$server] = array('timestamp' => time(), 'no_pings' => $no_pings, 'online' => $online, 'changed' => 'no');
-					file_put_contents($tc, json_encode($ping_status));
-					publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
-				}
-			}
-		}
+		exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats ping &");
+		publish("reload", json_encode(array("rescan" => "yes"), JSON_UNESCAPED_SLASHES));
 		break;
 
 	case 'get_content_json':
@@ -683,14 +666,13 @@ switch ($_POST['action']) {
 	/*	DISK	*/
 	case 'mount':
 		$device = urldecode($_POST['device']);
-		exec("plugins/{$plugin}/scripts/rc.unassigned mount '$device' &>/dev/null", $out, $return);
+		exec("plugins/{$plugin}/scripts/rc.unassigned mount ".escapeshellarg($device)." &>/dev/null", $out, $return);
 		echo json_encode(["status" => $return ? false : true ]);
 		break;
 
 	case 'umount':
 		$device = urldecode($_POST['device']);
-		exec("plugins/{$plugin}/scripts
-		rc.unassigned umount '$device' &>/dev/null", $out, $return);
+		exec("plugins/{$plugin}/scripts/rc.unassigned umount ".escapeshellarg($device)." &>/dev/null", $out, $return);
 		echo json_encode(["status" => $return ? false : true ]);
 		break;
 
@@ -728,7 +710,7 @@ switch ($_POST['action']) {
 		{
 			$ip = $iface['ip'];
 			$netmask = $iface['netmask'];
-			exec("plugins/{$plugin}/scripts/port_ping.sh {$ip} {$netmask} 445", $hosts);
+			exec("plugins/{$plugin}/scripts/port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 445", $hosts);
 			foreach ($hosts as $host) {
 				$name=trim(shell_exec("/usr/bin/nmblookup -A '$host' 2>/dev/null | grep -v 'GROUP' | grep -Po '[^<]*(?=<00>)' | head -n 1"));
 				$names[]= $name ? $name : $host;
@@ -746,9 +728,9 @@ switch ($_POST['action']) {
 		file_put_contents("{$paths['authentication']}", "username=".$user."\n");
 		file_put_contents("{$paths['authentication']}", "password=".$pass."\n", FILE_APPEND);
 		file_put_contents("{$paths['authentication']}", "domain=".$domain."\n", FILE_APPEND);
-		is_samba_server_online($ip, TRUE, FALSE);
-		$list = shell_exec("/usr/bin/smbclient -t2 -g -L '{$ip}' --authentication-file='{$paths['authentication']}' 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}' | sort");
-		exec("/bin/shred -u ".$paths['authentication']);
+		is_samba_server_online($ip);
+		$list = shell_exec("/usr/bin/smbclient -t2 -g -L ".escapeshellarg($ip)." --authentication-file=".escapeshellarg($paths['authentication'])." 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}' | sort");
+		exec("/bin/shred -u ".escapeshellarg($paths['authentication']));
 		echo $list;
 		break;
 
@@ -759,13 +741,13 @@ switch ($_POST['action']) {
 		{
 			$ip = $iface['ip'];
 			$netmask = $iface['netmask'];
-			echo shell_exec("/usr/bin/timeout -s 13 5 plugins/{$plugin}/scripts/port_ping.sh {$ip} {$netmask} 2049 2>/dev/null | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4");
+			echo shell_exec("/usr/bin/timeout -s 13 5 plugins/{$plugin}/scripts/port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 2049 2>/dev/null | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4");
 		}
 		break;
 
 	case 'list_nfs_shares':
 		$ip = urldecode($_POST['IP']);
-		$rc = timed_exec(10, "/usr/sbin/showmount --no-headers -e '{$ip}' 2>/dev/null | rev | cut -d' ' -f2- | rev | sort");
+		$rc = timed_exec(10, "/usr/sbin/showmount --no-headers -e ".escapeshellarg($ip)." 2>/dev/null | rev | cut -d' ' -f2- | rev | sort");
 		echo $rc ? $rc : " ";
 		break;
 
@@ -796,9 +778,6 @@ switch ($_POST['action']) {
 				set_samba_config("{$device}", "pass", encrypt_data($pass));
 			}
 			set_samba_config("{$device}", "share", safe_name($share, FALSE));
-
-			/* Refresh the ping status */
-			is_samba_server_online($ip, TRUE, FALSE);
 		}
 		publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
 		echo json_encode($rc);

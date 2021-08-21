@@ -184,8 +184,8 @@ function safe_name($string, $convert_spaces = TRUE) {
 }
 
 /* Check for text in a file. */
-function exist_in_file($file, $val) {
-	return (preg_grep("%{$val}%", @file($file))) ? TRUE : FALSE;
+function exist_in_file($file, $text) {
+	return (preg_grep("%{$text}%", @file($file))) ? TRUE : FALSE;
 }
 
 /* Get the size, used, and free space on a mount point. */
@@ -200,8 +200,7 @@ function get_device_stats($mountpoint, $mounted, $active = TRUE) {
 		$df_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 		/* Run the stats script to update the state file. */
 		if (($active) && ((time() - $df_status[$mountpoint]['timestamp']) > 90) ) {
-			$cmd = "/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats df_status"." ". escapeshellarg($tc)." ".escapeshellarg($mountpoint)." &";
-			exec($cmd);
+			exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." &");
 		}
 
 		/* Get the updated device stats. */
@@ -350,23 +349,12 @@ function is_disk_spin($ud_dev, $running) {
 }
 
 /* Check to see if a samba server is online by pinging it. */
-function is_samba_server_online($ip, $mounted, $background = TRUE) {
+function is_samba_server_online($ip) {
 	global $paths, $plugin;
 
 	$is_alive		= FALSE;
 	$server			= $ip;
 	$tc				= $paths['ping_status'];
-
-	/* Update server online status immediately if not set to run in background. */
-	$ping_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-	if ((! $background) || (time() - $ping_status[$server]['timestamp']) > 15 ) {
-		/* Set background if we don't need immediate update. */
-		$bk = $background ? "&" : "";
-
-		/* Run the stats script to update the ping state file. */
-		$cmd = escapeshellcmd("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats ping")." ".escapeshellarg($tc)." ".escapeshellarg($ip)." ".escapeshellarg($mounted)." ".$bk;
-		exec($cmd);
-	}
 
 	/* Get the updated ping status. */
 	$ping_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
@@ -405,7 +393,7 @@ function is_script_running($cmd, $user=FALSE) {
 		}
 
 		/* Check if the script is currently running. */
-		$command = "/usr/bin/ps -ef | /bin/grep '".basename($cmd)."' | /bin/grep -v 'grep' | /bin/grep '{$source}'";
+		$command = "/usr/bin/ps -ef | /bin/grep ".basename($cmd)." | /bin/grep -v 'grep' | /bin/grep ".escapeshellarg($source);
 		$is_running = shell_exec($command) != "" ? TRUE : FALSE;
 		$script_run[$script_name] = array('running' => $is_running ? 'yes' : 'no','user' => $user ? 'yes' : 'no');
 
@@ -691,7 +679,7 @@ function benchmark() {
 /* Run a command and time out if it takes too long. */
 function timed_exec($timeout = 10, $cmd) {
 	$time		= -microtime(true); 
-	$out		= shell_exec("/usr/bin/timeout ".$timeout." ".$cmd);
+	$out		= shell_exec("/usr/bin/timeout ".escapeshellarg($timeout)." ".$cmd);
 	$time		+= microtime(true);
 	if ($time > $timeout) {
 		unassigned_log("Error: shell_exec(".$cmd.") took longer than ".sprintf('%d', $timeout)."s!");
@@ -706,7 +694,7 @@ function luks_fs_type($dev) {
 
 	$rc = "luks";
 	if ($dev) {
-		$return	= shell_exec( "/bin/cat /proc/mounts | /bin/grep $dev | /bin/awk '{print $3}'");
+		$return	= shell_exec( "/bin/cat /proc/mounts | /bin/grep ".escapeshellarg($dev)." | /bin/awk '{print $3}'");
 		$rc		= (! $return) ? $rc : $return;
 	}
 
@@ -945,7 +933,7 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 			break;
 
 		case 'nfs':
-			$rc = "rw,noacl,hard,timeo=600,retrans=10";
+			$rc = "rw,noacl,noatime,nodiratime,hard,timeo=600,retrans=10";
 			break;
 
 		default:
@@ -974,16 +962,16 @@ function do_mount($info) {
 			if (! $pass) {
 				if (file_exists($var['luksKeyfile'])) {
 					$cmd	= $cmd." -d {$var['luksKeyfile']}";
-					$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+					$o		= shell_exec(escapeshellcmd("/sbin/cryptsetup $cmd 2>&1"));
 				} else {
-					$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
+					$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
 				}
 			} else {
 				$luks_pass_file = "{$paths['luks_pass']}_".$luks;
 				file_put_contents($luks_pass_file, $pass);
 				$cmd	= $cmd." -d $luks_pass_file";
-				$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
-				exec("/bin/shred -u '$luks_pass_file'");
+				$o		= shell_exec(escapeshellcmd("/sbin/cryptsetup $cmd 2>&1"));
+				exec(escapeshellcmd("/bin/shred -u $luks_pass_file"));
 				unset($pass);
 			}
 			if ($o && stripos($o, "warning") === FALSE) {
@@ -1036,7 +1024,7 @@ function do_mount_local($info) {
 			if (($fs == "apfs") && ! (is_file("/usr/bin/apfs-fuse"))) {
 				$o = "Install Unassigned Devices Plus to mount an apfs file system";
 			} else {
-				$o = shell_exec($cmd." 2>&1");
+				$o = shell_exec(escapeshellcmd($cmd)." 2>&1");
 			}
 			if ($fs == "apfs") {
 				/* Remove all password variables. */
@@ -1083,8 +1071,8 @@ function do_unmount($dev, $dir, $force=FALSE, $smb=FALSE, $nfs=FALSE) {
 	$rc = FALSE;
 	if ( is_mounted($dev) && is_mounted($dir, TRUE) ) {
 		unassigned_log("Synching file system on '{$dir}'.");
-		exec("/bin/sync -f '{$dir}'");
-		$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : "")." '{$dev}' 2>&1";
+		exec(escapeshellcmd("/bin/sync -f $dir"));
+		$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : "")." ".escapeshellarg($dev)." 2>&1";
 		unassigned_log("Unmount cmd: {$cmd}");
 		$timeout = ($smb || $nfs) ? ($force ? 30 : 10) : 90;
 		$o = timed_exec($timeout, $cmd);
@@ -1217,7 +1205,7 @@ function add_smb_share($dir, $recycle_bin=TRUE) {
 					$recycle_bin_cfg = parse_ini_file( "/boot/config/plugins/recycle.bin/recycle.bin.cfg" );
 					if ($recycle_bin_cfg['INCLUDE_UD'] == "yes") {
 						unassigned_log("Enabling the Recycle Bin on share '{$share_name}'.");
-						shell_exec("{$recycle_script} '{$share_conf}'");
+						shell_exec(escapeshellcmd("$recycle_script $share_conf"));
 					}
 				}
 			}
@@ -1251,7 +1239,7 @@ function rm_smb_share($dir) {
 			$c = array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_extra_includes);
 			$c = preg_replace('/\n\s*\n\s*\n/s', PHP_EOL.PHP_EOL, implode(PHP_EOL, $c));
 			file_put_contents($paths['smb_extra'], $c);
-			timed_exec(5, "/usr/bin/smbcontrol $(/bin/cat /var/run/smbd.pid 2>/dev/null) close-share '{$share_name}' 2>&1");
+			timed_exec(5, "/usr/bin/smbcontrol $(/bin/cat /var/run/smbd.pid 2>/dev/null) close-share ".escapeshellarg($share_name)." 2>&1");
 			timed_exec(5, "/usr/bin/smbcontrol $(/bin/cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
 		}
 	}
@@ -1459,7 +1447,7 @@ function get_samba_mounts() {
 			}
 
 			$mount['mounted']		= is_mounted(($mount['fstype'] == "cifs") ? "//".$mount['ip']."/".$mount['path'] : $mount['device']);
-			$mount['is_alive']		= is_samba_server_online($mount['ip'], $mount['mounted']);
+			$mount['is_alive']		= is_samba_server_online($mount['ip']);
 			$mount['automount']		= is_samba_automount($mount['name']);
 			$mount['smb_share']		= is_samba_share($mount['name']);
 			if (! $mount['mountpoint']) {
@@ -1501,7 +1489,7 @@ function do_mount_samba($info) {
 	$config			= @parse_ini_file($config_file, true);
 
 	/* Be sure the server online status is current. */
-	$info['is_alive'] = is_samba_server_online($info['ip'], TRUE, FALSE);
+	$info['is_alive'] = is_samba_server_online($info['ip']);
 	if ($info['is_alive']) {
 		$dir	= $info['mountpoint'];
 		$fs		= $info['fstype'];
@@ -2137,33 +2125,35 @@ function change_UUID($dev) {
 	}
 
 	if ($fs_type == "crypto_LUKS") {
-		timed_exec(20, "plugins/{$plugin}/scripts/luks_uuid.sh {$dev}1");
+		$device	= $dev."1";
+		timed_exec(20, escapeshellcmd("plugins/{$plugin}/scripts/luks_uuid.sh $device"));
 		$mapper	= basename($dev);
 		$cmd	= "luksOpen {$luks} '{$mapper}'";
 		$pass	= decrypt_data(get_config($serial, "pass"));
 		if (! $pass) {
 			if (file_exists($var['luksKeyfile'])) {
 				$cmd	= $cmd." -d {$var['luksKeyfile']}";
-				$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+				$o		= shell_exec(escapeshellcmd("/sbin/cryptsetup $cmd")." 2>&1");
 			} else {
-				$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
+				$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
 			}
 		} else {
 			$luks_pass_file = "{$paths['luks_pass']}_".basename($luks);
 			file_put_contents($luks_pass_file, $pass);
 			$cmd	= $cmd." -d $luks_pass_file";
-			$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
-			exec("/bin/shred -u '$luks_pass_file'");
+			$o		= shell_exec(escapeshellcmd("/sbin/cryptsetup $cmd")." 2>&1");
+			exec(escapeshellcmd("/bin/shred -u $luks_pass_file"));
 			unset($pass);
 		}
 		if ($o) {
 			unassigned_log("luksOpen error: {$o}");
 			return;
 		}
-		$rc = timed_exec(10, "/usr/sbin/xfs_admin -U generate /dev/mapper/{$mapper}");
-		shell_exec("/sbin/cryptsetup luksClose ".$mapper);
+		$rc = timed_exec(10, "/usr/sbin/xfs_admin -U generate /dev/mapper/".$mapper);
+		shell_exec(escapeshellcmd("/sbin/cryptsetup luksClose $mapper"));
 	} else {
-		$rc = timed_exec(20, "/usr/sbin/xfs_admin -U generate {$dev}1");
+		$device = $dev."1";
+		$rc		= timed_exec(20, escapeshellcmd("/usr/sbin/xfs_admin -U generate $device"));
 	}
 	unassigned_log("Changing disk '{$dev}' UUID. Result: {$rc}");
 }
