@@ -48,22 +48,22 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 	write_log("FS: $fs<br /><br />");
 	if ($fs == "crypto_LUKS") {
 		$mapper	= basename($device);
-		$cmd	= "luksOpen {$luks} '{$mapper}'";
+		$cmd	= "luksOpen {$luks} ".escapeshellarg($mapper);
 		$pass	= decrypt_data(get_config($serial, "pass"));
 		if (! $pass) {
 			if (file_exists($var['luksKeyfile'])) {
 				$cmd	= $cmd." -d {$var['luksKeyfile']}";
-				$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+				$o		= shell_exec("/sbin/cryptsetup ".$cmd." 2>&1");
 			} else {
-				$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
+				$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
 			}
 		} else {
 			$luks_pass_file = "{$paths['luks_pass']}_".basename($luks);
 			file_put_contents($luks_pass_file, $pass);
-			$cmd	= $cmd." -d $luks_pass_file";
-			$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+			$cmd	= $cmd." -d ".escapeshellarg($luks_pass_file);
+			$o		= shell_exec("/sbin/cryptsetup ".$cmd." 2>&1");
 			unset($pass);
-			exec("/bin/shred -u '$luks_pass_file'");
+			exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 		}
 		if ($o) {
 			echo("luksOpen error: ".$o."<br />");
@@ -72,7 +72,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 	}
 	$file_system = $fs;
 	if ($fs == "crypto_LUKS") {
-		$o = shell_exec("/sbin/fsck -vy {$device} 2>&1");
+		$o = shell_exec("/sbin/fsck -vy ".escapeshellarg($device)." 2>&1");
 		if (strpos($o, 'XFS') !== false) {
 			$file_system = "xfs";
 		} elseif (strpos($o, 'REISERFS') !== false) {
@@ -88,7 +88,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 		write_log(fgets($proc));
 	}
 	if ($fs == "crypto_LUKS") {
-		shell_exec("/sbin/cryptsetup luksClose ".$mapper);
+		shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
 	}
 }
 write_log("<center><button type='button' onclick='document.location=\"/plugins/{$plugin}/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=rw&type="._('Done')."\"'>"._('Run with CORRECT flag')."</button></center>");
