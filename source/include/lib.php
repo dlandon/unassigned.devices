@@ -28,7 +28,7 @@ $paths = [	"smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"dev_status"		=> "/var/state/{$plugin}/devs_status.json",
 			"hotplug_status"	=> "/var/state/{$plugin}/hotplug_status.json",
 			"diskio"			=> "/var/state/{$plugin}/diskio.json",
-			"dev_state"			=> "/usr/local/emhttp/state/devs.ini",
+			"dev_state"			=> "/usr/local/emhttp/state/dev.ini",
 			"samba_mount"		=> "/tmp/{$plugin}/config/samba_mount.cfg",
 			"iso_mount"			=> "/tmp/{$plugin}/config/iso_mount.cfg",
 			"unmounting"		=> "/var/state/{$plugin}/unmounting_%s.state",
@@ -2161,22 +2161,10 @@ function change_UUID($dev) {
 function setSleepTime($device) {
 	global $paths;
 
-	$run_devs	= FALSE;
-	$sf			= $paths['dev_state'];
-
-	/* Check for devs.ini file and get the spundown state. */
-	if (is_file($sf)) {
-		$devs = parse_ini_file($sf, true);
-		foreach ($devs as $d) {
-			if (($d['device'] == basename($device)) && isset($d['spundown'])) {
-				$run_devs = TRUE;
-				break;
-			}
-		}
-	}
+	$sf	= $paths['dev_state'];
 
 	/* If devs.ini does not exist, do the spindown using the disk timer. */
-	if (! $run_devs && get_config("Config", "spin_down") == 'yes') {
+	if ((! is_file($sf)) && get_config("Config", "spin_down") == 'yes') {
 		if (! is_disk_ssd($device)) {
 			unassigned_log("Issue spin down timer for device '{$device}'.");
 			timed_exec(5, "/usr/sbin/hdparm -S180 $device 2>&1");
