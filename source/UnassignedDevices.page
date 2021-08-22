@@ -1099,7 +1099,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		</div>
 		<div data-question-content>
 			<input type="text" class="swal-content__input" name="MOUNTPOINT" value={0} placeholder="<?=_('Mount Point');?>" required>
-			<p><?=_('Current disk label');?>:&nbsp;{1}</p>
+			<p><?=_('Disk label');?>:&nbsp;{1}</p>
 			<p><?=_('Changing the Mount Point will also change the disk label');?>.</p>
 		</div>
 		<div data-question-load></div>

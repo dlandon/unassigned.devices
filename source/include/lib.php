@@ -217,7 +217,7 @@ function get_device_stats($mountpoint, $mounted, $active = TRUE) {
 function get_disk_label($dev) {
 
 	/* Get the current disk label from the disk partition. */
-	$rc = shell_exec("/bin/lsblk ".escapeshellarg($dev)." -o label");
+	$rc = timed_exec(0.01, "/bin/lsblk ".escapeshellarg($dev)." -o label");
 	$rc = str_replace( array("LABEL", "\n"), "", $rc);
 	if (! $rc) {
 		$rc = "No label";
@@ -307,7 +307,7 @@ function is_disk_running($ud_dev, $dev) {
 		if (isset($run_status[$dev]) && (time() - $run_status[$dev]['timestamp']) < 60) {
 			$rc		= ($run_status[$dev]['running'] == 'yes') ? TRUE : FALSE;
 		} else {
-			$state	= trim(timed_exec(10, "/usr/sbin/hdparm -C $dev 2>/dev/null | /bin/grep -c standby"));
+			$state	= trim(timed_exec(10, "/usr/sbin/hdparm -C ".escapeshellarg($dev)." 2>/dev/null | /bin/grep -c standby"));
 			$rc		= ($state == 0) ? TRUE : FALSE;
 		}
 		$device		= $dev;
@@ -405,7 +405,7 @@ function is_script_running($cmd, $user=FALSE) {
 		}
 
 		/* Check if the script is currently running. */
-		$command = "/usr/bin/ps -ef | /bin/grep ".basename($cmd)." | /bin/grep -v 'grep' | /bin/grep ".escapeshellarg($source);
+		$command = "/usr/bin/ps -ef | /bin/grep ".escapeshellarg(basename($cmd))." | /bin/grep -v 'grep' | /bin/grep ".escapeshellarg($source);
 		$is_running = shell_exec($command) != "" ? TRUE : FALSE;
 		$script_run[$script_name] = array('running' => $is_running ? 'yes' : 'no','user' => $user ? 'yes' : 'no');
 
@@ -442,7 +442,7 @@ function get_temp($ud_dev, $dev, $running) {
 		if (isset($temps[$dev]) && (time() - $temps[$dev]['timestamp']) < $var['poll_attributes'] ) {
 			$rc = $temps[$dev]['temp'];
 		} else {
-			$cmd	= "/usr/sbin/smartctl -n standby -A $dev | /bin/awk 'BEGIN{t=\"*\"} $1==\"Temperature:\"{t=$2;exit};$1==190||$1==194{t=$10;exit} END{print t}'";
+			$cmd	= "/usr/sbin/smartctl -n standby -A ".escapeshellarg($dev)." | /bin/awk 'BEGIN{t=\"*\"} $1==\"Temperature:\"{t=$2;exit};$1==190||$1==194{t=$10;exit} END{print t}'";
 			$temp	= trim(timed_exec(10, $cmd));
 			$temp	= ($temp < 128) ? $temp : "*";
 			$temps[$dev] = array('timestamp' => time(), 'temp' => $temp);
@@ -870,9 +870,9 @@ function is_disk_ssd($device) {
 /* Spin disk up/down using Unraid api. */
 function spin_disk($down, $dev) {
 	if ($down) {
-		exec("/usr/local/sbin/emcmd cmdSpindown=$dev");
+		exec(escapeshellcmd("/usr/local/sbin/emcmd cmdSpindown=$dev"));
 	} else {
-		exec("/usr/local/sbin/emcmd cmdSpinup=$dev");
+		exec(escapeshellcmd("/usr/local/sbin/emcmd cmdSpinup=$dev"));
 	}
 }
 
@@ -941,7 +941,7 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 
 		case 'cifs':
 			$credentials_file = "{$paths['credentials']}_".basename($dev);
-			$rc = "rw,noserverino,nounix,iocharset=utf8,file_mode=0777,dir_mode=0777,uid=99,gid=100%s,credentials='$credentials_file'";
+			$rc = "rw,noserverino,nounix,iocharset=utf8,file_mode=0777,dir_mode=0777,uid=99,gid=100%s,credentials=".escapeshellarg($credentials_file);
 			break;
 
 		case 'nfs':
@@ -986,7 +986,7 @@ function do_mount($info) {
 			}
 			if ($o && stripos($o, "warning") === FALSE) {
 				unassigned_log("luksOpen result: {$o}");
-				shell_exec("/sbin/cryptsetup luksClose ".basename($info['device']));
+				shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg(basename($info['device'])));
 			} else {
 				$rc = do_mount_local($info);
 			}
@@ -1023,11 +1023,13 @@ function do_mount_local($info) {
 					$vol = ($vol != 0) ? ",vol=".$vol : "";
 					$cmd = "/usr/bin/apfs-fuse -o uid=99,gid=100,allow_other{$vol}{$recovery} ".escapeshellarg($dev)." ".escapeshellarg($dir);
 				} else {
-					$cmd = "/sbin/mount -t $fs -o ".get_mount_params($fs, $dev, $ro)." ".escapeshellarg($dev)." ".escapeshellarg($dir);
+					$params	= get_mount_params($fs, $dev, $ro);
+					$cmd = "/sbin/mount -t ".escapeshellarg($fs)." -o $params ".escapeshellarg($dev)." ".escapeshellarg($dir);
 				}
 			} else {
 				$device = $info['luks'];
-				$cmd = "/sbin/mount -o ".get_mount_params($fs, $device, $ro)." ".escapeshellarg($dev)." ".escapeshellarg($dir);
+				$params	= get_mount_params($fs, $device, $ro);
+				$cmd = "/sbin/mount -o $params ".escapeshellarg($dev)." ".escapeshellarg($dir);
 			}
 			$str = str_replace($recovery, ", pass='*****'", $cmd);
 			unassigned_log("Mount drive command: {$str}");
@@ -1059,7 +1061,7 @@ function do_mount_local($info) {
 			}
 			if (! $rc) {
 				if ($fs == "crypto_LUKS" ) {
-					shell_exec("/sbin/cryptsetup luksClose ".basename($info['device']));
+					shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg(basename($info['device'])));
 				}
 				unassigned_log("Mount of '{$dev}' failed: '{$o}'");
 				@rmdir($dir);
@@ -1508,7 +1510,7 @@ function do_mount_samba($info) {
 			@mkdir($dir, 0777, TRUE);
 			if ($fs == "nfs") {
 				$params	= get_mount_params($fs, $dev);
-				$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
+				$cmd	= "/sbin/mount -t ".escapeshellarg($fs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 				unassigned_log("Mount NFS command: {$cmd}");
 				$o		= timed_exec(10, $cmd." 2>&1");
 				if ($o) {
@@ -1524,7 +1526,7 @@ function do_mount_samba($info) {
 				if (! $smb_version) {
 					$ver	= "";
 					$params	= sprintf(get_mount_params($fs, $dev), $ver);
-					$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
+					$cmd	= "/sbin/mount -t ".escapeshellarg($fs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 					unassigned_log("Mount SMB share '{$dev}' using SMB default protocol.");
 					unassigned_log("Mount SMB command: {$cmd}");
 					$o		= timed_exec(10, $cmd." 2>&1");
@@ -1535,7 +1537,7 @@ function do_mount_samba($info) {
 					}
 					$ver	= ",vers=3.0";
 					$params	= sprintf(get_mount_params($fs, $dev), $ver);
-					$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
+					$cmd	= "/sbin/mount -t $fs -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 					unassigned_log("Mount SMB share '{$dev}' using SMB3 protocol.");
 					unassigned_log("Mount SMB command: {$cmd}");
 					$o		= timed_exec(10, $cmd." 2>&1");
@@ -1545,7 +1547,7 @@ function do_mount_samba($info) {
 					/* If the mount failed, try to mount with samba vers=2.0. */
 					$ver	= ",vers=2.0";
 					$params	= sprintf(get_mount_params($fs, $dev), $ver);
-					$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
+					$cmd	= "/sbin/mount -t ".escapeshellarg($fs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 					unassigned_log("Mount SMB share '{$dev}' using SMB2 protocol.");
 					unassigned_log("Mount SMB command: {$cmd}");
 					$o		= timed_exec(10, $cmd." 2>&1");
@@ -1555,7 +1557,7 @@ function do_mount_samba($info) {
 					/* If the mount failed, try to mount with samba vers=1.0. */
 					$ver	= ",sec=ntlm,vers=1.0";
 					$params	= sprintf(get_mount_params($fs, $dev), $ver);
-					$cmd	= "/sbin/mount -t $fs -o ".$params." '{$dev}' '{$dir}'";
+					$cmd	= "/sbin/mount -t ".escapeshellarg($fs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 					unassigned_log("Mount SMB share '{$dev}' using SMB1 protocol.");
 					unassigned_log("Mount SMB command: {$cmd}");
 					$o		= timed_exec(10, $cmd." 2>&1");
@@ -2143,11 +2145,12 @@ function change_UUID($dev) {
 		}
 	}
 
-	$device	= $dev.(strpos($dev, "nvme") === false) ? "1" : "p1";
+	$device	= $dev;
+	$device	.=(strpos($dev, "nvme") === false) ? "1" : "p1";
 	if ($fs_type == "crypto_LUKS") {
 		timed_exec(20, escapeshellcmd("plugins/{$plugin}/scripts/luks_uuid.sh $device"));
 		$mapper	= basename($dev);
-		$cmd	= "luksOpen {$luks} '{$mapper}'";
+		$cmd	= "luksOpen ".escapeshellarg($luks)." ".escapeshellarg($mapper);
 		$pass	= decrypt_data(get_config($serial, "pass"));
 		if (! $pass) {
 			if (file_exists($var['luksKeyfile'])) {
@@ -2166,12 +2169,13 @@ function change_UUID($dev) {
 			unassigned_log("luksOpen error: {$o}");
 			return;
 		}
-		$rc = timed_exec(10, "/usr/sbin/xfs_admin -U generate /dev/mapper/".$mapper);
+		$mapper_dev = "/dev/mapper/".$mapper;
+		$rc = timed_exec(10, "/usr/sbin/xfs_admin -U generate ".escapeshellarg($mapper_dev));
 		shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
 	} else {
 		$rc		= timed_exec(20, "/usr/sbin/xfs_admin -U generate ".escapeshellarg($device));
 	}
-	unassigned_log("Changing disk '{$dev}' UUID. Result: {$rc}");
+	unassigned_log("Changing partition '{$device}' UUID. Result: {$rc}");
 }
 
 /* If the disk is not a SSD, set the spin down timer if allowed by settings. */
