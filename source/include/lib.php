@@ -213,11 +213,23 @@ function get_device_stats($mountpoint, $mounted, $active = TRUE) {
 	return preg_split('/\s+/', $rc);
 }
 
+/* Get current disk label. */
+function get_disk_label($dev) {
+
+	/* Get the current disk label from the disk partition. */
+	$rc = shell_exec("/bin/lsblk ".escapeshellarg($dev)." -o label");
+	$rc = str_replace( array("LABEL", "\n"), "", $rc);
+	if (! $rc) {
+		$rc = "No label";
+	}
+
+	return $rc;
+}
+
 /* Remove the partition and return the base device. */
 function base_device($dev) {
 	return (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev);
 }
-
 
 /* Get the devX designation for this device from the devs.ini. */
 function get_disk_dev($dev) {
@@ -555,13 +567,13 @@ function format_disk($dev, $fs, $pass) {
 			$cmd = "luksFormat {$dev}1";
 		}
 		if (! $pass) {
-			$o				= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
+			$o				= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
 		} else {
 			$luks			= basename($dev);
 			$luks_pass_file	= "{$paths['luks_pass']}_".$luks;
 			file_put_contents($luks_pass_file, $pass);
 			$cmd			= $cmd." -d {$luks_pass_file}";
-			$o				= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+			$o				= shell_exec("/sbin/cryptsetup $cmd 2>&1");
 			exec("/bin/shred -u '$luks_pass_file'");
 		}
 		if ($o)
@@ -576,13 +588,13 @@ function format_disk($dev, $fs, $pass) {
 			$cmd	= "luksOpen {$dev}1 '".$mapper."'";
 		}
 		if (! $pass) {
-			$o = exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
+			$o = exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
 		} else {
 			$luks			= basename($dev);
 			$luks_pass_file	= "{$paths['luks_pass']}_".$luks;
 			file_put_contents($luks_pass_file, $pass);
 			$cmd			= $cmd." -d {$luks_pass_file}";
-			$o				= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+			$o				= shell_exec("/sbin/cryptsetup $cmd 2>&1");
 			exec("/bin/shred -u '$luks_pass_file'");
 		}
 		if ($o && stripos($o, "warning") === FALSE)
@@ -957,20 +969,18 @@ function do_mount($info) {
 		if (! is_mounted($info['device']) || ! is_mounted($info['mountpoint'], TRUE)) {
 			$luks	= basename($info['device']);
 			$discard = is_disk_ssd($info['luks']) ? "--allow-discards" : "";
-			$cmd	= "luksOpen $discard {$info['luks']} '{$luks}'";
+			$cmd	= "luksOpen $discard ".escapeshellarg($info['luks'])." ".escapeshellarg($luks);
 			$pass	= decrypt_data(get_config($info['serial'], "pass"));
 			if (! $pass) {
 				if (file_exists($var['luksKeyfile'])) {
-					$cmd	= $cmd." -d {$var['luksKeyfile']}";
-					$o		= shell_exec("/sbin/cryptsetup $cmd 2>&1");
+					$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($var['luksKeyfile'])." 2>&1");
 				} else {
 					$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
 				}
 			} else {
 				$luks_pass_file = "{$paths['luks_pass']}_".$luks;
 				file_put_contents($luks_pass_file, $pass);
-				$cmd	= $cmd." -d $luks_pass_file";
-				$o		= shell_exec("/sbin/cryptsetup $cmd 2>&1");
+				$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
 				exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 				unset($pass);
 			}
@@ -1071,7 +1081,7 @@ function do_unmount($dev, $dir, $force=FALSE, $smb=FALSE, $nfs=FALSE) {
 	$rc = FALSE;
 	if ( is_mounted($dev) && is_mounted($dir, TRUE) ) {
 		unassigned_log("Synching file system on '{$dir}'.");
-		exec(escapeshellcmd("/bin/sync -f $dir"));
+		exec("/bin/sync -f ".escapeshellarg($dir));
 		$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : "")." ".escapeshellarg($dev)." 2>&1";
 		unassigned_log("Unmount cmd: {$cmd}");
 		$timeout = ($smb || $nfs) ? ($force ? 30 : 10) : 90;
@@ -1873,6 +1883,7 @@ function get_partition_info($device) {
 		if ( ($mountpoint === FALSE) || (! $disk['mountpoint']) ) { 
 			$disk['mountpoint'] = $disk['target'] ? $disk['target'] : preg_replace("%\s+%", "_", sprintf("%s/%s", $paths['usb_mountpoint'], $disk['label']));
 		}
+		$disk['disk_label']		= get_disk_label($disk['device']);
 		$disk['luks']			= safe_name($disk['device']);
 		if ($disk['fstype'] == "crypto_LUKS") {
 			$disk['device']		= "/dev/mapper/".safe_name(basename($disk['mountpoint']));
@@ -2013,53 +2024,61 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 			$mountpoint = safe_name(basename($mountpoint));
 			switch ($fstype) {
 				case 'xfs';
-					timed_exec(20, "/usr/sbin/xfs_admin -L '$mountpoint' $dev 2>/dev/null");
+					timed_exec(20, "/usr/sbin/xfs_admin -L ".escapeshellarg($mountpoint)." ".escapeshellarg($dev)." 2>/dev/null");
 					break;
 
 				case 'btrfs';
-					timed_exec(20, "/sbin/btrfs filesystem label $dev '$mountpoint' 2>/dev/null");
+					timed_exec(20, "/sbin/btrfs filesystem label ".escapeshellarg($dev)." ".escapeshellarg($mountpoint)." 2>/dev/null");
 					break;
 
 				case 'ntfs';
 					$mountpoint = substr($mountpoint, 0, 31);
-					timed_exec(20, "/sbin/ntfslabel $dev '$mountpoint' 2>/dev/null");
+					timed_exec(20, "/sbin/ntfslabel ".escapeshellarg($dev)." ".escapeshellarg($mountpoint)." 2>/dev/null");
 					break;
 
 				case 'vfat';
 					$mountpoint = substr(strtoupper($mountpoint), 0, 10);
-					timed_exec(20, "/sbin/fatlabel $dev '$mountpoint' 2>/dev/null");
+					timed_exec(20, "/sbin/fatlabel ".escapeshellarg($dev)." ".escapeshellarg($mountpoint)." 2>/dev/null");
+					break;
+
+				case 'exfat';
+					$mountpoint = substr(strtoupper($mountpoint), 0, 15);
+					timed_exec(20, "/usr/sbin/exfatlabel ".escapeshellarg($dev)." ".escapeshellarg($mountpoint)." 2>/dev/null");
 					break;
 
 				case 'crypto_LUKS';
+					/* Set the luks header label. */
+					timed_exec(20, "/sbin/cryptsetup config $dev --label $mountpoint 2>/dev/null");
+
+					/* Set the partition label. */
 					$mapper	= basename($mountpoint);
-					$cmd	= "luksOpen {$dev} '{$mapper}'";
+					$cmd	= "luksOpen ".escapeshellarg($dev)." ".escapeshellarg($mapper);
 					$pass	= decrypt_data(get_config($serial, "pass"));
-					$cmd	= "luksOpen {$dev} '{$mapper}'";
 					if (! $pass) {
 						if (file_exists($var['luksKeyfile'])) {
-							$cmd	= $cmd." -d {$var['luksKeyfile']}";
-							$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
+							$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($var['luksKeyfile'])." 2>&1");
 						} else {
-							$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup={$cmd}' 2>&1");
+							$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
 						}
 					} else {
 						$luks_pass_file = "{$paths['luks_pass']}_".basename($dev);
 						file_put_contents($luks_pass_file, $pass);
-						$cmd	= $cmd." -d $luks_pass_file";
-						$o		= shell_exec("/sbin/cryptsetup {$cmd} 2>&1");
-						exec("/bin/shred -u '$luks_pass_file'");
+						$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
+						exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 						unset($pass);
 					}
 					if ($o) {
 						unassigned_log("Change disk label luksOpen error: ".$o);
 						return FALSE;
 					}
+
 					/* Try xfs label change. */
-					timed_exec(20, "/usr/sbin/xfs_admin -L '$mountpoint' '/dev/mapper/$mapper' 2>/dev/null");
+					$mapper_dev = "/dev/mapper/$mapper";
+					timed_exec(20, "/usr/sbin/xfs_admin -L ".escapeshellarg($mountpoint)." ".escapeshellarg($mapper_dev)." 2>/dev/null");
 
 					/* Try btrfs label change. */
-					timed_exec(20, "/sbin/btrfs filesystem label '/dev/mapper/$mapper' '$mountpoint' 2>/dev/null");
-					shell_exec("/sbin/cryptsetup luksClose ".$mapper);
+					timed_exec(20, "/sbin/btrfs filesystem label ".escapeshellarg($mapper_dev)." ".escapeshellarg($mountpoint)." 2>/dev/null");
+					shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
 					break;
 			}
 		}
@@ -2132,17 +2151,15 @@ function change_UUID($dev) {
 		$pass	= decrypt_data(get_config($serial, "pass"));
 		if (! $pass) {
 			if (file_exists($var['luksKeyfile'])) {
-				$cmd	= $cmd." -d {$var['luksKeyfile']}";
-				$o		= shell_exec(escapeshellcmd("/sbin/cryptsetup $cmd")." 2>&1");
+				$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($var['luksKeyfile'])." 2>&1");
 			} else {
 				$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
 			}
 		} else {
 			$luks_pass_file = "{$paths['luks_pass']}_".basename($luks);
 			file_put_contents($luks_pass_file, $pass);
-			$cmd	= $cmd." -d $luks_pass_file";
-			$o		= shell_exec(escapeshellcmd("/sbin/cryptsetup $cmd")." 2>&1");
-			exec(escapeshellcmd("/bin/shred -u $luks_pass_file"));
+			$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
+			exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 			unset($pass);
 		}
 		if ($o) {
@@ -2150,9 +2167,9 @@ function change_UUID($dev) {
 			return;
 		}
 		$rc = timed_exec(10, "/usr/sbin/xfs_admin -U generate /dev/mapper/".$mapper);
-		shell_exec(escapeshellcmd("/sbin/cryptsetup luksClose $mapper"));
+		shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
 	} else {
-		$rc		= timed_exec(20, escapeshellcmd("/usr/sbin/xfs_admin -U generate $device"));
+		$rc		= timed_exec(20, "/usr/sbin/xfs_admin -U generate ".escapeshellarg($device));
 	}
 	unassigned_log("Changing disk '{$dev}' UUID. Result: {$rc}");
 }

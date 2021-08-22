@@ -107,6 +107,13 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		$.post(UDURL, {action:"spin_down_disk", device:dev});
 	}
 
+	function get_current_disk_label(dev) {
+		$.post(UDURL, {action:"get_current_disk_label", device:dev},function(data)
+		{
+			var disklabel = data;
+		});
+	}
+
 	function spin_up_disk(dev) {
 		document.getElementById('disk_orb-'+dev).className = "fa fa-refresh fa-spin orb grey-orb";
 		$.post(UDURL, {action:"spin_up_disk", device:dev});
@@ -752,7 +759,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	<div data-survey-done>
 		var opts = {action:"add_iso_share",ISO_FILE:surveyData["ISO_FILE"]};
 		if (opts.ISO_FILE) {
-			$.post("/plugins/unassigned.devices/UnassignedDevices.php",opts).done(function(data)
+			$.post(UDURL, opts).done(function(data)
 			{
 				swalShowResult((data == "true") ? true : false);
 			},"json").fail(function(){swalShowResult(false);});
@@ -876,7 +883,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			(surveyData["confim-yes"] == "<?=_('Yes');?>")
 		</div>
 	</div>
-	<div data-survey-done >
+	<div data-survey-done>
 		$("span[device='"+surveyOption.device+surveyOption.partition+"']").prop('disabled',true);
 		$("span[device='"+surveyOption.device+surveyOption.partition+"']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Removing');?>");
 		$.post(UDURL, {action:"rm_partition", device:surveyOption.device, partition:surveyOption.partition}).done(function(data)
@@ -1088,10 +1095,11 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 <div style="display:none;" data-survey-name="change_mountpoint" data-survey-title="">
 	<div data-question data-question-title="<?=_('Change Disk Mount Point');?>" data-question-button-done="<?=_('Change');?>">
 		<div data-question-format>
-			[surveyOption.mountpoint]
+			[surveyOption.mountpoint,surveyOption.disklabel]
 		</div>
 		<div data-question-content>
 			<input type="text" class="swal-content__input" name="MOUNTPOINT" value={0} placeholder="<?=_('Mount Point');?>" required>
+			<p><?=_('Current disk label');?>:&nbsp;{1}</p>
 			<p><?=_('Changing the Mount Point will also change the disk label');?>.</p>
 		</div>
 		<div data-question-load></div>
@@ -1108,7 +1116,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	<div>
 		<script type="text/javascript">
 			$(function() {
-				window.chg_mountpoint = function(serial, partition, device, fstype, mountpoint){doUnassignedDevicesSurvey("change_mountpoint",{serial:serial,partition:partition,device:device,fstype:fstype,mountpoint:mountpoint});}
+				window.chg_mountpoint = function(serial, partition, device, fstype, mountpoint, disklabel){doUnassignedDevicesSurvey("change_mountpoint",{serial:serial,partition:partition,device:device,fstype:fstype,mountpoint:mountpoint,disklabel:disklabel});}
 			});
 		</script>
 	</div>
