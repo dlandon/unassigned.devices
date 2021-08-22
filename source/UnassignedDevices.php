@@ -245,7 +245,7 @@ function make_mount_button($device) {
 
 	$preclearing	= $Preclear ? $Preclear->isRunning(basename($device['device'])) : false;
 
-	$is_preclearing = shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep '{$device['device']}' | /bin/grep -v 'grep'") != "" ? TRUE : FALSE;
+	$is_preclearing = shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg($device['device'])." | /bin/grep -v 'grep'") != "" ? TRUE : FALSE;
 
 	if (($device['size'] == 0) && (! $is_unmounting)) {
 		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-erase', _('Mount'));
@@ -712,7 +712,7 @@ switch ($_POST['action']) {
 			$netmask = $iface['netmask'];
 			exec("plugins/{$plugin}/scripts/port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 445", $hosts);
 			foreach ($hosts as $host) {
-				$name=trim(shell_exec("/usr/bin/nmblookup -A '$host' 2>/dev/null | grep -v 'GROUP' | grep -Po '[^<]*(?=<00>)' | head -n 1"));
+				$name=trim(shell_exec("/usr/bin/nmblookup -A ".escapeshellarg($host)." 2>/dev/null | grep -v 'GROUP' | grep -Po '[^<]*(?=<00>)' | head -n 1"));
 				$names[]= $name ? $name : $host;
 			}
 			natsort($names);

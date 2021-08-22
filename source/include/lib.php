@@ -962,7 +962,7 @@ function do_mount($info) {
 			if (! $pass) {
 				if (file_exists($var['luksKeyfile'])) {
 					$cmd	= $cmd." -d {$var['luksKeyfile']}";
-					$o		= shell_exec(escapeshellcmd("/sbin/cryptsetup $cmd 2>&1"));
+					$o		= shell_exec("/sbin/cryptsetup $cmd 2>&1");
 				} else {
 					$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
 				}
@@ -970,8 +970,8 @@ function do_mount($info) {
 				$luks_pass_file = "{$paths['luks_pass']}_".$luks;
 				file_put_contents($luks_pass_file, $pass);
 				$cmd	= $cmd." -d $luks_pass_file";
-				$o		= shell_exec(escapeshellcmd("/sbin/cryptsetup $cmd 2>&1"));
-				exec(escapeshellcmd("/bin/shred -u $luks_pass_file"));
+				$o		= shell_exec("/sbin/cryptsetup $cmd 2>&1");
+				exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 				unset($pass);
 			}
 			if ($o && stripos($o, "warning") === FALSE) {
@@ -1011,20 +1011,20 @@ function do_mount_local($info) {
 					}
 					$vol = get_config($info['serial'], "volume.{$info['part']}");
 					$vol = ($vol != 0) ? ",vol=".$vol : "";
-					$cmd = "/usr/bin/apfs-fuse -o uid=99,gid=100,allow_other{$vol}{$recovery} '{$dev}' '{$dir}'";
+					$cmd = "/usr/bin/apfs-fuse -o uid=99,gid=100,allow_other{$vol}{$recovery} ".escapeshellarg($dev)." ".escapeshellarg($dir);
 				} else {
-					$cmd = "/sbin/mount -t $fs -o ".get_mount_params($fs, $dev, $ro)." '{$dev}' '{$dir}'";
+					$cmd = "/sbin/mount -t $fs -o ".get_mount_params($fs, $dev, $ro)." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 				}
 			} else {
 				$device = $info['luks'];
-				$cmd = "/sbin/mount -o ".get_mount_params($fs, $device, $ro)." '{$dev}' '{$dir}'";
+				$cmd = "/sbin/mount -o ".get_mount_params($fs, $device, $ro)." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 			}
 			$str = str_replace($recovery, ", pass='*****'", $cmd);
 			unassigned_log("Mount drive command: {$str}");
 			if (($fs == "apfs") && ! (is_file("/usr/bin/apfs-fuse"))) {
 				$o = "Install Unassigned Devices Plus to mount an apfs file system";
 			} else {
-				$o = shell_exec(escapeshellcmd($cmd)." 2>&1");
+				$o = shell_exec($cmd." 2>&1");
 			}
 			if ($fs == "apfs") {
 				/* Remove all password variables. */
@@ -2124,8 +2124,8 @@ function change_UUID($dev) {
 		}
 	}
 
+	$device	= $dev.(strpos($dev, "nvme") === false) ? "1" : "p1";
 	if ($fs_type == "crypto_LUKS") {
-		$device	= $dev."1";
 		timed_exec(20, escapeshellcmd("plugins/{$plugin}/scripts/luks_uuid.sh $device"));
 		$mapper	= basename($dev);
 		$cmd	= "luksOpen {$luks} '{$mapper}'";
@@ -2152,7 +2152,6 @@ function change_UUID($dev) {
 		$rc = timed_exec(10, "/usr/sbin/xfs_admin -U generate /dev/mapper/".$mapper);
 		shell_exec(escapeshellcmd("/sbin/cryptsetup luksClose $mapper"));
 	} else {
-		$device = $dev."1";
 		$rc		= timed_exec(20, escapeshellcmd("/usr/sbin/xfs_admin -U generate $device"));
 	}
 	unassigned_log("Changing disk '{$dev}' UUID. Result: {$rc}");
