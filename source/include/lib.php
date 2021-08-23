@@ -145,8 +145,7 @@ function unassigned_log($m, $type = "NOTICE") {
 	$m		= print_r($m,true);
 	$m		= str_replace("\n", " ", $m);
 	$m		= str_replace('"', "'", $m);
-	$cmd	= "/usr/bin/logger"." ".escapeshellarg($m)." -t ".escapeshellarg($plugin);
-	exec($cmd);
+	exec("/usr/bin/logger"." ".escapeshellarg($m)." -t ".escapeshellarg($plugin));
 }
 
 /* Get a list of directories at $root. */
@@ -405,8 +404,7 @@ function is_script_running($cmd, $user=FALSE) {
 		}
 
 		/* Check if the script is currently running. */
-		$command = "/usr/bin/ps -ef | /bin/grep ".escapeshellarg(basename($cmd))." | /bin/grep -v 'grep' | /bin/grep ".escapeshellarg($source);
-		$is_running = shell_exec($command) != "" ? TRUE : FALSE;
+		$is_running = shell_exec("/usr/bin/ps -ef | /bin/grep ".escapeshellarg(basename($cmd))." | /bin/grep -v 'grep' | /bin/grep ".escapeshellarg($source)) != "" ? TRUE : FALSE;
 		$script_run[$script_name] = array('running' => $is_running ? 'yes' : 'no','user' => $user ? 'yes' : 'no');
 
 		/* Update the current running state. */
@@ -442,8 +440,7 @@ function get_temp($ud_dev, $dev, $running) {
 		if (isset($temps[$dev]) && (time() - $temps[$dev]['timestamp']) < $var['poll_attributes'] ) {
 			$rc = $temps[$dev]['temp'];
 		} else {
-			$cmd	= "/usr/sbin/smartctl -n standby -A ".escapeshellarg($dev)." | /bin/awk 'BEGIN{t=\"*\"} $1==\"Temperature:\"{t=$2;exit};$1==190||$1==194{t=$10;exit} END{print t}'";
-			$temp	= trim(timed_exec(10, $cmd));
+			$temp	= trim(timed_exec(10, "/usr/sbin/smartctl -n standby -A ".escapeshellarg($dev)." | /bin/awk 'BEGIN{t=\"*\"} $1==\"Temperature:\"{t=$2;exit};$1==190||$1==194{t=$10;exit} END{print t}'"));
 			$temp	= ($temp < 128) ? $temp : "*";
 			$temps[$dev] = array('timestamp' => time(), 'temp' => $temp);
 			file_put_contents($tc, json_encode($temps));
@@ -459,24 +456,24 @@ function get_format_cmd($dev, $fs) {
 	switch ($fs) {
 		case 'xfs':
 		case 'xfs-encrypted';
-			$rc = "/sbin/mkfs.xfs -f {$dev} 2>&1";
+			$rc = "/sbin/mkfs.xfs -f ".escapeshellarg($dev)." 2>&1";
 			break;
 
 		case 'ntfs':
-			$rc = "/sbin/mkfs.ntfs -Q {$dev} 2>&1";
+			$rc = "/sbin/mkfs.ntfs -Q ".escapeshellarg($dev)." 2>&1";
 			break;
 
 		case 'btrfs':
 		case 'btrfs-encrypted';
-			$rc = "/sbin/mkfs.btrfs -f {$dev} 2>&1";
+			$rc = "/sbin/mkfs.btrfs -f ".escapeshellarg($dev)." 2>&1";
 			break;
 
 		case 'exfat':
-			$rc = "/usr/sbin/mkfs.exfat {$dev} 2>&1";
+			$rc = "/usr/sbin/mkfs.exfat ".escapeshellarg($dev)." 2>&1";
 			break;
 
 		case 'fat32':
-			$rc = "/sbin/mkfs.fat -s 8 -F 32 {$dev} 2>&1";
+			$rc = "/sbin/mkfs.fat -s 8 -F 32 ".escapeshellarg($dev)." 2>&1";
 			break;
 
 		default:
@@ -500,35 +497,35 @@ function format_disk($dev, $fs, $pass) {
 	}
 
 	$max_mbr_blocks = hexdec("0xFFFFFFFF");
-	$disk_blocks	= intval(trim(shell_exec("/sbin/blockdev --getsz $dev | /bin/awk '{ print $1 }' 2>/dev/null")));
+	$disk_blocks	= intval(trim(shell_exec("/sbin/blockdev --getsz ".escapeshellarg($dev)." | /bin/awk '{ print $1 }' 2>/dev/null")));
 	$disk_schema	= ( $disk_blocks >= $max_mbr_blocks ) ? "gpt" : "msdos";
 	$parted_fs		= ($fs == 'exfat') ? "fat32" : $fs;
 	unassigned_log("Device '{$dev}' block size: {$disk_blocks}.");
 
 	unassigned_log("Clearing partition table of disk '{$dev}'.");
-	$o = trim(shell_exec("/usr/bin/dd if=/dev/zero of={$dev} bs=2M count=1 2>&1"));
+	$o = trim(shell_exec("/usr/bin/dd if=/dev/zero of=".escapeshellarg($dev)." bs=2M count=1 2>&1"));
 	if ($o) {
 		unassigned_log("Clear partition result:\n{$o}");
 	}
 
-	unassigned_log("Reloading disk '{$dev}' partition table.");
-	$o = trim(shell_exec("/usr/sbin/hdparm -z {$dev} 2>&1"));
+	unassigned_log("Reloading disk '".escapeshellarg($dev)."' partition table.");
+	$o = trim(shell_exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." 2>&1"));
 	if ($o) {
 		unassigned_log("Reload partition table result:\n{$o}");
 	}
 
 	/* Update udev. */
-	shell_exec("/sbin/udevadm trigger --action=change {$dev}");
+	shell_exec("/sbin/udevadm trigger --action=change ".escapeshellarg($dev));
 
 	if ($fs == "xfs" || $fs == "xfs-encrypted" || $fs == "btrfs" || $fs == "btrfs-encrypted") {
 		$is_ssd = is_disk_ssd($dev);
 		if ($disk_schema == "gpt") {
 			unassigned_log("Creating Unraid compatible gpt partition on disk '{$dev}'.");
-			shell_exec("/sbin/sgdisk -Z {$dev}");
+			shell_exec("/sbin/sgdisk -Z ".escapeshellarg($dev));
 
 			/* Alignment is 4,096 for spinners and 1Mb for SSD */
 			$alignment = $is_ssd ? "" : "-a 8";
-			$o = shell_exec("/sbin/sgdisk -o {$alignment} -n 1:32K:0 {$dev}");
+			$o = shell_exec("/sbin/sgdisk -o ".escapeshellarg($alignment)." -n 1:32K:0 ".escapeshellarg($dev));
 			if ($o) {
 				unassigned_log("Create gpt partition table result:\n{$o}");
 			}
@@ -536,24 +533,24 @@ function format_disk($dev, $fs, $pass) {
 			unassigned_log("Creating Unraid compatible mbr partition on disk '{$dev}'.");
 			/* Alignment is 4,096 for spinners and 1Mb for SSD */
 			$start_sector = $is_ssd ? "2048" : "64";
-			$o = shell_exec("/usr/local/sbin/mkmbr.sh {$dev} {$start_sector}");
+			$o = shell_exec("/usr/local/sbin/mkmbr.sh ".escapeshellarg($dev)." ".escapeshellarg($start_sector));
 			if ($o) {
 				unassigned_log("Create mbr partition table result:\n{$o}");
 			}
 		}
-		unassigned_log("Reloading disk '{$dev}' partition table.");
-		$o = trim(shell_exec("/usr/sbin/hdparm -z {$dev} 2>&1"));
+		unassigned_log("Reloading disk '".escapeshellarg($dev)."' partition table.");
+		$o = trim(shell_exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." 2>&1"));
 		if ($o) {
 			unassigned_log("Reload partition table result:\n{$o}");
 		}
 	} else {
 		unassigned_log("Creating a 'gpt' partition table on disk '{$dev}'.");
-		$o = trim(shell_exec("/usr/sbin/parted {$dev} --script -- mklabel gpt 2>&1"));
+		$o = trim(shell_exec("/usr/sbin/parted ".escapeshellarg($dev)." --script -- mklabel gpt 2>&1"));
 		if ($o) {
 			unassigned_log("Create 'gpt' partition table result:\n{$o}");
 		}
 
-		$o = trim(shell_exec("/usr/sbin/parted -a optimal {$dev} --script -- mkpart primary $parted_fs 0% 100% 2>&1"));
+		$o = trim(shell_exec("/usr/sbin/parted -a optimal ".escapeshellarg($dev)." --script -- mkpart primary ".escapeshellarg($parted_fs)." 0% 100% 2>&1"));
 		if ($o) {
 			unassigned_log("Create primary partition result:\n{$o}");
 		}
@@ -572,9 +569,8 @@ function format_disk($dev, $fs, $pass) {
 			$luks			= basename($dev);
 			$luks_pass_file	= "{$paths['luks_pass']}_".$luks;
 			file_put_contents($luks_pass_file, $pass);
-			$cmd			= $cmd." -d {$luks_pass_file}";
-			$o				= shell_exec("/sbin/cryptsetup $cmd 2>&1");
-			exec("/bin/shred -u '$luks_pass_file'");
+			$o				= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
+			exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 		}
 		if ($o)
 		{
@@ -583,9 +579,9 @@ function format_disk($dev, $fs, $pass) {
 		}
 		$mapper = "format_".basename($dev);
 		if (strpos($dev, "nvme") !== false) {
-			$cmd	= "luksOpen {$dev}p1 '".$mapper."'";
+			$cmd	= "luksOpen {$dev}p1 ".escapeshellarg($mapper);
 		} else {
-			$cmd	= "luksOpen {$dev}1 '".$mapper."'";
+			$cmd	= "luksOpen {$dev}1 ".escapeshellarg($mapper);
 		}
 		if (! $pass) {
 			$o = exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
@@ -593,9 +589,8 @@ function format_disk($dev, $fs, $pass) {
 			$luks			= basename($dev);
 			$luks_pass_file	= "{$paths['luks_pass']}_".$luks;
 			file_put_contents($luks_pass_file, $pass);
-			$cmd			= $cmd." -d {$luks_pass_file}";
-			$o				= shell_exec("/sbin/cryptsetup $cmd 2>&1");
-			exec("/bin/shred -u '$luks_pass_file'");
+			$o				= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
+			exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 		}
 		if ($o && stripos($o, "warning") === FALSE)
 		{
@@ -604,7 +599,7 @@ function format_disk($dev, $fs, $pass) {
 		}
 		exec(get_format_cmd("/dev/mapper/{$mapper}", $fs),$out, $return);
 		sleep(3);
-		shell_exec("/sbin/cryptsetup luksClose ".$mapper);
+		shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
 	} else {
 		if (strpos($dev, "nvme") !== false) {
 			exec(get_format_cmd("{$dev}p1", $fs),$out, $return);
@@ -623,7 +618,7 @@ function format_disk($dev, $fs, $pass) {
 
 	sleep(3);
 	unassigned_log("Reloading disk '{$dev}' partition table.");
-	$o = trim(shell_exec("/usr/sbin/hdparm -z {$dev} 2>&1"));
+	$o = trim(shell_exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." 2>&1"));
 	if ($o) {
 		unassigned_log("Reload partition table result:\n{$o}");
 	}
@@ -632,12 +627,12 @@ function format_disk($dev, $fs, $pass) {
 	unset($pass);
 
 	/* Update udev. */
-	shell_exec("/sbin/udevadm trigger --action=change {$dev}");
+	shell_exec("/sbin/udevadm trigger --action=change ".escapeshellarg($dev));
 
 	sleep(3);
 
 	/* Refresh partition information. */
-	exec("/usr/sbin/partprobe {$dev}");
+	exec("/usr/sbin/partprobe ".escapeshellarg($dev));
 
 	return TRUE;
 }
@@ -657,19 +652,19 @@ function remove_partition($dev, $part) {
 		}
 	}
 	unassigned_log("Removing partition '{$part}' from disk '{$dev}'.");
-	$out = shell_exec("/usr/sbin/parted {$dev} --script -- rm {$part} 2>&1");
+	$out = shell_exec("/usr/sbin/parted ".escapeshellarg($dev)." --script -- rm ".escapeshellarg($part)." 2>&1");
 	if ($out) {
 		unassigned_log("Remove parition failed: '{$out}'.");
 		$rc = FALSE;
 	}
 
 	/* Undate udev info. */
-	shell_exec("/sbin/udevadm trigger --action=change {$dev}");
+	shell_exec("/sbin/udevadm trigger --action=change ".escapeshellarg($dev));
 
 	sleep(5);
 
 	/* Refresh partition information. */
-	exec("/usr/sbin/partprobe {$dev}");
+	exec("/usr/sbin/partprobe ".escapeshellarg($dev));
 
 	return $rc;
 }
@@ -973,14 +968,17 @@ function do_mount($info) {
 			$pass	= decrypt_data(get_config($info['serial'], "pass"));
 			if (! $pass) {
 				if (file_exists($var['luksKeyfile'])) {
-					$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($var['luksKeyfile'])." 2>&1");
+					unassigned_log("Using luksKeyfile to luksOpen the device.");
+					$o		= shell_exec("/sbin/cryptsetup ".escapeshellcmd($cmd)." -d ".escapeshellarg($var['luksKeyfile'])." 2>&1");
 				} else {
+					unassigned_log("Using Unrqid api to luksOpen the device.");
 					$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
 				}
 			} else {
 				$luks_pass_file = "{$paths['luks_pass']}_".$luks;
 				file_put_contents($luks_pass_file, $pass);
-				$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
+				unassigned_log("Using disk password to luksOpen the device.");
+				$o		= shell_exec("/sbin/cryptsetup ".escapeshellcmd($cmd)." -d ".escapeshellarg($luks_pass_file)." 2>&1");
 				exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 				unset($pass);
 			}
@@ -1036,7 +1034,7 @@ function do_mount_local($info) {
 			if (($fs == "apfs") && ! (is_file("/usr/bin/apfs-fuse"))) {
 				$o = "Install Unassigned Devices Plus to mount an apfs file system";
 			} else {
-				$o = shell_exec($cmd." 2>&1");
+				$o = shell_exec(escapeshellcmd($cmd)." 2>&1");
 			}
 			if ($fs == "apfs") {
 				/* Remove all password variables. */
@@ -2058,13 +2056,16 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 					$pass	= decrypt_data(get_config($serial, "pass"));
 					if (! $pass) {
 						if (file_exists($var['luksKeyfile'])) {
+							unassigned_log("Using luksKeyfile to luksOpen the device.");
 							$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($var['luksKeyfile'])." 2>&1");
 						} else {
+							unassigned_log("Using Unraid api to luksOpen the device.");
 							$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
 						}
 					} else {
 						$luks_pass_file = "{$paths['luks_pass']}_".basename($dev);
 						file_put_contents($luks_pass_file, $pass);
+						unassigned_log("Using disk password to luksOpen the device.");
 						$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
 						exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 						unset($pass);
@@ -2154,13 +2155,16 @@ function change_UUID($dev) {
 		$pass	= decrypt_data(get_config($serial, "pass"));
 		if (! $pass) {
 			if (file_exists($var['luksKeyfile'])) {
+				unassigned_log("Using luksKeyfile to luksOpen the device.");
 				$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($var['luksKeyfile'])." 2>&1");
 			} else {
+				unassigned_log("Using Unraid api to luksOpen the device.");
 				$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
 			}
 		} else {
 			$luks_pass_file = "{$paths['luks_pass']}_".basename($luks);
 			file_put_contents($luks_pass_file, $pass);
+			unassigned_log("Using disk password to luksOpen the device.");
 			$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
 			exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 			unset($pass);
