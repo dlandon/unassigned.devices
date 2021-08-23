@@ -968,16 +968,16 @@ function do_mount($info) {
 			$pass	= decrypt_data(get_config($info['serial'], "pass"));
 			if (! $pass) {
 				if (file_exists($var['luksKeyfile'])) {
-					unassigned_log("Using luksKeyfile to luksOpen the device.");
+					unassigned_log("Using luksKeyfile to open the 'crypto_LUKS' device.");
 					$o		= shell_exec("/sbin/cryptsetup ".escapeshellcmd($cmd)." -d ".escapeshellarg($var['luksKeyfile'])." 2>&1");
 				} else {
-					unassigned_log("Using Unrqid api to luksOpen the device.");
+					unassigned_log("Using Unrqid api to open the 'crypto_LUKS' device.");
 					$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
 				}
 			} else {
 				$luks_pass_file = "{$paths['luks_pass']}_".$luks;
 				file_put_contents($luks_pass_file, $pass);
-				unassigned_log("Using disk password to luksOpen the device.");
+				unassigned_log("Using disk password to open the 'crypto_LUKS' device.");
 				$o		= shell_exec("/sbin/cryptsetup ".escapeshellcmd($cmd)." -d ".escapeshellarg($luks_pass_file)." 2>&1");
 				exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 				unset($pass);
@@ -2056,16 +2056,16 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 					$pass	= decrypt_data(get_config($serial, "pass"));
 					if (! $pass) {
 						if (file_exists($var['luksKeyfile'])) {
-							unassigned_log("Using luksKeyfile to luksOpen the device.");
+							unassigned_log("Using luksKeyfile to open the 'crypto_LUKS' device.");
 							$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($var['luksKeyfile'])." 2>&1");
 						} else {
-							unassigned_log("Using Unraid api to luksOpen the device.");
+							unassigned_log("Using Unraid api to open the 'crypto_LUKS' device.");
 							$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
 						}
 					} else {
 						$luks_pass_file = "{$paths['luks_pass']}_".basename($dev);
 						file_put_contents($luks_pass_file, $pass);
-						unassigned_log("Using disk password to luksOpen the device.");
+						unassigned_log("Using disk password to open the 'crypto_LUKS' device.");
 						$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
 						exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 						unset($pass);
@@ -2155,16 +2155,16 @@ function change_UUID($dev) {
 		$pass	= decrypt_data(get_config($serial, "pass"));
 		if (! $pass) {
 			if (file_exists($var['luksKeyfile'])) {
-				unassigned_log("Using luksKeyfile to luksOpen the device.");
+				unassigned_log("Using luksKeyfile to open the 'crypto_LUKS' device.");
 				$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($var['luksKeyfile'])." 2>&1");
 			} else {
-				unassigned_log("Using Unraid api to luksOpen the device.");
+				unassigned_log("Using Unraid api to open the 'crypto_LUKS' device.");
 				$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
 			}
 		} else {
 			$luks_pass_file = "{$paths['luks_pass']}_".basename($luks);
 			file_put_contents($luks_pass_file, $pass);
-			unassigned_log("Using disk password to luksOpen the device.");
+			unassigned_log("Using disk password to open the 'crypto_LUKS' device.");
 			$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
 			exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 			unset($pass);
