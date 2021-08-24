@@ -940,7 +940,7 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 			break;
 
 		case 'nfs':
-			$rc = "rw,noacl,noatime,nodiratime,hard,timeo=600,retrans=10";
+			$rc = "rw,noacl,hard,timeo=600,retrans=10";
 			break;
 
 		default:
