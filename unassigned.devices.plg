@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2021.08.22">
+<!ENTITY version	"2021.08.24">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"7a8ed3bc96422b27b5a087382d04e92b">
+<!ENTITY MD5		"5b5d98772e2c098e515b9afbf478a055">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,6 +23,12 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Write exfat disk label when changing the mount point.
+- Add: Display disk label when changing the mount point.
+- Fix: Revert noatime and nodiratime parameters on NFS remote shares mount command.
+- Add: Lots more code cleanup.
+
+###2021.08.22
 - Add: Time out on disk spin up/down if disk does not actually spin up or down.
 - Fix: UUID not working properly.
 - Add: noatime and nodiratime parameters to NFS remote shares mount command.
