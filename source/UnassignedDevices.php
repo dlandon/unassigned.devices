@@ -195,7 +195,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 	$dev		= basename($device);
 	$device		= base_device($dev) ;
 	$serial		= $partition['serial'];
-	$out[]		= "<td><a class='info' href='/Main/EditSettings?s=".urlencode($serial)."&b=".urlencode($device)."&f=".urlencode($fstype)."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."&m=".urlencode(json_encode($partition))."&t=".$total."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+	$out[]		= "<td><a class='info' href='/Main/EditSettings?s=".$serial."&b=".$device."&f=".$fstype."&l=".basename($partition['mountpoint'])."&p=".$partition['part']."&m=".json_encode($partition)."&t=".$total."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 	if ($total) {
 		$mounted_disk = FALSE;
 		foreach ($disk['partitions'] as $part) {
@@ -213,7 +213,9 @@ function render_partition($disk, $partition, $total=FALSE) {
 		$out[] = "<td>".my_scale($partition['size'], $unit)." $unit</td>";
 		$out[] = render_used_and_free($partition, $mounted);
 	}
-	$out[] = "<td><a title='"._("View Device Script Log")."' href='/Main/ScriptLog?s=".urlencode($partition['serial'])."&l=".urlencode(basename($partition['mountpoint']))."&p=".urlencode($partition['part'])."'><i class='fa fa-align-left".( $partition['command'] ? "":" grey-orb" )."'></i></a></td>";
+	if ((! $total) || (! $disk['show_partitions'])) {
+		$out[] = "<td><a title='"._("View Device Script Log")."' href='/Main/ScriptLog?s=".$partition['serial']."&l=".basename($partition['mountpoint'])."&p=".$partition['part']."'><i class='fa fa-align-left".( $partition['command'] ? "":" grey-orb" )."'></i></a></td>";
+	}
 	$out[] = "</tr>";
 
 	return $out;
@@ -479,12 +481,12 @@ switch ($_POST['action']) {
 				$title .= "<br />"._("Share").": ";
 				$title .= ($mount['smb_share'] == 'yes') ? "Yes" : "No";
 
-				echo "<td><a class='info' href='/Main/EditSettings?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."&m=".urlencode(json_encode($mount))."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+				echo "<td><a class='info' href='/Main/EditSettings?d=".$mount['device']."&l=".basename($mount['mountpoint'])."&m=".json_encode($mount)."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 				echo "<td></td><td></td><td></td>";
 				echo "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				echo render_used_and_free($mount, $mounted);
 
-				echo "<td><a title='"._("View Remote SMB/NFS Script Log")."' href='/Main/ScriptLog?d=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><i class='fa fa-align-left".( $mount['command'] ? "":" grey-orb" )."'></i></a></td>";
+				echo "<td><a title='"._("View Remote SMB/NFS Script Log")."' href='/Main/ScriptLog?d=".$mount['device']."&l=".basename($mount['mountpoint'])."'><i class='fa fa-align-left".( $mount['command'] ? "":" grey-orb" )."'></i></a></td>";
 				echo "</tr>";
 			}
 		}
@@ -532,11 +534,11 @@ switch ($_POST['action']) {
 				$title .= "<br />"._("Automount").": ";
 				$title .= ($mount['automount'] == 'yes') ? "Yes" : "No";
 
-				echo "<td><a class='info' href='/Main/EditSettings?i=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+				echo "<td><a class='info' href='/Main/EditSettings?i=".$mount['device']."&l=".basename($mount['mountpoint'])."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 				echo "<td></td><td></td><td></td>";
 				echo "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				echo render_used_and_free($mount, $mounted);
-				echo "<td><a title='"._("View ISO File Script Log")."' href='/Main/ScriptLog?i=".urlencode($mount['device'])."&l=".urlencode(basename($mount['mountpoint']))."'><i class='fa fa-align-left".( $mount['command'] ? "":" grey-orb" )."'></i></a></td>";
+				echo "<td><a title='"._("View ISO File Script Log")."' href='/Main/ScriptLog?i=".$mount['device']."&l=".basename($mount['mountpoint'])."'><i class='fa fa-align-left".( $mount['command'] ? "":" grey-orb" )."'></i></a></td>";
 				echo "</tr>";
 			}
 		}
@@ -561,7 +563,7 @@ switch ($_POST['action']) {
 				$ct .= "<tr><td><i class='fa fa-minus-circle orb grey-orb'></i>"._("not installed")."</td><td>$serial"." $mountpoint</td>";
 				$ct .= "<td></td>";
 				$ct .= "<td><a style='color:#CC0000;font-weight:bold;cursor:pointer;' title='"._("Remove Device configuration")."' class='exec' onclick='remove_disk_config(\"{$serial}\")'><i class='fa fa-remove hdd'></i></a></td>";
-				$ct .= "<td><a class='info' href='/Main/EditSettings?s=".urlencode($serial)."&l=".urlencode(basename($mntpoint))."&p=".urlencode("1")."&t=TRUE'><i class='fa fa-gears'></i><span>"._("Edit Historical Device Settings and Script")."</span></a></td>";
+				$ct .= "<td><a class='info' href='/Main/EditSettings?s=".$serial."&l=".basename($mntpoint)."&p="."1"."&t=TRUE'><i class='fa fa-gears'></i><span>"._("Edit Historical Device Settings and Script")."</span></a></td>";
 				$ct .= "<td></td><td></td><td></td><td></td><td></td></tr>";
 			}
 		}

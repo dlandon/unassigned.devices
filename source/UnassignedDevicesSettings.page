@@ -62,7 +62,7 @@ if (count($_POST)) {
 		$dev = $_POST['change_uuid'];
 		$first	= strpos($dev, "(") + 1;
 		$last	= strpos($dev, ")") - 1;
-		$dev = substr($_POST['change_uuid'], $first, $last);
+		$dev = substr($dev, $first, $last);
 		change_UUID($dev);
 	} else if ($_POST['#command'] == "chg_pass") {
 		$serial = $_POST['set_pass'];

@@ -40,11 +40,11 @@ function write_log($string) {
 }
 
 if ( isset($_GET['device']) && isset($_GET['fs']) ) {
-	$device	= trim(urldecode($_GET['device']));
-	$fs		= trim(urldecode($_GET['fs']));
-	$check_type	= isset($_GET['check_type']) ? trim(urldecode($_GET['check_type'])) : 'ro';
-	$luks	= trim(urldecode($_GET['luks']));
-	$serial	= trim(urldecode($_GET['serial']));
+	$device	= $_GET['device'];
+	$fs		= $_GET['fs'];
+	$check_type	= isset($_GET['check_type']) ? $_GET['check_type'] : 'ro';
+	$luks	= $_GET['luks'];
+	$serial	= $_GET['serial'];
 	write_log("FS: $fs<br /><br />");
 	if ($fs == "crypto_LUKS") {
 		$mapper	= basename($device);

@@ -35,7 +35,7 @@ $partition				= "";
 $disk_setting			= TRUE;
 $show_device_switches	= TRUE;
 $disabled				= "";
-$default_file			= safe_filename("/boot/config/plugins/{$plugin}/".urldecode($_GET['l'])).".sh";
+$default_file			= safe_filename("/boot/config/plugins/{$plugin}/".$_GET['l']).".sh";
 $fstype					= "";
 $volume					= "";
 
