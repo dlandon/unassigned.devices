@@ -206,7 +206,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 		}
 	}
 
-	$out[] = "<td>".($fstype == "crypto_LUKS" ? luks_fs_type($partition['mountpoint']) : $fstype)."</td>";
+	$out[] = "<td>".($fstype == "crypto_LUKS" ? luks_fs_type($partition['device']) : $fstype)."</td>";
 	if ($total) {
 		$out[] = render_used_and_free_disk($disk, $mounted_disk);
 	} else {
