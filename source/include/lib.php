@@ -216,7 +216,7 @@ function get_device_stats($mountpoint, $mounted, $active = TRUE) {
 function get_disk_label($dev) {
 
 	/* Get the current disk label from the disk partition. */
-	$rc = timed_exec(0.01, "/bin/lsblk ".escapeshellarg($dev)." -o label");
+	$rc = timed_exec(1, "/bin/lsblk ".escapeshellarg($dev)." -o label");
 	$rc = str_replace( array("LABEL", "\n"), "", $rc);
 	if (! $rc) {
 		$rc = "No label";
@@ -1082,7 +1082,7 @@ function do_unmount($dev, $dir, $force=FALSE, $smb=FALSE, $nfs=FALSE) {
 	if ( is_mounted($dev) && is_mounted($dir, TRUE) ) {
 		unassigned_log("Synching file system on '{$dir}'.");
 		exec("/bin/sync -f ".escapeshellarg($dir));
-		$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : "")." ".escapeshellarg($dev)." 2>&1";
+		$cmd = "/sbin/umount".($smb ? " -t cifs" : "").(($force || $nfs) ? " -fl" : "")." ".escapeshellarg($dev)." 2>&1";
 		unassigned_log("Unmount cmd: {$cmd}");
 		$timeout = ($smb || $nfs) ? ($force ? 30 : 10) : 90;
 		$o = timed_exec($timeout, $cmd);
