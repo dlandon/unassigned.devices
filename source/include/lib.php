@@ -940,7 +940,7 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 			break;
 
 		case 'nfs':
-			$rc = "rw,noacl,sync,hard,timeo=600,retrans=10";
+			$rc = "rw,noacl,sync,hard,lookupcache=none,timeo=600,retrans=10";
 			break;
 
 		default:
@@ -971,7 +971,7 @@ function do_mount($info) {
 					unassigned_log("Using luksKeyfile to open the 'crypto_LUKS' device.");
 					$o		= shell_exec("/sbin/cryptsetup ".escapeshellcmd($cmd)." -d ".escapeshellarg($var['luksKeyfile'])." 2>&1");
 				} else {
-					unassigned_log("Using Unrqid api to open the 'crypto_LUKS' device.");
+					unassigned_log("Using Unraid api to open the 'crypto_LUKS' device.");
 					$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
 				}
 			} else {
@@ -1082,7 +1082,7 @@ function do_unmount($dev, $dir, $force=FALSE, $smb=FALSE, $nfs=FALSE) {
 	if ( is_mounted($dev) && is_mounted($dir, TRUE) ) {
 		unassigned_log("Synching file system on '{$dir}'.");
 		exec("/bin/sync -f ".escapeshellarg($dir));
-		$cmd = "/sbin/umount".($smb ? " -t cifs" : "").(($force || $nfs) ? " -fl" : "")." ".escapeshellarg($dev)." 2>&1";
+		$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : ($nfs ? " -l" : ""))." ".escapeshellarg($dev)." 2>&1";
 		unassigned_log("Unmount cmd: {$cmd}");
 		$timeout = ($smb || $nfs) ? ($force ? 30 : 10) : 90;
 		$o = timed_exec($timeout, $cmd);
