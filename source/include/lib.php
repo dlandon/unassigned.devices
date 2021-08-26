@@ -940,7 +940,7 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 			break;
 
 		case 'nfs':
-			$rc = "rw,noacl,sync,hard,lookupcache=none,timeo=600,retrans=10";
+			$rc = "rw,noacl,hard,timeo=600,retrans=10";
 			break;
 
 		default:
@@ -1456,7 +1456,7 @@ function get_samba_mounts() {
 				$path = $mount['path'];
 			}
 
-			$mount['mounted']		= is_mounted(($mount['fstype'] == "cifs") ? "//".$mount['ip']."/".$mount['path'] : $mount['device']);
+			$mount['mounted']		= is_mounted(($mount['fstype'] == "cifs") ? "//".$mount['ip']."/".$path : $mount['device']);
 			$mount['is_alive']		= is_samba_server_online($mount['ip']);
 			$mount['automount']		= is_samba_automount($mount['name']);
 			$mount['smb_share']		= is_samba_share($mount['name']);

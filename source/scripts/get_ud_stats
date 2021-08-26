@@ -17,6 +17,7 @@ $tc 			= "/var/state/{$plugin}/ping_status.json";
 
 $COMMAND = $argv[1];
 
+/* Unassigned Devices logging. */
 function unassigned_log($m, $type = "NOTICE") {
 	global $plugin;
 
@@ -24,8 +25,7 @@ function unassigned_log($m, $type = "NOTICE") {
 	$m		= print_r($m,true);
 	$m		= str_replace("\n", " ", $m);
 	$m		= str_replace('"', "'", $m);
-	$cmd	= "/usr/bin/logger ".'"'.escapeshellarg($m).'"'." -t".escapeshellarg($plugin);
-	exec($cmd);
+	exec("/usr/bin/logger"." ".escapeshellarg($m)." -t ".escapeshellarg($plugin));
 }
 
 /* Run a command and time out if it doesn't complete in the $timeout number of seconds. */
