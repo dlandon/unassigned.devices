@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2021.08.25">
+<!ENTITY version	"2021.08.27">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"6ec744e24c12e6d7eb92edb6dfc3bf20">
+<!ENTITY MD5		"0e18e2d649710ee0e64a96ed8dfb9747">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,6 +23,13 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Force lazy unmount on NFS mounts.
+- Fix: Remove unnecessary parameters from NFS remote share mount command and use system defaults.
+- Fix: Only show log icon on first partition when 'Show Partitions' is on.
+- Add: File browse fixes for Unraid 6.10.
+- Add: Limit ISO file browsing to /mnt/user/isos/ folder.
+
+###3032.08.25
 - Fix: File system on encrypted disk not found when mount point contains a space.
 - Add: 'sync' option to NFS remote share mounts to prevent the stale file handle error.
 
