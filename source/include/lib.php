@@ -214,23 +214,23 @@ function get_device_stats($mountpoint, $mounted, $active = TRUE) {
 }
 
 /* Get current disk label. */
-function get_disk_label($dev, $update = FALSE) {
+function get_disk_label($mountpoint, $dev) {
 	global $paths;
 
 	$tc			= $paths['disk_label'];
 
 	$disk_label	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-	if ((($update) || (! isset($disk_label[$dev])) || (time() - $disk_label[$dev]['timestamp']) > 90)) {
+	if (! isset($disk_label[$mountpoint])) {
 		/* Get the current disk label from the disk partition. */
 		$rc = timed_exec(1, "/bin/lsblk ".escapeshellarg($dev)." -o label");
 		$rc = str_replace( array("LABEL", "\n"), "", $rc);
 		if (! $rc) {
 			$rc = "No label";
 		}
-		$disk_label[$dev] = array('timestamp' => time(), 'disklabel' => $rc);
+		$disk_label[$mountpoint]['disklabel'] = $rc;
 		file_put_contents($tc, json_encode($disk_label));
 	} else {
-		$rc = $disk_label[$dev]['disklabel'];
+		$rc = $disk_label[$mountpoint]['disklabel'];
 	}
 
 	return $rc;
@@ -1899,7 +1899,7 @@ function get_partition_info($device) {
 			$disk['device']		= "/dev/mapper/".safe_name(basename($disk['mountpoint']));
 		}
 		$disk['mounted']		= is_mounted($disk['device']);
-		$disk['disk_label']		= $disk['mounted'] ? "" : get_disk_label($disk['luks']);
+		$disk['disk_label']		= $disk['mounted'] ? "" : get_disk_label($disk['mountpoint'], $device);
 		$disk['pass_through']	= (! $disk['mounted']) ? is_pass_through($disk['serial']) : FALSE;
 		$disk['target']			= str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep {$disk['device']} | /bin/awk '{print $2}'")));
 		$stats					= get_device_stats($disk['mountpoint'], $disk['mounted']);
@@ -2095,7 +2095,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 					shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
 					break;
 			}
-			get_disk_label($dev, TRUE);
+			@unlink($paths['disk_label']);
 		}
 	} else {
 		unassigned_log("Error: Cannot change mount point! Mount point is blank.");
