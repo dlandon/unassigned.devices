@@ -2094,6 +2094,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 					shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
 					break;
 			}
+			/* Remove disk label file so disk labels will refresh. */
 			@unlink($paths['disk_label']);
 		}
 	} else {
