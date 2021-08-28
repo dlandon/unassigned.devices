@@ -25,6 +25,7 @@ $paths = [	"smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"run_status"		=> "/var/state/{$plugin}/run_status.json",
 			"ping_status"		=> "/var/state/{$plugin}/ping_status.json",
 			"df_status"			=> "/var/state/{$plugin}/df_status.json",
+			"disk_label"		=> "/var/state/{$plugin}/disk_label.json",
 			"dev_status"		=> "/var/state/{$plugin}/devs_status.json",
 			"hotplug_status"	=> "/var/state/{$plugin}/hotplug_status.json",
 			"diskio"			=> "/var/state/{$plugin}/diskio.json",
@@ -213,13 +214,23 @@ function get_device_stats($mountpoint, $mounted, $active = TRUE) {
 }
 
 /* Get current disk label. */
-function get_disk_label($dev) {
+function get_disk_label($dev, $update = FALSE) {
+	global $paths;
 
-	/* Get the current disk label from the disk partition. */
-	$rc = timed_exec(1, "/bin/lsblk ".escapeshellarg($dev)." -o label");
-	$rc = str_replace( array("LABEL", "\n"), "", $rc);
-	if (! $rc) {
-		$rc = "No label";
+	$tc			= $paths['disk_label'];
+
+	$disk_label	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+	if ((($update) || (! isset($disk_label[$dev])) || (time() - $disk_label[$dev]['timestamp']) > 90)) {
+		/* Get the current disk label from the disk partition. */
+		$rc = timed_exec(1, "/bin/lsblk ".escapeshellarg($dev)." -o label");
+		$rc = str_replace( array("LABEL", "\n"), "", $rc);
+		if (! $rc) {
+			$rc = "No label";
+		}
+		$disk_label[$dev] = array('timestamp' => time(), 'disklabel' => $rc);
+		file_put_contents($tc, json_encode($disk_label));
+	} else {
+		$rc = $disk_label[$dev]['disklabel'];
 	}
 
 	return $rc;
@@ -940,7 +951,7 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 			break;
 
 		case 'nfs':
-			$rc = "rw,noacl,hard,timeo=600,retrans=10";
+			$rc = "rw,noacl";
 			break;
 
 		default:
@@ -1883,12 +1894,12 @@ function get_partition_info($device) {
 		if ( ($mountpoint === FALSE) || (! $disk['mountpoint']) ) { 
 			$disk['mountpoint'] = $disk['target'] ? $disk['target'] : preg_replace("%\s+%", "_", sprintf("%s/%s", $paths['usb_mountpoint'], $disk['label']));
 		}
-		$disk['disk_label']		= get_disk_label($disk['device']);
 		$disk['luks']			= safe_name($disk['device']);
 		if ($disk['fstype'] == "crypto_LUKS") {
 			$disk['device']		= "/dev/mapper/".safe_name(basename($disk['mountpoint']));
 		}
 		$disk['mounted']		= is_mounted($disk['device']);
+		$disk['disk_label']		= $disk['mounted'] ? "" : get_disk_label($disk['luks']);
 		$disk['pass_through']	= (! $disk['mounted']) ? is_pass_through($disk['serial']) : FALSE;
 		$disk['target']			= str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep {$disk['device']} | /bin/awk '{print $2}'")));
 		$stats					= get_device_stats($disk['mountpoint'], $disk['mounted']);
@@ -2084,6 +2095,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 					shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
 					break;
 			}
+			get_disk_label($dev, TRUE);
 		}
 	} else {
 		unassigned_log("Error: Cannot change mount point! Mount point is blank.");
