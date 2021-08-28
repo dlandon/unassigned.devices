@@ -19,5 +19,6 @@ done
 if [ $timer -eq 0 ]; then
 	logger "Cannot 'Auto Mount' Remote Shares.  Network not available!" -t"unassigned.devices"
 else
+	${DOCROOT}/plugins/unassigned.devices/scripts/get_ud_stats ping;
 	${DOCROOT}/plugins/unassigned.devices/scripts/rc.unassigned mount autoshares &
 fi
