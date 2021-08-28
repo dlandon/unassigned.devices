@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2021.08.27">
+<!ENTITY version	"2021.08.28">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"0e18e2d649710ee0e64a96ed8dfb9747">
+<!ENTITY MD5		"f56f91c2919817dabcdfe76c328964c7">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,6 +23,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Auto mount remote shares fails on boot.
+- Fix: Rework disk label routine.
+
+###2021.08.27
 - Fix: Force lazy unmount on NFS mounts.
 - Fix: Remove unnecessary parameters from NFS remote share mount command and use system defaults.
 - Fix: Only show log icon on first partition when 'Show Partitions' is on.
