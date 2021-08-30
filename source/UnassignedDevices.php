@@ -498,7 +498,7 @@ switch ($_POST['action']) {
 				$mounted = $mount['mounted'];
 				$is_alive = is_file($mount['file']);
 				echo "<tr>";
-				printf( "<td><a class='info'><i class='fa fa-circle orb %s'></i><span>"._("ISO File is")." %s</span>iso</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ));
+				printf( "<td><a class='info'><i class='fa fa-circle orb %s'></i><span>"._("ISO File is")." %s</span></a>iso</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ));
 				$devname = basename($mount['device']);
 				echo "<td>{$mount['device']}</td>";
 				$mount_point = basename($mount['mountpoint']);
