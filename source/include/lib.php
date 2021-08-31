@@ -607,14 +607,14 @@ function format_disk($dev, $fs, $pass) {
 			unassigned_log("luksOpen result: {$o}");
 			return FALSE;
 		}
-		exec(get_format_cmd("/dev/mapper/{$mapper}", $fs),$out, $return);
+		exec(get_format_cmd("/dev/mapper/{$mapper}", $fs),escapeshellarg($out), escapeshellarg($return));
 		sleep(3);
 		shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
 	} else {
 		if (strpos($dev, "nvme") !== false) {
-			exec(get_format_cmd("{$dev}p1", $fs),$out, $return);
+			exec(get_format_cmd("{$dev}p1", $fs),escapeshellarg($out), escapeshellarg($return));
 		} else {
-			exec(get_format_cmd("{$dev}1", $fs),$out, $return);
+			exec(get_format_cmd("{$dev}1", $fs),escapeshellarg($out), escapeshellarg($return));
 		}
 	}
 	if ($return)
@@ -649,6 +649,7 @@ function format_disk($dev, $fs, $pass) {
 
 /* Remove a disk partition. */
 function remove_partition($dev, $part) {
+
 	$rc = TRUE;
 
 	foreach (get_all_disks_info() as $d) {
@@ -791,7 +792,7 @@ function execute_script($info, $action, $testing=FALSE) {
 		copy($common_cmd, $common_script);
 		@chmod($common_script, 0755);
 		unassigned_log("Running common script: '".basename($common_script)."'");
-		exec($common_script, $out, $return);
+		exec($common_script, escapeshellarg($out), escapeshellarg($return));
 		if ($return) {
 			unassigned_log("Error: common script failed: '{$return}'");
 		}
@@ -815,7 +816,7 @@ function execute_script($info, $action, $testing=FALSE) {
 				$cmd = isset($info['serial']) ? "$command_script > /tmp/{$info['serial']}.log 2>&1 $bg" : "$command_script > /tmp/".preg_replace('~[^\w]~i', '', $info['device']).".log 2>&1 $bg";
 
 				/* Run the script. */
-				exec($cmd, $out, $return);
+				exec($cmd, escapeshellarg($out), escapeshellarg($return));
 				if ($return) {
 					unassigned_log("Error: device script failed: '{$return}'");
 				}
@@ -1574,14 +1575,15 @@ function do_mount_samba($info) {
 						$rc = FALSE;
 					}
 				}
-				exec("/bin/shred -u '$credentials_file'");
+				exec("/bin/shred -u ".escapeshellarg($credentials_file));
 				unset($pass);
 			}
 			if (is_mounted($dev) && is_mounted($dir, TRUE)) {
 				@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
 				$link = $paths['usb_mountpoint']."/";
 				if ((get_config("Config", "symlinks") == "yes" ) && (dirname($dir) == $paths['remote_mountpoint'])) {
-					exec("/bin/ln -s '{$dir}/' '{$link}'");
+					$dir .= "/".
+					exec("/bin/ln -s ".escapeshellarg($dir)." ".escapeshellarg($link));
 				}
 				unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
 
@@ -1701,7 +1703,7 @@ function do_mount_iso($info) {
 	if (is_file($info['file'])) {
 		if (! is_mounted($dev) || ! is_mounted($dir, TRUE)) {
 			@mkdir($dir, 0777, TRUE);
-			$cmd = "/sbin/mount -ro loop '{$dev}' '{$dir}'";
+			$cmd = "/sbin/mount -ro loop ".escapeshellarg($dev)." ".escapeshellarg($dir);
 			unassigned_log("Mount iso command: mount -ro loop '{$dev}' '{$dir}'");
 			$o = timed_exec(15, $cmd." 2>&1");
 			if (is_mounted($dev) && is_mounted($dir, TRUE)) {
@@ -1800,7 +1802,7 @@ function get_all_disks_info($bus = "all") {
 		foreach ($ud_disks as $key => $disk) {
 			$dp = time();
 			if ($disk['type'] != $bus && $bus != "all") continue;
-			$disk['size']	= intval(trim(timed_exec(5, "/bin/lsblk -nb -o size ".realpath($key)." 2>/dev/null")));
+			$disk['size']	= intval(trim(timed_exec(5, "/bin/lsblk -nb -o size ".escapeshellarg(realpath($key))." 2>/dev/null")));
 			$disk			= array_merge($disk, get_disk_info($key));
 			foreach ($disk['partitions'] as $k => $p) {
 				if ($p) $disk['partitions'][$k] = get_partition_info($p);
@@ -1816,21 +1818,23 @@ function get_all_disks_info($bus = "all") {
 }
 
 /* Get the udev disk information. */
-function get_udev_info($device, $udev=NULL) {
+function get_udev_info($device, $udev = NULL) {
 	global $paths;
 
 	$state = is_file($paths['state']) ? @parse_ini_file($paths['state'], true, INI_SCANNER_RAW) : array();
 	if ($udev) {
 		$state[$device] = $udev;
 		save_ini_file($paths['state'], $state);
-		return $udev;
+		$rc	= $udev;
 	} else if (array_key_exists($device, $state)) {
-		return $state[$device];
+		$rc	= $state[$device];
 	} else {
-		$state[$device] = parse_ini_string(timed_exec(5,"/sbin/udevadm info --query=property --path $(/sbin/udevadm info -q path -n $device 2>/dev/null) 2>/dev/null"), INI_SCANNER_RAW);
+		$state[$device] = parse_ini_string(timed_exec(5,"/sbin/udevadm info --query=property --path $(/sbin/udevadm info -q path -n ".escapeshellarg($device)." 2>/dev/null) 2>/dev/null"), INI_SCANNER_RAW);
 		save_ini_file($paths['state'], $state);
-		return $state[$device];
+		$rc	= $state[$device];
 	}
+
+	return$rc;
 }
 
 /* Get information on specific disk device. */
@@ -1900,7 +1904,7 @@ function get_partition_info($device) {
 		$disk['mounted']		= is_mounted($disk['device']);
 		$disk['disk_label']		= $disk['mounted'] ? "" : get_disk_label($disk['mountpoint'], $device);
 		$disk['pass_through']	= (! $disk['mounted']) ? is_pass_through($disk['serial']) : FALSE;
-		$disk['target']			= str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep {$disk['device']} | /bin/awk '{print $2}'")));
+		$disk['target']			= str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep ".escapeshellarg($disk['device'])." | /bin/awk '{print $2}'")));
 		$stats					= get_device_stats($disk['mountpoint'], $disk['mounted']);
 		$disk['size']			= intval($stats[0])*1024;
 		$disk['used']			= intval($stats[1])*1024;
@@ -2058,7 +2062,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 
 				case 'crypto_LUKS';
 					/* Set the luks header label. */
-					timed_exec(20, "/sbin/cryptsetup config $dev --label $mountpoint 2>/dev/null");
+					timed_exec(20, "/sbin/cryptsetup config ".escapeshellarg($dev)." --label ".escapeshellarg($mountpoint)." 2>/dev/null");
 
 					/* Set the partition label. */
 					$mapper	= basename($mountpoint);
