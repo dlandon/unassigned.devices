@@ -230,6 +230,20 @@ _(Specify SMB Version when Mounting Remote Shares)_?
 > Some remote servers need to have the version specified.
 :end
 
+_(NFS Version to use when Mounting Remote Shares)_:
+: <select name="nfs_version" size="1">
+  <?=mk_option($cfg["Config"]["nfs_version"], "3", "_(NFSv3)_");?>
+  <?=mk_option($cfg["Config"]["nfs_version"], "4", "_(NFSv4)_");?>
+  </select>
+
+:ud_settings_specify_nfs_vers_plug:
+> Set to **NFSv3** to mount all NFS Remote Shares with NFSv3.
+>
+> Set to **NFSv4** to mount all NFS Remote Shares with NFSv4.
+>
+> All NFS remote shares will be mounted with the specified version.
+:end
+
 &nbsp;
 : <input type="submit" name="#apply" value='_(Apply)_'><input type="button" value="_(Done)_" onclick="done()">
 </form>

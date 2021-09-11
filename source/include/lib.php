@@ -169,7 +169,7 @@ function safe_name($string, $convert_spaces = TRUE) {
 	$string = stripcslashes($string);
 
 	/* Convert single and double quote to underscore */
-	$string = str_replace( array("'", '"', "?"), "_", $string);
+	$string = str_replace( array("'", '"', "?", "#", "&"), "_", $string);
 
 	/* Convert spaces to underscore. */
 	if ($convert_spaces) {
@@ -1519,7 +1519,8 @@ function do_mount_samba($info) {
 			@mkdir($dir, 0777, TRUE);
 			if ($fs == "nfs") {
 				$params	= get_mount_params($fs, $dev);
-				$cmd	= "/sbin/mount -t ".escapeshellarg($fs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
+				$nfs	= (get_config("Config", "nfs_version") == "4") ? "nfs4" : "nfs";
+				$cmd	= "/sbin/mount -t ".escapeshellarg($nfs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 				unassigned_log("Mount NFS command: {$cmd}");
 				$o		= timed_exec(10, $cmd." 2>&1");
 				if ($o) {
