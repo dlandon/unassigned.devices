@@ -215,6 +215,8 @@ function render_partition($disk, $partition, $total=FALSE) {
 	}
 	if ((! $total) || (! $disk['show_partitions'])) {
 		$out[] = "<td><a title='"._("View Device Script Log")."' href='/Main/ScriptLog?s=".$partition['serial']."&l=".basename($partition['mountpoint'])."&p=".$partition['part']."'><i class='fa fa-align-left".( $partition['command'] ? "":" grey-orb" )."'></i></a></td>";
+	} else {
+		$out[] = "<td></td>";
 	}
 	$out[] = "</tr>";
 
