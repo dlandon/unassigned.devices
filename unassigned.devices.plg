@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2021.08.28">
+<!ENTITY version	"2021.09.12">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"f56f91c2919817dabcdfe76c328964c7">
+<!ENTITY MD5		"b2da2dba25aa4be9232714c02330de77">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,6 +23,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Do not allow '#' or '&' character in disk mount point.
+- Add: NFSv4 support for mounting remote NFS shares.  The NFS version to use is set in UD settings.
+
+###2021.08.28
 - Fix: Auto mount remote shares fails on boot.
 - Fix: Rework disk label routine.
 
