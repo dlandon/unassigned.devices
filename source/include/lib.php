@@ -589,10 +589,11 @@ function format_disk($dev, $fs, $pass) {
 		}
 		$mapper = "format_".basename($dev);
 		if (strpos($dev, "nvme") !== false) {
-			$cmd	= "luksOpen {$dev}p1 ".escapeshellarg($mapper);
+			$device	= $dev."p1";
 		} else {
-			$cmd	= "luksOpen {$dev}1 ".escapeshellarg($mapper);
+			$device	= $dev."1";
 		}
+		$cmd	= "luksOpen ".escapeshellarg($device)." ".escapeshellarg($mapper);
 		if (! $pass) {
 			$o = exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
 		} else {
