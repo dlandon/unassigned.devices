@@ -23,7 +23,7 @@
 <CHANGES>
 ##&name;
 ###&version;
-- Fix: Do not allow '#' or '&' character in disk mount point.
+- Fix: Do not allow pound or ampersand character in disk mount point.
 - Add: NFSv4 support for mounting remote NFS shares.  The NFS version to use is set in UD settings.
 
 ###2021.08.28
