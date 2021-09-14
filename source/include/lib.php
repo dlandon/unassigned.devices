@@ -518,7 +518,7 @@ function format_disk($dev, $fs, $pass) {
 		unassigned_log("Clear partition result:\n{$o}");
 	}
 
-	unassigned_log("Reloading disk '".escapeshellarg($dev)."' partition table.");
+	unassigned_log("Reloading disk ".escapeshellarg($dev)." partition table.");
 	$o = trim(shell_exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." 2>&1"));
 	if ($o) {
 		unassigned_log("Reload partition table result:\n{$o}");
@@ -535,7 +535,7 @@ function format_disk($dev, $fs, $pass) {
 
 			/* Alignment is 4,096 for spinners and 1Mb for SSD */
 			$alignment = $is_ssd ? "" : "-a 8";
-			$o = shell_exec("/sbin/sgdisk -o ".escapeshellarg($alignment)." -n 1:32K:0 ".escapeshellarg($dev));
+			$o = shell_exec("/sbin/sgdisk -o ".$alignment." -n 1:32K:0 ".escapeshellarg($dev));
 			if ($o) {
 				unassigned_log("Create gpt partition table result:\n{$o}");
 			}
@@ -548,7 +548,7 @@ function format_disk($dev, $fs, $pass) {
 				unassigned_log("Create mbr partition table result:\n{$o}");
 			}
 		}
-		unassigned_log("Reloading disk '".escapeshellarg($dev)."' partition table.");
+		unassigned_log("Reloading disk ".escapeshellarg($dev)." partition table.");
 		$o = trim(shell_exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." 2>&1"));
 		if ($o) {
 			unassigned_log("Reload partition table result:\n{$o}");
