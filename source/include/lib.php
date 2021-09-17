@@ -1230,6 +1230,8 @@ function add_smb_share($dir, $recycle_bin=TRUE) {
 						shell_exec(escapeshellcmd("$recycle_script $share_conf"));
 					}
 				}
+			} else {
+				file_put_contents($share_conf, "\n", FILE_APPEND);
 			}
 		}
 
