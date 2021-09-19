@@ -384,7 +384,7 @@ _(Select Disk to change UUID)_:
   <?=mk_option($disk_uuid, ("(".$d['device'].") - ".$d['label']), ("(".$d['device'].") - ".$d['label']));?>
   <?}?>
   </select>
-  
+
 :ud_settings_change_uuid_plug:
 > Select the disk that you want to change the UUID. This is useful when a XFS formatted disk has been removed from the array and has the same UUID as an array disk. Drive must be unmounted to change the UUID.
 :end

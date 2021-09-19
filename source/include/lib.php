@@ -788,7 +788,7 @@ function execute_script($info, $action, $testing=FALSE) {
 	foreach ($info as $key => $value) {
 		putenv(strtoupper($key)."={$value}");
 	}
-	if ($common_cmd = get_config("Config", "common_cmd")) {
+	if ($common_cmd = escapeshellcmd(get_config("Config", "common_cmd"))) {
 		$common_script = $paths['scripts'].basename($common_cmd);
 		copy($common_cmd, $common_script);
 		@chmod($common_script, 0755);
@@ -800,7 +800,7 @@ function execute_script($info, $action, $testing=FALSE) {
 	}
 
 	/* If there is a command, execute the script. */
-	$cmd = $info['command'];
+	$cmd = escapeshellcmd($info['command']);
 	$bg = ($info['command_bg'] != "false" && $action == "ADD") ? "&" : "";
 	if ($cmd) {
 		$command_script = $paths['scripts'].basename($cmd);
@@ -877,9 +877,9 @@ function is_disk_ssd($device) {
 /* Spin disk up/down using Unraid api. */
 function spin_disk($down, $dev) {
 	if ($down) {
-		exec(escapeshellcmd("/usr/local/sbin/emcmd cmdSpindown=$dev"));
+		exec(escapeshellcmd("/usr/local/sbin/emcmd cmdSpindown=".escapeshellarg($dev)));
 	} else {
-		exec(escapeshellcmd("/usr/local/sbin/emcmd cmdSpinup=$dev"));
+		exec(escapeshellcmd("/usr/local/sbin/emcmd cmdSpinup=".escapeshellarg($dev)));
 	}
 }
 
@@ -2169,7 +2169,7 @@ function change_UUID($dev) {
 	$device	= $dev;
 	$device	.=(strpos($dev, "nvme") === false) ? "1" : "p1";
 	if ($fs_type == "crypto_LUKS") {
-		timed_exec(20, escapeshellcmd("plugins/{$plugin}/scripts/luks_uuid.sh $device"));
+		timed_exec(20, escapeshellcmd("plugins/{$plugin}/scripts/luks_uuid.sh ".escapeshellarg($device)));
 		$mapper	= basename($dev);
 		$cmd	= "luksOpen ".escapeshellarg($luks)." ".escapeshellarg($mapper);
 		$pass	= decrypt_data(get_config($serial, "pass"));
