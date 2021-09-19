@@ -585,7 +585,7 @@ switch ($_POST['action']) {
 			$tc					= $paths['diskio'];
 			file_put_contents($tc, json_encode($diskio));
 		}
-		publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
+		publish("reload", json_encode(array("rescan" => "yes"), JSON_UNESCAPED_SLASHES));
 		break;
 
 	case 'update_ping':

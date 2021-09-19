@@ -218,7 +218,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			});
 		}
 
-		$.post(UDURL, {action:"get_content", display:display},function(data)
+		$.post(UDURL, {action:"get_content"},function(data)
 		{
 			maxWidth = [];
 			var toggled = $("tr.toggle-parts").filter(":visible").map(function(){return $(this).attr("name");}).get();
