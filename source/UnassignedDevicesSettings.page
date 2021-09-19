@@ -40,6 +40,7 @@ foreach (get_all_disks_info() as $d) {
 	}
 	if ($d['partitions'][0]['fstype'] == "crypto_LUKS" && (! $d['partitions'][0]['mounted'])) {
 		$a = array();
+		$a['device'] = $d['device'];
 		$a['label'] = $d['serial'];
 		$encrypt_devices[] = $a;
 	}
@@ -59,14 +60,14 @@ if (count($_POST)) {
 		reload_shares();
 		unassigned_log("Share settings updated.");
 	} else if (($_POST['#command'] == "UUID") && (isset($_POST['change_uuid']))) {
-		$dev = $_POST['change_uuid'];
-		$first	= strpos($dev, "(") + 1;
-		$last	= strpos($dev, ")") - 1;
-		$dev = substr($dev, $first, $last);
+		$dev		= $_POST['change_uuid'];
+		$first		= strpos($dev, "(") + 1;
+		$last		= strpos($dev, ")") - 1;
+		$dev		= substr($dev, $first, $last);
 		change_UUID($dev);
 	} else if ($_POST['#command'] == "chg_pass") {
-		$serial = $_POST['set_pass'];
-		$password = $_POST['password'];
+		$serial		= $_POST['set_pass'];
+		$password	= $_POST['password'];
 		set_config($serial, "pass", encrypt_data($password));
 	}
 }
@@ -357,7 +358,7 @@ _(Select Disk)_:
 : <select name="set_pass" size="1">
 
   <?foreach ($encrypt_devices as $d) {?>
-  <?=mk_option($disk_encrypt, ($d['label']), ($d['label']))?>
+  <?=mk_option($disk_encrypt, ($d['label']), ($d['label']." (".basename($d['device']).")"))?>
   <?}?>
   </select>
 
@@ -381,7 +382,7 @@ _(Select Disk to change UUID)_:
 : <select name="change_uuid" size="1">
 
   <?foreach ($uuid_devices as $d) {?>
-  <?=mk_option($disk_uuid, ("(".$d['device'].") - ".$d['label']), ("(".$d['device'].") - ".$d['label']));?>
+  <?=mk_option($disk_uuid, ("(".$d['device'].") ".$d['label']), ($d['label']."(".basename($d['device']).")"));?>
   <?}?>
   </select>
 
