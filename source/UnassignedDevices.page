@@ -218,7 +218,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			});
 		}
 
-		$.post(UDURL, {action:"get_content"},function(data)
+		$.post(UDURL, {action:"get_content", display:display},function(data)
 		{
 			maxWidth = [];
 			var toggled = $("tr.toggle-parts").filter(":visible").map(function(){return $(this).attr("name");}).get();
@@ -649,13 +649,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		tr.find("span.toggle-hdd").click(function(e)
 		{
 			$(this).disableSelection();disk = $(this).attr("hdd");el = $(this);
-			$(".toggle-"+disk).slideToggle(0,function(){
-				if ( $("tr.toggle-"+disk+":first").is(":visible") ){
-					el.find(".fa-append").addClass("fa-minus-square").removeClass("fa-plus-square");
-				} else {
-					el.find(".fa-append").removeClass("fa-minus-square").addClass("fa-plus-square");
-				}
-			});
+			$(".toggle-"+disk).slideToggle(0);
 		});
 		tr.find( "button[role$=mount]" ).on( "click", function()
 		{
