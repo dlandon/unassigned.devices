@@ -56,20 +56,6 @@ function exist_in_file($file, $text) {
 function is_server_online($server) {
 	global $tc;
 
-	/* See if we need to add this server to the hosts file. */
-	if (! is_ip($server)) {
-		$ip = shell_exec("/sbin/arp -a ".escapeshellarg($server)." | grep -v local");
-		if ((strpos($ip, "no match found") !== FALSE) && $ip) {
-			shell_exec("/bin/sed -i '/".escapeshellarg($server)."/d' /etc/hosts");
-			$ip = shell_exec("/sbin/arp -a ".escapeshellarg($server)." | grep -v local");
-		}
-		$ip_array	= explode(" ", $ip);
-		$ip			= str_replace(array("(", ")"), "", $ip_array[1]);
-		if (is_ip($ip) && (! exist_in_file("/etc/hosts", $ip))) {
-			shell_exec("/bin/echo -e '".escapeshellarg($ip)."''\t''".escapeshellarg($server)."' >> /etc/hosts" );
-		}
-	}
-
 	/* Check the last ping status. */
 	$ping_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 	$was_alive		= ($ping_status[$server]['online'] == 'yes') ? TRUE : FALSE;
