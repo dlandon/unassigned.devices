@@ -382,7 +382,7 @@ _(Select Disk to change UUID)_:
 : <select name="change_uuid" size="1">
 
   <?foreach ($uuid_devices as $d) {?>
-  <?=mk_option($disk_uuid, ("(".$d['device'].") ".$d['label']), ($d['label']."(".basename($d['device']).")"));?>
+  <?=mk_option($disk_uuid, ("(".$d['device'].") ".$d['label']), ($d['label']." (".basename($d['device']).")"));?>
   <?}?>
   </select>
 

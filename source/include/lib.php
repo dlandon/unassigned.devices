@@ -218,7 +218,7 @@ function get_disk_label($mountpoint, $dev) {
 
 	$tc			= $paths['disk_label'];
 
-	$disk_label	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+	$disk_label	= is_file($tc) ? json_decode(file_get_contents($tc), TRUE) : array();
 	if (! isset($disk_label[$mountpoint])) {
 		/* Get the current disk label from the disk partition. */
 		$rc = timed_exec(1, "/bin/lsblk ".escapeshellarg($dev)." -o label");
@@ -423,6 +423,7 @@ function is_script_running($cmd, $user=FALSE) {
 			publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
 		}
 	}
+
 	return($is_running);
 }
 

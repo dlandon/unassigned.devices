@@ -204,7 +204,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 	function usb_disks(tabnum)
 	{
-		/* save table widths */
+		/* Save table widths. */
 		if (! diskinfo)
 		{
 			tableWidths = $("#usb_devices_list > table > thead > tr").children("td").map(function(i,v){return $(this).getHiddenDimensions().outerWidth;});
@@ -218,7 +218,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			});
 		}
 
-		$.post(UDURL, {action:"get_content", display:display},function(data)
+		/* Get the UD devices and render web page. */
+		$.post(UDURL, {action:"get_content", display:display}, function(data)
 		{
 			maxWidth = [];
 			var toggled = $("tr.toggle-parts").filter(":visible").map(function(){return $(this).attr("name");}).get();
@@ -227,17 +228,19 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 				$('#usb_devices_list').html(data);
 
 			}
+
+			/* Show toggled disk partitions. */
 			$.each(toggled, function(k,v)
 			{
-				if(v.length)
+				if (v.length)
 				{
-					$("tr[name='"+v+"']").prev().find("i.fa-plus-square").removeClass("fa-plus-square").addClass("fa-minus-square");
 					$("tr[name='"+v+"']").css("display", "table-row");
 				}
 			});
 		});
 	}
 
+	/* Poll remote servers and update ping status. */
 	function ping_poll(tabnum)
 	{
 		$.post(UDURL, {action:"update_ping"}).done(function() {
@@ -245,6 +248,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		});
 	}
 
+	/* Refresh UD page showing any updated information. */
 	function refresh_page(tabnum)
 	{
 		diskio = $.cookie('diskio')===undefined ? 0 : 1;
@@ -253,6 +257,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		});
 	}
 
+	/* Process nchan event. */
 	var ud_Reload = new NchanSubscriber('/sub/reload');
 	ud_Reload.on('message',function(data)
 	{

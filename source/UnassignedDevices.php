@@ -671,13 +671,13 @@ switch ($_POST['action']) {
 	/*	DISK	*/
 	case 'mount':
 		$device = urldecode($_POST['device']);
-		exec("plugins/{$plugin}/scripts/rc.unassigned mount ".escapeshellarg($device)." &>/dev/null", $out, $return);
+		exec("plugins/{$plugin}/scripts/rc.unassigned mount ".escapeshellarg($device)." &>/dev/null", escapeshellarg($out), escapeshellarg($return));
 		echo json_encode(["status" => $return ? false : true ]);
 		break;
 
 	case 'umount':
 		$device = urldecode($_POST['device']);
-		exec("plugins/{$plugin}/scripts/rc.unassigned umount ".escapeshellarg($device)." &>/dev/null", $out, $return);
+		exec("plugins/{$plugin}/scripts/rc.unassigned umount ".escapeshellarg($device)." &>/dev/null", escapeshellarg($out), escapeshellarg($return));
 		echo json_encode(["status" => $return ? false : true ]);
 		break;
 
@@ -687,7 +687,8 @@ switch ($_POST['action']) {
 		if (is_file($sf)) {
 			$devs = parse_ini_file($sf, true);
 			foreach ($devs as $d) {
-				shell_exec("/sbin/udevadm trigger --action=change /dev/{$d['device']}");
+				$device = "/dev/".$d['device'];
+				shell_exec("/sbin/udevadm trigger --action=change ".escapeshellarg($device));
 			}
 		}
 		$tc			= $paths['hotplug_status'];
