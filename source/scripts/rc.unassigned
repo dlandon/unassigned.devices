@@ -68,7 +68,7 @@ function unassigned_mount() {
 					}
 					if (do_mount( $info )) 
 					{
-						$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV, $reload) : get_udev_info($device, NULL, $reload);
+						$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV) : get_udev_info($device, NULL);
 						if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'],"usb"))) {
 							add_smb_share($info['mountpoint']);
 							add_nfs_share($info['mountpoint']);
@@ -289,7 +289,7 @@ function unassigned_umount() {
 function unassigned_reload() {
 	if (isset($_ENV['DEVLINKS'])) {
 		foreach (explode(" ", $_ENV['DEVLINKS']) as $link) {
-			get_udev_info($link, $_ENV, true);
+			get_udev_info($link, $_ENV);
 		}
 	}
 }
