@@ -1886,7 +1886,6 @@ function get_partition_info($device) {
 			$disk['device']		= "/dev/mapper/".safe_name(basename($disk['mountpoint']));
 		}
 		$disk['mounted']		= is_mounted($disk['device']);
-		$disk['disk_label']		= $disk['label'];
 		$disk['pass_through']	= (! $disk['mounted']) ? is_pass_through($disk['serial']) : FALSE;
 		$disk['target']			= str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep ".escapeshellarg($disk['device'])." | /bin/awk '{print $2}'")));
 		$stats					= get_device_stats($disk['mountpoint'], $disk['mounted']);
