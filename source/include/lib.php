@@ -714,11 +714,7 @@ function luks_fs_type($dev) {
 
 	$rc = "luks";
 	if ($dev) {
-		$return	= shell_exec( "/bin/cat /proc/mounts | /bin/grep ".escapeshellarg($dev)." | /bin/awk '{print $3}'");
-		$n		= strpos($return, ",");
-		if ($n) {
-			$return	= substr($return, 0, $n);
-		}
+		$return	= shell_exec( "/bin/cat /proc/mounts | /bin/grep -w ".escapeshellarg($dev)." | /bin/awk '{print $3}'");
 		$rc		= (! $return) ? $rc : $return;
 	}
 
@@ -1846,7 +1842,7 @@ function get_udev_info($dev, $udev = NULL) {
 		$rc	= $state[$device];
 	}
 
-	return$rc;
+	return $rc;
 }
 
 /* Get information on specific disk device. */
