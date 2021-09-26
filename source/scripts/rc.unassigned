@@ -58,6 +58,7 @@ function unassigned_mount() {
 				}
 				if ($info['label'] == "UNRAID") {
 					unassigned_log("Error: Cannot mount device '{$info['device']}' with label 'UNRAID'.");
+					execute_script($info, "ERROR_MOUNT");
 				} elseif ($info['device'] != "") {
 					unassigned_log("Disk found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
 					unassigned_log("Adding disk '{$info['device']}'...");
@@ -181,6 +182,7 @@ function unassigned_umount() {
 				unassigned_log("Drive found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
 				if ($info['label'] == "UNRAID") {
 					unassigned_log("Error: Cannot unmount device '{$info['device']}' with label 'UNRAID'.");
+					execute_script($info, "ERROR_UNMOUNT");
 				} else {
 					if ( is_mounted($info['device']) )
 					{

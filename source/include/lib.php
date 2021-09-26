@@ -812,7 +812,7 @@ function execute_script($info, $action, $testing=FALSE) {
 		$script_running = is_script_running($cmd);
 		if ((! $script_running) || (($script_running) && ($action != "ADD"))) {
 			if (! $testing) {
-				if ($action == "REMOVE" || $action == "ERROR_UNMOUNT") {
+				if ($action == "REMOVE" || $action == "ERROR_MOUNT" || $action == "ERROR_UNMOUNT") {
 					sleep(1);
 				}
 				$cmd = isset($info['serial']) ? "$command_script > /tmp/{$info['serial']}.log 2>&1 $bg" : "$command_script > /tmp/".preg_replace('~[^\w]~i', '', $info['device']).".log 2>&1 $bg";
