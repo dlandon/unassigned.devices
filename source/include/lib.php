@@ -715,6 +715,10 @@ function luks_fs_type($dev) {
 	$rc = "luks";
 	if ($dev) {
 		$return	= shell_exec( "/bin/cat /proc/mounts | /bin/grep ".escapeshellarg($dev)." | /bin/awk '{print $3}'");
+		$n		= strpos($return, ",");
+		if ($n) {
+			$return	= substr($return, 0, $n);
+		}
 		$rc		= (! $return) ? $rc : $return;
 	}
 
@@ -1825,10 +1829,11 @@ function get_all_disks_info($bus = "all") {
 }
 
 /* Get the udev disk information. */
-function get_udev_info($device, $udev = NULL) {
+function get_udev_info($dev, $udev = NULL) {
 	global $paths;
 
-	$state = is_file($paths['state']) ? @parse_ini_file($paths['state'], true, INI_SCANNER_RAW) : array();
+	$state	= is_file($paths['state']) ? @parse_ini_file($paths['state'], true, INI_SCANNER_RAW) : array();
+	$device	= safe_name($dev);
 	if ($udev) {
 		$state[$device] = $udev;
 		save_ini_file($paths['state'], $state);
