@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2021.09.12a">
+<!ENTITY version	"2021.09.26">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"dac65a06bc44a404f4d0e7f7114e2458">
+<!ENTITY MD5		"8c4e5c66433bf143787341f2a01b6740">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,7 +23,15 @@
 <CHANGES>
 ##&name;
 ###&version;
-- Fix: Do not allow pound or ampersand character in disk mount point.
+- Fix: Do not allow exclamation character in disk mount point.
+- Fix: Remove legacy partition toggle code.
+- Fix: Remove and reload shares when changing UD settings - missing device.
+- Fix: Double file system display on some luks devices.
+- Fix: Rework disk label on change mountpoint dialog.
+- Fix: More code cleanup.
+
+###2021.09.12a
+- Fix: Do not allow pound or ampersand characters in disk mount point.
 - Add: NFSv4 support for mounting remote NFS shares.  The NFS version to use is set in UD settings.
 
 ###2021.08.28
@@ -32,7 +40,7 @@
 
 ###2021.08.27
 - Fix: Force lazy unmount on NFS mounts.
-- Fix: Remove unnecessary parameters from NFS remote share mount command and use system defaults.
+- Fix: Remove unnecessary parameters from NFS remote share mount command and use defaults.
 - Fix: Only show log icon on first partition when 'Show Partitions' is on.
 - Add: File browse fixes for Unraid 6.10.
 - Add: Limit ISO file browsing to /mnt/user/isos/ folder.
