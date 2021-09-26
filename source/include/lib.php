@@ -25,7 +25,6 @@ $paths = [	"smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"run_status"		=> "/var/state/{$plugin}/run_status.json",
 			"ping_status"		=> "/var/state/{$plugin}/ping_status.json",
 			"df_status"			=> "/var/state/{$plugin}/df_status.json",
-			"disk_label"		=> "/var/state/{$plugin}/disk_label.json",
 			"hotplug_status"	=> "/var/state/{$plugin}/hotplug_status.json",
 			"diskio"			=> "/var/state/{$plugin}/diskio.json",
 			"dev_state"			=> "/usr/local/emhttp/state/devs.ini",
@@ -210,29 +209,6 @@ function get_device_stats($mountpoint, $mounted, $active = TRUE) {
 	}
 
 	return preg_split('/\s+/', $rc);
-}
-
-/* Get current disk label. */
-function get_disk_label($mountpoint, $dev) {
-	global $paths;
-
-	$tc			= $paths['disk_label'];
-
-	$disk_label	= is_file($tc) ? json_decode(file_get_contents($tc), TRUE) : array();
-	if (! isset($disk_label[$mountpoint])) {
-		/* Get the current disk label from the disk partition. */
-		$rc = timed_exec(1, "/bin/lsblk ".escapeshellarg($dev)." -o label");
-		$rc = str_replace( array("LABEL", "\n"), "", $rc);
-		if (! $rc) {
-			$rc = "No label";
-		}
-		$disk_label[$mountpoint]['disklabel'] = $rc;
-		file_put_contents($tc, json_encode($disk_label));
-	} else {
-		$rc = $disk_label[$mountpoint]['disklabel'];
-	}
-
-	return $rc;
 }
 
 /* Remove the partition and return the base device. */
@@ -1910,7 +1886,7 @@ function get_partition_info($device) {
 			$disk['device']		= "/dev/mapper/".safe_name(basename($disk['mountpoint']));
 		}
 		$disk['mounted']		= is_mounted($disk['device']);
-		$disk['disk_label']		= $disk['mounted'] ? "" : get_disk_label($disk['mountpoint'], $device);
+		$disk['disk_label']		= $disk['label'];
 		$disk['pass_through']	= (! $disk['mounted']) ? is_pass_through($disk['serial']) : FALSE;
 		$disk['target']			= str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep ".escapeshellarg($disk['device'])." | /bin/awk '{print $2}'")));
 		$stats					= get_device_stats($disk['mountpoint'], $disk['mounted']);
@@ -2106,8 +2082,6 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 					shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
 					break;
 			}
-			/* Remove disk label file so disk labels will refresh. */
-			@unlink($paths['disk_label']);
 		}
 	} else {
 		unassigned_log("Error: Cannot change mount point! Mount point is blank.");

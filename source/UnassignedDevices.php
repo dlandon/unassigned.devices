@@ -143,7 +143,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 		$mpoint .= "<i class='fa fa-folder-open partition-hdd'></i><a title='"._("Browse Disk Share")."' href='/Main/Browse?dir={$partition['mountpoint']}'>{$mount_point}</a></span>";
 	} else {
 		$mount_point	= basename($partition['mountpoint']);
-		$disk_label		= $partition['disk_label'];
+		$disk_label		= $partition['label'];
 		$mpoint			.= "<i class='fa fa-pencil partition-hdd'></i><a title='"._("Change Disk Mount Point")."' class='exec' onclick='chg_mountpoint(\"{$partition['serial']}\",\"{$partition['part']}\",\"{$device}\",\"{$partition['fstype']}\",\"{$mount_point}\",\"{$disk_label}\");'>{$mount_point}</a>";
 		$mpoint			.= "{$rm_partition}</span>";
 	}
