@@ -116,7 +116,6 @@ function unassigned_mount() {
 						}
 					}
 					execute_script($info, "ADD");
-
 				} else {
 					execute_script($info, "ERROR_MOUNT");
 				}
