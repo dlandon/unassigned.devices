@@ -1848,7 +1848,7 @@ function get_disk_info($device) {
 
 /* Get partition information. */
 function get_partition_info($device) {
-	global $_ENV, $paths;
+	global $paths;
 
 	$disk	= array();
 	$attrs	= (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV) : get_udev_info($device, NULL);
@@ -1867,6 +1867,7 @@ function get_partition_info($device) {
 		}
 		if (isset($attrs['ID_FS_LABEL'])){
 			$disk['label'] = safe_name($attrs['ID_FS_LABEL_ENC']);
+			$disk['disk_label'] = $disk['label'];
 		} else {
 			if (isset($attrs['ID_VENDOR']) && isset($attrs['ID_MODEL'])){
 				$disk['label'] = sprintf("%s %s", safe_name($attrs['ID_VENDOR']), safe_name($attrs['ID_MODEL']));
@@ -1875,6 +1876,7 @@ function get_partition_info($device) {
 			}
 			$all_disks = array_unique(array_map(function($ar){return realpath($ar);},listDir("/dev/disk/by-id")));
 			$disk['label'] = (count(preg_grep("%".$matches[1][0]."%i", $all_disks)) > 2) ? $disk['label']."-part".$matches[2][0] : $disk['label'];
+			$disk['disk_label'] = "";
 		}
 		$disk['fstype'] = safe_name($attrs['ID_FS_TYPE']);
 		$disk['mountpoint'] = get_config($disk['serial'], "mountpoint.{$disk['part']}");
