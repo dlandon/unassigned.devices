@@ -168,8 +168,8 @@ function safe_name($string, $convert_spaces = TRUE) {
 
 	$string = stripcslashes($string);
 
-	/* Convert single and double quote to underscore */
-	$string = str_replace( array("'", '"', "?", "#", "&"), "_", $string);
+	/* Convert reserved php characters to underscore. */
+	$string = str_replace( array("'", '"', "?", "#", "&", "!"), "_", $string);
 
 	/* Convert spaces to underscore. */
 	if ($convert_spaces) {
@@ -1147,7 +1147,7 @@ function add_smb_share($dir, $recycle_bin=TRUE) {
 	global $paths, $var, $users;
 
 	if ( ($var['shareSMBEnabled'] != "no") ) {
-		/* Remove special characters from share name */
+		/* Remove special characters from share name. */
 		$share_name = str_replace( array("(", ")"), "", basename($dir));
 		$config = @parse_ini_file($paths['config_file'], true);
 		$config = $config["Config"];
@@ -1331,8 +1331,9 @@ function remove_shares() {
 		foreach ($disk['partitions'] as $p) {
 			$info = get_partition_info($p);
 			if ( $info['mounted'] ) {
+				$device = $disk['device'];
 				$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV) : get_udev_info($device, NULL);
-				if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'],"usb"))) {
+				if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'], "usb"))) {
 					rm_smb_share($info['target']);
 					rm_nfs_share($info['target']);
 				}
@@ -1363,8 +1364,9 @@ function reload_shares() {
 		foreach ($disk['partitions'] as $p) {
 			$info = get_partition_info($p);
 			if ( $info['mounted'] ) {
+				$device = $disk['device'];
 				$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV) : get_udev_info($device, NULL);
-				if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'],"usb"))) {
+				if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'], "usb"))) {
 					add_smb_share($info['mountpoint']);
 					add_nfs_share($info['mountpoint']);
 				}
