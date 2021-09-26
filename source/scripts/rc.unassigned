@@ -67,6 +67,7 @@ function unassigned_mount() {
 					} else {
 						addFile(sprintf($paths['mounting'],basename($info['luks'])));
 					}
+					unassigned_log("Mounting partition '{$info['device']}' at mountpoint '{$info['mountpoint']}'...");
 					if (do_mount( $info )) 
 					{
 						$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV) : get_udev_info($device, NULL);
@@ -104,6 +105,7 @@ function unassigned_mount() {
 				/* Remove special characters */
 				$mount_device = str_replace( array("(", ")"), "", basename($info['device'])."_".$info['fstype']);
 				addFile(sprintf($paths['mounting'],$mount_device));
+				unassigned_log("Mounting Remote SMB/NFS Share '{$info['device']}'...");
 				if (do_mount( $info )) {
 					if ($info['smb_share']) {
 						add_smb_share($info['mountpoint'], FALSE);
@@ -136,6 +138,7 @@ function unassigned_mount() {
 				unassigned_log("ISO File share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
 				$mount_device = str_replace( array("(", ")"), "", basename($info['device']));
 				addFile(sprintf($paths['mounting'],$mount_device));
+				unassigned_log("Mounting ISO File '{$info['device']}'...");
 				if (do_mount( $info )) {
 					add_smb_share($info['mountpoint'], FALSE);
 					add_nfs_share($info['mountpoint']);
@@ -194,7 +197,7 @@ function unassigned_umount() {
 						setSleepTime($device);
 						if ( rm_smb_share($info['target']) && rm_nfs_share($info['target']) ) {
 							execute_script($info, "UNMOUNT");
-							unassigned_log("Unmounting disk '{$info['label']}'...");
+							unassigned_log("Unmounting partition '{$info['device']}' at mountpoint '{$info['mountpoint']}'...");
 							if ( do_unmount($info['device'], $info['mountpoint']) ) {
 								if ($info['fstype'] == "crypto_LUKS" ) {
 									shell_exec("/sbin/cryptsetup luksClose ".basename($info['device']));
@@ -260,7 +263,7 @@ function unassigned_umount() {
 					addFile(sprintf($paths['unmounting'],$mount_device));
 					unassigned_log("Removing ISO File share '{$info['device']}'...");
 					execute_script($info, "UNMOUNT");
-					unassigned_log("Unmounting ISO File Share '{$info['device']}'...");
+					unassigned_log("Unmounting ISO File '{$info['device']}'...");
 					if ( do_unmount($info['device'], $info['mountpoint'], $force) ) {
 						if ( rm_smb_share($info['mountpoint']) && rm_nfs_share($info['mountpoint']) ) {
 							execute_script($info, "REMOVE");
