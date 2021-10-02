@@ -70,7 +70,7 @@ else
 
 /* Get the current diskio setting. */
 $tc		= $paths['diskio'];
-$diskio = is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+$diskio = is_file($tc) ? json_decode(file_get_contents($tc), TRUE) : array();
 
 ########################################################
 #############		MISC FUNCTIONS        ##############
@@ -129,7 +129,7 @@ function save_ini_file($file, $array) {
 	/* Write changes to tmp file. */
 	file_put_contents($file, implode(PHP_EOL, $res));
 
-	/* Write changes to flash. */
+	/* Write changes back to flash. */
 	$file_path = pathinfo($file);
 	if ($file_path['extension'] == "cfg") {
 		file_put_contents("/boot/config/plugins/".$plugin."/".basename($file), implode(PHP_EOL, $res));
@@ -193,7 +193,7 @@ function get_device_stats($mountpoint, $mounted, $active = TRUE) {
 	$rc			= "";
 	$tc			= $paths['df_status'];
 
-	/* Get the device stats if it is mounted. */
+	/* Get the device stats if device is mounted. */
 	if ($mounted) {
 		$df_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 		/* Run the stats script to update the state file. */
@@ -255,6 +255,8 @@ function get_disk_reads_writes($ud_dev, $dev) {
 
 	/* Get the base device - remove the partition. */
 	$dev	= base_device(basename($dev));
+
+	/* Get the diskio for this device. */
 	$diskio	= @(array)parse_ini_file('state/diskload.ini');
 	$data	= explode(' ',$diskio[$dev] ?? '0 0 0 0');
 
@@ -298,6 +300,7 @@ function is_disk_running($ud_dev, $dev) {
 		$device		= $dev;
 	}
 
+	/* Update the spin status. */
 	$spin		= isset($run_status[$device]['spin']) ? $run_status[$device]['spin'] : "";
 	$spin_time	= isset($run_status[$device]['spin']) ? $run_status[$device]['spin_time'] : 0;
 	$run_status[$device] = array('timestamp' => time(), 'running' => $rc ? 'yes' : 'no', 'spin_time' => $spin_time, 'spin' => $spin);
@@ -345,7 +348,7 @@ function is_disk_spin($ud_dev, $running) {
 	return($rc);
 }
 
-/* Check to see if a samba server is online by pinging it. */
+/* Check to see if a remote server is online by pinging it. */
 function is_samba_server_online($ip) {
 	global $paths, $plugin;
 
@@ -396,7 +399,7 @@ function is_script_running($cmd, $user=FALSE) {
 		/* Update the current running state. */
 		file_put_contents($tc, json_encode($script_run));
 		if (($was_running) && (! $is_running)) {
-			publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
+			publish("reload", json_encode(array("rescan" => "yes"), JSON_UNESCAPED_SLASHES));
 		}
 	}
 
