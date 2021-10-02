@@ -820,13 +820,13 @@ function remove_config_disk($sn) {
 	if ( isset($config[$sn]) ) {
 		unassigned_log("Removing configuration '{$sn}'.");
 	}
-	/* Remove up to three partition script files. */
+	/* Remove up to five partition script files. */
 	for ($i = 1; $i <= 5; $i++) {
 		$command = "command.".$i;
 		$cmd = $config[$sn][$command];
 		if ( isset($cmd) && is_file($cmd) ) {
 			@unlink($cmd);
-			unassigned_log("Removing script '{$cmd}'.");
+			unassigned_log("Removing script file '{$cmd}'.");
 		}
 	}
 	unset($config[$sn]);
@@ -834,7 +834,7 @@ function remove_config_disk($sn) {
 	return (! isset($config[$sn])) ? TRUE : FALSE;
 }
 
-/* Is a disk device an SSD? */
+/* Is disk device an SSD? */
 function is_disk_ssd($device) {
 
 	$rc		= FALSE;
@@ -854,7 +854,7 @@ function is_disk_ssd($device) {
 	return $rc;
 }
 
-/* Spin disk up/down using Unraid api. */
+/* Spin disk up or down using Unraid api. */
 function spin_disk($down, $dev) {
 	if ($down) {
 		exec(escapeshellcmd("/usr/local/sbin/emcmd cmdSpindown=".escapeshellarg($dev)));
@@ -868,7 +868,7 @@ function spin_disk($down, $dev) {
 #########################################################
 
 /* Is a device mounted? */
-function is_mounted($dev, $dir=FALSE) {
+function is_mounted($dev, $dir = FALSE) {
 
 	$rc = FALSE;
 	if ($dev) {
@@ -899,31 +899,25 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 			break;
 
 		case 'xfs':
-			$rc = "{$rw},noatime,nodiratime{$discard}";
-			break;
-
 		case 'btrfs':
-			$rc = "{$rw},auto,async,noatime,nodiratime{$discard}";
-			break;
-
-		case 'exfat':
-			$rc = "{$rw},auto,async,noatime,nodiratime,nodev,nosuid,umask=000";
-			break;
-
-		case 'vfat':
-			$rc = "{$rw},auto,async,noatime,nodiratime,nodev,nosuid,iocharset=utf8,umask=000";
-			break;
-
-		case 'ntfs':
-			$rc = "{$rw},auto,async,noatime,nodiratime,nodev,nosuid,nls=utf8,umask=000";
-			break;
-
 		case 'crypto_LUKS':
 			$rc = "{$rw},noatime,nodiratime{$discard}";
 			break;
 
+		case 'exfat':
+			$rc = "{$rw},noatime,nodiratime,nodev,nosuid,umask=000";
+			break;
+
+		case 'vfat':
+			$rc = "{$rw},noatime,nodiratime,nodev,nosuid,iocharset=utf8,umask=000";
+			break;
+
+		case 'ntfs':
+			$rc = "{$rw},noatime,nodiratime,nodev,nosuid,nls=utf8,umask=000";
+			break;
+
 		case 'ext4':
-			$rc = "{$rw},auto,noatime,nodiratime,async,nodev,nosuid{$discard}";
+			$rc = "{$rw},noatime,nodiratime,nodev,nosuid{$discard}";
 			break;
 
 		case 'cifs':
@@ -936,7 +930,7 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 			break;
 
 		default:
-			$rc = "{$rw},auto,async,noatime,nodiratime";
+			$rc = "{$rw},noatime,nodiratime";
 			break;
 	}
 
