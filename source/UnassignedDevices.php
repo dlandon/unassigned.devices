@@ -688,11 +688,17 @@ switch ($_POST['action']) {
 			$devs = parse_ini_file($sf, true);
 			foreach ($devs as $d) {
 				$device = "/dev/".$d['device'];
+
+				/* Refresh partition information. */
+				exec("/usr/sbin/partprobe ".escapeshellarg($device));
+	
+				/* Update disk info. */
 				shell_exec("/sbin/udevadm trigger --action=change ".escapeshellarg($device));
 			}
 		}
 		$tc			= $paths['hotplug_status'];
 		$hotplug	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : "no";
+		unassigned_log("Refreshed Disks and Configuration.");
 		if ($hotplug == "no") {
 			file_put_contents($tc, json_encode('yes'));
 			publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
