@@ -803,7 +803,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		</div>
 		<div data-question-content>
 			<div class="swal-content">
-				<input type="password" class="swal-content__input" name="PASS" autocomplete="new-password" placeholder="<?=_('Password');?>">
+				<input type="password" class="swal-content__input" name="PASS" autocomplete="off" placeholder="<?=_('Password');?>">
 				<p><?=_('Enter the password to use for this disk');?>. <?=_('Leave blank to use the array password/passphrase');?>. <?=_('If using a disk password, be sure to enter the password for this disk in UD Settings so it can be mounted');?>.</p>
 				<p><span style="font-weight:bold;"><?=_('Note');?>:</span> <?=_('Remember your password');?>. <?=_('It cannot be recovered');?>!</p>
 			</div>
