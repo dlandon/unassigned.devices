@@ -895,7 +895,7 @@ function get_mount_params($fs, $dev, $ro = FALSE) {
 	$rw	= $ro ? "ro" : "rw";
 	switch ($fs) {
 		case 'hfsplus':
-			$rc = "force,{$rw},users,async,umask=000";
+			$rc = "force,{$rw},users,umask=000";
 			break;
 
 		case 'xfs':
@@ -948,10 +948,10 @@ function do_mount($info) {
 		$rc = do_mount_iso($info);
 	} else if ($info['fstype'] == "crypto_LUKS") {
 		if (! is_mounted($info['device']) || ! is_mounted($info['mountpoint'], TRUE)) {
-			$luks	= basename($info['device']);
-			$discard = is_disk_ssd($info['luks']) ? "--allow-discards" : "";
-			$cmd	= "luksOpen $discard ".escapeshellarg($info['luks'])." ".escapeshellarg($luks);
-			$pass	= decrypt_data(get_config($info['serial'], "pass"));
+			$luks		= basename($info['device']);
+			$discard	= is_disk_ssd($info['luks']) ? "--allow-discards" : "";
+			$cmd		= "luksOpen $discard ".escapeshellarg($info['luks'])." ".escapeshellarg($luks);
+			$pass		= decrypt_data(get_config($info['serial'], "pass"));
 			if (! $pass) {
 				if (file_exists($var['luksKeyfile'])) {
 					unassigned_log("Using luksKeyfile to open the 'crypto_LUKS' device.");
@@ -1031,6 +1031,8 @@ function do_mount_local($info) {
 			if ($o && $fs == "ntfs" && is_mounted($dev)) {
 				unassigned_log("Mount warning: {$o}.");
 			}
+
+			/* Check to see if the device really mounted. */
 			for ($i=0; $i < 5; $i++) {
 				if (is_mounted($dev) && is_mounted($dir, TRUE)) {
 					@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
@@ -1072,6 +1074,8 @@ function do_unmount($dev, $dir, $force=FALSE, $smb=FALSE, $nfs=FALSE) {
 		unassigned_log("Unmount cmd: {$cmd}");
 		$timeout = ($smb || $nfs) ? ($force ? 30 : 10) : 90;
 		$o = timed_exec($timeout, $cmd);
+
+		/* Check to see if the device really unmounted. */
 		for ($i=0; $i < 5; $i++) {
 			if (! is_mounted($dev) && ! is_mounted($dir, TRUE)) {
 				if (is_dir($dir)) {
@@ -1254,7 +1258,7 @@ function add_nfs_share($dir) {
 		unassigned_log("Adding NFS share '{$dir}'.");
 		foreach (array("/etc/exports","/etc/exports-") as $file) {
 			if (! exist_in_file($file, "\"{$dir}\"")) {
-				$c			= (is_file($file)) ? @file($file,FILE_IGNORE_NEW_LINES) : array();
+				$c			= (is_file($file)) ? @file($file, FILE_IGNORE_NEW_LINES) : array();
 				$fsid		= 200 + count(preg_grep("@^\"@", $c));
 				$nfs_sec	= get_config("Config", "nfs_security");
 				$sec		= "";
@@ -1284,14 +1288,16 @@ function rm_nfs_share($dir) {
 		unassigned_log("Removing NFS share '{$dir}'.");
 		foreach (array("/etc/exports","/etc/exports-") as $file) {
 			if ( exist_in_file($file, "\"{$dir}\"") && strlen($dir)) {
-				$c		= (is_file($file)) ? @file($file,FILE_IGNORE_NEW_LINES) : array();
+				$c		= (is_file($file)) ? @file($file, FILE_IGNORE_NEW_LINES) : array();
 				$c		= preg_grep("@\"{$dir}\"@i", $c, PREG_GREP_INVERT);
 				$c[]	= "";
 				file_put_contents($file, implode(PHP_EOL, $c));
 				$reload	= TRUE;
 			}
 		}
-		if ($reload) shell_exec("/usr/sbin/exportfs -ra 2>/dev/null");
+		if ($reload) {
+			shell_exec("/usr/sbin/exportfs -ra 2>/dev/null");
+		}
 	}
 
 	return TRUE;
