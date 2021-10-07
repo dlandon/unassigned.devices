@@ -235,7 +235,7 @@ _(NFS Version to use when Mounting Remote Shares)_:
 : <select name="nfs_version" size="1">
   <?=mk_option($cfg["Config"]["nfs_version"], "3", "_(NFSv3)_");?>
   <?=mk_option($cfg["Config"]["nfs_version"], "4", "_(NFSv4)_");?>
-  </select>
+  </select>&nbsp;_(Unraid 6.10 is required for NFSv4 support)_.
 
 :ud_settings_specify_nfs_vers_plug:
 > Set to **NFSv3** to mount all NFS Remote Shares with NFSv3.
