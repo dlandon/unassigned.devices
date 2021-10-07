@@ -214,7 +214,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 		$out[] = render_used_and_free($partition, $mounted);
 	}
 	if ((! $total) || (! $disk['show_partitions'])) {
-		$out[] = "<td><a title='"._("View Device Script Log")."' href='/Main/ScriptLog?s=".$partition['serial']."&l=".basename($partition['mountpoint'])."&p=".$partition['part']."'><i class='fa fa-align-left".( $partition['command'] ? "":" grey-orb" )."'></i></a></td>";
+		$out[] = "<td><a title='"._("View Device Script Log")."' href='/Main/ScriptLog?s=".$partition['serial']."&p=".$partition['part']."'><i class='fa fa-align-left".( $partition['command'] ? "":" grey-orb" )."'></i></a></td>";
 	} else {
 		$out[] = "<td></td>";
 	}
@@ -488,7 +488,7 @@ switch ($_POST['action']) {
 				echo "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				echo render_used_and_free($mount, $mounted);
 
-				echo "<td><a title='"._("View Remote SMB/NFS Script Log")."' href='/Main/ScriptLog?d=".$mount['device']."&l=".basename($mount['mountpoint'])."'><i class='fa fa-align-left".( $mount['command'] ? "":" grey-orb" )."'></i></a></td>";
+				echo "<td><a title='"._("View Remote SMB/NFS Script Log")."' href='/Main/ScriptLog?d=".$mount['device']."'><i class='fa fa-align-left".( $mount['command'] ? "":" grey-orb" )."'></i></a></td>";
 				echo "</tr>";
 			}
 		}
@@ -540,7 +540,7 @@ switch ($_POST['action']) {
 				echo "<td></td><td></td><td></td>";
 				echo "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				echo render_used_and_free($mount, $mounted);
-				echo "<td><a title='"._("View ISO File Script Log")."' href='/Main/ScriptLog?i=".$mount['device']."&l=".basename($mount['mountpoint'])."'><i class='fa fa-align-left".( $mount['command'] ? "":" grey-orb" )."'></i></a></td>";
+				echo "<td><a title='"._("View ISO File Script Log")."' href='/Main/ScriptLog?i=".$mount['device']."'><i class='fa fa-align-left".( $mount['command'] ? "":" grey-orb" )."'></i></a></td>";
 				echo "</tr>";
 			}
 		}

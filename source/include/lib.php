@@ -17,7 +17,7 @@ $paths = [	"smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"smb_usb_shares"	=> "/etc/samba/unassigned-shares",
 			"usb_mountpoint"	=> "/mnt/disks",
 			"remote_mountpoint"	=> "/mnt/remotes",
-			"device_log"		=> "/tmp/{$plugin}/",
+			"device_log"		=> "/tmp/{$plugin}/logs/",
 			"config_file"		=> "/tmp/{$plugin}/config/{$plugin}.cfg",
 			"state"				=> "/var/state/{$plugin}/{$plugin}.ini",
 			"mounted"			=> "/var/state/{$plugin}/{$plugin}.json",
@@ -112,7 +112,7 @@ function is_ip($str) {
 
 function _echo($m) { echo "<pre>".print_r($m,TRUE)."</pre>";}; 
 
-/* Save ini and cfg files to tmp file system and copy cfg changes to flash. */
+/* Save ini and cfg files to tmp file system and then copy cfg file changes to flash. */
 function save_ini_file($file, $array) {
 	global $plugin;
 
@@ -760,14 +760,28 @@ function toggle_pass_through($sn, $status) {
 }
 
 /* Execute the device script. */
-function execute_script($info, $action, $testing=FALSE) { 
+function execute_script($info, $action, $testing = FALSE) { 
 	global $paths;
 
 	/* Set environment variables. */
 	putenv("ACTION={$action}");
 	foreach ($info as $key => $value) {
-		putenv(strtoupper($key)."={$value}");
+		/* Only set the environment variables used by the scripts. */
+		switch ($key) {
+			case 'device':
+			case 'serial':
+			case 'label':
+			case 'fstype':
+			case 'mountpoint':
+			case 'owner':
+			case 'prog_name':
+			case 'logfile':
+				putenv(strtoupper($key)."={$value}");
+			break;
+		}
 	}
+
+	/* Execute the common script if it is defined. */
 	if ($common_cmd = escapeshellcmd(get_config("Config", "common_cmd"))) {
 		$common_script = $paths['scripts'].basename($common_cmd);
 		copy($common_cmd, $common_script);
@@ -794,7 +808,7 @@ function execute_script($info, $action, $testing=FALSE) {
 				if ($action == "REMOVE" || $action == "ERROR_MOUNT" || $action == "ERROR_UNMOUNT") {
 					sleep(1);
 				}
-				$cmd = isset($info['serial']) ? "$command_script > /tmp/{$info['serial']}.log 2>&1 $bg" : "$command_script > /tmp/".preg_replace('~[^\w]~i', '', $info['device']).".log 2>&1 $bg";
+				$cmd = isset($info['serial']) ? "$command_script > ".$paths['device_log'].$info['serial']."log 2>&1 $bg" : "$command_script > ".$paths['device_log'].preg_replace('~[^\w]~i', '', $info['device']).".log 2>&1 $bg";
 
 				/* Run the script. */
 				exec($cmd, escapeshellarg($out), escapeshellarg($return));

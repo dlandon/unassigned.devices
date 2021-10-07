@@ -122,15 +122,12 @@ $default_text	= <<<EOT
 #!/bin/bash
 PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin
 ## Available variables:
-# AVAIL      : available space
-# USED       : used space
-# SIZE       : partition size
-# SERIAL     : disk serial number
 # ACTION     : if mounting, ADD; if unmounting, UNMOUNT; if unmounted, REMOVE; if error, ERROR_MOUNT, ERROR_UNMOUNT
-# MOUNTPOINT : where the partition is mounted
-# FSTYPE     : partition filesystem
-# LABEL      : partition label
 # DEVICE     : partition device, e.g /dev/sda1
+# SERIAL     : disk serial number
+# LABEL      : partition label
+# FSTYPE     : partition filesystem
+# MOUNTPOINT : where the partition is mounted
 # OWNER      : "udev" if executed by UDEV, otherwise "user"
 # PROG_NAME  : program name of this script
 # LOGFILE    : log file for this script
