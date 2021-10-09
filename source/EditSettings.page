@@ -386,6 +386,10 @@ _(Volume)_
 		form.dispatchEvent(event);
 	}
 
+	function load(el) {
+		$.get($( el ).val(),function(data){ $( 'textarea' ).val(data);});
+	}
+
 	function openFileBrowser(el, root, filter, on_folders, on_files) {
 		if (on_folders === undefined) on_folders = true;
 		if (on_files   === undefined) on_files = true;
@@ -407,7 +411,7 @@ _(Volume)_
 			filter: filter,
 			allowBrowsing : true
 			},
-			function(file){if(on_files){p.val(file);$(ft).slideUp('fast',function (){$(ft).remove();});}},
+			function(file){if(on_files){p.val(file);$(ft).slideUp('fast',function (){$(ft).remove();});load(p);}},
 			function(folder){if(on_folders){p.val(folder);$(ft).slideUp('fast',function (){$(ft).remove();});}}
 		);
 
