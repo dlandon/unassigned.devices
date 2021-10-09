@@ -366,7 +366,7 @@ function is_samba_server_online($ip) {
 }
 
 /* Check to see if a mount script is running. */
-function is_script_running($cmd, $user=FALSE) {
+function is_script_running($cmd, $user = FALSE) {
 	global $paths;
 
 	$is_running = FALSE;
@@ -374,7 +374,7 @@ function is_script_running($cmd, $user=FALSE) {
 	if ($cmd) {
 		$script_name	= $cmd;
 		$tc				= $paths['script_run'];
-		$script_run		= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+		$script_run		= is_file($tc) ? json_decode(file_get_contents($tc), TRUE) : array();
 
 		/* Check to see if the script was running. */
 		if (isset($script_run[$script_name])) {
@@ -1031,7 +1031,7 @@ function do_mount_local($info) {
 			}
 			$str = str_replace($recovery, ", pass='*****'", $cmd);
 			unassigned_log("Mount drive command: {$str}");
-			if (($fs == "apfs") && ! (is_file("/usr/bin/apfs-fuse"))) {
+			if (($fs == "apfs") && (! is_file("/usr/bin/apfs-fuse"))) {
 				$o = "Install Unassigned Devices Plus to mount an apfs file system";
 			} else {
 				$o = shell_exec(escapeshellcmd($cmd)." 2>&1");
