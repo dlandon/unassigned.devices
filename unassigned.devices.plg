@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2021.09.26">
+<!ENTITY version	"2021.10.11">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"8c4e5c66433bf143787341f2a01b6740">
+<!ENTITY MD5		"e2053a170e23ca1fec1c865fbfb61513">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,6 +23,13 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Add partprobe to 'Refresh Disks and Configuration' to refresh disk partition information.
+- Fix: Remove 'auto' and 'async' parameters from disk mounts - these are unnecessary settings.
+- Fix: All logs now go to '/tmp/unassigned.devices/logs/'.
+- Fix: Remove 'SIZE', 'AVAIL', and 'USED' environment variables from the device script execution.  They don't work when a disk is mounted.
+- Fix: Script file selection issue with Edit Settings.
+
+###2021.09.26
 - Fix: Do not allow exclamation character in disk mount point.
 - Fix: Remove legacy partition toggle code.
 - Fix: Remove and reload shares when changing UD settings - missing device.
@@ -1518,7 +1525,7 @@ The 'post-install' script.
 <FILE Run="/bin/bash">
 <INLINE>
 # Create logs directory.
-mkdir -p /tmp/&name;
+mkdir -p /tmp/&name;/logs
 
 # Create plugin directory
 mkdir -p /boot/config/plugins/&name;
