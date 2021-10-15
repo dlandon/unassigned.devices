@@ -164,7 +164,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 		}
 	}
 
-	/* Reads and writes */
+	/* Disk reads and writes */
 	if ($total) {
 		if ($diskio['disk_io'] == 0) {
 			$out[] = "<td>".my_number($disk['reads'])."</td>";
@@ -177,6 +177,7 @@ function render_partition($disk, $partition, $total=FALSE) {
 		$out[] = "<td></td><td></td><td></td>";
 	}
 
+	/* Set up the tooltip. */
 	$title = _("Edit Device Settings and Script");
 	if ($total) {
 		$title .= "<br />"._("Passed Through").": ";
@@ -382,10 +383,13 @@ switch ($_POST['action']) {
 					echo "<a href='/Main/{$str}={$disk_dev}'> {$disk_display}<span>"."</span></a>";
 					echo "</td>";
 				}
+
 				/* Device serial number */
 				echo "<td>{$hdd_serial}</td>";
+
 				/* Mount button */
 				echo "<td class='mount'>{$mbutton}</td>";
+
 				/* Disk temperature */
 				echo "<td>{$temp}</td>";
 
@@ -399,18 +403,25 @@ switch ($_POST['action']) {
 						$writes		= my_diskio($rw[3]);
 					}
 				}
+
 				/* Reads */
 				echo ($p)?$p[4]:"<td>".$reads."</td>";
+
 				/* Writes */
 				echo ($p)?$p[5]:"<td>".$writes."</td>";
+
 				/* Settings */
 				echo ($p)?$p[6]:"<td>-</td>";
+
 				/* File system */
 				echo ($p)?$p[7]:"<td>-</td>";
+
 				/* Disk size */
 				echo "<td>".my_scale($disk['size'],$unit)." {$unit}</td>";
+
 				/* Disk used and free space */
 				echo ($p)?$p[8]:"<td>-</td><td>-</td>";
+
 				/* Log button */
 				echo ($p)?$p[9]:"<td>-</td>";
 				echo "</tr>";

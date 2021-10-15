@@ -110,7 +110,7 @@ function is_ip($str) {
 	return filter_var($str, FILTER_VALIDATE_IP);
 }
 
-/* Echo array to GUI for debugging. */
+/* Echo variable to GUI for debugging. */
 function _echo($m) { echo "<pre>".print_r($m,TRUE)."</pre>";}; 
 
 /* Save ini and cfg files to tmp file system and then copy cfg file changes to flash. */
@@ -130,7 +130,7 @@ function save_ini_file($file, $array) {
 	/* Write changes to tmp file. */
 	file_put_contents($file, implode(PHP_EOL, $res));
 
-	/* Write changes back to flash. */
+	/* Write cfg changes back to flash. */
 	$file_path = pathinfo($file);
 	if ($file_path['extension'] == "cfg") {
 		file_put_contents("/boot/config/plugins/".$plugin."/".basename($file), implode(PHP_EOL, $res));
@@ -479,154 +479,176 @@ function get_format_cmd($dev, $fs) {
 function format_disk($dev, $fs, $pass) {
 	global $paths;
 
+	$rc	= TRUE;
+
 	/* Make sure it doesn't have partitions. */
 	foreach (get_all_disks_info() as $d) {
 		if ($d['device'] == $dev && count($d['partitions'])) {
 			unassigned_log("Aborting format: disk '{$dev}' has '".count($d['partitions'])."' partition(s).");
-			return FALSE;
+			$rc = FALSE;
 		}
 	}
 
-	$max_mbr_blocks = hexdec("0xFFFFFFFF");
-	$disk_blocks	= intval(trim(shell_exec("/sbin/blockdev --getsz ".escapeshellarg($dev)." | /bin/awk '{ print $1 }' 2>/dev/null")));
-	$disk_schema	= ( $disk_blocks >= $max_mbr_blocks ) ? "gpt" : "msdos";
-	$parted_fs		= ($fs == 'exfat') ? "fat32" : $fs;
-	unassigned_log("Device '{$dev}' block size: {$disk_blocks}.");
+	if ($rc) {
+		/* Get the disk blocks and set either gpt or mbr partition based on disk size. */
+		$max_mbr_blocks = hexdec("0xFFFFFFFF");
+		$disk_blocks	= intval(trim(shell_exec("/sbin/blockdev --getsz ".escapeshellarg($dev)." | /bin/awk '{ print $1 }' 2>/dev/null")));
+		$disk_schema	= ( $disk_blocks >= $max_mbr_blocks ) ? "gpt" : "msdos";
+		$parted_fs		= ($fs == 'exfat') ? "fat32" : $fs;
+		unassigned_log("Device '{$dev}' block size: {$disk_blocks}.");
 
-	unassigned_log("Clearing partition table of disk '{$dev}'.");
-	$o = trim(shell_exec("/usr/bin/dd if=/dev/zero of=".escapeshellarg($dev)." bs=2M count=1 2>&1"));
-	if ($o) {
-		unassigned_log("Clear partition result:\n{$o}");
-	}
-
-	unassigned_log("Reloading disk ".escapeshellarg($dev)." partition table.");
-	$o = trim(shell_exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." 2>&1"));
-	if ($o) {
-		unassigned_log("Reload partition table result:\n{$o}");
-	}
-
-	/* Update udev. */
-	shell_exec("/sbin/udevadm trigger --action=change ".escapeshellarg($dev));
-
-	if ($fs == "xfs" || $fs == "xfs-encrypted" || $fs == "btrfs" || $fs == "btrfs-encrypted") {
-		$is_ssd = is_disk_ssd($dev);
-		if ($disk_schema == "gpt") {
-			unassigned_log("Creating Unraid compatible gpt partition on disk '{$dev}'.");
-			shell_exec("/sbin/sgdisk -Z ".escapeshellarg($dev));
-
-			/* Alignment is 4,096 for spinners and 1Mb for SSD */
-			$alignment = $is_ssd ? "" : "-a 8";
-			$o = shell_exec("/sbin/sgdisk -o ".$alignment." -n 1:32K:0 ".escapeshellarg($dev));
-			if ($o) {
-				unassigned_log("Create gpt partition table result:\n{$o}");
-			}
-		} else {
-			unassigned_log("Creating Unraid compatible mbr partition on disk '{$dev}'.");
-			/* Alignment is 4,096 for spinners and 1Mb for SSD */
-			$start_sector = $is_ssd ? "2048" : "64";
-			$o = shell_exec("/usr/local/sbin/mkmbr.sh ".escapeshellarg($dev)." ".escapeshellarg($start_sector));
-			if ($o) {
-				unassigned_log("Create mbr partition table result:\n{$o}");
-			}
+		/* Clear the partition table. */
+		unassigned_log("Clearing partition table of disk '{$dev}'.");
+		$o = trim(shell_exec("/usr/bin/dd if=/dev/zero of=".escapeshellarg($dev)." bs=2M count=1 2>&1"));
+		if ($o) {
+			unassigned_log("Clear partition result:\n{$o}");
 		}
+
+		/* Reload the partition table. */
 		unassigned_log("Reloading disk ".escapeshellarg($dev)." partition table.");
 		$o = trim(shell_exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." 2>&1"));
 		if ($o) {
 			unassigned_log("Reload partition table result:\n{$o}");
 		}
-	} else {
-		unassigned_log("Creating a 'gpt' partition table on disk '{$dev}'.");
-		$o = trim(shell_exec("/usr/sbin/parted ".escapeshellarg($dev)." --script -- mklabel gpt 2>&1"));
-		if ($o) {
-			unassigned_log("Create 'gpt' partition table result:\n{$o}");
+
+		/* Update udev. */
+		shell_exec("/sbin/udevadm trigger --action=change ".escapeshellarg($dev));
+
+		/* Create partition for xfs, or btrfs. Partitions are Unraid compatible. */
+		if ($fs == "xfs" || $fs == "xfs-encrypted" || $fs == "btrfs" || $fs == "btrfs-encrypted") {
+			$is_ssd = is_disk_ssd($dev);
+			if ($disk_schema == "gpt") {
+				unassigned_log("Creating Unraid compatible gpt partition on disk '{$dev}'.");
+				shell_exec("/sbin/sgdisk -Z ".escapeshellarg($dev));
+
+				/* Alignment is 4kb for spinners and 1Mb for SSD. */
+				$alignment = $is_ssd ? "" : "-a 8";
+				$o = shell_exec("/sbin/sgdisk -o ".$alignment." -n 1:32K:0 ".escapeshellarg($dev));
+				if ($o) {
+					unassigned_log("Create gpt partition table result:\n{$o}");
+				}
+			} else {
+				unassigned_log("Creating Unraid compatible mbr partition on disk '{$dev}'.");
+
+				/* Alignment is 4kb for spinners and 1Mb for SSD. */
+				$start_sector = $is_ssd ? "2048" : "64";
+				$o = shell_exec("/usr/local/sbin/mkmbr.sh ".escapeshellarg($dev)." ".escapeshellarg($start_sector));
+				if ($o) {
+					unassigned_log("Create mbr partition table result:\n{$o}");
+				}
+			}
+
+			/* Reload the partition table. */
+			unassigned_log("Reloading disk ".escapeshellarg($dev)." partition table.");
+			$o = trim(shell_exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." 2>&1"));
+			if ($o) {
+				unassigned_log("Reload partition table result:\n{$o}");
+			}
+		} else {
+			/* All other file system partitions are gpt. */
+			unassigned_log("Creating a 'gpt' partition table on disk '{$dev}'.");
+			$o = trim(shell_exec("/usr/sbin/parted ".escapeshellarg($dev)." --script -- mklabel gpt 2>&1"));
+			if ($o) {
+				unassigned_log("Create 'gpt' partition table result:\n{$o}");
+			}
+
+			/* Create an optimal disk partition. */
+			$o = trim(shell_exec("/usr/sbin/parted -a optimal ".escapeshellarg($dev)." --script -- mkpart primary ".escapeshellarg($parted_fs)." 0% 100% 2>&1"));
+			if ($o) {
+				unassigned_log("Create primary partition result:\n{$o}");
+			}
 		}
 
-		$o = trim(shell_exec("/usr/sbin/parted -a optimal ".escapeshellarg($dev)." --script -- mkpart primary ".escapeshellarg($parted_fs)." 0% 100% 2>&1"));
-		if ($o) {
-			unassigned_log("Create primary partition result:\n{$o}");
+		unassigned_log("Formatting disk '{$dev}' with '$fs' filesystem.");
+
+		/* Format the disk. */
+		if (strpos($fs, "-encrypted") !== false) {
+			if (strpos($dev, "nvme") !== false) {
+				$cmd = "luksFormat {$dev}p1";
+			} else {
+				$cmd = "luksFormat {$dev}1";
+			}
+			if (! $pass) {
+				$o				= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
+			} else {
+				$luks			= basename($dev);
+				$luks_pass_file	= "{$paths['luks_pass']}_".$luks;
+				file_put_contents($luks_pass_file, $pass);
+				$o				= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
+				exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
+			}
+			if ($o)
+			{
+				unassigned_log("luksFormat error: {$o}");
+				$rc = FALSE;
+			} else {
+				$mapper = "format_".basename($dev);
+				if (strpos($dev, "nvme") !== false) {
+					$device	= $dev."p1";
+				} else {
+					$device	= $dev."1";
+				}
+				$cmd	= "luksOpen ".escapeshellarg($device)." ".escapeshellarg($mapper);
+				if (! $pass) {
+					$o = exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
+				} else {
+					$luks			= basename($dev);
+					$luks_pass_file	= "{$paths['luks_pass']}_".$luks;
+					file_put_contents($luks_pass_file, $pass);
+					$o				= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
+					exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
+				}
+				if ($o && stripos($o, "warning") === FALSE)
+				{
+					unassigned_log("luksOpen result: {$o}");
+					$rc = FALSE;
+				} else {
+					exec(get_format_cmd("/dev/mapper/{$mapper}", $fs),escapeshellarg($out), escapeshellarg($return));
+					sleep(3);
+					shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
+				}
+			}
+		} else {
+			if (strpos($dev, "nvme") !== false) {
+				exec(get_format_cmd("{$dev}p1", $fs),escapeshellarg($out), escapeshellarg($return));
+			} else {
+				exec(get_format_cmd("{$dev}1", $fs),escapeshellarg($out), escapeshellarg($return));
+			}
+		}
+
+		/* Finish up the format. */
+		if ($rc) {
+			if ($return)
+			{
+				unassigned_log("Format disk '{$dev}' with '{$fs}' filesystem failed:\n".implode(PHP_EOL, $out));
+				$rc = FALSE;
+			} else {
+				if ($out) {
+					unassigned_log("Format disk '{$dev}' with '{$fs}' filesystem:\n".implode(PHP_EOL, $out));
+				}
+
+				sleep(3);
+				unassigned_log("Reloading disk '{$dev}' partition table.");
+				$o = trim(shell_exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." 2>&1"));
+				if ($o) {
+					unassigned_log("Reload partition table result:\n{$o}");
+				}
+
+				/* Clear the $pass variable. */
+				unset($pass);
+
+				/* Update udev. */
+				shell_exec("/sbin/udevadm trigger --action=change ".escapeshellarg($dev));
+
+				sleep(3);
+
+				/* Refresh partition information. */
+				exec("/usr/sbin/partprobe ".escapeshellarg($dev));
+			}
 		}
 	}
 
-	unassigned_log("Formatting disk '{$dev}' with '$fs' filesystem.");
-	if (strpos($fs, "-encrypted") !== false) {
-		if (strpos($dev, "nvme") !== false) {
-			$cmd = "luksFormat {$dev}p1";
-		} else {
-			$cmd = "luksFormat {$dev}1";
-		}
-		if (! $pass) {
-			$o				= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
-		} else {
-			$luks			= basename($dev);
-			$luks_pass_file	= "{$paths['luks_pass']}_".$luks;
-			file_put_contents($luks_pass_file, $pass);
-			$o				= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
-			exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
-		}
-		if ($o)
-		{
-			unassigned_log("luksFormat error: {$o}");
-			return FALSE;
-		}
-		$mapper = "format_".basename($dev);
-		if (strpos($dev, "nvme") !== false) {
-			$device	= $dev."p1";
-		} else {
-			$device	= $dev."1";
-		}
-		$cmd	= "luksOpen ".escapeshellarg($device)." ".escapeshellarg($mapper);
-		if (! $pass) {
-			$o = exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
-		} else {
-			$luks			= basename($dev);
-			$luks_pass_file	= "{$paths['luks_pass']}_".$luks;
-			file_put_contents($luks_pass_file, $pass);
-			$o				= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
-			exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
-		}
-		if ($o && stripos($o, "warning") === FALSE)
-		{
-			unassigned_log("luksOpen result: {$o}");
-			return FALSE;
-		}
-		exec(get_format_cmd("/dev/mapper/{$mapper}", $fs),escapeshellarg($out), escapeshellarg($return));
-		sleep(3);
-		shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
-	} else {
-		if (strpos($dev, "nvme") !== false) {
-			exec(get_format_cmd("{$dev}p1", $fs),escapeshellarg($out), escapeshellarg($return));
-		} else {
-			exec(get_format_cmd("{$dev}1", $fs),escapeshellarg($out), escapeshellarg($return));
-		}
-	}
-	if ($return)
-	{
-		unassigned_log("Format disk '{$dev}' with '{$fs}' filesystem failed:\n".implode(PHP_EOL, $out));
-		return FALSE;
-	}
-	if ($out) {
-		unassigned_log("Format disk '{$dev}' with '{$fs}' filesystem:\n".implode(PHP_EOL, $out));
-	}
-
-	sleep(3);
-	unassigned_log("Reloading disk '{$dev}' partition table.");
-	$o = trim(shell_exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." 2>&1"));
-	if ($o) {
-		unassigned_log("Reload partition table result:\n{$o}");
-	}
-
-	/* Clear the $pass variable. */
-	unset($pass);
-
-	/* Update udev. */
-	shell_exec("/sbin/udevadm trigger --action=change ".escapeshellarg($dev));
-
-	sleep(3);
-
-	/* Refresh partition information. */
-	exec("/usr/sbin/partprobe ".escapeshellarg($dev));
-
-	return TRUE;
+	return $rc;
 }
 
 /* Remove a disk partition. */
@@ -841,6 +863,7 @@ function execute_script($info, $action, $testing = FALSE) {
 /* Remove a historical disk configuration. */
 function remove_config_disk($sn) {
 
+	/* Get the all disk configurations. */
 	$config_file = $GLOBALS["paths"]["config_file"];
 	$config = @parse_ini_file($config_file, true);
 	if ( isset($config[$sn]) ) {
@@ -848,14 +871,18 @@ function remove_config_disk($sn) {
 	}
 	/* Remove up to five partition script files. */
 	for ($i = 1; $i <= 5; $i++) {
-		$command = "command.".$i;
-		$cmd = $config[$sn][$command];
+		$command	= "command.".$i;
+		$cmd		= $config[$sn][$command];
 		if ( isset($cmd) && is_file($cmd) ) {
 			@unlink($cmd);
 			unassigned_log("Removing script file '{$cmd}'.");
 		}
 	}
+
+	/* Remove this configuration. */
 	unset($config[$sn]);
+
+	/* Resave all disk configurations. */
 	save_ini_file($config_file, $config);
 	return (! isset($config[$sn])) ? TRUE : FALSE;
 }
@@ -864,6 +891,7 @@ function remove_config_disk($sn) {
 function is_disk_ssd($device) {
 
 	$rc		= FALSE;
+
 	/* Get the base device - remove the partition number. */
 	$device	= base_device(basename($device));
 	if (strpos($device, "nvme") === false) {
@@ -1415,12 +1443,14 @@ function reload_shares() {
 ############		SAMBA FUNCTIONS			#############
 #########################################################
 
+/* Get samba mount configuration parameter. */
 function get_samba_config($source, $var) {
 	$config_file = $GLOBALS["paths"]["samba_mount"];
 	$config = @parse_ini_file($config_file, true, INI_SCANNER_RAW);
 	return (isset($config[$source][$var])) ? $config[$source][$var] : FALSE;
 }
 
+/* Set samba mount configuration parameter. */
 function set_samba_config($source, $var, $val) {
 	$config_file = $GLOBALS["paths"]["samba_mount"];
 	$config = @parse_ini_file($config_file, true);
@@ -1448,7 +1478,7 @@ function encrypt_data($data) {
 	return($val);
 }
 
-/* Decrypt passwords. */
+/* Decrypt password. */
 function decrypt_data($data) {
 
 	$key	= get_config("Config", "key");
@@ -1557,10 +1587,12 @@ function do_mount_samba($info) {
 					unassigned_log("NFS mount failed: '{$o}'.");
 				}
 			} else {
+				/* Create the credentials file. */
 				$credentials_file = "{$paths['credentials']}_".basename($dev);
 				file_put_contents("$credentials_file", "username=".($info['user'] ? $info['user'] : 'guest')."\n");
 				file_put_contents("$credentials_file", "password=".decrypt_data($info['pass'])."\n", FILE_APPEND);
 				file_put_contents("$credentials_file", "domain=".$info['domain']."\n", FILE_APPEND);
+
 				/* If the smb version is not required, just mount the remote share with no version. */
 				$smb_version = (get_config("Config", "smb_version") == "yes") ? TRUE : FALSE;
 				if (! $smb_version) {
@@ -1571,6 +1603,8 @@ function do_mount_samba($info) {
 					unassigned_log("Mount SMB command: {$cmd}");
 					$o		= timed_exec(10, $cmd." 2>&1");
 				}
+
+				/* If the remote share didn't mount, try SMB3. */
 				if (! is_mounted($dev) && (strpos($o, "Permission denied") === FALSE) && (strpos($o, "Network is unreachable") === FALSE)) {
 					if (! $smb_version) {
 						unassigned_log("SMB default protocol mount failed: '{$o}'.");
@@ -1582,6 +1616,8 @@ function do_mount_samba($info) {
 					unassigned_log("Mount SMB command: {$cmd}");
 					$o		= timed_exec(10, $cmd." 2>&1");
 				}
+
+				/* If the remote share didn't mount, try SMB2. */
 				if (! is_mounted($dev) && (strpos($o, "Permission denied") === FALSE) && (strpos($o, "Network is unreachable") === FALSE)) {
 					unassigned_log("SMB3 mount failed: '{$o}'.");
 					/* If the mount failed, try to mount with samba vers=2.0. */
@@ -1592,6 +1628,8 @@ function do_mount_samba($info) {
 					unassigned_log("Mount SMB command: {$cmd}");
 					$o		= timed_exec(10, $cmd." 2>&1");
 				}
+
+				/* If the remote share didn't mount, try SMB1 if netbios is enabled. */
 				if ((! is_mounted($dev) && ($use_netbios == 'yes')) && (strpos($o, "Permission denied") === FALSE) && (strpos($o, "Network is unreachable") === FALSE)) {
 					unassigned_log("SMB2 mount failed: '{$o}'.");
 					/* If the mount failed, try to mount with samba vers=1.0. */
@@ -1609,6 +1647,8 @@ function do_mount_samba($info) {
 				exec("/bin/shred -u ".escapeshellarg($credentials_file));
 				unset($pass);
 			}
+
+			/* Did the share successfully mount? */
 			if (is_mounted($dev) && is_mounted($dir, TRUE)) {
 				@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
 				$link = $paths['usb_mountpoint']."/";
@@ -1699,7 +1739,7 @@ function get_iso_mounts() {
 	global $paths;
 
 	/* Create an array of iso file mounts and set paramaters. */
-	$o				= array();
+	$rc				= array();
 	$config_file	= $paths['iso_mount'];
 	$iso_mounts		= @parse_ini_file($config_file, true);
 	if (is_array($iso_mounts)) {
@@ -1721,13 +1761,13 @@ function get_iso_mounts() {
 			$mount['command']		= get_iso_config($mount['device'],"command");
 			$mount['user_command']	= get_iso_config($mount['device'],"user_command");
 			$mount['logfile']		= ($mount['prog_name']) ? $paths['device_log'].$mount['prog_name'].".log" : "";
-			$o[] = $mount;
+			$rc[] = $mount;
 		}
 	} else {
 		unassigned_log("Error: unable to get the ISO mounts.");
 	}
 
-	return $o;
+	return $rc;
 }
 
 /* Mount ISO file. */
