@@ -110,6 +110,7 @@ function is_ip($str) {
 	return filter_var($str, FILTER_VALIDATE_IP);
 }
 
+/* Echo array to GUI for debugging. */
 function _echo($m) { echo "<pre>".print_r($m,TRUE)."</pre>";}; 
 
 /* Save ini and cfg files to tmp file system and then copy cfg file changes to flash. */
@@ -211,7 +212,7 @@ function get_device_stats($mountpoint, $mounted, $active = TRUE) {
 	return preg_split('/\s+/', $rc);
 }
 
-/* Remove the partition and return the base device. */
+/* Remove the partition number from $dev and return the base device. */
 function base_device($dev) {
 	return (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev);
 }
@@ -253,7 +254,7 @@ function get_disk_reads_writes($ud_dev, $dev) {
 		}
 	}
 
-	/* Get the base device - remove the partition. */
+	/* Get the base device - remove the partition number. */
 	$dev	= base_device(basename($dev));
 
 	/* Get the diskio for this device. */
@@ -313,8 +314,8 @@ function is_disk_running($ud_dev, $dev) {
 function is_disk_spin($ud_dev, $running) {
 	global $paths;
 
-	$rc = FALSE;
-	$tc = $paths['run_status'];
+	$rc			= FALSE;
+	$tc			= $paths['run_status'];
 	$run_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
 
 	/* Is disk spinning up or down? */
@@ -365,7 +366,7 @@ function is_samba_server_online($ip) {
 	return $is_alive;
 }
 
-/* Check to see if a mount script is running. */
+/* Check to see if a mount/unmount script is running. */
 function is_script_running($cmd, $user = FALSE) {
 	global $paths;
 
@@ -638,25 +639,28 @@ function remove_partition($dev, $part) {
 			foreach ($d['partitions'] as $p) {
 				if ($p['part'] == $part && $p['target']) {
 					unassigned_log("Aborting removal: partition '{$part}' is mounted.");
-					return FALSE;
+					$rc = FALSE;
 				} 
 			}
 		}
 	}
-	unassigned_log("Removing partition '{$part}' from disk '{$dev}'.");
-	$out = shell_exec("/usr/sbin/parted ".escapeshellarg($dev)." --script -- rm ".escapeshellarg($part)." 2>&1");
-	if ($out) {
-		unassigned_log("Remove parition failed: '{$out}'.");
-		$rc = FALSE;
+
+	if ($rc) {
+		unassigned_log("Removing partition '{$part}' from disk '{$dev}'.");
+		$out = shell_exec("/usr/sbin/parted ".escapeshellarg($dev)." --script -- rm ".escapeshellarg($part)." 2>&1");
+		if ($out) {
+			unassigned_log("Remove parition failed: '{$out}'.");
+			$rc = FALSE;
+		}
+
+		/* Update udev info. */
+		shell_exec("/sbin/udevadm trigger --action=change ".escapeshellarg($dev));
+
+		sleep(5);
+
+		/* Refresh partition information. */
+		exec("/usr/sbin/partprobe ".escapeshellarg($dev));
 	}
-
-	/* Undate udev info. */
-	shell_exec("/sbin/udevadm trigger --action=change ".escapeshellarg($dev));
-
-	sleep(5);
-
-	/* Refresh partition information. */
-	exec("/usr/sbin/partprobe ".escapeshellarg($dev));
 
 	return $rc;
 }
@@ -704,12 +708,14 @@ function luks_fs_type($dev) {
 ############		CONFIG FUNCTIONS		#############
 #########################################################
 
+/* Get device configuration parameter. */
 function get_config($sn, $var) {
 	$config_file = $GLOBALS["paths"]["config_file"];
 	$config = @parse_ini_file($config_file, true);
 	return (isset($config[$sn][$var])) ? html_entity_decode($config[$sn][$var]) : FALSE;
 }
 
+/* Set device configuration parameter. */
 function set_config($sn, $var, $val) {
 	$config_file = $GLOBALS["paths"]["config_file"];
 	$config = @parse_ini_file($config_file, true);
@@ -718,6 +724,7 @@ function set_config($sn, $var, $val) {
 	return (isset($config[$sn][$var])) ? $config[$sn][$var] : FALSE;
 }
 
+/* Is device set to auto mount? */
 function is_automount($sn, $usb=FALSE) {
 	$auto = get_config($sn, "automount");
 	$auto_usb = get_config("Config", "automount_usb");
@@ -725,16 +732,19 @@ function is_automount($sn, $usb=FALSE) {
 	return ( (($pass_through != "yes") && ($auto == "yes")) || ($usb && $auto_usb == "yes" && (! $auto)) ) ? TRUE : FALSE;
 }
 
+/* Is device set to mount read only? */
 function is_read_only($sn) {
 	$read_only = get_config($sn, "read_only");
 	$pass_through = get_config($sn, "pass_through");
 	return ( $pass_through != "yes" && $read_only == "yes" ) ? TRUE : FALSE;
 }
 
+/* Is device set to pass through. */
 function is_pass_through($sn) {
 	return (get_config($sn, "pass_through") == "yes") ? TRUE : FALSE;
 }
 
+/* Toggle auto mount on/off. */
 function toggle_automount($sn, $status) {
 	$config_file = $GLOBALS["paths"]["config_file"];
 	$config = @parse_ini_file($config_file, true);
@@ -743,6 +753,7 @@ function toggle_automount($sn, $status) {
 	return ($config[$sn]["automount"] == "yes") ? 'true' : 'false';
 }
 
+/* Toggle read only on/off. */
 function toggle_read_only($sn, $status) {
 	$config_file = $GLOBALS["paths"]["config_file"];
 	$config = @parse_ini_file($config_file, true);
@@ -751,6 +762,7 @@ function toggle_read_only($sn, $status) {
 	return ($config[$sn]["read_only"] == "yes") ? 'true' : 'false';
 }
 
+/* Toggle pass through on/off. */
 function toggle_pass_through($sn, $status) {
 	$config_file = $GLOBALS["paths"]["config_file"];
 	$config = @parse_ini_file($config_file, true);
@@ -852,7 +864,7 @@ function remove_config_disk($sn) {
 function is_disk_ssd($device) {
 
 	$rc		= FALSE;
-	/* Get the base device - remove the partition. */
+	/* Get the base device - remove the partition number. */
 	$device	= base_device(basename($device));
 	if (strpos($device, "nvme") === false) {
 		$file = "/sys/block/".basename($device)."/queue/rotational";
@@ -956,10 +968,15 @@ function do_mount($info) {
 	global $var, $paths;
 
 	$rc = FALSE;
+	/* Mount a CIFS or NFS remote mount. */
 	if ($info['fstype'] == "cifs" || $info['fstype'] == "nfs") {
 		$rc = do_mount_samba($info);
+
+	/* Mount an ISO file. */
 	} else if($info['fstype'] == "loop") {
 		$rc = do_mount_iso($info);
+
+	/* Mount a luks disk device. */
 	} else if ($info['fstype'] == "crypto_LUKS") {
 		if (! is_mounted($info['device']) || ! is_mounted($info['mountpoint'], TRUE)) {
 			$luks		= basename($info['device']);
@@ -991,6 +1008,8 @@ function do_mount($info) {
 		} else {
 			unassigned_log("Drive '{$info['device']}' already mounted.");
 		}
+
+	/* Mount an unencrypted disk. */
 	} else {
 		$rc = do_mount_local($info);
 	}
@@ -1012,6 +1031,7 @@ function do_mount_local($info) {
 			@mkdir($dir, 0777, TRUE);
 			if ($fs != "crypto_LUKS") {
 				if ($fs == "apfs") {
+					/* See if there is a disk password. */
 					$password = decrypt_data(get_config($info['serial'], "pass"));
 					$recovery = "";
 					if ($password) {
@@ -1031,6 +1051,8 @@ function do_mount_local($info) {
 			}
 			$str = str_replace($recovery, ", pass='*****'", $cmd);
 			unassigned_log("Mount drive command: {$str}");
+
+			/* apfs file system requires UD+ to be installed. */
 			if (($fs == "apfs") && (! is_file("/usr/bin/apfs-fuse"))) {
 				$o = "Install Unassigned Devices Plus to mount an apfs file system";
 			} else {
@@ -1041,9 +1063,6 @@ function do_mount_local($info) {
 				unset($password);
 				unset($recovery);
 				unset($cmd);
-			}
-			if ($o && $fs == "ntfs" && is_mounted($dev)) {
-				unassigned_log("Mount warning: {$o}.");
 			}
 
 			/* Check to see if the device really mounted. */
@@ -1059,12 +1078,19 @@ function do_mount_local($info) {
 					sleep(0.5);
 				}
 			}
+
+			/* If the device did not mount, close the luks disk and show error. */
 			if (! $rc) {
 				if ($fs == "crypto_LUKS" ) {
 					shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg(basename($info['device'])));
 				}
 				unassigned_log("Mount of '{$dev}' failed: '{$o}'");
 				@rmdir($dir);
+			} else {
+				/* Ntfs is mounted but is most likely mounted r/o. Display the mount command warning. */
+				if ($o && ($fs == "ntfs")) {
+					unassigned_log("Mount warning: {$o}.");
+				}
 			}
 		} else {
 			unassigned_log("No filesystem detected on '{$dev}'.");
@@ -1077,7 +1103,7 @@ function do_mount_local($info) {
 }
 
 /* Unmount a device. */
-function do_unmount($dev, $dir, $force=FALSE, $smb=FALSE, $nfs=FALSE) {
+function do_unmount($dev, $dir, $forc = FALSE, $smb = FALSE, $nfs = FALSE) {
 	global $paths;
 
 	$rc = FALSE;
@@ -1091,7 +1117,7 @@ function do_unmount($dev, $dir, $force=FALSE, $smb=FALSE, $nfs=FALSE) {
 
 		/* Check to see if the device really unmounted. */
 		for ($i=0; $i < 5; $i++) {
-			if (! is_mounted($dev) && ! is_mounted($dir, TRUE)) {
+			if ((! is_mounted($dev)) && (! is_mounted($dir, TRUE))) {
 				if (is_dir($dir)) {
 					@rmdir($dir);
 					$link = $paths['usb_mountpoint']."/".basename($dir);
@@ -1121,20 +1147,22 @@ function do_unmount($dev, $dir, $force=FALSE, $smb=FALSE, $nfs=FALSE) {
 ############		SHARE FUNCTIONS			#############
 #########################################################
 
+/* Is the samba share on? */
 function config_shared($sn, $part, $usb=FALSE) {
 	$share = get_config($sn, "share.{$part}");
 	$auto_usb = get_config("Config", "automount_usb");
 	return (($share == "yes") || ($usb && $auto_usb == "yes" && (! $share))) ? TRUE : FALSE; 
 }
 
+/* Toggle samba share on/off. */
 function toggle_share($serial, $part, $status) {
 	$new = ($status == "true") ? "yes" : "no";
 	set_config($serial, "share.{$part}", $new);
 	return ($new == 'yes') ? TRUE : FALSE;
 }
 
-/* Add mountpoint to samba. */
-function add_smb_share($dir, $recycle_bin=TRUE) {
+/* Add mountpoint to samba shares. */
+function add_smb_share($dir, $recycle_bin = TRUE) {
 	global $paths, $var, $users;
 
 	if ( ($var['shareSMBEnabled'] != "no") ) {
@@ -1204,7 +1232,7 @@ function add_smb_share($dir, $recycle_bin=TRUE) {
 			$c[]	= "";
 			$c[]	= "include = $share_conf";
 
-			/* Do some cleanup */
+			/* Do some cleanup. */
 			$smb_extra_includes = array_unique(preg_grep("/include/i", $c));
 			foreach($smb_extra_includes as $key => $inc) if( ! is_file(parse_ini_string($inc)['include'])) unset($smb_extra_includes[$key]); 
 			$c		= array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_extra_includes);
@@ -1427,6 +1455,7 @@ function decrypt_data($data) {
 	$iv		= get_config("Config", "iv");
 	$val	= openssl_decrypt($data, 'aes256', $key, $options=0, $iv);
 
+	/* Make sure the password is UTF-8 encoded. */
 	if (! preg_match("//u", $val)) {
 		unassigned_log("Warning: Password is not UTF-8 encoded");
 		$val = "";
@@ -1435,11 +1464,13 @@ function decrypt_data($data) {
 	return($val);
 }
 
+/* Is the samba mount set for auto mount? */
 function is_samba_automount($sn) {
 	$auto = get_samba_config($sn, "automount");
 	return ( ($auto) ? ( ($auto == "yes") ? TRUE : FALSE ) : FALSE);
 }
 
+/* Is the samba mount set to share? */
 function is_samba_share($sn) {
 	$smb_share = get_samba_config($sn, "smb_share");
 	return ( ($smb_share) ? ( ($smb_share == "yes") ? TRUE : FALSE ) : TRUE);
@@ -1602,6 +1633,7 @@ function do_mount_samba($info) {
 	return $rc;
 }
 
+/* Toggle samba auto mount on/off. */
 function toggle_samba_automount($source, $status) {
 	$config_file = $GLOBALS["paths"]["samba_mount"];
 	$config = @parse_ini_file($config_file, true);
@@ -1610,6 +1642,7 @@ function toggle_samba_automount($source, $status) {
 	return ($config[$source]["automount"] == "yes") ? TRUE : FALSE;
 }
 
+/* Toggle samba share on/off. */
 function toggle_samba_share($source, $status) {
 	$config_file = $GLOBALS["paths"]["samba_mount"];
 	$config = @parse_ini_file($config_file, true);
@@ -1639,12 +1672,14 @@ function remove_config_samba($source) {
 ############		ISO FILE FUNCTIONS		#############
 #########################################################
 
+/* Get the iso file configuration parameter. */
 function get_iso_config($source, $var) {
 	$config_file = $GLOBALS["paths"]["iso_mount"];
 	$config = @parse_ini_file($config_file, true, INI_SCANNER_RAW);
 	return (isset($config[$source][$var])) ? $config[$source][$var] : FALSE;
 }
 
+/* Get an iso file configuration parameter. */
 function set_iso_config($source, $var, $val) {
 	$config_file = $GLOBALS["paths"]["iso_mount"];
 	$config = @parse_ini_file($config_file, true);
@@ -1653,6 +1688,7 @@ function set_iso_config($source, $var, $val) {
 	return (isset($config[$source][$var])) ? $config[$source][$var] : FALSE;
 }
 
+/* Is the iso file set to auto mount? */
 function is_iso_automount($sn) {
 	$auto = get_iso_config($sn, "automount");
 	return ( ($auto) ? ( ($auto == "yes") ? TRUE : FALSE ) : FALSE);
@@ -1662,9 +1698,10 @@ function is_iso_automount($sn) {
 function get_iso_mounts() {
 	global $paths;
 
-	$o = array();
-	$config_file = $paths['iso_mount'];
-	$iso_mounts = @parse_ini_file($config_file, true);
+	/* Create an array of iso file mounts and set paramaters. */
+	$o				= array();
+	$config_file	= $paths['iso_mount'];
+	$iso_mounts		= @parse_ini_file($config_file, true);
 	if (is_array($iso_mounts)) {
 		foreach ($iso_mounts as $device => $mount) {
 			$mount['device']		= $device;
@@ -1724,6 +1761,7 @@ function do_mount_iso($info) {
 	return $rc;
 }
 
+/* Toggle iso file automount on/off. */
 function toggle_iso_automount($source, $status) {
 	$config_file = $GLOBALS["paths"]["iso_mount"];
 	$config = @parse_ini_file($config_file, true);
