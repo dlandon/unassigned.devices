@@ -481,7 +481,7 @@ function format_disk($dev, $fs, $pass) {
 
 	$rc	= TRUE;
 
-	/* Make sure it doesn't have partitions. */
+	/* Make sure it doesn't have any partitions. */
 	foreach (get_all_disks_info() as $d) {
 		if ($d['device'] == $dev && count($d['partitions'])) {
 			unassigned_log("Aborting format: disk '{$dev}' has '".count($d['partitions'])."' partition(s).");
@@ -490,7 +490,7 @@ function format_disk($dev, $fs, $pass) {
 	}
 
 	if ($rc) {
-		/* Get the disk blocks and set either gpt or mbr partition based on disk size. */
+		/* Get the disk blocks and set either gpt or mbr partition schema based on disk size. */
 		$max_mbr_blocks = hexdec("0xFFFFFFFF");
 		$disk_blocks	= intval(trim(shell_exec("/sbin/blockdev --getsz ".escapeshellarg($dev)." | /bin/awk '{ print $1 }' 2>/dev/null")));
 		$disk_schema	= ( $disk_blocks >= $max_mbr_blocks ) ? "gpt" : "msdos";
@@ -521,7 +521,7 @@ function format_disk($dev, $fs, $pass) {
 				unassigned_log("Creating Unraid compatible gpt partition on disk '{$dev}'.");
 				shell_exec("/sbin/sgdisk -Z ".escapeshellarg($dev));
 
-				/* Alignment is 4kb for spinners and 1Mb for SSD. */
+				/* Alignment is 4Kb for spinners and 1Mb for SSD. */
 				$alignment = $is_ssd ? "" : "-a 8";
 				$o = shell_exec("/sbin/sgdisk -o ".$alignment." -n 1:32K:0 ".escapeshellarg($dev));
 				if ($o) {
@@ -530,7 +530,7 @@ function format_disk($dev, $fs, $pass) {
 			} else {
 				unassigned_log("Creating Unraid compatible mbr partition on disk '{$dev}'.");
 
-				/* Alignment is 4kb for spinners and 1Mb for SSD. */
+				/* Alignment is 4Kb for spinners and 1Mb for SSD. */
 				$start_sector = $is_ssd ? "2048" : "64";
 				$o = shell_exec("/usr/local/sbin/mkmbr.sh ".escapeshellarg($dev)." ".escapeshellarg($start_sector));
 				if ($o) {
@@ -559,7 +559,7 @@ function format_disk($dev, $fs, $pass) {
 			}
 		}
 
-		unassigned_log("Formatting disk '{$dev}' with '$fs' filesystem.");
+		unassigned_log("Formatting disk '{$dev}' with '{$fs}' filesystem.");
 
 		/* Format the disk. */
 		if (strpos($fs, "-encrypted") !== false) {
@@ -568,6 +568,8 @@ function format_disk($dev, $fs, $pass) {
 			} else {
 				$cmd = "luksFormat {$dev}1";
 			}
+
+			/* Use a disk password, or Unraid's. */
 			if (! $pass) {
 				$o				= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
 			} else {
@@ -577,6 +579,7 @@ function format_disk($dev, $fs, $pass) {
 				$o				= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
 				exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 			}
+
 			if ($o)
 			{
 				unassigned_log("luksFormat error: {$o}");
@@ -589,6 +592,9 @@ function format_disk($dev, $fs, $pass) {
 					$device	= $dev."1";
 				}
 				$cmd	= "luksOpen ".escapeshellarg($device)." ".escapeshellarg($mapper);
+
+
+				/* Use a disk password, or Unraid's. */
 				if (! $pass) {
 					$o = exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
 				} else {
@@ -598,6 +604,7 @@ function format_disk($dev, $fs, $pass) {
 					$o				= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
 					exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 				}
+	
 				if ($o && stripos($o, "warning") === FALSE)
 				{
 					unassigned_log("luksOpen result: {$o}");
@@ -609,6 +616,7 @@ function format_disk($dev, $fs, $pass) {
 				}
 			}
 		} else {
+			/* nvme partition designations are 'p1', not '1'. */
 			if (strpos($dev, "nvme") !== false) {
 				exec(get_format_cmd("{$dev}p1", $fs),escapeshellarg($out), escapeshellarg($return));
 			} else {
@@ -628,6 +636,7 @@ function format_disk($dev, $fs, $pass) {
 				}
 
 				sleep(3);
+
 				unassigned_log("Reloading disk '{$dev}' partition table.");
 				$o = trim(shell_exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." 2>&1"));
 				if ($o) {
@@ -656,6 +665,7 @@ function remove_partition($dev, $part) {
 
 	$rc = TRUE;
 
+	/* Be sure there are no mounted partitions. */
 	foreach (get_all_disks_info() as $d) {
 		if ($d['device'] == $dev) {
 			foreach ($d['partitions'] as $p) {
@@ -669,25 +679,27 @@ function remove_partition($dev, $part) {
 
 	if ($rc) {
 		unassigned_log("Removing partition '{$part}' from disk '{$dev}'.");
+
+		/* Remove the partition. */
 		$out = shell_exec("/usr/sbin/parted ".escapeshellarg($dev)." --script -- rm ".escapeshellarg($part)." 2>&1");
 		if ($out) {
-			unassigned_log("Remove parition failed: '{$out}'.");
+			unassigned_log("Remove partition failed: '{$out}'.");
 			$rc = FALSE;
+		} else {
+			/* Update udev info. */
+			shell_exec("/sbin/udevadm trigger --action=change ".escapeshellarg($dev));
+
+			sleep(5);
+
+			/* Refresh partition information. */
+			exec("/usr/sbin/partprobe ".escapeshellarg($dev));
 		}
-
-		/* Update udev info. */
-		shell_exec("/sbin/udevadm trigger --action=change ".escapeshellarg($dev));
-
-		sleep(5);
-
-		/* Refresh partition information. */
-		exec("/usr/sbin/partprobe ".escapeshellarg($dev));
 	}
 
 	return $rc;
 }
 
-/* Procedure to determine the time a command takes to run. */
+/* Procedure to determine the time a command takes to run.  Mostly for debug purposes. */
 function benchmark() {
 	$params		= func_get_args();
 	$function	= $params[0];
