@@ -391,13 +391,21 @@ _(Volume)_
 	}
 
 	function openFileBrowser(el, root, filter, on_folders, on_files) {
-		if (on_folders === undefined) on_folders = true;
-		if (on_files   === undefined) on_files = true;
-		if (! filter && ! on_files)   filter = 'HIDE_FILES_FILTER';
+		if (on_folders === undefined) {
+			on_folders = true;
+		}
+		if (on_files === undefined) {
+			on_files = true;
+		}
+		if (! filter && ! on_files) {
+			filter = 'HIDE_FILES_FILTER';
+		}
 		p = $(el);
 
 		/* Skip if fileTree is already open. */
-		if ( p.next().hasClass('fileTree') ){return null;}
+		if ( p.next().hasClass('fileTree') ) {
+			return null;
+		}
 
 		/* Create a random id. */
 		var r = Math.floor((Math.random()*1000)+1);
