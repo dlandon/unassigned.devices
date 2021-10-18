@@ -374,17 +374,17 @@ switch ($_POST['action']) {
 								}
 							} else {
 								if ($disk['running']) {
-									echo "<a class='info'><i class='fa fa-refresh fa-spin orb green-orb'></i>";
+									echo "<i class='fa fa-refresh fa-spin orb green-orb'></i>";
 								} else {
-									echo "<a class='info'><i class='fa fa-refresh fa-spin orb grey-orb'></i>";
+									echo "<i class='fa fa-refresh fa-spin orb grey-orb'></i>";
 								}
 							}
 						} else {
-							echo "<a class='info'><i class='fa fa-circle orb ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i><span>"._("SSD cannot be spun down")."</span>";
+							echo "<a class='info'><i class='fa fa-circle orb green-orb'></i><span>"._("SSD cannot be spun down")."</span></a>";
 						}
 					}
 					echo ($disk['partitions'][0]['fstype'] == "crypto_LUKS" ? "<i class='fa fa-lock orb'></i>" : "");
-					echo "<a href='/Main/{$str}={$disk_dev}'> {$disk_display}<span>"."</span></a>";
+					echo "<a href='/Main/{$str}={$disk_dev}'><span>".$disk_display."</span></a>";
 					echo "</td>";
 				}
 
