@@ -103,7 +103,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	}
 
 	function spin_down_disk(dev) {
-		document.getElementById('disk_orb-'+dev).className = "fa fa-refresh fa-spin orb grey-orb";
+		document.getElementById('disk_orb-'+dev).className = "fa fa-refresh fa-spin orb green-orb";
 		$.post(UDURL, {action:"spin_down_disk", device:dev});
 	}
 

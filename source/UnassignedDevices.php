@@ -373,7 +373,11 @@ switch ($_POST['action']) {
 									echo "<a style='cursor:pointer' class='exec info' onclick='spin_up_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle orb grey-orb'></i><span>"._("Click to spin up device")."</span></a>";
 								}
 							} else {
-								echo "<a class='info'><i class='fa fa-refresh fa-spin orb grey-orb'></i>";
+								if ($disk['running']) {
+									echo "<a class='info'><i class='fa fa-refresh fa-spin orb green-orb'></i>";
+								} else {
+									echo "<a class='info'><i class='fa fa-refresh fa-spin orb grey-orb'></i>";
+								}
 							}
 						} else {
 							echo "<a class='info'><i class='fa fa-circle orb ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i><span>"._("SSD cannot be spun down")."</span>";
