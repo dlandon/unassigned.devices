@@ -186,9 +186,10 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	}
 
 	function disk_op(el, op, device) {
-		/* add spinning and disable button */
+		/* add spinning and disable button. */
 		$("button[device='"+device+"']").html("<i class='fa fa-spinner fa-spin'></i> "+(op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
 		$("button[device='"+device+"']").prop("disabled","true");
+
 		/* disable partition buttons */
 		td = $("button[device='"+device+"']").closest('td');
 		tr = td.closest('tr');
@@ -604,7 +605,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	var network		= [];
 	var workgroup	= "";
 
-	/* Reload page if browser back button was used */
+	/* Reload page if browser back button was used. */
 	window.addEventListener( "pageshow", function ( event )
 	{
 		var historyTraversal = event.persisted || ( typeof window.performance != "undefined" && window.performance.navigation.type === 2 );
@@ -643,7 +644,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		$.getScript( '/plugins/<?=$plugin;?>/assets/sweetalert2.js');
 	}
 
-	/* Bind Arrive events */
+	/* Bind Arrive events. */
 	$("#usb_devices_list").arrive("tr",{onceOnly:false},function()
 	{
 		tr = $(this);
