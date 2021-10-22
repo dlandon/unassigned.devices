@@ -123,9 +123,10 @@ $default_text	= <<<EOT
 PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin
 ## Available variables:
 # ACTION     : if mounting, ADD; if unmounting, UNMOUNT; if unmounted, REMOVE; if error, ERROR_MOUNT, ERROR_UNMOUNT
-# DEVICE     : partition device, e.g /dev/sda1
+# DEVICE     : partition device, e.g. /dev/sda1
 # SERIAL     : disk serial number
 # LABEL      : partition label
+# LUKS       : if the device is encrypted, this is the partition device, e.g. /dev/sda1
 # FSTYPE     : partition filesystem
 # MOUNTPOINT : where the partition is mounted
 # OWNER      : "udev" if executed by UDEV, otherwise "user"

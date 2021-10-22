@@ -809,6 +809,7 @@ function toggle_pass_through($sn, $status) {
 function execute_script($info, $action, $testing = FALSE) { 
 	global $paths;
 
+_echo($info);
 	/* Set environment variables. */
 	putenv("ACTION={$action}");
 	foreach ($info as $key => $value) {
@@ -822,6 +823,7 @@ function execute_script($info, $action, $testing = FALSE) {
 			case 'owner':
 			case 'prog_name':
 			case 'logfile':
+			case 'luks':
 				putenv(strtoupper($key)."={$value}");
 			break;
 		}
