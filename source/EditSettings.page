@@ -415,10 +415,10 @@ _(Volume)_
 		p.after("<span id='fileTree"+r+"' class='textarea fileTree'></span>");
 		var ft = $('#fileTree'+r);
 		ft.fileTree({
-			root: root,
-			top: root,
-			filter: filter,
-			allowBrowsing : true
+				root: root,
+				top: root,
+				filter: filter,
+				allowBrowsing : true
 			},
 			function(file){if(on_files){p.val(file);$(ft).slideUp('fast',function (){$(ft).remove();});load(p);}},
 			function(folder){if(on_folders){p.val(folder);$(ft).slideUp('fast',function (){$(ft).remove();});}}

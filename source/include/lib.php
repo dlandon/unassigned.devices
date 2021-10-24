@@ -1974,6 +1974,8 @@ function get_partition_info($device) {
 		if (strpos($disk['disk'], "nvme") !== false) {
 			$disk['disk']		= rtrim($disk['disk'], "p");
 		}
+
+		/* Get the physical disk label or generatoe one based on the vendor id and model or serial number. */
 		if (isset($attrs['ID_FS_LABEL'])){
 			$disk['label'] = safe_name($attrs['ID_FS_LABEL_ENC']);
 			$disk['disk_label'] = $disk['label'];
@@ -1987,15 +1989,21 @@ function get_partition_info($device) {
 			$disk['label'] = (count(preg_grep("%".$matches[1][0]."%i", $all_disks)) > 2) ? $disk['label']."-part".$matches[2][0] : $disk['label'];
 			$disk['disk_label'] = "";
 		}
+
+		/* Get the file system type. */
 		$disk['fstype'] = safe_name($attrs['ID_FS_TYPE']);
 		$disk['mountpoint'] = get_config($disk['serial'], "mountpoint.{$disk['part']}");
 		if ( ($mountpoint === FALSE) || (! $disk['mountpoint']) ) { 
 			$disk['mountpoint'] = $disk['target'] ? $disk['target'] : preg_replace("%\s+%", "_", sprintf("%s/%s", $paths['usb_mountpoint'], $disk['label']));
 		}
+
+		/* crypto_LUKS file system. */
 		$disk['luks']			= safe_name($disk['device']);
 		if ($disk['fstype'] == "crypto_LUKS") {
 			$disk['device']		= "/dev/mapper/".safe_name(basename($disk['mountpoint']));
 		}
+
+		/* Set up all disk parameters and status. */
 		$disk['mounted']		= is_mounted($disk['device']);
 		$disk['pass_through']	= (! $disk['mounted']) ? is_pass_through($disk['serial']) : FALSE;
 		$disk['target']			= str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep ".escapeshellarg($disk['device'])." | /bin/awk '{print $2}'")));
@@ -2017,7 +2025,7 @@ function get_partition_info($device) {
 	}
 }
 
-/* Get the file system check command based on file system. */
+/* Get the check file system command based on disk file system. */
 function get_fsck_commands($fs, $dev, $type = "ro") {
 	switch ($fs) {
 		case 'vfat':
@@ -2244,6 +2252,8 @@ function change_iso_mountpoint($dev, $mountpoint) {
 function change_UUID($dev) {
 	global $plugin;
 
+	$rc	= "";
+
 	$fs_type = "";
 	foreach (get_all_disks_info() as $d) {
 		if ($d['device'] == $dev) {
@@ -2255,7 +2265,11 @@ function change_UUID($dev) {
 	}
 
 	$device	= $dev;
+
+	/* nvme disk partitions are 'p1', not '1'. */
 	$device	.=(strpos($dev, "nvme") === false) ? "1" : "p1";
+
+	/* Deal with crypto_LUKS disks. */
 	if ($fs_type == "crypto_LUKS") {
 		timed_exec(20, escapeshellcmd("plugins/{$plugin}/scripts/luks_uuid.sh ".escapeshellarg($device)));
 		$mapper	= basename($dev);
@@ -2277,17 +2291,26 @@ function change_UUID($dev) {
 			exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 			unset($pass);
 		}
+
+		/* CHeck for luks open error. */
 		if ($o) {
 			unassigned_log("luksOpen error: {$o}");
-			return;
+		} else {
+			$mapper_dev = "/dev/mapper/".$mapper;
+
+			/* Change the xfs UUID. */
+			$rc = timed_exec(10, "/usr/sbin/xfs_admin -U generate ".escapeshellarg($mapper_dev));
+
+			/* Close the luks device. */
+			shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
 		}
-		$mapper_dev = "/dev/mapper/".$mapper;
-		$rc = timed_exec(10, "/usr/sbin/xfs_admin -U generate ".escapeshellarg($mapper_dev));
-		shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
 	} else {
+		/* Change the xfs UUID. */
 		$rc		= timed_exec(20, "/usr/sbin/xfs_admin -U generate ".escapeshellarg($device));
 	}
-	unassigned_log("Changing partition '{$device}' UUID. Result: {$rc}");
+
+	/* Show the result of the UUID change operation. */
+	unassigned_log("Changed partition UUID on '{$device}' with result: {$rc}");
 }
 
 /* If the disk is not a SSD, set the spin down timer if allowed by settings. */

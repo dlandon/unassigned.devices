@@ -117,7 +117,7 @@ function ping_servers() {
 
 }
 
-/* Get the sizem, used, and free space on device. */
+/* Get the size, used, and free space on device. */
 function df_status($tc, $mountpoint) {
 
 	$df_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
