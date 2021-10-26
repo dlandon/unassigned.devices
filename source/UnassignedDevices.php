@@ -114,112 +114,112 @@ function render_used_and_free_disk($disk, $mounted) {
 }
 
 /* Get the partition information and render for html. */
-function render_partition($disk, $partition, $total=FALSE) {
+function render_partition($disk, $partition, $total = FALSE) {
 	global $plugin, $diskio;
 
-	if (! isset($partition['device'])) return array();
 	$out = array();
-
-	$mounted =	$partition['mounted'];
-	$cmd = $partition['command'];
-	if ($mounted && is_file($cmd)) {
-		$script_partition = $partition['fstype'] == "crypto_LUKS" ? $partition['luks'] : $partition['device'];
-		if ((! is_script_running($cmd)) & (! is_script_running($partition['user_command'], TRUE))) {
-			$fscheck = "<a title='"._("Execute Script as udev simulating a device being installed")."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/script.php?device={$script_partition}&type="._('Done')."\",\"Execute Script\",600,900);'><i class='fa fa-flash partition-script'></i></a>{$partition['part']}";
-		} else {
-			$fscheck = "<i class='fa fa-flash partition-script'></i>{$partition['part']}";
-		}
-	} elseif ( (! $mounted && $partition['fstype'] != 'btrfs' && $partition['fstype'] != 'apfs') ) {
-		$fscheck = "<a title='"._('File System Check')."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i></a>{$partition['part']}";
-	} else {
-		$fscheck = "<i class='fa fa-check partition-hdd'></i>{$partition['part']}";
-	}
-
-	$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && (! $disk['partitions'][0]['pass_through'])) ? "<a title='"._("Remove Partition")."' device='{$partition['device']}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i></a>" : "";
-	$mpoint = "<span>{$fscheck}";
-	$mount_point = basename($partition['mountpoint']);
-	$device = ($partition['fstype'] == "crypto_LUKS") ? $partition['luks'] : $partition['device'];
-	if ($mounted) {
-		$mpoint .= "<i class='fa fa-folder-open partition-hdd'></i><a title='"._("Browse Disk Share")."' href='/Main/Browse?dir={$partition['mountpoint']}'>{$mount_point}</a></span>";
-	} else {
-		$mount_point	= basename($partition['mountpoint']);
-		$disk_label		= $partition['disk_label'];
-		$mpoint			.= "<i class='fa fa-pencil partition-hdd'></i><a title='"._("Change Disk Mount Point")."' class='exec' onclick='chg_mountpoint(\"{$partition['serial']}\",\"{$partition['part']}\",\"{$device}\",\"{$partition['fstype']}\",\"{$mount_point}\",\"{$disk_label}\");'>{$mount_point}</a>";
-		$mpoint			.= "{$rm_partition}</span>";
-	}
-	$mbutton = make_mount_button($partition);
-
-	(! $disk['show_partitions']) || $disk['partitions'][0]['pass_through'] ? $style = "style='display:none;'" : $style = "";
-	$out[] = "<tr class='toggle-parts toggle-".basename($disk['device'])."' name='toggle-".basename($disk['device'])."' $style>";
-	$out[] = "<td></td>";
-	$out[] = "<td>{$mpoint}</td>";
-	$out[] = ((count($disk['partitions']) > 1) && ($mounted)) ? "<td class='mount'>{$mbutton}</td>" : "<td></td>";
-	$fstype = $partition['fstype'];
-	if ($total) {
-		foreach ($disk['partitions'] as $part) {
-			if ($part['fstype']) {
-				$fstype = $part['fstype'];
-				break;
+	if (isset($partition['device'])) {
+		$mounted =	$partition['mounted'];
+		$cmd = $partition['command'];
+		if ($mounted && is_file($cmd)) {
+			$script_partition = $partition['fstype'] == "crypto_LUKS" ? $partition['luks'] : $partition['device'];
+			if ((! is_script_running($cmd)) & (! is_script_running($partition['user_command'], TRUE))) {
+				$fscheck = "<a title='"._("Execute Script as udev simulating a device being installed")."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/script.php?device={$script_partition}&type="._('Done')."\",\"Execute Script\",600,900);'><i class='fa fa-flash partition-script'></i></a>{$partition['part']}";
+			} else {
+				$fscheck = "<i class='fa fa-flash partition-script'></i>{$partition['part']}";
 			}
-		}
-	}
-
-	/* Disk reads and writes */
-	if ($total) {
-		if ($diskio['disk_io'] == 0) {
-			$out[] = "<td>".my_number($disk['reads'])."</td>";
-			$out[] = "<td>".my_number($disk['writes'])."</td>";
+		} elseif ( (! $mounted && $partition['fstype'] != 'btrfs' && $partition['fstype'] != 'apfs') ) {
+			$fscheck = "<a title='"._('File System Check')."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i></a>{$partition['part']}";
 		} else {
-			$out[] = "<td>".my_diskio($disk['read_rate'])."</td>";
-			$out[] = "<td>".my_diskio($disk['write_rate'])."</td>";
+			$fscheck = "<i class='fa fa-check partition-hdd'></i>{$partition['part']}";
 		}
-	} else {
-		$out[] = "<td></td><td></td><td></td>";
-	}
 
-	/* Set up the tooltip. */
-	$title = _("Edit Device Settings and Script");
-	if ($total) {
-		$title .= "<br />"._("Passed Through").": ";
-		$title .= ($partition['pass_through'] == 'yes') ? "Yes" : "No";
-		$title .= "<br />"._("Read Only").": ";
-		$title .= ($partition['read_only'] == 'yes') ? "Yes" : "No";
-		$title .= "<br />"._("Automount").": ";
-		$title .= ($partition['automount'] == 'yes') ? "Yes" : "No";
-		$title .= "<br />";
-	} else {
-		$title .= "<br />";
-	}
-	$title .= _("Share").": ";
-	$title .= ($partition['shared'] == 'yes') ? "Yes" : "No";
-
-	$dev		= basename($device);
-	$device		= base_device($dev) ;
-	$serial		= $partition['serial'];
-	$out[]		= "<td><a class='info' href='/Main/EditSettings?s=".$serial."&b=".$device."&f=".$fstype."&l=".basename($partition['mountpoint'])."&p=".$partition['part']."&m=".json_encode($partition)."&t=".$total."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
-	if ($total) {
-		$mounted_disk = FALSE;
-		foreach ($disk['partitions'] as $part) {
-			if ($part['mounted']) {
-				$mounted_disk = TRUE;
-				break;
-			}
+		$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && (! $disk['partitions'][0]['pass_through'])) ? "<a title='"._("Remove Partition")."' device='{$partition['device']}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i></a>" : "";
+		$mpoint = "<span>{$fscheck}";
+		$mount_point = basename($partition['mountpoint']);
+		$device = ($partition['fstype'] == "crypto_LUKS") ? $partition['luks'] : $partition['device'];
+		if ($mounted) {
+			$mpoint .= "<i class='fa fa-folder-open partition-hdd'></i><a title='"._("Browse Disk Share")."' href='/Main/Browse?dir={$partition['mountpoint']}'>{$mount_point}</a></span>";
+		} else {
+			$mount_point	= basename($partition['mountpoint']);
+			$disk_label		= $partition['disk_label'];
+			$mpoint			.= "<i class='fa fa-pencil partition-hdd'></i><a title='"._("Change Disk Mount Point")."' class='exec' onclick='chg_mountpoint(\"{$partition['serial']}\",\"{$partition['part']}\",\"{$device}\",\"{$partition['fstype']}\",\"{$mount_point}\",\"{$disk_label}\");'>{$mount_point}</a>";
+			$mpoint			.= "{$rm_partition}</span>";
 		}
-	}
+		$mbutton = make_mount_button($partition);
 
-	$out[] = "<td>".($fstype == "crypto_LUKS" ? luks_fs_type($partition['device']) : $fstype)."</td>";
-	if ($total) {
-		$out[] = render_used_and_free_disk($disk, $mounted_disk);
-	} else {
-		$out[] = "<td>".my_scale($partition['size'], $unit)." $unit</td>";
-		$out[] = render_used_and_free($partition, $mounted);
-	}
-	if ((! $total) || (! $disk['show_partitions'])) {
-		$out[] = "<td><a title='"._("View Device Script Log")."' href='/Main/ScriptLog?s=".$partition['serial']."&p=".$partition['part']."'><i class='fa fa-align-left".( $partition['command'] ? "":" grey-orb" )."'></i></a></td>";
-	} else {
+		(! $disk['show_partitions']) || $disk['partitions'][0]['pass_through'] ? $style = "style='display:none;'" : $style = "";
+		$out[] = "<tr class='toggle-parts toggle-".basename($disk['device'])."' name='toggle-".basename($disk['device'])."' $style>";
 		$out[] = "<td></td>";
+		$out[] = "<td>{$mpoint}</td>";
+		$out[] = ((count($disk['partitions']) > 1) && ($mounted)) ? "<td class='mount'>{$mbutton}</td>" : "<td></td>";
+		$fstype = $partition['fstype'];
+		if ($total) {
+			foreach ($disk['partitions'] as $part) {
+				if ($part['fstype']) {
+					$fstype = $part['fstype'];
+					break;
+				}
+			}
+		}
+
+		/* Disk reads and writes */
+		if ($total) {
+			if ($diskio['disk_io'] == 0) {
+				$out[] = "<td>".my_number($disk['reads'])."</td>";
+				$out[] = "<td>".my_number($disk['writes'])."</td>";
+			} else {
+				$out[] = "<td>".my_diskio($disk['read_rate'])."</td>";
+				$out[] = "<td>".my_diskio($disk['write_rate'])."</td>";
+			}
+		} else {
+			$out[] = "<td></td><td></td><td></td>";
+		}
+
+		/* Set up the device settings and script tooltip. */
+		$title = _("Edit Device Settings and Script");
+		if ($total) {
+			$title .= "<br />"._("Passed Through").": ";
+			$title .= ($partition['pass_through'] == 'yes') ? "Yes" : "No";
+			$title .= "<br />"._("Read Only").": ";
+			$title .= ($partition['read_only'] == 'yes') ? "Yes" : "No";
+			$title .= "<br />"._("Automount").": ";
+			$title .= ($partition['automount'] == 'yes') ? "Yes" : "No";
+			$title .= "<br />";
+		} else {
+			$title .= "<br />";
+		}
+		$title .= _("Share").": ";
+		$title .= ($partition['shared'] == 'yes') ? "Yes" : "No";
+
+		$dev		= basename($device);
+		$device		= base_device($dev) ;
+		$serial		= $partition['serial'];
+		$out[]		= "<td><a class='info' href='/Main/EditSettings?s=".$serial."&b=".$device."&f=".$fstype."&l=".basename($partition['mountpoint'])."&p=".$partition['part']."&m=".json_encode($partition)."&t=".$total."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+		if ($total) {
+			$mounted_disk = FALSE;
+			foreach ($disk['partitions'] as $part) {
+				if ($part['mounted']) {
+					$mounted_disk = TRUE;
+					break;
+				}
+			}
+		}
+
+		$out[] = "<td>".($fstype == "crypto_LUKS" ? luks_fs_type($partition['device']) : $fstype)."</td>";
+		if ($total) {
+			$out[] = render_used_and_free_disk($disk, $mounted_disk);
+		} else {
+			$out[] = "<td>".my_scale($partition['size'], $unit)." $unit</td>";
+			$out[] = render_used_and_free($partition, $mounted);
+		}
+		if ((! $total) || (! $disk['show_partitions'])) {
+			$out[] = "<td><a title='"._("View Device Script Log")."' href='/Main/ScriptLog?s=".$partition['serial']."&p=".$partition['part']."'><i class='fa fa-align-left".( $partition['command'] ? "":" grey-orb" )."'></i></a></td>";
+		} else {
+			$out[] = "<td></td>";
+		}
+		$out[] = "</tr>";
 	}
-	$out[] = "</tr>";
 
 	return $out;
 }

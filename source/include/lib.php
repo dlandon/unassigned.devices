@@ -2292,7 +2292,7 @@ function change_UUID($dev) {
 			unset($pass);
 		}
 
-		/* CHeck for luks open error. */
+		/* Check for luks open error. */
 		if ($o) {
 			unassigned_log("luksOpen error: {$o}");
 		} else {
