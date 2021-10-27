@@ -27,13 +27,12 @@ require_once("plugins/{$plugin}/include/lib.php");
 readfile('logging.htm');
 
 function write_log($string) {
-	if (empty($string)) {
-		return;
+	if (! empty($string)) {
+		$string = str_replace("\n", "<br \>", $string);
+		$string = str_replace('"', "\\\"", trim($string));
+		echo "<script>addLog(\"{$string}\");</script>";
+		@flush();
 	}
-	$string = str_replace("\n", "<br \>", $string);
-	$string = str_replace('"', "\\\"", trim($string));
-	echo "<script>addLog(\"{$string}\");</script>";
-	@flush();
 }
 
 if ( isset($_GET['device']) && isset($_GET['type']) ) {

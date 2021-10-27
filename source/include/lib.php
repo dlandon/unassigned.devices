@@ -141,11 +141,12 @@ function save_ini_file($file, $array) {
 function unassigned_log($m, $type = "NOTICE") {
 	global $plugin;
 
-	if ($type == "DEBUG" && ! $GLOBALS["VERBOSE"]) return NULL;
-	$m		= print_r($m,true);
-	$m		= str_replace("\n", " ", $m);
-	$m		= str_replace('"', "'", $m);
-	exec("/usr/bin/logger"." ".escapeshellarg($m)." -t ".escapeshellarg($plugin));
+	if ($type != "DEBUG" || $GLOBALS["VERBOSE"]) {
+		$m		= print_r($m,true);
+		$m		= str_replace("\n", " ", $m);
+		$m		= str_replace('"', "'", $m);
+		exec("/usr/bin/logger"." ".escapeshellarg($m)." -t ".escapeshellarg($plugin));
+	}
 }
 
 /* Get a list of directories at $root. */
@@ -346,7 +347,7 @@ function is_disk_spin($ud_dev, $running) {
 		}
 	}
 
-	return($rc);
+	return $rc;
 }
 
 /* Check to see if a remote server is online by pinging it. */
@@ -404,7 +405,7 @@ function is_script_running($cmd, $user = FALSE) {
 		}
 	}
 
-	return($is_running);
+	return $is_running;
 }
 
 /* Get disk temperature. */
@@ -809,7 +810,8 @@ function toggle_pass_through($sn, $status) {
 function execute_script($info, $action, $testing = FALSE) { 
 	global $paths;
 
-_echo($info);
+	$rc = FALSE;
+
 	/* Set environment variables. */
 	putenv("ACTION={$action}");
 	foreach ($info as $key => $value) {
@@ -864,14 +866,14 @@ _echo($info);
 					unassigned_log("Error: device script failed: '{$return}'");
 				}
 			} else {
-				return $command_script;
+				$rc = $command_script;
 			}
 		} else {
 			unassigned_log("Device script '".basename($cmd)."' aleady running!");
 		}
 	}
 
-	return FALSE;
+	return $rc;
 }
 
 /* Remove a historical disk configuration. */
@@ -1489,7 +1491,7 @@ function encrypt_data($data) {
 	$val = openssl_encrypt($data, 'aes256', $key, $options=0, $iv);
 	$val = str_replace("\n", "", $val);
 
-	return($val);
+	return $val;
 }
 
 /* Decrypt password. */
@@ -1505,7 +1507,7 @@ function decrypt_data($data) {
 		$val = "";
 	}
 
-	return($val);
+	return $val;
 }
 
 /* Is the samba mount set for auto mount? */
@@ -2132,6 +2134,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 	global $paths, $var;
 
 	$rc = TRUE;
+
 	if ($mountpoint) {
 		$rc = check_for_duplicate_share($dev, $mountpoint, $fstype);
 		if ($rc) {
@@ -2188,16 +2191,16 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 					}
 					if ($o) {
 						unassigned_log("Change disk label luksOpen error: ".$o);
-						return FALSE;
+						$rc = FALSE;
+					} else {
+						/* Try xfs label change. */
+						$mapper_dev = "/dev/mapper/$mapper";
+						timed_exec(20, "/usr/sbin/xfs_admin -L ".escapeshellarg($mountpoint)." ".escapeshellarg($mapper_dev)." 2>/dev/null");
+
+						/* Try btrfs label change. */
+						timed_exec(20, "/sbin/btrfs filesystem label ".escapeshellarg($mapper_dev)." ".escapeshellarg($mountpoint)." 2>/dev/null");
+						shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
 					}
-
-					/* Try xfs label change. */
-					$mapper_dev = "/dev/mapper/$mapper";
-					timed_exec(20, "/usr/sbin/xfs_admin -L ".escapeshellarg($mountpoint)." ".escapeshellarg($mapper_dev)." 2>/dev/null");
-
-					/* Try btrfs label change. */
-					timed_exec(20, "/sbin/btrfs filesystem label ".escapeshellarg($mapper_dev)." ".escapeshellarg($mountpoint)." 2>/dev/null");
-					shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
 					break;
 			}
 		}

@@ -21,11 +21,12 @@ $COMMAND = $argv[1];
 function unassigned_log($m, $type = "NOTICE") {
 	global $plugin;
 
-	if ($type == "DEBUG" && ! $GLOBALS["VERBOSE"]) return NULL;
-	$m		= print_r($m,true);
-	$m		= str_replace("\n", " ", $m);
-	$m		= str_replace('"', "'", $m);
-	exec("/usr/bin/logger"." ".escapeshellarg($m)." -t ".escapeshellarg($plugin));
+	if ($type != "DEBUG" || $GLOBALS["VERBOSE"]) {
+		$m		= print_r($m,true);
+		$m		= str_replace("\n", " ", $m);
+		$m		= str_replace('"', "'", $m);
+		exec("/usr/bin/logger"." ".escapeshellarg($m)." -t ".escapeshellarg($plugin));
+	}
 }
 
 /* Run a command and time out if it doesn't complete in the $timeout number of seconds. */
