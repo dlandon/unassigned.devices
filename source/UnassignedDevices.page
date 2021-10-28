@@ -327,24 +327,25 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	function get_tab_title_by_name(name) {
 		var tab		= $("input[name$=tabs] + label").filter(function(){return $(this).text() === name;}).prev();
 		var title	= $("div#title > span.left"		).filter(function(){return $(this).text() === name;}).parent();
+
 		if (tab.length) {
-			return tab
+			rc = tab
 		} else if (title.length) {
-			return title
+			rc = title
 		} else {
-			return $(document)
+			rc = $(document)
 		}
+
+		return rc;
 	}
 
-	function addButtonTab(Button, Name, autoHide, Append)
+	function addButtonTab(Button, Name, autoHide = true, Append = true)
 	{
-		if (typeof(autoHide) == "undefined") autoHide = true;
-		if (typeof(Append)	 == "undefined") Append	 = true;
-
 		var Target		= get_tab_title_by_name(Name);
 		var elementId 	= 'event-' + new Date().getTime() * Math.floor(Math.random()*100000);
 		var element	= $("<span id='"+elementId+"' class='status'>"+Button+"</span>");
 
+		rc = true;
 		if (element.find("input[type='button']").length)
 		{
 			element.addClass("vhshift");
@@ -398,8 +399,10 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		}
 		else
 		{
-			return false;
+			rc = false;
 		}
+
+		return rc;
 	}
 
 	function rescan_disks() {
@@ -417,15 +420,17 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		var numQuestions = survey.find("div[data-question]").length;
 		var surveyData = new Array
 		var index = 0;
-
 		var evalCondition = function(obj, selector){
+
+		rc = null;
 		if (obj.find(selector).length) {
 			evaled = $.trim(obj.find(selector).eq(0).text())
 			if (evaled.length ) {
-				return eval(evaled);
+				rc = eval(evaled);
 			}
-			return null;
 		}
+
+		return rc;
 	}
 
 	var getAttr = function(obj, name, defaultValue) {
@@ -434,10 +439,14 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 	function showSwal(direction="=") {
 		switch(direction) {
-			case '>':index++;break;
-			case '<':index--;break;
+			case '>':index++;
+				break;
+			case '<':index--;
+				break;
 		}
-		if(index >= numQuestions){return true;}
+		if (index >= numQuestions) {
+			return false;
+		}
 		question  = survey.find("div[data-question]").eq(index);
 		condition = question.find("div[data-question-condition]").eq(0);
 
