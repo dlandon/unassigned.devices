@@ -102,18 +102,18 @@ if (version_compare($version['version'],"6.8.9", ">")) {
 </style>
 
 <script type="text/javascript">
-	function openFileBrowser(el, root, filter, on_folders = false, on_files = true) {
+	function openFileBrowser(el, root, filter = true, on_folders = true, on_files = true) {
 		if (! filter && ! on_files)	{
 			filter = 'HIDE_FILES_FILTER';
 		}
 		var p = $(el);
 
-		/* Skip if fileTree is already open */
+		/* Skip if fileTree is already open. */
 		if (! p.next().hasClass('fileTree') ){
 			/* create a random id */
 			var r = Math.floor((Math.random()*1000)+1);
 
-			/* Add a new span and load fileTree */
+			/* Add a new span and load fileTree. */
 			p.after("<span id='fileTree"+r+"' class='textarea fileTree'></span>");
 			var ft = $('#fileTree'+r);
 			ft.fileTree({
@@ -129,10 +129,10 @@ if (version_compare($version['version'],"6.8.9", ">")) {
 			/* Format fileTree according to parent position, height and width */
 			ft.css({'left':p.position().left,'top':( p.position().top + p.outerHeight() ),'width':(p.width()) });
 
-			/* close if click elsewhere */
+			/* close if click elsewhere. */
 			$(document).mouseup(function(e){if (! ft.is(e.target) && ft.has(e.target).length === 0){ft.slideUp('fast',function (){$(ft).remove();});}});
 
-			/* close if parent changed */
+			/* close if parent changed. */
 			p.bind('keydown',function(){ft.slideUp('fast',function (){$(ft).remove();});});
 
 			/* Open fileTree */
