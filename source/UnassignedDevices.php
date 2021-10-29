@@ -54,7 +54,7 @@ function netmasks($netmask, $rev = false)
 
 /* Get the diskio scale based on the current setting. */
 function my_diskio($data) {
-	return my_scale($data,$unit,1)." $unit/s";
+	return my_scale($data, $unit, 1)." $unit/s";
 }
 
 /* Get the used and free space for a partition and render for html. */
@@ -115,20 +115,25 @@ function render_used_and_free_disk($disk, $mounted) {
 
 /* Get the partition information and render for html. */
 function render_partition($disk, $partition, $total = FALSE) {
-	global $plugin, $diskio;
+	global $paths, $plugin, $diskio;
 
 	$out = array();
 	if (isset($partition['device'])) {
 		$mounted =	$partition['mounted'];
 		$cmd = $partition['command'];
+		$device = $partition['fstype'] == "crypto_LUKS" ? $partition['luks'] : $partition['device'];
+		$is_mounting	= array_values(preg_grep("@/mounting_".basename($device)."@i", listDir(dirname($paths['mounting']))))[0];
+		$is_mounting	= (time() - filemtime($is_mounting) < 300) ? TRUE : FALSE;
+		$is_unmounting	= array_values(preg_grep("@/unmounting_".basename($device)."@i", listDir(dirname($paths['unmounting']))))[0];
+		$is_unmounting	= (time() - filemtime($is_unmounting) < 300) ? TRUE : FALSE;
+		$disabled		= $is_mounting || $is_unmounting;
 		if ($mounted && is_file($cmd)) {
-			$script_partition = $partition['fstype'] == "crypto_LUKS" ? $partition['luks'] : $partition['device'];
-			if ((! is_script_running($cmd)) & (! is_script_running($partition['user_command'], TRUE))) {
-				$fscheck = "<a title='"._("Execute Script as udev simulating a device being installed")."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/script.php?device={$script_partition}&type="._('Done')."\",\"Execute Script\",600,900);'><i class='fa fa-flash partition-script'></i></a>{$partition['part']}";
+			if ((! $disabled && ! is_script_running($cmd)) & (! is_script_running($partition['user_command'], TRUE))) {
+				$fscheck = "<a title='"._("Execute Script as udev simulating a device being installed")."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/script.php?device={$device}&type="._('Done')."\",\"Execute Script\",600,900);'><i class='fa fa-flash partition-script'></i></a>{$partition['part']}";
 			} else {
 				$fscheck = "<i class='fa fa-flash partition-script'></i>{$partition['part']}";
 			}
-		} elseif ( (! $mounted && $partition['fstype'] != 'btrfs' && $partition['fstype'] != 'apfs') ) {
+		} elseif ( (! $disabled && ! $mounted && $partition['fstype'] != 'btrfs' && $partition['fstype'] != 'apfs') ) {
 			$fscheck = "<a title='"._('File System Check')."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i></a>{$partition['part']}";
 		} else {
 			$fscheck = "<i class='fa fa-check partition-hdd'></i>{$partition['part']}";
@@ -313,7 +318,7 @@ switch ($_POST['action']) {
 			file_put_contents($tc, json_encode('no'));
 		}
 
-		/* Disk devices */
+		/* Disk devices. */
 		$disks = get_all_disks_info();
 		echo "<div id='disks_tab' class='show-disks'>";
 		echo "<table class='disk_status wide disk_mounts'><thead><tr><td>"._('Device')."</td><td>"._('Identification')."</td><td></td><td>"._('Temp').".</td><td>"._('Reads')."</td><td>"._('Writes')."</td><td>"._('Settings')."</td><td>"._('FS')."</td><td>"._('Size')."</td><td>"._('Used')."</td><td>"._('Free')."</td><td>"._('Log')."</td></tr></thead>";
