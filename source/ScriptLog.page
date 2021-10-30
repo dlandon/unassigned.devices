@@ -58,8 +58,8 @@ function cleanUp() {
 	}
 }	
 function getlog() {
-	$('input[value="Download"]').val('Downloading...').prop('disabled',true);
-	$.post('/webGui/include/Download.php',{cmd:'save',source:'<?=$file;?>',file:'<?=$zip;?>'},function(zip) {
+	$('input[value="Download"]').val('Downloading...').prop('disabled', true);
+	$.post('/webGui/include/Download.php', {cmd:'save', source:'<?=$file;?>', file:'<?=$zip;?>'}, function(zip) {
 		location = zip;
 		setTimeout(cleanUp,4000);
 	});

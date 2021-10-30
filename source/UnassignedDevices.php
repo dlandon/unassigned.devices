@@ -114,7 +114,7 @@ function render_used_and_free_disk($disk, $mounted) {
 }
 
 /* Get the partition information and render for html. */
-function render_partition($disk, $partition, $total = FALSE) {
+function render_partition($disk, $partition, $total = false) {
 	global $paths, $plugin, $diskio;
 
 	$out = array();
@@ -123,12 +123,12 @@ function render_partition($disk, $partition, $total = FALSE) {
 		$cmd = $partition['command'];
 		$device = $partition['fstype'] == "crypto_LUKS" ? $partition['luks'] : $partition['device'];
 		$is_mounting	= array_values(preg_grep("@/mounting_".basename($device)."@i", listDir(dirname($paths['mounting']))))[0];
-		$is_mounting	= (time() - filemtime($is_mounting) < 300) ? TRUE : FALSE;
+		$is_mounting	= (time() - filemtime($is_mounting) < 300) ? true : false;
 		$is_unmounting	= array_values(preg_grep("@/unmounting_".basename($device)."@i", listDir(dirname($paths['unmounting']))))[0];
-		$is_unmounting	= (time() - filemtime($is_unmounting) < 300) ? TRUE : FALSE;
+		$is_unmounting	= (time() - filemtime($is_unmounting) < 300) ? true : false;
 		$disabled		= $is_mounting || $is_unmounting;
 		if ($mounted && is_file($cmd)) {
-			if ((! $disabled && ! is_script_running($cmd)) & (! is_script_running($partition['user_command'], TRUE))) {
+			if ((! $disabled && ! is_script_running($cmd)) & (! is_script_running($partition['user_command'], true))) {
 				$fscheck = "<a title='"._("Execute Script as udev simulating a device being installed")."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/script.php?device={$device}&type="._('Done')."\",\"Execute Script\",600,900);'><i class='fa fa-flash partition-script'></i></a>{$partition['part']}";
 			} else {
 				$fscheck = "<i class='fa fa-flash partition-script'></i>{$partition['part']}";
@@ -202,10 +202,10 @@ function render_partition($disk, $partition, $total = FALSE) {
 		$serial		= $partition['serial'];
 		$out[]		= "<td><a class='info' href='/Main/EditSettings?s=".$serial."&b=".$device."&f=".$fstype."&l=".basename($partition['mountpoint'])."&p=".$partition['part']."&m=".json_encode($partition)."&t=".$total."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 		if ($total) {
-			$mounted_disk = FALSE;
+			$mounted_disk = false;
 			foreach ($disk['partitions'] as $part) {
 				if ($part['mounted']) {
-					$mounted_disk = TRUE;
+					$mounted_disk = true;
 					break;
 				}
 			}
@@ -236,8 +236,8 @@ function make_mount_button($device) {
 	$button = "<span><button device='{$device['device']}' class='mount' context='%s' role='%s' %s><i class='%s'></i>%s</button></span>";
 
 	if (isset($device['partitions'])) {
-		$mounted = isset($device['mounted']) ? $device['mounted'] : in_array(TRUE, array_map(function($ar){return $ar['mounted'];}, $device['partitions']));
-		$disable = count(array_filter($device['partitions'], function($p){ if (! empty($p['fstype'])) return TRUE;})) ? "" : "disabled";
+		$mounted = isset($device['mounted']) ? $device['mounted'] : in_array(true, array_map(function($ar){return $ar['mounted'];}, $device['partitions']));
+		$disable = count(array_filter($device['partitions'], function($p){ if (! empty($p['fstype'])) return true;})) ? "" : "disabled";
 		$format	 = (isset($device['partitions']) && ! count($device['partitions'])) ? true : false;
 		$context = "disk";
 	} else {
@@ -248,15 +248,15 @@ function make_mount_button($device) {
 	}
 
 	$is_mounting	= array_values(preg_grep("@/mounting_".basename($device['device'])."@i", listDir(dirname($paths['mounting']))))[0];
-	$is_mounting	= (time() - filemtime($is_mounting) < 300) ? TRUE : FALSE;
+	$is_mounting	= (time() - filemtime($is_mounting) < 300) ? true : false;
 	$is_unmounting	= array_values(preg_grep("@/unmounting_".basename($device['device'])."@i", listDir(dirname($paths['unmounting']))))[0];
-	$is_unmounting	= (time() - filemtime($is_unmounting) < 300) ? TRUE : FALSE;
+	$is_unmounting	= (time() - filemtime($is_unmounting) < 300) ? true : false;
 	$is_formatting	= array_values(preg_grep("@/formatting_".basename($device['device'])."@i", listDir(dirname($paths['formatting']))))[0];
-	$is_formatting	= (time() - filemtime($is_formatting) < 300) ? TRUE : FALSE;
+	$is_formatting	= (time() - filemtime($is_formatting) < 300) ? true : false;
 
 	$preclearing	= $Preclear ? $Preclear->isRunning(basename($device['device'])) : false;
 
-	$is_preclearing = shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg($device['device'])." | /bin/grep -v 'grep'") != "" ? TRUE : FALSE;
+	$is_preclearing = shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg($device['device'])." | /bin/grep -v 'grep'") != "" ? true : false;
 
 	if (($device['size'] == 0) && (! $is_unmounting)) {
 		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-erase', _('Mount'));
@@ -277,12 +277,12 @@ function make_mount_button($device) {
 		if (! isset($device['partitions'])) {
 			$cmd = $device['command'];
 			$user_cmd = $device['user_command'];
-			$script_running = ((is_script_running($cmd)) || (is_script_running($user_cmd, TRUE)));;
+			$script_running = ((is_script_running($cmd)) || (is_script_running($user_cmd, true)));;
 		} else {
 			foreach ($device['partitions'] as $part) {
 				$cmd = $part['command'];
 				$user_cmd = $part['user_command'];
-				$script_running = ((is_script_running($cmd)) || (is_script_running($user_cmd, TRUE)));;
+				$script_running = ((is_script_running($cmd)) || (is_script_running($user_cmd, true)));;
 				if ($script_running) {
 					break;
 				}
@@ -312,7 +312,7 @@ switch ($_POST['action']) {
 
 		/* Check for a recent hot plug event. */
 		$tc			= $paths['hotplug_status'];
-		$hotplug	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : "no";
+		$hotplug	= is_file($tc) ? json_decode(file_get_contents($tc),true) : "no";
 		if ($hotplug == "yes") {
 			exec("/usr/local/sbin/emcmd 'cmdHotplug=apply'");
 			file_put_contents($tc, json_encode('no'));
@@ -325,10 +325,10 @@ switch ($_POST['action']) {
 		echo "<tbody>";
 		if ( count($disks) ) {
 			foreach ($disks as $disk) {
-				$mounted		= isset($disk['mounted']) ? $disk['mounted'] : in_array(TRUE, array_map(function($ar){return is_mounted($ar['device']);}, $disk['partitions']));
+				$mounted		= isset($disk['mounted']) ? $disk['mounted'] : in_array(true, array_map(function($ar){return is_mounted($ar['device']);}, $disk['partitions']));
 				$disk_name		= basename($disk['device']);
 				$disk_dev		= $disk['ud_dev'];
-				$p				= (count($disk['partitions']) > 0) ? render_partition($disk, $disk['partitions'][0], TRUE) : FALSE;
+				$p				= (count($disk['partitions']) > 0) ? render_partition($disk, $disk['partitions'][0], true) : false;
 				$preclearing	= $Preclear ? $Preclear->isRunning($disk_name) : false;
 				$temp			= my_temp($disk['temperature']);
 
@@ -338,24 +338,24 @@ switch ($_POST['action']) {
 
 				$hdd_serial = "<a class='info' href=\"#\" onclick=\"openBox('/webGui/scripts/disk_log&amp;arg1={$disk_name}','Disk Log Information',600,900,false);return false\"><i class='fa fa-hdd-o icon'></i><span>"._("Disk Log Information")."</span></a>";
 				if ($p) {
-					$add_toggle = TRUE;
+					$add_toggle = true;
 					if (! $disk['show_partitions']) {
 						$hdd_serial .="<span title ='"._("Click to view/hide partitions and mount points")."' class='exec toggle-hdd' hdd='{$disk_name}'><i class='fa fa-plus-square fa-append'></i></span>";
 					} else {
 						$hdd_serial .="<span><i class='fa fa-minus-square fa-append grey-orb'></i></span>";
 					}
 				} else {
-					$add_toggle = FALSE;
+					$add_toggle = false;
 					$hdd_serial .= "<span class='toggle-hdd' hdd='{$disk_name}'></span>";
 				}
 
-				$device = strpos($disk_dev, "dev") === FALSE ? "" : " ({$disk_name})";
+				$device = strpos($disk_dev, "dev") === false ? "" : " ({$disk_name})";
 				$hdd_serial .= "{$disk['serial']}$device
 								{$preclear_link}
 								<span id='preclear_{$disk['serial_short']}' style='display:block;'></span>";
 
 				echo "<tr class='toggle-disk'>";
-				if (strpos($disk_dev, "dev") === FALSE) {
+				if (strpos($disk_dev, "dev") === false) {
 					$disk_display = $disk_dev;
 				} else {
 					$disk_display = substr($disk_dev, 0, 3)." ".substr($disk_dev, 3);
@@ -365,7 +365,7 @@ switch ($_POST['action']) {
 					echo "<td><i class='fa fa-circle orb ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>{$disk_display}</td>";
 				} else {
 					echo "<td>";
-					if (strpos($disk_dev, "dev") === FALSE) {
+					if (strpos($disk_dev, "dev") === false) {
 						$str = "New?name";
 						echo "<i class='fa fa-circle orb ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>";
 					} else {
@@ -478,15 +478,15 @@ switch ($_POST['action']) {
 				}
 
 				$disabled = $is_alive ? "enabled" : "disabled";
-				if ($mount['mounted'] && (is_script_running($mount['command']) || is_script_running($mount['user_command'], TRUE))) {
+				if ($mount['mounted'] && (is_script_running($mount['command']) || is_script_running($mount['user_command'], true))) {
 					echo "<td><button class='mount' disabled> <i class='fa fa-spinner fa-spin'></i>"." "._("Running")."</button></td>";
 				} else {
 					/* Remove special characters */
 					$mount_device = str_replace( array("(", ")"), "", basename($mount['device'])."_".$mount['fstype']);
 					$is_mounting	= array_values(preg_grep("@/mounting_".$mount_device."@i", listDir(dirname($paths['mounting']))))[0];
-					$is_mounting	= (time() - filemtime($is_mounting) < 300) ? TRUE : FALSE;
+					$is_mounting	= (time() - filemtime($is_mounting) < 300) ? true : false;
 					$is_unmounting	= array_values(preg_grep("@/unmounting_".$mount_device."@i", listDir(dirname($paths['unmounting']))))[0];
-					$is_unmounting	= (time() - filemtime($is_unmounting) < 300) ? TRUE : FALSE;
+					$is_unmounting	= (time() - filemtime($is_unmounting) < 300) ? true : false;
 					if ($is_mounting) {
 						echo "<td><button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Mounting')."</button></td>";
 					} elseif ($is_unmounting) {
@@ -533,15 +533,15 @@ switch ($_POST['action']) {
 						</td>";
 				}
 				$disabled = $is_alive ? "enabled":"disabled";
-				if ($mount['mounted'] && (is_script_running($mount['command']) || is_script_running($mount['user_command'], TRUE))) {
+				if ($mount['mounted'] && (is_script_running($mount['command']) || is_script_running($mount['user_command'], true))) {
 					echo "<td><button class='mount' disabled> <i class='fa fa-spinner fa-spin'></i> "._('Running')."</button></td>";
 				} else {
 					/* Remove special characters */
 					$mount_device = str_replace( array("(", ")"), "", basename($mount['device']));
 					$is_mounting	= array_values(preg_grep("@/mounting_".$mount_device."@i", listDir(dirname($paths['mounting']))))[0];
-					$is_mounting	= (time() - filemtime($is_mounting) < 300) ? TRUE : FALSE;
+					$is_mounting	= (time() - filemtime($is_mounting) < 300) ? true : false;
 					$is_unmounting	= array_values(preg_grep("@/unmounting_".$mount_device."@i", listDir(dirname($paths['unmounting']))))[0];
-					$is_unmounting	= (time() - filemtime($is_unmounting) < 300) ? TRUE : FALSE;
+					$is_unmounting	= (time() - filemtime($is_unmounting) < 300) ? true : false;
 					if ($is_mounting) {
 						echo "<td><button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Mounting')."</button></td>";
 					} elseif ($is_unmounting) {
@@ -585,7 +585,7 @@ switch ($_POST['action']) {
 				$ct .= "<tr><td><i class='fa fa-minus-circle orb grey-orb'></i>"._("not installed")."</td><td>$serial"." $mountpoint</td>";
 				$ct .= "<td></td>";
 				$ct .= "<td><a style='color:#CC0000;font-weight:bold;cursor:pointer;' title='"._("Remove Device configuration")."' class='exec' onclick='remove_disk_config(\"{$serial}\")'><i class='fa fa-remove hdd'></i></a></td>";
-				$ct .= "<td><a class='info' href='/Main/EditSettings?s=".$serial."&l=".basename($mntpoint)."&p="."1"."&t=TRUE'><i class='fa fa-gears'></i><span>"._("Edit Historical Device Settings and Script")."</span></a></td>";
+				$ct .= "<td><a class='info' href='/Main/EditSettings?s=".$serial."&l=".basename($mntpoint)."&p="."1"."&t=true'><i class='fa fa-gears'></i><span>"._("Edit Historical Device Settings and Script")."</span></a></td>";
 				$ct .= "<td></td><td></td><td></td><td></td><td></td></tr>";
 			}
 		}
@@ -717,7 +717,7 @@ switch ($_POST['action']) {
 			}
 		}
 		$tc			= $paths['hotplug_status'];
-		$hotplug	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : "no";
+		$hotplug	= is_file($tc) ? json_decode(file_get_contents($tc),true) : "no";
 		unassigned_log("Refreshed Disks and Configuration.");
 		if ($hotplug == "no") {
 			file_put_contents($tc, json_encode('yes'));
@@ -785,7 +785,7 @@ switch ($_POST['action']) {
 
 	/* SMB SHARES */
 	case 'add_samba_share':
-		$rc = TRUE;
+		$rc = true;
 
 		$ip = urldecode($_POST['IP']);
 		$ip = implode("",explode("\\", $ip));
@@ -809,7 +809,7 @@ switch ($_POST['action']) {
 				set_samba_config("{$device}", "domain", $domain);
 				set_samba_config("{$device}", "pass", encrypt_data($pass));
 			}
-			set_samba_config("{$device}", "share", safe_name($share, FALSE));
+			set_samba_config("{$device}", "share", safe_name($share, false));
 		}
 		publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
 		echo json_encode($rc);
@@ -862,7 +862,7 @@ switch ($_POST['action']) {
 
 	/* ISO FILE SHARES */
 	case 'add_iso_share':
-		$rc = TRUE;
+		$rc = true;
 		$file = isset($_POST['ISO_FILE']) ? urldecode($_POST['ISO_FILE']) : "";
 		$file = implode("",explode("\\", $file));
 		$file = stripslashes(trim($file));
@@ -873,7 +873,7 @@ switch ($_POST['action']) {
 			set_iso_config("{$file}", "share", $share);
 		} else {
 			unassigned_log("ISO File '{$file}' not found.");
-			$rc = FALSE;
+			$rc = false;
 		}
 		publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
 		echo json_encode($rc);
@@ -916,12 +916,12 @@ switch ($_POST['action']) {
 
 		/* Set the spinning_down state. */
 		$tc = $paths['run_status'];
-		$run_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+		$run_status	= is_file($tc) ? json_decode(file_get_contents($tc), true) : array();
 		if ($run_status[$device]['running'] == 'yes') {
 			$run_status[$device]['spin_time'] = time();
 			$run_status[$device]['spin'] = 'down';
 			file_put_contents($tc, json_encode($run_status));
-			echo json_encode(spin_disk(TRUE, $device));
+			echo json_encode(spin_disk(true, $device));
 		}
 		break;
 
@@ -930,12 +930,12 @@ switch ($_POST['action']) {
 
 		/* Set the spinning_up state. */
 		$tc = $paths['run_status'];
-		$run_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+		$run_status	= is_file($tc) ? json_decode(file_get_contents($tc), true) : array();
 		if ($run_status[$device]['running'] == 'no') {
 			$run_status[$device]['spin_time'] = time();
 			$run_status[$device]['spin'] = 'up';
 			file_put_contents($tc, json_encode($run_status));
-			echo json_encode(spin_disk(FALSE, $device));
+			echo json_encode(spin_disk(false, $device));
 		}
 		break;
 
@@ -944,21 +944,21 @@ switch ($_POST['action']) {
 		$partition = urldecode($_POST['partition']);
 		$device	= urldecode($_POST['device']);
 		$fstype	= urldecode($_POST['fstype']);
-		$mountpoint	= basename(safe_name(urldecode($_POST['mountpoint']), FALSE));
+		$mountpoint	= basename(safe_name(urldecode($_POST['mountpoint']), false));
 		publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
 		echo json_encode(change_mountpoint($serial, $partition, $device, $fstype, $mountpoint));
 		break;
 
 	case 'chg_samba_mountpoint':
 		$device = urldecode($_POST['device']);
-		$mountpoint = basename(safe_name(basename(urldecode($_POST['mountpoint'])), FALSE));
+		$mountpoint = basename(safe_name(basename(urldecode($_POST['mountpoint'])), false));
 		publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
 		echo json_encode(change_samba_mountpoint($device, $mountpoint));
 		break;
 
 	case 'chg_iso_mountpoint':
 		$device = urldecode($_POST['device']);
-		$mountpoint = basename(safe_name(basename(urldecode($_POST['mountpoint'])), FALSE));
+		$mountpoint = basename(safe_name(basename(urldecode($_POST['mountpoint'])), false));
 		publish("reload", json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
 		echo json_encode(change_iso_mountpoint($device, $mountpoint));
 		break;

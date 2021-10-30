@@ -50,7 +50,7 @@ function is_ip($str) {
 
 /* Check for text in a file. */
 function exist_in_file($file, $text) {
-	return (preg_grep("%{$text}%", @file($file))) ? TRUE : FALSE;
+	return (preg_grep("%{$text}%", @file($file))) ? true : false;
 }
 
 /* Is the server currently on line. */
@@ -58,16 +58,16 @@ function is_server_online($server) {
 	global $tc;
 
 	/* Check the last ping status. */
-	$ping_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
-	$was_alive		= ($ping_status[$server]['online'] == 'yes') ? TRUE : FALSE;
-	$is_alive		= (trim(exec("/bin/ping -c 1 -W 1 ".escapeshellarg($server)." >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+	$ping_status	= is_file($tc) ? json_decode(file_get_contents($tc),true) : array();
+	$was_alive		= ($ping_status[$server]['online'] == 'yes') ? true : false;
+	$is_alive		= (trim(exec("/bin/ping -c 1 -W 1 ".escapeshellarg($server)." >/dev/null 2>&1; echo $?")) == 0 ) ? true : false;
 	$no_pings		= isset($ping_status[$server]['no_pings']) ? $ping_status[$server]['no_pings'] : 0;
 	if (! $is_alive && ! is_ip($server))
 	{
 		$ip			= trim(timed_exec(5, "/usr/bin/nmblookup ".escapeshellarg($server)." | /bin/head -n1 | /bin/awk '{print $1}'"));
 		if (is_ip($ip))
 		{
-			$is_alive = (trim(exec("/bin/ping -c 1 -W 1 ".escapeshellarg($ip)." >/dev/null 2>&1; echo $?")) == 0 ) ? TRUE : FALSE;
+			$is_alive = (trim(exec("/bin/ping -c 1 -W 1 ".escapeshellarg($ip)." >/dev/null 2>&1; echo $?")) == 0 ) ? true : false;
 		}
 	}
 
@@ -76,7 +76,7 @@ function is_server_online($server) {
 		/* Check for three consecutive negative pings before declaring it is off-line. */
 		$no_pings++;
 		if (($no_pings <= 3) && ($ping_status[$server]['online'] == 'yes')) {
-			$is_alive = TRUE;
+			$is_alive = true;
 		} elseif ($no_pings > 3){
 			if ($mounted) {
 				unassigned_log("SMB/NFS server '{$server}' is not responding to a ping and appears to be offline.");
@@ -87,9 +87,9 @@ function is_server_online($server) {
 		$no_pings = 0;
 	}
 	if ($was_alive != $is_alive) {
-		$changed = TRUE;
+		$changed = true;
 	} else {
-		$changed = FALSE;
+		$changed = false;
 	}
 	$ping_status[$server] = array('no_pings' => $no_pings, 'online' => $is_alive ? 'yes' : 'no', 'changed' => $changed ? 'yes' : 'no');
 	file_put_contents($tc, json_encode($ping_status));
@@ -103,9 +103,9 @@ function ping_servers() {
 	$samba_mounts	= @parse_ini_file($config_file, true);
 	if (is_array($samba_mounts)) {
 		foreach ($samba_mounts as $device => $mount) {
-			$ping_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+			$ping_status	= is_file($tc) ? json_decode(file_get_contents($tc),true) : array();
 			$server			= $mount['ip'];
-			$changed		= ($ping_status[$server]['changed'] == 'yes') ? TRUE : FALSE;
+			$changed		= ($ping_status[$server]['changed'] == 'yes') ? true : false;
 			is_server_online($server);
 			if ($changed) {
 				$no_pings = $ping_status[$server]['no_pings'];
@@ -121,7 +121,7 @@ function ping_servers() {
 /* Get the size, used, and free space on device. */
 function df_status($tc, $mountpoint) {
 
-	$df_status	= is_file($tc) ? json_decode(file_get_contents($tc),TRUE) : array();
+	$df_status	= is_file($tc) ? json_decode(file_get_contents($tc), true) : array();
 	$rc			= trim(timed_exec(5, "/bin/df ".escapeshellarg($mountpoint)." --output=size,used,avail | /bin/grep -v '1K-blocks' 2>/dev/null"));
 	$df_status[$mountpoint] = array('timestamp' => time(), 'stats' => $rc);
 	file_put_contents($tc, json_encode($df_status));

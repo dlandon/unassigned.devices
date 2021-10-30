@@ -114,24 +114,23 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 	if (typeof " ".formatUnicorn !== "function")
 	{
-	  String.prototype.formatUnicorn = String.prototype.formatUnicorn ||
-	  function () {
-	      "use strict";
-	      var str = this.toString();
-	      if (arguments.length) {
-	          var t = typeof arguments[0];
-	          var key;
-	          var args = ("string" === t || "number" === t) ?
-	              Array.prototype.slice.call(arguments)
-	              : arguments[0];
+		String.prototype.formatUnicorn = String.prototype.formatUnicorn ||
+		function () {
+			"use strict";
 
-	          for (key in args) {
-	              str = str.replace(new RegExp("\\{" + key + "\\}", "gi"), args[key]);
-	          }
-	      }
+			var str = this.toString();
+			if (arguments.length) {
+				var t = typeof arguments[0];
+				var key;
+				var args = ("string" === t || "number" === t) ? Array.prototype.slice.call(arguments) : arguments[0];
 
-	      return str;
-	  };
+				for (key in args) {
+					str = str.replace(new RegExp("\\{" + key + "\\}", "gi"), args[key]);
+				}
+			}
+
+			return str;
+		};
 	}
 
 	(function ($) {
@@ -294,14 +293,17 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	}
 
 	function load_shares(el, ip, user, pass, action) {
-		var old = $(el).html();
-		var target = $(el).parents("div").find("*[name='SHARE']");
+		var old			= $(el).html();
+		var target		= $(el).parents("div").find("*[name='SHARE']");
+
 		$(el).html("<i class='fa fa-spinner fa-spin'></i> <?=_('Loading');?>");
-		var opts = new Object();
-		opts["action"] = action;
-		opts["IP"] = ip;
-		opts["USER"] = user;
-		opts["PASS"] = pass;
+
+		var opts		= new Object();
+		opts["action"]	= action;
+		opts["IP"]		= ip;
+		opts["USER"]	= user;
+		opts["PASS"]	= pass;
+
 		$.post(UDURL, opts).done(function(data)
 		{
 			$(el).html(old);
@@ -411,16 +413,16 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	}
 
 	function swalShowResult(success) {
-		opts = (success) ? {title:"<?=_('Success')?>!",icon:"success"} : {title:"<?=_('Fail')?>!",icon:"error"};
-		swal2({title:opts.title,icon:opts.icon,text:" ",buttons:{confirm:{visible:false},cancel:{visible:false}},timer:1800});
+		opts = (success) ? {title:"<?=_('Success')?>!", icon:"success"} : {title:"<?=_('Fail')?>!", icon:"error"};
+		swal2({title:opts.title,icon:opts.icon,text:" ", buttons:{confirm:{visible:false}, cancel:{visible:false}}, timer:1800});
 	}
 
 	function doUnassignedDevicesSurvey(surveyName, surveyOption) {
-		var survey = $("div[data-survey-name="+ surveyName +"]");
-		var numQuestions = survey.find("div[data-question]").length;
-		var surveyData = new Array
-		var index = 0;
-		var evalCondition = function(obj, selector){
+		var survey			= $("div[data-survey-name="+ surveyName +"]");
+		var numQuestions	= survey.find("div[data-question]").length;
+		var surveyData		= new Array
+		var index			= 0;
+		var evalCondition	= function(obj, selector){
 
 		rc = null;
 		if (obj.find(selector).length) {
@@ -441,14 +443,17 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		switch(direction) {
 			case '>':index++;
 				break;
+
 			case '<':index--;
 				break;
 		}
+
 		if (index >= numQuestions) {
 			return false;
 		}
-		question  = survey.find("div[data-question]").eq(index);
-		condition = question.find("div[data-question-condition]").eq(0);
+
+		question	= survey.find("div[data-question]").eq(index);
+		condition	= question.find("div[data-question-condition]").eq(0);
 
 		if (condition.length && ! eval($.trim(condition.text())) ) {
 			showSwal(direction);
@@ -456,42 +461,44 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 		content = question.find("div[data-question-content]").html();
 		format = question.find("div[data-question-format]");
+
 		if (format.length) { 
 			eval("formatOpts = " + $.trim(format.text()));
 			content = content.formatUnicorn(formatOpts);
 		}
 
 		has_checked = ["checkbox","radio","option"];
-		restore_content=$("<div></div>").html(content);
+		restore_content = $("<div></div>").html(content);
 		restore_content.find(":input").each(function(i,v) {
 			name = $(this).prop("name");
 			if (name in surveyData) {
 				if ($.inArray($(this).prop("type"), has_checked) != -1 ) {
-					if ( $(this).val() == surveyData[name] ) { 
-						$(this).attr("checked",true);
+					if ($(this).val() == surveyData[name]) { 
+						$(this).attr("checked", true);
 					}
-				} else if ($(this).prop("type") == "select-one") {
-				$(this).find("option[value="+ surveyData[name] +"]").attr("selected",true);
-				} else { 
-					$(this).attr("value",surveyData[name]);
+				} else {
+					if ($(this).prop("type") == "select-one") {
+						$(this).find("option[value="+ surveyData[name] +"]").attr("selected",true);
+					} else { 
+						$(this).attr("value",surveyData[name]);
+					}
 				}
 			}
 		});
 		content = restore_content[0].outerHTML;
-		button = {back:getAttr(question, "data-question-button-back","<?=_('Back')?>"),cancel:getAttr(question, "data-question-button-cancel","<?=_('Cancel')?>"),
-					done:getAttr(question, "data-question-button-done","<?=_('Done')?>"),next:getAttr(question, "data-question-button-next","<?=_('Next')?>")};
+		button = {back:getAttr(question, "data-question-button-back", "<?=_('Back')?>"), cancel:getAttr(question, "data-question-button-cancel", "<?=_('Cancel')?>"),
+				  done:getAttr(question, "data-question-button-done", "<?=_('Done')?>"), next:getAttr(question, "data-question-button-next", "<?=_('Next')?>")};
 
-		swalOpts = new Object;
-		swalOpts.title   = question.attr("data-question-title");
-		swalOpts.content = {element:"div",attributes:{innerHTML:content}};
-		swalOpts.icon    =  getAttr(question, "data-question-icon","info");
+		swalOpts					= new Object;
+		swalOpts.title				= question.attr("data-question-title");
+		swalOpts.content			= {element:"div", attributes:{innerHTML:content}};
+		swalOpts.icon				= getAttr(question, "data-question-icon", "info");
 		swalOpts.closeOnClickOutside = false;
-		swalOpts.buttons = new Object;
-		swalOpts.buttons.confirm = (index > 0) ? {text: button.cancel, value: null,  visible: true, className: "", closeModal: true} : {text: "", value: null, visible: false, className: "", closeModal: true};
-		swalOpts.buttons.cancel  = (index > 0) ? {text: button.back,   value: false, visible: true, className: "", closeModal: false} :
-											 {text: button.cancel, value: null,  visible: true, className: "", closeModal: true};
-		swalOpts.buttons.next    = (index == numQuestions - 1 ) ? {text:button.done, value: true, visible: true, className: "", closeModal: false}:
-																{text:button.next, value: true, visible: true, className: "", closeModal: false};
+		swalOpts.buttons			= new Object;
+		swalOpts.buttons.confirm	= (index > 0) ? {text: button.cancel, value: null, visible: true, className: "", closeModal: true} : {text: "", value: null, visible: false, className: "", closeModal: true};
+		swalOpts.buttons.cancel		= (index > 0) ? {text: button.back,  value: false, visible: true, className: "", closeModal: false} :
+											 {text: button.cancel, value: null, visible: true, className: "", closeModal: true};
+		swalOpts.buttons.next		= (index == numQuestions - 1 ) ? {text:button.done, value: true, visible: true, className: "", closeModal: false} : {text:button.next, value: true, visible: true, className: "", closeModal: false};
 		swal2(swalOpts).then( (response) => {
 			emptyInputs = $.grep($(".swal-modal").find(":input"), function (e,v){ e = $(e);
 				switch (e.prop('type')) {
@@ -513,38 +520,47 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 						break;
 				}
 			});
-			if (response)
-			{
+
+			if (response) {
 				if (emptyInputs.length) {
 					return "=";
 				} else if (! emptyInputs.length && index <= numQuestions - 1) {
 					evaled = evalCondition(question, "div[data-question-done]");
 					if (index < numQuestions - 1) {
-						if (evaled !== null && evaled === true) return ">";
-							if (evaled !== null && evaled === false) return "<";
-							else return ">";
-						} else if(index == numQuestions - 1) {
-							if (evaled !== null && evaled === false) return "=";
-							$(".swal-button--cancel").prop("disabled",true);
-							$(".swal-button--confirm").prop("disabled",true);
-							evalCondition(survey,"div[data-survey-done]");
-							if (getAttr(survey.find("div[data-survey-done]").eq(0),"data-survey-done-wait", "true") == "false" ) {
-								setTimeout(() => { swal2({buttons:{confirm:{visible:false},cancel:{visible:false}},timer:100}) }, 1500)
-							}
-							return true;
+						if (evaled !== null && evaled === true) {
+							return ">";
 						}
-			}
-		} else {
-			if ( response === false && index <= numQuestions ) {
+
+						if (evaled !== null && evaled === false) {
+							return "<";
+						} else {
+							return ">";
+						}
+					} else if(index == numQuestions - 1) {
+						if (evaled !== null && evaled === false) return "=";
+						$(".swal-button--cancel").prop("disabled",true);
+						$(".swal-button--confirm").prop("disabled",true);
+						evalCondition(survey,"div[data-survey-done]");
+						if (getAttr(survey.find("div[data-survey-done]").eq(0),"data-survey-done-wait", "true") == "false" ) {
+							setTimeout(() => { swal2({buttons:{confirm:{visible:false},cancel:{visible:false}},timer:100}) }, 1500)
+						}
+
+						return true;
+					}
+				}
+			} else if ( response === false && index <= numQuestions ) {
 				return "<";
-			} else if ( response === null  ) { 
+			} else if  (response === null) { 
 				return true;
 			}
-		}
-		return "=";
+
+			return "=";
 		}).then( (response2) => {
-			if (typeof response2 !== "boolean") return showSwal(response2);
-				else return false;
+			if (typeof response2 !== "boolean") {
+				return showSwal(response2);
+			} else {
+				return false;
+			}
 		});
 	}
 	showSwal();
@@ -1080,14 +1096,14 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		</div>
 	</div>
 	<div data-survey-done>
-		var opts = new Object();
-		opts["action"]   = "add_samba_share";
-		opts["PROTOCOL"] = surveyData['PROTOCOL'];
-		opts["IP"]       = surveyData['IP'];
-		opts["USER"]     = surveyData['USER'];
-		opts["DOMAIN"]   = surveyData['DOMAIN'];
-		opts["PASS"]     = surveyData['PASS'];
-		opts["SHARE"]    = surveyData['SHARE'];
+		var opts			= new Object();
+		opts["action"]		= "add_samba_share";
+		opts["PROTOCOL"]	= surveyData['PROTOCOL'];
+		opts["IP"]			= surveyData['IP'];
+		opts["USER"]		= surveyData['USER'];
+		opts["DOMAIN"]		= surveyData['DOMAIN'];
+		opts["PASS"]		= surveyData['PASS'];
+		opts["SHARE"]		= surveyData['SHARE'];
 		if (opts.SHARE && opts.IP) {
 			$.post(UDURL,opts).done(function(data)
 			{

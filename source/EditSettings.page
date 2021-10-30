@@ -32,8 +32,8 @@ function safe_filename($string) {
 
 $background				= "checked";
 $partition				= "";
-$disk_setting			= TRUE;
-$show_device_switches	= TRUE;
+$disk_setting			= true;
+$show_device_switches	= true;
 $disabled				= "";
 $default_file			= safe_filename("/boot/config/plugins/{$plugin}/".$_GET['l']).".sh";
 $fstype					= "";
@@ -68,8 +68,8 @@ if (isset($_GET['s'])) {
 	$background_action	= "background";
 	$share_action		= "toggle_share";
 	if (! $_GET['t']) {
-		$disk_setting			= FALSE;
-		$show_device_switches	= FALSE;
+		$disk_setting			= false;
+		$show_device_switches	= false;
 	}
 	$fstype				= $_GET['f'];
 	$volume				= ($fstype == "apfs") ? get_config($ud_device, "volume.{$partition}") : "0";
@@ -95,7 +95,7 @@ if (isset($_GET['s'])) {
 	$ud_device			= $device;
 	$background_action	= "samba_background";
 	$share_action		= "toggle_samba_share";
-	$disk_setting		= FALSE;
+	$disk_setting		= false;
 } else if (isset($_GET['i'])) {
 	$device				= $_GET['i'];
 	$mount_point		= $_GET['l'];
@@ -110,7 +110,7 @@ if (isset($_GET['s'])) {
 	$automount_action	= "iso_automount";
 	$ud_device			= $device;
 	$background_action	= "iso_background";
-	$disk_setting		= FALSE;
+	$disk_setting		= false;
 }
 
 if ((! file_exists($file)) || (! is_dir("/boot/config/plugins/user.scripts/scripts/"))) {

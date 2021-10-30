@@ -38,7 +38,7 @@ function write_log($string) {
 if ( isset($_GET['device']) && isset($_GET['type']) ) {
 	$device = trim(urldecode($_GET['device']));
 	$info = get_partition_info($device, true);
-	$command = execute_script($info, 'ADD', TRUE);
+	$command = execute_script($info, 'ADD', true);
 	if ($command != "") {
 		$command = $command." 2>&1";
 		publish("reload", json_encode(array("rescan" => "yes"), JSON_UNESCAPED_SLASHES));
@@ -48,7 +48,7 @@ if ( isset($_GET['device']) && isset($_GET['type']) ) {
 		while (! feof($proc)) {
 			write_log(fgets($proc));
 		}
-	} elseif ($command !== FALSE) {
+	} elseif ($command !== false) {
 		echo _("No script file to execute")."!";
 	} else {
 		echo _("Script is already running")."!";
