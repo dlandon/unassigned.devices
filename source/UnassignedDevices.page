@@ -491,16 +491,26 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		swalOpts.buttons.cancel  = (index > 0) ? {text: button.back,   value: false, visible: true, className: "", closeModal: false} :
 											 {text: button.cancel, value: null,  visible: true, className: "", closeModal: true};
 		swalOpts.buttons.next    = (index == numQuestions - 1 ) ? {text:button.done, value: true, visible: true, className: "", closeModal: false}:
-                                                              {text:button.next, value: true, visible: true, className: "", closeModal: false};
+																{text:button.next, value: true, visible: true, className: "", closeModal: false};
 		swal2(swalOpts).then( (response) => {
 			emptyInputs = $.grep($(".swal-modal").find(":input"), function (e,v){ e = $(e);
 				switch (e.prop('type')) {
-					case 'radio': if (e.is(":checked")){surveyData[e.prop("name")] = e.val();}; n=$(":input[name="+e.prop("name")+"]"); return (n.is("[required]") && ! n.is(":checked")); break;
-					case 'option':
-					case 'checkbox': if(e.is(":checked")){surveyData[e.prop("name")] = e.val()}; return (e.is("[required]") && ! e.is(":checked")); break;
-					case 'select-one': if (e.has(":checked")){surveyData[e.prop("name")] = e.find(":checked").val();}; n=$(":input[name="+e.prop("name")+"]"); return (n.is("[required]") && ! n.has(":checked")); break;
+					case 'radio':
+						if (e.is(":checked")){surveyData[e.prop("name")] = e.val();}; n=$(":input[name="+e.prop("name")+"]"); return (n.is("[required]") && ! n.is(":checked"));
+						break;
 
-					default: if (e.val()||e.prop("name")){surveyData[e.prop("name")] = e.val()}; return (e.is("[required]") && ! e.val()); break;
+					case 'option':
+					case 'checkbox':
+						if(e.is(":checked")){surveyData[e.prop("name")] = e.val()}; return (e.is("[required]") && ! e.is(":checked"));
+						break;
+
+					case 'select-one':
+						if (e.has(":checked")){surveyData[e.prop("name")] = e.find(":checked").val();}; n=$(":input[name="+e.prop("name")+"]"); return (n.is("[required]") && ! n.has(":checked"));
+						break;
+
+					default:
+						if (e.val() || e.prop("name")){surveyData[e.prop("name")] = e.val()}; return (e.is("[required]") && ! e.val());
+						break;
 				}
 			});
 			if (response)
