@@ -258,9 +258,9 @@ function get_disk_reads_writes($ud_dev, $dev) {
 	/* Get the base device - remove the partition number. */
 	$dev	= base_device(basename($dev));
 
-	/* Get the diskio for this device. */
-	$diskio	= @(array)parse_ini_file('state/diskload.ini');
-	$data	= explode(' ',$diskio[$dev] ?? '0 0 0 0');
+	/* Get the disk_io for this device. */
+	$disk_io	= @(array)parse_ini_file('state/diskload.ini');
+	$data	= explode(' ',$disk_io[$dev] ?? '0 0 0 0');
 
 	/* Read rate. */
 	$rc[2] = is_numeric($data[0]) ? $data[0] : 0;
