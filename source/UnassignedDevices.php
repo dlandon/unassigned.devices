@@ -136,7 +136,7 @@ function render_partition($disk, $partition, $total = FALSE) {
 		} elseif ( (! $disabled && ! $mounted && $partition['fstype'] != 'btrfs' && $partition['fstype'] != 'apfs') ) {
 			$fscheck = "<a title='"._('File System Check')."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i></a>{$partition['part']}";
 		} else {
-			$fscheck = "<i class='fa fa-check partition-hdd'></i>{$partition['part']}";
+			$fscheck = "<i class='fa fa-flash partition-script'></i>{$partition['part']}";
 		}
 
 		$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && (! $disk['partitions'][0]['pass_through'])) ? "<a title='"._("Remove Partition")."' device='{$partition['device']}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i></a>" : "";
