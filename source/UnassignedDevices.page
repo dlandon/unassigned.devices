@@ -439,7 +439,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		return (typeof obj.attr(name) !== "undefined") ? obj.attr(name) : defaultValue;
 	}
 
-	function showSwal(direction="=") {
+	function showSwal(direction = "=") {
 		switch(direction) {
 			case '>':index++;
 				break;
@@ -485,6 +485,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 				}
 			}
 		});
+
 		content = restore_content[0].outerHTML;
 		button = {back:getAttr(question, "data-question-button-back", "<?=_('Back')?>"), cancel:getAttr(question, "data-question-button-cancel", "<?=_('Cancel')?>"),
 				  done:getAttr(question, "data-question-button-done", "<?=_('Done')?>"), next:getAttr(question, "data-question-button-next", "<?=_('Next')?>")};
@@ -503,20 +504,34 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			emptyInputs = $.grep($(".swal-modal").find(":input"), function (e,v){ e = $(e);
 				switch (e.prop('type')) {
 					case 'radio':
-						if (e.is(":checked")){surveyData[e.prop("name")] = e.val();}; n=$(":input[name="+e.prop("name")+"]"); return (n.is("[required]") && ! n.is(":checked"));
+						if (e.is(":checked")) {
+							surveyData[e.prop("name")] = e.val();
+						}
+						n = $(":input[name="+e.prop("name")+"]");
+						return (n.is("[required]") && ! n.is(":checked"));
 						break;
 
 					case 'option':
 					case 'checkbox':
-						if(e.is(":checked")){surveyData[e.prop("name")] = e.val()}; return (e.is("[required]") && ! e.is(":checked"));
+						if (e.is(":checked")) {
+							surveyData[e.prop("name")] = e.val()
+						}
+						return (e.is("[required]") && ! e.is(":checked"));
 						break;
 
 					case 'select-one':
-						if (e.has(":checked")){surveyData[e.prop("name")] = e.find(":checked").val();}; n=$(":input[name="+e.prop("name")+"]"); return (n.is("[required]") && ! n.has(":checked"));
+						if (e.has(":checked")) {
+							surveyData[e.prop("name")] = e.find(":checked").val();
+						}
+						n = $(":input[name="+e.prop("name")+"]");
+						return (n.is("[required]") && ! n.has(":checked"));
 						break;
 
 					default:
-						if (e.val() || e.prop("name")){surveyData[e.prop("name")] = e.val()}; return (e.is("[required]") && ! e.val());
+						if (e.val() || e.prop("name")) {
+							surveyData[e.prop("name")] = e.val()
+						}
+						return (e.is("[required]") && ! e.val());
 						break;
 				}
 			});
@@ -537,16 +552,21 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 							return ">";
 						}
 					} else if(index == numQuestions - 1) {
-						if (evaled !== null && evaled === false) return "=";
-						$(".swal-button--cancel").prop("disabled",true);
-						$(".swal-button--confirm").prop("disabled",true);
-						evalCondition(survey,"div[data-survey-done]");
-						if (getAttr(survey.find("div[data-survey-done]").eq(0),"data-survey-done-wait", "true") == "false" ) {
-							setTimeout(() => { swal2({buttons:{confirm:{visible:false},cancel:{visible:false}},timer:100}) }, 1500)
-						}
+						if (evaled !== null && evaled === false) {
+							return "=";
+						} else {
+							$(".swal-button--cancel").prop("disabled",true);
+							$(".swal-button--confirm").prop("disabled",true);
+							evalCondition(survey,"div[data-survey-done]");
+							if (getAttr(survey.find("div[data-survey-done]").eq(0),"data-survey-done-wait", "true") == "false" ) {
+								setTimeout(() => { swal2({buttons:{confirm:{visible:false},cancel:{visible:false}},timer:100}) }, 1500)
+							}
 
-						return true;
+							return true;
+						}
 					}
+				} else {
+					return "=";
 				}
 			} else if ( response === false && index <= numQuestions ) {
 				return "<";
@@ -563,6 +583,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			}
 		});
 	}
+
 	showSwal();
 }
 </script>
