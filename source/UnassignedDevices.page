@@ -28,6 +28,7 @@ parse_plugin('UnassignedDevices');
 
 require_once "plugins/$plugin/include/lib.php";
 $version = parse_ini_file("/etc/unraid-version");
+$ud_reload = "reload-".time();
 
 if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/OpenDevices.page","plugins/dynamix/OpenDevices.page-");
 ?>
@@ -104,12 +105,12 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 	function spin_down_disk(dev) {
 		document.getElementById('disk_orb-'+dev).className = "fa fa-refresh fa-spin orb green-orb";
-		$.post(UDURL, {action:"spin_down_disk", device:dev});
+		$.post(UDURL, {'action' : 'spin_down_disk', device:dev});
 	}
 
 	function spin_up_disk(dev) {
 		document.getElementById('disk_orb-'+dev).className = "fa fa-refresh fa-spin orb grey-orb";
-		$.post(UDURL, {action:"spin_up_disk", device:dev});
+		$.post(UDURL, {'action' : 'spin_up_disk', device:dev});
 	}
 
 	if (typeof " ".formatUnicorn !== "function")
@@ -199,7 +200,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		} else if (part) {
 			tr.prev('tr.toggle-disk').find('.mount').html(td.html());
 		}
-		$.post(UDURL, {'action':op,'device':device});
+		$.post(UDURL, {'action' : op, 'device' : device});
 	}
 
 	function usb_disks(tabnum)
@@ -219,7 +220,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		}
 
 		/* Get the UD devices and render web page. */
-		$.post(UDURL, {action:"get_content", display:display}, function(data)
+		$.post(UDURL, {'action' : 'get_content', display:display}, function(data)
 		{
 			maxWidth = [];
 			var toggled = $("tr.toggle-parts").filter(":visible").map(function(){return $(this).attr("name");}).get();
@@ -243,7 +244,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	/* Poll remote servers and update ping status. */
 	function ping_poll(tabnum)
 	{
-		$.post(UDURL, {action:"update_ping"}).done(function() {
+		$.post(UDURL, {'action' : 'update_ping'}).done(function() {
 			setTimeout(ping_poll, 15000, tabnum);
 		});
 	}
@@ -251,14 +252,13 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	/* Refresh UD page showing any updated information. */
 	function refresh_page(tabnum)
 	{
-		diskio = $.cookie('diskio')===undefined ? 0 : 1;
-		$.post(UDURL, {action:"refresh_page", disk_display:diskio}).done(function() {
+		$.post(UDURL, {'action' : 'refresh_page'}).done(function() {
 			setTimeout(refresh_page, 3000, tabnum);
 		});
 	}
 
 	/* Process nchan event. */
-	var ud_Reload = new NchanSubscriber('/sub/reload');
+	var ud_Reload = new NchanSubscriber("/sub/"+"<?=$ud_reload?>");
 	ud_Reload.on('message',function(data)
 	{
 		if (data) {
@@ -267,8 +267,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	});
 
 	function load_hosts(el, action) {
-		var target = $(el).parents("div").find("*[name='IP']");
-		var old = $(el).html();
+		var target	= $(el).parents("div").find("*[name='IP']");
+		var old		= $(el).html();
 		$(el).html("<i class='fa fa-spinner fa-spin'></i> <?=_('Searching');?>");
 		$.post(UDURL, {'action': action, 'var': vars, 'network': network, 'workgroup': workgroup}).done(function(data)
 		{
@@ -293,8 +293,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	}
 
 	function load_shares(el, ip, user, pass, action) {
-		var old			= $(el).html();
-		var target		= $(el).parents("div").find("*[name='SHARE']");
+		var old		= $(el).html();
+		var target	= $(el).parents("div").find("*[name='SHARE']");
 
 		$(el).html("<i class='fa fa-spinner fa-spin'></i> <?=_('Loading');?>");
 
@@ -408,7 +408,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	}
 
 	function rescan_disks() {
-		$.post(UDURL, {action:"rescan_disks"});
+		$.post(UDURL, {'action' : 'rescan_disks'});
 		swalShowResult(true);
 	}
 
@@ -744,6 +744,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		} else {
 			$('i.toggle').removeClass('fa-list').addClass('fa-tachometer');
 		}
+		$.cookie("ud_reload", "<?=$ud_reload?>", { setMaxAge : 0, path: '/' });
+
 		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Unassigned Devices Settings");?>" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>',
 								 "<?=_('Unassigned Devices');?>");
 		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Refresh Disks and Configuration");?>" onclick="rescan_disks()"><i class="fa fa-refresh"></i></a>',
@@ -884,7 +886,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	<div data-survey-done data-survey-done-wait="true">
 		$("button[device='"+surveyOption.device+"']").prop('disabled',true);
 		$("button[device='"+surveyOption.device+"']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Formatting');?>");
-		$.post(UDURL, {action:"format_"+surveyOption.type,device:surveyOption.device, fs:surveyData["FS"], pass:surveyData["PASS"]}, function(data)
+		$.post(UDURL, {'action' : 'format_'+surveyOption.type,device:surveyOption.device, fs:surveyData["FS"], pass:surveyData["PASS"]}, function(data)
 		{
 			$("button[device='"+surveyOption.device+"']").prop('disabled',true);
 			$("button[device='"+surveyOption.device+"']").html( data.status ? "<?=_('Formated');?>" : "<?=_('Format failed');?>" );
@@ -935,7 +937,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	<div data-survey-done>
 		$("span[device='"+surveyOption.device+surveyOption.partition+"']").prop('disabled',true);
 		$("span[device='"+surveyOption.device+surveyOption.partition+"']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Removing');?>");
-		$.post(UDURL, {action:"rm_partition", device:surveyOption.device, partition:surveyOption.partition}).done(function(data)
+		$.post(UDURL, {'action' : 'rm_partition', device:surveyOption.device, partition:surveyOption.partition}).done(function(data)
 		{
 			swalShowResult((data == "true") ? true : false);
 		},"json").fail(function(){swalShowResult(false);});
@@ -967,7 +969,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		<div data-question-done></div>
 	</div>
 	<div data-survey-done>
-		$.post(UDURL, {action:"remove_iso_config", device:surveyOption}).done(function(data)
+		$.post(UDURL, {'action' : 'remove_iso_config', device:surveyOption}).done(function(data)
 		{
 			swalShowResult((data == "true") ? true : false);
 		},"json").fail(function(){swalShowResult(false);});
@@ -999,7 +1001,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		<div data-question-done></div>
 	</div>
 	<div data-survey-done>
-		$.post(UDURL, {action:"remove_config",serial:surveyOption}).done(function(data)
+		$.post(UDURL, {'action' : 'remove_config', serial:surveyOption}).done(function(data)
 		{
 			swalShowResult((data == "true") ? true : false);
 		},"json").fail(function(){swalShowResult(false);});
@@ -1031,7 +1033,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		<div data-question-done></div>
 	</div>
 	<div data-survey-done>
-		$.post(UDURL, {action:"remove_samba_config", device:surveyOption}).done(function(data)
+		$.post(UDURL, {'action' : 'remove_samba_config', device:surveyOption}).done(function(data)
 		{
 			swalShowResult((data == "true") ? true : false);
 		},"json").fail(function(){swalShowResult(false);});
@@ -1126,7 +1128,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		opts["PASS"]		= surveyData['PASS'];
 		opts["SHARE"]		= surveyData['SHARE'];
 		if (opts.SHARE && opts.IP) {
-			$.post(UDURL,opts).done(function(data)
+			$.post(UDURL, opts).done(function(data)
 			{
 				swalShowResult((data == "true") ? true : false);
 			},"json").fail(function(){swalShowResult(false);});
@@ -1157,7 +1159,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		</div>
 	</div>
 	<div data-survey-done data-survey-done-wait="true">
-		$.post(UDURL, {action:"chg_mountpoint", serial:surveyOption.serial, partition:surveyOption.partition, device:surveyOption.device, fstype:surveyOption.fstype, mountpoint:surveyData['MOUNTPOINT']}).done(function(data)
+		$.post(UDURL, {'action' : 'chg_mountpoint', serial:surveyOption.serial, partition:surveyOption.partition, device:surveyOption.device, fstype:surveyOption.fstype, mountpoint:surveyData['MOUNTPOINT']}).done(function(data)
 		{
 			swalShowResult((data == "true") ? true : false);
 		},"json").fail(function(){swalShowResult(false);});
@@ -1185,7 +1187,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		</div>
 	</div>
 	<div data-survey-done data-survey-done-wait="true">
-		$.post(UDURL, {action:"chg_samba_mountpoint", device:surveyOption.device,mountpoint:surveyData['MOUNTPOINT']}).done(function(data)
+		$.post(UDURL, {'action' : 'chg_samba_mountpoint', device:surveyOption.device,mountpoint:surveyData['MOUNTPOINT']}).done(function(data)
 		{
 			swalShowResult((data == "true") ? true : false);
 		},"json").fail(function(){swalShowResult(false);});
@@ -1213,7 +1215,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		</div>
 	</div>
 	<div data-survey-done data-survey-done-wait="true">
-		$.post(UDURL, {action:"chg_iso_mountpoint", device:surveyOption.device,mountpoint:surveyData['MOUNTPOINT']}).done(function(data)
+		$.post(UDURL, {'action' : 'chg_iso_mountpoint', device:surveyOption.device,mountpoint:surveyData['MOUNTPOINT']}).done(function(data)
 		{
 			swalShowResult((data == "true") ? true : false);
 		},"json").fail(function(){swalShowResult(false);});

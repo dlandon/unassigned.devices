@@ -401,7 +401,7 @@ function is_script_running($cmd, $user = false) {
 		/* Update the current running state. */
 		file_put_contents($tc, json_encode($script_run));
 		if (($was_running) && (! $is_running)) {
-			publish("reload", json_encode(array("rescan" => "yes"), JSON_UNESCAPED_SLASHES));
+			publish($_COOKIE['ud_reload'], json_encode(array("rescan" => "yes"), JSON_UNESCAPED_SLASHES));
 		}
 	}
 
