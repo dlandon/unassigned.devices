@@ -28,7 +28,7 @@ parse_plugin('UnassignedDevices');
 
 require_once "plugins/$plugin/include/lib.php";
 $version = parse_ini_file("/etc/unraid-version");
-$ud_reload = "reload-".time();
+$ud_reload = "reload-".session_id();
 
 if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/OpenDevices.page","plugins/dynamix/OpenDevices.page-");
 ?>

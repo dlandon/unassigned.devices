@@ -26,7 +26,6 @@ $paths = [	"smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"ping_status"		=> "/var/state/{$plugin}/ping_status.json",
 			"df_status"			=> "/var/state/{$plugin}/df_status.json",
 			"hotplug_status"	=> "/var/state/{$plugin}/hotplug_status.json",
-			"diskio"			=> "/var/state/{$plugin}/diskio.json",
 			"dev_state"			=> "/usr/local/emhttp/state/devs.ini",
 			"samba_mount"		=> "/tmp/{$plugin}/config/samba_mount.cfg",
 			"iso_mount"			=> "/tmp/{$plugin}/config/iso_mount.cfg",
@@ -67,10 +66,6 @@ else
 {
 	$Preclear = null;
 }
-
-/* Get the current diskio setting. */
-$tc		= $paths['diskio'];
-$diskio = is_file($tc) ? json_decode(file_get_contents($tc), true) : array();
 
 ########################################################
 #############		MISC FUNCTIONS        ##############

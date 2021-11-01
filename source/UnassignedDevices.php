@@ -115,7 +115,7 @@ function render_used_and_free_disk($disk, $mounted) {
 
 /* Get the partition information and render for html. */
 function render_partition($disk, $partition, $total = false) {
-	global $paths, $plugin, $diskio;
+	global $paths, $plugin;
 
 	$out = array();
 	if (isset($partition['device'])) {
@@ -170,7 +170,7 @@ function render_partition($disk, $partition, $total = false) {
 
 		/* Disk reads and writes */
 		if ($total) {
-			if ($diskio['disk_io'] == 0) {
+			if (! isset($_COOKIE['diskio'])) {
 				$out[] = "<td>".my_number($disk['reads'])."</td>";
 				$out[] = "<td>".my_number($disk['writes'])."</td>";
 			} else {
@@ -308,7 +308,7 @@ function make_mount_button($device) {
 
 switch ($_POST['action']) {
 	case 'get_content':
-		global $paths, $diskio;
+		global $paths;
 
 		/* Check for a recent hot plug event. */
 		$tc			= $paths['hotplug_status'];
@@ -404,7 +404,7 @@ switch ($_POST['action']) {
 
 				if (! $p) {
 					$rw = get_disk_reads_writes($disk['ud_dev'], $disk['device']);
-					if ($diskio['disk_io'] == 0) {
+					if (! isset($_COOKIE['diskio'])) {
 						$reads		= my_number($rw[0]);
 						$writes		= my_number($rw[1]);
 					} else {
@@ -596,15 +596,6 @@ switch ($_POST['action']) {
 		break;
 
 	case 'refresh_page':
-		global $diskio;
-
-		$disk_io = (! isset($_COOKIE['diskio'])) ? 0 : 1;
-		if ($diskio['disk_io'] != $disk_io)
-		{
-			$diskio['disk_io']	= $disk_io;
-			$tc					= $paths['diskio'];
-			file_put_contents($tc, json_encode($diskio));
-		}
 		publish($_COOKIE['ud_reload'], json_encode(array("rescan" => "yes"), JSON_UNESCAPED_SLASHES));
 		break;
 
