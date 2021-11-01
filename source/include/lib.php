@@ -821,6 +821,7 @@ function execute_script($info, $action, $testing = false) {
 			case 'prog_name':
 			case 'logfile':
 			case 'luks':
+                        case 'options':
 				putenv(strtoupper($key)."={$value}");
 			break;
 		}
@@ -946,7 +947,7 @@ function is_mounted($dev, $dir = false) {
 }
 
 /* Get the mount parameters based on the file system. */
-function get_mount_params($fs, $dev, $ro = false) {
+function get_mount_params($fs, $dev, $ro, $moreOptions) {
 	global $paths;
 
 	$rc				= "";
@@ -958,44 +959,53 @@ function get_mount_params($fs, $dev, $ro = false) {
 		$discard = "";
 	}
 	$rw	= $ro ? "ro" : "rw";
+        if (is_string($moreOptions) && strlen($moreOptions) > 0)
+        {
+                $moreOptions = "," . $moreOptions;
+        }
+        else
+        {
+                $moreOptions = "";
+        }
+
 	switch ($fs) {
 		case 'hfsplus':
-			$rc = "force,{$rw},users,umask=000";
+			$rc = "force,{$rw},users,umask=000" . $moreOptions;
 			break;
 
 		case 'xfs':
 		case 'btrfs':
 		case 'crypto_LUKS':
-			$rc = "{$rw},noatime,nodiratime{$discard}";
+			$rc = "{$rw},noatime,nodiratime{$discard}" . $moreOptions;
 			break;
 
 		case 'exfat':
-			$rc = "{$rw},noatime,nodiratime,nodev,nosuid,umask=000";
+			$rc = "{$rw},noatime,nodiratime,nodev,nosuid,umask=000" . $moreOptions;
 			break;
 
 		case 'vfat':
-			$rc = "{$rw},noatime,nodiratime,nodev,nosuid,iocharset=utf8,umask=000";
+			$rc = "{$rw},noatime,nodiratime,nodev,nosuid,iocharset=utf8,umask=000" . $moreOptions;
 			break;
 
 		case 'ntfs':
-			$rc = "{$rw},noatime,nodiratime,nodev,nosuid,nls=utf8,umask=000";
+			$rc = "{$rw},noatime,nodiratime,nodev,nosuid,nls=utf8,umask=000" . $moreOptions;
 			break;
 
 		case 'ext4':
-			$rc = "{$rw},noatime,nodiratime,nodev,nosuid{$discard}";
+			$rc = "{$rw},noatime,nodiratime,nodev,nosuid{$discard}" . $moreOptions;
 			break;
 
 		case 'cifs':
 			$credentials_file = "{$paths['credentials']}_".basename($dev);
-			$rc = "rw,noserverino,nounix,iocharset=utf8,file_mode=0777,dir_mode=0777,uid=99,gid=100%s,credentials=".escapeshellarg($credentials_file);
+			$rc = "rw,noserverino,nounix,iocharset=utf8,file_mode=0777,dir_mode=0777,uid=99,gid=100%s,credentials=".escapeshellarg($credentials_file) . $moreOptions;
 			break;
 
 		case 'nfs':
-			$rc = "rw,noacl";
+			$rc = "rw,noacl" . $moreOptions;
 			break;
 
 		default:
-			$rc = "{$rw},noatime,nodiratime";
+			$rc = "{$rw},noatime,nodiratime" . $moreOptions;
 			break;
 	}
 
@@ -1080,12 +1090,12 @@ function do_mount_local($info) {
 					$vol = ($vol != 0) ? ",vol=".$vol : "";
 					$cmd = "/usr/bin/apfs-fuse -o uid=99,gid=100,allow_other{$vol}{$recovery} ".escapeshellarg($dev)." ".escapeshellarg($dir);
 				} else {
-					$params	= get_mount_params($fs, $dev, $ro);
+					$params	= get_mount_params($fs, $dev, $ro, $info['options']);
 					$cmd = "/sbin/mount -t ".escapeshellarg($fs)." -o $params ".escapeshellarg($dev)." ".escapeshellarg($dir);
 				}
 			} else {
 				$device = $info['luks'];
-				$params	= get_mount_params($fs, $device, $ro);
+				$params	= get_mount_params($fs, $device, $ro, $info['options']);
 				$cmd = "/sbin/mount -o $params ".escapeshellarg($dev)." ".escapeshellarg($dir);
 			}
 			$str = str_replace($recovery, ", pass='*****'", $cmd);
@@ -1561,6 +1571,7 @@ function get_samba_mounts() {
 			$mount['target']		= $mount['mountpoint'];
 			$mount['prog_name']		= basename($mount['command'], ".sh");
 			$mount['command']		= get_samba_config($mount['device'],"command");
+			$mount['options']		= get_samba_config($mount['device'],"options");
 			$mount['user_command']	= get_samba_config($mount['device'],"user_command");
 			$mount['logfile']		= ($mount['prog_name']) ? $paths['device_log'].$mount['prog_name'].".log" : "";
 			$o[] = $mount;
@@ -1589,7 +1600,7 @@ function do_mount_samba($info) {
 		if (! is_mounted($dev) || ! is_mounted($dir, true)) {
 			@mkdir($dir, 0777, true);
 			if ($fs == "nfs") {
-				$params	= get_mount_params($fs, $dev);
+				$params	= get_mount_params($fs, $dev, false, $info['options']);
 				$nfs	= (get_config("Config", "nfs_version") == "4") ? "nfs4" : "nfs";
 				$cmd	= "/sbin/mount -t ".escapeshellarg($nfs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 				unassigned_log("Mount NFS command: {$cmd}");
@@ -1608,7 +1619,7 @@ function do_mount_samba($info) {
 				$smb_version = (get_config("Config", "smb_version") == "yes") ? true : false;
 				if (! $smb_version) {
 					$ver	= "";
-					$params	= sprintf(get_mount_params($fs, $dev), $ver);
+					$params	= sprintf(get_mount_params($fs, $dev, false, $info['options']), $ver);
 					$cmd	= "/sbin/mount -t ".escapeshellarg($fs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 					unassigned_log("Mount SMB share '{$dev}' using SMB default protocol.");
 					unassigned_log("Mount SMB command: {$cmd}");
@@ -1621,7 +1632,7 @@ function do_mount_samba($info) {
 						unassigned_log("SMB default protocol mount failed: '{$o}'.");
 					}
 					$ver	= ",vers=3.0";
-					$params	= sprintf(get_mount_params($fs, $dev), $ver);
+					$params	= sprintf(get_mount_params($fs, $dev, false, $info['options']), $ver);
 					$cmd	= "/sbin/mount -t $fs -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 					unassigned_log("Mount SMB share '{$dev}' using SMB3 protocol.");
 					unassigned_log("Mount SMB command: {$cmd}");
@@ -1633,7 +1644,7 @@ function do_mount_samba($info) {
 					unassigned_log("SMB3 mount failed: '{$o}'.");
 					/* If the mount failed, try to mount with samba vers=2.0. */
 					$ver	= ",vers=2.0";
-					$params	= sprintf(get_mount_params($fs, $dev), $ver);
+					$params	= sprintf(get_mount_params($fs, $dev, false, $info['options']), $ver);
 					$cmd	= "/sbin/mount -t ".escapeshellarg($fs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 					unassigned_log("Mount SMB share '{$dev}' using SMB2 protocol.");
 					unassigned_log("Mount SMB command: {$cmd}");
@@ -1645,7 +1656,7 @@ function do_mount_samba($info) {
 					unassigned_log("SMB2 mount failed: '{$o}'.");
 					/* If the mount failed, try to mount with samba vers=1.0. */
 					$ver	= ",sec=ntlm,vers=1.0";
-					$params	= sprintf(get_mount_params($fs, $dev), $ver);
+					$params	= sprintf(get_mount_params($fs, $dev, false, $info['options']), $ver);
 					$cmd	= "/sbin/mount -t ".escapeshellarg($fs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 					unassigned_log("Mount SMB share '{$dev}' using SMB1 protocol.");
 					unassigned_log("Mount SMB command: {$cmd}");
@@ -1770,6 +1781,7 @@ function get_iso_mounts() {
 			$mount['avail']			= intval($stats[2])*1024;
 			$mount['prog_name']		= basename($mount['command'], ".sh");
 			$mount['command']		= get_iso_config($mount['device'],"command");
+			$mount['options']		= get_iso_config($mount['device'],"options");
 			$mount['user_command']	= get_iso_config($mount['device'],"user_command");
 			$mount['logfile']		= ($mount['prog_name']) ? $paths['device_log'].$mount['prog_name'].".log" : "";
 			$rc[] = $mount;
@@ -2013,6 +2025,7 @@ function get_partition_info($device) {
 		$disk['read_only']		= is_read_only($disk['serial']);
 		$disk['shared']			= config_shared($disk['serial'], $disk['part'], strpos($attrs['DEVPATH'],"usb"));
 		$disk['command']		= get_config($disk['serial'], "command.{$disk['part']}");
+		$disk['options']		= get_config($disk['serial'], "options.{$disk['part']}");
 		$disk['user_command']	= get_config($disk['serial'], "user_command.{$disk['part']}");
 		$disk['command_bg']		= get_config($disk['serial'], "command_bg.{$disk['part']}");
 		$disk['prog_name']		= basename($disk['command'], ".sh");

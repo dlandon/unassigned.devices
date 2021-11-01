@@ -73,6 +73,7 @@ if (isset($_GET['s'])) {
 	}
 	$fstype				= $_GET['f'];
 	$volume				= ($fstype == "apfs") ? get_config($ud_device, "volume.{$partition}") : "0";
+	$options			= get_config($serial, "options.{$partition}");
 } else if (isset($_GET['d'])) {
 	$device				= $_GET['d'];
 	$mount_point		= $_GET['l'];
@@ -96,6 +97,7 @@ if (isset($_GET['s'])) {
 	$background_action	= "samba_background";
 	$share_action		= "toggle_samba_share";
 	$disk_setting		= false;
+	$options		= get_samba_config($device, "options");
 } else if (isset($_GET['i'])) {
 	$device				= $_GET['i'];
 	$mount_point		= $_GET['l'];
@@ -111,6 +113,7 @@ if (isset($_GET['s'])) {
 	$ud_device			= $device;
 	$background_action	= "iso_background";
 	$disk_setting		= false;
+	$options		= get_iso_config($device, "options");
 }
 
 if ((! file_exists($file)) || (! is_dir("/boot/config/plugins/user.scripts/scripts/"))) {
@@ -132,6 +135,7 @@ PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin
 # OWNER      : "udev" if executed by UDEV, otherwise "user"
 # PROG_NAME  : program name of this script
 # LOGFILE    : log file for this script
+# OPTIONS    : additional options to pass to mount command
 
 case \$ACTION in
   'ADD' )
@@ -251,6 +255,13 @@ _(Volume)_
 <br />
 <?endif;?>
 
+<strong>_(Additional Mount Options)_:</strong>
+<input type="text" title='_(Additional mount options)_.' id="options_input" style="width:40%;" autocomplete="off" value="<?=$options;?>" placeholder="_(Enter additional comma-separated options to pass to /sbin/mount [or appropriated cmd])_">
+
+:ud_edit_script_choose_name_plug:
+> These options will be passed to /sbin/mount (or other appropriate command), appended (with a ,) to -o
+:end
+
 <strong>_(Device Script)_:</strong>
 <input type="text" title='_(Enter Device Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>','sh');" autocomplete="off" value="<?=$file;?>" placeholder="_(Click the 'Default' button to select the default Device Script File)_">
 
@@ -293,7 +304,7 @@ _(Volume)_
 <button type="button" title='_(Delete Device Script File)_.' onclick='rmfile("<?=$file;?>");'>_(Delete)_</button>
 <?endif;?>
 <input type="reset" title='_(Undo your changes since last Save)_.' value='_(Reset)_'/>
-<input type="submit" title='_(Save your Device Script File changes)_.' value='_(Save)_'/>
+<input type="submit" title='_(Save your Device Script File/Mount Option changes)_.' value='_(Save)_'/>
 <button type="button" onclick="done()">_(Done)_</button>
 </form>
 
@@ -357,25 +368,25 @@ _(Volume)_
 	<?if (isset($_GET['s'])):?>
 		$( "form" ).submit(function( event ) {
 			event.preventDefault();
-			$.post(UDURL,{action:"set_command",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()},function(data){event.target.submit()},"json");
+			$.post(UDURL,{action:"set_command",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val(),options:$("#options_input").val()},function(data){event.target.submit()},"json");
 		});
 		<?if ($fstype == "apfs"):?>
 			$( "form" ).submit(function( event ) {
 				event.preventDefault();
-				$.post(UDURL,{action:"set_volume",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",volume:$("input[name='#volume']").val()},function(data){event.target.submit()},"json");
+				$.post(UDURL,{action:"set_volume",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",volume:$("input[name='#volume']").val(),options:$("#options_input").val()},function(data){event.target.submit()},"json");
 			});
 		<?endif;?>
 	<?endif;?>
 	<?if (isset($_GET['d'])):?>
 		$( "form" ).submit(function( event ) {
 			event.preventDefault();
-			$.post(UDURL,{action:"set_samba_command",device:"<?=$device;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()},function(data){event.target.submit()},"json");
+			$.post(UDURL,{action:"set_samba_command",device:"<?=$device;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val(),options:$("#options_input").val()},function(data){event.target.submit()},"json");
 		});
 	<?endif;?>
 	<?if (isset($_GET['i'])):?>
 		$( "form" ).submit(function( event ) {
 			event.preventDefault();
-			$.post(UDURL,{action:"set_iso_command",device:"<?=$device;?>",command:$("input[name='#file']").val()},function(data){event.target.submit()},"json");
+			$.post(UDURL,{action:"set_iso_command",device:"<?=$device;?>",command:$("input[name='#file']").val(),options:$("#options_input").val()},function(data){event.target.submit()},"json");
 		});
 	<?endif;?>
 
@@ -383,6 +394,7 @@ _(Volume)_
 		/* Set the default values. */
 		form.elements['text'].value = <?=json_encode($default_text);?>;
 		form.elements['#file'].value = <?=json_encode($default_file);?>;
+		$("#options_input").val("");
 
 		/* Create a new 'change' event. */
 		var event = new Event('change');

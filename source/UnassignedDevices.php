@@ -646,6 +646,7 @@ switch ($_POST['action']) {
 		$part = urldecode(($_POST['part']));
 		$cmd = urldecode(($_POST['command']));
 		set_config($serial, "user_command.{$part}", urldecode($_POST['user_command']));
+                set_config($serial, "options.{$part}", urldecode($_POST['options']));
 		echo json_encode(array( 'result' => set_config($serial, "command.{$part}", $cmd)));
 		break;
 
@@ -653,6 +654,7 @@ switch ($_POST['action']) {
 		$serial = urldecode(($_POST['serial']));
 		$part = urldecode(($_POST['part']));
 		$vol = urldecode(($_POST['volume']));
+                set_config($serial, "options.{$part}", urldecode($_POST['options']));
 		echo json_encode(array( 'result' => set_config($serial, "volume.{$part}", $vol)));
 		break;
 
@@ -857,6 +859,7 @@ switch ($_POST['action']) {
 		$device = urldecode(($_POST['device']));
 		$cmd = urldecode(($_POST['command']));
 		set_samba_config($device, "user_command", urldecode($_POST['user_command']));
+                set_samba_config($device, "options", urldecode($_POST['options']));
 		echo json_encode(array( 'result' => set_samba_config($device, "command", $cmd)));
 		break;
 
@@ -900,6 +903,7 @@ switch ($_POST['action']) {
 	case 'set_iso_command':
 		$device = urldecode(($_POST['device']));
 		$cmd = urldecode(($_POST['command']));
+                set_iso_config($device, "options", urldecode($_POST['options']));
 		echo json_encode(array( 'result' => set_iso_config($device, "command", $cmd)));
 		break;
 
