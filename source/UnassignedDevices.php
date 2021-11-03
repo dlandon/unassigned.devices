@@ -114,21 +114,23 @@ function render_used_and_free_disk($disk, $mounted) {
 }
 
 /* Get the partition information and render for html. */
-function render_partition($disk, $partition, $total = false) {
+function render_partition($disk, $partition, $disk_line = false) {
 	global $paths, $plugin;
 
 	$out = array();
 	if (isset($partition['device'])) {
-		$mounted =	$partition['mounted'];
-		$cmd = $partition['command'];
-		$device = $partition['fstype'] == "crypto_LUKS" ? $partition['luks'] : $partition['device'];
+		$mounted		= $partition['mounted'];
+		$cmd			= $partition['command'];
+		$device			= $partition['fstype'] == "crypto_LUKS" ? $partition['luks'] : $partition['device'];
 		$is_mounting	= array_values(preg_grep("@/mounting_".basename($device)."@i", listDir(dirname($paths['mounting']))))[0];
 		$is_mounting	= (time() - filemtime($is_mounting) < 300) ? true : false;
 		$is_unmounting	= array_values(preg_grep("@/unmounting_".basename($device)."@i", listDir(dirname($paths['unmounting']))))[0];
 		$is_unmounting	= (time() - filemtime($is_unmounting) < 300) ? true : false;
 		$disabled		= $is_mounting || $is_unmounting;
+
+		/* Set up icons for file system check and script execution. */
 		if ($mounted && is_file($cmd)) {
-			if ((! $disabled && ! is_script_running($cmd)) & (! is_script_running($partition['user_command'], true))) {
+			if ((! $disabled && ! is_script_running($cmd)) && (! is_script_running($partition['user_command'], true))) {
 				$fscheck = "<a title='"._("Execute Script as udev simulating a device being installed")."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/script.php?device={$device}&type="._('Done')."\",\"Execute Script\",600,900);'><i class='fa fa-flash partition-script'></i></a>{$partition['part']}";
 			} else {
 				$fscheck = "<i class='fa fa-flash partition-script'></i>{$partition['part']}";
@@ -139,10 +141,13 @@ function render_partition($disk, $partition, $total = false) {
 			$fscheck = "<i class='fa fa-flash partition-script'></i>{$partition['part']}";
 		}
 
+		/* Add remove partition icon if destructive mode is enabled. */
 		$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && (! $disk['partitions'][0]['pass_through'])) ? "<a title='"._("Remove Partition")."' device='{$partition['device']}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i></a>" : "";
 		$mpoint = "<span>{$fscheck}";
 		$mount_point = basename($partition['mountpoint']);
 		$device = ($partition['fstype'] == "crypto_LUKS") ? $partition['luks'] : $partition['device'];
+
+		/* Add change mount point or browse disk share icon if disk is mounted. */
 		if ($mounted) {
 			$mpoint .= "<i class='fa fa-folder-open partition-hdd'></i><a title='"._("Browse Disk Share")."' href='/Main/Browse?dir={$partition['mountpoint']}'>{$mount_point}</a></span>";
 		} else {
@@ -153,13 +158,14 @@ function render_partition($disk, $partition, $total = false) {
 		}
 		$mbutton = make_mount_button($partition);
 
+		/* Show disk partitions if enabled. */
 		(! $disk['show_partitions']) || $disk['partitions'][0]['pass_through'] ? $style = "style='display:none;'" : $style = "";
 		$out[] = "<tr class='toggle-parts toggle-".basename($disk['device'])."' name='toggle-".basename($disk['device'])."' $style>";
 		$out[] = "<td></td>";
 		$out[] = "<td>{$mpoint}</td>";
 		$out[] = ((count($disk['partitions']) > 1) && ($mounted)) ? "<td class='mount'>{$mbutton}</td>" : "<td></td>";
 		$fstype = $partition['fstype'];
-		if ($total) {
+		if ($disk_line) {
 			foreach ($disk['partitions'] as $part) {
 				if ($part['fstype']) {
 					$fstype = $part['fstype'];
@@ -168,8 +174,8 @@ function render_partition($disk, $partition, $total = false) {
 			}
 		}
 
-		/* Disk reads and writes */
-		if ($total) {
+		/* Disk read and write totals or rate. */
+		if ($disk_line) {
 			if (! isset($_COOKIE['diskio'])) {
 				$out[] = "<td>".my_number($disk['reads'])."</td>";
 				$out[] = "<td>".my_number($disk['writes'])."</td>";
@@ -181,9 +187,9 @@ function render_partition($disk, $partition, $total = false) {
 			$out[] = "<td></td><td></td><td></td>";
 		}
 
-		/* Set up the device settings and script tooltip. */
+		/* Set up the device settings and script settings tooltip. */
 		$title = _("Edit Device Settings and Script");
-		if ($total) {
+		if ($disk_line) {
 			$title .= "<br />"._("Passed Through").": ";
 			$title .= ($partition['pass_through'] == 'yes') ? "Yes" : "No";
 			$title .= "<br />"._("Read Only").": ";
@@ -200,8 +206,8 @@ function render_partition($disk, $partition, $total = false) {
 		$dev		= basename($device);
 		$device		= base_device($dev) ;
 		$serial		= $partition['serial'];
-		$out[]		= "<td><a class='info' href='/Main/EditSettings?s=".$serial."&b=".$device."&f=".$fstype."&l=".basename($partition['mountpoint'])."&p=".$partition['part']."&m=".json_encode($partition)."&t=".$total."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
-		if ($total) {
+		$out[]		= "<td><a class='info' href='/Main/EditSettings?s=".$serial."&b=".$device."&f=".$fstype."&l=".basename($partition['mountpoint'])."&p=".$partition['part']."&m=".json_encode($partition)."&t=".$disk_line."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+		if ($disk_line) {
 			$mounted_disk = false;
 			foreach ($disk['partitions'] as $part) {
 				if ($part['mounted']) {
@@ -211,14 +217,17 @@ function render_partition($disk, $partition, $total = false) {
 			}
 		}
 
+		/* Show disk and partition usage. */
 		$out[] = "<td>".($fstype == "crypto_LUKS" ? luks_fs_type($partition['device']) : $fstype)."</td>";
-		if ($total) {
+		if ($disk_line) {
 			$out[] = render_used_and_free_disk($disk, $mounted_disk);
 		} else {
 			$out[] = "<td>".my_scale($partition['size'], $unit)." $unit</td>";
 			$out[] = render_used_and_free($partition, $mounted);
 		}
-		if ((! $total) || (! $disk['show_partitions'])) {
+
+		/* Add device log icon. */
+		if ((! $disk_line) || (! $disk['show_partitions'])) {
 			$out[] = "<td><a title='"._("View Device Script Log")."' href='/Main/ScriptLog?s=".$partition['serial']."&p=".$partition['part']."'><i class='fa fa-align-left".( $partition['command'] ? "":" grey-orb" )."'></i></a></td>";
 		} else {
 			$out[] = "<td></td>";
