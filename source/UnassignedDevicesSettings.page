@@ -27,10 +27,27 @@ require_once "plugins/$plugin/include/lib.php";
 
 $config_file = "/tmp/$plugin/config/$plugin.cfg";
 $cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
+
+/* Get the version of Unraid we are running. */
 $version = parse_ini_file("/etc/unraid-version");
 
+/* See if conditions are set for destructive mode to be enabled. */
+$parted = file_exists("/usr/sbin/parted");
+if ((! $parted) && ($cfg['Config']['destructive_mode'] == "enabled")) {
+	$cfg['Config']['destructive_mode'] = "disabled";
+}
+
+/* See if Unraid is 6.9 or greater, Unraid manages disk spin down. */
+if (version_compare($version['version'],"6.8.9", ">")) {
+	$cfg["Config"]["spin_down"] = "yes";
+}
+
+/* Get array of devices that can have UUID changed - unmounted, xfs devices. */
 $uuid_devices = array();
+
+/* Get array of encrypted devices that can have a password set in settings. */
 $encrypt_devices = array();
+
 foreach (get_all_disks_info() as $d) {
 	if (($d['partitions'][0]['fstype'] == "xfs" || $d['partitions'][0]['fstype'] == "crypto_LUKS") && (! $d['partitions'][0]['mounted'])) {
 		$a = array();
@@ -70,18 +87,6 @@ if (count($_POST)) {
 		$password	= $_POST['password'];
 		set_config($serial, "pass", encrypt_data($password));
 	}
-}
-
-$parted = file_exists("/usr/sbin/parted");
-
-if ((! file_exists("/usr/sbin/parted") && $cfg['Config']['destructive_mode'] == "enabled")) {
-	if (! $parted) {
-		$cfg['Config']['destructive_mode'] = "disabled";
-	}
-	save_ini_file($config_file, $cfg);
-}
-if (version_compare($version['version'],"6.8.9", ">")) {
-	$cfg["Config"]["spin_down"] = "yes";
 }
 ?>
 
