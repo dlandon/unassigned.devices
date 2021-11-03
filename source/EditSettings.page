@@ -356,26 +356,22 @@ _(Volume)_
 
 	<?if (isset($_GET['s'])):?>
 		$( "form" ).submit(function( event ) {
-			event.preventDefault();
-			$.post(UDURL,{action:"set_command",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()},function(data){event.target.submit()},"json");
+			$.post(UDURL,{action:"set_command",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()},function(data){event.preventDefault()},"json");
 		});
 		<?if ($fstype == "apfs"):?>
 			$( "form" ).submit(function( event ) {
-				event.preventDefault();
-				$.post(UDURL,{action:"set_volume",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",volume:$("input[name='#volume']").val()},function(data){event.target.submit()},"json");
+				$.post(UDURL,{action:"set_volume",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",volume:$("input[name='#volume']").val()},function(data){event.preventDefault()},"json");
 			});
 		<?endif;?>
 	<?endif;?>
 	<?if (isset($_GET['d'])):?>
 		$( "form" ).submit(function( event ) {
-			event.preventDefault();
-			$.post(UDURL,{action:"set_samba_command",device:"<?=$device;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()},function(data){event.target.submit()},"json");
+			$.post(UDURL,{action:"set_samba_command",device:"<?=$device;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()},function(data){event.preventDefault()},"json");
 		});
 	<?endif;?>
 	<?if (isset($_GET['i'])):?>
 		$( "form" ).submit(function( event ) {
-			event.preventDefault();
-			$.post(UDURL,{action:"set_iso_command",device:"<?=$device;?>",command:$("input[name='#file']").val()},function(data){event.target.submit()},"json");
+			$.post(UDURL,{action:"set_iso_command",device:"<?=$device;?>",command:$("input[name='#file']").val()},function(data){event.preventDefault()},"json");
 		});
 	<?endif;?>
 
