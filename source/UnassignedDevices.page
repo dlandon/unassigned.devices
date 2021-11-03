@@ -27,7 +27,11 @@ require_once "$docroot/plugins/$plugin/include/Legacy.php";
 parse_plugin('UnassignedDevices');
 
 require_once "plugins/$plugin/include/lib.php";
+
+/* Get the version of Unraid we are running. */
 $version = parse_ini_file("/etc/unraid-version");
+
+/* Set up name for nchan socket. Make it unique by adding the browser session id. */
 $ud_reload = "reload-".session_id();
 
 if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/OpenDevices.page","plugins/dynamix/OpenDevices.page-");
@@ -157,12 +161,12 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 				oldProps.push(old);
 			});
 
-			dim.width = $item.width();
-			dim.outerWidth = $item.outerWidth(includeMargin);
-			dim.innerWidth = $item.innerWidth();
-			dim.height = $item.height();
-			dim.innerHeight = $item.innerHeight();
-			dim.outerHeight = $item.outerHeight(includeMargin);
+			dim.width		= $item.width();
+			dim.outerWidth	= $item.outerWidth(includeMargin);
+			dim.innerWidth	= $item.innerWidth();
+			dim.height		= $item.height();
+			dim.innerHeight	= $item.innerHeight();
+			dim.outerHeight	= $item.outerHeight(includeMargin);
 
 			$hiddenParents.each(function (i)
 			{
@@ -178,23 +182,23 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	}(jQuery));
 
 	function openWindow_fsck(cmd,title,height,width) {
-		var run = cmd;
-		var top = (screen.height-height)/2;
-		var left = (screen.width-width)/2;
-		var options = 'resizeable=yes,scrollbars=yes,height='+height+',width='+width+',top='+top+',left='+left;
+		var run		= cmd;
+		var top		= (screen.height-height)/2;
+		var left	= (screen.width-width)/2;
+		var options	= 'resizeable=yes,scrollbars=yes,height='+height+',width='+width+',top='+top+',left='+left;
 		window.open(run, 'log', options);
 	}
 
 	function disk_op(el, op, device) {
-		/* add spinning and disable button. */
+		/* Add spinning and disable button. */
 		$("button[device='"+device+"']").html("<i class='fa fa-spinner fa-spin'></i> "+(op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
 		$("button[device='"+device+"']").prop("disabled","true");
 
-		/* disable partition buttons */
-		td = $("button[device='"+device+"']").closest('td');
-		tr = td.closest('tr');
-		part = tr.is('.toggle-parts');
-		disk = tr.find('span[hdd]').attr("hdd");
+		/* Disable partition buttons. */
+		td		= $("button[device='"+device+"']").closest('td');
+		tr		= td.closest('tr');
+		part	= tr.is('.toggle-parts');
+		disk	= tr.find('span[hdd]').attr("hdd");
 		if (disk) {
 			tr.siblings('tr.toggle-'+disk).find('.mount').html(td.html());
 		} else if (part) {
@@ -222,8 +226,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		/* Get the UD devices and render web page. */
 		$.post(UDURL, {'action' : 'get_content', display:display}, function(data)
 		{
-			maxWidth = [];
-			var toggled = $("tr.toggle-parts").filter(":visible").map(function(){return $(this).attr("name");}).get();
+			maxWidth	= [];
+			var toggled	= $("tr.toggle-parts").filter(":visible").map(function(){return $(this).attr("name");}).get();
 			if (data)
 			{
 				$('#usb_devices_list').html(data);
@@ -257,7 +261,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		});
 	}
 
-	/* Process nchan event. */
+	/* Process nchan eventx. */
 	var ud_Reload = new NchanSubscriber("/sub/"+"<?=$ud_reload?>");
 	ud_Reload.on('message',function(data)
 	{
@@ -277,7 +281,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 				var hosts = data.split('\n');
 				if (hosts.length) {
 					var add = "<select name='IP' class='swal-content__input' required>";
-					for(var i = 0;i < hosts.length;i++)
+					for (var i = 0;i < hosts.length;i++)
 					{
 						if (hosts[i].length)
 						{
@@ -311,7 +315,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 				var shares = data.split('\n');
 				if (shares.length) {
 					var add = "<select name='SHARE' class='swal-content__input' required>";
-					for(var i = 0;i < shares.length;i++) {
+					for (var i = 0;i < shares.length;i++) {
 						if (shares[i].length) {
 							add += "<option value='"+shares[i]+"'>"+shares[i]+"</option>";
 						}
@@ -345,7 +349,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	{
 		var Target		= get_tab_title_by_name(Name);
 		var elementId 	= 'event-' + new Date().getTime() * Math.floor(Math.random()*100000);
-		var element	= $("<span id='"+elementId+"' class='status'>"+Button+"</span>");
+		var element		= $("<span id='"+elementId+"' class='status'>"+Button+"</span>");
 
 		rc = true;
 		if (element.find("input[type='button']").length)
@@ -384,7 +388,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 				$('#'+elementId).fadeIn('slow');}
 			});
 
-			if (Target.is(':checked') || ! autoHide) {
+			if (Target.is(':checked') || (! autoHide)) {
 				$('#'+elementId).fadeIn('slow');
 			}
 
@@ -414,7 +418,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 	function swalShowResult(success) {
 		opts = (success) ? {title:"<?=_('Success')?>!", icon:"success"} : {title:"<?=_('Fail')?>!", icon:"error"};
-		swal2({title:opts.title,icon:opts.icon,text:" ", buttons:{confirm:{visible:false}, cancel:{visible:false}}, timer:1800});
+		swal2({title:opts.title, icon:opts.icon, text:" ", buttons:{confirm:{visible:false}, cancel:{visible:false}}, timer:1800});
 	}
 
 	function doUnassignedDevicesSurvey(surveyName, surveyOption) {
@@ -678,10 +682,10 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		$_var = "eth{$i}";
 		if (isset($$_var) )
 		{
-			$iface = $$_var;
-			$gateway = array_values(array_flip(preg_grep("/GATEWAY:/", array_flip($iface))));
-			$ipaddr	= array_values(array_flip(preg_grep("/IPADDR:/",	array_flip($iface))));
-			$netmask = array_values(array_flip(preg_grep("/NETMASK/",	array_flip($iface))));
+			$iface		= $$_var;
+			$gateway	= array_values(array_flip(preg_grep("/GATEWAY:/", array_flip($iface))));
+			$ipaddr		= array_values(array_flip(preg_grep("/IPADDR:/",	array_flip($iface))));
+			$netmask	= array_values(array_flip(preg_grep("/NETMASK/",	array_flip($iface))));
 			for ($z=0; $z < count($ipaddr); $z++)
 			{ 
 				echo "network.push({gateway:'{$ipaddr[$z]}', ip:'{$ipaddr[$z]}', netmask:'{$netmask[$z]}'});\n";
@@ -737,7 +741,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 	$(function()
 	{
-		/* Add icons to Tab/Title bar */
+		/* Add icons to Tab/Title bar. */
 		$('#tab4').bind({click:function() {$('i.toggle').show('slow');}});
 		if ($.cookie('diskio')===undefined) {
 			$('i.toggle').removeClass('fa-tachometer').addClass('fa-list');
@@ -758,7 +762,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 								 "<?=_('Unassigned Devices');?>");
 		$('.tooltip').tooltipster({delay:100,trigger:'custom',triggerOpen:{mouseenter:true},triggerClose:{click:false,scroll:true,mouseleave:true}});
 
-		/* Add switchButton to Tab/Title bar */
+		/* Add switchButton to Tab/Title bar. */
 		$('.disks-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Disks');?>", off_label: "<?=_('Disks');?>", checked: $.cookie('unassigned-disks-view') != 'false'});
 		$('.disks-switch').change(function()
 		{
@@ -780,7 +784,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			$.cookie('unassigned-historical-view', $('.historical-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path:'/' });
 		});
 
-		/* Load contents if tab is checked */
+		/* Load contents if tab is checked. */
 		if ($('#tab'+tab_usbdisks).is(':checked')) {
 			$('#tab'+tab_usbdisks).trigger("click");
 			$.removeCookie('one',{path:'/'});
