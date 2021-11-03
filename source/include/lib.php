@@ -1620,7 +1620,7 @@ function do_mount_samba($info) {
 					if (! $smb_version) {
 						unassigned_log("SMB default protocol mount failed: '{$o}'.");
 					}
-					$ver	= ",vers=3.0";
+					$ver	= ",vers=3.1.1";
 					$params	= sprintf(get_mount_params($fs, $dev), $ver);
 					$cmd	= "/sbin/mount -t $fs -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 					unassigned_log("Mount SMB share '{$dev}' using SMB3 protocol.");
@@ -1632,7 +1632,7 @@ function do_mount_samba($info) {
 				if (! is_mounted($dev) && (strpos($o, "Permission denied") === false) && (strpos($o, "Network is unreachable") === false)) {
 					unassigned_log("SMB3 mount failed: '{$o}'.");
 					/* If the mount failed, try to mount with samba vers=2.0. */
-					$ver	= ",vers=2.0";
+					$ver	= ",vers=2.1";
 					$params	= sprintf(get_mount_params($fs, $dev), $ver);
 					$cmd	= "/sbin/mount -t ".escapeshellarg($fs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 					unassigned_log("Mount SMB share '{$dev}' using SMB2 protocol.");
