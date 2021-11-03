@@ -251,17 +251,17 @@ _(Volume)_
 <br />
 <?endif;?>
 
-<strong>_(Script File)_:</strong>
-<input type="text" title='_(Enter Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>','sh');" autocomplete="off" value="<?=$file;?>" placeholder="_(Click the 'Default Script' button to select the default Script File)_">
+<strong>_(Device Script)_:</strong>
+<input type="text" title='_(Enter Device Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>','sh');" autocomplete="off" value="<?=$file;?>" placeholder="_(Click the 'Default' button to select the default Device Script File)_">
 
 :ud_edit_script_choose_name_plug:
-> This is the Script File that runs when the device is mounted. Choose your Script File name from the file selection dropdown, or enter your desired script name.
+> This is the Script File that runs when the device is mounted. Choose your Script File name from the file selection dropdown, or enter your desired script.
 :end
 
-<span title='_(Run Script File in the background)_.'><input type="checkbox" class="background-switch"></span>
+<span title='_(Run Device Script File in the background)_.'><input type="checkbox" class="background-switch"></span>
 
 :ud_edit_script_run_background_plug:
-> Turn on the **Run in Background** to have the script run as a background task.  This can keep the Unassigned Devices UI from hanging when the script is run from the UI.
+> Turn on the **Run in Background** to have the Device Script run as a background task.  This can keep the Unassigned Devices UI from hanging when the script is run from the UI.
 :end
 
 <? if (! $_GET['i']):?>
@@ -269,7 +269,7 @@ _(Volume)_
 <input type="text" title='_(Enter User Script File Name)_.' name="#user_file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/user.scripts/scripts','',false);" autocomplete="off" placeholder="_(Enter the User Script that will be using this device)_" value="<?=$user_file;?>" <?=$disabled;?>>
 
 :ud_edit_user_script_choose_name_plug:
-> If you have the User Scripts plugin installed, you can have Unassigned Devices show the running status of the User Script that will be using this device.  This field will only be enabled when a Script File exists.
+> If you have the User Scripts plugin installed, you can have Unassigned Devices show the running status of the User Script that will be using this device.  This field will only be enabled when a Device Script File exists.
 :end
 <?endif;?>
 
@@ -277,23 +277,23 @@ _(Volume)_
 <strong>_(Script content)_:</strong>
 <br />
 
-<textarea spellcheck="false" cols="80" rows="22" name="text" title='_(Enter and Edit the Script that runs when a udev or operator event occurs)_.' style="font-family:bitstream;width:80%"><?=$text;?></textarea>
+<textarea spellcheck="false" cols="80" rows="22" name="text" title='_(Enter and Edit the Device Script that runs when a udev or operator event occurs)_.' style="font-family:bitstream;width:80%"><?=$text;?></textarea>
 
 :ud_edit_script_buttons_plug:
 > Click the **Save** button to commit the current edits.  Click **Reset** to undo any changes you make (before Saving). Click **Done** to exit this page.
 >
-> Click the **Default Script** button to initialize the edit box with a default script.
+> Click the **Default** button to initialize the edit box with a default Device Script.
 > You still need to click **Save** in order to commit the change.
 >
-> Click **Delete** to delete the script file.
+> Click **Delete** to delete the Device Script file.
 :end
 
-<button type="button" title='_(Load the default script)_.' onclick="setDefault(this.form)">_(Default Script)_</button>
+<button type="button" title='_(Load the default Device Script)_.' onclick="setDefault(this.form)">_(Default)_</button>
 <?if (is_file($file)):?>
-<button type="button" title='_(Delete Script File)_.' onclick='rmfile("<?=$file;?>");'>_(Delete)_</button>
+<button type="button" title='_(Delete Device Script File)_.' onclick='rmfile("<?=$file;?>");'>_(Delete)_</button>
 <?endif;?>
 <input type="reset" title='_(Undo your changes since last Save)_.' value='_(Reset)_'/>
-<input type="submit" title='_(Save your Script File changes)_.' value='_(Save)_'/>
+<input type="submit" title='_(Save your Device Script File changes)_.' value='_(Save)_'/>
 <button type="button" onclick="done()">_(Done)_</button>
 </form>
 
