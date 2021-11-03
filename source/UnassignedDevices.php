@@ -61,14 +61,19 @@ function my_diskio($data) {
 function render_used_and_free($partition, $mounted) {
 	global $display;
 
+	/* Only show used and free when disk is mounted. */
 	if (strlen($partition['target']) && $mounted) {
 		$free_pct = $partition['size'] ? round(100*$partition['avail']/$partition['size']) : 0;
 		$used_pct = 100-$free_pct;
+
+		/* Display of disk usage depends on global display setting. */
 		if ($display['text'] % 10 == 0) {
 			$o = "<td>".my_scale($partition['used'], $unit)." $unit</td>";
 		} else {
 			$o = "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'></span><span>".my_scale($partition['used'], $unit)." $unit</span></div></td>";
 		}
+
+		/* Display of disk usage depends on global display setting. */
 		if ($display['text'] < 10 ? $display['text'] % 10 == 0 : $display['text'] % 10 != 0) {
 			$o .= "<td>".my_scale($partition['avail'], $unit)." $unit</td>";
 		} else {
@@ -160,7 +165,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		}
 		$mbutton = make_mount_button($partition);
 
-		/* Show disk partitions if enabled. */
+		/* Show disk partitions if partitions enabled. */
 		(! $disk['show_partitions']) || $disk['partitions'][0]['pass_through'] ? $style = "style='display:none;'" : $style = "";
 		$out[] = "<tr class='toggle-parts toggle-".basename($disk['device'])."' name='toggle-".basename($disk['device'])."' $style>";
 		$out[] = "<td></td>";
