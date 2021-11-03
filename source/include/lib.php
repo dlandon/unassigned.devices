@@ -2197,6 +2197,10 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 						shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
 					}
 					break;
+
+					default;
+						unassigned_log("Warning: Cannot change the disk label on {$fstype} file system.");
+					break;
 			}
 		}
 	} else {
