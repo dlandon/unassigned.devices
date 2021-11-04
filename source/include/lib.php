@@ -1995,9 +1995,11 @@ function get_partition_info($device) {
 		}
 
 		/* crypto_LUKS file system. */
-		$disk['luks']			= safe_name($disk['device']);
 		if ($disk['fstype'] == "crypto_LUKS") {
-			$disk['device']		= "/dev/mapper/".safe_name(basename($disk['mountpoint']));
+			$disk['luks']	= safe_name($disk['device']);
+			$disk['device']	= "/dev/mapper/".safe_name(basename($disk['mountpoint']));
+		} else {
+			$disk['luks']	= "";
 		}
 
 		/* Set up all disk parameters and status. */
