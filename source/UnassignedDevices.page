@@ -253,6 +253,18 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		});
 	}
 
+	/* Detect a change in the diskio cookie and refresh the page to update diskio. */
+	var checkCookie = function() {
+		var lastCookie = $.cookie('diskio');
+		return function() {
+			var currentCookie = $.cookie('diskio');
+			if (currentCookie != lastCookie) {
+				refresh_page(tab_usbdisks);
+				lastCookie = currentCookie;
+			}
+		};
+	}();
+
 	/* Refresh UD page showing any updated information. */
 	function refresh_page(tabnum)
 	{
@@ -748,7 +760,9 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		} else {
 			$('i.toggle').removeClass('fa-list').addClass('fa-tachometer');
 		}
-		$.cookie("ud_reload", "<?=$ud_reload?>", { setMaxAge : 0, path: '/' });
+
+		/* Check for diskio cookie change every 100ms. */
+		window.setInterval(checkCookie, 100);
 
 		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Unassigned Devices Settings");?>" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>',
 								 "<?=_('Unassigned Devices');?>");
@@ -789,6 +803,9 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 			$('#tab'+tab_usbdisks).trigger("click");
 			$.removeCookie('one',{path:'/'});
 		}
+
+		/* Create cookie for the nchan socket. */
+		$.cookie("ud_reload", "<?=$ud_reload?>", { setMaxAge : 0, path: '/' });
 
 		usb_disks(tab_usbdisks);
 		ping_poll(tab_usbdisks);
