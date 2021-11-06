@@ -418,8 +418,7 @@ function addFile($file)
 	$remove[] = $file;
 
 	/* Update UI mount button. */
-	publish($_COOKIE['ud_reload'], json_encode(array("rescan" => "yes"),JSON_UNESCAPED_SLASHES));
-
+	publish($_COOKIE['ud_reload'], json_encode(array("rescan" => "yes"), JSON_UNESCAPED_SLASHES));
 }
 
 /* Update json mounted disk status. */
