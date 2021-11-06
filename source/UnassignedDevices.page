@@ -245,32 +245,28 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		});
 	}
 
-	/* Poll remote servers and update ping status. */
-	function ping_poll(tabnum)
-	{
-		$.post(UDURL, {'action' : 'update_ping'}).done(function() {
-			setTimeout(ping_poll, 15000, tabnum);
-		});
-	}
-
 	/* Detect a change in the diskio cookie and refresh the page to update diskio. */
 	var checkCookie = function() {
 		var lastCookie = $.cookie('diskio');
 		return function() {
 			var currentCookie = $.cookie('diskio');
 			if (currentCookie != lastCookie) {
-				refresh_page(tab_usbdisks);
 				lastCookie = currentCookie;
+				refresh_page(tab_usbdisks);
 			}
 		};
 	}();
 
-	/* Refresh UD page showing any updated information. */
-	function refresh_page(tabnum)
+	/* Poll remote servers and update ping status. */
+	function ping_poll()
 	{
-		$.post(UDURL, {'action' : 'refresh_page'}).done(function() {
-			setTimeout(refresh_page, 3000, tabnum);
-		});
+		$.post(UDURL, {'action' : 'update_ping'});
+	}
+
+	/* Refresh UD page showing any updated information. */
+	function refresh_page()
+	{
+		$.post(UDURL, {'action' : 'refresh_page'});
 	}
 
 	/* Process nchan eventx. */
@@ -760,6 +756,12 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		} else {
 			$('i.toggle').removeClass('fa-list').addClass('fa-tachometer');
 		}
+
+		/* Set page refresh interval every 3 seconds. */
+		window.setInterval(refresh_page, 3000, tab_usbdisks);
+
+		/* Set ping poll interval every 15 seconds. */
+		window.setInterval(ping_poll, 15000, tab_usbdisks);
 
 		/* Check for diskio cookie change every 100ms. */
 		window.setInterval(checkCookie, 100);
