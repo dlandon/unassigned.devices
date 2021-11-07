@@ -34,7 +34,9 @@ $version = parse_ini_file("/etc/unraid-version");
 /* Set up name for nchan socket. Make it unique by adding the browser session id. */
 $ud_reload = "reload-".session_id();
 
-if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/OpenDevices.page","plugins/dynamix/OpenDevices.page-");
+if (file_exists("plugins/dynamix/OpenDevices.page")) {
+	@rename("plugins/dynamix/OpenDevices.page", "plugins/dynamix/OpenDevices.page-");
+}
 ?>
 
 <script type="text/javascript" src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
@@ -104,7 +106,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	<?=$Preclear ? $Preclear->Script() : "";?>
 
 	function rm_preclear(dev) {
-		$.post(UDURL, {action:"rm_preclear", device:dev});
+		$.post(UDURL, {'action' : 'rm_preclear', device:dev});
 	}
 
 	function spin_down_disk(dev) {
@@ -739,8 +741,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		$(this).css("display", $(".historical-switch").is(":checked") ? "block" : "none");
 	});
 
-	$(function()
-	{
+	$(function() {
 		/* Set page refresh interval every 3 seconds. */
 		window.setInterval(refresh_page, 3000);
 
@@ -768,7 +769,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 								 "<?=_('Unassigned Devices');?>");
 		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Show Disk Devices");?>"><input type="checkbox" class="disks-switch"></a>',
 								 "<?=_('Unassigned Devices');?>");
-		$('.tooltip').tooltipster({delay:100,trigger:'custom',triggerOpen:{mouseenter:true},triggerClose:{click:false,scroll:true,mouseleave:true}});
+		$('.tooltip').tooltipster({delay:100, trigger:'custom', triggerOpen:{mouseenter:true}, triggerClose:{click:false, scroll:true, mouseleave:true}});
 
 		/* Add switchButton to Tab/Title bar. */
 		$('.disks-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Disks');?>", off_label: "<?=_('Disks');?>", checked: $.cookie('unassigned-disks-view') != 'false'});
