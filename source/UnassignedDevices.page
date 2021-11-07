@@ -104,7 +104,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	<?=$Preclear ? $Preclear->Script() : "";?>
 
 	function rm_preclear(dev) {
-		$.post(UDURL, {action:"rm_preclear", device:dev}).always(function(){usb_disks(tab_usbdisks)});
+		$.post(UDURL, {action:"rm_preclear", device:dev});
 	}
 
 	function spin_down_disk(dev) {
@@ -192,22 +192,12 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	function disk_op(el, op, device) {
 		/* Add spinning and disable button. */
 		$("button[device='"+device+"']").html("<i class='fa fa-spinner fa-spin'></i> "+(op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
-		$("button[device='"+device+"']").prop("disabled","true");
+		$("button[device='"+device+"']").prop("disabled", "true");
 
-		/* Disable partition buttons. */
-		td		= $("button[device='"+device+"']").closest('td');
-		tr		= td.closest('tr');
-		part	= tr.is('.toggle-parts');
-		disk	= tr.find('span[hdd]').attr("hdd");
-		if (disk) {
-			tr.siblings('tr.toggle-'+disk).find('.mount').html(td.html());
-		} else if (part) {
-			tr.prev('tr.toggle-disk').find('.mount').html(td.html());
-		}
 		$.post(UDURL, {'action' : op, 'device' : device});
 	}
 
-	function usb_disks(tabnum)
+	function usb_disks()
 	{
 		/* Save table widths. */
 		if (! diskinfo)
@@ -245,14 +235,14 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		});
 	}
 
-	/* Detect a change in the diskio cookie and refresh the page to update diskio. */
+	/* Detect a change in the diskio cookie and refresh the page to update diskio if it changes. */
 	var checkCookie = function() {
 		var lastCookie = $.cookie('diskio');
 		return function() {
 			var currentCookie = $.cookie('diskio');
 			if (currentCookie != lastCookie) {
 				lastCookie = currentCookie;
-				refresh_page(tab_usbdisks);
+				refresh_page();
 			}
 		};
 	}();
@@ -274,7 +264,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 	ud_Reload.on('message',function(data)
 	{
 		if (data) {
-			usb_disks(tab_usbdisks);
+			usb_disks();
 		}
 	});
 
@@ -453,10 +443,12 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 	function showSwal(direction = "=") {
 		switch(direction) {
-			case '>':index++;
+			case '>':
+				index++;
 				break;
 
-			case '<':index--;
+			case '<':
+				index--;
 				break;
 		}
 
@@ -749,6 +741,15 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 
 	$(function()
 	{
+		/* Set page refresh interval every 3 seconds. */
+		window.setInterval(refresh_page, 3000);
+
+		/* Set ping poll interval every 15 seconds. */
+		window.setInterval(ping_poll, 15000);
+
+		/* Check for diskio cookie change every 100ms. */
+		window.setInterval(checkCookie, 100);
+
 		/* Add icons to Tab/Title bar. */
 		$('#tab4').bind({click:function() {$('i.toggle').show('slow');}});
 		if ($.cookie('diskio')===undefined) {
@@ -756,15 +757,6 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		} else {
 			$('i.toggle').removeClass('fa-list').addClass('fa-tachometer');
 		}
-
-		/* Set page refresh interval every 3 seconds. */
-		window.setInterval(refresh_page, 3000, tab_usbdisks);
-
-		/* Set ping poll interval every 15 seconds. */
-		window.setInterval(ping_poll, 15000, tab_usbdisks);
-
-		/* Check for diskio cookie change every 100ms. */
-		window.setInterval(checkCookie, 100);
 
 		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Unassigned Devices Settings");?>" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>',
 								 "<?=_('Unassigned Devices');?>");
@@ -809,9 +801,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) @rename("plugins/dynamix/Op
 		/* Create cookie for the nchan socket. */
 		$.cookie("ud_reload", "<?=$ud_reload?>", { setMaxAge : 0, path: '/' });
 
-		usb_disks(tab_usbdisks);
-		ping_poll(tab_usbdisks);
-		refresh_page(tab_usbdisks);
+		ping_poll();
+		refresh_page();
 		ud_Reload.start();
 	});
 </script>
