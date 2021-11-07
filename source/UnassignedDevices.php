@@ -284,7 +284,7 @@ function make_mount_button($device) {
 			$button = sprintf($button, $context, 'format', $disable, 'fa fa-erase', _('Format'));
 		}
 	} elseif ($is_mounting) {
-		$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-spinner fa-spin', ' '._('Mounting'));
+		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-spinner fa-spin', ' '._('Mounting'));
 	} elseif ($is_unmounting) {
 		$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-spinner fa-spin', ' '._('Unmounting'));
 	} elseif ($is_formatting) {
@@ -305,7 +305,7 @@ function make_mount_button($device) {
 			}
 		}
 		if ($script_running) {
-			$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-spinner fa-spin', ' '._('Running'));
+			$button = sprintf($button, $context, 'running', 'disabled', 'fa fa-spinner fa-spin', ' '._('Running'));
 		} else {
 			$button = sprintf($button, $context, 'umount', $disable, 'fa fa-export', _('Unmount'));
 		}
@@ -450,6 +450,7 @@ switch ($_POST['action']) {
 				/* Log button */
 				echo ($p)?$p[9]:"<td>-</td>";
 				echo "</tr>";
+
 				if ($add_toggle)
 				{
 					echo "<tr>";
@@ -726,7 +727,7 @@ switch ($_POST['action']) {
 			}
 		}
 		$tc			= $paths['hotplug_status'];
-		$hotplug	= is_file($tc) ? json_decode(file_get_contents($tc),true) : "no";
+		$hotplug	= is_file($tc) ? json_decode(file_get_contents($tc), true) : "no";
 		unassigned_log("Refreshed Disks and Configuration.");
 		if ($hotplug == "no") {
 			file_put_contents($tc, json_encode('yes'));
