@@ -11,7 +11,9 @@
  */
 
 $plugin = "unassigned.devices";
+
 require_once("plugins/{$plugin}/include/lib.php");
+
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $translations = file_exists("$docroot/webGui/include/Translations.php");
 
@@ -40,16 +42,20 @@ function write_log($string) {
 }
 
 if ( isset($_GET['device']) && isset($_GET['fs']) ) {
-	$device	= $_GET['device'];
-	$fs		= $_GET['fs'];
+	$device		= $_GET['device'];
+	$fs			= $_GET['fs'];
 	$check_type	= isset($_GET['check_type']) ? $_GET['check_type'] : 'ro';
-	$luks	= $_GET['luks'];
-	$serial	= $_GET['serial'];
+	$luks		= $_GET['luks'];
+	$serial		= $_GET['serial'];
+	$mounted	= is_mounted($device);
+	$rc			= true;
+
 	write_log("FS: $fs<br /><br />");
-	if ($fs == "crypto_LUKS") {
+	if (($fs == "crypto_LUKS") && (! $mounted)) {
 		$mapper	= basename($device);
 		$cmd	= "luksOpen {$luks} ".escapeshellarg($mapper);
 		$pass	= decrypt_data(get_config($serial, "pass"));
+		write_log("Opening the crypto_LUKS device...<br />");
 		if (! $pass) {
 			if (file_exists($var['luksKeyfile'])) {
 				unassigned_log("Using luksKeyfile to open the 'crypto_LUKS' device.");
@@ -63,32 +69,48 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 			file_put_contents($luks_pass_file, $pass);
 			unassigned_log("Using disk password to open the 'crypto_LUKS' device.");
 			$o		= shell_exec("/sbin/cryptsetup ".$cmd." -d ".escapeshellarg($luks_pass_file)." 2>&1");
-			unset($pass);
-			exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 		}
 		if ($o) {
-			echo("luksOpen error: ".$o."<br />");
-			return;
+			write_log("luksOpen error: ".$o."<br />");
+			$rc = false;
+		}
+
+		unset($pass);
+		exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
+	}
+
+	/* If there was no error from the luks open command, then go ahead with the file check. */
+	if ($rc) {
+		$file_system = $fs;
+		if ($fs == "crypto_LUKS") {
+			/* Get the crypto file system check so we can deterine the luks file system. */
+			$command = get_fsck_commands($fs, $device)." 2>&1";
+			$o = shell_exec($command." 2>&1");
+			if (stripos($o, "XFS") !== false) {
+				$file_system = "xfs";
+			} elseif (stripos($o, "REISERFS") !== false) {
+				$file_system = "resierfs";
+			} elseif (stripos($o, "BTRFS") !== false) {
+				$file_system = "btrfs";
+			}
+		}
+
+		if ($file_system != "btrfs") {
+			write_log("Executing the file system check:&nbsp;");
+		} else {
+			write_log("Executing the file system scrub:&nbsp;");
+		}
+
+		/* Get the file system check command based on the file system. */
+		$command = get_fsck_commands($file_system, $device, $check_type)." 2>&1";
+		write_log($command."<br /><br />");
+		$proc = popen($command, 'r');
+		while (! feof($proc)) {
+			write_log(fgets($proc));
 		}
 	}
-	$file_system = $fs;
-	if ($fs == "crypto_LUKS") {
-		$o = shell_exec("/sbin/fsck -vy ".escapeshellarg($device)." 2>&1");
-		if (strpos($o, 'XFS') !== false) {
-			$file_system = "xfs";
-		} elseif (strpos($o, 'REISERFS') !== false) {
-			$file_system = "resierfs";
-		} elseif (strpos($o, 'BTRFS') !== false) {
-			$file_system = "btrfs";
-		}
-	}
-	$command = get_fsck_commands($file_system, $device, $check_type)." 2>&1";
-	write_log($command."<br /><br />");
-	$proc = popen($command, 'r');
-	while (! feof($proc)) {
-		write_log(fgets($proc));
-	}
-	if ($fs == "crypto_LUKS") {
+
+	if (($fs == "crypto_LUKS") && (! $mounted)) {
 		shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
 	}
 }

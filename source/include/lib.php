@@ -50,20 +50,13 @@ if (! isset($var)){
 }
 
 /* See if NETBIOS is enabled on Unraid. */
-if ((! isset($var['USE_NETBIOS']) || ((isset($var['USE_NETBIOS'])) && ($var['USE_NETBIOS'] == "yes")))) {
-	$use_netbios = "yes";
-} else {
-	$use_netbios = "no";
-}
+$use_netbios = ($var['USE_NETBIOS'] == "yes") ? true : false;
 
 /* See if the preclear plugin is installed. */
-if ( is_file( "plugins/preclear.disk/assets/lib.php" ) )
-{
+if ( is_file( "plugins/preclear.disk/assets/lib.php" ) ) {
 	require_once( "plugins/preclear.disk/assets/lib.php" );
 	$Preclear = new Preclear;
-}
-else
-{
+} else {
 	$Preclear = null;
 }
 
@@ -76,7 +69,7 @@ class MiscUD
 
 	public function save_json($file, $content)
 	{
-		file_put_contents($file, json_encode($content, JSON_PRETTY_PRINT ));
+		file_put_contents($file, json_encode($content, JSON_PRETTY_PRINT));
 	}
 
 	public function get_json($file)
@@ -106,7 +99,9 @@ function is_ip($str) {
 }
 
 /* Echo variable to GUI for debugging. */
-function _echo($m) { echo "<pre>".print_r($m,true)."</pre>";}; 
+function _echo($m) {
+	echo "<pre>".print_r($m,true)."</pre>";
+}
 
 /* Save ini and cfg files to tmp file system and then copy cfg file changes to flash. */
 function save_ini_file($file, $array) {
@@ -125,7 +120,7 @@ function save_ini_file($file, $array) {
 	/* Write changes to tmp file. */
 	file_put_contents($file, implode(PHP_EOL, $res));
 
-	/* Write cfg changes back to flash. */
+	/* Write cfg file changes back to flash. */
 	$file_path = pathinfo($file);
 	if ($file_path['extension'] == "cfg") {
 		file_put_contents("/boot/config/plugins/".$plugin."/".basename($file), implode(PHP_EOL, $res));
@@ -153,7 +148,9 @@ function listDir($root) {
 			RecursiveIteratorIterator::CATCH_GET_CHILD);
 	$paths = array();
 	foreach ($iter as $path => $fileinfo) {
-		if (! $fileinfo->isDir()) $paths[] = $path;
+		if (! $fileinfo->isDir()) {
+			$paths[] = $path;
+		}
 	}
 
 	return $paths;
@@ -345,9 +342,9 @@ function is_disk_spin($ud_dev, $running) {
 	return $rc;
 }
 
-/* Check to see if a remote server is online by pinging it. */
+/* Check to see if a remote server is online by chccking the ping status. */
 function is_samba_server_online($ip) {
-	global $paths, $plugin;
+	global $paths;
 
 	$is_alive		= false;
 	$server			= $ip;
@@ -362,11 +359,12 @@ function is_samba_server_online($ip) {
 	return $is_alive;
 }
 
-/* Check to see if a mount/unmount script is running. */
+/* Check to see if a mount/unmount device or user script is running. */
 function is_script_running($cmd, $user = false) {
 	global $paths;
 
 	$is_running = false;
+
 	/* Check for a command file. */
 	if ($cmd) {
 		$script_name	= $cmd;
@@ -491,6 +489,7 @@ function format_disk($dev, $fs, $pass) {
 		$disk_blocks	= intval(trim(shell_exec("/sbin/blockdev --getsz ".escapeshellarg($dev)." | /bin/awk '{ print $1 }' 2>/dev/null")));
 		$disk_schema	= ( $disk_blocks >= $max_mbr_blocks ) ? "gpt" : "msdos";
 		$parted_fs		= ($fs == 'exfat') ? "fat32" : $fs;
+
 		unassigned_log("Device '{$dev}' block size: {$disk_blocks}.");
 
 		/* Clear the partition table. */
@@ -576,8 +575,7 @@ function format_disk($dev, $fs, $pass) {
 				exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 			}
 
-			if ($o)
-			{
+			if ($o) {
 				unassigned_log("luksFormat error: {$o}");
 				$rc = false;
 			} else {
@@ -601,8 +599,7 @@ function format_disk($dev, $fs, $pass) {
 					exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 				}
 	
-				if ($o && stripos($o, "warning") === false)
-				{
+				if ($o && stripos($o, "warning") === false) {
 					unassigned_log("luksOpen result: {$o}");
 					$rc = false;
 				} else {
@@ -631,9 +628,12 @@ function format_disk($dev, $fs, $pass) {
 					unassigned_log("Format disk '{$dev}' with '{$fs}' filesystem:\n".implode(PHP_EOL, $out));
 				}
 
+				/* Let things settle a bit. */
 				sleep(3);
 
 				unassigned_log("Reloading disk '{$dev}' partition table.");
+
+				/* Reload partition table. */
 				$o = trim(shell_exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." 2>&1"));
 				if ($o) {
 					unassigned_log("Reload partition table result:\n{$o}");
@@ -645,6 +645,7 @@ function format_disk($dev, $fs, $pass) {
 				/* Update udev. */
 				shell_exec("/sbin/udevadm trigger --action=change ".escapeshellarg($dev));
 
+				/* Let things settle a bit. */
 				sleep(3);
 
 				/* Refresh partition information. */
@@ -685,6 +686,7 @@ function remove_partition($dev, $part) {
 			/* Update udev info. */
 			shell_exec("/sbin/udevadm trigger --action=change ".escapeshellarg($dev));
 
+			/* Give the disk time to settle. */
 			sleep(5);
 
 			/* Refresh partition information. */
@@ -729,6 +731,7 @@ function luks_fs_type($dev) {
 	if ($dev) {
 		$return	= shell_exec( "/bin/cat /proc/mounts | /bin/grep -w ".escapeshellarg($dev)." | /bin/awk '{print $3}'");
 		$rc		= (! $return) ? $rc : $return;
+		$rc		= str_replace("\n", "", $rc);
 	}
 
 	return $rc;
@@ -839,8 +842,8 @@ function execute_script($info, $action, $testing = false) {
 	}
 
 	/* If there is a command, execute the script. */
-	$cmd = escapeshellcmd($info['command']);
-	$bg = ($info['command_bg'] != "false" && $action == "ADD") ? "&" : "";
+	$cmd	= escapeshellcmd($info['command']);
+	$bg		= ($info['command_bg'] != "false" && $action == "ADD") ? "&" : "";
 	if ($cmd) {
 		$command_script = $paths['scripts'].basename($cmd);
 		copy($cmd, $command_script);
@@ -875,8 +878,8 @@ function execute_script($info, $action, $testing = false) {
 function remove_config_disk($sn) {
 
 	/* Get the all disk configurations. */
-	$config_file = $GLOBALS["paths"]["config_file"];
-	$config = @parse_ini_file($config_file, true);
+	$config_file	= $GLOBALS["paths"]["config_file"];
+	$config			= @parse_ini_file($config_file, true);
 	if ( isset($config[$sn]) ) {
 		unassigned_log("Removing configuration '{$sn}'.");
 	}
@@ -1015,7 +1018,7 @@ function do_mount($info) {
 	} else if($info['fstype'] == "loop") {
 		$rc = do_mount_iso($info);
 
-	/* Mount a luks disk device. */
+	/* Mount a luks encrypted disk device. */
 	} else if ($info['fstype'] == "crypto_LUKS") {
 		if (! is_mounted($info['device']) || ! is_mounted($info['mountpoint'], true)) {
 			$luks		= basename($info['device']);
@@ -1641,7 +1644,7 @@ function do_mount_samba($info) {
 				}
 
 				/* If the remote share didn't mount, try SMB 1.0 if netbios is enabled. */
-				if ((! is_mounted($dev) && ($use_netbios == 'yes')) && (strpos($o, "Permission denied") === false) && (strpos($o, "Network is unreachable") === false)) {
+				if ((! is_mounted($dev) && ($use_netbios)) && (strpos($o, "Permission denied") === false) && (strpos($o, "Network is unreachable") === false)) {
 					unassigned_log("SMB 2.1 mount failed: '{$o}'.");
 					/* If the mount failed, try to mount with samba vers=1.0. */
 					$ver	= ",sec=ntlm,vers=1.0";
@@ -1972,7 +1975,7 @@ function get_partition_info($device) {
 			$disk['disk']		= rtrim($disk['disk'], "p");
 		}
 
-		/* Get the physical disk label or generatoe one based on the vendor id and model or serial number. */
+		/* Get the physical disk label or generate one based on the vendor id and model or serial number. */
 		if (isset($attrs['ID_FS_LABEL'])){
 			$disk['label'] = safe_name($attrs['ID_FS_LABEL_ENC']);
 			$disk['disk_label'] = $disk['label'];
@@ -2028,43 +2031,43 @@ function get_partition_info($device) {
 function get_fsck_commands($fs, $dev, $type = "ro") {
 	switch ($fs) {
 		case 'vfat':
-			$cmd = array('ro'=>'/sbin/fsck -n %s','rw'=>'/sbin/fsck -a %s');
+			$cmd = array('ro'=>'/sbin/fsck -n %s', 'rw'=>'/sbin/fsck -a %s');
 			break;
 
 		case 'ntfs':
-			$cmd = array('ro'=>'/bin/ntfsfix -n %s','rw'=>'/bin/ntfsfix -b -d %s');
+			$cmd = array('ro'=>'/bin/ntfsfix -n %s', 'rw'=>'/bin/ntfsfix -b -d %s');
 			break;
 
 		case 'hfsplus';
-			$cmd = array('ro'=>'/usr/sbin/fsck.hfsplus -l %s','rw'=>'/usr/sbin/fsck.hfsplus -y %s');
+			$cmd = array('ro'=>'/usr/sbin/fsck.hfsplus -l %s', 'rw'=>'/usr/sbin/fsck.hfsplus -y %s');
 			break;
 
 		case 'xfs':
-			$cmd = array('ro'=>'/sbin/xfs_repair -n %s','rw'=>'/sbin/xfs_repair %s');
+			$cmd = array('ro'=>'/sbin/xfs_repair -n %s', 'rw'=>'/sbin/xfs_repair %s');
 			break;
 
 		case 'exfat':
-			$cmd = array('ro'=>'/usr/sbin/fsck.exfat %s','rw'=>'/usr/sbin/fsck.exfat %s');
+			$cmd = array('ro'=>'/usr/sbin/fsck.exfat %s', 'rw'=>'/usr/sbin/fsck.exfat %s');
 			break;
 
 		case 'btrfs':
-			$cmd = array('ro'=>'/sbin/btrfs scrub start -B -R -d -r %s','rw'=>'/sbin/btrfs scrub start -B -R -d %s');
+			$cmd = array('ro'=>'/sbin/btrfs scrub start -B -R -d -r %s', 'rw'=>'/sbin/btrfs scrub start -B -R -d %s');
 			break;
 
 		case 'ext4':
-			$cmd = array('ro'=>'/sbin/fsck.ext4 -vn %s','rw'=>'/sbin/fsck.ext4 -v -f -p %s');
+			$cmd = array('ro'=>'/sbin/fsck.ext4 -vn %s', 'rw'=>'/sbin/fsck.ext4 -v -f -p %s');
 			break;
 
 		case 'reiserfs':
-			$cmd = array('ro'=>'/sbin/reiserfsck --check %s','rw'=>'/sbin/reiserfsck --fix-fixable %s');
+			$cmd = array('ro'=>'/sbin/reiserfsck --check %s', 'rw'=>'/sbin/reiserfsck --fix-fixable %s');
 			break;
 
 		case 'crypto_LUKS':
-			$cmd = array('ro'=>'/sbin/fsck -vy %s','rw'=>'/sbin/fsck %s');
+			$cmd = array('ro'=>'/sbin/fsck -Vy %s', 'rw'=>'/sbin/fsck %s');
 			break;
 
 		default:
-			$cmd = array('ro'=>false,'rw'=>false);
+			$cmd = array('ro'=>false, 'rw'=>false);
 			break;
 	}
 

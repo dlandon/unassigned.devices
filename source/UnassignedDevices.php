@@ -68,22 +68,22 @@ function render_used_and_free($partition, $mounted) {
 
 		/* Display of disk usage depends on global display setting. */
 		if ($display['text'] % 10 == 0) {
-			$o = "<td>".my_scale($partition['used'], $unit)." $unit</td>";
+			$out = "<td>".my_scale($partition['used'], $unit)." $unit</td>";
 		} else {
-			$o = "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'></span><span>".my_scale($partition['used'], $unit)." $unit</span></div></td>";
+			$out = "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'></span><span>".my_scale($partition['used'], $unit)." $unit</span></div></td>";
 		}
 
 		/* Display of disk usage depends on global display setting. */
 		if ($display['text'] < 10 ? $display['text'] % 10 == 0 : $display['text'] % 10 != 0) {
-			$o .= "<td>".my_scale($partition['avail'], $unit)." $unit</td>";
+			$out .= "<td>".my_scale($partition['avail'], $unit)." $unit</td>";
 		} else {
-			$o .= "<td><div class='usage-disk'><span style='margin:0;width:$free_pct%' class='".usage_color($display,$free_pct,true)."'></span><span>".my_scale($partition['avail'], $unit)." $unit</span></div></td>";
+			$out .= "<td><div class='usage-disk'><span style='margin:0;width:$free_pct%' class='".usage_color($display,$free_pct,true)."'></span><span>".my_scale($partition['avail'], $unit)." $unit</span></div></td>";
 		}
 	} else {
-		$o = "<td>-</td><td>-</td>";
+		$out = "<td>-</td><td>-</td>";
 	}
 
-	return $o;
+	return $out;
 }
 
 /* Get the used and free space for a disk and render for html. */
@@ -102,20 +102,20 @@ function render_used_and_free_disk($disk, $mounted) {
 		$free_pct = $size ? round(100*$avail/$size) : 0;
 		$used_pct = 100-$free_pct;
 		if ($display['text'] % 10 == 0) {
-			$o = "<td>".my_scale($used, $unit)." $unit</td>";
+			$out = "<td>".my_scale($used, $unit)." $unit</td>";
 		} else {
-			$o = "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'></span><span>".my_scale($used, $unit)." $unit</span></div></td>";
+			$out = "<td><div class='usage-disk'><span style='margin:0;width:$used_pct%' class='".usage_color($display,$used_pct,false)."'></span><span>".my_scale($used, $unit)." $unit</span></div></td>";
 		}
 		if ($display['text'] < 10 ? $display['text'] % 10 == 0 : $display['text'] % 10 != 0) {
-			$o .= "<td>".my_scale($avail, $unit)." $unit</td>";
+			$out .= "<td>".my_scale($avail, $unit)." $unit</td>";
 		} else {
-			$o .= "<td><div class='usage-disk'><span style='margin:0;width:$free_pct%' class='".usage_color($display,$free_pct,true)."'></span><span>".my_scale($avail, $unit)." $unit</span></div></td>";
+			$out .= "<td><div class='usage-disk'><span style='margin:0;width:$free_pct%' class='".usage_color($display,$free_pct,true)."'></span><span>".my_scale($avail, $unit)." $unit</span></div></td>";
 		}
 	} else {
-		$o = "<td>-</td><td>-</td>";
+		$out = "<td>-</td><td>-</td>";
 	}
 
-	return $o;
+	return $out;
 }
 
 /* Get the partition information and render for html. */
@@ -131,28 +131,31 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$is_mounting	= (time() - filemtime($is_mounting) < 300) ? true : false;
 		$is_unmounting	= array_values(preg_grep("@/unmounting_".basename($device)."@i", listDir(dirname($paths['unmounting']))))[0];
 		$is_unmounting	= (time() - filemtime($is_unmounting) < 300) ? true : false;
-		$disabled		= $is_mounting || $is_unmounting;
+		$disabled		= $is_mounting || $is_unmounting || is_script_running($cmd);
 
-		/* Set up icons for file system check and script execution. */
+		/* Set up icons for file system check/scrub and script execution. */
+		$fstype = ($partition['fstype'] == "crypto_LUKS") ? luks_fs_type($partition['device']) : $partition['fstype'];
+		if ( (! $disabled && ! $mounted && $fstype != "apfs" && $fstype != "btrfs") || ($mounted && $fstype == "btrfs")) {
+			$file_system_check = $fstype != "btrfs" ? _('File System Check') : _('File System Scrub');
+			$fscheck = "<a title='".$file_system_check."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i></a>";
+		} else {
+			$fscheck = "<i class='fa fa-check partition-hdd'></i></a>";
+		}
 		if ($mounted && is_file($cmd)) {
 			if ((! $disabled && ! is_script_running($cmd)) && (! is_script_running($partition['user_command'], true))) {
-				$fscheck = "<a title='"._("Execute Script as udev simulating a device being installed")."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/script.php?device={$device}&type="._('Done')."\",\"Execute Script\",600,900);'><i class='fa fa-flash partition-script'></i></a>{$partition['part']}";
+				$fscheck .= "<a title='"._("Execute Script as udev simulating a device being installed")."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/script.php?device={$device}&type="._('Done')."\",\"Execute Script\",600,900);'><i class='fa fa-flash partition-script'></i></a>";
 			} else {
-				$fscheck = "<i class='fa fa-flash partition-script'></i>{$partition['part']}";
+				$fscheck .= "<i class='fa fa-flash partition-script'></i>";
 			}
-		} elseif ( (! $disabled && ! $mounted && $partition['fstype'] != 'btrfs' && $partition['fstype'] != 'apfs') ) {
-			$fscheck = "<a title='"._('File System Check')."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i></a>{$partition['part']}";
 		} elseif ($mounted) {
-			$fscheck = "<i class='fa fa-flash partition-script'></i>{$partition['part']}";
-		} else {
-			$fscheck = "<i class='fa fa-check partition-hdd'></i></a>{$partition['part']}";
+			$fscheck .= "<i class='fa fa-flash partition-script'></i>";
 		}
+		$fscheck .= $partition['part'];
 
 		/* Add remove partition icon if destructive mode is enabled. */
 		$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && (! $disk['partitions'][0]['pass_through'])) ? "<a title='"._("Remove Partition")."' device='{$partition['device']}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i></a>" : "";
 		$mpoint = "<span>{$fscheck}";
 		$mount_point = basename($partition['mountpoint']);
-		$device = ($partition['fstype'] == "crypto_LUKS") ? $partition['luks'] : $partition['device'];
 
 		/* Add change mount point or browse disk share icon if disk is mounted. */
 		if ($mounted) {
