@@ -135,7 +135,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 
 		/* Set up icons for file system check/scrub and script execution. */
 		$fstype = ($partition['fstype'] == "crypto_LUKS") ? luks_fs_type($partition['device']) : $partition['fstype'];
-		if ( (! $disabled && ! $mounted && $fstype != "apfs" && $fstype != "btrfs") || ($mounted && $fstype == "btrfs")) {
+		if ( (! $disabled && ! $mounted && $fstype != "apfs" && $fstype != "btrfs") || (! $disabled && $mounted && $fstype == "btrfs")) {
 			$file_system_check = $fstype != "btrfs" ? _('File System Check') : _('File System Scrub');
 			$fscheck = "<a title='".$file_system_check."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i></a>";
 		} else {

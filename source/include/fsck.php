@@ -96,9 +96,9 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 		}
 
 		if ($file_system != "btrfs") {
-			write_log("Executing the file system check:&nbsp;");
+			write_log("Executing file system check:&nbsp;");
 		} else {
-			write_log("Executing the file system scrub:&nbsp;");
+			write_log("Executing file system scrub:&nbsp;");
 		}
 
 		/* Get the file system check command based on the file system. */
