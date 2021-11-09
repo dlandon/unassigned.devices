@@ -33,10 +33,6 @@ $version = parse_ini_file("/etc/unraid-version");
 
 /* Set up name for nchan socket. Make it unique by adding the browser session id. */
 $ud_reload = "reload-".session_id();
-
-if (file_exists("plugins/dynamix/OpenDevices.page")) {
-	@rename("plugins/dynamix/OpenDevices.page", "plugins/dynamix/OpenDevices.page-");
-}
 ?>
 
 <script type="text/javascript" src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
@@ -119,8 +115,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) {
 		$.post(UDURL, {'action' : 'spin_up_disk', device:dev});
 	}
 
-	if (typeof " ".formatUnicorn !== "function")
-	{
+	if (typeof " ".formatUnicorn !== "function") {
 		String.prototype.formatUnicorn = String.prototype.formatUnicorn ||
 		function () {
 			"use strict";
@@ -143,19 +138,17 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) {
 	(function ($) {
 		$.fn.getHiddenDimensions = function (includeMargin)
 		{
-			var $item = this,
-			props = { position: 'absolute', visibility: 'hidden', display: 'block' },
-			dim = { width: 0, height: 0, innerWidth: 0, innerHeight: 0, outerWidth: 0, outerHeight: 0 },
-			$hiddenParents = $item.parents().andSelf().not(':visible'),
-			includeMargin = (includeMargin == null) ? false : includeMargin;
+			var $item		= this,
+			props			= { position: 'absolute', visibility: 'hidden', display: 'block' },
+			dim				= { width: 0, height: 0, innerWidth: 0, innerHeight: 0, outerWidth: 0, outerHeight: 0 },
+			$hiddenParents	= $item.parents().andSelf().not(':visible'),
+			includeMargin	= (includeMargin == null) ? false : includeMargin;
 
-			var oldProps = [];
-			$hiddenParents.each(function ()
-			{
+			var oldProps	= [];
+			$hiddenParents.each(function () {
 				var old = {};
 
-				for (var name in props)
-				{
+				for (var name in props) {
 					old[name] = this.style[name];
 					this.style[name] = props[name];
 				}
@@ -170,11 +163,9 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) {
 			dim.innerHeight	= $item.innerHeight();
 			dim.outerHeight	= $item.outerHeight(includeMargin);
 
-			$hiddenParents.each(function (i)
-			{
-				var old = oldProps[i];
-				for (var name in props)
-				{
+			$hiddenParents.each(function (i) {
+				var old		= oldProps[i];
+				for (var name in props) {
 					this.style[name] = old[name];
 				}
 			});
@@ -195,42 +186,32 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) {
 		/* Add spinning and disable button. */
 		$("button[device='"+device+"']").html("<i class='fa fa-spinner fa-spin'></i> "+(op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
 		$("button[device='"+device+"']").prop("disabled", "true");
-
 		$.post(UDURL, {'action' : op, 'device' : device});
 	}
 
-	function usb_disks()
-	{
+	function usb_disks() {
 		/* Save table widths. */
-		if (! diskinfo)
-		{
+		if (! diskinfo) {
 			tableWidths = $("#usb_devices_list > table > thead > tr").children("td").map(function(i,v){return $(this).getHiddenDimensions().outerWidth;});
 
-			$("#usb_devices_list > table > thead > tr").children("td").each(function(i,v)
-			{
-				if (i in tableWidths)
-				{
+			$("#usb_devices_list > table > thead > tr").children("td").each(function(i,v) {
+				if (i in tableWidths) {
 					$(this).css("width", tableWidths[i]);
 				}
 			});
 		}
 
 		/* Get the UD devices and render web page. */
-		$.post(UDURL, {'action' : 'get_content', display:display}, function(data)
-		{
+		$.post(UDURL, {'action' : 'get_content', display:display}, function(data) {
 			maxWidth	= [];
 			var toggled	= $("tr.toggle-parts").filter(":visible").map(function(){return $(this).attr("name");}).get();
-			if (data)
-			{
+			if (data) {
 				$('#usb_devices_list').html(data);
-
 			}
 
 			/* Show toggled disk partitions. */
-			$.each(toggled, function(k,v)
-			{
-				if (v.length)
-				{
+			$.each(toggled, function(k,v) {
+				if (v.length) {
 					$("tr[name='"+v+"']").css("display", "table-row");
 				}
 			});
@@ -250,21 +231,18 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) {
 	}();
 
 	/* Poll remote servers and update ping status. */
-	function ping_poll()
-	{
+	function ping_poll() {
 		$.post(UDURL, {'action' : 'update_ping'});
 	}
 
 	/* Refresh UD page showing any updated information. */
-	function refresh_page()
-	{
+	function refresh_page() {
 		$.post(UDURL, {'action' : 'refresh_page'});
 	}
 
 	/* Process nchan eventx. */
 	var ud_Reload = new NchanSubscriber("/sub/"+"<?=$ud_reload?>");
-	ud_Reload.on('message',function(data)
-	{
+	ud_Reload.on('message',function(data) {
 		if (data) {
 			usb_disks();
 		}
@@ -274,17 +252,14 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) {
 		var target	= $(el).parents("div").find("*[name='IP']");
 		var old		= $(el).html();
 		$(el).html("<i class='fa fa-spinner fa-spin'></i> <?=_('Searching');?>");
-		$.post(UDURL, {'action': action, 'var': vars, 'network': network, 'workgroup': workgroup}).done(function(data)
-		{
+		$.post(UDURL, {'action': action, 'var': vars, 'network': network, 'workgroup': workgroup}).done(function(data) {
 			$(el).html(old);
 			if (data) {
 				var hosts = data.split('\n');
 				if (hosts.length) {
 					var add = "<select name='IP' class='swal-content__input' required>";
-					for (var i = 0;i < hosts.length;i++)
-					{
-						if (hosts[i].length)
-						{
+					for (var i = 0;i < hosts.length;i++) {
+						if (hosts[i].length) {
 							add += "<option value='"+hosts[i].trim()+"'>"+hosts[i].trim()+"</option>";
 						}
 					}
@@ -297,8 +272,8 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) {
 	}
 
 	function load_shares(el, ip, user, pass, action) {
-		var old		= $(el).html();
-		var target	= $(el).parents("div").find("*[name='SHARE']");
+		var old			= $(el).html();
+		var target		= $(el).parents("div").find("*[name='SHARE']");
 
 		$(el).html("<i class='fa fa-spinner fa-spin'></i> <?=_('Loading');?>");
 
@@ -308,8 +283,7 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) {
 		opts["USER"]	= user;
 		opts["PASS"]	= pass;
 
-		$.post(UDURL, opts).done(function(data)
-		{
+		$.post(UDURL, opts).done(function(data) {
 			$(el).html(old);
 			if (data) {
 				var shares = data.split('\n');
@@ -345,46 +319,34 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) {
 		return rc;
 	}
 
-	function addButtonTab(Button, Name, autoHide = true, Append = true)
-	{
+	function addButtonTab(Button, Name, autoHide = true, Append = true) {
 		var Target		= get_tab_title_by_name(Name);
 		var elementId 	= 'event-' + new Date().getTime() * Math.floor(Math.random()*100000);
 		var element		= $("<span id='"+elementId+"' class='status'>"+Button+"</span>");
 
 		rc = true;
-		if (element.find("input[type='button']").length)
-		{
+		if (element.find("input[type='button']").length) {
 			element.addClass("vhshift");
 			element.find("input[type='button']").prop("style","padding-top: 5px; padding-bottom: 5px; margin-top:-3px; margin-bottom:0;");
 		}
 
-		if (Target.prop('nodeName') === "DIV")
-		{
+		if (Target.prop('nodeName') === "DIV") {
 			element.addClass("vhshift");
-			if (Append)
-			{
+			if (Append) {
 				Target.append(element);
-			}
-			else
-			{
+			} else {
 				Target.prepend(element);
 			}
-		}
-		else if (Target.prop('nodeName') === "INPUT")
-		{
+		} else if (Target.prop('nodeName') === "INPUT") {
 			element.css("display","none");
 
-			if (Append)
-			{
+			if (Append) {
 				$('.tabs').append(element);
-			}
-			else
-			{
+			} else {
 				$('.tabs').prepend(element);
 			}
 
-			Target.bind({click:function()
-			{
+			Target.bind({click:function() {
 				$('#'+elementId).fadeIn('slow');}
 			});
 
@@ -392,19 +354,14 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) {
 				$('#'+elementId).fadeIn('slow');
 			}
 
-			$("input[name$=tabs]").each(function()
-			{
-				if (! $(this).is(Target) && autoHide )
-				{
-					$(this).bind({click:function()
-					{
+			$("input[name$=tabs]").each(function() {
+				if (! $(this).is(Target) && autoHide ) {
+					$(this).bind({click:function() {
 						$('#'+elementId).fadeOut('slow');}
 					});
 				}
 			});
-		}
-		else
-		{
+		} else {
 			rc = false;
 		}
 
@@ -679,17 +636,14 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) {
 
 	<?
 	if (isset($var['WORKGROUP'])) echo "var workgroup = '{$var['WORKGROUP']}';\n";
-	for ($i=0; $i < 11; $i++)
-	{ 
+	for ($i=0; $i < 11; $i++) { 
 		$_var = "eth{$i}";
-		if (isset($$_var) )
-		{
+		if (isset($$_var) ) {
 			$iface		= $$_var;
 			$gateway	= array_values(array_flip(preg_grep("/GATEWAY:/", array_flip($iface))));
 			$ipaddr		= array_values(array_flip(preg_grep("/IPADDR:/",	array_flip($iface))));
 			$netmask	= array_values(array_flip(preg_grep("/NETMASK/",	array_flip($iface))));
-			for ($z=0; $z < count($ipaddr); $z++)
-			{ 
+			for ($z=0; $z < count($ipaddr); $z++) { 
 				echo "network.push({gateway:'{$ipaddr[$z]}', ip:'{$ipaddr[$z]}', netmask:'{$netmask[$z]}'});\n";
 			}
 		}
@@ -700,44 +654,37 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) {
 	var UDURL			= '/plugins/<?=$plugin;?>/UnassignedDevices.php';
 	var diskinfo		= "";
 
-	if (typeof swal2 === "undefined")
-	{
+	if (typeof swal2 === "undefined") {
 		$('head').append( $('<link rel="stylesheet" type="text/css" />').attr('href', '<?autov("/plugins/${plugin}/assets/sweetalert2.css");?>') );
 		$.getScript( '/plugins/<?=$plugin;?>/assets/sweetalert2.js');
 	}
 
 	/* Bind Arrive events. */
-	$("#usb_devices_list").arrive("tr",{onceOnly:false},function()
-	{
+	$("#usb_devices_list").arrive("tr",{onceOnly:false},function() {
 		tr = $(this);
 
 		maxWidth.push(tr.find("td:nth-child(2) > span").getHiddenDimensions().width );
 		$(".usb_disks > thead > tr > td:nth-child(2)").css("min-width", Math.max.apply(Math, maxWidth) + 10 );
 
-		tr.find("span.toggle-hdd").click(function(e)
-		{
+		tr.find("span.toggle-hdd").click(function(e) {
 			$(this).disableSelection();disk = $(this).attr("hdd");el = $(this);
 			$(".toggle-"+disk).slideToggle(0);
 		});
-		tr.find( "button[role$=mount]" ).on( "click", function()
-		{
+		tr.find( "button[role$=mount]" ).on( "click", function() {
 			disk_op(this, $(this).attr("role"), $(this).attr("device"));
 		});
 		tr.find("button[role=format]").click(function(){format_disk(this, $(this).attr("context"), $(this).attr("device"));});
 	});
 
-	$( "#usb_devices_list" ).arrive(".show-shares", {onceOnly:false}, function()
-	{
+	$( "#usb_devices_list" ).arrive(".show-shares", {onceOnly:false}, function() {
 		$(this).css("display", $(".shares-switch").is(":checked") ? "block" : "none");
 	});
 
-	$( "#usb_devices_list" ).arrive(".show-disks", {onceOnly:false}, function()
-	{
+	$( "#usb_devices_list" ).arrive(".show-disks", {onceOnly:false}, function() {
 		$(this).css("display", $(".disks-switch").is(":checked") ? "block" : "none");
 	});
 
-	$( "#usb_devices_list" ).arrive(".show-historical", {onceOnly:false}, function()
-	{
+	$( "#usb_devices_list" ).arrive(".show-historical", {onceOnly:false}, function() {
 		$(this).css("display", $(".historical-switch").is(":checked") ? "block" : "none");
 	});
 
@@ -773,22 +720,19 @@ if (file_exists("plugins/dynamix/OpenDevices.page")) {
 
 		/* Add switchButton to Tab/Title bar. */
 		$('.disks-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Disks');?>", off_label: "<?=_('Disks');?>", checked: $.cookie('unassigned-disks-view') != 'false'});
-		$('.disks-switch').change(function()
-		{
+		$('.disks-switch').change(function() {
 			$('.show-disks').slideToggle('slow');
 			$.cookie('unassigned-disks-view', $('.disks-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path:'/' });
 		});
 
 		$('.shares-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Shares');?>", off_label: "<?=_('Shares');?>", checked: $.cookie('unassigned-shares-view') != 'false'});
-		$('.shares-switch').change(function()
-		{
+		$('.shares-switch').change(function() {
 			$('.show-shares').slideToggle('slow');
 			$.cookie('unassigned-shares-view', $('.shares-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path:'/' });
 		});
 
 		$('.historical-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Historical');?>", off_label: "<?=_('Historical');?>", checked: $.cookie('unassigned-historical-view') != 'false'});
-		$('.historical-switch').change(function()
-		{
+		$('.historical-switch').change(function() {
 			$('.show-historical').slideToggle('slow');
 			$.cookie('unassigned-historical-view', $('.historical-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path:'/' });
 		});
