@@ -85,7 +85,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 		if ($fs == "crypto_LUKS") {
 			/* Get the crypto file system check so we can deterine the luks file system. */
 			$command = get_fsck_commands($fs, $device)." 2>&1";
-			$o = shell_exec($command." 2>&1");
+			$o = shell_exec(escapeshellcmd($command));
 			if (stripos($o, "XFS") !== false) {
 				$file_system = "xfs";
 			} elseif (stripos($o, "REISERFS") !== false) {
@@ -103,7 +103,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 
 		/* Get the file system check command based on the file system. */
 		$command = get_fsck_commands($file_system, $device, $check_type)." 2>&1";
-		write_log($command."<br /><br />");
+		write_log(escapeshellcmd($command)."<br /><br />");
 		$proc = popen($command, 'r');
 		while (! feof($proc)) {
 			write_log(fgets($proc));
