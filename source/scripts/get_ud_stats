@@ -93,6 +93,8 @@ function is_server_online($server) {
 	}
 	$ping_status[$server] = array('no_pings' => $no_pings, 'online' => $is_alive ? 'yes' : 'no', 'changed' => $changed ? 'yes' : 'no');
 	file_put_contents($tc, json_encode($ping_status));
+
+	return $changed;
 }
 
 /* Ping all remote servers to check for being on-line. */
@@ -103,19 +105,20 @@ function ping_servers() {
 	$samba_mounts	= @parse_ini_file($config_file, true);
 	if (is_array($samba_mounts)) {
 		foreach ($samba_mounts as $device => $mount) {
-			$ping_status	= is_file($tc) ? json_decode(file_get_contents($tc),true) : array();
+			/* This updates the ping_status file with the current state of the remote server. */
 			$server			= $mount['ip'];
-			$changed		= ($ping_status[$server]['changed'] == 'yes') ? true : false;
-			is_server_online($server);
+			$changed		= is_server_online($server);
+
+			/* Update server ping status if it has changed. */
 			if ($changed) {
-				$no_pings = $ping_status[$server]['no_pings'];
-				$online = $ping_status[$server]['online'];
+				$ping_status	= is_file($tc) ? json_decode(file_get_contents($tc), true) : array();
+				$no_pings		= $ping_status[$server]['no_pings'];
+				$online			= $ping_status[$server]['online'];
 				$ping_status[$server] = array('no_pings' => $no_pings, 'online' => $online, 'changed' => 'no');
 				file_put_contents($tc, json_encode($ping_status));
 			}
 		}
 	}
-
 }
 
 /* Get the size, used, and free space on device. */
