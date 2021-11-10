@@ -240,7 +240,7 @@ $ud_reload = "reload-".session_id();
 		$.post(UDURL, {'action' : 'refresh_page'});
 	}
 
-	/* Process nchan eventx. */
+	/* Process nchan events. */
 	var ud_Reload = new NchanSubscriber("/sub/"+"<?=$ud_reload?>");
 	ud_Reload.on('message',function(data) {
 		if (data) {
@@ -306,7 +306,7 @@ $ud_reload = "reload-".session_id();
 
 	function get_tab_title_by_name(name) {
 		var tab		= $("input[name$=tabs] + label").filter(function(){return $(this).text() === name;}).prev();
-		var title	= $("div#title > span.left"		).filter(function(){return $(this).text() === name;}).parent();
+		var title	= $("div#title > span.left").filter(function(){return $(this).text() === name;}).parent();
 
 		if (tab.length) {
 			rc = tab
@@ -459,9 +459,10 @@ $ud_reload = "reload-".session_id();
 		swalOpts.icon				= getAttr(question, "data-question-icon", "info");
 		swalOpts.closeOnClickOutside = false;
 		swalOpts.buttons			= new Object;
-		swalOpts.buttons.confirm	= (index > 0) ? {text: button.cancel, value: null, visible: true, className: "", closeModal: true} : {text: "", value: null, visible: false, className: "", closeModal: true};
+		swalOpts.buttons.confirm	= (index > 0) ? {text: button.cancel, value: null, visible: true, className: "", closeModal: true} :
+													{text: "", value: null, visible: false, className: "", closeModal: true};
 		swalOpts.buttons.cancel		= (index > 0) ? {text: button.back,  value: false, visible: true, className: "", closeModal: false} :
-											 {text: button.cancel, value: null, visible: true, className: "", closeModal: true};
+													{text: button.cancel, value: null, visible: true, className: "", closeModal: true};
 		swalOpts.buttons.next		= (index == numQuestions - 1 ) ? {text:button.done, value: true, visible: true, className: "", closeModal: false} : {text:button.next, value: true, visible: true, className: "", closeModal: false};
 		swal2(swalOpts).then( (response) => {
 			emptyInputs = $.grep($(".swal-modal").find(":input"), function (e,v){ e = $(e);
@@ -670,9 +671,11 @@ $ud_reload = "reload-".session_id();
 			$(this).disableSelection();disk = $(this).attr("hdd");el = $(this);
 			$(".toggle-"+disk).slideToggle(0);
 		});
+
 		tr.find( "button[role$=mount]" ).on( "click", function() {
 			disk_op(this, $(this).attr("role"), $(this).attr("device"));
 		});
+
 		tr.find("button[role=format]").click(function(){format_disk(this, $(this).attr("context"), $(this).attr("device"));});
 	});
 
