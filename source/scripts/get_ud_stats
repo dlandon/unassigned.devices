@@ -78,19 +78,21 @@ function is_server_online($server) {
 		if (($no_pings <= 3) && ($ping_status[$server]['online'] == 'yes')) {
 			$is_alive = true;
 		} elseif ($no_pings > 3){
-			if ($mounted) {
-				unassigned_log("SMB/NFS server '{$server}' is not responding to a ping and appears to be offline.");
-			}
 			$no_pings = 0;
 		}
 	} else {
 		$no_pings = 0;
 	}
+
 	if ($was_alive != $is_alive) {
+		if (! $is_alive) {
+			unassigned_log("Remote server '{$server}' is not responding to a ping and appears to be offline.");
+		}
 		$changed = true;
 	} else {
 		$changed = false;
 	}
+
 	$ping_status[$server] = array('no_pings' => $no_pings, 'online' => $is_alive ? 'yes' : 'no', 'changed' => $changed ? 'yes' : 'no');
 	file_put_contents($tc, json_encode($ping_status));
 
