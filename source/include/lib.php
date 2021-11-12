@@ -1579,16 +1579,16 @@ function get_samba_mounts() {
 function do_mount_samba($info) {
 	global $use_netbios, $paths;
 
-	$rc = false;
+	$rc				= false;
 	$config_file	= $paths['config_file'];
 	$config			= @parse_ini_file($config_file, true);
 
 	/* Be sure the server online status is current. */
 	$info['is_alive'] = is_samba_server_online($info['ip']);
 	if ($info['is_alive']) {
-		$dir	= $info['mountpoint'];
-		$fs		= $info['fstype'];
-		$dev	= ($fs == "cifs") ? "//".$info['ip']."/".$info['path'] : $info['device'];
+		$dir		= $info['mountpoint'];
+		$fs			= $info['fstype'];
+		$dev		= ($fs == "cifs") ? "//".$info['ip']."/".$info['path'] : $info['device'];
 		if (! is_mounted($dev) || ! is_mounted($dir, true)) {
 			@mkdir($dir, 0777, true);
 			if ($fs == "nfs") {
@@ -1631,14 +1631,26 @@ function do_mount_samba($info) {
 					$o		= timed_exec(10, $cmd." 2>&1");
 				}
 
-				/* If the remote share didn't mount, try SMB 2.1. */
+				/* If the remote share didn't mount, try SMB 3.0. */
 				if (! is_mounted($dev) && (strpos($o, "Permission denied") === false) && (strpos($o, "Network is unreachable") === false)) {
 					unassigned_log("SMB 3.1.1 mount failed: '{$o}'.");
-					/* If the mount failed, try to mount with samba vers=2.1. */
-					$ver	= ",vers=2.1";
+					/* If the mount failed, try to mount with samba vers=3.0. */
+					$ver	= ",vers=3.0";
+					$params	= sprintf(get_mount_params($fs, $dev), $ver);
+					$cmd	= "/sbin/mount -t $fs -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
+					unassigned_log("Mount SMB share '{$dev}' using SMB 3.0 protocol.");
+					unassigned_log("Mount SMB command: {$cmd}");
+					$o		= timed_exec(10, $cmd." 2>&1");
+				}
+
+				/* If the remote share didn't mount, try SMB 2.0. */
+				if (! is_mounted($dev) && (strpos($o, "Permission denied") === false) && (strpos($o, "Network is unreachable") === false)) {
+					unassigned_log("SMB 3.0 mount failed: '{$o}'.");
+					/* If the mount failed, try to mount with samba vers=2.0. */
+					$ver	= ",vers=2.0";
 					$params	= sprintf(get_mount_params($fs, $dev), $ver);
 					$cmd	= "/sbin/mount -t ".escapeshellarg($fs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
-					unassigned_log("Mount SMB share '{$dev}' using SMB 2.1 protocol.");
+					unassigned_log("Mount SMB share '{$dev}' using SMB 2.0 protocol.");
 					unassigned_log("Mount SMB command: {$cmd}");
 					$o		= timed_exec(10, $cmd." 2>&1");
 				}
@@ -1655,7 +1667,6 @@ function do_mount_samba($info) {
 					$o		= timed_exec(10, $cmd." 2>&1");
 					if ($o) {
 						unassigned_log("SMB 1.0 mount failed: '{$o}'.");
-						$rc = false;
 					}
 				}
 				exec("/bin/shred -u ".escapeshellarg($credentials_file));
@@ -1675,7 +1686,6 @@ function do_mount_samba($info) {
 				$rc = true;
 			} else {
 				@rmdir($dir);
-				unassigned_log("Mount of '{$dev}' failed: '{$o}'.");
 			}
 		} else {
 			unassigned_log("Share '{$dev}' already mounted.");
