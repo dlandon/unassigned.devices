@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2021.11.04">
+<!ENTITY version	"2021.11.12">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"edfb97e5e619a07dc81efe6164ce1c78">
+<!ENTITY MD5		"3e7dfacce8a4df1267da0f94b1aba8e5">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,6 +23,15 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Delayed update of diskio refresh after diskio switch is changed.
+- Fix: Rework polling timers for page refresh and ping polling of remote servers.
+- Fix: Encrypted disk file system check not working.
+- Add: File scrub for btrfs file systems.
+- Fix: Changed SMB version scheme to use for mounting SMB remote shares to be sure we can use the most secure protocol available on the remote server.
+- Fix: Remove some legacy and unused code.
+- Fix: More code cleanup.
+
+###2021.11.04
 - Fix: Show disabled script icon when disk is mounted and there is no script defined.
 - Add: Disable file system check and script execution icons while device is mounting and unmounting.
 - Fix: Fix screen refresh and conflicts when UD is running in two sessions.
