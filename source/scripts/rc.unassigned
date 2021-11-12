@@ -397,6 +397,11 @@ function unassigned_reload() {
 	if (isset($_ENV['DEVLINKS'])) {
 		foreach (explode(" ", $_ENV['DEVLINKS']) as $link) {
 			get_udev_info($link, $_ENV);
+			$tc			= $paths['hotplug_status'];
+			$hotplug	= is_file($tc) ? json_decode(file_get_contents($tc),true) : "no";
+			if ($hotplug == "no") {
+				file_put_contents($tc, json_encode('yes'));
+			}
 		}
 	}
 }

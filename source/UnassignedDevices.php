@@ -729,13 +729,10 @@ switch ($_POST['action']) {
 				shell_exec("/sbin/udevadm trigger --action=change ".escapeshellarg($device));
 			}
 		}
-		$tc			= $paths['hotplug_status'];
-		$hotplug	= is_file($tc) ? json_decode(file_get_contents($tc), true) : "no";
+
 		unassigned_log("Refreshed Disks and Configuration.");
-		if ($hotplug == "no") {
-			file_put_contents($tc, json_encode('yes'));
-			publish($_COOKIE['ud_reload'], json_encode(array("rescan" => "yes"), JSON_UNESCAPED_SLASHES));
-		}
+
+		publish($_COOKIE['ud_reload'], json_encode(array("rescan" => "yes"), JSON_UNESCAPED_SLASHES));
 		break;
 
 	case 'format_disk':
