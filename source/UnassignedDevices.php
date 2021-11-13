@@ -616,7 +616,7 @@ switch ($_POST['action']) {
 		break;
 
 	case 'refresh_page':
-		publish($_COOKIE['ud_reload'], json_encode(array("rescan" => "yes"), JSON_UNESCAPED_SLASHES));
+		publish("rescan");
 		break;
 
 	case 'update_ping':
@@ -625,7 +625,7 @@ switch ($_POST['action']) {
 		/* Refresh the ping status in the background. */
 		exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats ping &");
 
-		publish($_COOKIE['ud_reload'], json_encode(array("rescan" => "yes"), JSON_UNESCAPED_SLASHES));
+		publish("rescan");
 		break;
 
 	case 'get_content_json':
@@ -671,7 +671,7 @@ switch ($_POST['action']) {
 	case 'remove_config':
 		$serial = urldecode(($_POST['serial']));
 
-		publish($_COOKIE['ud_reload'], json_encode(array("rescan" => "yes"), JSON_UNESCAPED_SLASHES));
+		publish("rescan");
 		echo json_encode(remove_config_disk($serial));
 		break;
 
@@ -732,7 +732,7 @@ switch ($_POST['action']) {
 
 		unassigned_log("Refreshed Disks and Configuration.");
 
-		publish($_COOKIE['ud_reload'], json_encode(array("rescan" => "yes"), JSON_UNESCAPED_SLASHES));
+		publish("rescan");
 		break;
 
 	case 'format_disk':
@@ -821,13 +821,13 @@ switch ($_POST['action']) {
 			}
 			set_samba_config("{$device}", "share", safe_name($share, false));
 		}
-		publish($_COOKIE['ud_reload'], json_encode(array("rescan" => "yes"), JSON_UNESCAPED_SLASHES));
+		publish("rescan");
 		echo json_encode($rc);
 		break;
 
 	case 'remove_samba_config':
 		$device = urldecode(($_POST['device']));
-		publish($_COOKIE['ud_reload'], json_encode(array("rescan" => "yes"), JSON_UNESCAPED_SLASHES));
+		publish("rescan");
 		echo json_encode(remove_config_samba($device));
 		break;
 
@@ -885,13 +885,13 @@ switch ($_POST['action']) {
 			unassigned_log("ISO File '{$file}' not found.");
 			$rc = false;
 		}
-		publish($_COOKIE['ud_reload'], json_encode(array("rescan" => "yes"), JSON_UNESCAPED_SLASHES));
+		publish("rescan");
 		echo json_encode($rc);
 		break;
 
 	case 'remove_iso_config':
 		$device = urldecode(($_POST['device']));
-		publish($_COOKIE['ud_reload'], json_encode(array("rescan" => "yes"), JSON_UNESCAPED_SLASHES));
+		publish("rescan");
 		echo json_encode(remove_config_iso($device));
 		break;
 
@@ -917,7 +917,7 @@ switch ($_POST['action']) {
 	case 'rm_partition':
 		$device = urldecode($_POST['device']);
 		$partition = urldecode($_POST['partition']);
-		publish($_COOKIE['ud_reload'], json_encode(array("rescan" => "yes"), JSON_UNESCAPED_SLASHES));
+		publish("rescan");
 		echo json_encode(remove_partition($device, $partition));
 		break;
 
@@ -955,21 +955,21 @@ switch ($_POST['action']) {
 		$device	= urldecode($_POST['device']);
 		$fstype	= urldecode($_POST['fstype']);
 		$mountpoint	= basename(safe_name(urldecode($_POST['mountpoint']), false));
-		publish($_COOKIE['ud_reload'], json_encode(array("rescan" => "yes"), JSON_UNESCAPED_SLASHES));
+		publish("rescan");
 		echo json_encode(change_mountpoint($serial, $partition, $device, $fstype, $mountpoint));
 		break;
 
 	case 'chg_samba_mountpoint':
 		$device = urldecode($_POST['device']);
 		$mountpoint = basename(safe_name(basename(urldecode($_POST['mountpoint'])), false));
-		publish($_COOKIE['ud_reload'], json_encode(array("rescan" => "yes"), JSON_UNESCAPED_SLASHES));
+		publish("rescan");
 		echo json_encode(change_samba_mountpoint($device, $mountpoint));
 		break;
 
 	case 'chg_iso_mountpoint':
 		$device = urldecode($_POST['device']);
 		$mountpoint = basename(safe_name(basename(urldecode($_POST['mountpoint'])), false));
-		publish($_COOKIE['ud_reload'], json_encode(array("rescan" => "yes"), JSON_UNESCAPED_SLASHES));
+		publish("rescan");
 		echo json_encode(change_iso_mountpoint($device, $mountpoint));
 		break;
 	}

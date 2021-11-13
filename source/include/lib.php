@@ -394,7 +394,7 @@ function is_script_running($cmd, $user = false) {
 		/* Update the current running state. */
 		file_put_contents($tc, json_encode($script_run));
 		if (($was_running) && (! $is_running)) {
-			publish($_COOKIE['ud_reload'], json_encode(array("rescan" => "yes"), JSON_UNESCAPED_SLASHES));
+			publish("rescan");
 		}
 	}
 
@@ -2362,7 +2362,8 @@ function curl_socket($socket, $url, $postdata=NULL) {
 }
 
 /* Trigger an nchan event. */
-function publish($endpoint, $message) {
+function publish($message) {
+	$endpoint = $_COOKIE['ud_reload'];
 	curl_socket("/var/run/nginx.socket", "http://localhost/pub/$endpoint?buffer_length=1", $message);
 }
 ?>
