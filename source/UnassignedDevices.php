@@ -324,11 +324,8 @@ function make_mount_button($device) {
 	return $button;
 }
 
-
 switch ($_POST['action']) {
 	case 'get_content':
-		global $paths;
-
 		/* Check for a recent hot plug event. */
 		$tc			= $paths['hotplug_status'];
 		$hotplug	= is_file($tc) ? json_decode(file_get_contents($tc), true) : "no";
@@ -592,7 +589,7 @@ switch ($_POST['action']) {
 		echo "<button onclick='add_samba_share()'>"._('Add Remote SMB/NFS Share')."</button>";
 		echo "<button onclick='add_iso_share()'>"._('Add ISO File Share')."</button></div>";
 
-		$config_file = $GLOBALS["paths"]["config_file"];
+		$config_file = $paths["config_file"];
 		$config = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
 		$disks_serials = array();
 		foreach ($disks as $disk) $disks_serials[] = $disk['partitions'][0]['serial'];
@@ -616,16 +613,14 @@ switch ($_POST['action']) {
 		break;
 
 	case 'refresh_page':
-		publish("rescan");
+		publish();
 		break;
 
 	case 'update_ping':
-		global $paths;
-
 		/* Refresh the ping status in the background. */
 		exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats ping &");
 
-		publish("rescan");
+		publish();
 		break;
 
 	case 'get_content_json':
@@ -671,7 +666,7 @@ switch ($_POST['action']) {
 	case 'remove_config':
 		$serial = urldecode(($_POST['serial']));
 
-		publish("rescan");
+		publish();
 		echo json_encode(remove_config_disk($serial));
 		break;
 
@@ -732,7 +727,13 @@ switch ($_POST['action']) {
 
 		unassigned_log("Refreshed Disks and Configuration.");
 
-		publish("rescan");
+		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
+		$tc			= $paths['hotplug_status'];
+		$hotplug	= is_file($tc) ? json_decode(file_get_contents($tc),true) : "no";
+		if ($hotplug == "no") {
+			file_put_contents($tc, json_encode('yes'));
+		}
+		publish();
 		break;
 
 	case 'format_disk':
@@ -821,13 +822,13 @@ switch ($_POST['action']) {
 			}
 			set_samba_config("{$device}", "share", safe_name($share, false));
 		}
-		publish("rescan");
+		publish();
 		echo json_encode($rc);
 		break;
 
 	case 'remove_samba_config':
 		$device = urldecode(($_POST['device']));
-		publish("rescan");
+		publish();
 		echo json_encode(remove_config_samba($device));
 		break;
 
@@ -885,13 +886,13 @@ switch ($_POST['action']) {
 			unassigned_log("ISO File '{$file}' not found.");
 			$rc = false;
 		}
-		publish("rescan");
+		publish();
 		echo json_encode($rc);
 		break;
 
 	case 'remove_iso_config':
 		$device = urldecode(($_POST['device']));
-		publish("rescan");
+		publish();
 		echo json_encode(remove_config_iso($device));
 		break;
 
@@ -917,7 +918,7 @@ switch ($_POST['action']) {
 	case 'rm_partition':
 		$device = urldecode($_POST['device']);
 		$partition = urldecode($_POST['partition']);
-		publish("rescan");
+		publish();
 		echo json_encode(remove_partition($device, $partition));
 		break;
 
@@ -955,21 +956,21 @@ switch ($_POST['action']) {
 		$device	= urldecode($_POST['device']);
 		$fstype	= urldecode($_POST['fstype']);
 		$mountpoint	= basename(safe_name(urldecode($_POST['mountpoint']), false));
-		publish("rescan");
+		publish();
 		echo json_encode(change_mountpoint($serial, $partition, $device, $fstype, $mountpoint));
 		break;
 
 	case 'chg_samba_mountpoint':
 		$device = urldecode($_POST['device']);
 		$mountpoint = basename(safe_name(basename(urldecode($_POST['mountpoint'])), false));
-		publish("rescan");
+		publish();
 		echo json_encode(change_samba_mountpoint($device, $mountpoint));
 		break;
 
 	case 'chg_iso_mountpoint':
 		$device = urldecode($_POST['device']);
 		$mountpoint = basename(safe_name(basename(urldecode($_POST['mountpoint'])), false));
-		publish("rescan");
+		publish();
 		echo json_encode(change_iso_mountpoint($device, $mountpoint));
 		break;
 	}

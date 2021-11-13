@@ -394,7 +394,7 @@ function is_script_running($cmd, $user = false) {
 		/* Update the current running state. */
 		file_put_contents($tc, json_encode($script_run));
 		if (($was_running) && (! $is_running)) {
-			publish("rescan");
+			publish();
 		}
 	}
 
@@ -2349,7 +2349,7 @@ function setSleepTime($device) {
 }
 
 /* Setup a socket for nchan publish events. */
-function curl_socket($socket, $url, $postdata=NULL) {
+function curl_socket($socket, $url, $postdata = NULL) {
 	$ch = curl_init($url);
 	curl_setopt($ch, CURLOPT_UNIX_SOCKET_PATH, $socket);
 	if ($postdata !== NULL) {
@@ -2362,7 +2362,7 @@ function curl_socket($socket, $url, $postdata=NULL) {
 }
 
 /* Trigger an nchan event. */
-function publish($message) {
+function publish($message = "rescan") {
 	$endpoint = $_COOKIE['ud_reload'];
 	curl_socket("/var/run/nginx.socket", "http://localhost/pub/$endpoint?buffer_length=1", $message);
 }

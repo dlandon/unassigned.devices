@@ -41,7 +41,7 @@ if ( isset($_GET['device']) && isset($_GET['type']) ) {
 	$command = execute_script($info, 'ADD', true);
 	if ($command != "") {
 		$command = $command." 2>&1";
-		publish("rescan");
+		publish();
 		putenv("OWNER=udev");
 		write_log(_("Executing").": ".basename($command)."<br \><br \>");
 		$proc = popen($command, 'r');
