@@ -55,7 +55,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 		$mapper	= basename($device);
 		$cmd	= "luksOpen {$luks} ".escapeshellarg($mapper);
 		$pass	= decrypt_data(get_config($serial, "pass"));
-		write_log("Opening the crypto_LUKS device...<br />");
+		write_log("Opening crypto_LUKS device '$luks'...<br />");
 		if (! $pass) {
 			if (file_exists($var['luksKeyfile'])) {
 				unassigned_log("Using luksKeyfile to open the 'crypto_LUKS' device.");
@@ -111,7 +111,11 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 	}
 
 	if (($fs == "crypto_LUKS") && (! $mounted)) {
-		shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
+		write_log("Closing crypto_LUKS device '$luks'...<br />");
+		$o = shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
+		if ($o) {
+			write_log("luksClose error: ".$o."<br />");
+		}
 	}
 }
 write_log("<center><button type='button' onclick='document.location=\"/plugins/{$plugin}/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=rw&type="._('Done')."\"'>"._('Run with CORRECT flag')."</button></center>");
