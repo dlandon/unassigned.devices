@@ -225,18 +225,18 @@ $ud_reload = "reload-".session_id();
 			var currentCookie = $.cookie('diskio');
 			if (currentCookie != lastCookie) {
 				lastCookie = currentCookie;
-				refresh_page();
+				refreshPage();
 			}
 		};
 	}();
 
 	/* Poll remote servers and update ping status. */
-	function ping_poll() {
+	function pingPoll() {
 		$.post(UDURL, {'action' : 'update_ping'});
 	}
 
 	/* Refresh UD page showing any updated information. */
-	function refresh_page() {
+	function refreshPage() {
 		$.post(UDURL, {'action' : 'refresh_page'});
 	}
 
@@ -693,10 +693,10 @@ $ud_reload = "reload-".session_id();
 
 	$(function() {
 		/* Set page refresh interval every 3 seconds. */
-		window.setInterval(refresh_page, 3000);
+		window.setInterval(refreshPage, 3000);
 
 		/* Set ping poll interval every 15 seconds. */
-		window.setInterval(ping_poll, 15000);
+		window.setInterval(pingPoll, 15000);
 
 		/* Check for diskio cookie change every 100ms. */
 		window.setInterval(checkCookie, 100);
@@ -749,8 +749,8 @@ $ud_reload = "reload-".session_id();
 		/* Create cookie for the nchan socket. */
 		$.cookie("ud_reload", "<?=$ud_reload?>", { setMaxAge : 0, path: '/' });
 
-		ping_poll();
-		refresh_page();
+		pingPoll();
+		refreshPage();
 		ud_Reload.start();
 	});
 </script>
