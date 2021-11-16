@@ -83,7 +83,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 	if ($rc) {
 		$file_system = $fs;
 		if ($fs == "crypto_LUKS") {
-			/* Get the crypto file system check so we can deterine the luks file system. */
+			/* Get the crypto file system check so we can determine the luks file system. */
 			$command = get_fsck_commands($fs, $device)." 2>&1";
 			$o = shell_exec(escapeshellcmd($command));
 			if (stripos($o, "XFS") !== false) {
