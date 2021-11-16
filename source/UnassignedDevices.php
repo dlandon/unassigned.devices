@@ -327,11 +327,9 @@ function make_mount_button($device) {
 switch ($_POST['action']) {
 	case 'get_content':
 		/* Check for a recent hot plug event. */
-		$tc			= $paths['hotplug_status'];
-		$hotplug	= is_file($tc) ? json_decode(file_get_contents($tc), true) : "no";
-		if ($hotplug == "yes") {
+		if (file_exists($paths['hotplug_event'])) {
 			exec("/usr/local/sbin/emcmd 'cmdHotplug=apply'");
-			file_put_contents($tc, json_encode('no'));
+			@unlink($paths['hotplug_event']);
 		}
 
 		/* Disk devices. */
@@ -728,11 +726,7 @@ switch ($_POST['action']) {
 		unassigned_log("Refreshed Disks and Configuration.");
 
 		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
-		$tc			= $paths['hotplug_status'];
-		$hotplug	= is_file($tc) ? json_decode(file_get_contents($tc),true) : "no";
-		if ($hotplug == "no") {
-			file_put_contents($tc, json_encode('yes'));
-		}
+		@touch($paths['hotplug_event']);
 		publish();
 		break;
 

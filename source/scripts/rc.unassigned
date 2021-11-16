@@ -217,11 +217,7 @@ function unassigned_mount() {
 
 	/* Tell Unraid to update devs.ini file of unassigned devices. */
 	if (isset($_ENV['DEVTYPE']) && ($_ENV['DEVTYPE'] == "partition")) {
-		$tc = $paths['hotplug_status'];
-		$hotplug = is_file($tc) ? json_decode(file_get_contents($tc), true) : "no";
-		if ($hotplug == "no") {
-			file_put_contents($tc, json_encode('yes'));
-		}
+		@touch($paths['hotplug_event']);
 	}
 }
 
@@ -384,11 +380,7 @@ function unassigned_umount() {
 
 	/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
 	if (isset($_ENV['DEVTYPE']) && ($_ENV['DEVTYPE'] == "disk")) {
-		$tc			= $paths['hotplug_status'];
-		$hotplug	= is_file($tc) ? json_decode(file_get_contents($tc),true) : "no";
-		if ($hotplug == "no") {
-			file_put_contents($tc, json_encode('yes'));
-		}
+		@touch($paths['hotplug_event']);
 	}
 }
 
@@ -400,11 +392,7 @@ function unassigned_reload() {
 		}
 
 		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
-		$tc			= $paths['hotplug_status'];
-		$hotplug	= is_file($tc) ? json_decode(file_get_contents($tc),true) : "no";
-		if ($hotplug == "no") {
-			file_put_contents($tc, json_encode('yes'));
-		}
+		@touch($paths['hotplug_event']);
 	}
 }
 

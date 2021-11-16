@@ -17,26 +17,26 @@ $paths = [	"smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"smb_usb_shares"	=> "/etc/samba/unassigned-shares",
 			"usb_mountpoint"	=> "/mnt/disks",
 			"remote_mountpoint"	=> "/mnt/remotes",
+			"dev_state"			=> "/usr/local/emhttp/state/devs.ini",
 			"device_log"		=> "/tmp/{$plugin}/logs/",
 			"config_file"		=> "/tmp/{$plugin}/config/{$plugin}.cfg",
+			"samba_mount"		=> "/tmp/{$plugin}/config/samba_mount.cfg",
+			"iso_mount"			=> "/tmp/{$plugin}/config/iso_mount.cfg",
+			"scripts"			=> "/tmp/{$plugin}/scripts/",
+			"credentials"		=> "/tmp/{$plugin}/credentials",
+			"authentication"	=> "/tmp/{$plugin}/authentication",
+			"luks_pass"			=> "/tmp/{$plugin}/luks_pass",
+			"script_run"		=> "/tmp/{$plugin}/script_run",
+			"hotplug_event"		=> "/tmp/{$plugin}/hotplug_event",
 			"state"				=> "/var/state/{$plugin}/{$plugin}.ini",
 			"mounted"			=> "/var/state/{$plugin}/{$plugin}.json",
 			"hdd_temp"			=> "/var/state/{$plugin}/hdd_temp.json",
 			"run_status"		=> "/var/state/{$plugin}/run_status.json",
 			"ping_status"		=> "/var/state/{$plugin}/ping_status.json",
 			"df_status"			=> "/var/state/{$plugin}/df_status.json",
-			"hotplug_status"	=> "/var/state/{$plugin}/hotplug_status.json",
-			"dev_state"			=> "/usr/local/emhttp/state/devs.ini",
-			"samba_mount"		=> "/tmp/{$plugin}/config/samba_mount.cfg",
-			"iso_mount"			=> "/tmp/{$plugin}/config/iso_mount.cfg",
 			"unmounting"		=> "/var/state/{$plugin}/unmounting_%s.state",
 			"mounting"			=> "/var/state/{$plugin}/mounting_%s.state",
-			"formatting"		=> "/var/state/{$plugin}/formatting_%s.state",
-			"scripts"			=> "/tmp/{$plugin}/scripts/",
-			"credentials"		=> "/tmp/{$plugin}/credentials",
-			"authentication"	=> "/tmp/{$plugin}/authentication",
-			"luks_pass"			=> "/tmp/{$plugin}/luks_pass",
-			"script_run"		=> "/tmp/{$plugin}/script_run"
+			"formatting"		=> "/var/state/{$plugin}/formatting_%s.state"
 		];
 
 $docroot	= $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
@@ -724,7 +724,7 @@ function timed_exec($timeout = 10, $cmd) {
 	return $out;
 }
 
-/* Find the file system of a luks device. */
+/* Find the file system type of a luks device. */
 function luks_fs_type($dev) {
 
 	$rc = "luks";
