@@ -751,16 +751,16 @@ function get_config($serial, $variable) {
 }
 
 /* Set device configuration parameter. */
-function set_config($serial, $variable, $val) {
+function set_config($serial, $variable, $value) {
 	$config_file = $GLOBALS["paths"]["config_file"];
 	$config = @parse_ini_file($config_file, true);
-	$config[$serial][$variable] = htmlentities($val, ENT_COMPAT);
+	$config[$serial][$variable] = htmlentities($value, ENT_COMPAT);
 	save_ini_file($config_file, $config);
 	return (isset($config[$serial][$variable])) ? $config[$serial][$variable] : false;
 }
 
 /* Is device set to auto mount? */
-function is_automount($serial, $usb=false) {
+function is_automount($serial, $usb = false) {
 	$auto = get_config($serial, "automount");
 	$auto_usb = get_config("Config", "automount_usb");
 	$pass_through = get_config($serial, "pass_through");
@@ -1467,10 +1467,10 @@ function get_samba_config($source, $variable) {
 }
 
 /* Set samba mount configuration parameter. */
-function set_samba_config($source, $variable, $val) {
+function set_samba_config($source, $variable, $value) {
 	$config_file = $GLOBALS["paths"]["samba_mount"];
 	$config = @parse_ini_file($config_file, true);
-	$config[$source][$variable] = $val;
+	$config[$source][$variable] = $value;
 	save_ini_file($config_file, $config);
 	return (isset($config[$source][$variable])) ? $config[$source][$variable] : false;
 }
@@ -1488,10 +1488,10 @@ function encrypt_data($data) {
 		set_config("Config", "iv", $iv);
 	}
 
-	$val = openssl_encrypt($data, 'aes256', $key, $options=0, $iv);
-	$val = str_replace("\n", "", $val);
+	$value = openssl_encrypt($data, 'aes256', $key, $options=0, $iv);
+	$value = str_replace("\n", "", $value);
 
-	return $val;
+	return $value;
 }
 
 /* Decrypt password. */
@@ -1499,15 +1499,15 @@ function decrypt_data($data) {
 
 	$key	= get_config("Config", "key");
 	$iv		= get_config("Config", "iv");
-	$val	= openssl_decrypt($data, 'aes256', $key, $options=0, $iv);
+	$value	= openssl_decrypt($data, 'aes256', $key, $options=0, $iv);
 
 	/* Make sure the password is UTF-8 encoded. */
-	if (! preg_match("//u", $val)) {
+	if (! preg_match("//u", $value)) {
 		unassigned_log("Warning: Password is not UTF-8 encoded");
-		$val = "";
+		$value = "";
 	}
 
-	return $val;
+	return $value;
 }
 
 /* Is the samba mount set for auto mount? */
@@ -1579,7 +1579,7 @@ function get_samba_mounts() {
 
 /* Mount a remote samba or NFS share. */
 function do_mount_samba($info) {
-	global $use_netbios, $paths;
+	global $use_netbios, $paths, $var;
 
 	$rc				= false;
 	$config_file	= $paths['config_file'];
@@ -1594,13 +1594,17 @@ function do_mount_samba($info) {
 		if (! is_mounted($dev) || ! is_mounted($dir, true)) {
 			@mkdir($dir, 0777, true);
 			if ($fs == "nfs") {
-				$params	= get_mount_params($fs, $dev);
-				$nfs	= (get_config("Config", "nfs_version") == "4") ? "nfs4" : "nfs";
-				$cmd	= "/sbin/mount -t ".escapeshellarg($nfs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
-				unassigned_log("Mount NFS command: {$cmd}");
-				$o		= timed_exec(10, $cmd." 2>&1");
-				if ($o) {
-					unassigned_log("NFS mount failed: '{$o}'.");
+				if ($var['shareNFSEnabled']=="yes") {
+					$params	= get_mount_params($fs, $dev);
+					$nfs	= (get_config("Config", "nfs_version") == "4") ? "nfs4" : "nfs";
+					$cmd	= "/sbin/mount -t ".escapeshellarg($nfs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
+					unassigned_log("Mount NFS command: {$cmd}");
+					$o		= timed_exec(10, $cmd." 2>&1");
+					if ($o) {
+						unassigned_log("NFS mount failed: '{$o}'.");
+					}
+				} else {
+					unassigned_log("NFS must be enabled in 'Settings->NFS' to mount NFS remote shares.");
 				}
 			} else {
 				/* Create the credentials file. */
@@ -1746,10 +1750,10 @@ function get_iso_config($source, $variable) {
 }
 
 /* Get an iso file configuration parameter. */
-function set_iso_config($source, $variable, $val) {
+function set_iso_config($source, $variable, $value) {
 	$config_file = $GLOBALS["paths"]["iso_mount"];
 	$config = @parse_ini_file($config_file, true);
-	$config[$source][$variable] = $val;
+	$config[$source][$variable] = $value;
 	save_ini_file($config_file, $config);
 	return (isset($config[$source][$variable])) ? $config[$source][$variable] : false;
 }
