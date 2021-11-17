@@ -45,7 +45,9 @@ $disks		= @parse_ini_file("$docroot/state/disks.ini", true);
 
 /* Read Unraid variables file. Used to determine disks not assigned to the array and other array parameters. */
 if (! isset($var)){
-	if (! is_file("$docroot/state/var.ini")) shell_exec("/usr/bin/wget -qO /dev/null localhost:$(ss -napt | /bin/grep emhttp | /bin/grep -Po ':\K\d+') >/dev/null");
+	if (! is_file("$docroot/state/var.ini")) {
+		shell_exec("/usr/bin/wget -qO /dev/null localhost:$(ss -napt | /bin/grep emhttp | /bin/grep -Po ':\K\d+') >/dev/null");
+	}
 	$var = @parse_ini_file("$docroot/state/var.ini");
 }
 
@@ -742,66 +744,66 @@ function luks_fs_type($dev) {
 #########################################################
 
 /* Get device configuration parameter. */
-function get_config($sn, $var) {
+function get_config($serial, $variable) {
 	$config_file = $GLOBALS["paths"]["config_file"];
 	$config = @parse_ini_file($config_file, true);
-	return (isset($config[$sn][$var])) ? html_entity_decode($config[$sn][$var]) : false;
+	return (isset($config[$serial][$variable])) ? html_entity_decode($config[$serial][$variable]) : false;
 }
 
 /* Set device configuration parameter. */
-function set_config($sn, $var, $val) {
+function set_config($serial, $variable, $val) {
 	$config_file = $GLOBALS["paths"]["config_file"];
 	$config = @parse_ini_file($config_file, true);
-	$config[$sn][$var] = htmlentities($val, ENT_COMPAT);
+	$config[$serial][$variable] = htmlentities($val, ENT_COMPAT);
 	save_ini_file($config_file, $config);
-	return (isset($config[$sn][$var])) ? $config[$sn][$var] : false;
+	return (isset($config[$serial][$variable])) ? $config[$serial][$variable] : false;
 }
 
 /* Is device set to auto mount? */
-function is_automount($sn, $usb=false) {
-	$auto = get_config($sn, "automount");
+function is_automount($serial, $usb=false) {
+	$auto = get_config($serial, "automount");
 	$auto_usb = get_config("Config", "automount_usb");
-	$pass_through = get_config($sn, "pass_through");
+	$pass_through = get_config($serial, "pass_through");
 	return ( (($pass_through != "yes") && ($auto == "yes")) || ($usb && $auto_usb == "yes" && (! $auto)) ) ? true : false;
 }
 
 /* Is device set to mount read only? */
-function is_read_only($sn) {
-	$read_only = get_config($sn, "read_only");
-	$pass_through = get_config($sn, "pass_through");
+function is_read_only($serial) {
+	$read_only = get_config($serial, "read_only");
+	$pass_through = get_config($serial, "pass_through");
 	return ( $pass_through != "yes" && $read_only == "yes" ) ? true : false;
 }
 
 /* Is device set to pass through. */
-function is_pass_through($sn) {
-	return (get_config($sn, "pass_through") == "yes") ? true : false;
+function is_pass_through($serial) {
+	return (get_config($serial, "pass_through") == "yes") ? true : false;
 }
 
 /* Toggle auto mount on/off. */
-function toggle_automount($sn, $status) {
+function toggle_automount($serial, $status) {
 	$config_file = $GLOBALS["paths"]["config_file"];
 	$config = @parse_ini_file($config_file, true);
-	$config[$sn]["automount"] = ($status == "true") ? "yes" : "no";
+	$config[$serial]["automount"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
-	return ($config[$sn]["automount"] == "yes") ? 'true' : 'false';
+	return ($config[$serial]["automount"] == "yes") ? 'true' : 'false';
 }
 
 /* Toggle read only on/off. */
-function toggle_read_only($sn, $status) {
+function toggle_read_only($serial, $status) {
 	$config_file = $GLOBALS["paths"]["config_file"];
 	$config = @parse_ini_file($config_file, true);
-	$config[$sn]["read_only"] = ($status == "true") ? "yes" : "no";
+	$config[$serial]["read_only"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
-	return ($config[$sn]["read_only"] == "yes") ? 'true' : 'false';
+	return ($config[$serial]["read_only"] == "yes") ? 'true' : 'false';
 }
 
 /* Toggle pass through on/off. */
-function toggle_pass_through($sn, $status) {
+function toggle_pass_through($serial, $status) {
 	$config_file = $GLOBALS["paths"]["config_file"];
 	$config = @parse_ini_file($config_file, true);
-	$config[$sn]["pass_through"] = ($status == "true") ? "yes" : "no";
+	$config[$serial]["pass_through"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
-	return ($config[$sn]["pass_through"] == "yes") ? 'true' : 'false';
+	return ($config[$serial]["pass_through"] == "yes") ? 'true' : 'false';
 }
 
 /* Execute the device script. */
@@ -875,18 +877,18 @@ function execute_script($info, $action, $testing = false) {
 }
 
 /* Remove a historical disk configuration. */
-function remove_config_disk($sn) {
+function remove_config_disk($serial) {
 
 	/* Get the all disk configurations. */
 	$config_file	= $GLOBALS["paths"]["config_file"];
 	$config			= @parse_ini_file($config_file, true);
-	if ( isset($config[$sn]) ) {
-		unassigned_log("Removing configuration '{$sn}'.");
+	if ( isset($config[$serial]) ) {
+		unassigned_log("Removing configuration '{$serial}'.");
 	}
 	/* Remove up to five partition script files. */
 	for ($i = 1; $i <= 5; $i++) {
 		$command	= "command.".$i;
-		$cmd		= $config[$sn][$command];
+		$cmd		= $config[$serial][$command];
 		if ( isset($cmd) && is_file($cmd) ) {
 			@unlink($cmd);
 			unassigned_log("Removing script file '{$cmd}'.");
@@ -894,11 +896,11 @@ function remove_config_disk($sn) {
 	}
 
 	/* Remove this configuration. */
-	unset($config[$sn]);
+	unset($config[$serial]);
 
 	/* Resave all disk configurations. */
 	save_ini_file($config_file, $config);
-	return (! isset($config[$sn])) ? true : false;
+	return (! isset($config[$serial])) ? true : false;
 }
 
 /* Is disk device an SSD? */
@@ -1190,8 +1192,8 @@ function do_unmount($dev, $dir, $forc = false, $smb = false, $nfs = false) {
 #########################################################
 
 /* Is the samba share on? */
-function config_shared($sn, $part, $usb=false) {
-	$share = get_config($sn, "share.{$part}");
+function config_shared($serial, $part, $usb=false) {
+	$share = get_config($serial, "share.{$part}");
 	$auto_usb = get_config("Config", "automount_usb");
 	return (($share == "yes") || ($usb && $auto_usb == "yes" && (! $share))) ? true : false; 
 }
@@ -1458,19 +1460,19 @@ function reload_shares() {
 #########################################################
 
 /* Get samba mount configuration parameter. */
-function get_samba_config($source, $var) {
+function get_samba_config($source, $variable) {
 	$config_file = $GLOBALS["paths"]["samba_mount"];
 	$config = @parse_ini_file($config_file, true, INI_SCANNER_RAW);
-	return (isset($config[$source][$var])) ? $config[$source][$var] : false;
+	return (isset($config[$source][$variable])) ? $config[$source][$variable] : false;
 }
 
 /* Set samba mount configuration parameter. */
-function set_samba_config($source, $var, $val) {
+function set_samba_config($source, $variable, $val) {
 	$config_file = $GLOBALS["paths"]["samba_mount"];
 	$config = @parse_ini_file($config_file, true);
-	$config[$source][$var] = $val;
+	$config[$source][$variable] = $val;
 	save_ini_file($config_file, $config);
-	return (isset($config[$source][$var])) ? $config[$source][$var] : false;
+	return (isset($config[$source][$variable])) ? $config[$source][$variable] : false;
 }
 
 /* Encrypt passwords. */
@@ -1509,14 +1511,14 @@ function decrypt_data($data) {
 }
 
 /* Is the samba mount set for auto mount? */
-function is_samba_automount($sn) {
-	$auto = get_samba_config($sn, "automount");
+function is_samba_automount($serial) {
+	$auto = get_samba_config($serial, "automount");
 	return ( ($auto) ? ( ($auto == "yes") ? true : false ) : false);
 }
 
 /* Is the samba mount set to share? */
-function is_samba_share($sn) {
-	$smb_share = get_samba_config($sn, "smb_share");
+function is_samba_share($serial) {
+	$smb_share = get_samba_config($serial, "smb_share");
 	return ( ($smb_share) ? ( ($smb_share == "yes") ? true : false ) : true);
 }
 
@@ -1737,24 +1739,24 @@ function remove_config_samba($source) {
 #########################################################
 
 /* Get the iso file configuration parameter. */
-function get_iso_config($source, $var) {
+function get_iso_config($source, $variable) {
 	$config_file = $GLOBALS["paths"]["iso_mount"];
 	$config = @parse_ini_file($config_file, true, INI_SCANNER_RAW);
-	return (isset($config[$source][$var])) ? $config[$source][$var] : false;
+	return (isset($config[$source][$variable])) ? $config[$source][$variable] : false;
 }
 
 /* Get an iso file configuration parameter. */
-function set_iso_config($source, $var, $val) {
+function set_iso_config($source, $variable, $val) {
 	$config_file = $GLOBALS["paths"]["iso_mount"];
 	$config = @parse_ini_file($config_file, true);
-	$config[$source][$var] = $val;
+	$config[$source][$variable] = $val;
 	save_ini_file($config_file, $config);
-	return (isset($config[$source][$var])) ? $config[$source][$var] : false;
+	return (isset($config[$source][$variable])) ? $config[$source][$variable] : false;
 }
 
 /* Is the iso file set to auto mount? */
-function is_iso_automount($sn) {
-	$auto = get_iso_config($sn, "automount");
+function is_iso_automount($serial) {
+	$auto = get_iso_config($serial, "automount");
 	return ( ($auto) ? ( ($auto == "yes") ? true : false ) : false);
 }
 
@@ -1860,17 +1862,17 @@ function remove_config_iso($source) {
 function get_unassigned_disks() {
 	global $disks;
 
-	$ud_disks = $paths = $unraid_disks = array();
+	$ud_disks = $disk_paths = $unraid_disks = array();
 
 	/* Get all devices by id. */
 	foreach (listDir("/dev/disk/by-id/") as $p) {
 		$r = realpath($p);
 		/* Only /dev/sd*, /dev/hd*, and /dev/nvme* devices. */
 		if ((! is_bool(strpos($r, "/dev/sd"))) || (! is_bool(strpos($r, "/dev/hd"))) || (! is_bool(strpos($r, "/dev/nvme")))) {
-			$paths[$r] = $p;
+			$disk_paths[$r] = $p;
 		}
 	}
-	ksort($paths, SORT_NATURAL);
+	ksort($disk_paths, SORT_NATURAL);
 
 	/* Get all unraid disk devices (array disks, cache, and pool devices). */
 	foreach ($disks as $d) {
@@ -1879,14 +1881,12 @@ function get_unassigned_disks() {
 		}
 	}
 
-	foreach ($unraid_disks as $k) {$o .= " $k\n";};
-
 	/* Create the array of unassigned devices. */
-	foreach ($paths as $path => $d) {
+	foreach ($disk_paths as $path => $d) {
 		if ($d && (preg_match("#^(.(?!wwn|part))*$#", $d))) {
 			if (! in_array($path, $unraid_disks)) {
 				if (in_array($path, array_map(function($ar){return $ar['device'];}, $ud_disks)) ) continue;
-				$m = array_values(preg_grep("|$d.*-part\d+|", $paths));
+				$m = array_values(preg_grep("|$d.*-part\d+|", $disk_paths));
 				natsort($m);
 				$ud_disks[$d] = array("device"=>$path,"type"=>"ata", "partitions"=>$m);
 			}
@@ -2313,10 +2313,17 @@ function change_UUID($dev) {
 		if ($o) {
 			unassigned_log("luksOpen error: {$o}");
 		} else {
-			$mapper_dev = "/dev/mapper/".$mapper;
+			/* Get the crypto file system check so we can determine the luks file system. */
+			$command = get_fsck_commands($fs, $device)." 2>&1";
+			$o = shell_exec(escapeshellcmd($command));
+			if (stripos($o, "XFS") !== false) {
+				$mapper_dev = "/dev/mapper/".$mapper;
 
-			/* Change the xfs UUID. */
-			$rc = timed_exec(10, "/usr/sbin/xfs_admin -U generate ".escapeshellarg($mapper_dev));
+				/* Change the xfs UUID. */
+				$rc = timed_exec(10, "/usr/sbin/xfs_admin -U generate ".escapeshellarg($mapper_dev));
+			} else {
+				$rc = "Cannot change UUID on a btrfs file system.";
+			}
 
 			/* Close the luks device. */
 			shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
@@ -2327,7 +2334,9 @@ function change_UUID($dev) {
 	}
 
 	/* Show the result of the UUID change operation. */
-	unassigned_log("Changed partition UUID on '{$device}' with result: {$rc}");
+	if ($rc) {
+		unassigned_log("Changed partition UUID on '{$device}' with result: {$rc}");
+	}
 }
 
 /* If the disk is not a SSD, set the spin down timer if allowed by settings. */
