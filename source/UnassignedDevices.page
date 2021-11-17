@@ -1016,11 +1016,12 @@ $ud_reload = "reload-".session_id();
 		</div>
 		<div data-question-content>
 			<div class="image-radio">
-				<input type="radio" id="{0}" name="PROTOCOL" value="NFS" required="">
+				<input type="radio" id="{0}" name="PROTOCOL" value="NFS" required="" <?=($var['shareNFSEnabled']=="no") ? "disabled" : "";?>>
 				<label class="image-radio-label image-radio-linux" for="{0}"></label>
 				<input type="radio" id="{1}" name="PROTOCOL" value="SMB" required="">
 				<label class="image-radio-label image-radio-windows" for="{1}"></label>
 				<p><?=_('WARNING: Use caution when using a remote share local mount in a Docker Container or VM for critical data');?>.  <?=_('Media mapped to apps like Plex should not be a problem');?>.  <?=_('Remote share mounts are dependent on a solid and reliable network connection and that can difficult to achieve');?>. <?=_('If the remote share goes offline, you may have problems');?>!</p>
+				<?if ($var['shareNFSEnabled']=="no"):?><p><?=_('Note: You must enable NFS in Settings->NFS to mount NFS shares.');?></p><?endif;?>
 			</div>
 		</div>
 	</div>
