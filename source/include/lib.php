@@ -51,9 +51,6 @@ if (! isset($var)){
 	$var = @parse_ini_file("$docroot/state/var.ini");
 }
 
-/* See if NETBIOS is enabled on Unraid. */
-$use_netbios = ($var['USE_NETBIOS'] == "yes") ? true : false;
-
 /* See if the preclear plugin is installed. */
 if ( is_file( "plugins/preclear.disk/assets/lib.php" ) ) {
 	require_once( "plugins/preclear.disk/assets/lib.php" );
@@ -1579,7 +1576,7 @@ function get_samba_mounts() {
 
 /* Mount a remote samba or NFS share. */
 function do_mount_samba($info) {
-	global $use_netbios, $paths, $var;
+	global $paths, $var;
 
 	$rc				= false;
 	$config_file	= $paths['config_file'];
@@ -1594,7 +1591,7 @@ function do_mount_samba($info) {
 		if (! is_mounted($dev) || ! is_mounted($dir, true)) {
 			@mkdir($dir, 0777, true);
 			if ($fs == "nfs") {
-				if ($var['shareNFSEnabled']=="yes") {
+				if ($var['shareNFSEnabled'] == "yes") {
 					$params	= get_mount_params($fs, $dev);
 					$nfs	= (get_config("Config", "nfs_version") == "4") ? "nfs4" : "nfs";
 					$cmd	= "/sbin/mount -t ".escapeshellarg($nfs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
@@ -1606,7 +1603,7 @@ function do_mount_samba($info) {
 				} else {
 					unassigned_log("NFS must be enabled in 'Settings->NFS' to mount NFS remote shares.");
 				}
-			} else {
+			} elseif ($var['shareSMBEnabled'] == "yes") {
 				/* Create the credentials file. */
 				$credentials_file = "{$paths['credentials']}_".basename($dev);
 				file_put_contents("$credentials_file", "username=".($info['user'] ? $info['user'] : 'guest')."\n");
@@ -1662,21 +1659,25 @@ function do_mount_samba($info) {
 				}
 
 				/* If the remote share didn't mount, try SMB 1.0 if netbios is enabled. */
-				if ((! is_mounted($dev) && ($use_netbios)) && (strpos($o, "Permission denied") === false) && (strpos($o, "Network is unreachable") === false)) {
-					unassigned_log("SMB 2.1 mount failed: '{$o}'.");
-					/* If the mount failed, try to mount with samba vers=1.0. */
-					$ver	= ",sec=ntlm,vers=1.0";
-					$params	= sprintf(get_mount_params($fs, $dev), $ver);
-					$cmd	= "/sbin/mount -t ".escapeshellarg($fs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
-					unassigned_log("Mount SMB share '{$dev}' using SMB 1.0 protocol.");
-					unassigned_log("Mount SMB command: {$cmd}");
-					$o		= timed_exec(10, $cmd." 2>&1");
-					if ($o) {
-						unassigned_log("SMB 1.0 mount failed: '{$o}'.");
+				if ((! is_mounted($dev)) && (strpos($o, "Permission denied") === false) && (strpos($o, "Network is unreachable") === false)) {
+					unassigned_log("SMB 2.0 mount failed: '{$o}'.");
+					if ($var['USE_NETBIOS'] == "yes") {
+						/* If the mount failed, try to mount with samba vers=1.0. */
+						$ver	= ",sec=ntlm,vers=1.0";
+						$params	= sprintf(get_mount_params($fs, $dev), $ver);
+						$cmd	= "/sbin/mount -t ".escapeshellarg($fs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
+						unassigned_log("Mount SMB share '{$dev}' using SMB 1.0 protocol.");
+						unassigned_log("Mount SMB command: {$cmd}");
+						$o		= timed_exec(10, $cmd." 2>&1");
+						if ($o) {
+							unassigned_log("SMB 1.0 mount failed: '{$o}'.");
+						}
 					}
 				}
 				exec("/bin/shred -u ".escapeshellarg($credentials_file));
 				unset($pass);
+			} else {
+				unassigned_log("SMB must be enabled in 'Settings->SMB' to mount SMB remote shares.");
 			}
 
 			/* Did the share successfully mount? */
