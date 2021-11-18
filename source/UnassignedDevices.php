@@ -326,6 +326,8 @@ function make_mount_button($device) {
 
 switch ($_POST['action']) {
 	case 'get_content':
+		/* Update the UD webpage content. */
+
 		/* Check for a recent hot plug event. */
 		if (file_exists($paths['hotplug_event'])) {
 			exec("/usr/local/sbin/emcmd 'cmdHotplug=apply'");
@@ -407,13 +409,13 @@ switch ($_POST['action']) {
 					echo "</td>";
 				}
 
-				/* Device serial number */
+				/* Device serial number. */
 				echo "<td>{$hdd_serial}</td>";
 
-				/* Mount button */
+				/* Mount button. */
 				echo "<td class='mount'>{$mbutton}</td>";
 
-				/* Disk temperature */
+				/* Disk temperature. */
 				echo "<td>{$temp}</td>";
 
 				if (! $p) {
@@ -427,25 +429,25 @@ switch ($_POST['action']) {
 					}
 				}
 
-				/* Reads */
+				/* Reads. */
 				echo ($p)?$p[4]:"<td>".$reads."</td>";
 
-				/* Writes */
+				/* Writes. */
 				echo ($p)?$p[5]:"<td>".$writes."</td>";
 
-				/* Settings */
+				/* Settings. */
 				echo ($p)?$p[6]:"<td>-</td>";
 
-				/* File system */
+				/* File system. */
 				echo ($p)?$p[7]:"<td>-</td>";
 
-				/* Disk size */
+				/* Disk size. */
 				echo "<td>".my_scale($disk['size'],$unit)." {$unit}</td>";
 
-				/* Disk used and free space */
+				/* Disk used and free space. */
 				echo ($p)?$p[8]:"<td>-</td><td>-</td>";
 
-				/* Log button */
+				/* Log button. */
 				echo ($p)?$p[9]:"<td>-</td>";
 				echo "</tr>";
 
@@ -466,7 +468,7 @@ switch ($_POST['action']) {
 		}
 		echo "</tbody></table></div>";
 
-		/* SAMBA Mounts */
+		/* SAMBA Mounts. */
 		echo "<div id='smb_tab' class='show-shares'>";
 		echo "<div id='title' class='show-disks samba_mounts'><span class='left'><img src='/plugins/$plugin/icons/smbsettings.png' class='icon'>"._('SMB Shares')." &nbsp;|&nbsp;<img src='/plugins/$plugin/icons/nfs.png' class='icon'>"._('NFS Shares')." &nbsp;|&nbsp;<img src='/plugins/$plugin/icons/iso.png' class='icon' style='width:16px;'>"._('ISO File Shares')."</span></div>";
 		echo "<table class='disk_status wide samba_mounts'><thead><tr><td>"._('Share Type')."</td><td>"._('Source')."</td><td>"._('Mount point')."</td><td></td><td>"._('Remove')."</td><td>"._('Settings')."</td><td></td><td></td><td></td><td>"._('Size')."</td><td>"._('Used')."</td><td>"._('Free')."</td><td>"._('Log')."</td></tr></thead>";
@@ -496,7 +498,7 @@ switch ($_POST['action']) {
 				if ($mount['mounted'] && (is_script_running($mount['command']) || is_script_running($mount['user_command'], true))) {
 					echo "<td><button class='mount' disabled> <i class='fa fa-spinner fa-spin'></i>"." "._("Running")."</button></td>";
 				} else {
-					/* Remove special characters */
+					/* Remove special characters. */
 					$mount_device = str_replace( array("(", ")"), "", basename($mount['device'])."_".$mount['fstype']);
 					$is_mounting	= array_values(preg_grep("@/mounting_".$mount_device."@i", listDir(dirname($paths['mounting']))))[0];
 					$is_mounting	= (time() - filemtime($is_mounting) < 300) ? true : false;
@@ -528,7 +530,7 @@ switch ($_POST['action']) {
 			}
 		}
 
-		/* ISO file Mounts */
+		/* ISO file Mounts. */
 		$iso_mounts = get_iso_mounts();
 		if (count($iso_mounts)) {
 			foreach ($iso_mounts as $mount) {
@@ -551,7 +553,7 @@ switch ($_POST['action']) {
 				if ($mount['mounted'] && (is_script_running($mount['command']) || is_script_running($mount['user_command'], true))) {
 					echo "<td><button class='mount' disabled> <i class='fa fa-spinner fa-spin'></i> "._('Running')."</button></td>";
 				} else {
-					/* Remove special characters */
+					/* Remove special characters. */
 					$mount_device = str_replace( array("(", ")"), "", basename($mount['device']));
 					$is_mounting	= array_values(preg_grep("@/mounting_".$mount_device."@i", listDir(dirname($paths['mounting']))))[0];
 					$is_mounting	= (time() - filemtime($is_mounting) < 300) ? true : false;
@@ -612,6 +614,7 @@ switch ($_POST['action']) {
 		break;
 
 	case 'refresh_page':
+		/* Initiate a nchan event to update the UD webpage. */
 		publish();
 		break;
 
@@ -623,24 +626,28 @@ switch ($_POST['action']) {
 		break;
 
 	case 'get_content_json':
+		/* Get the UD disk info and return in a json format. */
 		$disks	= get_all_disks_info();
 		echo json_encode($disks);
 		break;
 
 	/*	CONFIG	*/
 	case 'automount':
+		/* Update auto mount configuration setting. */
 		$serial = urldecode(($_POST['device']));
 		$status = urldecode(($_POST['status']));
 		echo json_encode(array( 'result' => toggle_automount($serial, $status) ));
 		break;
 
 	case 'show_partitions':
+		/* Update show partitions configuration setting. */
 		$serial = urldecode(($_POST['serial']));
 		$status = urldecode(($_POST['status']));
 		echo json_encode(array( 'result' => set_config($serial, "show_partitions", ($status == "true") ? "yes" : "no")));
 		break;
 
 	case 'background':
+		/* Update background configuration setting. */
 		$device = urldecode(($_POST['device']));
 		$part = urldecode(($_POST['part']));
 		$status = urldecode(($_POST['status']));
@@ -648,6 +655,7 @@ switch ($_POST['action']) {
 		break;
 
 	case 'set_command':
+		/* Set the user command configuration setting. */
 		$serial = urldecode(($_POST['serial']));
 		$part = urldecode(($_POST['part']));
 		$cmd = urldecode(($_POST['command']));
@@ -656,6 +664,7 @@ switch ($_POST['action']) {
 		break;
 
 	case 'set_volume':
+		/* Set apfs volume configuration setting. */
 		$serial = urldecode(($_POST['serial']));
 		$part = urldecode(($_POST['part']));
 		$vol = urldecode(($_POST['volume']));
@@ -663,13 +672,14 @@ switch ($_POST['action']) {
 		break;
 
 	case 'remove_config':
+		/* Remove historical disk configuration. */
 		$serial = urldecode(($_POST['serial']));
-
 		publish();
 		echo json_encode(remove_config_disk($serial));
 		break;
 
 	case 'toggle_share':
+		/* Toggle the share configuration setting. */
 		$info = json_decode(html_entity_decode($_POST['info']), true);
 		$status = urldecode(($_POST['status']));
 		$result = toggle_share($info['serial'], $info['part'],$status);
@@ -684,12 +694,14 @@ switch ($_POST['action']) {
 		break;
 
 	case 'toggle_read_only':
+		/* Toggle the disk read only configuration setting. */
 		$serial = urldecode(($_POST['serial']));
 		$status = urldecode(($_POST['status']));
 		echo json_encode(array( 'result' => toggle_read_only($serial, $status) ));
 		break;
 
 	case 'toggle_pass_through':
+		/* Toggle the disk pass through configuration setting. */
 		$serial = urldecode(($_POST['serial']));
 		$status = urldecode(($_POST['status']));
 		echo json_encode(array( 'result' => toggle_pass_through($serial, $status) ));
@@ -697,18 +709,21 @@ switch ($_POST['action']) {
 
 	/*	DISK	*/
 	case 'mount':
+		/* Mount a disk device. */
 		$device = urldecode($_POST['device']);
 		exec("plugins/{$plugin}/scripts/rc.unassigned mount ".escapeshellarg($device)." &>/dev/null", escapeshellarg($out), escapeshellarg($return));
 		echo json_encode(["status" => $return ? false : true ]);
 		break;
 
 	case 'umount':
+		/* Unmount a disk device. */
 		$device = urldecode($_POST['device']);
 		exec("plugins/{$plugin}/scripts/rc.unassigned umount ".escapeshellarg($device)." &>/dev/null", escapeshellarg($out), escapeshellarg($return));
 		echo json_encode(["status" => $return ? false : true ]);
 		break;
 
 	case 'rescan_disks':
+		/* Refresh all disk partition information, update config files from flash, and clear status files. */
 		exec("plugins/{$plugin}/scripts/copy_config.sh");
 		$sf = $paths['dev_state'];
 		if (is_file($sf)) {
@@ -732,6 +747,7 @@ switch ($_POST['action']) {
 		break;
 
 	case 'format_disk':
+		/* Format a disk. */
 		$device = urldecode($_POST['device']);
 		$fs = urldecode($_POST['fs']);
 		$pass = urldecode($_POST['pass']);
@@ -742,6 +758,7 @@ switch ($_POST['action']) {
 
 	/*	SAMBA	*/
 	case 'list_samba_hosts':
+		/* Get a list of samba hosts. */
 		$network = $_POST['network'];
 		$names = [];
 		foreach ($network as $iface)
@@ -759,6 +776,7 @@ switch ($_POST['action']) {
 		break;
 
 	case 'list_samba_shares':
+		/* Get a list of samba shares for a specific host. */
 		$ip = urldecode($_POST['IP']);
 		$user = isset($_POST['USER']) ? $_POST['USER'] : NULL;
 		$pass = isset($_POST['PASS']) ? $_POST['PASS'] : NULL;
@@ -774,6 +792,7 @@ switch ($_POST['action']) {
 
 	/*	NFS	*/
 	case 'list_nfs_hosts':
+		/* Get a list of nfs hosts. */
 		$network = $_POST['network'];
 		foreach ($network as $iface)
 		{
@@ -784,6 +803,7 @@ switch ($_POST['action']) {
 		break;
 
 	case 'list_nfs_shares':
+		/* Get a list of nfs shares for a specific host. */
 		$ip = urldecode($_POST['IP']);
 		$rc = timed_exec(10, "/usr/sbin/showmount --no-headers -e ".escapeshellarg($ip)." 2>/dev/null | rev | cut -d' ' -f2- | rev | sort");
 		echo $rc ? $rc : " ";
@@ -791,6 +811,7 @@ switch ($_POST['action']) {
 
 	/* SMB SHARES */
 	case 'add_samba_share':
+		/* Add a samba share configuration. */
 		$rc = true;
 
 		$ip = urldecode($_POST['IP']);
@@ -822,24 +843,21 @@ switch ($_POST['action']) {
 		break;
 
 	case 'remove_samba_config':
+		/* Remove samba configuration. */
 		$device = urldecode(($_POST['device']));
 		publish();
 		echo json_encode(remove_config_samba($device));
 		break;
 
 	case 'samba_automount':
+		/* Set samba auto mount configuration setting. */
 		$device = urldecode(($_POST['device']));
 		$status = urldecode(($_POST['status']));
 		echo json_encode(array( 'result' => toggle_samba_automount($device, $status) ));
 		break;
 
-	case 'samba_share':
-		$device = urldecode(($_POST['device']));
-		$status = urldecode(($_POST['status']));
-		echo json_encode(array( 'result' => toggle_samba_share($device, $status) ));
-		break;
-
 	case 'toggle_samba_share':
+		/* Toggle samba share configuration setting. */
 		$info = json_decode(html_entity_decode($_POST['info']), true);
 		$status = urldecode(($_POST['status']));
 		$result = toggle_samba_share($info['device'], $status);
@@ -854,12 +872,14 @@ switch ($_POST['action']) {
 		break;
 
 	case 'samba_background':
+		/* Set samba share background configuration setting. */
 		$device = urldecode(($_POST['device']));
 		$status = urldecode(($_POST['status']));
 		echo json_encode(array( 'result' => set_samba_config($device, "command_bg", $status)));
 		break;
 
 	case 'set_samba_command':
+		/* Set samba share user command configuration setting. */
 		$device = urldecode(($_POST['device']));
 		$cmd = urldecode(($_POST['command']));
 		set_samba_config($device, "user_command", urldecode($_POST['user_command']));
@@ -868,6 +888,7 @@ switch ($_POST['action']) {
 
 	/* ISO FILE SHARES */
 	case 'add_iso_share':
+		/* Add iso file share. */
 		$rc = true;
 		$file = isset($_POST['ISO_FILE']) ? urldecode($_POST['ISO_FILE']) : "";
 		$file = implode("",explode("\\", $file));
@@ -886,24 +907,28 @@ switch ($_POST['action']) {
 		break;
 
 	case 'remove_iso_config':
+		/* Remove the iso share configuration. */
 		$device = urldecode(($_POST['device']));
 		publish();
 		echo json_encode(remove_config_iso($device));
 		break;
 
 	case 'iso_automount':
+		/* Set the iso auto mount configuration setting. */
 		$device = urldecode(($_POST['device']));
 		$status = urldecode(($_POST['status']));
 		echo json_encode(array( 'result' => toggle_iso_automount($device, $status) ));
 		break;
 
 	case 'iso_background':
+		/* Set the background configuration setting. */
 		$device = urldecode(($_POST['device']));
 		$status = urldecode(($_POST['status']));
 		echo json_encode(array( 'result' => set_iso_config($device, "command_bg", $status)));
 		break;
 
 	case 'set_iso_command':
+		/* Set the iso command file configuration setting. */
 		$device = urldecode(($_POST['device']));
 		$cmd = urldecode(($_POST['command']));
 		echo json_encode(array( 'result' => set_iso_config($device, "command", $cmd)));
@@ -911,6 +936,7 @@ switch ($_POST['action']) {
 
 	/*	MISC */
 	case 'rm_partition':
+		/* Remove a partition from a disk. */
 		$device = urldecode($_POST['device']);
 		$partition = urldecode($_POST['partition']);
 		publish();
@@ -918,6 +944,7 @@ switch ($_POST['action']) {
 		break;
 
 	case 'spin_down_disk':
+		/* Spin down a disk device. */
 		$device = urldecode($_POST['device']);
 
 		/* Set the spinning_down state. */
@@ -932,6 +959,7 @@ switch ($_POST['action']) {
 		break;
 
 	case 'spin_up_disk':
+		/* Spin up a disk device. */
 		$device = urldecode($_POST['device']);
 
 		/* Set the spinning_up state. */
@@ -946,6 +974,7 @@ switch ($_POST['action']) {
 		break;
 
 	case 'chg_mountpoint':
+		/* Change a disk mount point. */
 		$serial = urldecode($_POST['serial']);
 		$partition = urldecode($_POST['partition']);
 		$device	= urldecode($_POST['device']);
@@ -956,6 +985,7 @@ switch ($_POST['action']) {
 		break;
 
 	case 'chg_samba_mountpoint':
+		/* Change a samba share mount point. */
 		$device = urldecode($_POST['device']);
 		$mountpoint = basename(safe_name(basename(urldecode($_POST['mountpoint'])), false));
 		publish();
@@ -963,10 +993,15 @@ switch ($_POST['action']) {
 		break;
 
 	case 'chg_iso_mountpoint':
+		/* Change an iso file mount point. */
 		$device = urldecode($_POST['device']);
 		$mountpoint = basename(safe_name(basename(urldecode($_POST['mountpoint'])), false));
 		publish();
 		echo json_encode(change_iso_mountpoint($device, $mountpoint));
+		break;
+
+	default:
+		unassigned_log("Undefined POST action - ".$_POST['action'].".");
 		break;
 	}
 ?>
