@@ -584,7 +584,8 @@ switch ($_POST['action']) {
 		}
 		echo "</tbody></table>";
 
-		echo "<button onclick='add_samba_share()'>"._('Add Remote SMB/NFS Share')."</button>";
+		$disabled = (($var['shareNFSEnabled']=="no") && ($var['shareSMBEnabled']=="no")) ? "disabled" : "";
+		echo "<button onclick='add_samba_share()' $disabled>"._('Add Remote SMB/NFS Share')."</button>";
 		echo "<button onclick='add_iso_share()'>"._('Add ISO File Share')."</button></div>";
 
 		$config_file = $paths["config_file"];
@@ -749,7 +750,7 @@ switch ($_POST['action']) {
 			$netmask = $iface['netmask'];
 			exec("plugins/{$plugin}/scripts/port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 445", $hosts);
 			foreach ($hosts as $host) {
-				$name=trim(shell_exec("/usr/bin/nmblookup -A ".escapeshellarg($host)." 2>/dev/null | grep -v 'GROUP' | grep -Po '[^<]*(?=<00>)' | head -n 1"));
+				$name = trim(shell_exec("/usr/bin/nmblookup -A ".escapeshellarg($host)." 2>/dev/null | grep -v 'GROUP' | grep -Po '[^<]*(?=<00>)' | head -n 1"));
 				$names[]= $name ? $name : $host;
 			}
 			natsort($names);
