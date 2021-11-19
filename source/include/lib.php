@@ -1356,7 +1356,9 @@ function add_nfs_share($dir) {
 				$reload		= true;
 			}
 		}
-		if ($reload) shell_exec("/usr/sbin/exportfs -ra 2>/dev/null");
+		if ($reload) {
+			shell_exec("/usr/sbin/exportfs -ra 2>/dev/null");
+		}
 	}
 
 	return true;
@@ -1366,21 +1368,19 @@ function add_nfs_share($dir) {
 function rm_nfs_share($dir) {
 	global $var;
 
-	if ( ($var['shareNFSEnabled'] == "yes") && (get_config("Config", "nfs_export") == "yes") ) {
-		$reload = false;
-		unassigned_log("Removing NFS share '{$dir}'.");
-		foreach (array("/etc/exports","/etc/exports-") as $file) {
-			if ( exist_in_file($file, "\"{$dir}\"") && strlen($dir)) {
-				$c		= (is_file($file)) ? @file($file, FILE_IGNORE_NEW_LINES) : array();
-				$c		= preg_grep("@\"{$dir}\"@i", $c, PREG_GREP_INVERT);
-				$c[]	= "";
-				file_put_contents($file, implode(PHP_EOL, $c));
-				$reload	= true;
-			}
+	$reload = false;
+	unassigned_log("Removing NFS share '{$dir}'.");
+	foreach (array("/etc/exports","/etc/exports-") as $file) {
+		if ( exist_in_file($file, "\"{$dir}\"") && strlen($dir)) {
+			$c		= (is_file($file)) ? @file($file, FILE_IGNORE_NEW_LINES) : array();
+			$c		= preg_grep("@\"{$dir}\"@i", $c, PREG_GREP_INVERT);
+			$c[]	= "";
+			file_put_contents($file, implode(PHP_EOL, $c));
+			$reload	= true;
 		}
-		if ($reload) {
-			shell_exec("/usr/sbin/exportfs -ra 2>/dev/null");
-		}
+	}
+	if ($reload) {
+		shell_exec("/usr/sbin/exportfs -ra 2>/dev/null");
 	}
 
 	return true;
