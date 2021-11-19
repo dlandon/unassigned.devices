@@ -1206,7 +1206,8 @@ function toggle_share($serial, $part, $status) {
 function add_smb_share($dir, $recycle_bin = true) {
 	global $paths, $var, $users;
 
-	if ( ($var['shareSMBEnabled'] != "no") ) {
+	/* Add mountpoint to samba shares. */
+	if ( ($var['shareSMBEnabled'] == "yes") ) {
 		/* Remove special characters from share name. */
 		$share_name = str_replace( array("(", ")"), "", basename($dir));
 		$config = @parse_ini_file($paths['config_file'], true);
@@ -1302,43 +1303,40 @@ function add_smb_share($dir, $recycle_bin = true) {
 	return true;
 }
 
-/* Remove a samba share. */
+/* Remove mountpoint from samba shares. */
 function rm_smb_share($dir) {
 	global $paths, $var;
 
-	/* If samba is enabled remove the share. */
-	if ( ($var['shareSMBEnabled'] != "no") ) {
-		/* Remove special characters from share name */
-		$share_name = str_replace( array("(", ")"), "", basename($dir));
-		$share_conf = preg_replace("#\s+#", "_", realpath($paths['smb_usb_shares'])."/".$share_name.".conf");
-		if (is_file($share_conf)) {
-			@unlink($share_conf);
-			unassigned_log("Removing SMB share '{$share_name}'");
-		}
-		if (exist_in_file($paths['smb_extra'], $share_conf)) {
-			$c = (is_file($paths['smb_extra'])) ? @file($paths['smb_extra'],FILE_IGNORE_NEW_LINES) : array();
+	/* Remove special characters from share name */
+	$share_name = str_replace( array("(", ")"), "", basename($dir));
+	$share_conf = preg_replace("#\s+#", "_", realpath($paths['smb_usb_shares'])."/".$share_name.".conf");
+	if (is_file($share_conf)) {
+		unassigned_log("Removing SMB share '{$share_name}'");
+		@unlink($share_conf);
+	}
+	if (exist_in_file($paths['smb_extra'], $share_conf)) {
+		$c = (is_file($paths['smb_extra'])) ? @file($paths['smb_extra'],FILE_IGNORE_NEW_LINES) : array();
 
-			/* Do some cleanup. */
-			$smb_extra_includes = array_unique(preg_grep("/include/i", $c));
-			foreach($smb_extra_includes as $key => $inc) if (! is_file(parse_ini_string($inc)['include'])) unset($smb_extra_includes[$key]); 
-			$c = array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_extra_includes);
-			$c = preg_replace('/\n\s*\n\s*\n/s', PHP_EOL.PHP_EOL, implode(PHP_EOL, $c));
-			file_put_contents($paths['smb_extra'], $c);
-			timed_exec(5, "/usr/bin/smbcontrol $(/bin/cat /var/run/smbd.pid 2>/dev/null) close-share ".escapeshellarg($share_name)." 2>&1");
-			timed_exec(5, "/usr/bin/smbcontrol $(/bin/cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
-		}
+		/* Do some cleanup. */
+		$smb_extra_includes = array_unique(preg_grep("/include/i", $c));
+		foreach($smb_extra_includes as $key => $inc) if (! is_file(parse_ini_string($inc)['include'])) unset($smb_extra_includes[$key]); 
+		$c = array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_extra_includes);
+		$c = preg_replace('/\n\s*\n\s*\n/s', PHP_EOL.PHP_EOL, implode(PHP_EOL, $c));
+		file_put_contents($paths['smb_extra'], $c);
+		timed_exec(5, "/usr/bin/smbcontrol $(/bin/cat /var/run/smbd.pid 2>/dev/null) close-share ".escapeshellarg($share_name)." 2>&1");
+		timed_exec(5, "/usr/bin/smbcontrol $(/bin/cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
 	}
 
 	return true;
 }
 
-/* Add a mount to NFS share. */
+/* Add a mountpoint to NFS shares. */
 function add_nfs_share($dir) {
 	global $var;
 
+	/* If NFS is enabled and export setting is 'yes' then add NFS share. */
 	if ( ($var['shareNFSEnabled'] == "yes") && (get_config("Config", "nfs_export") == "yes") ) {
 		$reload = false;
-		unassigned_log("Adding NFS share '{$dir}'.");
 		foreach (array("/etc/exports","/etc/exports-") as $file) {
 			if (! exist_in_file($file, "\"{$dir}\"")) {
 				$c			= (is_file($file)) ? @file($file, FILE_IGNORE_NEW_LINES) : array();
@@ -1357,6 +1355,7 @@ function add_nfs_share($dir) {
 			}
 		}
 		if ($reload) {
+			unassigned_log("Adding NFS share '{$dir}'.");
 			shell_exec("/usr/sbin/exportfs -ra 2>/dev/null");
 		}
 	}
@@ -1364,12 +1363,12 @@ function add_nfs_share($dir) {
 	return true;
 }
 
-/* Remove a NFS share. */
+/* Remove a mountpoint from NFS shares. */
 function rm_nfs_share($dir) {
 	global $var;
 
+	/* Remove this disk from the exports file. */
 	$reload = false;
-	unassigned_log("Removing NFS share '{$dir}'.");
 	foreach (array("/etc/exports","/etc/exports-") as $file) {
 		if ( exist_in_file($file, "\"{$dir}\"") && strlen($dir)) {
 			$c		= (is_file($file)) ? @file($file, FILE_IGNORE_NEW_LINES) : array();
@@ -1380,6 +1379,7 @@ function rm_nfs_share($dir) {
 		}
 	}
 	if ($reload) {
+		unassigned_log("Removing NFS share '{$dir}'.");
 		shell_exec("/usr/sbin/exportfs -ra 2>/dev/null");
 	}
 
