@@ -238,10 +238,14 @@ _(Specify SMB Version when Mounting Remote Shares)_?
 :end
 
 _(NFS Version to use when Mounting Remote Shares)_:
-: <select name="nfs_version" size="1">
+: <select name="nfs_version" size="1" <?if ($var['shareNFSEnabled']=="no"):?>disabled<?endif;?>>
   <?=mk_option($cfg["Config"]["nfs_version"], "3", "_(NFSv3)_");?>
   <?=mk_option($cfg["Config"]["nfs_version"], "4", "_(NFSv4)_");?>
+<?if ($var['shareNFSEnabled']=="yes"):?>
   </select>&nbsp;_(Unraid 6.10 is required for NFSv4 support)_.
+<?else:?>
+  </select>&nbsp;_(NFS must be enabled in Settings->NFS for NFS support)_.
+<?endif;?>
 
 :ud_settings_specify_nfs_vers_plug:
 > Set to **NFSv3** to mount all NFS Remote Shares with NFSv3.
@@ -333,7 +337,7 @@ _(Enable NFS export)_?
 <dl>
 	<dt>_(NFS Security)_:</dt>
 	<dd>
-		<select name="nfs_security" size="1">
+		<select name="nfs_security" size="1" <?if ($var['shareNFSEnabled']=="no"):?>disabled<?endif;?>>
 		<?=mk_option($cfg["Config"]["nfs_security"], "public", "_(Public)_");?>
 		<?=mk_option($cfg["Config"]["nfs_security"], "private", "_(Private)_");?>
 		</select>
