@@ -1885,15 +1885,17 @@ function get_unassigned_disks() {
 			$unraid_disks[] = "/dev/".$d['device'];
 		}
 	}
+	natsort($unraid_disks);
 
 	/* Create the array of unassigned devices by removing Unraid devices. */
 	foreach ($disk_paths as $path => $d) {
 		if ($d && (preg_match("#^(.(?!wwn|part))*$#", $d))) {
 			if (! in_array($path, $unraid_disks)) {
-				if (in_array($path, array_map(function($ar){return $ar['device'];}, $ud_disks)) ) continue;
-				$m = array_values(preg_grep("|$d.*-part\d+|", $disk_paths));
-				natsort($m);
-				$ud_disks[$d] = array("device" => $path, "partitions" => $m);
+				if (! in_array($path, array_map(function($ar){return $ar['device'];}, $ud_disks)) ) {
+					$m = array_values(preg_grep("|$d.*-part\d+|", $disk_paths));
+					natsort($m);
+					$ud_disks[$d] = array("device" => $path, "partitions" => $m);
+				}
 			}
 		}
 	}
@@ -2293,7 +2295,7 @@ function change_UUID($dev) {
 	/* Deal with crypto_LUKS disks. */
 	if ($fs_type == "crypto_LUKS") {
 		timed_exec(20, escapeshellcmd("plugins/{$plugin}/scripts/luks_uuid.sh ".escapeshellarg($device)));
-		$mapper	= basename($dev);
+		$mapper	= basename($luks)."_UUID";
 		$cmd	= "luksOpen ".escapeshellarg($luks)." ".escapeshellarg($mapper);
 		$pass	= decrypt_data(get_config($serial, "pass"));
 		if (! $pass) {
@@ -2318,15 +2320,16 @@ function change_UUID($dev) {
 			unassigned_log("luksOpen error: {$o}");
 		} else {
 			/* Get the crypto file system check so we can determine the luks file system. */
-			$command = get_fsck_commands($fs, $device)." 2>&1";
+			$mapper_dev = "/dev/mapper/".$mapper;
+			$command = get_fsck_commands($fs_type, $mapper_dev)." 2>&1";
 			$o = shell_exec(escapeshellcmd($command));
 			if (stripos($o, "XFS") !== false) {
-				$mapper_dev = "/dev/mapper/".$mapper;
-
 				/* Change the xfs UUID. */
 				$rc = timed_exec(10, "/usr/sbin/xfs_admin -U generate ".escapeshellarg($mapper_dev));
+			} elseif (stripos($o, "BTRFS") !== false) {
+				$rc = timed_exec(10, "/sbin/btrfstune -uf ".escapeshellarg($mapper_dev));
 			} else {
-				$rc = "Cannot change UUID on a btrfs file system.";
+				$rc = "Cannot change UUID.";
 			}
 
 			/* Close the luks device. */
