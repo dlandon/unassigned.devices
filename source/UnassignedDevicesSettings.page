@@ -331,7 +331,7 @@ _(Enable NFS export)_?
 : <select name="nfs_export" size="1" <?if ($var['shareNFSEnabled']=="no"):?>disabled<?endif;?>>
   <?=mk_option($cfg['Config']["nfs_export"], "no", "_(No)_");?>
   <?=mk_option($cfg['Config']["nfs_export"], "yes", "_(Yes)_");?>
-  </select><?if ($var['shareNFSEnabled']=="no"):?>&nbsp;_(NFS must be enabled to enable NFS Export)_.<?endif;?>
+  </select><?if ($var['shareNFSEnabled']=="no"):?>&nbsp;_(NFS must be enabled in Settings->NFS to enable NFS Export)_.<?endif;?>
 
 <div id="nfs_security" style="display: <?=($cfg['Config']["nfs_export"] == "no" ? "none" : "block");?>">
 <dl>
