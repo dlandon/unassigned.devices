@@ -28,7 +28,9 @@ if ($COMMAND != 'spindown') {
 	$DEVNAME = $argv[2];
 }
 $remove = [];
-if (! $DEVNAME) die("Fail: device not defined.\n");
+if (! $DEVNAME) {
+	die("Fail: device not defined.\n");
+}
 
 /* Mount devices. */
 function unassigned_mount() {
