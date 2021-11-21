@@ -744,7 +744,7 @@ function luks_fs_type($dev) {
 function get_config($serial, $variable) {
 	$config_file = $GLOBALS["paths"]["config_file"];
 	$config = @parse_ini_file($config_file, true);
-	return (isset($config[$serial][$variable])) ? html_entity_decode($config[$serial][$variable]) : false;
+	return (isset($config[$serial][$variable])) ? html_entity_decode($config[$serial][$variable], ENT_COMPAT) : false;
 }
 
 /* Set device configuration parameter. */
@@ -1879,21 +1879,21 @@ function get_unassigned_disks() {
 	}
 	ksort($disk_paths, SORT_NATURAL);
 
-	/* Get all unraid disk devices (array disks, cache, and pool devices). */
+	/* Get all Unraid disk devices (array disks, cache, and pool devices). */
 	foreach ($disks as $d) {
 		if ($d['device']) {
 			$unraid_disks[] = "/dev/".$d['device'];
 		}
 	}
 
-	/* Create the array of unassigned devices. */
+	/* Create the array of unassigned devices by removing Unraid devices. */
 	foreach ($disk_paths as $path => $d) {
 		if ($d && (preg_match("#^(.(?!wwn|part))*$#", $d))) {
 			if (! in_array($path, $unraid_disks)) {
 				if (in_array($path, array_map(function($ar){return $ar['device'];}, $ud_disks)) ) continue;
 				$m = array_values(preg_grep("|$d.*-part\d+|", $disk_paths));
 				natsort($m);
-				$ud_disks[$d] = array("device"=>$path,"type"=>"ata", "partitions"=>$m);
+				$ud_disks[$d] = array("device" => $path, "partitions" => $m);
 			}
 		}
 	}
@@ -1902,13 +1902,12 @@ function get_unassigned_disks() {
 }
 
 /* Get all the disk information for each disk device. */
-function get_all_disks_info($bus = "all") {
+function get_all_disks_info() {
 
 	$ud_disks = get_unassigned_disks();
 	if (is_array($ud_disks)) {
 		foreach ($ud_disks as $key => $disk) {
 			$dp = time();
-			if ($disk['type'] != $bus && $bus != "all") continue;
 			$disk['size']	= intval(trim(timed_exec(5, "/bin/lsblk -nb -o size ".escapeshellarg(realpath($key))." 2>/dev/null")));
 			$disk			= array_merge($disk, get_disk_info($key));
 			foreach ($disk['partitions'] as $k => $p) {
