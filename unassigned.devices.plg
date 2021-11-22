@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2021.11.12">
+<!ENTITY version	"2021.11.22">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"3e7dfacce8a4df1267da0f94b1aba8e5">
+<!ENTITY MD5		"ceacb9ca54b66b9da48968f3dbf93cc2">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,21 +23,31 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Disable NFS icon when adding NFS/SMB share if NFS is disabled.
+- Add: Disable SMB icon when adding NFS/SMB share if SMB is disabled.
+- Add: Change UUID on encrypted BTRFS device.
+- Add: Create a hotplug event when udev detects a change in a disk.
+- Add: Remove duplicate disk serial numbers so UD only manages one device. Duplicates come from external drive bays that do not assign a unique serial number to each disk.
+- Fix: Rework refresh event calls (nchan) to simplify the call.
+- Fix: Change UUID on encrypted XFS device.
+- Fix: More code cleanup.
+
+###2021.11.12
+- Add: File scrub for btrfs file systems.
 - Fix: Delayed update of diskio refresh after diskio switch is changed.
 - Fix: Rework polling timers for page refresh and ping polling of remote servers.
 - Fix: Encrypted disk file system check not working.
-- Add: File scrub for btrfs file systems.
 - Fix: Changed SMB version scheme to use for mounting SMB remote shares to be sure we can use the most secure protocol available on the remote server.
 - Fix: Remove some legacy and unused code.
 - Fix: More code cleanup.
 
 ###2021.11.04
-- Fix: Show disabled script icon when disk is mounted and there is no script defined.
 - Add: Disable file system check and script execution icons while device is mounting and unmounting.
+- Add: Set exact SMB version when mounting remote SMB shares.  Should offer some speed improvements.
+- Fix: Show disabled script icon when disk is mounted and there is no script defined.
 - Fix: Fix screen refresh and conflicts when UD is running in two sessions.
 - Fix: Cleanup handling of diskio cookie.
 - Fix: Cosmetic changes to device settings page.
-- Add: Set exact SMB version when mounting remote SMB shares.  Should offer some speed improvements.
 - Fix: More code cleanup.
 
 ###2021.10.11
@@ -56,19 +66,19 @@
 - Fix: More code cleanup.
 
 ###2021.09.12a
-- Fix: Do not allow pound or ampersand characters in disk mount point.
 - Add: NFSv4 support for mounting remote NFS shares.  The NFS version to use is set in UD settings.
+- Fix: Do not allow pound or ampersand characters in disk mount point.
 
 ###2021.08.28
 - Fix: Auto mount remote shares fails on boot.
 - Fix: Rework disk label routine.
 
 ###2021.08.27
+- Add: File browse fixes for Unraid 6.10.
+- Add: Limit ISO file browsing to /mnt/user/isos/ folder.
 - Fix: Force lazy unmount on NFS mounts.
 - Fix: Remove unnecessary parameters from NFS remote share mount command and use defaults.
 - Fix: Only show log icon on first partition when 'Show Partitions' is on.
-- Add: File browse fixes for Unraid 6.10.
-- Add: Limit ISO file browsing to /mnt/user/isos/ folder.
 
 ###3032.08.25
 - Fix: File system on encrypted disk not found when mount point contains a space.
@@ -82,16 +92,16 @@
 
 ###2021.08.22
 - Add: Time out on disk spin up/down if disk does not actually spin up or down.
-- Fix: UUID not working properly.
 - Add: noatime and nodiratime parameters to NFS remote shares mount command.
+- Fix: UUID not working properly.
 - Fix: Code review and cleanup.
 
 ###2021.08.15b
+- Add: Add back file_mode and dir_mode to cifs mounts. Set file_mode=0777 to allow executable files.
 - Fix: Disk spinning status on Unraid 6.9 and below not working.
 - Fix: Disk orb spinner does not stay on while a disk is spinning up or down.
 - Fix: Improve ping status checking for remote servers.
 - Fix: Minor code fixes to adhere to good coding practices.
-- Add: Add back file_mode and dir_mode to cifs mounts. Set file_mode=0777 to allow executable files.
 
 ###2021.08.05
 - Fix: 'Unmounting' reversion on SMB/NFS shares.
@@ -128,20 +138,20 @@
 
 ###2021.06.10
 - Add: Filename case setting for SMB shares.
-- Fix: Automount tooltip to match the type of mount - Disk/SMB/NFS/ISO.
-- Fix: Minor help changes.
 - Add: Disk spin up/down tooltips in Unraid style.
 - Add: Tooltips to SMB/NFS and ISO file orbs in Unraid style.
 - Add: Switches and icon tooltips in upper right of UD page are now in Unraid style.
 - Add: Don't continue SMB mounts if network is unreachable.
+- Fix: Automount tooltip to match the type of mount - Disk/SMB/NFS/ISO.
+- Fix: Minor help changes.
 
 ###2021.05.26a
 - Add: Change disk label for encrypted disks when mount point is changed.
-- Fix: Don't save credentials to samba config file for NFS shares.  NFS does not use credentials.
 - Add: Sync file system to commit all writes before unmounting.  You will see 'Unmounting' status while the file system is sync'd.  This could take a while.
 - Add: Detect when UD plus is not installed when mounting apfs file system and show warning message in log.
-- Fix: Background script switch handling and default operation.
 - Add: Delete button for deleting script file and remove red X delete.
+- Fix: Don't save credentials to samba config file for NFS shares.  NFS does not use credentials.
+- Fix: Background script switch handling and default operation.
 - Fix: Change UD disk sorting order to natural so /dev/sdaa shows up at the bottom of the list.
 - Fix: Disable file system check on apfs formatted disk.
 - Fix: Minor cosmetic changes to Edit Settings.
@@ -161,14 +171,14 @@
 - Fix: Remove unneeded images folder.
 
 ###2021.05.10
-- Fix: Show 'Passed' on mount button when disk is set to passed through.  Don't show partition information.
 - Add: Rescan disks so UD can be updated with any disk changes, like a disk formatted by a VM.  Unraid 6.9 and later.
 - Add: Mount and unmount devices using Unraid 6.9 devX name.  This name is always the same for a UD device and doesn't change like the sdX device name.
 - Add: Remove the Unassigned Devices bundle when uninstalling so it will be downloaded when re-installed.
+- Fix: Show 'Passed' on mount button when disk is set to passed through.  Don't show partition information.
 
 ###2021.05.04
-- Fix: Remove the cache setting for CIFS and NFS mounts that tried to resolve the stale file handle problem.
 - Add: Mask apfs password in log.
+- Fix: Remove the cache setting for CIFS and NFS mounts that tried to resolve the stale file handle problem.
 
 ###2021.05.01
 - Add: Setting to control CIFS and NFS remote share caching option when mounting.
@@ -176,8 +186,8 @@
 - Add: NFS and CIFS mount parameters to try to help with remote mounts going off line.
 
 ###2021.04.19
-- Fix: Setting up Recycle Bin on UD devices.
 - Add: Add 'noac' to NFS mounts to disable caching.
+- Fix: Setting up Recycle Bin on UD devices.
 
 ### 2021.04.17
 - Fix: Rename UDAppend.page 'usr' variable.
@@ -218,8 +228,8 @@
 
 ###2021.01.31a
 - Add: Device to Edit Settings serial number.
-- Fix: Allow vfat formatted disk to be spun down.
 - Add: Disk read/write speed (B/s).
+- Fix: Allow vfat formatted disk to be spun down.
 
 ###2021.01.16b
 - Fix: Stop polling when the server is rebooted to prevent 503 error.
