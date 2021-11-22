@@ -1878,7 +1878,9 @@ function get_unassigned_disks() {
 		}
 	}
 
+	/* Remove any duplicate disk serial numbers. */
 	$disk_paths = array_unique($disk_paths);
+
 	ksort($disk_paths, SORT_NATURAL);
 
 	/* Get all Unraid disk devices (array disks, cache, and pool devices). */
