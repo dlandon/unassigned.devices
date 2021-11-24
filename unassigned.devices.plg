@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2021.11.22">
+<!ENTITY version	"2021.11.24">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"ceacb9ca54b66b9da48968f3dbf93cc2">
+<!ENTITY MD5		"ca929308e1944eaa15f018ed9bce6f5b">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,6 +23,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Change UUID on btrfs file system.
+- Fix: Handle all cases of SMB enabled when mounting disks.
+- Fix: More code cleanup.
+
+###2021.11.22
 - Add: Disable NFS icon when adding NFS/SMB share if NFS is disabled.
 - Add: Disable SMB icon when adding NFS/SMB share if SMB is disabled.
 - Add: Change UUID on encrypted BTRFS device.
