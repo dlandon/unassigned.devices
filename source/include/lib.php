@@ -251,13 +251,13 @@ function get_disk_reads_writes($ud_dev, $dev) {
 
 	/* Get the disk_io for this device. */
 	$disk_io	= @(array)parse_ini_file('state/diskload.ini');
-	$data	= explode(' ',$disk_io[$dev] ?? '0 0 0 0');
+	$data		= explode(' ',$disk_io[$dev] ?? '0 0 0 0');
 
 	/* Read rate. */
-	$rc[2] = is_numeric($data[0]) ? $data[0] : 0;
+	$rc[2] 		= is_numeric($data[0]) ? $data[0] : 0;
 
 	/* Write rate. */
-	$rc[3] = is_numeric($data[1]) ? $data[1] : 0;
+	$rc[3] 		= is_numeric($data[1]) ? $data[1] : 0;
 
 	return $rc;
 }
@@ -1955,13 +1955,12 @@ function get_disk_info($device) {
 
 	$disk						= array();
 	$attrs						= (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV) : get_udev_info($device, NULL);
-	$device						= realpath($device);
 	$disk['serial_short']		= isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
 	$disk['serial']				= "{$attrs['ID_MODEL']}_{$disk['serial_short']}";
-	$disk['device']				= $device;
-	$disk['ud_dev']				= get_disk_dev($device);
-	$disk['ssd']				= is_disk_ssd($device);
-	$rw							= get_disk_reads_writes($disk['ud_dev'], $device);
+	$disk['device']				= realpath($device);
+	$disk['ud_dev']				= get_disk_dev($disk['device']);
+	$disk['ssd']				= is_disk_ssd($disk['device']);
+	$rw							= get_disk_reads_writes($disk['ud_dev'], $disk['device']);
 	$disk['reads']				= $rw[0];
 	$disk['writes']				= $rw[1];
 	$disk['read_rate']			= $rw[2];
@@ -1981,14 +1980,13 @@ function get_partition_info($device) {
 
 	$disk	= array();
 	$attrs	= (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV) : get_udev_info($device, NULL);
-	$device	= realpath($device);
 	if ($attrs['DEVTYPE'] == "partition") {
 		$disk['serial_short']	= isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
 		$disk['serial']			= "{$attrs['ID_MODEL']}_{$disk['serial_short']}";
-		$disk['device']			= $device;
+		$disk['device']			= realpath($device);
 
 		/* Get partition number */
-		preg_match_all("#(.*?)(\d+$)#", $device, $matches);
+		preg_match_all("#(.*?)(\d+$)#", $disk['device'], $matches);
 		$disk['part']			= $matches[2][0];
 		$disk['disk']			= $matches[1][0];
 		if (strpos($disk['disk'], "nvme") !== false) {
