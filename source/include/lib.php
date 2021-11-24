@@ -1207,7 +1207,7 @@ function add_smb_share($dir, $recycle_bin = true) {
 	global $paths, $var, $users;
 
 	/* Add mountpoint to samba shares. */
-	if ( ($var['shareSMBEnabled'] == "yes") ) {
+	if ( ($var['shareSMBEnabled'] != "no") ) {
 		/* Remove special characters from share name. */
 		$share_name = str_replace( array("(", ")"), "", basename($dir));
 		$config = @parse_ini_file($paths['config_file'], true);
@@ -1603,7 +1603,7 @@ function do_mount_samba($info) {
 				} else {
 					unassigned_log("NFS must be enabled in 'Settings->NFS' to mount NFS remote shares.");
 				}
-			} elseif ($var['shareSMBEnabled'] == "yes") {
+			} elseif ($var['shareSMBEnabled'] != "no") {
 				/* Create the credentials file. */
 				$credentials_file = "{$paths['credentials']}_".basename($dev);
 				file_put_contents("$credentials_file", "username=".($info['user'] ? $info['user'] : 'guest')."\n");
