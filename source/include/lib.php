@@ -2108,6 +2108,7 @@ function check_for_duplicate_share($dev, $mountpoint, $fstype = "") {
 	$smb_shares = array_flip($smb_shares);
 
 	$ud_shares = array();
+
 	/* Get all disk mounts */
 	foreach (get_all_disks_info() as $name => $info) {
 		foreach ($info['partitions'] as $p) {
@@ -2273,7 +2274,7 @@ function change_iso_mountpoint($dev, $mountpoint) {
 	return $rc;
 }
 
-/* Change the xfs disk UUID. */
+/* Change the disk UUID. */
 function change_UUID($dev) {
 	global $plugin;
 
@@ -2337,9 +2338,12 @@ function change_UUID($dev) {
 			/* Close the luks device. */
 			shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
 		}
-	} else {
+	} elseif ($fs_type == "xfs") {
 		/* Change the xfs UUID. */
 		$rc		= timed_exec(20, "/usr/sbin/xfs_admin -U generate ".escapeshellarg($device));
+	} elseif ($fs_type == "btrfs") {
+		/* Change the btrfs UUID. */
+		$rc		= timed_exec(20, "/sbin/btrfstune -uf ".escapeshellarg($device));
 	}
 
 	/* Show the result of the UUID change operation. */

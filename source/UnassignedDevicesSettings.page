@@ -49,7 +49,7 @@ $uuid_devices = array();
 $encrypt_devices = array();
 
 foreach (get_all_disks_info() as $d) {
-	if (($d['partitions'][0]['fstype'] == "xfs" || $d['partitions'][0]['fstype'] == "crypto_LUKS") && (! $d['partitions'][0]['mounted'])) {
+	if (($d['partitions'][0]['fstype'] == "xfs" || $d['partitions'][0]['fstype'] == "btrfs" || $d['partitions'][0]['fstype'] == "crypto_LUKS") && (! $d['partitions'][0]['mounted'])) {
 		$a = array();
 		$a['device'] = $d['device'];
 		$a['label'] = $d['serial'];
