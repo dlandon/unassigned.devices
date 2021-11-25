@@ -17,7 +17,7 @@ $paths = [	"smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"smb_usb_shares"	=> "/etc/samba/unassigned-shares",
 			"usb_mountpoint"	=> "/mnt/disks",
 			"remote_mountpoint"	=> "/mnt/remotes",
-			"dev_state"			=> "/usr/local/emhttp/state/devs.ini",
+			"dev_state"			=> "/usr/local/emhttp/state/dev.ini",
 			"device_log"		=> "/tmp/{$plugin}/logs/",
 			"config_file"		=> "/tmp/{$plugin}/config/{$plugin}.cfg",
 			"samba_mount"		=> "/tmp/{$plugin}/config/samba_mount.cfg",
@@ -195,7 +195,7 @@ function get_device_stats($mountpoint, $mounted, $active = true) {
 	if ($mounted) {
 		$df_status	= MiscUD::get_json($tc);
 		/* Run the stats script to update the state file. */
-		if (($active) && ((time() - $df_status[$mountpoint]['timestamp']) > 90) ) {
+		if (($active) && ((time() - $df_status[$mountpoint]['timestamp']) > 90)) {
 			exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." &");
 		}
 
@@ -284,13 +284,13 @@ function is_disk_running($ud_dev, $dev) {
 	/* If the spindown can't be gotten from the dev state, do hdparm to get it. */
 	$run_status	= MiscUD::get_json($tc);
 	if (! $run_devs) {
-		if (isset($run_status[$dev]) && (time() - $run_status[$dev]['timestamp']) < 60) {
-			$rc		= ($run_status[$dev]['running'] == 'yes') ? true : false;
+		$device = basename($dev);
+		if (isset($run_status[$device]) && ((time() - $run_status[$device]['timestamp']) < 60)) {
+			$rc		= ($run_status[$device]['running'] == 'yes') ? true : false;
 		} else {
 			$state	= trim(timed_exec(10, "/usr/sbin/hdparm -C ".escapeshellarg($dev)." 2>/dev/null | /bin/grep -c standby"));
 			$rc		= ($state == 0) ? true : false;
 		}
-		$device		= $dev;
 	}
 
 	/* Update the spin status. */
@@ -407,6 +407,7 @@ function get_temp($ud_dev, $dev, $running) {
 	$rc		= "*";
 	$temp	= "";
 	$sf		= $paths['dev_state'];
+	$device	= basename($dev);
 
 	/* Get temperature from the devs.ini file. */
 	if (is_file($sf)) {
@@ -421,12 +422,12 @@ function get_temp($ud_dev, $dev, $running) {
 	if (($running) && (! $temp)) {
 		$tc		= $paths['hdd_temp'];
 		$temps	= MiscUD::get_json($tc);
-		if (isset($temps[$dev]) && (time() - $temps[$dev]['timestamp']) < $var['poll_attributes'] ) {
-			$rc = $temps[$dev]['temp'];
+		if (isset($temps[$device]) && ((time() - $temps[$device]['timestamp']) < $var['poll_attributes']) ) {
+			$rc = $temps[$device]['temp'];
 		} else {
 			$temp	= trim(timed_exec(10, "/usr/sbin/smartctl -n standby -A ".escapeshellarg($dev)." | /bin/awk 'BEGIN{t=\"*\"} $1==\"Temperature:\"{t=$2;exit};$1==190||$1==194{t=$10;exit} END{print t}'"));
 			$temp	= ($temp < 128) ? $temp : "*";
-			$temps[$dev] = array('timestamp' => time(), 'temp' => $temp);
+			$temps[$device] = array('timestamp' => time(), 'temp' => $temp);
 			MiscUD::save_json($tc, $temps);
 			$rc		= $temp;
 		}
@@ -1979,10 +1980,7 @@ function get_partition_info($device) {
 		/* Get partition number */
 		preg_match_all("#(.*?)(\d+$)#", $disk['device'], $matches);
 		$disk['part']			= $matches[2][0];
-		$disk['disk']			= $matches[1][0];
-		if (MiscUD::is_device_nvme($disk['disk'])) {
-			$disk['disk']		= rtrim($disk['disk'], "p");
-		}
+		$disk['disk']			= MiscUD::base_device($matches[1][0]);
 
 		/* Get the physical disk label or generate one based on the vendor id and model or serial number. */
 		if (isset($attrs['ID_FS_LABEL'])){

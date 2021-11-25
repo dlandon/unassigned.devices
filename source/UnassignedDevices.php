@@ -213,8 +213,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$title .= _("Share").": ";
 		$title .= ($partition['shared'] == 'yes') ? "Yes" : "No";
 
-		$dev		= basename($device);
-		$device		= MiscUD::base_device($dev) ;
+		$device		= MiscUD::base_device(basename($device)) ;
 		$serial		= $partition['serial'];
 		$out[]		= "<td><a class='info' href='/Main/EditSettings?s=".$serial."&b=".$device."&f=".$fstype."&l=".basename($partition['mountpoint'])."&p=".$partition['part']."&m=".json_encode($partition)."&t=".$disk_line."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 		if ($disk_line) {
