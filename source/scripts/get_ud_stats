@@ -17,6 +17,25 @@ $tc 			= "/var/state/{$plugin}/ping_status.json";
 
 $COMMAND = $argv[1];
 
+/* Misc functions. */
+class MiscUD
+{
+	/* Get content from a json file. */
+	public function get_json($file) {
+		return file_exists($file) ? @json_decode(file_get_contents($file), true) : array();
+	}
+
+	/* Save content to a json file. */
+	public function save_json($file, $content) {
+		file_put_contents($file, json_encode($content, JSON_PRETTY_PRINT));
+	}
+
+	/* Confirm we have a good ip address. */
+	public function is_ip($str) {
+		return filter_var($str, FILTER_VALIDATE_IP);
+	}
+}
+
 /* Unassigned Devices logging. */
 function unassigned_log($m, $type = "NOTICE") {
 	global $plugin;
@@ -40,17 +59,8 @@ function timed_exec($timeout = 10, $cmd) {
 	} else {
 		unassigned_log("Timed Exec: shell_exec(".$cmd.") took ".sprintf('%f', $time)."s!", "DEBUG");
 	}
+
 	return $out;
-}
-
-/* Confirm we have a good ip address. */
-function is_ip($str) {
-	return filter_var($str, FILTER_VALIDATE_IP);
-}
-
-/* Check for text in a file. */
-function exist_in_file($file, $text) {
-	return (preg_grep("%{$text}%", @file($file))) ? true : false;
 }
 
 /* Is the server currently on line. */
@@ -58,7 +68,7 @@ function is_server_online($server) {
 	global $tc;
 
 	/* Check the last ping status. */
-	$ping_status	= is_file($tc) ? json_decode(file_get_contents($tc), true) : array();
+	$ping_status	= MiscUD::get_json($tc);
 	$was_alive		= ($ping_status[$server]['online'] == 'yes') ? true : false;
 	$is_alive		= (trim(exec("/bin/ping -c 1 -W 1 ".escapeshellarg($server)." >/dev/null 2>&1; echo $?")) == 0 ) ? true : false;
 	$no_pings		= isset($ping_status[$server]['no_pings']) ? $ping_status[$server]['no_pings'] : 0;
@@ -94,7 +104,7 @@ function is_server_online($server) {
 	}
 
 	$ping_status[$server] = array('no_pings' => $no_pings, 'online' => $is_alive ? 'yes' : 'no', 'changed' => $changed ? 'yes' : 'no');
-	file_put_contents($tc, json_encode($ping_status));
+	MiscUD::save_json($tc, $ping_status);
 
 	return $changed;
 }
@@ -113,11 +123,11 @@ function ping_servers() {
 
 			/* Update server ping status if it has changed. */
 			if ($changed) {
-				$ping_status	= is_file($tc) ? json_decode(file_get_contents($tc), true) : array();
+				$ping_status	= MiscUD::get_json($tc);
 				$no_pings		= $ping_status[$server]['no_pings'];
 				$online			= $ping_status[$server]['online'];
 				$ping_status[$server] = array('no_pings' => $no_pings, 'online' => $online, 'changed' => 'no');
-				file_put_contents($tc, json_encode($ping_status));
+				MiscUD::save_json($tc, $ping_status);
 			}
 		}
 	}
@@ -126,10 +136,10 @@ function ping_servers() {
 /* Get the size, used, and free space on device. */
 function df_status($tc, $mountpoint) {
 
-	$df_status	= is_file($tc) ? json_decode(file_get_contents($tc), true) : array();
+	$df_status	= MiscUD::get_json($tc);
 	$rc			= trim(timed_exec(5, "/bin/df ".escapeshellarg($mountpoint)." --output=size,used,avail | /bin/grep -v '1K-blocks' 2>/dev/null"));
 	$df_status[$mountpoint] = array('timestamp' => time(), 'stats' => $rc);
-	file_put_contents($tc, json_encode($df_status));
+	MiscUD::save_json($tc, $df_status);
 }
 
 switch ($COMMAND) {

@@ -403,7 +403,7 @@ function unassigned_spin_down() {
 	global $DEVNAME;
 
 	$dev = basename($DEVNAME);
-	spin_disk(true, $dev);
+	MiscUD::spin_disk(true, $dev);
 }
 
 /* Add status file so mount buttons will show current status of operation. */

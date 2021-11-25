@@ -59,42 +59,47 @@ if ( is_file( "plugins/preclear.disk/assets/lib.php" ) ) {
 	$Preclear = null;
 }
 
-########################################################
-#############		MISC FUNCTIONS        ##############
-########################################################
-
+/* Misc functions. */
 class MiscUD
 {
 
-	public function save_json($file, $content)
-	{
+	/* Save contect to a json file. */
+	public function save_json($file, $content) {
 		file_put_contents($file, json_encode($content, JSON_PRETTY_PRINT));
 	}
 
-	public function get_json($file)
-	{
-		return file_exists($file) ? @json_decode(file_get_contents($file), true) : [];
+	/* Get content from a json file. */
+	public function get_json($file) {
+		return file_exists($file) ? @json_decode(file_get_contents($file), true) : array();
 	}
 
-	public function disk_device($disk)
-	{
+	public function disk_device($disk) {
 		return (file_exists($disk)) ? $disk : "/dev/{$disk}";
 	}
 
-	public function disk_name($disk)
-	{
-		return (file_exists($disk)) ? basename($disk) : $disk;
+	/* Check for a valid IP address. */
+	public function is_ip($str) {
+		return filter_var($str, FILTER_VALIDATE_IP);
 	}
 
-	public function array_first_element($arr)
-	{
-		return (is_array($arr) && count($arr)) ? $arr[0] : $arr;
+	/* Check for text in a file. */
+	public function exist_in_file($file, $text) {
+		return (preg_grep("%{$text}%", @file($file))) ? true : false;
 	}
-}
 
-/* Check for a valid IP address. */
-function is_ip($str) {
-	return filter_var($str, FILTER_VALIDATE_IP);
+	/* Remove the partition number from $dev and return the base device. */
+	public function base_device($dev) {
+		return (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev);
+	}
+
+	/* Spin disk up or down using Unraid api. */
+	public function spin_disk($down, $dev) {
+		if ($down) {
+			exec(escapeshellcmd("/usr/local/sbin/emcmd cmdSpindown=".escapeshellarg($dev)));
+		} else {
+			exec(escapeshellcmd("/usr/local/sbin/emcmd cmdSpinup=".escapeshellarg($dev)));
+		}
+	}
 }
 
 /* Echo variable to GUI for debugging. */
@@ -174,11 +179,6 @@ function safe_name($string, $convert_spaces = true) {
 	return trim($string);
 }
 
-/* Check for text in a file. */
-function exist_in_file($file, $text) {
-	return (preg_grep("%{$text}%", @file($file))) ? true : false;
-}
-
 /* Get the size, used, and free space on a mount point. */
 function get_device_stats($mountpoint, $mounted, $active = true) {
 	global $paths, $plugin;
@@ -188,25 +188,20 @@ function get_device_stats($mountpoint, $mounted, $active = true) {
 
 	/* Get the device stats if device is mounted. */
 	if ($mounted) {
-		$df_status	= is_file($tc) ? json_decode(file_get_contents($tc),true) : array();
+		$df_status	= MiscUD::get_json($tc);
 		/* Run the stats script to update the state file. */
 		if (($active) && ((time() - $df_status[$mountpoint]['timestamp']) > 90) ) {
 			exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." &");
 		}
 
 		/* Get the updated device stats. */
-		$df_status	= is_file($tc) ? json_decode(file_get_contents($tc),true) : array();
+		$df_status	= MiscUD::get_json($tc);
 		if (isset($df_status[$mountpoint])) {
 			$rc = $df_status[$mountpoint]['stats'];
 		}
 	}
 
 	return preg_split('/\s+/', $rc);
-}
-
-/* Remove the partition number from $dev and return the base device. */
-function base_device($dev) {
-	return (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev);
 }
 
 /* Get the devX designation for this device from the devs.ini. */
@@ -247,7 +242,7 @@ function get_disk_reads_writes($ud_dev, $dev) {
 	}
 
 	/* Get the base device - remove the partition number. */
-	$dev	= base_device(basename($dev));
+	$dev	= MiscUD::base_device(basename($dev));
 
 	/* Get the disk_io for this device. */
 	$disk_io	= @(array)parse_ini_file('state/diskload.ini');
@@ -282,7 +277,7 @@ function is_disk_running($ud_dev, $dev) {
 	}
 
 	/* If the spindown can't be gotten from the dev state, do hdparm to get it. */
-	$run_status	= is_file($tc) ? json_decode(file_get_contents($tc),true) : array();
+	$run_status	= MiscUD::get_json($tc);
 	if (! $run_devs) {
 		if (isset($run_status[$dev]) && (time() - $run_status[$dev]['timestamp']) < 60) {
 			$rc		= ($run_status[$dev]['running'] == 'yes') ? true : false;
@@ -297,7 +292,7 @@ function is_disk_running($ud_dev, $dev) {
 	$spin		= isset($run_status[$device]['spin']) ? $run_status[$device]['spin'] : "";
 	$spin_time	= isset($run_status[$device]['spin']) ? $run_status[$device]['spin_time'] : 0;
 	$run_status[$device] = array('timestamp' => time(), 'running' => $rc ? 'yes' : 'no', 'spin_time' => $spin_time, 'spin' => $spin);
-	file_put_contents($tc, json_encode($run_status));
+	MiscUD::save_json($tc, $run_status);
 
 	return $rc;
 }
@@ -308,7 +303,7 @@ function is_disk_spin($ud_dev, $running) {
 
 	$rc			= false;
 	$tc			= $paths['run_status'];
-	$run_status	= is_file($tc) ? json_decode(file_get_contents($tc),true) : array();
+	$run_status	= MiscUD::get_json($tc);
 
 	/* Is disk spinning up or down? */
 	if (isset($run_status[$ud_dev]['spin'])) {
@@ -334,7 +329,7 @@ function is_disk_spin($ud_dev, $running) {
 		if ((! $rc) && ($run_status[$ud_dev]['spin'])) {
 			$run_status[$ud_dev]['spin'] = "";
 			$run_status[$ud_dev]['spin_time'] = 0;
-			file_put_contents($tc, json_encode($run_status));
+			MiscUD::save_json($tc, $run_status);
 		}
 	}
 
@@ -350,7 +345,7 @@ function is_samba_server_online($ip) {
 	$tc				= $paths['ping_status'];
 
 	/* Get the updated ping status. */
-	$ping_status	= is_file($tc) ? json_decode(file_get_contents($tc),true) : array();
+	$ping_status	= MiscUD::get_json($tc);
 	if (isset($ping_status[$server])) {
 		$is_alive = ($ping_status[$server]['online'] == 'yes') ? true : false;
 	}
@@ -368,7 +363,7 @@ function is_script_running($cmd, $user = false) {
 	if ($cmd) {
 		$script_name	= $cmd;
 		$tc				= $paths['script_run'];
-		$script_run		= is_file($tc) ? json_decode(file_get_contents($tc), true) : array();
+		$script_run		= MiscUD::get_json($tc);
 
 		/* Check to see if the script was running. */
 		if (isset($script_run[$script_name])) {
@@ -391,7 +386,7 @@ function is_script_running($cmd, $user = false) {
 		$script_run[$script_name] = array('running' => $is_running ? 'yes' : 'no','user' => $user ? 'yes' : 'no');
 
 		/* Update the current running state. */
-		file_put_contents($tc, json_encode($script_run));
+		MiscUD::save_json($tc, $script_run);
 		if (($was_running) && (! $is_running)) {
 			publish();
 		}
@@ -420,14 +415,14 @@ function get_temp($ud_dev, $dev, $running) {
 	/* If devs.ini does not exist, then query the disk for the temperature. */
 	if (($running) && (! $temp)) {
 		$tc		= $paths['hdd_temp'];
-		$temps	= is_file($tc) ? json_decode(file_get_contents($tc),true) : array();
+		$temps	= MiscUD::get_json($tc);
 		if (isset($temps[$dev]) && (time() - $temps[$dev]['timestamp']) < $var['poll_attributes'] ) {
 			$rc = $temps[$dev]['temp'];
 		} else {
 			$temp	= trim(timed_exec(10, "/usr/sbin/smartctl -n standby -A ".escapeshellarg($dev)." | /bin/awk 'BEGIN{t=\"*\"} $1==\"Temperature:\"{t=$2;exit};$1==190||$1==194{t=$10;exit} END{print t}'"));
 			$temp	= ($temp < 128) ? $temp : "*";
 			$temps[$dev] = array('timestamp' => time(), 'temp' => $temp);
-			file_put_contents($tc, json_encode($temps));
+			MiscUD::save_json($tc, $temps);
 			$rc		= $temp;
 		}
 	}
@@ -906,7 +901,7 @@ function is_disk_ssd($device) {
 	$rc		= false;
 
 	/* Get the base device - remove the partition number. */
-	$device	= base_device(basename($device));
+	$device	= MiscUD::base_device(basename($device));
 	if (strpos($device, "nvme") === false) {
 		$file = "/sys/block/".basename($device)."/queue/rotational";
 		if (is_file($file)) {
@@ -919,15 +914,6 @@ function is_disk_ssd($device) {
 	}
 
 	return $rc;
-}
-
-/* Spin disk up or down using Unraid api. */
-function spin_disk($down, $dev) {
-	if ($down) {
-		exec(escapeshellcmd("/usr/local/sbin/emcmd cmdSpindown=".escapeshellarg($dev)));
-	} else {
-		exec(escapeshellcmd("/usr/local/sbin/emcmd cmdSpinup=".escapeshellarg($dev)));
-	}
 }
 
 #########################################################
@@ -1269,7 +1255,7 @@ function add_smb_share($dir, $recycle_bin = true) {
 
 		unassigned_log("Adding SMB share '{$share_name}'.");
 		file_put_contents($share_conf, $share_cont);
-		if (! exist_in_file($paths['smb_extra'], $share_conf)) {
+		if (! MiscUD::exist_in_file($paths['smb_extra'], $share_conf)) {
 			$c		= (is_file($paths['smb_extra'])) ? @file($paths['smb_extra'],FILE_IGNORE_NEW_LINES) : array();
 			$c[]	= "";
 			$c[]	= "include = $share_conf";
@@ -1314,7 +1300,7 @@ function rm_smb_share($dir) {
 		unassigned_log("Removing SMB share '{$share_name}'");
 		@unlink($share_conf);
 	}
-	if (exist_in_file($paths['smb_extra'], $share_conf)) {
+	if (MiscUD::exist_in_file($paths['smb_extra'], $share_conf)) {
 		$c = (is_file($paths['smb_extra'])) ? @file($paths['smb_extra'],FILE_IGNORE_NEW_LINES) : array();
 
 		/* Do some cleanup. */
@@ -1338,7 +1324,7 @@ function add_nfs_share($dir) {
 	if ( ($var['shareNFSEnabled'] == "yes") && (get_config("Config", "nfs_export") == "yes") ) {
 		$reload = false;
 		foreach (array("/etc/exports","/etc/exports-") as $file) {
-			if (! exist_in_file($file, "\"{$dir}\"")) {
+			if (! MiscUD::exist_in_file($file, "\"{$dir}\"")) {
 				$c			= (is_file($file)) ? @file($file, FILE_IGNORE_NEW_LINES) : array();
 				$fsid		= 200 + count(preg_grep("@^\"@", $c));
 				$nfs_sec	= get_config("Config", "nfs_security");
@@ -1370,7 +1356,7 @@ function rm_nfs_share($dir) {
 	/* Remove this disk from the exports file. */
 	$reload = false;
 	foreach (array("/etc/exports","/etc/exports-") as $file) {
-		if ( exist_in_file($file, "\"{$dir}\"") && strlen($dir)) {
+		if ( MiscUD::exist_in_file($file, "\"{$dir}\"") && strlen($dir)) {
 			$c		= (is_file($file)) ? @file($file, FILE_IGNORE_NEW_LINES) : array();
 			$c		= preg_grep("@\"{$dir}\"@i", $c, PREG_GREP_INVERT);
 			$c[]	= "";

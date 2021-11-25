@@ -214,7 +214,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$title .= ($partition['shared'] == 'yes') ? "Yes" : "No";
 
 		$dev		= basename($device);
-		$device		= base_device($dev) ;
+		$device		= MiscUD::base_device($dev) ;
 		$serial		= $partition['serial'];
 		$out[]		= "<td><a class='info' href='/Main/EditSettings?s=".$serial."&b=".$device."&f=".$fstype."&l=".basename($partition['mountpoint'])."&p=".$partition['part']."&m=".json_encode($partition)."&t=".$disk_line."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 		if ($disk_line) {
@@ -829,7 +829,7 @@ switch ($_POST['action']) {
 			$device = ($protocol == "NFS") ? "{$ip}:{$path}" : "//".strtoupper($ip)."/{$share}";
 			$device = str_replace("$", "", $device);
 			set_samba_config("{$device}", "protocol", $protocol);
-			set_samba_config("{$device}", "ip", (is_ip($ip) ? $ip : strtoupper($ip)));
+			set_samba_config("{$device}", "ip", (MiscUD::is_ip($ip) ? $ip : strtoupper($ip)));
 			set_samba_config("{$device}", "path", $path);
 			if ($protocol == "SMB") {
 				set_samba_config("{$device}", "user", $user);
@@ -954,7 +954,7 @@ switch ($_POST['action']) {
 			$run_status[$device]['spin_time'] = time();
 			$run_status[$device]['spin'] = 'down';
 			file_put_contents($tc, json_encode($run_status));
-			echo json_encode(spin_disk(true, $device));
+			echo json_encode(MiscUD::spin_disk(true, $device));
 		}
 		break;
 
@@ -969,7 +969,7 @@ switch ($_POST['action']) {
 			$run_status[$device]['spin_time'] = time();
 			$run_status[$device]['spin'] = 'up';
 			file_put_contents($tc, json_encode($run_status));
-			echo json_encode(spin_disk(false, $device));
+			echo json_encode(MiscUD::spin_disk(false, $device));
 		}
 		break;
 
