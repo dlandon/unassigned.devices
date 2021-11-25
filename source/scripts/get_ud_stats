@@ -10,12 +10,18 @@
  * all copies or substantial portions of the Software.
  */
 
+/* Set the level for logging. */
+/* 0 - normal logging */
+/* 1 to 3 - different levels with 3 being the chatiest. */
+$LOG_LEVEL	= (! $argv[4]) ? 0 : (int) $argv[4];
+
+/* Get the comand to execute. */
+$COMMAND	= $argv[1];
+
 $plugin			= "unassigned.devices";
 $docroot		= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $config_file	= "/tmp/{$plugin}/config/samba_mount.cfg";
 $tc 			= "/var/state/{$plugin}/ping_status.json";
-
-$COMMAND = $argv[1];
 
 /* Misc functions. */
 class MiscUD
@@ -37,10 +43,10 @@ class MiscUD
 }
 
 /* Unassigned Devices logging. */
-function unassigned_log($m, $type = "NOTICE") {
+function unassigned_log($m, $log_level) {
 	global $plugin;
 
-	if ($type != "DEBUG" || $GLOBALS["VERBOSE"]) {
+	if ($log_level <= $GLOBALS['LOG_LEVEL']) {
 		$m		= print_r($m,true);
 		$m		= str_replace("\n", " ", $m);
 		$m		= str_replace('"', "'", $m);
@@ -57,7 +63,7 @@ function timed_exec($timeout = 10, $cmd) {
 		unassigned_log("Error: shell_exec(".$cmd.") took longer than ".sprintf('%d', $timeout)."s!");
 		$out	= "command timed out";
 	} else {
-		unassigned_log("Timed Exec: shell_exec(".$cmd.") took ".sprintf('%f', $time)."s!", "DEBUG");
+		unassigned_log("Timed Exec: shell_exec(".$cmd.") took ".sprintf('%f', $time)."s!", 3);
 	}
 
 	return $out;

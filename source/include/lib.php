@@ -10,14 +10,17 @@
  * all copies or substantial portions of the Software.
  */
 
-$plugin = "unassigned.devices";
-/* $VERBOSE=true; */
+/* Set the level for logging. */
+/* 0 - normal logging */
+/* 1 to 3 - different log levels with 3 being the chatiest. */
+$LOG_LEVEL = 1;
 
+$plugin = "unassigned.devices";
 $paths = [	"smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"smb_usb_shares"	=> "/etc/samba/unassigned-shares",
 			"usb_mountpoint"	=> "/mnt/disks",
 			"remote_mountpoint"	=> "/mnt/remotes",
-			"dev_state"			=> "/usr/local/emhttp/state/dev.ini",
+			"dev_state"			=> "/usr/local/emhttp/state/devs.ini",
 			"device_log"		=> "/tmp/{$plugin}/logs/",
 			"config_file"		=> "/tmp/{$plugin}/config/{$plugin}.cfg",
 			"samba_mount"		=> "/tmp/{$plugin}/config/samba_mount.cfg",
@@ -137,10 +140,10 @@ function save_ini_file($file, $array) {
 }
 
 /* Unassigned Devices logging. */
-function unassigned_log($m, $type = "NOTICE") {
+function unassigned_log($m, $log_level = 0) {
 	global $plugin;
 
-	if ($type != "DEBUG" || $GLOBALS["VERBOSE"]) {
+	if ($log_level <= $GLOBALS['LOG_LEVEL']) {
 		$m		= print_r($m,true);
 		$m		= str_replace("\n", " ", $m);
 		$m		= str_replace('"', "'", $m);
@@ -196,7 +199,7 @@ function get_device_stats($mountpoint, $mounted, $active = true) {
 		$df_status	= MiscUD::get_json($tc);
 		/* Run the stats script to update the state file. */
 		if (($active) && ((time() - $df_status[$mountpoint]['timestamp']) > 90)) {
-			exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." &");
+			exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".escapeshellarg($GLOBALS['LOG_LEVEL'])." &");
 		}
 
 		/* Get the updated device stats. */
@@ -278,26 +281,27 @@ function is_disk_running($ud_dev, $dev) {
 			$rc			= ($devs[$ud_dev]['spundown'] == '0') ? true : false;
 			$device		= $ud_dev;
 			$run_devs	= true;
+			$timestamp	= time();
 		}
 	}
 
-	/* If the spindown can't be gotten from the dev state, do hdparm to get it. */
+	/* If the spindown can't be gotten from the devs state, do hdparm to get it. */
 	$run_status	= MiscUD::get_json($tc);
 	if (! $run_devs) {
 		$device = basename($dev);
 		if (isset($run_status[$device]) && ((time() - $run_status[$device]['timestamp']) < 60)) {
-			$rc		= ($run_status[$device]['running'] == 'yes') ? true : false;
+			$rc			= ($run_status[$device]['running'] == 'yes') ? true : false;
+			$timestamp	= $run_status[$device]['timestamp'];
 		} else {
-			$state	= trim(timed_exec(10, "/usr/sbin/hdparm -C ".escapeshellarg($dev)." 2>/dev/null | /bin/grep -c standby"));
-			$rc		= ($state == 0) ? true : false;
-			$run_status[$device]['timestamp'] = time();
+			$state		= trim(timed_exec(10, "/usr/sbin/hdparm -C ".escapeshellarg($dev)." 2>/dev/null | /bin/grep -c standby"));
+			$rc			= ($state == 0) ? true : false;
+			$timestamp	= time();
 		}
 	}
 
 	/* Update the spin status. */
 	$spin		= isset($run_status[$device]['spin']) ? $run_status[$device]['spin'] : "";
 	$spin_time	= isset($run_status[$device]['spin']) ? $run_status[$device]['spin_time'] : 0;
-	$timestamp	= $run_status[$device]['timestamp'];
 	$run_status[$device] = array('timestamp' => $timestamp, 'running' => $rc ? 'yes' : 'no', 'spin_time' => $spin_time, 'spin' => $spin);
 	MiscUD::save_json($tc, $run_status);
 
@@ -334,8 +338,8 @@ function is_disk_spin($ud_dev, $running) {
 
 		/* See if we need to update the run spin status. */
 		if ((! $rc) && ($run_status[$ud_dev]['spin'])) {
-			$run_status[$ud_dev]['spin'] = "";
-			$run_status[$ud_dev]['spin_time'] = 0;
+			$run_status[$ud_dev]['spin']		= "";
+			$run_status[$ud_dev]['spin_time']	= 0;
 			MiscUD::save_json($tc, $run_status);
 		}
 	}
@@ -707,7 +711,7 @@ function benchmark() {
 	$time		= -microtime(true); 
 	$out		= call_user_func_array($function, $params);
 	$time	   += microtime(true); 
-	$type		= ($time > 10) ? "INFO" : "DEBUG";
+	$type		= ($time > 10) ? 0 : 1;
 	unassigned_log("benchmark: $function(".implode(",", $params).") took ".sprintf('%f', $time)."s.", $type);
 
 	return $out;
@@ -721,6 +725,8 @@ function timed_exec($timeout = 10, $cmd) {
 	if ($time > $timeout) {
 		unassigned_log("Error: shell_exec(".$cmd.") took longer than ".sprintf('%d', $timeout)."s!");
 		$out	= "command timed out";
+	} else {
+		unassigned_log("Timed Exec: shell_exec(".$cmd.") took ".sprintf('%f', $time)."s!", 3);
 	}
 
 	return $out;
@@ -1907,7 +1913,6 @@ function get_all_disks_info() {
 	$ud_disks = get_unassigned_disks();
 	if (is_array($ud_disks)) {
 		foreach ($ud_disks as $key => $disk) {
-			$dp = time();
 			$disk['size']	= intval(trim(timed_exec(5, "/bin/lsblk -nb -o size ".escapeshellarg(realpath($key))." 2>/dev/null")));
 			$disk			= array_merge($disk, get_disk_info($key));
 			foreach ($disk['partitions'] as $k => $p) {
