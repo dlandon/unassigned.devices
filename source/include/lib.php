@@ -290,13 +290,15 @@ function is_disk_running($ud_dev, $dev) {
 		} else {
 			$state	= trim(timed_exec(10, "/usr/sbin/hdparm -C ".escapeshellarg($dev)." 2>/dev/null | /bin/grep -c standby"));
 			$rc		= ($state == 0) ? true : false;
+			$run_status[$device]['timestamp'] = time();
 		}
 	}
 
 	/* Update the spin status. */
 	$spin		= isset($run_status[$device]['spin']) ? $run_status[$device]['spin'] : "";
 	$spin_time	= isset($run_status[$device]['spin']) ? $run_status[$device]['spin_time'] : 0;
-	$run_status[$device] = array('timestamp' => time(), 'running' => $rc ? 'yes' : 'no', 'spin_time' => $spin_time, 'spin' => $spin);
+	$timestamp	= $run_status[$device]['timestamp'];
+	$run_status[$device] = array('timestamp' => $timestamp, 'running' => $rc ? 'yes' : 'no', 'spin_time' => $spin_time, 'spin' => $spin);
 	MiscUD::save_json($tc, $run_status);
 
 	return $rc;
