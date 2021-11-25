@@ -87,6 +87,11 @@ class MiscUD
 		return (preg_grep("%{$text}%", @file($file))) ? true : false;
 	}
 
+	/* Is the device an nvme disk? */
+	public function is_device_nvme($dev) {
+		return (strpos($dev, "nvme") !== false) ? true : false;
+	}
+
 	/* Remove the partition number from $dev and return the base device. */
 	public function base_device($dev) {
 		return (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev);
@@ -552,7 +557,7 @@ function format_disk($dev, $fs, $pass) {
 
 		/* Format the disk. */
 		if (strpos($fs, "-encrypted") !== false) {
-			if (strpos($dev, "nvme") !== false) {
+			if (MiscUD::is_device_nvme($dev)) {
 				$cmd = "luksFormat {$dev}p1";
 			} else {
 				$cmd = "luksFormat {$dev}1";
@@ -574,7 +579,7 @@ function format_disk($dev, $fs, $pass) {
 				$rc = false;
 			} else {
 				$mapper = "format_".basename($dev);
-				if (strpos($dev, "nvme") !== false) {
+				if (MiscUD::is_device_nvme($dev)) {
 					$device	= $dev."p1";
 				} else {
 					$device	= $dev."1";
@@ -604,7 +609,7 @@ function format_disk($dev, $fs, $pass) {
 			}
 		} else {
 			/* nvme partition designations are 'p1', not '1'. */
-			if (strpos($dev, "nvme") !== false) {
+			if (MiscUD::is_device_nvme($dev)) {
 				exec(get_format_cmd("{$dev}p1", $fs),escapeshellarg($out), escapeshellarg($return));
 			} else {
 				exec(get_format_cmd("{$dev}1", $fs),escapeshellarg($out), escapeshellarg($return));
@@ -902,7 +907,7 @@ function is_disk_ssd($device) {
 
 	/* Get the base device - remove the partition number. */
 	$device	= MiscUD::base_device(basename($device));
-	if (strpos($device, "nvme") === false) {
+	if (! MiscUD::is_device_nvme($device)) {
 		$file = "/sys/block/".basename($device)."/queue/rotational";
 		if (is_file($file)) {
 			$rc = (@file_get_contents($file) == 0) ? true : false;
@@ -1975,7 +1980,7 @@ function get_partition_info($device) {
 		preg_match_all("#(.*?)(\d+$)#", $disk['device'], $matches);
 		$disk['part']			= $matches[2][0];
 		$disk['disk']			= $matches[1][0];
-		if (strpos($disk['disk'], "nvme") !== false) {
+		if (MiscUD::is_device_nvme($disk['disk'])) {
 			$disk['disk']		= rtrim($disk['disk'], "p");
 		}
 
@@ -2279,7 +2284,7 @@ function change_UUID($dev) {
 	$device	= $dev;
 
 	/* nvme disk partitions are 'p1', not '1'. */
-	$device	.=(strpos($dev, "nvme") === false) ? "1" : "p1";
+	$device	.=(MiscUD::is_device_nvme($dev)) ? "p1" : "1";
 
 	/* Deal with crypto_LUKS disks. */
 	if ($fs_type == "crypto_LUKS") {
