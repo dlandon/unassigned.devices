@@ -161,5 +161,4 @@ switch ($COMMAND) {
 		exit(0);
 		break;
 }
-
 ?>

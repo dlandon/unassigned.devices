@@ -13,7 +13,7 @@
 /* Set the level for logging. */
 /* 0 - normal logging */
 /* 1 to 3 - different log levels with 3 being the chatiest. */
-$LOG_LEVEL = 1;
+$LOG_LEVEL = 0;
 
 $plugin = "unassigned.devices";
 $paths = [	"smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
@@ -65,7 +65,6 @@ if ( is_file( "plugins/preclear.disk/assets/lib.php" ) ) {
 /* Misc functions. */
 class MiscUD
 {
-
 	/* Save contect to a json file. */
 	public function save_json($file, $content) {
 		file_put_contents($file, json_encode($content, JSON_PRETTY_PRINT));
@@ -265,7 +264,7 @@ function get_disk_reads_writes($ud_dev, $dev) {
 	return $rc;
 }
 
-/* Check to see if the disk is spinning up or down. */
+/* Check to see if the disk is spun up or down. */
 function is_disk_running($ud_dev, $dev) {
 	global $paths;
 
@@ -910,12 +909,12 @@ function remove_config_disk($serial) {
 }
 
 /* Is disk device an SSD? */
-function is_disk_ssd($device) {
+function is_disk_ssd($dev) {
 
 	$rc		= false;
 
 	/* Get the base device - remove the partition number. */
-	$device	= MiscUD::base_device(basename($device));
+	$device	= MiscUD::base_device(basename($dev));
 	if (! MiscUD::is_device_nvme($device)) {
 		$file = "/sys/block/".basename($device)."/queue/rotational";
 		if (is_file($file)) {
@@ -1935,7 +1934,7 @@ function get_udev_info($dev, $udev = NULL) {
 	$state	= is_file($paths['state']) ? @parse_ini_file($paths['state'], true, INI_SCANNER_RAW) : array();
 	$device	= safe_name($dev);
 	if ($udev) {
-		$state[$device] = $udev;
+		$state[$device]= $udev;
 		save_ini_file($paths['state'], $state);
 		$rc	= $udev;
 	} else if (array_key_exists($device, $state)) {
@@ -1950,13 +1949,13 @@ function get_udev_info($dev, $udev = NULL) {
 }
 
 /* Get information on specific disk device. */
-function get_disk_info($device) {
+function get_disk_info($dev) {
 
 	$disk						= array();
-	$attrs						= (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV) : get_udev_info($device, NULL);
+	$attrs						= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, NULL);
 	$disk['serial_short']		= isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
 	$disk['serial']				= "{$attrs['ID_MODEL']}_{$disk['serial_short']}";
-	$disk['device']				= realpath($device);
+	$disk['device']				= realpath($dev);
 	$disk['ud_dev']				= get_disk_dev($disk['device']);
 	$disk['ssd']				= is_disk_ssd($disk['device']);
 	$rw							= get_disk_reads_writes($disk['ud_dev'], $disk['device']);
@@ -1974,15 +1973,15 @@ function get_disk_info($device) {
 }
 
 /* Get partition information. */
-function get_partition_info($device) {
+function get_partition_info($dev) {
 	global $paths;
 
 	$disk	= array();
-	$attrs	= (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV) : get_udev_info($device, NULL);
+	$attrs	= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, NULL);
 	if ($attrs['DEVTYPE'] == "partition") {
 		$disk['serial_short']	= isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
 		$disk['serial']			= "{$attrs['ID_MODEL']}_{$disk['serial_short']}";
-		$disk['device']			= realpath($device);
+		$disk['device']			= realpath($dev);
 
 		/* Get partition number */
 		preg_match_all("#(.*?)(\d+$)#", $disk['device'], $matches);
@@ -1991,32 +1990,32 @@ function get_partition_info($device) {
 
 		/* Get the physical disk label or generate one based on the vendor id and model or serial number. */
 		if (isset($attrs['ID_FS_LABEL'])){
-			$disk['label'] = safe_name($attrs['ID_FS_LABEL_ENC']);
-			$disk['disk_label'] = $disk['label'];
+			$disk['label']		= safe_name($attrs['ID_FS_LABEL_ENC']);
+			$disk['disk_label']	= $disk['label'];
 		} else {
 			if (isset($attrs['ID_VENDOR']) && isset($attrs['ID_MODEL'])){
-				$disk['label'] = sprintf("%s %s", safe_name($attrs['ID_VENDOR']), safe_name($attrs['ID_MODEL']));
+				$disk['label']	= sprintf("%s %s", safe_name($attrs['ID_VENDOR']), safe_name($attrs['ID_MODEL']));
 			} else {
-				$disk['label'] = safe_name($attrs['ID_SERIAL']);
+				$disk['label']	= safe_name($attrs['ID_SERIAL']);
 			}
-			$all_disks = array_unique(array_map(function($ar){return realpath($ar);},listDir("/dev/disk/by-id")));
-			$disk['label'] = (count(preg_grep("%".$matches[1][0]."%i", $all_disks)) > 2) ? $disk['label']."-part".$matches[2][0] : $disk['label'];
-			$disk['disk_label'] = "";
+			$all_disks			= array_unique(array_map(function($ar){return realpath($ar);},listDir("/dev/disk/by-id")));
+			$disk['label']		= (count(preg_grep("%".$matches[1][0]."%i", $all_disks)) > 2) ? $disk['label']."-part".$matches[2][0] : $disk['label'];
+			$disk['disk_label']	= "";
 		}
 
 		/* Get the file system type. */
-		$disk['fstype'] = safe_name($attrs['ID_FS_TYPE']);
-		$disk['mountpoint'] = get_config($disk['serial'], "mountpoint.{$disk['part']}");
+		$disk['fstype']			= safe_name($attrs['ID_FS_TYPE']);
+		$disk['mountpoint']		= get_config($disk['serial'], "mountpoint.{$disk['part']}");
 		if ( ($mountpoint === false) || (! $disk['mountpoint']) ) { 
-			$disk['mountpoint'] = $disk['target'] ? $disk['target'] : preg_replace("%\s+%", "_", sprintf("%s/%s", $paths['usb_mountpoint'], $disk['label']));
+			$disk['mountpoint']	= $disk['target'] ? $disk['target'] : preg_replace("%\s+%", "_", sprintf("%s/%s", $paths['usb_mountpoint'], $disk['label']));
 		}
 
 		/* crypto_LUKS file system. */
 		if ($disk['fstype'] == "crypto_LUKS") {
-			$disk['luks']	= safe_name($disk['device']);
-			$disk['device']	= "/dev/mapper/".safe_name(basename($disk['mountpoint']));
+			$disk['luks']		= safe_name($disk['device']);
+			$disk['device']		= "/dev/mapper/".safe_name(basename($disk['mountpoint']));
 		} else {
-			$disk['luks']	= "";
+			$disk['luks']		= "";
 		}
 
 		/* Set up all disk parameters and status. */
@@ -2349,19 +2348,19 @@ function change_UUID($dev) {
 }
 
 /* If the disk is not a SSD, set the spin down timer if allowed by settings. */
-function setSleepTime($device) {
+function setSleepTime($dev) {
 	global $paths;
 
 	$sf	= $paths['dev_state'];
 
 	/* If devs.ini does not exist, do the spindown using the disk timer. */
 	if ((! is_file($sf)) && get_config("Config", "spin_down") == 'yes') {
-		if (! is_disk_ssd($device)) {
-			unassigned_log("Set spin down timer for device '{$device}'.");
-			timed_exec(5, "/usr/sbin/hdparm -S180 $device 2>&1");
+		if (! is_disk_ssd($dev)) {
+			unassigned_log("Set spin down timer for device '{$dev}'.");
+			timed_exec(5, "/usr/sbin/hdparm -S180 $dev 2>&1");
 		} else {
-			unassigned_log("Don't spin down device '{$device}'.");
-			timed_exec(5, "/usr/sbin/hdparm -S0 $device 2>&1");
+			unassigned_log("Don't spin down device '{$dev}'.");
+			timed_exec(5, "/usr/sbin/hdparm -S0 $dev 2>&1");
 		}
 	}
 }
