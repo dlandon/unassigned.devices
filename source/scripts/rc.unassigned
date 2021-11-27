@@ -64,6 +64,8 @@ function unassigned_mount() {
 				/* If disk is not set to auto mount, skip to the next one. */
 				if (! $info['automount'] && ( $DEVNAME == "auto" || $DEVNAME == "autodevices" || isset($_ENV['DEVNAME']) )) {
 					unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' is not set to auto mount.");
+
+					/* Set sleep timer for this device. */
 					setSleepTime($device);
 					continue;
 				}
@@ -80,9 +82,9 @@ function unassigned_mount() {
 
 					/* Create the mounting status file for this device. */
 					if ($info['fstype'] != "crypto_LUKS") {
-						addFile(sprintf($paths['mounting'],basename($info['device'])));
+						addFile(sprintf($paths['mounting'], basename($info['device'])));
 					} else {
-						addFile(sprintf($paths['mounting'],basename($info['luks'])));
+						addFile(sprintf($paths['mounting'], basename($info['luks'])));
 					}
 
 					unassigned_log("Mounting partition '{$info['device']}' at mountpoint '{$info['mountpoint']}'...");
@@ -93,10 +95,12 @@ function unassigned_mount() {
 						$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV) : get_udev_info($device, NULL);
 
 						/* Add smb and nfs shares for this device. */
-						if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'],"usb"))) {
+						if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'], "usb"))) {
 							add_smb_share($info['mountpoint']);
 							add_nfs_share($info['mountpoint']);
 						}
+
+						/* Set sleep timer for this device. */
 						setSleepTime($device);
 
 						/* Execute device script with add action. */
@@ -109,6 +113,7 @@ function unassigned_mount() {
 						/* There was an error mounting the disk. */
 						unassigned_log("Partition '{$info['label']}' cannot be mounted.");
 
+						/* Set sleep timer for this device. */
 						setSleepTime($device);
 
 						/* Execute device script with error unmount action. */
@@ -136,10 +141,10 @@ function unassigned_mount() {
 				unassigned_log("Remote SMB/NFS share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), 1);
 
 				/* Remove any special characters. */
-				$mount_device = str_replace( array("(", ")"), "", basename($info['device'])."_".$info['fstype']);
+				$mount_device = basename($info['device'])."_".$info['fstype'];
 
 				/* Create mounting status file. */
-				addFile(sprintf($paths['mounting'],$mount_device));
+				addFile(sprintf($paths['mounting'], $mount_device));
 
 				unassigned_log("Mounting Remote SMB/NFS Share '{$info['device']}'...");
 
@@ -151,7 +156,7 @@ function unassigned_mount() {
 
 						/* Update the samba mount status. */
 						foreach (get_samba_mounts() as $info) {
-						$device = $info['device'];
+							$device = $info['device'];
 							if ( $DEVNAME == $device ) {
 								export_disk($info, true);
 								break;
@@ -184,10 +189,10 @@ function unassigned_mount() {
 				unassigned_log("ISO File share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), 1);
 
 				/* Remove any special characters. */
-				$mount_device = str_replace( array("(", ")"), "", basename($info['device']));
+				$mount_device = basename($info['device']);
 
 				/* Create mounting status file. */
-				addFile(sprintf($paths['mounting'],$mount_device));
+				addFile(sprintf($paths['mounting'], $mount_device));
 
 				unassigned_log("Mounting ISO File '{$info['device']}'...");
 
@@ -253,11 +258,12 @@ function unassigned_umount() {
 					{
 						/* Create unmounting status file for this device. */
 						if ($info['fstype'] != "crypto_LUKS") {
-							addFile(sprintf($paths['unmounting'],basename($info['device'])));
+							addFile(sprintf($paths['unmounting'], basename($info['device'])));
 						} else {
-							addFile(sprintf($paths['unmounting'],basename($info['luks'])));
+							addFile(sprintf($paths['unmounting'], basename($info['luks'])));
 						}
 
+						/* Set sleep timer for this device. */
 						setSleepTime($device);
 
 						/* Remove smb and nfs shares for this device. */
@@ -304,10 +310,10 @@ function unassigned_umount() {
 				/* Unmount the remote share if it is mounted. */
 				if ( is_mounted(($info['fstype'] == "cifs") ? "//".$info['ip']."/".$info['path'] : $info['device']) ) {
 					/* Remove special characters. */
-					$mount_device = str_replace( array("(", ")"), "", basename($info['device'])."_".$info['fstype']);
+					$mount_device = basename($info['device'])."_".$info['fstype'];
 
 					/* Create unmounting status file. */
-					addFile(sprintf($paths['unmounting'],$mount_device));
+					addFile(sprintf($paths['unmounting'], $mount_device));
 
 					unassigned_log("Removing Remote SMB/NFS share '{$info['device']}'...");
 
@@ -349,10 +355,8 @@ function unassigned_umount() {
 
 				/* If iso file is mounted, unmlount it. */
 				if ( is_mounted($info['device']) ) {
-					$mount_device = str_replace( array("(", ")"), "", basename($info['device']));
-
 					/* Create mounting status file. */
-					addFile(sprintf($paths['unmounting'],$mount_device));
+					addFile(sprintf($paths['unmounting'], basename($info['device'])));
 
 					unassigned_log("Removing ISO File share '{$info['device']}'...");
 
@@ -410,6 +414,8 @@ function unassigned_spin_down() {
 function addFile($file)
 {
 	global $remove;
+
+	$file = safe_name($file);
 
 	@touch($file);
 	$remove[] = $file;
