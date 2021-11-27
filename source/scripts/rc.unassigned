@@ -42,7 +42,7 @@ function unassigned_mount() {
 		foreach ($disk['partitions'] as $partition)
 		{
 			if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "auto" || $DEVNAME == "autodevices" ) {
-				$info = get_partition_info($partition, true);
+				$info = get_partition_info($partition);
 
 				/* If the device doesn't have a serial number it cannot be mounted. */
 				if ($info['serial'] == "") {
@@ -103,7 +103,7 @@ function unassigned_mount() {
 						execute_script($info, "ADD");
 
 						/* Update the partition info. */
-						$info = get_partition_info($partition, true);
+						$info = get_partition_info($partition);
 						export_disk($info, true);
 					} elseif (! is_mounted($info['device'])) {
 						/* There was an error mounting the disk. */
@@ -234,7 +234,7 @@ function unassigned_umount() {
 		$device = $disk['device'];
 		foreach ($disk['partitions'] as $partition) {
 			if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "auto" || $DEVNAME == "all" ) {
-				$info = get_partition_info($partition, true);
+				$info = get_partition_info($partition);
 				if (! $info['automount'] && $DEVNAME == "auto" ) {
 					continue;
 				}
