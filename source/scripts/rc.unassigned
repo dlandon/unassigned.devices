@@ -75,7 +75,7 @@ function unassigned_mount() {
 					/* Execute device script with error mounting action. */
 					execute_script($info, "ERROR_MOUNT");
 				} elseif ($info['device'] != "") {
-					unassigned_log("Disk found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
+					unassigned_log("Disk found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), 1);
 					unassigned_log("Adding disk '{$info['device']}'...");
 
 					/* Create the mounting status file for this device. */
@@ -133,7 +133,7 @@ function unassigned_mount() {
 					continue;
 				}
 
-				unassigned_log("Remote SMB/NFS share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
+				unassigned_log("Remote SMB/NFS share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), 1);
 
 				/* Remove any special characters. */
 				$mount_device = str_replace( array("(", ")"), "", basename($info['device'])."_".$info['fstype']);
@@ -181,7 +181,7 @@ function unassigned_mount() {
 					continue;
 				}
 
-				unassigned_log("ISO File share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
+				unassigned_log("ISO File share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), 1);
 
 				/* Remove any special characters. */
 				$mount_device = str_replace( array("(", ")"), "", basename($info['device']));
@@ -239,7 +239,7 @@ function unassigned_umount() {
 					continue;
 				}
 
-				unassigned_log("Drive found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
+				unassigned_log("Drive found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), 1);
 
 				/* Cannot unmount disk with 'UNRAID' label. */
 				if ($info['label'] == "UNRAID") {
@@ -297,7 +297,7 @@ function unassigned_umount() {
 				if (! $info['automount'] && $DEVNAME == "auto" ) {
 					continue;
 				}
-				unassigned_log("Remote SMB/NFS share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
+				unassigned_log("Remote SMB/NFS share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), 1);
 
 				$force = $info['is_alive'] ? $force : true;
 
@@ -345,7 +345,7 @@ function unassigned_umount() {
 				if (! $info['automount'] && $DEVNAME == "auto" ) {
 					continue;
 				}
-				unassigned_log("ISO File share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), "DEBUG");
+				unassigned_log("ISO File share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), 1);
 
 				/* If iso file is mounted, unmlount it. */
 				if ( is_mounted($info['device']) ) {
