@@ -66,8 +66,12 @@ if ( is_file( "plugins/preclear.disk/assets/lib.php" ) ) {
 class MiscUD
 {
 	/* Save contect to a json file. */
-	public function save_json($file, $content) {
-		file_put_contents($file, json_encode($content, JSON_PRETTY_PRINT));
+	public function save_json($file, $content, $file_append = false) {
+		if ($file_append) {
+			file_put_contents($file, json_encode($content, JSON_PRETTY_PRINT), FILE_APPEND);
+		} else {
+			file_put_contents($file, json_encode($content, JSON_PRETTY_PRINT));
+		}
 	}
 
 	/* Get content from a json file. */
@@ -142,7 +146,7 @@ function save_ini_file($file, $array) {
 function unassigned_log($m, $log_level = 0) {
 	global $plugin;
 
-	if ($log_level <= $GLOBALS['LOG_LEVEL']) {
+	if (($log_level == 0) || ($log_level == $GLOBALS["LOG_LEVEL"])) {
 		$m		= print_r($m,true);
 		$m		= str_replace("\n", " ", $m);
 		$m		= str_replace('"', "'", $m);
@@ -1877,10 +1881,10 @@ function get_unassigned_disks() {
 		}
 	}
 
+	ksort($disk_paths, SORT_NATURAL);
+
 	/* Remove any duplicate disk serial numbers. */
 	$disk_paths = array_unique($disk_paths);
-
-	ksort($disk_paths, SORT_NATURAL);
 
 	/* Get all Unraid disk devices (array disks, cache, and pool devices). */
 	foreach ($disks as $d) {
