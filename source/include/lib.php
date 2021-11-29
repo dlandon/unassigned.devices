@@ -66,12 +66,8 @@ if ( is_file( "plugins/preclear.disk/assets/lib.php" ) ) {
 class MiscUD
 {
 	/* Save contect to a json file. */
-	public function save_json($file, $content, $file_append = false) {
-		if ($file_append) {
-			file_put_contents($file, json_encode($content, JSON_PRETTY_PRINT), FILE_APPEND);
-		} else {
-			file_put_contents($file, json_encode($content, JSON_PRETTY_PRINT));
-		}
+	public function save_json($file, $content) {
+		file_put_contents($file, json_encode($content, JSON_PRETTY_PRINT));
 	}
 
 	/* Get content from a json file. */
