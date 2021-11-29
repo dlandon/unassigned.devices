@@ -438,7 +438,8 @@ function export_disk($disk, $add) {
 	{
 		unset($info[$dev]);
 	}
-	$info = MiscUD::save_json($paths['mounted'], $info);	
+
+	MiscUD::save_json($paths['mounted'], $info);	
 }
 
 switch ($COMMAND) {
