@@ -10,10 +10,8 @@
  * all copies or substantial portions of the Software.
  */
 
-/* Set the level for logging. */
-/* 0 - normal logging */
-/* 1 to 3 - different levels with 3 being the chatiest. */
-$LOG_LEVEL	= (! $argv[4]) ? 0 : (int) $argv[4];
+/* Set the level for debugging. */
+$DEBUG_LEVEL	= (! $argv[4]) ? 0 : (int) $argv[4];
 
 /* Get the comand to execute. */
 $COMMAND	= $argv[1];
@@ -43,10 +41,10 @@ class MiscUD
 }
 
 /* Unassigned Devices logging. */
-function unassigned_log($m, $log_level) {
+function unassigned_log($m, $debug_level) {
 	global $plugin;
 
-	if ($log_level <= $GLOBALS['LOG_LEVEL']) {
+	if (($debug_level == 0) || ($debug_level == $GLOBALS["DEBUG_LEVEL"])) {
 		$m		= print_r($m,true);
 		$m		= str_replace("\n", " ", $m);
 		$m		= str_replace('"', "'", $m);
