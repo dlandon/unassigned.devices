@@ -49,18 +49,23 @@ $uuid_devices = array();
 $encrypt_devices = array();
 
 foreach (get_all_disks_info() as $d) {
+	/* Get an array of devices that are candidates for uuid change. */
 	if (($d['partitions'][0]['fstype'] == "xfs" || $d['partitions'][0]['fstype'] == "btrfs" || $d['partitions'][0]['fstype'] == "crypto_LUKS") && (! $d['partitions'][0]['mounted'])) {
 		$a = array();
 		$a['device'] = $d['device'];
 		$a['label'] = $d['serial'];
 		$uuid_devices[] = $a;
 	}
+
+	/* Get an array of devices that are encrypted for password setting. */
 	if ($d['partitions'][0]['fstype'] == "crypto_LUKS" && (! $d['partitions'][0]['mounted'])) {
 		$a = array();
 		$a['device'] = $d['device'];
 		$a['label'] = $d['serial'];
 		$encrypt_devices[] = $a;
 	}
+
+	/* apfs file systems can also use a password. */
 	if ($d['partitions'][1]['fstype'] == "apfs" && (! $d['partitions'][1]['mounted'])) {
 		$a = array();
 		$a['label'] = $d['serial'];
