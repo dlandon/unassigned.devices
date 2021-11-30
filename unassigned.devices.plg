@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2021.11.24">
+<!ENTITY version	"2021.11.30">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"ca929308e1944eaa15f018ed9bce6f5b">
+<!ENTITY MD5		"56a80c50b110ddcca4af23940a474452">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,6 +23,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Implement debug levels for future troubleshooting.
+- Fix: Disk spinning status not working on legacy Unraid.
+- Fix: Organize and rewrite some functions for simplicity.
+
+###2021.11.24
 - Add: Change UUID on btrfs file system.
 - Fix: Handle all cases of SMB enabled when mounting disks.
 - Fix: More code cleanup.
@@ -242,8 +247,8 @@
 - Fix: Add ability to change UUID on encrypted disks.
 
 ###2021.01.09
-- Fix: Remove all checks for a 'precleared' file format.
 - Add: Indicator for preclear script running.  The 'Format' button will show 'Preclear' when the preclear plugin or docker script is running.  Should also apply to other preclear scripts.
+- Fix: Remove all checks for a 'precleared' file format.
 - Fix: Edit Settings switches not defaulting properly when switch is not defined in configuration.
 - Fix: Java Script error.
 - Fix: More code cleanup.
@@ -275,8 +280,8 @@
 - Fix: A lot of code cleanup.
 
 ###2020.12.20a
-- Fix: Don't allow parenthesis or dollar sign in script filename.
 - Add: Can now set a User Script so 'Running' indicator on a mounted device will show when a User Script is running on that device.
+- Fix: Don't allow parenthesis or dollar sign in script filename.
 - Fix: Move spinner to page refresh and cut down on excessive refreshing of UD page.
 
 ###2020.12.13b
@@ -285,13 +290,13 @@
 - Fix: Change 'Rescan Disks' to simulate hotplug event to Unraid.
 
 ###2020.12.13a
-- Fix: Change device name format to conform to Unraid standards.
-- Fix: Spin up/down spinner on wrong device icon.
 - Add: Cancel buttons to add remote share and format disk.
 - Add: Update disk status when a change is detected (disk spin up or down).
 - Add: Update remote server status every 15 seconds.
 - Add: Spin down option to rc.unassigned script.
 - Add: Enabled the /mnt/remotes/ mount point for older versions of Unraid.
+- Fix: Change device name format to conform to Unraid standards.
+- Fix: Spin up/down spinner on wrong device icon.
 
 ###2020.12.11a
 - Add: Display temperature on UD page when disk marked as pass through.
@@ -302,12 +307,12 @@
 
 ###2020.12.10a
 - Add: Check for open files on an interval instead of every refresh of the UI.
-- Fix: Move show all partitions to a UD setting.
 - Add: Historical switch to show/hide historical disk devices.
 - Add: Run open files check, used and free space check, and ping status updates in a background task to help with responsiveness.
 - Add: Don't show remote server offline until 3 offline pings in 30 seconds.
-- Fix: Don't check for open files when remote shares go offline.
 - Add: Beginning with 6.9, you can manually spin up/down disks by clicking on the disk device active ball, the same as an array device.
+- Fix: Move show all partitions to a UD setting.
+- Fix: Don't check for open files when remote shares go offline.
 
 ###2020.12.06a
 - Fix: Nvme temperature not showing.
@@ -319,6 +324,9 @@
 - Fix: Don't allow double quote character in mount point.
 
 ###2020.12.04a
+- Add: Beginning with 6.9, you can view and change disk attributes (including temperature thresholds) per disk.
+- Add: Beginning with 6.9, remote shares will mount at /mnt/remotes with symlinks in /mnt/disks for backwards compatibility.
+- Add: Beginning with 6.9, disk reads and writes are displayed.
 - Fix: Issue with samba config file when a remote share has parenthesis in the share name.
 - Fix: Encrypted disks not checked properly for spindown status.
 - Fix: Spin down disk setting not being used.
@@ -326,9 +334,6 @@
 - Fix: ISO file 'Auto Mount' switch out of position.
 - Fix: Finding the correct mount point.
 - Add: Beginning with 6.9, Unraid will manage temperature monitoring and spindown control.
-- Add: Beginning with 6.9, you can view and change disk attributes (including temperature thresholds) per disk.
-- Add: Beginning with 6.9, remote shares will mount at /mnt/remotes with symlinks in /mnt/disks for backwards compatibility.
-- Add: Beginning with 6.9, disk reads and writes are displayed.
 
 ###2020.11.28c
 - Fix: Roll back remote shares change.
@@ -347,10 +352,10 @@
 - Fix: Remove force SMB1 samba mount setting.  It is no longer necessary.
 
 ###2020.11.22a
-- Fix: Change mountpoint icons to something more meaningful.
 - Add: Show lock icon on encrypted disk file system.
 - Add: Show file system type of a mounted encrypted disk.
 - Add: Change mounting sequence of SMB remote shares to - protocol not specified, SMB3, SMB2, then SMB1.  Some remote servers may not want the protocol of SMB to be specified when mounting CIFS shares.
+- Fix: Change mountpoint icons to something more meaningful.
 - Fix: Improve remote servers online check, and disk status (size, used, and free) check to improve response time.
 
 ###2020.11.18
@@ -381,19 +386,19 @@
 - Add: Issue spin down timer to disks when array is started (or disk plugged in) and they are not set for auto mount.
 
 ###2020.07.26b
+- Add: Query device stats (size, used, and free space) every 95 seconds instead of on every UI refresh.
 - Fix: Only ping the same remote share server once for all remote mounts on that server.
 - Fix: Remove unused csrf token from UnassignedDevices.php.
 - Fix: Some code cleanup.
 - Fix: Modify screen layout and alignment of items within UD to be more consistent with Unraid.
-- Add: Query device stats (size, used, and free space) every 95 seconds instead of on every UI refresh.
 - Fix: Historical device button alignment on wide display.
 
 ###2020.07.19a
 - Add: Don't query disk temperature if disk is in standby.
-- Fix: Change remote share server ping timeout to 1 second.
 - Add: Query disk drives for standby status every 42 seconds.
 - Add: Don't query SSD drives for standby status - they never idle.
 - Add: Ping remote share servers every 27 seconds.
+- Fix: Change remote share server ping timeout to 1 second.
 
 ###2020.07.17a
 - Fix: Use Unraid 'poll_attributes' setting to update disk temperatures.
@@ -421,11 +426,11 @@
 - Fix: Mount point path when changing the mount point.
 
 ###2020.07.09
-- Fix: Exclamation character in udev information causing a php error.
-- Fix: Don't force unmount a device if there is an unmount error and there are no open files.
 - Add: Change mount and unmount error notifications to alerts.
 - Add: Sweet Alert dialogs for changing mount points.
 - Add: Safe name for disk label - no spaces or special characters.
+- Fix: Exclamation character in udev information causing a php error.
+- Fix: Don't force unmount a device if there is an unmount error and there are no open files.
 - Fix: Extend disk label command time out.
 
 ###2020.07.03a
@@ -455,10 +460,10 @@
 - Fix: Multi-language support.
 
 ###2020.06.11a
-- Fix: Style change to prevent UD from interfering with notification summary.
 - Add: iocharset=utf8 to vfat mount; nls=utf8 to ntfs mount.
 - Add: Don't show preclear icon if disk has a file system.
 - Add: Don't show preclear icon if destructive mode is disabled.
+- Fix: Style change to prevent UD from interfering with notification summary.
 - Fix: Reversion of unmount when UD did not mount a device.
 
 ###2020.06.06
@@ -486,10 +491,10 @@
 
 ###2020.05.24
 - Add: Add option to settings to keep disks spun up.
-- Fix: A lot of error handling on UI.
 - Add: Shred credential and password files.
-- Fix: Even more UI cleanup.
 - Add: Don't show tmperature when a disk is passed through.
+- Fix: A lot of error handling on UI.
+- Fix: Even more UI cleanup.
 
 ###2020.05.23
 - Fix: Don't show information that does not apply.
@@ -532,8 +537,8 @@
 - Fix: Add 'partprobe' to be sure the cached partition table is current.
 
 ###2020.03.10a
-- Fix: Some UI cleanup.
 - Add: Enter password when formatting an encrypted disk for outside the array.
+- Fix: Some UI cleanup.
 - Fix: Script run manually on an encrypted disk.
 
 ###2020.03.08
@@ -548,8 +553,8 @@
 - Fix: Remove custom style sheets.
 
 ###2020.03.01a
-- Fix: Force rc.unassigned to reload UDEV info when partition changes.
 - Add: Replace jQuery dialogs with SweetAlert2.
+- Fix: Force rc.unassigned to reload UDEV info when partition changes.
 - Fix: Minimum version is now 6.7.  Maintaining backwards compatibility back farther is cumbersome and unnecessary.  Users are encouraged to update.
 
 ###2020.02.09
@@ -557,8 +562,8 @@
 
 ###2020.02.08
 - Add: Allow SMART report on disks that are not formatted.
-- Fix: Don't show Windows shares with '$' in the name.  UD can't mount them, so there is no reason to even list them.
 - Add: Quotes to Yes in confirmations to make it easier to understand they enter 'Yes'.
+- Fix: Don't show Windows shares with '$' in the name.  UD can't mount them, so there is no reason to even list them.
 
 ###2020.02.06
 - Fix: Add delay to mount check to verify local disk has mounted and give it time to mount.
@@ -570,9 +575,9 @@
 - Fix: Change NFS format from 'server://' to 'server:/' for servers that reject the '//'.
 
 ###2020.02.02
+- Add: 'Pass Through' switch to designate a physical disk as passed to a VM or Docker so UD won't mount the disk.
 - Fix: Default auto mount to off.
 - Remove: Ext4 file format.  Ext4 is not used by Unraid.  Ext4 disks can still be mounted.
-- Add: 'Pass Through' switch to designate a physical disk as passed to a VM or Docker so UD won't mount the disk.
 
 ###2020.01.28
 - Add: Don't allow device script to be run twice.  Show script running status.  Added 'refresh' to rc.unassigned to refresh the webgui when a script is finished.
@@ -609,8 +614,8 @@
 - Add: Add disk 'Read Only' switch so disks can be mounted read only.
 
 ###2019.12.29a
-- Fix: Remove hfsplus, exfat, and parted packages and move them to the UD plus plugin.  You will have to install UD plus for HFS+ and exFAT support, and formatting partitions.
 - Add: Add settings icon (gear) to the UD page to link to UD settings.
+- Fix: Remove hfsplus, exfat, and parted packages and move them to the UD plus plugin.  You will have to install UD plus for HFS+ and exFAT support, and formatting partitions.
 
 ###2019.12.27a
 - Add: Add option to add 'discard' to disk mount options.
@@ -622,9 +627,9 @@
 - Fix: Unmount issues with cifs mounts when off-line.
 
 ###2019.12.20a
+- Add: 'Force User = nobody' to all UD SMB shares.
 - Fix: Samba mount procedure.
 - Fix: Code cleanup - procedure return codes.
-- Add: 'Force User = nobody' to all UD SMB shares.
 - Fix: Clean up logging.
 - Fix: Remove time out from physical disk mount.
 
@@ -678,9 +683,9 @@
 - Fix: File system check on encrypted disk.
 
 ###2019.10.30
-- Fix: Revert 6.8 keyfile handling.  You have to use a keyfile when mounting encrypted UD drives on 6.8.
 - Add: Edit script on Historical devices.
 - Add: Mountpoint designation to Historical devices.
+- Fix: Revert 6.8 keyfile handling.  You have to use a keyfile when mounting encrypted UD drives on 6.8.
 
 ###2019.10.15
 - Add: Debug code to troubleshoot luksOpen with no keyfile on 6.8.
@@ -784,8 +789,8 @@
 - Fix: Share UD mounted devices when Active Directory sharing is enabled.
 
 ###2018.11.25
-- Fix: SMB 'Load Shares' not working in all cases.
 - Add: Log an error when the common or device script fails.
+- Fix: SMB 'Load Shares' not working in all cases.
 - Fix: Changed script icon to show that a script file is defined.  The icon will be grayed when there is no script file.
 
 ###2018.11.24a
