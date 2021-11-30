@@ -77,7 +77,7 @@ function unassigned_mount() {
 					/* Execute device script with error mounting action. */
 					execute_script($info, "ERROR_MOUNT");
 				} elseif ($info['device'] != "") {
-					unassigned_log("Disk found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), 1);
+					unassigned_log("Disk found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = ((strpos($k, "pass") !== false) && (strpos($k, "pass_through") === false)) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), 1);
 					unassigned_log("Adding disk '{$info['device']}'...");
 
 					/* Create the mounting status file for this device. */
@@ -138,7 +138,7 @@ function unassigned_mount() {
 					continue;
 				}
 
-				unassigned_log("Remote SMB/NFS share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), 1);
+				unassigned_log("Remote SMB/NFS share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = ((strpos($k, "pass") !== false) || ((strpos($k, "user") !== false) && (strpos($k, "user_command") === false))) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), 1);
 
 				/* Remove any special characters. */
 				$mount_device = basename($info['device'])."_".$info['fstype'];
