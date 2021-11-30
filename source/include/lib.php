@@ -10,10 +10,9 @@
  * all copies or substantial portions of the Software.
  */
 
-/* Set the level for logging. */
+/* Set the level for debugging. */
 /* 0 - normal logging */
-/* 1 to 3 - different log levels with 3 being the chatiest. */
-$LOG_LEVEL = 0;
+$DEBUG_LEVEL = 0;
 
 $plugin = "unassigned.devices";
 $paths = [	"smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
@@ -139,10 +138,10 @@ function save_ini_file($file, $array) {
 }
 
 /* Unassigned Devices logging. */
-function unassigned_log($m, $log_level = 0) {
+function unassigned_log($m, $debug_level = 0) {
 	global $plugin;
 
-	if (($log_level == 0) || ($log_level == $GLOBALS["LOG_LEVEL"])) {
+	if (($debug_level == 0) || ($debug_level == $GLOBALS["DEBUG_LEVEL"])) {
 		$m		= print_r($m,true);
 		$m		= str_replace("\n", " ", $m);
 		$m		= str_replace('"', "'", $m);
@@ -198,7 +197,7 @@ function get_device_stats($mountpoint, $mounted, $active = true) {
 		$df_status	= MiscUD::get_json($tc);
 		/* Run the stats script to update the state file. */
 		if (($active) && ((time() - $df_status[$mountpoint]['timestamp']) > 90)) {
-			exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".escapeshellarg($GLOBALS['LOG_LEVEL'])." &");
+			exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." &");
 		}
 
 		/* Get the updated device stats. */
