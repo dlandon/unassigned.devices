@@ -252,7 +252,7 @@ _(Volume)_
 <?endif;?>
 
 <strong>_(Device Script)_:</strong>
-<input type="text" title='_(Enter Device Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>','sh');" autocomplete="off" value="<?=$file;?>" placeholder="_(Click the 'Default' button to select the default Device Script File)_">
+<input type="text" title='_(Enter Device Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this, '/boot/config/plugins/<?=$plugin;?>', 'sh');" autocomplete="off" value="<?=$file;?>" placeholder="_(Click the 'Default' button to select the default Device Script File)_">
 
 :ud_edit_script_choose_name_plug:
 > This is the Script File that runs when the device is mounted. Choose your Script File name from the file selection dropdown, or enter your desired script.
@@ -266,7 +266,7 @@ _(Volume)_
 
 <? if (! $_GET['i']):?>
 <strong>_(User Script)_:</strong>
-<input type="text" title='_(Enter User Script File Name)_.' name="#user_file" style="width:40%;" onclick="openFileBrowser(this,'/boot/config/plugins/user.scripts/scripts','',false);" autocomplete="off" placeholder="_(Enter the User Script that will be using this device)_" value="<?=$user_file;?>" <?=$disabled;?>>
+<input type="text" title='_(Enter User Script File Name)_.' name="#user_file" style="width:40%;" onclick="openFileBrowser(this, '/boot/config/plugins/user.scripts/scripts', '', false);" autocomplete="off" placeholder="_(Enter the User Script that will be using this device)_" value="<?=$user_file;?>" <?=$disabled;?>>
 
 :ud_edit_user_script_choose_name_plug:
 > If you have the User Scripts plugin installed, you can have Unassigned Devices show the running status of the User Script that will be using this device.  This field will only be enabled when a Device Script File exists.
@@ -411,7 +411,7 @@ _(Volume)_
 					filter: filter,
 					allowBrowsing : true
 				},
-				function(file){if(on_files){p.val(file);$(ft).slideUp('fast',function (){$(ft).remove();});load(p);}},
+				function(file){if(on_files){p.val(file);$(ft).slideUp('fast',function (){$(ft).remove();});if(filter){load(p)};}},
 				function(folder){if(on_folders){p.val(folder);$(ft).slideUp('fast',function (){$(ft).remove();});}}
 			);
 
