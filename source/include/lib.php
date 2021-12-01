@@ -1914,7 +1914,9 @@ function get_all_disks_info() {
 			$disk['size']	= intval(trim(timed_exec(5, "/bin/lsblk -nb -o size ".escapeshellarg(realpath($key))." 2>/dev/null")));
 			$disk			= array_merge($disk, get_disk_info($key));
 			foreach ($disk['partitions'] as $k => $p) {
-				if ($p) $disk['partitions'][$k] = get_partition_info($p);
+				if ($p) {
+					$disk['partitions'][$k] = get_partition_info($p);
+				}
 			}
 			$ud_disks[$key]	= $disk;
 		}
