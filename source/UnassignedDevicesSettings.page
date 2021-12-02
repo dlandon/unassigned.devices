@@ -25,7 +25,7 @@ require_once "$docroot/plugins/$plugin/include/Legacy.php";
 <?
 require_once "plugins/$plugin/include/lib.php";
 
-$config_file = "/tmp/$plugin/config/$plugin.cfg";
+$config_file = $paths['config_file'];
 $cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
 
 /* Get the version of Unraid we are running. */
@@ -73,26 +73,19 @@ foreach (get_all_disks_info() as $d) {
 	}
 }
 
-if (count($_POST)) {
-	if ($_POST['#apply'] == "_(Apply)_") {
-		array_map(function($k, $v) use (&$cfg) { if($k[0] != "#") $cfg["Config"][$k] = $v; }, array_keys($_POST), $_POST );
-		unassigned_log("Updating share settings...");
-		remove_shares();
-		save_ini_file($config_file, $cfg);
-		reload_shares();
-		unassigned_log("Share settings updated.");
-	} else if (($_POST['#command'] == "UUID") && (isset($_POST['change_uuid']))) {
-		$dev		= $_POST['change_uuid'];
-		$first		= strpos($dev, "(") + 1;
-		$last		= strpos($dev, ")") - 1;
-		$dev		= substr($dev, $first, $last);
-		change_UUID($dev);
-	} else if ($_POST['#command'] == "chg_pass") {
-		$serial		= $_POST['set_pass'];
-		$password	= $_POST['password'];
-		set_config($serial, "pass", encrypt_data($password));
-	}
-}
+//if (count($_POST)) {
+//	if (($_POST['#command'] == "UUID") && (isset($_POST['change_uuid']))) {
+//		$dev		= $_POST['change_uuid'];
+//		$first		= strpos($dev, "(") + 1;
+//		$last		= strpos($dev, ")") - 1;
+//		$dev		= substr($dev, $first, $last);
+//		change_UUID($dev);
+//	} else if ($_POST['#command'] == "chg_pass") {
+//		$serial		= $_POST['set_pass'];
+//		$password	= $_POST['password'];
+//		set_config($serial, "pass", encrypt_data($password));
+//	}
+//}
 ?>
 
 <script type="text/javascript" src="<?autov('/webGui/javascript/jquery.filetree.js')?>"></script>
@@ -158,7 +151,11 @@ if (count($_POST)) {
 </script>
 
 <div id="title" class="nocontrol">_(Common Settings)_</div>
-<form markdown="1" name="common_settings" method="POST">
+<form markdown="1" name="common_settings" method="POST" action="/update.php" target="progressFrame">
+<input type="hidden" name="#section" value="Config">
+<input type="hidden" name="#file" value="unassigned.devices/unassigned.devices.cfg">
+<input type="hidden" name="#command" value="/plugins/unassigned.devices/scripts/rc.settings">
+<input type="hidden" name="#arg[1]" value="apply">
 
 <?if (! $parted):?>
 :ud_settings_plus_plug:
@@ -261,11 +258,16 @@ _(NFS Version to use when Mounting Remote Shares)_:
 :end
 
 &nbsp;
-: <input type="submit" name="#apply" value='_(Apply)_'><input type="button" value="_(Done)_" onclick="done()">
+: <input type="submit" value='_(Apply)_'><input type="button" value="_(Done)_" onclick="done()">
 </form>
 
 <div id="title" class="nocontrol">_(SMB Security)_</div>
-<form markdown="1" name="smb_settings" method="POST">
+<form markdown="1" name="smb_settings" method="POST" action="/update.php" target="progressFrame">
+<input type="hidden" name="#section" value="Config">
+<input type="hidden" name="#file" value="unassigned.devices/unassigned.devices.cfg">
+<input type="hidden" name="#command" value="/plugins/unassigned.devices/scripts/rc.settings">
+<input type="hidden" name="#arg[1]" value="apply">
+
 _(Enable SMB Security)_?
 : <select name="smb_security" size="1" onchange="prepareSecurity(this);">
   <?=mk_option($cfg['Config']["smb_security"], "no", "_(No)_");?>
@@ -331,7 +333,12 @@ _(Add)_ 'force user = nobody' _(to SMB share config)_?
 </form>
 
 <div id="title" class="nocontrol">_(NFS Settings)_</div>
-<form markdown="1" name="nfs_settings" method="POST">
+<form markdown="1" name="nfs_settings" method="POST" action="/update.php" target="progressFrame">
+<input type="hidden" name="#section" value="Config">
+<input type="hidden" name="#file" value="unassigned.devices/unassigned.devices.cfg">
+<input type="hidden" name="#command" value="/plugins/unassigned.devices/scripts/rc.settings">
+<input type="hidden" name="#arg[1]" value="apply">
+
 _(Enable NFS export)_?
 : <select name="nfs_export" size="1" <?if ($var['shareNFSEnabled']=="no"):?>disabled<?endif;?>>
   <?=mk_option($cfg['Config']["nfs_export"], "no", "_(No)_");?>
@@ -364,40 +371,46 @@ _(Enable NFS export)_?
 :end
 
 &nbsp;
-: <input type="submit" name="#apply" value='_(Apply)_'><input type="button" value="_(Done)_" onclick="done()">
+: <input type="submit" value='_(Apply)_'><input type="button" value="_(Done)_" onclick="done()">
 </form>
 
 <div id="title" class="nocontrol">_(Set Encrypted Disk Password)_</div>
-<form markdown="1" name="set_pass" method="POST">
+<form markdown="1" name="set_pass" method="POST" action="/update.php" target="progressFrame">
+<input type="hidden" name="#section" value="Config">
+<input type="hidden" name="#file" value="<?=$paths['config_file']?>">
+<input type="hidden" name="#command" value="/plugins/unassigned.devices/scripts/rc.settings">
+<input type="hidden" name="#arg[1]" value="set_pass">
+
 _(Select Disk)_:
 : <select name="set_pass" size="1">
 
   <?foreach ($encrypt_devices as $d) {?>
-  <?=mk_option($disk_encrypt, ($d['label']), ($d['label']." (".basename($d['device']).")"))?>
+  <?=mk_option($cfg['Config']['pswd_serial'], ($d['label']), ($d['label']." (".basename($d['device']).")"))?>
   <?}?>
   </select>
 
 _(Enter Disk Password)_:
-: <input type="password" name="password" class="wide" maxlength="100" value="">
+: <input type="password" name="password" class="wide" maxlength="100" value="<?=$cfg['Config']['password'];?>">
   
 :ud_settings_disk_pass_plug:
 > Select the disk that you want to set a Password. This is the password for this disk only and does not affect the array password/passphrase. Leave password blank to use the array password/passphrase for luks encrypted disks.
 :end
 
 &nbsp;
-: <form name="change_disk_pass" method="POST" action="/update.php" target="progressFrame">
-   	<input type="hidden" name="#command" value="chg_pass">
-    <input type="submit" value='_(Set Password)_' title='_(Set the disk Password)_.' <?=count($encrypt_devices) ? "" : "disabled";?>>
-  </form>
+: <input type="submit" value='_(Set Password)_' title='_(Set the disk Password)_.' <?=count($encrypt_devices) ? "" : "disabled";?>>
 </form>
 
 <div id="title" class="nocontrol">_(Change Disk UUID)_</div>
-<form markdown="1" name="change_uuid" method="POST">
+<form markdown="1" name="change_uuid" method="POST" action="/update.php" target="progressFrame">
+<input type="hidden" name="#section" value="Config">
+<input type="hidden" name="#file" value="<?=$paths['config_file']?>">
+<input type="hidden" name="#command" value="/plugins/unassigned.devices/scripts/rc.settings">
+<input type="hidden" name="#arg[1]" value="uuid_change">
+
 _(Select Disk to change UUID)_:
 : <select name="change_uuid" size="1">
-
   <?foreach ($uuid_devices as $d) {?>
-  <?=mk_option($disk_uuid, ("(".$d['device'].") ".$d['label']), ($d['label']." (".basename($d['device']).")"));?>
+  <?=mk_option($cfg["Config"]["change_uuid"], ("(".$d['device'].") ".$d['label']), ($d['label']." (".basename($d['device']).")"));?>
   <?}?>
   </select>
 
@@ -406,9 +419,6 @@ _(Select Disk to change UUID)_:
 :end
 
 &nbsp;
-: <form name="change_disk_uuid" method="POST" action="/update.php" target="progressFrame">
-   	<input type="hidden" name="#command" value="UUID">
-    <input type="submit" value='_(Change UUID)_' title='_(Change the disk UUID)_.' <?=count($uuid_devices) ? "" : "disabled";?>>
-  </form>
+: <input type="submit" value='_(Change UUID)_' title='_(Change the disk UUID)_.' <?=count($uuid_devices) ? "" : "disabled";?>>
 </form>
 <?endif;?>
