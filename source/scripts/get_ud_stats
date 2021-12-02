@@ -76,10 +76,10 @@ function is_server_online($server) {
 	$was_alive		= ($ping_status[$server]['online'] == 'yes') ? true : false;
 	$is_alive		= (trim(exec("/bin/ping -c 1 -W 1 ".escapeshellarg($server)." >/dev/null 2>&1; echo $?")) == 0 ) ? true : false;
 	$no_pings		= isset($ping_status[$server]['no_pings']) ? $ping_status[$server]['no_pings'] : 0;
-	if (! $is_alive && ! is_ip($server))
+	if (! $is_alive && ! MiscUD::is_ip($server))
 	{
 		$ip			= trim(timed_exec(5, "/usr/bin/nmblookup ".escapeshellarg($server)." | /bin/head -n1 | /bin/awk '{print $1}' 2>/dev/null"));
-		if (is_ip($ip))
+		if (MiscUD::is_ip($ip))
 		{
 			$is_alive = (trim(exec("/bin/ping -c 1 -W 1 ".escapeshellarg($ip)." >/dev/null 2>&1; echo $?")) == 0 ) ? true : false;
 		}
