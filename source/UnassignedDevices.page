@@ -101,10 +101,6 @@ $ud_reload = "reload-".session_id();
 
 	<?=$Preclear ? $Preclear->Script() : "";?>
 
-	function rm_preclear(dev) {
-		$.post(UDURL, {'action' : 'rm_preclear', device:dev});
-	}
-
 	function spin_down_disk(dev) {
 		document.getElementById('disk_orb-'+dev).className = "fa fa-refresh fa-spin orb green-orb";
 		$.post(UDURL, {'action' : 'spin_down_disk', device:dev});
