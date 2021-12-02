@@ -41,7 +41,7 @@ class MiscUD
 }
 
 /* Unassigned Devices logging. */
-function unassigned_log($m, $debug_level) {
+function unassigned_log($m, $debug_level = 0) {
 	global $plugin;
 
 	if (($debug_level == 0) || ($debug_level == $GLOBALS["DEBUG_LEVEL"])) {
