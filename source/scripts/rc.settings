@@ -58,11 +58,12 @@ function set_pass() {
 	$serial		= $cfg['Config']['set_pass'];
 	$password	= $cfg['Config']['password'];
 
-	/* Now clear the setting from the tmp file. */
+	/* Now clear the settings from the tmp file. */
 	unset($cfg['Config']['set_pass']);
 	unset($cfg['Config']['password']);
 	save_ini_file($config_file, $cfg, false);
 
+	/* Save the new password */
 	set_config($serial, "pass", encrypt_data($password));
 }
 
@@ -81,7 +82,7 @@ switch ($argv[1]) {
 
 	default:
 		unassigned_log("Error: 'rc.settings {$argv[1]} {$argv[2]}' not understood");
-		unassigned_log("rc.settings usage: 'apply'");
+		unassigned_log("rc.settings usage: 'apply', 'uuid_change', 'set_pass'");
 		exit(0);
 		break;
 }
