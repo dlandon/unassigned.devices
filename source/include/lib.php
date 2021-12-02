@@ -114,7 +114,7 @@ function _echo($m) {
 }
 
 /* Save ini and cfg files to tmp file system and then copy cfg file changes to flash. */
-function save_ini_file($file, $array) {
+function save_ini_file($file, $array, $save_config = true) {
 	global $plugin;
 
 	$res = array();
@@ -131,9 +131,11 @@ function save_ini_file($file, $array) {
 	file_put_contents($file, implode(PHP_EOL, $res));
 
 	/* Write cfg file changes back to flash. */
-	$file_path = pathinfo($file);
-	if ($file_path['extension'] == "cfg") {
-		file_put_contents("/boot/config/plugins/".$plugin."/".basename($file), implode(PHP_EOL, $res));
+	if ($save_config) {
+		$file_path = pathinfo($file);
+		if ($file_path['extension'] == "cfg") {
+			file_put_contents("/boot/config/plugins/".$plugin."/".basename($file), implode(PHP_EOL, $res));
+		}
 	}
 }
 
