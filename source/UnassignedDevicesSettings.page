@@ -72,20 +72,6 @@ foreach (get_all_disks_info() as $d) {
 		$encrypt_devices[] = $a;
 	}
 }
-
-//if (count($_POST)) {
-//	if (($_POST['#command'] == "UUID") && (isset($_POST['change_uuid']))) {
-//		$dev		= $_POST['change_uuid'];
-//		$first		= strpos($dev, "(") + 1;
-//		$last		= strpos($dev, ")") - 1;
-//		$dev		= substr($dev, $first, $last);
-//		change_UUID($dev);
-//	} else if ($_POST['#command'] == "chg_pass") {
-//		$serial		= $_POST['set_pass'];
-//		$password	= $_POST['password'];
-//		set_config($serial, "pass", encrypt_data($password));
-//	}
-//}
 ?>
 
 <script type="text/javascript" src="<?autov('/webGui/javascript/jquery.filetree.js')?>"></script>
@@ -329,7 +315,7 @@ _(Add)_ 'force user = nobody' _(to SMB share config)_?
 :end
 
 &nbsp;
-: <input type="submit" name="#apply" value='_(Apply)_'><input type="button" value="_(Done)_" onclick="done()">
+: <input type="submit" value='_(Apply)_'><input type="button" value="_(Done)_" onclick="done()">
 </form>
 
 <div id="title" class="nocontrol">_(NFS Settings)_</div>
