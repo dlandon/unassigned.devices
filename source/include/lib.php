@@ -2088,6 +2088,7 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 
 /* Check for a duplicate share name when changing the mount point. */
 function check_for_duplicate_share($dev, $mountpoint, $fstype = "") {
+	global $var;
 
 	$rc = true;
 
@@ -2110,6 +2111,16 @@ function check_for_duplicate_share($dev, $mountpoint, $fstype = "") {
 	$disk_names = array_flip($disk_names);
 	$disk_names	= array_change_key_case($disk_names, CASE_UPPER);
 	$disk_names = array_flip($disk_names);
+
+	/* Check the reserved names for duplicates. */
+	$reserved_names = explode(",", $var['reservedNames']);
+
+	foreach ($reserved_names as $name) {
+		$name = strtoupper($name);
+		if (! in_array($name, $disk_names)) {
+			$disk_names[] = $name;
+		}
+	}
 
 	/* Start with an empty array of ud_shares. */
 	$ud_shares = array();
@@ -2146,7 +2157,7 @@ function check_for_duplicate_share($dev, $mountpoint, $fstype = "") {
 
 	/* See if the share name is already being used. */
 	if (is_array($shares) && in_array(strtoupper($mountpoint), $shares)) {
-		unassigned_log("Error: Cannot use mount point '{$mountpoint}', it is already being used in the array or another unassigned device.");
+		unassigned_log("Error: Cannot use mount point '{$mountpoint}', it is a reserved word, used in the array or by another unassigned device.");
 		$rc = false;
 	}
 
