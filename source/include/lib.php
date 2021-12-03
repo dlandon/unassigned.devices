@@ -2091,8 +2091,8 @@ function check_for_duplicate_share($dev, $mountpoint, $fstype = "") {
 
 	$rc = true;
 
-	/* Parse the samba config file. */
-	$smb_file 	= "/etc/samba/smb-shares.conf";
+	/* Parse the shares state file. */
+	$smb_file 	= "/usr/local/emhttp/state/shares.ini";
 	$smb_config	= parse_ini_file($smb_file, true);
 
 	/* Get all shares from the smb configuration file. */
@@ -2101,7 +2101,7 @@ function check_for_duplicate_share($dev, $mountpoint, $fstype = "") {
 	$smb_shares	= array_change_key_case($smb_shares, CASE_UPPER);
 	$smb_shares = array_flip($smb_shares);
 
-	/* Parse the disks config file. */
+	/* Parse the disks state file. */
 	$disks_file 	= "/usr/local/emhttp/state/disks.ini";
 	$disks_config	= parse_ini_file($disks_file, true);
 
@@ -2114,7 +2114,7 @@ function check_for_duplicate_share($dev, $mountpoint, $fstype = "") {
 	/* Start with an empty array of ud_shares. */
 	$ud_shares = array();
 
-	/* Get all disk mounts */
+	/* Get all ud disk mounts. */
 	foreach (get_all_disks_info() as $name => $info) {
 		foreach ($info['partitions'] as $p) {
 			$device = ($fstype == 'crypto_LUKS') ? $p['luks'] : $p['device'];
@@ -2125,7 +2125,7 @@ function check_for_duplicate_share($dev, $mountpoint, $fstype = "") {
 		}
 	}
 
-	/* Get the samba mounts */
+	/* Get the ud samba mounts */
 	foreach (get_samba_mounts() as $name => $info) {
 		if ($info['device'] != $dev) {
 			$s = basename($info['mountpoint']);
