@@ -2101,6 +2101,17 @@ function check_for_duplicate_share($dev, $mountpoint, $fstype = "") {
 	$smb_shares	= array_change_key_case($smb_shares, CASE_UPPER);
 	$smb_shares = array_flip($smb_shares);
 
+	/* Parse the disks config file. */
+	$disks_file 	= "/usr/local/emhttp/state/disks.ini";
+	$disks_config	= parse_ini_file($disks_file, true);
+
+	/* Get all disk names from the disks ini file. */
+	$disk_names = array_keys($disks_config);
+	$disk_names = array_flip($disk_names);
+	$disk_names	= array_change_key_case($disk_names, CASE_UPPER);
+	$disk_names = array_flip($disk_names);
+
+	/* Start with an empty array of ud_shares. */
 	$ud_shares = array();
 
 	/* Get all disk mounts */
@@ -2131,11 +2142,11 @@ function check_for_duplicate_share($dev, $mountpoint, $fstype = "") {
 	}
 
 	/* Merge samba shares and ud shares. */
-	$shares = array_merge($smb_shares, $ud_shares);
+	$shares = array_merge($smb_shares, $ud_shares, $disk_names);
 
 	/* See if the share name is already being used. */
 	if (is_array($shares) && in_array(strtoupper($mountpoint), $shares)) {
-		unassigned_log("Error: Cannot use that mount point! Share '{$mountpoint}' is already being used in the array or another unassigned device.");
+		unassigned_log("Error: Cannot use mount point '{$mountpoint}', it is already being used in the array or another unassigned device.");
 		$rc = false;
 	}
 
