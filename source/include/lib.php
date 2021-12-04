@@ -1891,7 +1891,8 @@ function get_unassigned_disks() {
 	foreach ($disk_paths as $path => $d) {
 		if ($d && (preg_match("#^(.(?!wwn|part))*$#", $d))) {
 			if (! in_array($path, $unraid_disks)) {
-				if (! in_array($path, array_map(function($ar){return $ar['device'];}, $ud_disks)) && (! in_array($d, $ud_disks, true)) ) {
+				/* A disk with the same device name or serial number is considered a duplicate and not added as a UD disk. */
+				if (! in_array($path, array_map(function($ar){return $ar['device'];}, $ud_disks)) || (! in_array($d, $ud_disks, true)) ) {
 					$m = array_values(preg_grep("|$d.*-part\d+|", $disk_paths));
 					natsort($m);
 					$ud_disks[$d] = array("device" => $path, "partitions" => $m);
