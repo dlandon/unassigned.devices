@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2021.12.02">
+<!ENTITY version	"2021.12.03">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"5a3780e543bada648d5bd04a0a7bac0f">
+<!ENTITY MD5		"034935bb0f273e18352ca036fcb61b76">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,6 +23,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+Add: Check disk and pool device names for duplicates when changing the mount point.
+Add: Check for reserved name for duplicates when changing the mount point.
+Fix: Duplicate UD disk check not working properly.
+
+###2021.12.02
 - Fix: Selecting a user script would load the user script file content.
 - Fix: Don't allow a script file name that is a directory.  Limit scripts to the UD directory on the flash drive.
 - Fix: Rewrite UD Settings to be in line with Unraid standards.
