@@ -131,7 +131,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$is_mounting	= (time() - filemtime($is_mounting) < 300) ? true : false;
 		$is_unmounting	= array_values(preg_grep("@/unmounting_".basename($device)."@i", listDir(dirname($paths['unmounting']))))[0];
 		$is_unmounting	= (time() - filemtime($is_unmounting) < 300) ? true : false;
-		$disabled		= $is_mounting || $is_unmounting || is_script_running($cmd);
+		$disabled		= $is_mounting || $is_unmounting || is_script_running($cmd) || ! $partition['fstype'];
 
 		/* Set up icons for file system check/scrub and script execution. */
 		$fstype = ($partition['fstype'] == "crypto_LUKS") ? luks_fs_type($partition['device']) : $partition['fstype'];
