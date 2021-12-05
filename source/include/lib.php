@@ -2124,6 +2124,10 @@ function check_for_duplicate_share($dev, $mountpoint, $fstype = "") {
 		}
 	}
 
+	/* Add some additional reserved names. */
+	$disk_names[] = strtoupper("remotes");
+	$disk_names[] = strtoupper("RecycleBin");
+
 	/* Start with an empty array of ud_shares. */
 	$ud_shares = array();
 
@@ -2159,7 +2163,7 @@ function check_for_duplicate_share($dev, $mountpoint, $fstype = "") {
 
 	/* See if the share name is already being used. */
 	if (is_array($shares) && in_array(strtoupper($mountpoint), $shares)) {
-		unassigned_log("Error: Cannot use mount point '{$mountpoint}', it is a reserved word, used in the array or by another unassigned device.");
+		unassigned_log("Error: Mount point '{$mountpoint}', it is a reserved word, used in the array or by another unassigned device.");
 		$rc = false;
 	}
 
