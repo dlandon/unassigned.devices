@@ -66,7 +66,8 @@ class MiscUD
 {
 	/* Save contect to a json file. */
 	public function save_json($file, $content) {
-		file_put_contents($file, json_encode($content, JSON_PRETTY_PRINT));
+		file_put_contents($file."-", json_encode($content, JSON_PRETTY_PRINT));
+		@rename($file."-", $file);
 	}
 
 	/* Get content from a json file. */
