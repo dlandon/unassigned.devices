@@ -254,7 +254,7 @@ function make_mount_button($device) {
 	$button = "<span><button device='{$device['device']}' class='mount' context='%s' role='%s' %s><i class='%s'></i>%s</button></span>";
 
 	if (isset($device['partitions'])) {
-		$mounted = isset($device['mounted']) ? $device['mounted'] : in_array(true, array_map(function($ar){return $ar['mounted'];}, $device['partitions']));
+		$mounted = isset($device['mounted']) ? $device['mounted'] : in_array(true, array_map(function($ar){return $ar['mounted'];}, $device['partitions']), true);
 		$disable = count(array_filter($device['partitions'], function($p){ if (! empty($p['fstype'])) return true;})) ? "" : "disabled";
 		$format	 = (isset($device['partitions']) && ! count($device['partitions'])) ? true : false;
 		$context = "disk";
@@ -340,7 +340,7 @@ switch ($_POST['action']) {
 		echo "<tbody>";
 		if ( count($disks) ) {
 			foreach ($disks as $disk) {
-				$mounted		= isset($disk['mounted']) ? $disk['mounted'] : in_array(true, array_map(function($ar){return is_mounted($ar['device']);}, $disk['partitions']));
+				$mounted		= isset($disk['mounted']) ? $disk['mounted'] : in_array(true, array_map(function($ar){return is_mounted($ar['device']);}, $disk['partitions']), true);
 				$disk_name		= basename($disk['device']);
 				$disk_dev		= $disk['ud_dev'];
 				$p				= (count($disk['partitions']) > 0) ? render_partition($disk, $disk['partitions'][0], true) : false;
