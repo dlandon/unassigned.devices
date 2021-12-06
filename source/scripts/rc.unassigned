@@ -27,7 +27,10 @@ if ($COMMAND != 'spindown') {
 } else {
 	$DEVNAME = $argv[2];
 }
+
 $remove = [];
+
+/* If the DEVNAME is empty, the device is not defined - exit with an error. */
 if (! $DEVNAME) {
 	die("Fail: device not defined.\n");
 }
@@ -44,39 +47,48 @@ function unassigned_mount() {
 			if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "auto" || $DEVNAME == "autodevices" ) {
 				$info = get_partition_info($partition);
 
-				/* If the device doesn't have a serial number it cannot be mounted. */
-				if ($info['serial'] == "") {
-					unassigned_log("Disk '{$device}' does not have a serial number and cannot be mounted.");
-					continue;
+				/* If disk is passed through, skip to the next disk. */
+				if ($info['pass_through']) {
+					unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' is set as passed through.");
+					break;
 				}
 
 				/* If disk is formatting, skip to the next one. */
 				if (array_values(preg_grep("@/formatting_".basename($device)."@i", listDir(dirname($paths['formatting']))))[0]) {
-					continue;
+					break;
 				}
 
-				/* If disk is passed through, skip to the next one. */
-				if ( $info['pass_through'] ) {
-					unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' is set as passed through.");
-					continue;
-				}
-
-				/* If disk is not set to auto mount, skip to the next one. */
+				/* If disk is not set to auto mount, skip to the next disk. */
 				if (! $info['automount'] && ( $DEVNAME == "auto" || $DEVNAME == "autodevices" || isset($_ENV['DEVNAME']) )) {
 					unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' is not set to auto mount.");
 
 					/* Set sleep timer for this device. */
 					setSleepTime($device);
+					break;
+				}
+
+				/* If the device doesn't have a serial number it cannot be mounted. */
+				if (! $info['serial']) {
+					unassigned_log("Disk '{$device}' does not have a serial number and cannot be mounted.");
+					break;
+				}
+
+				/* If partition does not have a file system it cannot be mounted. */
+				if (! $info['fstype']) {
+					unassigned_log("Disk '{$info['device']}' does not have a file system and cannot be mounted.");
 					continue;
 				}
 
-				/* If disk label is 'UNRAID' it cannot be mounted. */
-				if ($info['label'] == "UNRAID") {
-					unassigned_log("Error: Cannot mount device '{$info['device']}' with label 'UNRAID'.");
+				/* See if the mountpoint is a duplicate reserved, share, or UD name. Don't mount if a duplicate.*/
+				if (! check_for_duplicate_share($info['device'], basename($info['mountpoint']), $info['fstype'])) {
+					unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' cannot be mounted.");
 
 					/* Execute device script with error mounting action. */
 					execute_script($info, "ERROR_MOUNT");
-				} elseif ($info['device'] != "") {
+					continue;
+				}
+
+				if ($info['device']) {
 					unassigned_log("Disk found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = ((strpos($k, "pass") !== false) && (strpos($k, "pass_through") === false)) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), 1);
 					unassigned_log("Adding disk '{$info['device']}'...");
 
@@ -138,6 +150,15 @@ function unassigned_mount() {
 					continue;
 				}
 
+				/* See if the mountpoint is a duplicate reserved, share, or UD name. Don't mount if a duplicate.*/
+				if (! check_for_duplicate_share($info['device'], basename($info['mountpoint']), $info['fstype'])) {
+					unassigned_log("Remote SMB/NFS mount '{$info['device']}' cannot be mounted.");
+
+					/* Execute device script with error mounting action. */
+					execute_script($info, "ERROR_MOUNT");
+					continue;
+				}
+
 				unassigned_log("Remote SMB/NFS share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = ((strpos($k, "pass") !== false) || ((strpos($k, "user") !== false) && (strpos($k, "user_command") === false))) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), 1);
 
 				/* Remove any special characters. */
@@ -183,6 +204,15 @@ function unassigned_mount() {
 				/* If iso mount is not set to auto mount, skip to the next one. */
 				if (! $info['automount'] && ($DEVNAME == "auto" || $DEVNAME == "autodevices")) {
 					unassigned_log("ISO File mount '{$info['device']}' is not set to auto mount.");
+					continue;
+				}
+
+				/* See if the mountpoint is a duplicate reserved, share, or UD name. Don't mount if a duplicate.*/
+				if (! check_for_duplicate_share($info['device'], basename($info['mountpoint']), $info['fstype'])) {
+					unassigned_log("ISO File mount '{$info['device']}' cannot be mounted.");
+
+					/* Execute device script with error mounting action. */
+					execute_script($info, "ERROR_MOUNT");
 					continue;
 				}
 
