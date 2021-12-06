@@ -14,6 +14,13 @@ $plugin = "unassigned.devices";
 $docroot = $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 require_once("$docroot/plugins/{$plugin}/include/lib.php");
 
+function save() {
+	global $paths;
+
+	/* Copy the updated configuration from the flash drive to the tmp config file. */
+	@copy("/boot/config/plugins/unassigned.devices/unassigned.devices.cfg", $paths['config_file']);
+}
+
 function apply() {
 	global $paths;
 
@@ -68,6 +75,10 @@ function set_pass() {
 }
 
 switch ($argv[1]) {
+	case 'save':
+		save();
+		break;
+
 	case 'apply':
 		apply();
 		break;
@@ -82,7 +93,7 @@ switch ($argv[1]) {
 
 	default:
 		unassigned_log("Error: 'rc.settings {$argv[1]} {$argv[2]}' not understood");
-		unassigned_log("rc.settings usage: 'apply', 'uuid_change', 'set_pass'");
+		unassigned_log("rc.settings usage: 'save', 'apply', 'uuid_change', 'set_pass'");
 		exit(0);
 		break;
 }
