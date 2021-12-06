@@ -1868,39 +1868,38 @@ function remove_config_iso($source) {
 function get_unassigned_disks() {
 	global $disks;
 
-	$ud_disks = $disk_paths = $unraid_disks = array();
+	$ud_disks = $paths = $unraid_disks = array();
 
 	/* Get all devices by id. */
 	foreach (listDir("/dev/disk/by-id/") as $p) {
 		$r = realpath($p);
 		/* Only /dev/sd*, /dev/hd*, and /dev/nvme* devices. */
 		if ((! is_bool(strpos($r, "/dev/sd"))) || (! is_bool(strpos($r, "/dev/hd"))) || (! is_bool(strpos($r, "/dev/nvme")))) {
-			$disk_paths[$r] = $p;
+			$paths[$r] = $p;
 		}
 	}
+	ksort($paths, SORT_NATURAL);
 
-	ksort($disk_paths, SORT_NATURAL);
-	/* Get all Unraid disk devices (array disks, cache, and pool devices). */
+	/* Get all unraid disk devices (array disks, cache, and pool devices). */
 	foreach ($disks as $d) {
 		if ($d['device']) {
 			$unraid_disks[] = "/dev/".$d['device'];
 		}
 	}
-	natsort($unraid_disks);
 
-	/* Create the array of unassigned devices by removing Unraid devices. */
-	foreach ($disk_paths as $path => $d) {
+	/* Create the array of unassigned devices. */
+	foreach ($paths as $path => $d) {
 		if ($d && (preg_match("#^(.(?!wwn|part))*$#", $d))) {
 			if (! in_array($path, $unraid_disks)) {
-				/* A disk with the same device name or serial number is considered a duplicate and not added as a UD disk. */
-				if (! in_array($path, array_map(function($ar){return $ar['device'];}, $ud_disks)) || (! in_array($d, $ud_disks, true)) ) {
-					$m = array_values(preg_grep("|$d.*-part\d+|", $disk_paths));
+				if (! in_array($path, array_map(function($ar){return $ar['device'];}, $ud_disks), true)) {
+					$m = array_values(preg_grep("|$d.*-part\d+|", $paths));
 					natsort($m);
-					$ud_disks[$d] = array("device" => $path, "partitions" => $m);
+					$ud_disks[$d] = array("device"=>$path,"type"=>"ata", "partitions"=>$m);
 				}
 			}
 		}
 	}
+	ksort($ud_disks, SORT_NATURAL);
 
 	return $ud_disks;
 }
