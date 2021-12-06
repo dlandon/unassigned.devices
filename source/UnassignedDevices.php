@@ -254,15 +254,22 @@ function make_mount_button($device) {
 	$button = "<span><button device='{$device['device']}' class='mount' context='%s' role='%s' %s><i class='%s'></i>%s</button></span>";
 
 	if (isset($device['partitions'])) {
-		$mounted = isset($device['mounted']) ? $device['mounted'] : in_array(true, array_map(function($ar){return $ar['mounted'];}, $device['partitions']), true);
-		$disable = count(array_filter($device['partitions'], function($p){ if (! empty($p['fstype'])) return true;})) ? "" : "disabled";
-		$format	 = (isset($device['partitions']) && ! count($device['partitions'])) ? true : false;
-		$context = "disk";
+		$mounted	= isset($device['mounted']) ? $device['mounted'] : in_array(true, array_map(function($ar){return $ar['mounted'];}, $device['partitions']), true);
+		$disable	= count(array_filter($device['partitions'], function($p){ if (! empty($p['fstype'])) return true;})) ? "" : "disabled";
+		$format		= (isset($device['partitions']) && ! count($device['partitions'])) ? true : false;
+		$context	= "disk";
+
+		/* If this disk does not have a devX designation, it has dropped out of the array. */
+		$sf		= $paths['dev_state'];
+		if (is_file($sf) && (basename($device['device']) == $device['ud_dev'])) {
+			$array_disk = true;
+		}
 	} else {
-		$mounted =	$device['mounted'];
-		$disable = (! empty($device['fstype']) && $device['fstype'] != "crypto_LUKS") ? "" : "disabled";
-		$format	 = ((isset($device['fstype']) && empty($device['fstype']))) ? true : false;
-		$context = "partition";
+		$mounted	=	$device['mounted'];
+		$disable	= (! empty($device['fstype']) && $device['fstype'] != "crypto_LUKS") ? "" : "disabled";
+		$format		= ((isset($device['fstype']) && empty($device['fstype']))) ? true : false;
+		$context	= "partition";
+		$array_disk	= false;
 	}
 
 	$is_mounting	= array_values(preg_grep("@/mounting_".basename($device['device'])."@i", listDir(dirname($paths['mounting']))))[0];
@@ -276,7 +283,9 @@ function make_mount_button($device) {
 
 	$is_preclearing = shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg($device['device'])." | /bin/grep -v 'grep'") != "" ? true : false;
 
-	if (($device['size'] == 0) && (! $is_unmounting)) {
+	if ($array_disk) {
+		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-erase', _('Array'));
+	} elseif (($device['size'] == 0) && (! $is_unmounting)) {
 		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-erase', _('Mount'));
 	} elseif ($format) {
 		if ($is_preclearing) {
