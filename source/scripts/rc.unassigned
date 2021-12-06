@@ -276,7 +276,7 @@ function unassigned_umount() {
 					continue;
 				}
 
-				unassigned_log("Partition found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), 1);
+				unassigned_log("Partition found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) && (strpos($k, "pass_through") === false)? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), 1);
 
 				/* Cannot unmount disk with 'UNRAID' label. */
 				if ($info['label'] == "UNRAID") {
