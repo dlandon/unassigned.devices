@@ -10,10 +10,6 @@
  * all copies or substantial portions of the Software.
  */
 
-/* Set the level for debugging. */
-/* 0 - normal logging */
-$DEBUG_LEVEL = 0;
-
 $plugin = "unassigned.devices";
 $paths = [	"smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"smb_usb_shares"	=> "/etc/samba/unassigned-shares",
@@ -44,6 +40,12 @@ $paths = [	"smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 $docroot	= $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $users		= @parse_ini_file("$docroot/state/users.ini", true);
 $disks		= @parse_ini_file("$docroot/state/disks.ini", true);
+
+/* Set the level for debugging. */
+/* 0 - normal logging */
+$config_file	= $paths['config_file'];
+$config			= @parse_ini_file($config_file, true);
+$DEBUG_LEVEL	= isset($config['Config']['debug_level']) ? (int) $config['Config']['debug_level'] : 0;
 
 /* Read Unraid variables file. Used to determine disks not assigned to the array and other array parameters. */
 if (! isset($var)){
@@ -1048,7 +1050,7 @@ function do_mount($info) {
 				$rc = do_mount_local($info);
 			}
 		} else {
-			unassigned_log("Drive '{$info['device']}' already mounted.");
+			unassigned_log("Partition '{$info['device']}' is already mounted.");
 		}
 
 	/* Mount an unencrypted disk. */
@@ -1138,7 +1140,7 @@ function do_mount_local($info) {
 			unassigned_log("No filesystem detected on '{$dev}'.");
 		}
 	} else {
-		unassigned_log("Drive '{$dev}' already mounted.");
+		unassigned_log("Partition '{$dev}' is already mounted.");
 	}
 
 	return $rc;
@@ -1277,7 +1279,11 @@ function add_smb_share($dir, $recycle_bin = true) {
 
 			/* Do some cleanup. */
 			$smb_extra_includes = array_unique(preg_grep("/include/i", $c));
-			foreach($smb_extra_includes as $key => $inc) if( ! is_file(parse_ini_string($inc)['include'])) unset($smb_extra_includes[$key]); 
+			foreach($smb_extra_includes as $key => $inc) {
+				if (! is_file(parse_ini_string($inc)['include'])) {
+					unset($smb_extra_includes[$key]);
+				}
+			} 
 			$c		= array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_extra_includes);
 			$c		= preg_replace('/\n\s*\n\s*\n/s', PHP_EOL.PHP_EOL, implode(PHP_EOL, $c));
 			file_put_contents($paths['smb_extra'], $c);
@@ -1320,7 +1326,11 @@ function rm_smb_share($dir) {
 
 		/* Do some cleanup. */
 		$smb_extra_includes = array_unique(preg_grep("/include/i", $c));
-		foreach($smb_extra_includes as $key => $inc) if (! is_file(parse_ini_string($inc)['include'])) unset($smb_extra_includes[$key]); 
+		foreach($smb_extra_includes as $key => $inc) {
+			if (! is_file(parse_ini_string($inc)['include'])) {
+				unset($smb_extra_includes[$key]);
+			}
+		} 
 		$c = array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_extra_includes);
 		$c = preg_replace('/\n\s*\n\s*\n/s', PHP_EOL.PHP_EOL, implode(PHP_EOL, $c));
 		file_put_contents($paths['smb_extra'], $c);
@@ -1696,7 +1706,7 @@ function do_mount_samba($info) {
 				@rmdir($dir);
 			}
 		} else {
-			unassigned_log("Share '{$dev}' already mounted.");
+			unassigned_log("Share '{$dev}' is already mounted.");
 		}
 	} else {
 		unassigned_log("Remote SMB/NFS server '{$info['ip']}' is offline and share '{$info['device']}' cannot be mounted."); 
@@ -1824,7 +1834,7 @@ function do_mount_iso($info) {
 				unassigned_log("Mount of '{$dev}' failed: '{$o}'");
 			}
 		} else {
-			unassigned_log("Share '{$dev}' already mounted.");
+			unassigned_log("ISO file '{$dev}' is already mounted.");
 		}
 	} else {
 		unassigned_log("Error: ISO file '{$info[file]}' is missing and cannot be mounted.");
@@ -1890,7 +1900,7 @@ function get_unassigned_disks() {
 	/* Create the array of unassigned devices. */
 	foreach ($paths as $path => $d) {
 		if ($d && (preg_match("#^(.(?!wwn|part))*$#", $d))) {
-			if (! in_array($path, $unraid_disks)) {
+			if (! in_array($path, $unraid_disks, true)) {
 				if (! in_array($path, array_map(function($ar){return $ar['device'];}, $ud_disks), true)) {
 					$m = array_values(preg_grep("|$d.*-part\d+|", $paths));
 					natsort($m);
@@ -2118,7 +2128,7 @@ function check_for_duplicate_share($dev, $mountpoint, $fstype = "") {
 
 	foreach ($reserved_names as $name) {
 		$name = strtoupper($name);
-		if (! in_array($name, $disk_names)) {
+		if (! in_array($name, $disk_names, true)) {
 			$disk_names[] = $name;
 		}
 	}
@@ -2161,8 +2171,8 @@ function check_for_duplicate_share($dev, $mountpoint, $fstype = "") {
 	$shares = array_merge($smb_shares, $ud_shares, $disk_names);
 
 	/* See if the share name is already being used. */
-	if (is_array($shares) && in_array(strtoupper($mountpoint), $shares)) {
-		unassigned_log("Error: Mount point '{$mountpoint}', it is a reserved word, used in the array or by another unassigned device.");
+	if (is_array($shares) && in_array(strtoupper($mountpoint), $shares, true)) {
+		unassigned_log("Error: Mount point '{$mountpoint}' - name is reserved, used in the array or by an unassigned device.");
 		$rc = false;
 	}
 
