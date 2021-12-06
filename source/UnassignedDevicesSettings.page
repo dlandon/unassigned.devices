@@ -141,7 +141,7 @@ foreach (get_all_disks_info() as $d) {
 <input type="hidden" name="#section" value="Config">
 <input type="hidden" name="#file" value="unassigned.devices/unassigned.devices.cfg">
 <input type="hidden" name="#command" value="/plugins/unassigned.devices/scripts/rc.settings">
-<input type="hidden" name="#arg[1]" value="apply">
+<input type="hidden" name="#arg[1]" value="save">
 
 <?if (! $parted):?>
 :ud_settings_plus_plug:
@@ -241,6 +241,24 @@ _(NFS Version to use when Mounting Remote Shares)_:
 > Set to **NFSv4** to mount all NFS Remote Shares with NFSv4.
 >
 > All NFS remote shares will be mounted with the specified version.
+:end
+
+_(Debug Log Level)_:
+: <select name="debug_level" size="1">
+  <?=mk_option($cfg["Config"]["debug_level"], "0", "_(None)_");?>
+  <?=mk_option($cfg["Config"]["debug_level"], "1", "1");?>
+  <?=mk_option($cfg["Config"]["debug_level"], "2", "2");?>
+  <?=mk_option($cfg["Config"]["debug_level"], "3", "3");?>
+  </select>
+
+:ud_settings_debug_level_plug:
+> Setting a Debug Log Level adds additional logging in specific areas of UD for troubleshooting.
+>
+> Set to **None** to turn off debug logging.
+>
+> Set the Debug Log Level to a numeric value to debug a specific area of UD.
+>
+> **Note:** Don't leave the Debug Log Level on for extended periods of time.  It can add a lot of log messages to the syslog.
 :end
 
 &nbsp;
