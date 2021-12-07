@@ -287,9 +287,7 @@ function make_mount_button($device) {
 
 	$is_preclearing = shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg($device['device'])." | /bin/grep -v 'grep'") != "" ? true : false;
 
-	if ($array_disk) {
-		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-erase', _('Array'));
-	} elseif (($device['size'] == 0) && (! $is_unmounting)) {
+	if (($device['size'] == 0) && (! $is_unmounting)) {
 		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-erase', _('Mount'));
 	} elseif ($format) {
 		if ($is_preclearing) {
@@ -324,6 +322,8 @@ function make_mount_button($device) {
 		} else {
 			$button = sprintf($button, $context, 'umount', $disable, 'fa fa-export', _('Unmount'));
 		}
+	} elseif ($array_disk) {
+		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-erase', _('Array'));
 	} else {
 		$disable = ($device['partitions'][0]['pass_through'] || $preclearing ) ? "disabled" : $disable;
 		if (! $device['partitions'][0]['pass_through']) {
@@ -345,6 +345,9 @@ switch ($_POST['action']) {
 			@unlink($paths['hotplug_event']);
 			exec("/usr/local/sbin/emcmd 'cmdHotplug=apply'");
 		}
+
+		/* Create an array of share names for duplicate share checking. */
+		$share_names = array();
 
 		/* Disk devices. */
 		$disks = get_all_disks_info();
@@ -474,6 +477,12 @@ switch ($_POST['action']) {
 					}
 					echo "</tr>";
 				}
+
+				/* Add to share names. */
+				for ($i = 0; $i < count($disk['partitions']); $i++) {
+					$dev	= ($disk['partition'][$i]['fstype'] == "crypto_LUKS") ? $disk['luks'] : $disk['device'];
+					$share_names[$dev.strval($i+1)] = strtoupper(basename($disk['partitions'][$i]['mountpoint']));
+				}
 			}
 		} else {
 			echo "<tr><td colspan='12' style='text-align:center;'>"._('No Unassigned Disks available').".</td></tr>";
@@ -539,6 +548,9 @@ switch ($_POST['action']) {
 
 				echo "<td><a title='"._("View Remote SMB")."/"._("NFS Script Log")."' href='/Main/ScriptLog?d=".$mount['device']."'><i class='fa fa-align-left".( $mount['command'] ? "":" grey-orb" )."'></i></a></td>";
 				echo "</tr>";
+
+				/* Add to the share names. */
+				$share_names[$mount['name']] = basename($mount['mountpoint']);
 			}
 		}
 
@@ -591,6 +603,9 @@ switch ($_POST['action']) {
 				echo render_used_and_free($mount, $mounted);
 				echo "<td><a title='"._("View ISO File Script Log")."' href='/Main/ScriptLog?i=".$mount['device']."'><i class='fa fa-align-left".( $mount['command'] ? "":" grey-orb" )."'></i></a></td>";
 				echo "</tr>";
+
+				/* Add to the share names. */
+				$share_names[$mount['device']] = basename($mount['mountpoint']);
 			}
 		}
 		if (! count($samba_mounts) && ! count($iso_mounts)) {
@@ -605,7 +620,9 @@ switch ($_POST['action']) {
 		$config_file = $paths["config_file"];
 		$config = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
 		$disks_serials = array();
-		foreach ($disks as $disk) $disks_serials[] = $disk['partitions'][0]['serial'];
+		foreach ($disks as $disk) {
+			$disks_serials[] = $disk['partitions'][0]['serial'];
+		}
 		$ct = "";
 		foreach ($config as $serial => $value) {
 			if($serial == "Config") continue;
@@ -623,6 +640,8 @@ switch ($_POST['action']) {
 			echo "<div class='show-disks'><div class='show-historical' id='smb_tab'><div id='title'><span class='left'><img src='/plugins/{$plugin}/icons/historical.png' class='icon'>"._('Historical Devices')."</span></div>";
 			echo "<table class='disk_status wide usb_absent'><thead><tr><td>"._('Device')."</td><td>"._('Serial Number (Mount Point)')."</td><td></td><td>"._('Remove')."</td><td>"._('Settings')."</td><td></td><td></td><td></td><td></td><td></td></tr></thead><tbody>{$ct}</tbody></table></div></div>";
 		}
+
+		MiscUD::save_json($paths['share_names'], $share_names);
 		break;
 
 	case 'refresh_page':

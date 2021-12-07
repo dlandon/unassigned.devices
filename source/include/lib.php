@@ -32,6 +32,7 @@ $paths = [	"smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"run_status"		=> "/var/state/{$plugin}/run_status.json",
 			"ping_status"		=> "/var/state/{$plugin}/ping_status.json",
 			"df_status"			=> "/var/state/{$plugin}/df_status.json",
+			"share_names"		=> "/var/state/{$plugin}/share_names.json",
 			"unmounting"		=> "/var/state/{$plugin}/unmounting_%s.state",
 			"mounting"			=> "/var/state/{$plugin}/mounting_%s.state",
 			"formatting"		=> "/var/state/{$plugin}/formatting_%s.state"
@@ -2099,8 +2100,8 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 }
 
 /* Check for a duplicate share name when changing the mount point. */
-function check_for_duplicate_share($dev, $mountpoint, $fstype = "") {
-	global $var;
+function check_for_duplicate_share($dev, $mountpoint) {
+	global $var, $paths;
 
 	$rc = true;
 
@@ -2141,30 +2142,12 @@ function check_for_duplicate_share($dev, $mountpoint, $fstype = "") {
 	/* Start with an empty array of ud_shares. */
 	$ud_shares = array();
 
-	/* Get all ud disk mounts. */
-	foreach (get_all_disks_info() as $name => $info) {
-		foreach ($info['partitions'] as $p) {
-			$device = ($fstype == 'crypto_LUKS') ? $p['luks'] : $p['device'];
-			if ($device != $dev) {
-				$s = basename($p['mountpoint']);
-				$ud_shares[] .= strtoupper($s);
-			}
-		}
-	}
-
-	/* Get the ud samba mounts */
-	foreach (get_samba_mounts() as $name => $info) {
-		if ($info['device'] != $dev) {
-			$s = basename($info['mountpoint']);
-			$ud_shares[] .= strtoupper($s);
-		}
-	}
-
-	/* Get ISO File Mounts */
-	foreach (get_iso_mounts() as $name => $info) {
-		if ($info['device'] != $dev) {
-			$s = basename($info['mountpoint']);
-			$ud_shares[] .= strtoupper($s);
+	/* Get all ud shares. */
+	$share_names	= MiscUD::get_json($paths['share_names']);
+	foreach ($share_names as $device => $name) {
+		$name = strtoupper($name);
+		if ($dev != $device) {
+			$ud_shares[] = $name;
 		}
 	}
 
@@ -2187,7 +2170,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 	$rc = true;
 
 	if ($mountpoint) {
-		$rc = check_for_duplicate_share($dev, $mountpoint, $fstype);
+		$rc = check_for_duplicate_share($dev, $mountpoint);
 		if ($rc) {
 			$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
 			set_config($serial, "mountpoint.{$partition}", $mountpoint);

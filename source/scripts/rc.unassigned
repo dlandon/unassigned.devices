@@ -40,7 +40,7 @@ function unassigned_mount() {
 	global $DEVNAME, $paths;
 
 	/* Mount local disks. */
-	foreach(get_unassigned_disks() as $name => $disk) {
+	foreach (get_unassigned_disks() as $name => $disk) {
 		$device = $disk['device'];
 		foreach ($disk['partitions'] as $partition)
 		{
@@ -82,7 +82,7 @@ function unassigned_mount() {
 				}
 
 				/* See if the mountpoint is a duplicate reserved, share, or UD name. Don't mount if a duplicate.*/
-				if (! check_for_duplicate_share(($info['fstype'] == "crypto_LUKS" ? $info['luks'] :  $info['device']), basename($info['mountpoint']), $info['fstype'])) {
+				if (! check_for_duplicate_share(($info['fstype'] == "crypto_LUKS" ? $info['luks'] :  $info['device']), basename($info['mountpoint']))) {
 					unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' cannot be mounted.");
 
 					/* Execute device script with error mounting action. */
@@ -153,7 +153,7 @@ function unassigned_mount() {
 				}
 
 				/* See if the mountpoint is a duplicate reserved, share, or UD name. Don't mount if a duplicate.*/
-				if (! check_for_duplicate_share($info['device'], basename($info['mountpoint']), $info['fstype'])) {
+				if (! check_for_duplicate_share($info['device'], basename($info['mountpoint']))) {
 					unassigned_log("Remote SMB/NFS mount '{$info['device']}' cannot be mounted.");
 
 					/* Execute device script with error mounting action. */
@@ -210,7 +210,7 @@ function unassigned_mount() {
 				}
 
 				/* See if the mountpoint is a duplicate reserved, share, or UD name. Don't mount if a duplicate.*/
-				if (! check_for_duplicate_share($info['device'], basename($info['mountpoint']), $info['fstype'])) {
+				if (! check_for_duplicate_share($info['device'], basename($info['mountpoint']))) {
 					unassigned_log("ISO File mount '{$info['device']}' cannot be mounted.");
 
 					/* Execute device script with error mounting action. */
