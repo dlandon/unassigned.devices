@@ -27,8 +27,12 @@ if ($translations) {
 require_once("plugins/{$plugin}/include/lib.php");
 require_once("webGui/include/Helpers.php");
 
-if (isset($_POST['display'])) $display = $_POST['display'];
-if (isset($_POST['var'])) $var = $_POST['var'];
+if (isset($_POST['display'])) {
+	$display = $_POST['display'];
+}
+if (isset($_POST['var'])) {
+	$var = $_POST['var'];
+}
 
 function netmasks($netmask, $rev = false)
 {

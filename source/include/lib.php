@@ -37,7 +37,6 @@ $paths = [	"smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"formatting"		=> "/var/state/{$plugin}/formatting_%s.state"
 		];
 
-$docroot	= $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $users		= @parse_ini_file("$docroot/state/users.ini", true);
 $disks		= @parse_ini_file("$docroot/state/disks.ini", true);
 
@@ -122,9 +121,11 @@ function save_ini_file($file, $array, $save_config = true) {
 
 	$res = array();
 	foreach($array as $key => $val) {
-		if(is_array($val)) {
+		if (is_array($val)) {
 			$res[] = PHP_EOL."[$key]";
-			foreach($val as $skey => $sval) $res[] = "$skey = ".(is_numeric($sval) ? $sval : '"'.$sval.'"');
+			foreach($val as $skey => $sval) {
+				$res[] = "$skey = ".(is_numeric($sval) ? $sval : '"'.$sval.'"');
+			}
 		} else {
 			$res[] = "$key = ".(is_numeric($val) ? $val : '"'.$val.'"');
 		}
