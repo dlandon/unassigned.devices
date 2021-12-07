@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2021.12.06">
+<!ENTITY version	"2021.12.07">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"7761c7ff4c5e0922a8d232182416e750">
+<!ENTITY MD5		"c5529bce4fba3dfff5c20bcdd411adc3">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,6 +23,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Show a disk that drops out of the array and ends up as an unassigned device as unmountable and mark it as 'Array'.
+- Fix: Rewrite check for used share name because the scheme used interferred with a device mount.
+
+###2021.12.06
 - Add: Check for a mountpoint name that is a reserved, in the array array, or a UD mountpoint when mounting all UD devices.
 - Add: Add 'Debug Log Level' setting to set debug level for troubleshooting.
 - Fix: Revert duplicate disk serial number check.
