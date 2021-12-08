@@ -2099,7 +2099,7 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 	return $cmd[$type] ? sprintf($cmd[$type], $dev) : "";
 }
 
-/* Check for a duplicate share name when changing the mount point. */
+/* Check for a duplicate share name when changing the mount point and mounting disks. */
 function check_for_duplicate_share($dev, $mountpoint) {
 	global $var, $paths;
 
@@ -2109,7 +2109,7 @@ function check_for_duplicate_share($dev, $mountpoint) {
 	$smb_file 	= "/usr/local/emhttp/state/shares.ini";
 	$smb_config	= parse_ini_file($smb_file, true);
 
-	/* Get all shares from the smb configuration file. */
+	/* Get all share names from the state file. */
 	$smb_shares = array_keys($smb_config);
 	$smb_shares = array_flip($smb_shares);
 	$smb_shares	= array_change_key_case($smb_shares, CASE_UPPER);
@@ -2119,15 +2119,16 @@ function check_for_duplicate_share($dev, $mountpoint) {
 	$disks_file 	= "/usr/local/emhttp/state/disks.ini";
 	$disks_config	= parse_ini_file($disks_file, true);
 
-	/* Get all disk names from the disks ini file. */
+	/* Get all disk names from the disks state file. */
 	$disk_names = array_keys($disks_config);
 	$disk_names = array_flip($disk_names);
 	$disk_names	= array_change_key_case($disk_names, CASE_UPPER);
 	$disk_names = array_flip($disk_names);
 
-	/* Check the reserved names for duplicates. */
+	/* Get the Unraid reserved names. */
 	$reserved_names = explode(",", $var['reservedNames']);
 
+	/* Add the reserved names to the disk names. */
 	foreach ($reserved_names as $name) {
 		$name = strtoupper($name);
 		if (! in_array($name, $disk_names, true)) {
@@ -2135,14 +2136,14 @@ function check_for_duplicate_share($dev, $mountpoint) {
 		}
 	}
 
-	/* Add some additional reserved names. */
+	/* Add some additional reserved names. These will eventually be added to Unraid reserved names, */
 	$disk_names[] = strtoupper("remotes");
 	$disk_names[] = strtoupper("RecycleBin");
 
 	/* Start with an empty array of ud_shares. */
 	$ud_shares = array();
 
-	/* Get all ud shares. */
+	/* Get an array of all ud shares. */
 	$share_names	= MiscUD::get_json($paths['share_names']);
 	foreach ($share_names as $device => $name) {
 		$name = strtoupper($name);
@@ -2151,7 +2152,7 @@ function check_for_duplicate_share($dev, $mountpoint) {
 		}
 	}
 
-	/* Merge samba shares and ud shares. */
+	/* Merge samba shares, reserved names, and ud shares. */
 	$shares = array_merge($smb_shares, $ud_shares, $disk_names);
 
 	/* See if the share name is already being used. */
