@@ -106,7 +106,7 @@ function unassigned_mount() {
 					/* Mount the disk. */
 					if (do_mount( $info )) 
 					{
-						$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV) : get_udev_info($device, NULL);
+						$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV) : get_udev_info($device, null);
 
 						/* Add smb and nfs shares for this device. */
 						if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'], "usb"))) {
