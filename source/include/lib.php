@@ -1407,7 +1407,7 @@ function remove_shares() {
 			$info = get_partition_info($p);
 			if ( $info['mounted'] ) {
 				$device = $disk['device'];
-				$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV) : get_udev_info($device, NULL);
+				$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV) : get_udev_info($device, null);
 				if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'], "usb"))) {
 					rm_smb_share($info['target']);
 					rm_nfs_share($info['target']);
@@ -1440,7 +1440,7 @@ function reload_shares() {
 			$info = get_partition_info($p);
 			if ( $info['mounted'] ) {
 				$device = $disk['device'];
-				$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV) : get_udev_info($device, NULL);
+				$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV) : get_udev_info($device, null);
 				if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'], "usb"))) {
 					add_smb_share($info['mountpoint']);
 					add_nfs_share($info['mountpoint']);
@@ -1940,7 +1940,7 @@ function get_all_disks_info() {
 }
 
 /* Get the udev disk information. */
-function get_udev_info($dev, $udev = NULL) {
+function get_udev_info($dev, $udev = null) {
 	global $paths;
 
 	$state	= is_file($paths['state']) ? @parse_ini_file($paths['state'], true, INI_SCANNER_RAW) : array();
@@ -1952,7 +1952,10 @@ function get_udev_info($dev, $udev = NULL) {
 	} else if (array_key_exists($device, $state)) {
 		$rc	= $state[$device];
 	} else {
-		$state[$device] = parse_ini_string(timed_exec(5,"/sbin/udevadm info --query=property --path $(/sbin/udevadm info -q path -n ".escapeshellarg($device)." 2>/dev/null) 2>/dev/null"), INI_SCANNER_RAW);
+		$dev_state = parse_ini_string(timed_exec(5,"/sbin/udevadm info --query=property --path $(/sbin/udevadm info -q path -n ".escapeshellarg($device)." 2>/dev/null) 2>/dev/null"), INI_SCANNER_RAW);
+		if (is_array($dev_state)) {
+			$state[$device] = $dev_state;
+		}
 		save_ini_file($paths['state'], $state);
 		$rc	= $state[$device];
 	}
@@ -1964,7 +1967,7 @@ function get_udev_info($dev, $udev = NULL) {
 function get_disk_info($dev) {
 
 	$disk						= array();
-	$attrs						= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, NULL);
+	$attrs						= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
 	$disk['serial_short']		= isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
 	$disk['serial']				= "{$attrs['ID_MODEL']}_{$disk['serial_short']}";
 	$disk['device']				= realpath($dev);
@@ -1989,7 +1992,7 @@ function get_partition_info($dev) {
 	global $paths;
 
 	$disk	= array();
-	$attrs	= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, NULL);
+	$attrs	= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
 	if ($attrs['DEVTYPE'] == "partition") {
 		$disk['serial_short']	= isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
 		$disk['serial']			= "{$attrs['ID_MODEL']}_{$disk['serial_short']}";
