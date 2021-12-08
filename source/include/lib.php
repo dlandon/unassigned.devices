@@ -1052,7 +1052,7 @@ function do_mount($info) {
 				$rc = do_mount_local($info);
 			}
 		} else {
-			unassigned_log("Partition '{$info['device']}' is already mounted.");
+			unassigned_log("Partition '".basename($info['device'])."' is already mounted.");
 		}
 
 	/* Mount an unencrypted disk. */
@@ -1116,7 +1116,7 @@ function do_mount_local($info) {
 				if (is_mounted($dev) && is_mounted($dir, true)) {
 					@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
 
-					unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
+					unassigned_log("Successfully mounted '".basename($dev)."' on '{$dir}'.");
 
 					$rc = true;
 					break;
@@ -1130,7 +1130,7 @@ function do_mount_local($info) {
 				if ($fs == "crypto_LUKS" ) {
 					shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg(basename($info['device'])));
 				}
-				unassigned_log("Mount of '{$dev}' failed: '{$o}'");
+				unassigned_log("Mount of '".basename($dev)."' failed: '{$o}'");
 				@rmdir($dir);
 			} else {
 				/* Ntfs is mounted but is most likely mounted r/o. Display the mount command warning. */
@@ -1139,10 +1139,10 @@ function do_mount_local($info) {
 				}
 			}
 		} else {
-			unassigned_log("No filesystem detected on '{$dev}'.");
+			unassigned_log("No filesystem detected on '".basename($dev)."'.");
 		}
 	} else {
-		unassigned_log("Partition '{$dev}' is already mounted.");
+		unassigned_log("Partition '".basename($dev)."' is already mounted.");
 	}
 
 	return $rc;
@@ -1172,7 +1172,7 @@ function do_unmount($dev, $dir, $forc = false, $smb = false, $nfs = false) {
 					}
 				}
 
-				unassigned_log("Successfully unmounted '{$dev}'");
+				unassigned_log("Successfully unmounted '".basename($dev)."'");
 				$rc = true;
 				break;
 			} else {
@@ -1180,10 +1180,10 @@ function do_unmount($dev, $dir, $forc = false, $smb = false, $nfs = false) {
 			}
 		}
 		if (! $rc) {
-			unassigned_log("Unmount of '{$dev}' failed: '{$o}'"); 
+			unassigned_log("Unmount of '".basename($dev)."' failed: '{$o}'"); 
 		}
 	} else {
-		unassigned_log("Cannot unmount '{$dev}'. UD did not mount the device.");
+		unassigned_log("Cannot unmount '".basename($dev)."'. UD did not mount the device.");
 	}
 
 	return $rc;
@@ -1955,9 +1955,11 @@ function get_udev_info($dev, $udev = null) {
 		$dev_state = parse_ini_string(timed_exec(5,"/sbin/udevadm info --query=property --path $(/sbin/udevadm info -q path -n ".escapeshellarg($device)." 2>/dev/null) 2>/dev/null"), INI_SCANNER_RAW);
 		if (is_array($dev_state)) {
 			$state[$device] = $dev_state;
+			save_ini_file($paths['state'], $state);
+			$rc	= $state[$device];
+		} else {
+			$rc = array();
 		}
-		save_ini_file($paths['state'], $state);
-		$rc	= $state[$device];
 	}
 
 	return $rc;
