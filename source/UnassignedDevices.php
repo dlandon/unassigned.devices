@@ -481,7 +481,8 @@ switch ($_POST['action']) {
 				/* Add to share names. */
 				for ($i = 0; $i < count($disk['partitions']); $i++) {
 					$dev	= ($disk['partition'][$i]['fstype'] == "crypto_LUKS") ? $disk['luks'] : $disk['device'];
-					$share_names[$dev.strval($i+1)] = basename($disk['partitions'][$i]['mountpoint']);
+					$dev	.= $disk['partitions'][$i]['part'];
+					$share_names[$dev] = basename($disk['partitions'][$i]['mountpoint']);
 				}
 			}
 		} else {
