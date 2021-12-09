@@ -38,6 +38,7 @@ $paths = [	"smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"formatting"		=> "/var/state/{$plugin}/formatting_%s.state"
 		];
 
+$docroot	= $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $users		= @parse_ini_file("$docroot/state/users.ini", true);
 $disks		= @parse_ini_file("$docroot/state/disks.ini", true);
 
@@ -2162,7 +2163,7 @@ function check_for_duplicate_share($dev, $mountpoint) {
 
 	/* See if the share name is already being used. */
 	if (is_array($shares) && in_array(strtoupper($mountpoint), $shares, true)) {
-		unassigned_log("Error: Mount point '{$mountpoint}' - name is reserved, used in the array or by an unassigned device.");
+		unassigned_log("Error: Device '".$dev."' mount point '".$mountpoint."' - name is reserved, used in the array or by an unassigned device.");
 		$rc = false;
 	}
 
