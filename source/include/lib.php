@@ -679,7 +679,7 @@ function remove_partition($dev, $part) {
 		if ($d['device'] == $dev) {
 			foreach ($d['partitions'] as $p) {
 				if ($p['part'] == $part && $p['target']) {
-					unassigned_log("Aborting removal: partition '{$part}' is mounted.");
+					unassigned_log("Aborting removal: partition '".$part."' is mounted.");
 					$rc = false;
 				} 
 			}
@@ -687,7 +687,7 @@ function remove_partition($dev, $part) {
 	}
 
 	if ($rc) {
-		unassigned_log("Removing partition '{$part}' from disk '{$dev}'.");
+		unassigned_log("Removing partition '".$part."' from disk '".$dev."'.");
 
 		/* Remove the partition. */
 		$out = shell_exec("/usr/sbin/parted ".escapeshellarg($dev)." --script -- rm ".escapeshellarg($part)." 2>&1");
