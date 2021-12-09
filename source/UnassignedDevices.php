@@ -480,9 +480,14 @@ switch ($_POST['action']) {
 
 				/* Add to share names. */
 				for ($i = 0; $i < count($disk['partitions']); $i++) {
-					$dev	= ($disk['partition'][$i]['fstype'] == "crypto_LUKS") ? $disk['luks'] : $disk['device'];
-					$dev	.= $disk['partitions'][$i]['part'];
-					$share_names[$dev] = basename($disk['partitions'][$i]['mountpoint']);
+					if ($disk['partitions'][$i]['fstype']) {
+						$dev = ($disk['partition'][$i]['fstype'] == "crypto_LUKS") ? $disk['luks'] : $disk['device'];
+						if (MiscUD::is_device_nvme($dev)) {
+							$dev .= "p";
+						}
+						$dev .= $disk['partitions'][$i]['part'];
+						$share_names[$dev] = basename($disk['partitions'][$i]['mountpoint']);
+					}
 				}
 			}
 		} else {
@@ -642,7 +647,11 @@ switch ($_POST['action']) {
 			echo "<table class='disk_status wide usb_absent'><thead><tr><td>"._('Device')."</td><td>"._('Serial Number (Mount Point)')."</td><td></td><td>"._('Remove')."</td><td>"._('Settings')."</td><td></td><td></td><td></td><td></td><td></td></tr></thead><tbody>{$ct}</tbody></table></div></div>";
 		}
 
-		MiscUD::save_json($paths['share_names'], $share_names);
+		if (get_config("Config", "check_share_names") != "no") {
+			MiscUD::save_json($paths['share_names'], $share_names);
+		} else {
+			@unlink($paths['share_names']);
+		}
 		break;
 
 	case 'refresh_page':
