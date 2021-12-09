@@ -713,7 +713,6 @@ switch ($_POST['action']) {
 	case 'remove_config':
 		/* Remove historical disk configuration. */
 		$serial	= urldecode($_POST['serial']);
-		publish();
 		echo json_encode(remove_config_disk($serial));
 		break;
 
@@ -782,7 +781,6 @@ switch ($_POST['action']) {
 
 		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
 		@touch($paths['hotplug_event']);
-		publish();
 		break;
 
 	case 'format_disk':
@@ -877,14 +875,12 @@ switch ($_POST['action']) {
 			}
 			set_samba_config("{$device}", "share", safe_name($share, false));
 		}
-		publish();
 		echo json_encode($rc);
 		break;
 
 	case 'remove_samba_config':
 		/* Remove samba configuration. */
 		$device		= urldecode($_POST['device']);
-		publish();
 		echo json_encode(remove_config_samba($device));
 		break;
 
@@ -941,14 +937,12 @@ switch ($_POST['action']) {
 			unassigned_log("ISO File '{$file}' not found.");
 			$rc		= false;
 		}
-		publish();
 		echo json_encode($rc);
 		break;
 
 	case 'remove_iso_config':
 		/* Remove the iso share configuration. */
 		$device = urldecode($_POST['device']);
-		publish();
 		echo json_encode(remove_config_iso($device));
 		break;
 
@@ -978,7 +972,6 @@ switch ($_POST['action']) {
 		/* Remove a partition from a disk. */
 		$device		= urldecode($_POST['device']);
 		$partition	= urldecode($_POST['partition']);
-		publish();
 		echo json_encode(remove_partition($device, $partition));
 		break;
 
@@ -1019,7 +1012,6 @@ switch ($_POST['action']) {
 		$device			= urldecode($_POST['device']);
 		$fstype			= urldecode($_POST['fstype']);
 		$mountpoint		= basename(safe_name(urldecode($_POST['mountpoint']), false));
-		publish();
 		echo json_encode(change_mountpoint($serial, $partition, $device, $fstype, $mountpoint));
 		break;
 
@@ -1027,7 +1019,6 @@ switch ($_POST['action']) {
 		/* Change a samba share mount point. */
 		$device			= urldecode($_POST['device']);
 		$mountpoint		= basename(safe_name(basename(urldecode($_POST['mountpoint'])), false));
-		publish();
 		echo json_encode(change_samba_mountpoint($device, $mountpoint));
 		break;
 
@@ -1035,7 +1026,6 @@ switch ($_POST['action']) {
 		/* Change an iso file mount point. */
 		$device			= urldecode($_POST['device']);
 		$mountpoint		= basename(safe_name(basename(urldecode($_POST['mountpoint'])), false));
-		publish();
 		echo json_encode(change_iso_mountpoint($device, $mountpoint));
 		break;
 
