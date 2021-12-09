@@ -2245,7 +2245,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 					break;
 
 					default;
-						unassigned_log("Warning: Cannot change the disk label on {$fstype} file system.");
+						unassigned_log("Warning: Cannot change the disk label on device '".basename($dev)."'.");
 					break;
 			}
 		}
