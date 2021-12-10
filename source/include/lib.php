@@ -695,15 +695,53 @@ function remove_partition($dev, $part) {
 			unassigned_log("Remove partition failed: '{$out}'.");
 			$rc = false;
 		} else {
-			/* Update udev info. */
-			shell_exec("/sbin/udevadm trigger --action=change ".escapeshellarg($dev));
+			/* Refresh partition information. */
+			exec("/usr/sbin/partprobe ".escapeshellarg($dev));
 
 			/* Give the disk time to settle. */
 			sleep(5);
 
-			/* Refresh partition information. */
-			exec("/usr/sbin/partprobe ".escapeshellarg($dev));
+			/* Update udev info. */
+			shell_exec("/sbin/udevadm trigger --action=change ".escapeshellarg($dev));
 		}
+	}
+
+	return $rc;
+}
+
+/* Remove all disk partitions. */
+function remove_all_partitions($dev) {
+
+	$rc = true;
+
+	/* Be sure there are no mounted partitions. */
+	foreach (get_all_disks_info() as $d) {
+		if ($d['device'] == $dev) {
+			foreach ($d['partitions'] as $p) {
+				if ($p['target']) {
+					unassigned_log("Aborting removal: partition '".$p['part']."' is mounted.");
+					$rc = false;
+				} 
+			}
+		}
+	}
+
+	if ($rc) {
+		$device	= MiscUD::base_device($dev);
+
+		unassigned_log("Removing all partitions from disk '".$device."'.");
+
+		/* Remove all partitions - this clears the disk. */
+		shell_exec("/sbin/wipefs -a ".escapeshellarg($device)." 2>&1");
+
+		/* Refresh partition information. */
+		exec("/usr/sbin/partprobe ".escapeshellarg($device));
+
+		/* Give the disk time to settle. */
+		sleep(5);
+
+		/* Update udev info. */
+		shell_exec("/sbin/udevadm trigger --action=change ".escapeshellarg($device));
 	}
 
 	return $rc;

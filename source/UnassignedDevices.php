@@ -157,7 +157,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$fscheck .= $partition['part'];
 
 		/* Add remove partition icon if destructive mode is enabled. */
-		$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && (! $disk['partitions'][0]['pass_through'])) ? "<a title='"._("Remove Partition")."' device='{$partition['device']}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i></a>" : "";
+		$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && (! $disk['partitions'][0]['pass_through'])) ? "<a title='"._("Remove Partition")."' device='{$partition['device']}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$partition['serial']}\",\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i></a>" : "";
 		$mpoint = "<span>{$fscheck}";
 		$mount_point = basename($partition['mountpoint']);
 
@@ -979,9 +979,20 @@ switch ($_POST['action']) {
 	/*	MISC */
 	case 'rm_partition':
 		/* Remove a partition from a disk. */
+		$serial		= urldecode($_POST['serial']);
 		$device		= urldecode($_POST['device']);
 		$partition	= urldecode($_POST['partition']);
-		echo json_encode(remove_partition($device, $partition));
+		$type		= urldecode($_POST['type']);
+
+		/* A disk can't be set to automount. */
+		if (is_automount($serial)) {
+			toggle_automount($serial, false);
+		}
+		if (_($type) == _('All')) {
+			echo json_encode(remove_all_partitions($device));
+		} else {
+			echo json_encode(remove_partition($device, $partition));
+		}
 		break;
 
 	case 'spin_down_disk':
