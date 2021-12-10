@@ -157,7 +157,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$fscheck .= $partition['part'];
 
 		/* Add remove partition icon if destructive mode is enabled. */
-		$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && (! $disk['partitions'][0]['pass_through'])) ? "<a title='"._("Remove Partition")."' device='{$partition['device']}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i></a>" : "";
+		$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && (! $disk['partitions'][0]['pass_through'])) ? "<a title='"._("Remove Partition")."' device='{$partition['device']}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$partition['serial']}\",\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i></a>" : "";
 		$mpoint = "<span>{$fscheck}";
 		$mount_point = basename($partition['mountpoint']);
 
@@ -365,7 +365,11 @@ switch ($_POST['action']) {
 
 				$mbutton		= make_mount_button($disk);
 
+				/* Set up the preclear link for preclearing a disk. */
 				$preclear_link = ($disk['size'] !== 0 && ! $disk['partitions'][0]['fstype'] && ! $mounted && $Preclear && ! $preclearing && get_config("Config", "destructive_mode") == "enabled") ? "&nbsp;&nbsp;".$Preclear->Link($disk_name, "icon") : "";
+
+				/* Add the clear disk icon. */
+				$clear_disk = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && (! $mounted) && $disk['partitions'][0]['fstype'] && (! $disk['partitions'][0]['pass_through'])) ? "<a title='"._("Clear Disk")."' device='{$partition['device']}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove hdd'></i></a>" : "";
 
 				$hdd_serial = "<a class='info' href=\"#\" onclick=\"openBox('/webGui/scripts/disk_log&amp;arg1={$disk_name}','Disk Log Information',600,900,false);return false\"><i class='fa fa-hdd-o icon'></i><span>"._("Disk Log Information")."</span></a>";
 				if ($p) {
@@ -380,9 +384,11 @@ switch ($_POST['action']) {
 					$hdd_serial .= "<span class='toggle-hdd' hdd='{$disk_name}'></span>";
 				}
 
+
 				$device = strpos($disk_dev, "dev") === false ? "" : " ({$disk_name})";
 				$hdd_serial .= "{$disk['serial']}$device
 								{$preclear_link}
+								{$clear_disk}
 								<span id='preclear_{$disk['serial_short']}' style='display:block;'></span>";
 
 				echo "<tr class='toggle-disk'>";
@@ -979,9 +985,27 @@ switch ($_POST['action']) {
 	/*	MISC */
 	case 'rm_partition':
 		/* Remove a partition from a disk. */
+		$serial		= urldecode($_POST['serial']);
 		$device		= urldecode($_POST['device']);
 		$partition	= urldecode($_POST['partition']);
+
+		/* A disk can't be set to automount. */
+		if (is_automount($serial)) {
+			toggle_automount($serial, false);
+		}
 		echo json_encode(remove_partition($device, $partition));
+		break;
+
+	case 'clr_disk':
+		/* Remove all partitions from a disk. */
+		$serial		= urldecode($_POST['serial']);
+		$device		= urldecode($_POST['device']);
+
+		/* A disk can't be set to automount. */
+		if (is_automount($serial)) {
+			toggle_automount($serial, false);
+		}
+		echo json_encode(remove_all_partitions($device));
 		break;
 
 	case 'spin_down_disk':

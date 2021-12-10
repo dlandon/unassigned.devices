@@ -833,18 +833,18 @@ $ud_reload = "reload-".session_id();
 		</div>
 		<div data-question-content>
 			<div class="swal-title"><?=_('Any data on this disk will be lost');?>!</div>
-			<div style="margin-bottom: 25px;font-size: 20px;"><?=_('Type');?> <span class="red">'<?=_('Yes');?>'</span> <?=_('to format');?>:</div>
-			<input type="text" name="confim-yes" class="swal-content__input" autocomplete="off" required >
+			<div style="margin-bottom: 25px;font-size: 20px;"><?=_('Type');?> <span class="red">'<?=_('Yes');?>'</span> <?=_('to format');?></div>
+			<input type="text" name="confirmation" class="swal-content__input" autocomplete="off" required >
 		</div>
 		<div data-question-load></div>
 		<div data-question-done>
-			(surveyData["confim-yes"] == "<?=_('Yes');?>")
+			(surveyData["confirmation"] == "<?=_('Yes');?>")
 		</div>
 	</div>
 	<div data-survey-done data-survey-done-wait="true">
 		$("button[device='"+surveyOption.device+"']").prop('disabled',true);
 		$("button[device='"+surveyOption.device+"']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Formatting');?>");
-		$.post(UDURL, {'action' : 'format_'+surveyOption.type,device:surveyOption.device, fs:surveyData["FS"], pass:surveyData["PASS"]}, function(data)
+		$.post(UDURL, {'action' : 'format_'+surveyOption. type, device:surveyOption.device, fs:surveyData["FS"], pass:surveyData["PASS"]}, function(data)
 		{
 			$("button[device='"+surveyOption.device+"']").prop('disabled',true);
 			$("button[device='"+surveyOption.device+"']").html( data.status ? "<?=_('Formated');?>" : "<?=_('Format failed');?>" );
@@ -854,7 +854,7 @@ $ud_reload = "reload-".session_id();
 	<div>
 		<script type="text/javascript">
 			$(function() {
-				window.format_disk = function(bt, type, device){doUnassignedDevicesSurvey("format_disk",{el:bt,type:type,device:device});}
+				window.format_disk = function(bt, type, device){doUnassignedDevicesSurvey("format_disk",{el:bt,type:type, device:device});}
 			});
 		</script>
 	</div>
@@ -879,23 +879,23 @@ $ud_reload = "reload-".session_id();
 <div style="display:none;" data-survey-name="remove_partiton" data-survey-title="">
 	<div data-question data-question-title="" data-question-button-done="<?=_('Remove');?>" data-question-icon="warning">
 		<div data-question-format>
-			[surveyOption.partition,surveyOption.device]
+			[surveyOption.partition,surveyOption.device,surveyOption.serial]
 		</div>
 		<div data-question-content>
-			<div class="swal-title"><?=_('Any data on this disk will be lost');?>!</div>
-			<div class="swal-title" style="font-size: 20px;"><?=_('Remove partition');?> <span class="red">{0}</span> <?=_('from disk');?> <span class="red">{1}</span></div>
-			<div style="margin-bottom: 25px;font-size: 20px;"><?=_('Type');?> <span class="red">'<?=_('Yes');?>'</span> <?=_('to confirm');?>:</div>
-				<input type="text" name="confim-yes" class="swal-content__input" autocomplete="off" required >
+			<div class="swal-title"><?=_('Data on this disk will be lost');?>!</div>
+			<div class="swal-title" style="font-size: 20px;"><?=_('Remove partition');?> <span class="red">{0}</span> <?=_('from disk');?> <span class="red">{1}?</span></div>
+			<div style="margin-bottom: 25px;font-size: 20px;"><?=_('Type');?> <span class="red">'<?=_('Yes');?>'</span> <?=_('to delete this partition');?>:</div>
+			<input type="text" name="confirmation" class="swal-content__input" autocomplete="off" required >
 		</div>
 		<div data-question-load></div>
 		<div data-question-done>
-			(surveyData["confim-yes"] == "<?=_('Yes');?>")
+			(surveyData["confirmation"] == "<?=_('Yes');?>")
 		</div>
 	</div>
 	<div data-survey-done>
 		$("span[device='"+surveyOption.device+surveyOption.partition+"']").prop('disabled',true);
 		$("span[device='"+surveyOption.device+surveyOption.partition+"']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Removing');?>");
-		$.post(UDURL, {'action' : 'rm_partition', device:surveyOption.device, partition:surveyOption.partition}).done(function(data)
+		$.post(UDURL, {'action' : 'rm_partition', serial:surveyOption.serial, device:surveyOption.device, partition:surveyOption.partition}).done(function(data)
 		{
 			swalShowResult((data == "true") ? true : false);
 		},"json").fail(function(){swalShowResult(false);});
@@ -903,7 +903,40 @@ $ud_reload = "reload-".session_id();
 	<div>
 		<script type="text/javascript">
 			$(function() {
-				window.rm_partition = function(bt, device, partition){doUnassignedDevicesSurvey("remove_partiton",{el:bt,device:device,partition:partition});}
+				window.rm_partition = function(bt, serial, device, partition){doUnassignedDevicesSurvey("remove_partiton", {el:bt, serial:serial, device:device, partition:partition});}
+			});
+		</script>
+	</div>
+</div>
+
+<div style="display:none;" data-survey-name="clear_disk" data-survey-title="">
+	<div data-question data-question-title="" data-question-button-done="<?=_('Remove');?>" data-question-icon="warning">
+		<div data-question-format>
+			[surveyOption.device,surveyOption.serial]
+		</div>
+		<div data-question-content>
+			<div class="swal-title"><?=_('Data on this disk will be lost');?>!</div>
+			<div class="swal-title" style="font-size: 20px;"><?=_('Clear Disk');?> <span class="red">{0}?</span></div>
+			<div style="margin-bottom: 25px;font-size: 20px;"><?=_('Type');?> <span class="red">'<?=_('Yes');?>'</span> <?=_('to clear this disk of all partitions');?>:</div>
+			<input type="text" name="confirmation" class="swal-content__input" autocomplete="off" required >
+		</div>
+		<div data-question-load></div>
+		<div data-question-done>
+			(surveyData["confirmation"] == "<?=_('Yes');?>")
+		</div>
+	</div>
+	<div data-survey-done>
+		$("span[device='"+surveyOption.device+surveyOption.partition+"']").prop('disabled',true);
+		$("span[device='"+surveyOption.device+surveyOption.partition+"']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Removing');?>");
+		$.post(UDURL, {'action' : 'clr_disk', serial:surveyOption.serial, device:surveyOption.device}).done(function(data)
+		{
+			swalShowResult((data == "true") ? true : false);
+		},"json").fail(function(){swalShowResult(false);});
+	</div>
+	<div>
+		<script type="text/javascript">
+			$(function() {
+				window.clr_disk = function(bt, serial, device){doUnassignedDevicesSurvey("clear_disk", {el:bt, serial:serial, device:device});}
 			});
 		</script>
 	</div>
