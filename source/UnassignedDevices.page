@@ -833,7 +833,7 @@ $ud_reload = "reload-".session_id();
 		</div>
 		<div data-question-content>
 			<div class="swal-title"><?=_('Any data on this disk will be lost');?>!</div>
-			<div style="margin-bottom: 25px;font-size: 20px;"><?=_('Type');?> <span class="red">'<?=_('Yes');?>'</span> <?=_('to format');?></div>
+			<div style="margin-bottom: 25px;font-size: 20px;"><?=_('Type');?> <span class="red">'<?=_('Yes');?>'</span> <?=_('to format');?>:</div>
 			<input type="text" name="confirmation" class="swal-content__input" autocomplete="off" required >
 		</div>
 		<div data-question-load></div>
