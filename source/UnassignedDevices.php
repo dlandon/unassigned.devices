@@ -267,6 +267,8 @@ function make_mount_button($device) {
 		$sf		= $paths['dev_state'];
 		if (is_file($sf) && (basename($device['device']) == $device['ud_dev'])) {
 			$array_disk = true;
+		} else {
+			$array_disk = false;
 		}
 	} else {
 		$mounted	=	$device['mounted'];
