@@ -490,7 +490,7 @@ function format_disk($dev, $fs, $pass) {
 	/* Make sure it doesn't have any partitions. */
 	foreach (get_all_disks_info() as $d) {
 		if ($d['device'] == $dev && count($d['partitions'])) {
-			unassigned_log("Aborting format: disk '{$dev}' has '".count($d['partitions'])."' partition(s).");
+			unassigned_log("Aborting format: disk '".$dev."' has '".count($d['partitions'])."' partition(s).");
 			$rc = false;
 		}
 	}
@@ -502,46 +502,53 @@ function format_disk($dev, $fs, $pass) {
 		$disk_schema	= ( $disk_blocks >= $max_mbr_blocks ) ? "gpt" : "msdos";
 		$parted_fs		= ($fs == 'exfat') ? "fat32" : $fs;
 
-		unassigned_log("Device '{$dev}' block size: {$disk_blocks}.");
+		unassigned_log("Device '".$dev."' block size: ".$disk_blocks.".");
 
 		/* Clear the partition table. */
-		unassigned_log("Clearing partition table of disk '{$dev}'.");
+		unassigned_log("Clearing partition table of disk '".$dev."'.");
 		$o = trim(shell_exec("/usr/bin/dd if=/dev/zero of=".escapeshellarg($dev)." bs=2M count=1 2>&1"));
 		if ($o) {
-			unassigned_log("Clear partition result:\n{$o}");
+			unassigned_log("Clear partition result:\n".$o);
 		}
 
 		/* Reload the partition table. */
-		unassigned_log("Reloading disk ".escapeshellarg($dev)." partition table.");
+		unassigned_log("Reloading disk '".$dev."' partition table.");
 		$o = trim(shell_exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." 2>&1"));
 		if ($o) {
-			unassigned_log("Reload partition table result:\n{$o}");
+			unassigned_log("Reload partition table result:\n".$o);
 		}
 
 		/* Update udev. */
 		shell_exec("/sbin/udevadm trigger --action=change ".escapeshellarg($dev));
 
+		/* Get partition designation based on type of device. */
+		if (MiscUD::is_device_nvme($dev)) {
+			$device	= $dev."p1";
+		} else {
+			$device	= $dev."1";
+		}
+
 		/* Create partition for xfs, or btrfs. Partitions are Unraid compatible. */
 		if ($fs == "xfs" || $fs == "xfs-encrypted" || $fs == "btrfs" || $fs == "btrfs-encrypted") {
 			$is_ssd = is_disk_ssd($dev);
 			if ($disk_schema == "gpt") {
-				unassigned_log("Creating Unraid compatible gpt partition on disk '{$dev}'.");
+				unassigned_log("Creating Unraid compatible gpt partition on disk '".$dev."'.");
 				shell_exec("/sbin/sgdisk -Z ".escapeshellarg($dev));
 
 				/* Alignment is 4Kb for spinners and 1Mb for SSD. */
 				$alignment = $is_ssd ? "" : "-a 8";
 				$o = shell_exec("/sbin/sgdisk -o ".$alignment." -n 1:32K:0 ".escapeshellarg($dev));
 				if ($o) {
-					unassigned_log("Create gpt partition table result:\n{$o}");
+					unassigned_log("Create gpt partition table result:\n".$o);
 				}
 			} else {
-				unassigned_log("Creating Unraid compatible mbr partition on disk '{$dev}'.");
+				unassigned_log("Creating Unraid compatible mbr partition on disk '".$dev."'.");
 
 				/* Alignment is 4Kb for spinners and 1Mb for SSD. */
 				$start_sector = $is_ssd ? "2048" : "64";
 				$o = shell_exec("/usr/local/sbin/mkmbr.sh ".escapeshellarg($dev)." ".escapeshellarg($start_sector));
 				if ($o) {
-					unassigned_log("Create mbr partition table result:\n{$o}");
+					unassigned_log("Create mbr partition table result:\n".$o);
 				}
 			}
 
@@ -549,24 +556,24 @@ function format_disk($dev, $fs, $pass) {
 			unassigned_log("Reloading disk ".escapeshellarg($dev)." partition table.");
 			$o = trim(shell_exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." 2>&1"));
 			if ($o) {
-				unassigned_log("Reload partition table result:\n{$o}");
+				unassigned_log("Reload partition table result:\n".$o);
 			}
 		} else {
 			/* All other file system partitions are gpt. */
-			unassigned_log("Creating a 'gpt' partition table on disk '{$dev}'.");
+			unassigned_log("Creating a 'gpt' partition table on disk '".$dev."'.");
 			$o = trim(shell_exec("/usr/sbin/parted ".escapeshellarg($dev)." --script -- mklabel gpt 2>&1"));
 			if ($o) {
-				unassigned_log("Create 'gpt' partition table result:\n{$o}");
+				unassigned_log("Create 'gpt' partition table result:\n".$o);
 			}
 
 			/* Create an optimal disk partition. */
 			$o = trim(shell_exec("/usr/sbin/parted -a optimal ".escapeshellarg($dev)." --script -- mkpart primary ".escapeshellarg($parted_fs)." 0% 100% 2>&1"));
 			if ($o) {
-				unassigned_log("Create primary partition result:\n{$o}");
+				unassigned_log("Create primary partition result:\n".$o);
 			}
 		}
 
-		unassigned_log("Formatting disk '{$dev}' with '{$fs}' filesystem.");
+		unassigned_log("Formatting disk '".$dev."' with '".$fs."' filesystem.");
 
 		/* Format the disk. */
 		if (strpos($fs, "-encrypted") !== false) {
@@ -588,15 +595,10 @@ function format_disk($dev, $fs, $pass) {
 			}
 
 			if ($o) {
-				unassigned_log("luksFormat error: {$o}");
+				unassigned_log("luksFormat error: ".$o);
 				$rc = false;
 			} else {
 				$mapper = "format_".basename($dev);
-				if (MiscUD::is_device_nvme($dev)) {
-					$device	= $dev."p1";
-				} else {
-					$device	= $dev."1";
-				}
 				$cmd	= "luksOpen ".escapeshellarg($device)." ".escapeshellarg($mapper);
 
 
@@ -612,7 +614,7 @@ function format_disk($dev, $fs, $pass) {
 				}
 	
 				if ($o && stripos($o, "warning") === false) {
-					unassigned_log("luksOpen result: {$o}");
+					unassigned_log("luksOpen result: ".$o);
 					$rc = false;
 				} else {
 					exec(get_format_cmd("/dev/mapper/{$mapper}", $fs),escapeshellarg($out), escapeshellarg($return));
@@ -622,33 +624,29 @@ function format_disk($dev, $fs, $pass) {
 			}
 		} else {
 			/* nvme partition designations are 'p1', not '1'. */
-			if (MiscUD::is_device_nvme($dev)) {
-				exec(get_format_cmd("{$dev}p1", $fs),escapeshellarg($out), escapeshellarg($return));
-			} else {
-				exec(get_format_cmd("{$dev}1", $fs),escapeshellarg($out), escapeshellarg($return));
-			}
+			exec(get_format_cmd($device, $fs),escapeshellarg($out), escapeshellarg($return));
 		}
 
 		/* Finish up the format. */
 		if ($rc) {
 			if ($return)
 			{
-				unassigned_log("Format disk '{$dev}' with '{$fs}' filesystem failed:\n".implode(PHP_EOL, $out));
+				unassigned_log("Format disk '".$dev."' with '".$fs."' filesystem failed:\n".implode(PHP_EOL, $out));
 				$rc = false;
 			} else {
 				if ($out) {
-					unassigned_log("Format disk '{$dev}' with '{$fs}' filesystem:\n".implode(PHP_EOL, $out));
+					unassigned_log("Format disk '".$dev."' with '".$fs."' filesystem:\n".implode(PHP_EOL, $out));
 				}
 
 				/* Let things settle a bit. */
 				sleep(3);
 
-				unassigned_log("Reloading disk '{$dev}' partition table.");
+				unassigned_log("Reloading disk '".$dev."' partition table.");
 
 				/* Reload partition table. */
 				$o = trim(shell_exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." 2>&1"));
 				if ($o) {
-					unassigned_log("Reload partition table result:\n{$o}");
+					unassigned_log("Reload partition table result:\n".$o);
 				}
 
 				/* Clear the $pass variable. */
