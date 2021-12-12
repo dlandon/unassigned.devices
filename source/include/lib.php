@@ -577,6 +577,7 @@ function format_disk($dev, $fs, $pass) {
 
 		/* Format the disk. */
 		if (strpos($fs, "-encrypted") !== false) {
+			/* nvme partition designations are 'p1', not '1'. */
 			if (MiscUD::is_device_nvme($dev)) {
 				$cmd = "luksFormat {$dev}p1";
 			} else {
@@ -623,7 +624,7 @@ function format_disk($dev, $fs, $pass) {
 				}
 			}
 		} else {
-			/* nvme partition designations are 'p1', not '1'. */
+			/* Format the disk. */
 			exec(get_format_cmd($device, $fs),escapeshellarg($out), escapeshellarg($return));
 		}
 
@@ -717,7 +718,7 @@ function remove_all_partitions($dev) {
 		if ($d['device'] == $dev) {
 			foreach ($d['partitions'] as $p) {
 				if ($p['target']) {
-					unassigned_log("Aborting removal: partition '".$p['part']."' is mounted.");
+					unassigned_log("Aborting clear: partition '".$p['part']."' is mounted.");
 					$rc = false;
 				} 
 			}
