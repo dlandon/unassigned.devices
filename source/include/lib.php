@@ -42,7 +42,7 @@ $docroot	= $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $users		= @parse_ini_file("$docroot/state/users.ini", true);
 $disks		= @parse_ini_file("$docroot/state/disks.ini", true);
 
-/* Set the level for debugging. */
+/* Set the log level for debugging. */
 /* 0 - normal logging */
 $config_file	= $paths['config_file'];
 $config			= @parse_ini_file($config_file, true);

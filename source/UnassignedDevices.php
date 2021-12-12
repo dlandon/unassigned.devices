@@ -341,7 +341,6 @@ function make_mount_button($device) {
 switch ($_POST['action']) {
 	case 'get_content':
 		/* Update the UD webpage content. */
-		global $paths;
 
 		/* Check for a recent hot plug event. */
 		if (file_exists($paths['hotplug_event'])) {
