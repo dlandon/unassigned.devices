@@ -157,7 +157,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$fscheck .= $partition['part'];
 
 		/* Add remove partition icon if destructive mode is enabled. */
-		$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && (! $disk['partitions'][0]['pass_through'])) ? "<a title='"._("Remove Partition")."' device='{$partition['device']}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$partition['serial']}\",\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i></a>" : "";
+		$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && (! $disk['partitions'][0]['pass_through']) && ! $is_mounting) ? "<a title='"._("Remove Partition")."' device='{$partition['device']}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$partition['serial']}\",\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i></a>" : "";
 		$mpoint = "<span>{$fscheck}";
 		$mount_point = basename($partition['mountpoint']);
 
@@ -341,6 +341,7 @@ function make_mount_button($device) {
 switch ($_POST['action']) {
 	case 'get_content':
 		/* Update the UD webpage content. */
+		global $paths;
 
 		/* Check for a recent hot plug event. */
 		if (file_exists($paths['hotplug_event'])) {
@@ -371,7 +372,9 @@ switch ($_POST['action']) {
 				$preclear_link = ($disk['size'] !== 0 && ! $disk['partitions'][0]['fstype'] && ! $mounted && $Preclear && ! $preclearing && get_config("Config", "destructive_mode") == "enabled") ? "&nbsp;&nbsp;".$Preclear->Link($disk_name, "icon") : "";
 
 				/* Add the clear disk icon. */
-				$clear_disk = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && (! $mounted) && $disk['partitions'][0]['fstype'] && (! $disk['partitions'][0]['pass_through'])) ? "<a title='"._("Clear Disk")."' device='{$partition['device']}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove hdd'></i></a>" : "";
+				$is_mounting	= array_values(preg_grep("@/mounting_".basename($disk['device'])."@i", listDir(dirname($paths['mounting']))))[0];
+				$is_mounting	= (time() - filemtime($is_mounting) < 300) ? true : false;
+				$clear_disk		= (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && (! $mounted && ! $is_mounting) && $disk['partitions'][0]['fstype'] && (! $disk['partitions'][0]['pass_through'])) ? "<a title='"._("Clear Disk")."' device='{$partition['device']}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove hdd'></i></a>" : "";
 
 				$hdd_serial = "<a class='info' href=\"#\" onclick=\"openBox('/webGui/scripts/disk_log&amp;arg1={$disk_name}','Disk Log Information',600,900,false);return false\"><i class='fa fa-hdd-o icon'></i><span>"._("Disk Log Information")."</span></a>";
 				if ($p) {
