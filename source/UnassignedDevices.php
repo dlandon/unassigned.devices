@@ -56,6 +56,9 @@ function netmasks($netmask, $rev = false)
 	return $rev ? array_flip($netmasks)[$netmask] : $netmasks[$netmask];
 }
 
+/* Get the version of Unraid we are running. */
+$version = parse_ini_file("/etc/unraid-version");
+
 /* Get the diskio scale based on the current setting. */
 function my_diskio($data) {
 	return my_scale($data, $unit, 1)." $unit/s";
@@ -263,12 +266,15 @@ function make_mount_button($device) {
 		$format		= (isset($device['partitions']) && ! count($device['partitions'])) ? true : false;
 		$context	= "disk";
 
-		/* If this disk does not have a devX designation, it has dropped out of the array. */
-		$sf		= $paths['dev_state'];
-		if (is_file($sf) && (basename($device['device']) == $device['ud_dev'])) {
-			$array_disk = true;
-		} else {
-			$array_disk = false;
+		$array_disk = false;
+
+		/* If Unraid is 6.9 or greater, Unraid manages hot plugs. */
+		if (version_compare($version['version'],"6.8.9", ">")) {
+			/* If this disk does not have a devX designation, it has dropped out of the array. */
+			$sf		= $paths['dev_state'];
+			if (is_file($sf) && (basename($device['device']) == $device['ud_dev'])) {
+				$array_disk = true;
+			}
 		}
 	} else {
 		$mounted	=	$device['mounted'];

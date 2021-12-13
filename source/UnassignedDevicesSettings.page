@@ -37,7 +37,7 @@ if ((! $parted) && ($cfg['Config']['destructive_mode'] == "enabled")) {
 	$cfg['Config']['destructive_mode'] = "disabled";
 }
 
-/* See if Unraid is 6.9 or greater, Unraid manages disk spin down. */
+/* If Unraid is 6.9 or greater, Unraid manages disk spin down. */
 if (version_compare($version['version'],"6.8.9", ">")) {
 	$cfg["Config"]["spin_down"] = "yes";
 }
