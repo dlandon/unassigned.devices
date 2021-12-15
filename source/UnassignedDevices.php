@@ -160,7 +160,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$fscheck .= $partition['part'];
 
 		/* Add remove partition icon if destructive mode is enabled. */
-		$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && (! $disk['partitions'][0]['pass_through']) && ! $is_mounting) ? "<a title='"._("Remove Partition")."' device='{$partition['device']}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$partition['serial']}\",\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i></a>" : "";
+		$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && (! $disk['partitions'][0]['pass_through']) && ! $partition['pool'] && ! $is_mounting) ? "<a title='"._("Remove Partition")."' device='{$partition['device']}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$partition['serial']}\",\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i></a>" : "";
 		$mpoint = "<span>{$fscheck}";
 		$mount_point = basename($partition['mountpoint']);
 
@@ -276,10 +276,7 @@ function make_mount_button($device) {
 				$array_disk = true;
 			}
 		}
-		$pool_disk	= false;
-		if ((count($device['partitions']) == 1) && $mounted && ! is_mounted($device['partitions'][0]['device'])) {
-			$pool_disk	= true;
-		}
+		$pool_disk	= $device['partitions'][0]['pool'];
 	} else {
 		$mounted	=	$device['mounted'];
 		$disable	= (! empty($device['fstype']) && $device['fstype'] != "crypto_LUKS") ? "" : "disabled";
@@ -300,7 +297,7 @@ function make_mount_button($device) {
 	$is_preclearing = shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg($device['device'])." | /bin/grep -v 'grep'") != "" ? true : false;
 
 	if ($pool_disk) {
-		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-erase', _('Pool'));
+		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-erase', _('Pooled'));
 	} elseif (($device['size'] == 0) && (! $is_unmounting)) {
 		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-erase', _('Mount'));
 	} elseif ($format) {
@@ -361,7 +358,8 @@ switch ($_POST['action']) {
 		}
 
 		/* Create an array of share names for duplicate share checking. */
-		$share_names = array();
+		$share_names	= array();
+		$disk_uuid		= array();
 
 		/* Disk devices. */
 		$disks = get_all_disks_info();
@@ -385,7 +383,7 @@ switch ($_POST['action']) {
 				/* Add the clear disk icon. */
 				$is_mounting	= array_values(preg_grep("@/mounting_".basename($disk['device'])."@i", listDir(dirname($paths['mounting']))))[0];
 				$is_mounting	= (time() - filemtime($is_mounting) < 300) ? true : false;
-				$clear_disk		= (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && ! $mounted && ! is_mounted($disk['partitions'][0]['mountpoint'], true) && ! $is_mounting && $disk['partitions'][0]['fstype'] && (! $disk['partitions'][0]['pass_through'])) ? "<a title='"._("Clear Disk")."' device='{$partition['device']}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove hdd'></i></a>" : "";
+				$clear_disk		= (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && ! $mounted && ! $disk['partitions'][0]['pool'] && ! $is_mounting && $disk['partitions'][0]['fstype'] && (! $disk['partitions'][0]['pass_through'])) ? "<a title='"._("Clear Disk")."' device='{$partition['device']}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove hdd'></i></a>" : "";
 
 				$hdd_serial = "<a class='info' href=\"#\" onclick=\"openBox('/webGui/scripts/disk_log&amp;arg1={$disk_name}','Disk Log Information',600,900,false);return false\"><i class='fa fa-hdd-o icon'></i><span>"._("Disk Log Information")."</span></a>";
 				if ($p) {
@@ -503,12 +501,18 @@ switch ($_POST['action']) {
 				/* Add to share names. */
 				for ($i = 0; $i < count($disk['partitions']); $i++) {
 					if ($disk['partitions'][$i]['fstype']) {
-						$dev = ($disk['partition'][$i]['fstype'] == "crypto_LUKS") ? $disk['luks'] : $disk['device'];
+						$dev	= ($disk['partition'][$i]['fstype'] == "crypto_LUKS") ? $disk['luks'] : $disk['device'];
 						if (MiscUD::is_device_nvme($dev)) {
 							$dev .= "p";
 						}
-						$dev .= $disk['partitions'][$i]['part'];
-						$share_names[$dev] = basename($disk['partitions'][$i]['mountpoint']);
+
+						/* Check if this disk uuid has already been entered in the share_names array. */
+						$uuid = $disk['partitions'][$i]['uuid'];
+						if (! in_array($uuid, $disk_uuid)) {
+							$dev .= $disk['partitions'][$i]['part'];
+							$share_names[$dev]	= basename($disk['partitions'][$i]['mountpoint']);
+							$disk_uuid['$dev']	= $uuid;
+						}
 					}
 				}
 			}
@@ -669,11 +673,7 @@ switch ($_POST['action']) {
 			echo "<table class='disk_status wide usb_absent'><thead><tr><td>"._('Device')."</td><td>"._('Serial Number (Mount Point)')."</td><td></td><td>"._('Remove')."</td><td>"._('Settings')."</td><td></td><td></td><td></td><td></td><td></td></tr></thead><tbody>{$ct}</tbody></table></div></div>";
 		}
 
-		if (get_config("Config", "check_share_names") != "no") {
-			MiscUD::save_json($paths['share_names'], $share_names);
-		} else {
-			@unlink($paths['share_names']);
-		}
+		MiscUD::save_json($paths['share_names'], $share_names);
 		break;
 
 	case 'refresh_page':

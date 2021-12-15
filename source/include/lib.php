@@ -110,6 +110,13 @@ class MiscUD
 			exec(escapeshellcmd("/usr/local/sbin/emcmd cmdSpinup=".escapeshellarg($dev)));
 		}
 	}
+
+	/* Get array of pool devices on a mount point. */
+	public function get_pool_devices($mountpoint) {
+		$s	= shell_exec("/sbin/btrfs fi show ".escapeshellarg($mountpoint)." | /bin/grep 'path' | /bin/awk '{print $8}'");
+		$rc	= explode("\n", $s);
+		return array_filter($rc);
+	}
 }
 
 /* Echo variable to GUI for debugging. */
@@ -2037,6 +2044,7 @@ function get_partition_info($dev) {
 		$disk['serial_short']	= isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
 		$disk['serial']			= "{$attrs['ID_MODEL']}_{$disk['serial_short']}";
 		$disk['device']			= realpath($dev);
+		$disk['uuid']			= $attrs['ID_FS_UUID'];
 
 		/* Get partition number */
 		preg_match_all("#(.*?)(\d+$)#", $disk['device'], $matches);
@@ -2075,6 +2083,15 @@ function get_partition_info($dev) {
 
 		/* Set up all disk parameters and status. */
 		$disk['mounted']		= is_mounted($disk['mountpoint'], true);
+		if ($disk['mounted']) {
+			$pool_devs			= MiscUD::get_pool_devices($disk['mountpoint']);
+			/* First pooled device is the primary disk. */
+			unset($pool_devs[0]);
+			$disk['pool']		= in_array($disk['device'], $pool_devs) ? true : false;
+		} else {
+			$disk['pool']		= false;
+		}
+
 		$disk['pass_through']	= (! $disk['mounted']) ? is_pass_through($disk['serial']) : false;
 		$disk['target']			= str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep ".escapeshellarg($disk['device'])." | /bin/awk '{print $2}'")));
 		$stats					= get_device_stats($disk['mountpoint'], $disk['mounted']);
