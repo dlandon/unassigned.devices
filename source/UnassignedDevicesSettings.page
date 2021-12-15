@@ -243,22 +243,6 @@ _(NFS Version to use when Mounting Remote Shares)_:
 > All NFS remote shares will be mounted with the specified version.
 :end
 
-_(Check Unassigned Devices Share Names)_?
-: <select name="check_share_names" size="1">
-  <?=mk_option($cfg["Config"]["check_share_names"], "yes", "_(Yes)_");?>
-  <?=mk_option($cfg["Config"]["check_share_names"], "no", "_(No)_");?>
-  </select>
-
-:ud_settings_debug_level_plug:
-> When changing a mount point or mounting disks UD checks for a duplicate share name in Unassigned Devices.
->
-> Set to **Yes** to include Unassigned Device share names when checking for a duplicate share name.
->
-> Set to **No** to not include Unassigned Device share names when checking for a duplicate share name.
->
-> **Note:** If you have pooled Unassigned Devices you will want this feature turned off.
-:end
-
 _(Debug Log Level)_:
 : <select name="debug_level" size="1">
   <?=mk_option($cfg["Config"]["debug_level"], "0", "_(None)_");?>
