@@ -2074,7 +2074,7 @@ function get_partition_info($dev) {
 		}
 
 		/* Set up all disk parameters and status. */
-		$disk['mounted']		= is_mounted($disk['device']);
+		$disk['mounted']		= is_mounted($disk['mountpoint'], true);
 		$disk['pass_through']	= (! $disk['mounted']) ? is_pass_through($disk['serial']) : false;
 		$disk['target']			= str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep ".escapeshellarg($disk['device'])." | /bin/awk '{print $2}'")));
 		$stats					= get_device_stats($disk['mountpoint'], $disk['mounted']);

@@ -261,7 +261,7 @@ function make_mount_button($device) {
 	$button = "<span><button device='{$device['device']}' class='mount' context='%s' role='%s' %s><i class='%s'></i>%s</button></span>";
 
 	if (isset($device['partitions'])) {
-		$mounted	= isset($device['mounted']) ? $device['mounted'] : in_array(true, array_map(function($ar){return $ar['mounted'];}, $device['partitions']), true);
+		$mounted	= in_array(true, array_map(function($ar){return $ar['mounted'];}, $device['partitions']), true);
 		$disable	= count(array_filter($device['partitions'], function($p){ if (! empty($p['fstype'])) return true;})) ? "" : "disabled";
 		$format		= (isset($device['partitions']) && ! count($device['partitions'])) ? true : false;
 		$context	= "disk";
@@ -275,6 +275,10 @@ function make_mount_button($device) {
 			if (is_file($sf) && (basename($device['device']) == $device['ud_dev'])) {
 				$array_disk = true;
 			}
+		}
+		$pool_disk	= false;
+		if ((count($device['partitions']) == 1) && $mounted && ! is_mounted($device['partitions'][0]['device'])) {
+			$pool_disk	= true;
 		}
 	} else {
 		$mounted	=	$device['mounted'];
@@ -295,7 +299,9 @@ function make_mount_button($device) {
 
 	$is_preclearing = shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg($device['device'])." | /bin/grep -v 'grep'") != "" ? true : false;
 
-	if (($device['size'] == 0) && (! $is_unmounting)) {
+	if ($pool_disk) {
+		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-erase', _('Pool'));
+	} elseif (($device['size'] == 0) && (! $is_unmounting)) {
 		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-erase', _('Mount'));
 	} elseif ($format) {
 		if ($is_preclearing) {
@@ -364,7 +370,7 @@ switch ($_POST['action']) {
 		echo "<tbody>";
 		if ( count($disks) ) {
 			foreach ($disks as $disk) {
-				$mounted		= isset($disk['mounted']) ? $disk['mounted'] : in_array(true, array_map(function($ar){return is_mounted($ar['device']);}, $disk['partitions']), true);
+				$mounted		= in_array(true, array_map(function($ar){return is_mounted($ar['device']);}, $disk['partitions']), true);
 				$disk_name		= basename($disk['device']);
 				$disk_dev		= $disk['ud_dev'];
 				$p				= (count($disk['partitions']) > 0) ? render_partition($disk, $disk['partitions'][0], true) : false;
@@ -379,7 +385,7 @@ switch ($_POST['action']) {
 				/* Add the clear disk icon. */
 				$is_mounting	= array_values(preg_grep("@/mounting_".basename($disk['device'])."@i", listDir(dirname($paths['mounting']))))[0];
 				$is_mounting	= (time() - filemtime($is_mounting) < 300) ? true : false;
-				$clear_disk		= (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && (! $mounted && ! $is_mounting) && $disk['partitions'][0]['fstype'] && (! $disk['partitions'][0]['pass_through'])) ? "<a title='"._("Clear Disk")."' device='{$partition['device']}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove hdd'></i></a>" : "";
+				$clear_disk		= (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && ! $mounted && ! is_mounted($disk['partitions'][0]['mountpoint'], true) && ! $is_mounting && $disk['partitions'][0]['fstype'] && (! $disk['partitions'][0]['pass_through'])) ? "<a title='"._("Clear Disk")."' device='{$partition['device']}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove hdd'></i></a>" : "";
 
 				$hdd_serial = "<a class='info' href=\"#\" onclick=\"openBox('/webGui/scripts/disk_log&amp;arg1={$disk_name}','Disk Log Information',600,900,false);return false\"><i class='fa fa-hdd-o icon'></i><span>"._("Disk Log Information")."</span></a>";
 				if ($p) {
