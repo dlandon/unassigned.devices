@@ -23,8 +23,8 @@
 <CHANGES>
 ##&name;
 ###&version;
-Add: Update libbsd package.
-Add: Change icon to unlink.
+- Add: Update libbsd package.
+- Add: Change icon to unlink.
 
 ###2021.05.01A
 - Add: apfs-fuse package for mounting apfs disks.
