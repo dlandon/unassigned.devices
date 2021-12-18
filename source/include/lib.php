@@ -1956,7 +1956,6 @@ function get_unassigned_disks() {
 			}
 		}
 	}
-	ksort($ud_disks, SORT_NATURAL);
 
 	return $ud_disks;
 }
