@@ -1158,7 +1158,7 @@ function do_mount_local($info) {
 
 			/* Check to see if the device really mounted. */
 			for ($i=0; $i < 5; $i++) {
-				if (is_mounted($dev) && is_mounted($dir, true)) {
+				if (is_mounted($dir, true)) {
 					@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
 
 					unassigned_log("Successfully mounted '".basename($dev)."' on '{$dir}'.");
