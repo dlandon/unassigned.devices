@@ -2082,7 +2082,7 @@ function get_partition_info($dev) {
 
 		/* Set up all disk parameters and status. */
 		$disk['mounted']		= is_mounted($disk['mountpoint'], true);
-		if ($disk['mounted']) {
+		if ($disk['mounted'] && $disk['fstype'] == "btrfs") {
 			$pool_devs			= MiscUD::get_pool_devices($disk['mountpoint']);
 			/* First pooled device is the primary disk. */
 			unset($pool_devs[0]);
