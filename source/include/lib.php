@@ -2206,7 +2206,7 @@ function check_for_duplicate_share($dev, $mountpoint) {
 	$share_names	= MiscUD::get_json($paths['share_names']);
 	foreach ($share_names as $device => $name) {
 		$name = strtoupper($name);
-		if ($dev != $device) {
+		if (strpos($device, basename($dev)) === false) {
 			$ud_shares[] = $name;
 		}
 	}
