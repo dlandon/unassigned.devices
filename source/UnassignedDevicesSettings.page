@@ -48,6 +48,9 @@ $uuid_devices = array();
 /* Get array of encrypted devices that can have a password set in settings. */
 $encrypt_devices = array();
 
+/* Get array of btrfs devices that can be pooled. */
+$pool_devices = array();
+
 foreach (get_all_disks_info() as $d) {
 	/* Get an array of devices that are candidates for uuid change. */
 	if (($d['partitions'][0]['fstype'] == "xfs" || $d['partitions'][0]['fstype'] == "btrfs" || $d['partitions'][0]['fstype'] == "crypto_LUKS") && (! $d['partitions'][0]['mounted'])) {
@@ -70,6 +73,14 @@ foreach (get_all_disks_info() as $d) {
 		$a = array();
 		$a['label'] = $d['serial'];
 		$encrypt_devices[] = $a;
+	}
+
+	/* btrfs file systems disks are candidates for pool devices. */
+	if ($d['partitions'][0]['fstype'] == "btrfs" && (! $d['partitions'][0]['mounted'])) {
+		$a = array();
+		$a['device'] = $d['device'];
+		$a['label'] = $d['serial'];
+		$pool_devices[] = $a;
 	}
 }
 ?>
@@ -424,5 +435,34 @@ _(Select Disk to change UUID)_:
 
 &nbsp;
 : <input type="submit" value='_(Change UUID)_' title='_(Change the disk UUID)_.' <?=count($uuid_devices) ? "" : "disabled";?>>
+</form>
+
+<div id="title" class="nocontrol">_(Set Pooled Disk Mount Point)_</div>
+<form markdown="1" name="pool_mountpoint" method="POST" action="/update.php" target="progressFrame">
+<input type="hidden" name="#section" value="Config">
+<input type="hidden" name="#file" value="<?=$paths['config_file']?>">
+<input type="hidden" name="#command" value="/plugins/unassigned.devices/scripts/rc.settings">
+<input type="hidden" name="#arg[1]" value="set_mountpoint">
+
+_(Select Disk)_:
+: <select name="pool_serial" size="1">
+
+  <?foreach ($pool_devices as $d) {?>
+  <?=mk_option($cfg['Config']['pool_serial'], ($d['label']), ($d['label']." (".basename($d['device']).")"))?>
+  <?}?>
+  </select>
+
+_(Enter Pool Mount Point)_:
+: <input type="text" name="pool_mountpoint" class="wide" maxlength="100" value="<?=$cfg['Config']['pool_mountpoint'];?>">
+  
+:ud_settings_change_uuid_plug:
+> Pooled disks must all have the same mount point to be mounted prpoerly by UD.  Select the disk that is part of the pool and enter the mount point.
+>
+> **Note:** The best way to deal with pooled disks is to delete the UD disk configuration that can interfere with the pooled disk settings.  You can erase a pooled disk configuration by leaving the mount point blank and the disk configuration will be deleted.  The mount point will default to the disk label.
+:end
+
+&nbsp;
+: <input type="submit" value='_(Set Pool Mount Point)_' title='_(Set the Pool mount point for this disk)_.' <?=count($uuid_devices) ? "" : "disabled";?>>
+
 </form>
 <?endif;?>

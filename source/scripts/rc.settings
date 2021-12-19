@@ -74,6 +74,33 @@ function set_pass() {
 	set_config($serial, "pass", encrypt_data($password));
 }
 
+function set_mountpoint() {
+	global $paths;
+
+	$config_file = $paths['config_file'];
+	$cfg		= is_file($config_file) ? @parse_ini_file($config_file, true) : array();
+
+	/* Get the serial number. */
+	$serial		= $cfg['Config']['pool_serial'];
+
+	/* Get the new mount point. */
+	$mountpoint	= $cfg['Config']['pool_mountpoint'];
+
+	/* Now clear the settings from the tmp file. */
+	unset($cfg['Config']['pool_serial']);
+	unset($cfg['Config']['pool_mountpoint']);
+	save_ini_file($config_file, $cfg, false);
+
+	/* Update the mountpoint */
+	if ($mountpoint) {
+		/* Update the mountpoint. */
+		set_config($serial, "mountpoint.1", $mountpoint);
+	} else {
+		/* Remove this device configuration. */
+		remove_config_disk($serial);
+	}
+}
+
 switch ($argv[1]) {
 	case 'save':
 		save();
@@ -89,6 +116,10 @@ switch ($argv[1]) {
 
 	case 'set_pass':
 		set_pass();
+		break;
+
+	case 'set_mountpoint':
+		set_mountpoint();
 		break;
 
 	default:
