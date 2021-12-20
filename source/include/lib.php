@@ -1951,7 +1951,7 @@ function get_unassigned_disks() {
 				if (! in_array($path, array_map(function($ar){return $ar['device'];}, $ud_disks), true)) {
 					$m = array_values(preg_grep("|$d.*-part\d+|", $paths));
 					natsort($m);
-					$ud_disks[$d] = array("device"=>$path,"type"=>"ata", "partitions"=>$m);
+					$ud_disks[$d] = array("device" => $path, "partitions" => $m);
 				}
 			}
 		}
@@ -2015,7 +2015,7 @@ function get_disk_info($dev) {
 	$disk						= array();
 	$attrs						= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
 	$disk['serial_short']		= isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
-	$disk['serial']				= "{$attrs['ID_MODEL']}_{$disk['serial_short']}";
+	$disk['serial']				= $attrs['ID_MODEL']."_".$disk['serial_short'];
 	$disk['device']				= realpath($dev);
 	$disk['ud_dev']				= get_disk_dev($disk['device']);
 	$disk['ssd']				= is_disk_ssd($disk['device']);
@@ -2041,7 +2041,7 @@ function get_partition_info($dev) {
 	$attrs	= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
 	if ($attrs['DEVTYPE'] == "partition") {
 		$disk['serial_short']	= isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
-		$disk['serial']			= "{$attrs['ID_MODEL']}_{$disk['serial_short']}";
+		$disk['serial']			= $attrs['ID_MODEL']."_".$disk['serial_short'];
 		$disk['device']			= realpath($dev);
 		$disk['uuid']			= $attrs['ID_FS_UUID'];
 
@@ -2052,13 +2052,13 @@ function get_partition_info($dev) {
 
 		/* Get the physical disk label or generate one based on the vendor id and model or serial number. */
 		if (isset($attrs['ID_FS_LABEL'])){
-			$disk['label']		= safe_name($attrs['ID_FS_LABEL_ENC']);
+			$disk['label']		= safe_name($attrs['ID_FS_LABEL']);
 			$disk['disk_label']	= $disk['label'];
 		} else {
 			if (isset($attrs['ID_VENDOR']) && isset($attrs['ID_MODEL'])){
 				$disk['label']	= sprintf("%s %s", safe_name($attrs['ID_VENDOR']), safe_name($attrs['ID_MODEL']));
 			} else {
-				$disk['label']	= safe_name($attrs['ID_SERIAL']);
+				$disk['label']	= safe_name($attrs['ID_SERIAL_SHORT']);
 			}
 			$all_disks			= array_unique(array_map(function($ar){return realpath($ar);},listDir("/dev/disk/by-id")));
 			$disk['label']		= (count(preg_grep("%".$matches[1][0]."%i", $all_disks)) > 2) ? $disk['label']."-part".$matches[2][0] : $disk['label'];
@@ -2098,9 +2098,9 @@ function get_partition_info($dev) {
 		$disk['used']			= intval($stats[1])*1024;
 		$disk['avail']			= intval($stats[2])*1024;
 		$disk['owner']			= (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
-		$disk['automount']		= is_automount($disk['serial'], strpos($attrs['DEVPATH'],"usb"));
+		$disk['automount']		= is_automount($disk['serial'], strpos($attrs['DEVPATH'], "usb"));
 		$disk['read_only']		= is_read_only($disk['serial']);
-		$disk['shared']			= config_shared($disk['serial'], $disk['part'], strpos($attrs['DEVPATH'],"usb"));
+		$disk['shared']			= config_shared($disk['serial'], $disk['part'], strpos($attrs['DEVPATH'], "usb"));
 		$disk['command']		= get_config($disk['serial'], "command.{$disk['part']}");
 		$disk['user_command']	= get_config($disk['serial'], "user_command.{$disk['part']}");
 		$disk['command_bg']		= get_config($disk['serial'], "command_bg.{$disk['part']}");
