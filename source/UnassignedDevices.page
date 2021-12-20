@@ -67,8 +67,8 @@ $ud_reload = "reload-".session_id();
 	table.samba_mounts tr>td+td+td+td+td+td+td+td+td+td+td+td+td{text-align:center}
 
 	button.mount {padding:2px 4px 3px 6px;margin:1px 0px 1px 0px;}
-	i.partition-hdd{margin:5px; 0px; 0px; 0px;}
-	i.hdd{margin:5px; 0px; 0px; 0px;}
+	i.partition-hdd{margin:5px; 5px; 0px; 0px;}
+	i.hdd{margin:5px; 5px; 0px; 0px;}
 	i.share{margin:5px 5px 0px 0px;}
 	i.mount-share{margin:5px 5px 0px 0px;}
 	i.partition-script{margin-left: 10px; margin-right: 6px;}
