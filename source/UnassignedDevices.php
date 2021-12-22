@@ -144,13 +144,13 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$fstype = ($partition['fstype'] == "crypto_LUKS") ? luks_fs_type($partition['device']) : $partition['fstype'];
 		if ( (! $disabled && ! $mounted && $fstype != "apfs" && $fstype != "btrfs") || (! $disabled && $mounted && $fstype == "btrfs")) {
 			$file_system_check = $fstype != "btrfs" ? _('File System Check') : _('File System Scrub');
-			$fscheck = "<a title='".$file_system_check."' class='exec tooltip' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i></a>";
+			$fscheck = "<a title='".$file_system_check."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i></a>";
 		} else {
 			$fscheck = "<i class='fa fa-check partition-hdd'></i></a>";
 		}
 		if ($mounted && is_file($cmd)) {
 			if ((! $disabled && ! is_script_running($cmd)) && (! is_script_running($partition['user_command'], true))) {
-				$fscheck .= "<a title='"._("Execute Script as udev simulating a device being installed")."' class='exec tooltip' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/script.php?device={$device}&type="._('Done')."\",\"Execute Script\",600,900);'><i class='fa fa-flash partition-script'></i></a>";
+				$fscheck .= "<a title='"._("Execute Script as udev simulating a device being installed")."' class='exec' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/script.php?device={$device}&type="._('Done')."\",\"Execute Script\",600,900);'><i class='fa fa-flash partition-script'></i></a>";
 			} else {
 				$fscheck .= "<i class='fa fa-flash partition-script'></i>";
 			}
@@ -160,17 +160,17 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$fscheck .= $partition['part'];
 
 		/* Add remove partition icon if destructive mode is enabled. */
-		$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && ! $is_mounting && ! $disk['partitions'][0]['pass_through']) ? "<a title='"._("Remove Partition")."' device='{$partition['device']}' class='exec tooltip' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$partition['serial']}\",\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i></a>" : "";
+		$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && ! $is_mounting && ! $disk['partitions'][0]['pass_through']) ? "<a title='"._("Remove Partition")."' device='{$partition['device']}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$partition['serial']}\",\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i></a>" : "";
 		$mpoint = "<span>{$fscheck}";
 		$mount_point = basename($partition['mountpoint']);
 
 		/* Add change mount point or browse disk share icon if disk is mounted. */
 		if ($mounted) {
-			$mpoint .= "<i class='fa fa-external-link partition-hdd'></i><a class='tooltip' title='"._("Browse Disk Share")."' href='/Main/Browse?dir={$partition['mountpoint']}'>{$mount_point}</a></span>";
+			$mpoint .= "<i class='fa fa-external-link partition-hdd'></i><a title='"._("Browse Disk Share")."' href='/Main/Browse?dir={$partition['mountpoint']}'>{$mount_point}</a></span>";
 		} else {
 			$mount_point	= basename($partition['mountpoint']);
 			$disk_label		= $partition['disk_label'];
-			$mpoint			.= "<i class='fa fa-pencil partition-hdd'></i><a title='"._("Change Disk Mount Point")."' class='exec tooltip' onclick='chg_mountpoint(\"{$partition['serial']}\",\"{$partition['part']}\",\"{$device}\",\"{$partition['fstype']}\",\"{$mount_point}\",\"{$disk_label}\");'>{$mount_point}</a>";
+			$mpoint			.= "<i class='fa fa-pencil partition-hdd'></i><a title='"._("Change Disk Mount Point")."' class='exec' onclick='chg_mountpoint(\"{$partition['serial']}\",\"{$partition['part']}\",\"{$device}\",\"{$partition['fstype']}\",\"{$mount_point}\",\"{$disk_label}\");'>{$mount_point}</a>";
 			$mpoint			.= "{$rm_partition}</span>";
 		}
 		$mbutton = make_mount_button($partition);
@@ -248,7 +248,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 
 		/* Add device log icon. */
 		if ((! $disk_line) || (! $disk['show_partitions'])) {
-			$out[] = "<td><a class='tooltip' title='"._("View Device Script Log")."' href='/Main/ScriptLog?s=".$partition['serial']."&p=".$partition['part']."'><i class='fa fa-align-left".( $partition['command'] ? "":" grey-orb" )."'></i></a></td>";
+			$out[] = "<td><a title='"._("View Device Script Log")."' href='/Main/ScriptLog?s=".$partition['serial']."&p=".$partition['part']."'><i class='fa fa-align-left".( $partition['command'] ? "":" grey-orb" )."'></i></a></td>";
 		} else {
 			$out[] = "<td></td>";
 		}
@@ -388,9 +388,9 @@ switch ($_POST['action']) {
 				/* Add the clear disk icon. */
 				$is_mounting	= array_values(preg_grep("@/mounting_".basename($disk['device'])."@i", listDir(dirname($paths['mounting']))))[0];
 				$is_mounting	= (time() - filemtime($is_mounting) < 300) ? true : false;
-				$clear_disk		= (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && $p && ! $mounted && ! $disk['partitions'][0]['pool'] && ! $is_mounting && ! $disk['partitions'][0]['pass_through']) ? "<a title='"._("Clear Disk")."' device='{$partition['device']}' class='exec tooltip' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove hdd'></i></a>" : "";
+				$clear_disk		= (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && $p && ! $mounted && ! $disk['partitions'][0]['pool'] && ! $is_mounting && ! $disk['partitions'][0]['pass_through']) ? "<a title='"._("Clear Disk")."' device='{$partition['device']}' class='exec' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove hdd'></i></a>" : "";
 
-				$hdd_serial = "<a class='tooltip' title='"._("Disk Log Information")."' href=\"#\" onclick=\"openBox('/webGui/scripts/disk_log&amp;arg1={$disk_name}','Disk Log Information',600,900,false);return false\"><i class='fa fa-hdd-o icon'></i></a>";
+				$hdd_serial = "<a class='info' href=\"#\" onclick=\"openBox('/webGui/scripts/disk_log&amp;arg1={$disk_name}','Disk Log Information',600,900,false);return false\"><i class='fa fa-hdd-o icon'></i><span>"._("Disk Log Information")."</span></a>";
 				if ($p) {
 					$add_toggle = true;
 					if (! $disk['show_partitions']) {
@@ -429,9 +429,9 @@ switch ($_POST['action']) {
 						if (! $disk['ssd']) {
 							if (! is_disk_spin($disk['ud_dev'], $disk['running'])) {
 								if ($disk['running']) {
-									echo "<a style='cursor:pointer' class='exec tooltip' title='"._("Click to spin down device")."' onclick='spin_down_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle orb green-orb'></i></a>";
+									echo "<a style='cursor:pointer' class='exec info' onclick='spin_down_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle orb green-orb'></i><span>"._("Click to spin down device")."</span></a>";
 								} else {
-									echo "<a style='cursor:pointer' class='exec tooltip' title='"._("Click to spin up device")."' onclick='spin_up_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle orb grey-orb'></i></a>";
+									echo "<a style='cursor:pointer' class='exec info' onclick='spin_up_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle orb grey-orb'></i><span>"._("Click to spin up device")."</span></a>";
 								}
 							} else {
 								if ($disk['running']) {
@@ -441,7 +441,7 @@ switch ($_POST['action']) {
 								}
 							}
 						} else {
-							echo "<a class='tooltip' title='"._("SSD cannot be spun down")."' ><i class='fa fa-circle orb green-orb'></i></a>";
+							echo "<a class='info'><i class='fa fa-circle orb green-orb'></i><span>"._("SSD cannot be spun down")."</span></a>";
 						}
 					}
 					echo ($disk['partitions'][0]['fstype'] == "crypto_LUKS" ? "<i class='fa fa-lock orb'></i>" : "");
@@ -548,15 +548,15 @@ switch ($_POST['action']) {
 				$mounted = $mount['mounted'];
 				echo "<tr>";
 				$protocol = $mount['protocol'] == "NFS" ? "nfs" : "smb";
-				printf( "<td><a class='tooltip' title='"._("Remote Share is")." %s' ><i class='fa fa-circle orb %s'></i></a>%s</td>", ( $is_alive ? _("online") : _("offline") ), ( $is_alive ? "green-orb" : "grey-orb" ), $protocol);
+				printf( "<td><a class='info'><i class='fa fa-circle orb %s'></i><span>"._("Remote Share is")." %s</span></a>%s</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ), $protocol);
 				echo "<td>{$mount['name']}";
 				$mount_point = basename($mount['mountpoint']);
 				if ($mounted) {
-					echo "<td><i class='fa fa-external-link mount-share'></i><a class='tooltip' title='"._("Browse Remote SMB")."/"._("NFS Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
+					echo "<td><i class='fa fa-external-link mount-share'></i><a title='"._("Browse Remote SMB")."/"._("NFS Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
 				} else {
 					echo "<td>
 						<i class='fa fa-pencil mount-share'></i>
-						<a title='"._("Change Remote SMB")."/"._("NFS Mount Point")."' class='exec tooltip' onclick='chg_samba_mountpoint(\"{$mount['name']}\",\"{$mount_point}\");'>{$mount_point}</a>
+						<a title='"._("Change Remote SMB")."/"._("NFS Mount Point")."' class='exec' onclick='chg_samba_mountpoint(\"{$mount['name']}\",\"{$mount_point}\");'>{$mount_point}</a>
 						</td>";
 				}
 
@@ -578,7 +578,7 @@ switch ($_POST['action']) {
 						echo "<td>".($mounted ? "<button class='mount' device ='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>"._('Unmount')."</button>" : "<button class='mount'device ='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>"._('Mount')."</button>")."</td>";
 					}
 				}
-				echo $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a title='"._("Remove Remote SMB")."/"._("NFS Share")."' class='exec tooltip' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount['name']}\");'><i class='fa fa-remove hdd'></i></a></td>";
+				echo $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a title='"._("Remove Remote SMB")."/"._("NFS Share")."' class='exec' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount['name']}\");'><i class='fa fa-remove hdd'></i></a></td>";
 
 				$title = _("Edit Remote SMB")."/".("NFS Settings and Script");
 				$title .= "<br />"._("Automount").": ";
@@ -591,7 +591,7 @@ switch ($_POST['action']) {
 				echo "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				echo render_used_and_free($mount, $mounted);
 
-				echo "<td><a class='tooltip' title='"._("View Remote SMB")."/"._("NFS Script Log")."' href='/Main/ScriptLog?d=".$mount['device']."'><i class='fa fa-align-left".( $mount['command'] ? "":" grey-orb" )."'></i></a></td>";
+				echo "<td><a title='"._("View Remote SMB")."/"._("NFS Script Log")."' href='/Main/ScriptLog?d=".$mount['device']."'><i class='fa fa-align-left".( $mount['command'] ? "":" grey-orb" )."'></i></a></td>";
 				echo "</tr>";
 
 				/* Add to the share names. */
@@ -606,16 +606,16 @@ switch ($_POST['action']) {
 				$mounted = $mount['mounted'];
 				$is_alive = is_file($mount['file']);
 				echo "<tr>";
-				printf( "<td><a class='tooltip' title='"._("ISO File is")." %s' ><i class='fa fa-circle orb %s'></i></a>iso</td>", ( $is_alive ? _("online") : _("offline") ), ( $is_alive ? "green-orb" : "grey-orb" ));
+				printf( "<td><a class='info'><i class='fa fa-circle orb %s'></i><span>"._("ISO File is")." %s</span></a>iso</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ));
 				$devname = basename($mount['device']);
 				echo "<td>{$mount['device']}</td>";
 				$mount_point = basename($mount['mountpoint']);
 				if ($mounted) {
-					echo "<td><i class='fa fa-external-link mount-share'></i><a class='tooltip' title='"._("Browse ISO File Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
+					echo "<td><i class='fa fa-external-link mount-share'></i><a title='"._("Browse ISO File Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
 				} else {
 					echo "<td>
 						<i class='fa fa-pencil mount-share'></i>
-						<a title='"._("Change ISO File Mount Point")."' class='exec tooltip' onclick='chg_iso_mountpoint(\"{$mount['device']}\",\"{$mount_point}\");'>{$mount_point}</a>
+						<a title='"._("Change ISO File Mount Point")."' class='exec' onclick='chg_iso_mountpoint(\"{$mount['device']}\",\"{$mount_point}\");'>{$mount_point}</a>
 						</td>";
 				}
 				$disabled = $is_alive ? "enabled":"disabled";
@@ -636,7 +636,7 @@ switch ($_POST['action']) {
 						echo "<td>".($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>"._('Unmount')."</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>"._('Mount')."</button>")."</td>";
 					}
 				}
-				echo $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a title='"._("Remove ISO File Share")."' class='exec tooltip' style='color:#CC0000;font-weight:bold;' onclick='remove_iso_config(\"{$mount['device']}\");'> <i class='fa fa-remove hdd'></i></a></td>";
+				echo $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a title='"._("Remove ISO File Share")."' class='exec' style='color:#CC0000;font-weight:bold;' onclick='remove_iso_config(\"{$mount['device']}\");'> <i class='fa fa-remove hdd'></i></a></td>";
 
 				$title = _("Edit ISO File Settings and Script");
 				$title .= "<br />"._("Automount").": ";
@@ -646,7 +646,7 @@ switch ($_POST['action']) {
 				echo "<td></td><td></td><td></td>";
 				echo "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				echo render_used_and_free($mount, $mounted);
-				echo "<td><a class='tooltip' title='"._("View ISO File Script Log")."' href='/Main/ScriptLog?i=".$mount['device']."'><i class='fa fa-align-left".( $mount['command'] ? "":" grey-orb" )."'></i></a></td>";
+				echo "<td><a title='"._("View ISO File Script Log")."' href='/Main/ScriptLog?i=".$mount['device']."'><i class='fa fa-align-left".( $mount['command'] ? "":" grey-orb" )."'></i></a></td>";
 				echo "</tr>";
 
 				/* Add to the share names. */
@@ -676,7 +676,7 @@ switch ($_POST['action']) {
 				$mountpoint = ($mntpoint) ? "(".$mntpoint.")" : "";
 				$ct .= "<tr><td><i class='fa fa-minus-circle orb grey-orb'></i>"._("not installed")."</td><td>$serial"." $mountpoint</td>";
 				$ct .= "<td></td>";
-				$ct .= "<td><a style='color:#CC0000;font-weight:bold;cursor:pointer;' title='"._("Remove Device configuration")."' class='exec tooltip' onclick='remove_disk_config(\"{$serial}\")'><i class='fa fa-remove hdd'></i></a></td>";
+				$ct .= "<td><a style='color:#CC0000;font-weight:bold;cursor:pointer;' title='"._("Remove Device configuration")."' class='exec' onclick='remove_disk_config(\"{$serial}\")'><i class='fa fa-remove hdd'></i></a></td>";
 				$ct .= "<td><a class='info' href='/Main/EditSettings?s=".$serial."&l=".basename($mntpoint)."&p="."1"."&t=true'><i class='fa fa-gears'></i><span>"._("Edit Historical Device Settings and Script")."</span></a></td>";
 				$ct .= "<td></td><td></td><td></td><td></td><td></td></tr>";
 			}
