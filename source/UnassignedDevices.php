@@ -87,7 +87,7 @@ function render_used_and_free($partition, $mounted) {
 			$out .= "<td><div class='usage-disk'><span style='margin:0;width:$free_pct%' class='".usage_color($display,$free_pct,true)."'></span><span>".my_scale($partition['avail'], $unit)." $unit</span></div></td>";
 		}
 	} else {
-		$out = "<td>-</td><td>-</td>";
+		$out = "<td></td><td></td>";
 	}
 
 	return $out;
@@ -119,7 +119,7 @@ function render_used_and_free_disk($disk, $mounted) {
 			$out .= "<td><div class='usage-disk'><span style='margin:0;width:$free_pct%' class='".usage_color($display,$free_pct,true)."'></span><span>".my_scale($avail, $unit)." $unit</span></div></td>";
 		}
 	} else {
-		$out = "<td>-</td><td>-</td>";
+		$out = "<td></td><td></td>";
 	}
 
 	return $out;
@@ -476,19 +476,19 @@ switch ($_POST['action']) {
 				echo ($p)?$p[5]:"<td>".$writes."</td>";
 
 				/* Settings. */
-				echo ($p)?$p[6]:"<td>-</td>";
+				echo ($p)?$p[6]:"<td></td>";
 
 				/* File system. */
-				echo ($p)?$p[7]:"<td>-</td>";
+				echo ($p)?$p[7]:"<td></td>";
 
 				/* Disk size. */
 				echo "<td>".my_scale($disk['size'],$unit)." {$unit}</td>";
 
 				/* Disk used and free space. */
-				echo ($p)?$p[8]:"<td>-</td><td>-</td>";
+				echo ($p)?$p[8]:"<td></td><td></td>";
 
 				/* Log button. */
-				echo ($p)?$p[9]:"<td>-</td>";
+				echo ($p)?$p[9]:"<td></td>";
 				echo "</tr>";
 
 				if ($add_toggle)
