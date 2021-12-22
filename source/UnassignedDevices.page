@@ -1142,14 +1142,11 @@ $ud_reload = "reload-".session_id();
 			[surveyOption.mountpoint,surveyOption.disklabel]
 		</div>
 		<div data-question-content>
-			<input type="text" class="swal-content__input" name="MOUNTPOINT" value={0} placeholder="<?=_('Mount Point');?>" required>
+			<input type="text" class="swal-content__input" name="MOUNTPOINT" value={0} placeholder="<?=_('Mount Point');?>">
 			<p><?=_('Disk Label');?>:&nbsp;{1}</p>
 			<p><?=_('Changing the Mount Point will also change the disk label');?>.</p>
 		</div>
 		<div data-question-load></div>
-		<div data-question-done>
-			(surveyData["MOUNTPOINT"].length)
-		</div>
 	</div>
 	<div data-survey-done data-survey-done-wait="true">
 		$.post(UDURL, {'action' : 'chg_mountpoint', serial:surveyOption.serial, partition:surveyOption.partition, device:surveyOption.device, fstype:surveyOption.fstype, mountpoint:surveyData['MOUNTPOINT']}).done(function(data)

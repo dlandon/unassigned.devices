@@ -91,14 +91,8 @@ function set_mountpoint() {
 	unset($cfg['Config']['pool_mountpoint']);
 	save_ini_file($config_file, $cfg, false);
 
-	/* Update the mountpoint */
-	if ($mountpoint) {
-		/* Update the mountpoint. */
-		set_config($serial, "mountpoint.1", $mountpoint);
-	} else {
-		/* Remove this device configuration. */
-		remove_config_disk($serial);
-	}
+	/* Update the mountpoint. */
+	set_config($serial, "mountpoint.1", $mountpoint);
 }
 
 switch ($argv[1]) {

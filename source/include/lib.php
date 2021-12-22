@@ -2303,8 +2303,8 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 			}
 		}
 	} else {
-		unassigned_log("Error: Cannot change mount point! Mount point is blank.");
-		$rc = false;
+		/* Update the mountpoint. */
+		set_config($serial, "mountpoint.".$partition, $mountpoint);
 	}
 
 	return $rc;
