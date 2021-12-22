@@ -166,11 +166,11 @@ function render_partition($disk, $partition, $disk_line = false) {
 
 		/* Add change mount point or browse disk share icon if disk is mounted. */
 		if ($mounted) {
-			$mpoint .= "<i class='fa fa-external-link partition-hdd'></i><a class='info' href='/Main/Browse?dir={$partition['mountpoint']}'>{$mount_point}<span>"._("Browse Disk Share")."</span></a></span>";
+			$mpoint .= "<i class='fa fa-external-link partition-hdd'></i><a title='"._("Browse Disk Share")."' href='/Main/Browse?dir={$partition['mountpoint']}'>{$mount_point}</a></span>";
 		} else {
 			$mount_point	= basename($partition['mountpoint']);
 			$disk_label		= $partition['disk_label'];
-			$mpoint			.= "<i class='fa fa-pencil partition-hdd'></i><a class='exec info' onclick='chg_mountpoint(\"{$partition['serial']}\",\"{$partition['part']}\",\"{$device}\",\"{$partition['fstype']}\",\"{$mount_point}\",\"{$disk_label}\");'>{$mount_point}<span>"._("Change Disk Mount Point")."</span></a>";
+			$mpoint			.= "<i class='fa fa-pencil partition-hdd'></i><a title='"._("Change Disk Mount Point")."' class='exec' onclick='chg_mountpoint(\"{$partition['serial']}\",\"{$partition['part']}\",\"{$device}\",\"{$partition['fstype']}\",\"{$mount_point}\",\"{$disk_label}\");'>{$mount_point}</a>";
 			$mpoint			.= "{$rm_partition}</span>";
 		}
 		$mbutton = make_mount_button($partition);
@@ -394,7 +394,7 @@ switch ($_POST['action']) {
 				if ($p) {
 					$add_toggle = true;
 					if (! $disk['show_partitions']) {
-						$hdd_serial .="<span class='exec toggle-hdd info' hdd='{$disk_name}'><i class='fa fa-plus-square fa-append'></i></span>";
+						$hdd_serial .="<span title ='"._("Click to view/hide partitions and mount points")."'class='exec toggle-hdd' hdd='{$disk_name}'><i class='fa fa-plus-square fa-append'></i></span>";
 					} else {
 						$hdd_serial .="<span><i class='fa fa-minus-square fa-append grey-orb'></i></span>";
 					}
@@ -552,11 +552,11 @@ switch ($_POST['action']) {
 				echo "<td>{$mount['name']}";
 				$mount_point = basename($mount['mountpoint']);
 				if ($mounted) {
-					echo "<td><i class='fa fa-external-link mount-share'></i><a class='info' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}<span>"._("Browse Remote SMB")."/"._("NFS Share")."</span></a></td>";
+					echo "<td><i class='fa fa-external-link mount-share'></i><a title='"._("Browse Remote SMB")."/"._("NFS Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
 				} else {
 					echo "<td>
 						<i class='fa fa-pencil mount-share'></i>
-						<a class='exec info' onclick='chg_samba_mountpoint(\"{$mount['name']}\",\"{$mount_point}\");'>{$mount_point}<span>"._("Change Remote SMB")."/"._("NFS Mount Point")."</span></a>
+						<a title='"._("Change Remote SMB")."/"._("NFS Mount Point")."' class='exec' onclick='chg_samba_mountpoint(\"{$mount['name']}\",\"{$mount_point}\");'>{$mount_point}</a>
 						</td>";
 				}
 
@@ -611,11 +611,11 @@ switch ($_POST['action']) {
 				echo "<td>{$mount['device']}</td>";
 				$mount_point = basename($mount['mountpoint']);
 				if ($mounted) {
-					echo "<td><i class='fa fa-external-link mount-share'></i><a class='info' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}<span>"._("Browse ISO File Share")."</span></a></td>";
+					echo "<td><i class='fa fa-external-link mount-share'></i><a title='"._("Browse ISO File Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
 				} else {
 					echo "<td>
 						<i class='fa fa-pencil mount-share'></i>
-						<a class='exec info' onclick='chg_iso_mountpoint(\"{$mount['device']}\",\"{$mount_point}\");'>{$mount_point}<span>"._("Change ISO File Mount Point")."</span></a>
+						<a title='"._("Change ISO File Mount Point")."' class='exec' onclick='chg_iso_mountpoint(\"{$mount['device']}\",\"{$mount_point}\");'>{$mount_point}</a>
 						</td>";
 				}
 				$disabled = $is_alive ? "enabled":"disabled";
