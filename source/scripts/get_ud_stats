@@ -39,6 +39,12 @@ class MiscUD
 	public function is_ip($str) {
 		return filter_var($str, FILTER_VALIDATE_IP);
 	}
+
+	/* Check for text in a file. */
+	public function exist_in_file($file, $text) {
+		return (preg_grep("%{$text}%", @file($file))) ? true : false;
+	}
+
 }
 
 /* Unassigned Devices logging. */
@@ -71,6 +77,20 @@ function timed_exec($timeout = 10, $cmd) {
 /* Is the server currently on line. */
 function is_server_online($server) {
 	global $tc;
+
+	/* See if we need to add this server to the hosts file. */
+	if (! MiscUD::is_ip($server)) {
+		$ip = shell_exec("/sbin/arp -a ".escapeshellarg($server)." | grep -v local");
+		if ((strpos($ip, "no match found") !== FALSE) && $ip) {
+			shell_exec("/bin/sed -i '/".escapeshellarg($server)."/d' /etc/hosts");
+			$ip = shell_exec("/sbin/arp -a ".escapeshellarg($server)." | grep -v local");
+		}
+		$ip_array	= explode(" ", $ip);
+		$ip			= str_replace(array("(", ")"), "", $ip_array[1]);
+		if (MiscUD::is_ip($ip) && (! MiscUD::exist_in_file("/etc/hosts", $ip))) {
+			shell_exec("/bin/echo -e '".escapeshellarg($ip)."''\t''".escapeshellarg($server)."' >> /etc/hosts" );
+		}
+	}
 
 	/* Check the last ping status. */
 	$ping_status	= MiscUD::get_json($tc);
