@@ -658,12 +658,13 @@ switch ($_POST['action']) {
 		}
 		echo "</tbody></table>";
 
-		$disabled = (($var['shareNFSEnabled']=="no") && ($var['shareSMBEnabled']=="no")) ? "disabled" : "";
+		$disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "no")) ? "disabled" : "";
 		echo "<button onclick='add_samba_share()' $disabled>"._('Add Remote SMB').'/'._('NFS Share')."</button>";
 		echo "<button onclick='add_iso_share()'>"._('Add ISO File Share')."</button></div>";
 
 		$config_file = $paths["config_file"];
 		$config = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
+		ksort($config, SORT_NATURAL);
 		$disks_serials = array();
 		foreach ($disks as $disk) {
 			$disks_serials[] = $disk['partitions'][0]['serial'];
