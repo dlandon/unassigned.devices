@@ -176,6 +176,10 @@ switch ($COMMAND) {
 		df_status($argv[2], $argv[3]);
 		break;
 
+	case 'is_online':
+		is_server_online($argv[2]);
+		break;
+
 	default:
 		exit(0);
 		break;
