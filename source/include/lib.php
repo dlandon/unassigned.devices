@@ -1833,6 +1833,7 @@ function get_iso_mounts() {
 	$config_file	= $paths['iso_mount'];
 	$iso_mounts		= @parse_ini_file($config_file, true);
 	if (is_array($iso_mounts)) {
+		ksort($iso_mounts, SORT_NATURAL);
 		foreach ($iso_mounts as $device => $mount) {
 			$mount['device']		= $device;
 			$mount['fstype']		= "loop";
