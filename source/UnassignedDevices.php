@@ -865,9 +865,14 @@ switch ($_POST['action']) {
 		file_put_contents("{$paths['authentication']}", "username=".$user."\n");
 		file_put_contents("{$paths['authentication']}", "password=".$pass."\n", FILE_APPEND);
 		file_put_contents("{$paths['authentication']}", "domain=".$domain."\n", FILE_APPEND);
-// dfl
+
+		/* Update this server status before listing shares. */
 		exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats is_online $ip");
+
+		/* Get a list of samba shares on this server. */
 		$list	= shell_exec("/usr/bin/smbclient -t2 -g -L ".escapeshellarg($ip)." --authentication-file=".escapeshellarg($paths['authentication'])." 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}' | sort");
+
+		/* Shred the authentication file. */
 		exec("/bin/shred -u ".escapeshellarg($paths['authentication']));
 		echo $list;
 		break;
