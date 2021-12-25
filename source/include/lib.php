@@ -1585,6 +1585,7 @@ function get_samba_mounts() {
 	$config_file = $paths['samba_mount'];
 	$samba_mounts = @parse_ini_file($config_file, true);
 	if (is_array($samba_mounts)) {
+		ksort($samba_mounts, SORT_NATURAL);
 		foreach ($samba_mounts as $device => $mount) {
 			$mount['device']	= $device;
 			$mount['name']		= $device;
