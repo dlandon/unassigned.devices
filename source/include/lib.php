@@ -186,8 +186,8 @@ function safe_name($string, $convert_spaces = true) {
 
 	$string = stripcslashes($string);
 
-	/* Convert reserved php characters to underscore. */
-	$string = str_replace( array("'", '"', "?", "#", "&", "!"), "_", $string);
+	/* Convert reserved php characters and invalid file name characters to underscore. */
+	$string = str_replace( array("'", '"', "?", "#", "&", "!", "<", ">", "|"), "_", $string);
 
 	/* Convert spaces to underscore. */
 	if ($convert_spaces) {

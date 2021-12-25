@@ -904,7 +904,7 @@ switch ($_POST['action']) {
 		$pass		= isset($_POST['PASS']) ? urldecode($_POST['PASS']) : "";
 		$path		= isset($_POST['SHARE']) ? urldecode($_POST['SHARE']) : "";
 		$path		= implode("",explode("\\", $path));
-		$path		= stripslashes(trim($path));
+		$path		= safe_name(stripslashes(trim($path)));
 		$share		= basename($path);
 		if ($share) {
 			$device	= ($protocol == "NFS") ? "{$ip}:{$path}" : "//".strtoupper($ip)."/{$share}";
