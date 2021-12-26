@@ -78,17 +78,30 @@ function timed_exec($timeout = 10, $cmd) {
 function is_server_online($server) {
 	global $tc;
 
-	/* See if we need to add this server to the hosts file. */
+	/* See if we need to add this server to the hosts file. This seems to be an issue with Windows computers.*/
 	if (! MiscUD::is_ip($server)) {
-		$ip = shell_exec("/sbin/arp -a ".escapeshellarg($server)." | grep -v local");
-		if ((strpos($ip, "no match found") !== FALSE) && $ip) {
-			shell_exec("/bin/sed -i '/".escapeshellarg($server)."/d' /etc/hosts");
-			$ip = shell_exec("/sbin/arp -a ".escapeshellarg($server)." | grep -v local");
-		}
-		$ip_array	= explode(" ", $ip);
+		$ip_arp		= shell_exec("/sbin/arp -a ".escapeshellarg($server)." 2>&1 | grep -v local");
+		$ip_array	= explode(" ", $ip_arp);
 		$ip			= str_replace(array("(", ")"), "", $ip_array[1]);
-		if (MiscUD::is_ip($ip) && (! MiscUD::exist_in_file("/etc/hosts", $ip))) {
-			shell_exec("/bin/echo -e '".escapeshellarg($ip)."''\t''".escapeshellarg($server)."' >> /etc/hosts" );
+		$ip			= MiscUD::is_ip($ip) ? $ip : "";
+
+		/* If arp did not return a valid IP address, look up the local IP address. */
+		if (strpos($ip_arp, "no match found") === false) {
+			$srvr		= $server.".local";
+			$ip_local	= shell_exec("/sbin/arp -a ".escapeshellarg($srvr)." 2>&1");
+			$ip_array	= explode(" ", $ip_local);
+			$ip_local	= str_replace(array("(", ")"), "", $ip_array[1]);
+			$ip_local	= MiscUD::is_ip($ip_local) ? $ip_local : "";
+		} else {
+			$ip_local	= $ip;
+		}
+
+		/* If the ip address does not match the .local ip address, add/update entry to the hosts file. */
+		if ($ip != $ip_local) {
+			if (MiscUD::is_ip($ip_local)) {
+				shell_exec("/bin/sed -i '/".escapeshellarg($server)."/d' /etc/hosts");
+				shell_exec("/bin/echo -e '".escapeshellarg($ip_local)."''\t''".escapeshellarg($server)."' >> /etc/hosts" );
+			}
 		}
 	}
 
