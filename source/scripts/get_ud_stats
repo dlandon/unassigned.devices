@@ -79,27 +79,26 @@ function timed_exec($timeout = 10, $cmd) {
 function is_server_online($server) {
 	global $tc, $var;
 
-	/* See if we need to add this server to the hosts file. This seems to be an issue with Windows computers.*/
+	/* See if we need to add this server to the hosts file. This seems to be an issue with Windows computers. */
 	if (! MiscUD::is_ip($server)) {
 		$ip_arp		= shell_exec("/sbin/arp -a ".escapeshellarg($server)." 2>&1");
 		$ip_array	= explode(" ", $ip_arp);
 		$ip			= str_replace(array("(", ")"), "", $ip_array[1]);
 		$ip			= MiscUD::is_ip($ip) ? $ip : "";
 
-		/* If arp did not return a valid IP address, look up the local IP address. */
-		if (strpos($ip_arp, "no match found") === false) {
+		/* If arp did not return a valid IP address, look up the IP address using Local TLD. */
+		if (strpos($ip_arp, "Unknown server error") !== false) {
 			$local_tld	= $var['LOCAL_TLD'];
 			$srvr		= $server.".".$local_tld;
 			$ip_local	= shell_exec("/sbin/arp -a ".escapeshellarg($srvr)." 2>&1");
 			$ip_array	= explode(" ", $ip_local);
 			$ip_local	= str_replace(array("(", ")"), "", $ip_array[1]);
 			$ip_local	= MiscUD::is_ip($ip_local) ? $ip_local : "";
-
 		} else {
 			$ip_local	= $ip;
 		}
 
-		/* If the ip address does not match the .local ip address, add/update entry to the hosts file. */
+		/* If the ip address does not match the .local ip address, add/update entry in hosts file. */
 		if ($ip != $ip_local) {
 			if (MiscUD::is_ip($ip_local)) {
 				shell_exec("/bin/sed -i '/".escapeshellarg($server)."/d' /etc/hosts");
