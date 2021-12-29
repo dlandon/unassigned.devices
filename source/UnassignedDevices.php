@@ -849,8 +849,23 @@ switch ($_POST['action']) {
 			$netmask = $iface['netmask'];
 			exec("plugins/{$plugin}/scripts/port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 445", $hosts);
 			foreach ($hosts as $host) {
-				$name = trim(shell_exec("/usr/bin/nmblookup -A ".escapeshellarg($host)." 2>/dev/null | grep -v 'GROUP' | grep -Po '[^<]*(?=<00>)' | head -n 1"));
-				$names[]= $name ? $name : $host;
+				/* Look up the server name using nmblookup. */
+				$name		= trim(shell_exec("/usr/bin/nmblookup -A ".escapeshellarg($host)." 2>/dev/null | grep -v 'GROUP' | grep -Po '[^<]*(?=<00>)' | head -n 1"));
+				if (! $name) {
+					/* If name doesn't resolve, see if it is a local name. */
+					$name	= shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'");
+					if ($name) {
+						$n			= strpos($name, ".".$var['LOCAL_TLD']);
+						if ($n !== false) {
+							$name	= substr($name, 0, $n);
+						}
+						$name		= strtoupper($name);
+					} else {
+						if ($host == $_SERVER['SERVER_ADDR']);
+							$name	= strtoupper($var['NAME']);
+						}
+				}
+				$names[] = $name ? $name : $host;
 			}
 			natsort($names);
 		}
