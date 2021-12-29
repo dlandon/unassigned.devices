@@ -843,8 +843,7 @@ switch ($_POST['action']) {
 		/* Get a list of samba hosts. */
 		$network	= $_POST['network'];
 		$names		= [];
-		foreach ($network as $iface)
-		{
+		foreach ($network as $iface) {
 			$ip = $iface['ip'];
 			$netmask = $iface['netmask'];
 			exec("plugins/{$plugin}/scripts/port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 445", $hosts);
@@ -861,14 +860,15 @@ switch ($_POST['action']) {
 						}
 						$name		= strtoupper($name);
 					} else {
-						if ($host == $_SERVER['SERVER_ADDR']);
+						if ($host == $_SERVER['SERVER_ADDR']) {
 							$name	= strtoupper($var['NAME']);
 						}
+					}
 				}
 				$names[] = $name ? $name : $host;
 			}
-			natsort($names);
 		}
+		natsort($names);
 		echo implode(PHP_EOL, $names);
 		break;
 
@@ -898,8 +898,7 @@ switch ($_POST['action']) {
 		/* Get a list of nfs hosts. */
 		$names	= [];
 		$network = $_POST['network'];
-		foreach ($network as $iface)
-		{
+		foreach ($network as $iface) {
 			$ip = $iface['ip'];
 			$netmask = $iface['netmask'];
 			exec("/usr/bin/timeout -s 13 5 plugins/{$plugin}/scripts/port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 2049 2>/dev/null | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4", $hosts);
@@ -913,13 +912,14 @@ switch ($_POST['action']) {
 					}
 					$name		= strtoupper($name);
 				} else {
-					if ($host == $_SERVER['SERVER_ADDR']);
+					if ($host == $_SERVER['SERVER_ADDR']) {
 						$name	= strtoupper($var['NAME']);
 					}
+				}
+				$names[] = $name ? $name : $host;
 			}
-			$names[] = $name ? $name : $host;
-			natsort($names);
 		}
+		natsort($names);
 		echo implode(PHP_EOL, $names);
 		break;
 
