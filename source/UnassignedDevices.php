@@ -896,13 +896,31 @@ switch ($_POST['action']) {
 	/*	NFS	*/
 	case 'list_nfs_hosts':
 		/* Get a list of nfs hosts. */
+		$names	= [];
 		$network = $_POST['network'];
 		foreach ($network as $iface)
 		{
 			$ip = $iface['ip'];
 			$netmask = $iface['netmask'];
-			echo shell_exec("/usr/bin/timeout -s 13 5 plugins/{$plugin}/scripts/port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 2049 2>/dev/null | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4");
+			exec("/usr/bin/timeout -s 13 5 plugins/{$plugin}/scripts/port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 2049 2>/dev/null | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4", $hosts);
+			foreach ($hosts as $host) {
+				/* Resolve name as a local server. */
+				$name	= shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'");
+				if ($name) {
+					$n			= strpos($name, ".".$var['LOCAL_TLD']);
+					if ($n !== false) {
+						$name	= substr($name, 0, $n);
+					}
+					$name		= strtoupper($name);
+				} else {
+					if ($host == $_SERVER['SERVER_ADDR']);
+						$name	= strtoupper($var['NAME']);
+					}
+			}
+			$names[] = $name ? $name : $host;
+			natsort($names);
 		}
+		echo implode(PHP_EOL, $names);
 		break;
 
 	case 'list_nfs_shares':
@@ -926,7 +944,7 @@ switch ($_POST['action']) {
 		$pass		= isset($_POST['PASS']) ? urldecode($_POST['PASS']) : "";
 		$path		= isset($_POST['SHARE']) ? urldecode($_POST['SHARE']) : "";
 		$path		= implode("",explode("\\", $path));
-		$path		= safe_name(stripslashes(trim($path)));
+		$path		= safe_name(stripslashes(trim($path)), false);
 		$share		= basename($path);
 		if ($share) {
 			$device	= ($protocol == "NFS") ? "{$ip}:{$path}" : "//".strtoupper($ip)."/{$share}";
