@@ -926,6 +926,11 @@ switch ($_POST['action']) {
 	case 'list_nfs_shares':
 		/* Get a list of nfs shares for a specific host. */
 		$ip		= urldecode($_POST['IP']);
+
+		/* Update this server status before listing shares. */
+		exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats is_online $ip");
+
+		/* List the shares. */
 		$rc		= timed_exec(10, "/usr/sbin/showmount --no-headers -e ".escapeshellarg($ip)." 2>/dev/null | rev | cut -d' ' -f2- | rev | sort");
 		echo $rc ? $rc : " ";
 		break;
