@@ -84,10 +84,10 @@ function is_server_online($server) {
 		$ip_arp		= shell_exec("/sbin/arp -a ".escapeshellarg($server)." 2>&1");
 		$ip_array	= explode(" ", $ip_arp);
 		$ip			= str_replace(array("(", ")"), "", $ip_array[1]);
-		$ip			= MiscUD::is_ip($ip) ? $ip : "";
+		$ip			= (($ip_array[0] == $server) && (MiscUD::is_ip($ip))) ? $ip : "";
 
 		/* If arp did not return a valid IP address, look up the IP address using Local TLD. */
-		if (strpos($ip_arp, "Unknown server error") !== false) {
+		if (strpos($ip_arp, "no match found") === false) {
 			$local_tld	= $var['LOCAL_TLD'];
 			$srvr		= $server.".".$local_tld;
 			$ip_local	= shell_exec("/sbin/arp -a ".escapeshellarg($srvr)." 2>&1");
