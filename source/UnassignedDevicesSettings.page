@@ -241,7 +241,7 @@ _(NFS Version to use when Mounting Remote Shares)_:
   <?=mk_option($cfg["Config"]["nfs_version"], "3", "_(NFSv3)_");?>
   <?=mk_option($cfg["Config"]["nfs_version"], "4", "_(NFSv4)_");?>
 <?if ($var['shareNFSEnabled']=="yes"):?>
-  </select>&nbsp;_(Unraid 6.10 is required for NFSv4 support)_.
+  </select>&nbsp;_(Unraid 6.10 or later is required for NFSv4 support)_.
 <?else:?>
   </select>&nbsp;_(NFS must be enabled in Settings->NFS for NFS support)_.
 <?endif;?>
@@ -260,7 +260,7 @@ _(Debug Log Level)_:
   <?=mk_option($cfg["Config"]["debug_level"], "1", "1");?>
   <?=mk_option($cfg["Config"]["debug_level"], "2", "2");?>
   <?=mk_option($cfg["Config"]["debug_level"], "3", "3");?>
-  </select>
+  </select>&nbsp;_(Use only when directed for support)_.
 
 :ud_settings_debug_level_plug:
 > Setting a Debug Log Level adds additional logging in specific areas of UD for troubleshooting.
