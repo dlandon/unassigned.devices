@@ -76,7 +76,7 @@ function timed_exec($timeout = 10, $cmd) {
 }
 
 /* Is the server currently on line. */
-function is_server_online($server) {
+function is_server_online($server, $log = false) {
 	global $tc, $var;
 
 	/* See if we need to add this server to the hosts file. This seems to be an issue with Windows computers. */
@@ -104,7 +104,7 @@ function is_server_online($server) {
 				shell_exec("/bin/sed -i '/".escapeshellarg($server)."/d' /etc/hosts");
 				shell_exec("/bin/echo -e '".escapeshellarg($ip_local)."''\t''".escapeshellarg($server)."' >> /etc/hosts" );
 			}
-		} elseif (strpos($ip_arp, "no match found") === false) {
+		} elseif ((strpos($ip_arp, "no match found") === false) && ($log)) {
 			unassigned_log("Remote server '".$server."' cannot be resolved to a local name.");
 		}
 	}
@@ -194,7 +194,7 @@ switch ($COMMAND) {
 		break;
 
 	case 'is_online':
-		is_server_online($argv[2]);
+		is_server_online($argv[2], true);
 		break;
 
 	default:
