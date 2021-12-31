@@ -1998,7 +1998,7 @@ function get_udev_info($dev, $udev = null) {
 	} else if (array_key_exists($device, $state)) {
 		$rc	= $state[$device];
 	} else {
-		$dev_state = @parse_ini_string(timed_exec(5,"/sbin/udevadm info --query=property --path $(/sbin/udevadm info -q path -n ".escapeshellarg($device)." 2>/dev/null) 2>/dev/null"), INI_SCANNER_RAW);
+		$dev_state = @parse_ini_string(timed_exec(5, "/sbin/udevadm info --query=property --path $(/sbin/udevadm info -q path -n ".escapeshellarg($device)." 2>/dev/null) 2>/dev/null"), INI_SCANNER_RAW);
 		if (is_array($dev_state)) {
 			$state[$device] = $dev_state;
 			save_ini_file($paths['state'], $state);
@@ -2196,10 +2196,6 @@ function check_for_duplicate_share($dev, $mountpoint) {
 			$disk_names[] = $name;
 		}
 	}
-
-	/* Add some additional reserved names. These will eventually be added to Unraid reserved names, */
-	$disk_names[] = strtoupper("remotes");
-	$disk_names[] = strtoupper("RecycleBin");
 
 	/* Start with an empty array of ud_shares. */
 	$ud_shares = array();
