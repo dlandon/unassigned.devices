@@ -57,7 +57,7 @@ function netmasks($netmask, $rev = false)
 }
 
 /* Get the version of Unraid we are running. */
-$version = parse_ini_file("/etc/unraid-version");
+$version = @parse_ini_file("/etc/unraid-version");
 
 /* Get the diskio scale based on the current setting. */
 function my_diskio($data) {
@@ -810,7 +810,7 @@ switch ($_POST['action']) {
 		exec("plugins/{$plugin}/scripts/copy_config.sh");
 		$sf		= $paths['dev_state'];
 		if (is_file($sf)) {
-			$devs = parse_ini_file($sf, true);
+			$devs = @parse_ini_file($sf, true);
 			foreach ($devs as $d) {
 				$device = "/dev/".$d['device'];
 

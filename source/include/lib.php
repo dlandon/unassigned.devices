@@ -234,7 +234,7 @@ function get_disk_dev($dev) {
 
 	/* Check for devs.ini file and get the devX designation for this device. */
 	if (is_file($sf)) {
-		$devs = parse_ini_file($sf, true);
+		$devs = @parse_ini_file($sf, true);
 		foreach ($devs as $d) {
 			if (($d['device'] == basename($dev)) && isset($d['name'])) {
 				$rc = $d['name'];
@@ -255,7 +255,7 @@ function get_disk_reads_writes($ud_dev, $dev) {
 
 	/* Check for devs.ini file to get the current reads and writes. */
 	if (is_file($sf)) {
-		$devs	= parse_ini_file($sf, true);
+		$devs	= @parse_ini_file($sf, true);
 		if (isset($devs[$ud_dev])) {
 			$rc[0] = $devs[$ud_dev]['numReads'];
 			$rc[1] = $devs[$ud_dev]['numWrites'];
@@ -289,7 +289,7 @@ function is_disk_running($ud_dev, $dev) {
 
 	/* Check for dev state file to get the current spindown state. */
 	if (is_file($sf)) {
-		$devs	= parse_ini_file($sf, true);
+		$devs	= @parse_ini_file($sf, true);
 		if (isset($devs[$ud_dev])) {
 			$rc			= ($devs[$ud_dev]['spundown'] == '0') ? true : false;
 			$device		= $ud_dev;
@@ -430,7 +430,7 @@ function get_temp($ud_dev, $dev, $running) {
 
 	/* Get temperature from the devs.ini file. */
 	if (is_file($sf)) {
-		$devs = parse_ini_file($sf, true);
+		$devs = @parse_ini_file($sf, true);
 		if (isset($devs[$ud_dev])) {
 			$temp	= $devs[$ud_dev]['temp'];
 			$rc		= $temp;
@@ -1340,7 +1340,7 @@ function add_smb_share($dir, $recycle_bin = true) {
 				/* Add the recycle bin parameters if plugin is installed */
 				$recycle_script = "plugins/recycle.bin/scripts/configure_recycle_bin";
 				if (is_file($recycle_script)) {
-					$recycle_bin_cfg = parse_ini_file( "/boot/config/plugins/recycle.bin/recycle.bin.cfg" );
+					$recycle_bin_cfg = @parse_ini_file( "/boot/config/plugins/recycle.bin/recycle.bin.cfg" );
 					if ($recycle_bin_cfg['INCLUDE_UD'] == "yes") {
 						unassigned_log("Enabling the Recycle Bin on share '{$share_name}'.");
 						shell_exec(escapeshellcmd("$recycle_script $share_conf"));
@@ -1998,7 +1998,7 @@ function get_udev_info($dev, $udev = null) {
 	} else if (array_key_exists($device, $state)) {
 		$rc	= $state[$device];
 	} else {
-		$dev_state = parse_ini_string(timed_exec(5,"/sbin/udevadm info --query=property --path $(/sbin/udevadm info -q path -n ".escapeshellarg($device)." 2>/dev/null) 2>/dev/null"), INI_SCANNER_RAW);
+		$dev_state = @parse_ini_string(timed_exec(5,"/sbin/udevadm info --query=property --path $(/sbin/udevadm info -q path -n ".escapeshellarg($device)." 2>/dev/null) 2>/dev/null"), INI_SCANNER_RAW);
 		if (is_array($dev_state)) {
 			$state[$device] = $dev_state;
 			save_ini_file($paths['state'], $state);
@@ -2168,7 +2168,7 @@ function check_for_duplicate_share($dev, $mountpoint) {
 
 	/* Parse the shares state file. */
 	$smb_file 	= "/usr/local/emhttp/state/shares.ini";
-	$smb_config	= parse_ini_file($smb_file, true);
+	$smb_config	= @parse_ini_file($smb_file, true);
 
 	/* Get all share names from the state file. */
 	$smb_shares = array_keys($smb_config);
@@ -2178,7 +2178,7 @@ function check_for_duplicate_share($dev, $mountpoint) {
 
 	/* Parse the disks state file. */
 	$disks_file 	= "/usr/local/emhttp/state/disks.ini";
-	$disks_config	= parse_ini_file($disks_file, true);
+	$disks_config	= @parse_ini_file($disks_file, true);
 
 	/* Get all disk names from the disks state file. */
 	$disk_names = array_keys($disks_config);
