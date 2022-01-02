@@ -105,7 +105,7 @@ function is_server_online($server, $log = false) {
 				shell_exec("/bin/echo -e '".escapeshellarg($ip_local)."''\t''".escapeshellarg($server)."' >> /etc/hosts" );
 			}
 		} elseif ((strpos($ip_arp, "no match found") === false) && ($log)) {
-			unassigned_log("Remote server '".$server."' cannot be resolved to a local name.");
+			unassigned_log("Remote server '".$server."' cannot be found on the LAN.");
 		}
 	}
 
