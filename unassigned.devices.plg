@@ -35,7 +35,7 @@
 - Fix: Disk devices not showing in sdX order.
 - Fix: Show some tool tips in Unraid style.
 - Fix: Change smb icon to Windows 11.  Resize some icons.
-- Fix: Change disk logic to exclude CD and DVD devices, instead of including devices (sd, hd, and nvme). SCSI devices should now show in UD with the dynamix.scsi.devices plugin installed.
+- Fix: Change disk logic to exclude CD, DVD, and encrypted devices, instead of including devices (sd, hd, and nvme). SCSI devices should now show in UD with the dynamix.scsi.devices plugin installed.
 - Fix: Block parse_ini_file() calls from throwing php errors.
 - Fix: Clear disk icon not showing when a disk is precleared.
 - Fix: Code cleanup.
