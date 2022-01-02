@@ -12,5 +12,5 @@ logger "Mounting 'Auto Mount' Devices..." -t"unassigned.devices"
 # Trigger udev to update all disk info.
 /sbin/udevadm trigger
 
-# Automount disks and remote shares.
+# Automount disks and iso shares.
 ${DOCROOT}/plugins/unassigned.devices/scripts/rc.unassigned mount autodevices
