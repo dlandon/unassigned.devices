@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2021.12.13">
+<!ENTITY version	"2022.01.02">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"9b8cb3521f58a8ea82bd5d246b3d3f72">
+<!ENTITY MD5		"590c0124ad70f14385002c88af49d21f">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,12 +23,32 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Show "Pool" on secondary pooled devices mount button when the pool is mounted so they are not available to unmount separately.  Any of the pool devices 'Mount' buttons will mount the pool.  Only the primary Pool device can unmount the pool.
+- Add: Use disk uuid to combine disk share name of devices in a pool.  Pooled disks have a common uuid.
+- Add: Ability to save a blank mount point so pooled disks can be managed better.  A blank mount point removes the UD setting for a partition.
+- Add: Additional characters (less than, greater than, and pipe) not allowed in file paths and names.
+- Add: Check for safe name whan a SMB/NFS remote share path is added.
+- Add: Fix for Windows computers not resolving to an IP address in all cases that would cause UD to not display Windows shares or mount the remote share.
+- Add: Show smb, iso, and historical devices in natural order.
+- Add: SMB server lookup now shows local servers by name.  It's best to use the server name in case the IP address gets changed.
+- Add: NFS servers are now listed by name and not IP address.
+- Fix: Disk devices not showing in sdX order.
+- Fix: Show some tool tips in Unraid style.
+- Fix: Change smb icon to Windows 11.  Resize some icons.
+- Fix: Change disk logic to exclude CD and DVD devices, instead of including devices (sd, hd, and nvme). SCSI devices should now show in UD with the dynamix.scsi.devices plugin installed.
+- Fix: Block parse_ini_file() calls from throwing php errors.
+- Fix: Clear disk icon not showing when a disk is precleared.
+- Fix: Code cleanup.
+- Rem: Remove the dashes from the UI when values are not being displayed.
+- Rem: Remove the setting to not check for duplicate UD share names.  UD now handles this without this setting.
+
+###2021.12.13
 - Add: Ability to clear all partitions from a disk using wipefs that should clear partitions that can't be removed with remove partition.
 - Add: Change UD icon to Unraid unlink icon.
 - Fix: Devices show 'Array' in 6.8.  Unraid doesn't manage hot plugs in 6.8.
 
 ###2021.12.09
-- Add: Don't add a UD mountpoint to share names if it does not have a file system.
+- Add: Don't add a mountpoint to UD share names if it does not have a file system.
 - Add: Setting to turn off duplicate share name checking for pooled UD devices.
 - Fix: nvme device partition designation for share name file.
 
