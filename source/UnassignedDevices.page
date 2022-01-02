@@ -1060,7 +1060,7 @@ $ud_reload = "reload-".session_id();
 			[surveyData["PROTOCOL"] == "SMB" ? "list_samba_hosts" : "list_nfs_hosts"]
 		</div>
 		<div data-question-content>
-			<input type='text' class="swal-content__input" name='IP' autocomplete="off" required><br/>
+			<input type="text" class="swal-content__input" name="IP" autocomplete="off" required placeholder="<?=_('Choose Server');?>"><br/>
 			<button class="swal-button" onclick='load_hosts(this,"{0}")'><?=_('Search For Servers');?></button>
 			<p><?=_('Search for Servers, or enter the Server name/IP address manually');?>.</p>
 		</div>
