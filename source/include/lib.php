@@ -1933,7 +1933,7 @@ function get_unassigned_disks() {
 	foreach (listDir("/dev/disk/by-id/") as $p) {
 		$r = realpath($p);
 		/* Everything but CD and DVD drives. */
-		if ((is_bool(strpos($r, "/dev/sg"))) && (is_bool(strpos($r, "/dev/sr")))) {
+		if ((is_bool(strpos($r, "/dev/sg"))) && (is_bool(strpos($r, "/dev/sr"))) && (is_bool(strpos($r, "/dev/dm")))) {
 			$paths[$r] = $p;
 		}
 	}
