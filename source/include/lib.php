@@ -1975,13 +1975,16 @@ function get_all_disks_info() {
 					$disk['partitions'][$k] = get_partition_info($p);
 				}
 			}
-			$ud_disks[$key]	= $disk;
+	        unset($ud_disks[$key]);
+	        $disk['path'] = $key;
+	        $ud_disks[$disk['ud_dev']] = $disk;
 		}
 	} else {
 		unassigned_log("Error: unable to get unassigned disks.");
 		$ud_disks = array();
 	}
 
+	ksort($ud_disks, SORT_NATURAL);
 	return $ud_disks;
 }
 
