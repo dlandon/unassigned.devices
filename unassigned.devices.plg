@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.01.02b">
+<!ENTITY version	"2022.01.02c">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"162d1e195ae9b2198112f8bf6d32f178">
+<!ENTITY MD5		"33bbc67702f9d67d561625bef3a8d6c0">
 ]>
 
 <PLUGIN name="&name;"
@@ -38,7 +38,7 @@
 - Fix: Change disk logic to exclude CD, DVD, and encrypted devices, instead of including devices (sd, hd, and nvme). SCSI devices should now show in UD with the dynamix.scsi.devices plugin installed.
 - Fix: Block parse_ini_file() calls from throwing php errors.
 - Fix: Clear disk icon not showing when a disk is precleared.
-- Fix: Rewrite 'started' event so the network check won't take longer than 30 seconds.
+- Fix: Rewrite 'started' event so the network check won't take longer than 120 seconds and run it in the background so Unraid startup is not delayed.
 - Fix: Code cleanup.
 - Rem: Remove the dashes from the UI when values are not being displayed.
 - Rem: Remove the setting to not check for duplicate UD share names.  UD now handles this without this setting.
