@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.01.02c">
+<!ENTITY version	"2022.01.03">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"33bbc67702f9d67d561625bef3a8d6c0">
+<!ENTITY MD5		"8e1f388e6fc323a0f1a3d6f2bc261481">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,6 +23,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Sort UD disk devices by Dev X and not sdX on Unraid 6.9 and greater.  Thanks to SimonF for the idea and the coding to do this. 
+- Add: Disable any disk operations on an array disk dropping out of array (clear disk, remove partition, rename partition, and edit settings).
+- Fix: Array disk dropping out of array detection not working.
+
+###2022.01.02c
 - Add: Show "Pool" on secondary pooled devices mount button when the pool is mounted so they are not available to unmount separately.  Any of the pool devices 'Mount' buttons will mount the pool.  Only the primary Pool device can unmount the pool.
 - Add: Use disk uuid to combine disk share name of devices in a pool.  Pooled disks have a common uuid.
 - Add: Ability to save a blank mount point so pooled disks can be managed better.  A blank mount point removes the UD setting for a partition.
