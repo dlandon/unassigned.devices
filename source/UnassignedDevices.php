@@ -138,7 +138,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$is_mounting	= (time() - filemtime($is_mounting) < 300) ? true : false;
 		$is_unmounting	= array_values(preg_grep("@/unmounting_".basename($device)."@i", listDir(dirname($paths['unmounting']))))[0];
 		$is_unmounting	= (time() - filemtime($is_unmounting) < 300) ? true : false;
-		$disabled		= $is_mounting || $is_unmounting || is_script_running($cmd) || ! $partition['fstype'];
+		$disabled		= $is_mounting || $is_unmounting || is_script_running($cmd) || ! $partition['fstype'] || $disk['array_disk'];
 
 		/* Set up icons for file system check/scrub and script execution. */
 		$fstype = ($partition['fstype'] == "crypto_LUKS") ? luks_fs_type($partition['device']) : $partition['fstype'];
@@ -160,7 +160,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$fscheck .= $partition['part'];
 
 		/* Add remove partition icon if destructive mode is enabled. */
-		$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && ! $is_mounting && ! $disk['partitions'][0]['pass_through']) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$partition['serial']}\",\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i><span>"._("Remove Partition")."</span></a>" : "";
+		$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && ! $is_mounting && ! $disk['partitions'][0]['pass_through'] && ! $disk['array_disk']) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$partition['serial']}\",\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i><span>"._("Remove Partition")."</span></a>" : "";
 		$mpoint = "<span>{$fscheck}";
 		$mount_point = basename($partition['mountpoint']);
 
@@ -222,7 +222,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 
 		$device		= MiscUD::base_device(basename($device)) ;
 		$serial		= $partition['serial'];
-		if ($fstype) {
+		if ($fstype && ! $disk['array_disk']) {
 			$out[]		= "<td><a class='info' href='/Main/EditSettings?s=".$serial."&b=".$device."&f=".$fstype."&l=".basename($partition['mountpoint'])."&p=".$partition['part']."&m=".json_encode($partition)."&t=".$disk_line."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 		} else {
 			$out[]		= "<td><i class='fa fa-gears' disabled></i></td>";
@@ -269,25 +269,12 @@ function make_mount_button($device) {
 		$disable	= count(array_filter($device['partitions'], function($p){ if (! empty($p['fstype'])) return true;})) ? "" : "disabled";
 		$format		= (isset($device['partitions']) && ! count($device['partitions'])) ? true : false;
 		$context	= "disk";
-
-		$array_disk = false;
-
-		/* If Unraid is 6.9 or greater, Unraid manages hot plugs. */
-		if (version_compare($version['version'],"6.8.9", ">")) {
-			/* If this disk does not have a devX designation, it has dropped out of the array. */
-			$sf		= $paths['dev_state'];
-			if (is_file($sf) && (basename($device['device']) == $device['ud_dev'])) {
-				$array_disk = true;
-			}
-		}
-
 		$pool_disk	= $device['partitions'][0]['pool'];
 	} else {
 		$mounted	=	$device['mounted'];
 		$disable	= (! empty($device['fstype']) && $device['fstype'] != "crypto_LUKS") ? "" : "disabled";
 		$format		= ((isset($device['fstype']) && empty($device['fstype']))) ? true : false;
 		$context	= "partition";
-		$array_disk	= false;
 	}
 
 	$is_mounting	= array_values(preg_grep("@/mounting_".basename($device['device'])."@i", listDir(dirname($paths['mounting']))))[0];
@@ -338,7 +325,7 @@ function make_mount_button($device) {
 		} else {
 			$button = sprintf($button, $context, 'umount', $disable, 'fa fa-export', _('Unmount'));
 		}
-	} elseif ($array_disk) {
+	} elseif ($device['array_disk']) {
 		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-erase', _('Array'));
 	} else {
 		$disable = ($device['partitions'][0]['pass_through'] || $preclearing ) ? "disabled" : $disable;
@@ -388,7 +375,7 @@ switch ($_POST['action']) {
 				/* Add the clear disk icon. */
 				$is_mounting	= array_values(preg_grep("@/mounting_".basename($disk['device'])."@i", listDir(dirname($paths['mounting']))))[0];
 				$is_mounting	= (time() - filemtime($is_mounting) < 300) ? true : false;
-				$clear_disk		= (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && $p && ! $mounted && ! $disk['partitions'][0]['pool'] && ! $is_mounting && ! $disk['partitions'][0]['pass_through']) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
+				$clear_disk		= (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && $p && ! $mounted && ! $disk['partitions'][0]['pool'] && ! $is_mounting && ! $disk['partitions'][0]['pass_through'] && ! $disk['array_disk']) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
 
 				$hdd_serial = "<a class='info' href=\"#\" onclick=\"openBox('/webGui/scripts/disk_log&amp;arg1={$disk_name}','Disk Log Information',600,900,false);return false\"><i class='fa fa-hdd-o icon'></i><span>"._("Disk Log Information")."</span></a>";
 				if ($p) {

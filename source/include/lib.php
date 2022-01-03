@@ -48,6 +48,9 @@ $config_file	= $paths['config_file'];
 $config			= @parse_ini_file($config_file, true);
 $DEBUG_LEVEL	= isset($config['Config']['debug_level']) ? (int) $config['Config']['debug_level'] : 0;
 
+/* Get the version of Unraid we are running. */
+$version = @parse_ini_file("/etc/unraid-version");
+
 /* Read Unraid variables file. Used to determine disks not assigned to the array and other array parameters. */
 if (! isset($var)){
 	if (! is_file("$docroot/state/var.ini")) {
@@ -2016,6 +2019,7 @@ function get_udev_info($dev, $udev = null) {
 
 /* Get information on specific disk device. */
 function get_disk_info($dev) {
+global $version;
 
 	$disk						= array();
 	$attrs						= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
@@ -2034,6 +2038,16 @@ function get_disk_info($dev) {
 	$disk['command']			= get_config($disk['serial'],"command.1");
 	$disk['user_command']		= get_config($disk['serial'],"user_command.1");
 	$disk['show_partitions']	= (get_config($disk['serial'], "show_partitions") == "no") ? false : true;
+
+	/* If Unraid is 6.9 or greater, Unraid manages hot plugs. */
+	if (version_compare($version['version'],"6.8.9", ">")) {
+		/* If this disk does not have a devX designation, it has dropped out of the array. */
+		if ((basename($disk['device']) == $disk['ud_dev'])) {
+			$disk['array_disk'] = true;
+		}
+	} else {
+		$disk['array_disk'] = false;
+	}
 
 	return $disk;
 }
