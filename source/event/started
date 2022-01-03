@@ -7,16 +7,14 @@ fi
 
 logger "Mounting 'Auto Mount' Remote Shares..." -t"unassigned.devices"
 # Wait until network is ready
-timer=30
-while [ $timer -gt 0 ]; do
+SECONDS=0
+while [ $SECONDS -le 30 ]; do
 	gateway=$(route -n | awk '/^0.0.0.0/ {print $2; exit}')
 	if [ -n "$gateway" ] && [ $(ping -q -n -c 1 $gateway | awk -F, '/received/ {print $2}' | awk '{print $1}') -eq 1 ]; then
 		break
 	fi
-	timer=$((timer-1))
-	sleep 1
 done
-if [ $timer -eq 0 ]; then
+if [ $SECONDS -ge 30 ]; then
 	logger "Cannot 'Auto Mount' Remote Shares.  Network not available!" -t"unassigned.devices"
 else
 	${DOCROOT}/plugins/unassigned.devices/scripts/get_ud_stats ping;
