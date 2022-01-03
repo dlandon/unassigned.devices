@@ -1060,7 +1060,7 @@ $ud_reload = "reload-".session_id();
 			[surveyData["PROTOCOL"] == "SMB" ? "list_samba_hosts" : "list_nfs_hosts"]
 		</div>
 		<div data-question-content>
-			<input type="text" class="swal-content__input" name="IP" autocomplete="off" required placeholder="<?=_('Choose Server');?>"><br/>
+			<input type="text" class="swal-content__input" name="IP" autocomplete="off" required placeholder="<?=_('Enter or Select Server');?>"><br/>
 			<button class="swal-button" onclick='load_hosts(this,"{0}")'><?=_('Search For Servers');?></button>
 			<p><?=_('Search for Servers, or enter the Server name/IP address manually');?>.</p>
 		</div>
@@ -1103,7 +1103,7 @@ $ud_reload = "reload-".session_id();
 			[surveyData['PROTOCOL'], surveyData['IP'], surveyData['USER'], surveyData['PASS'], surveyData['DOMAIN'], (surveyData['PROTOCOL'] == 'SMB' ? 'list_samba_shares' : 'list_nfs_shares')]
 		</div>
 		<div data-question-content>
-			<input type='text' class="swal-content__input" autocomplete="off" name='SHARE' required><br />
+			<input type='text' class="swal-content__input" autocomplete="off" name='SHARE' required placeholder="<?=_('Enter or Select Share');?>"><br />
 			<button class="swal-button" onclick='load_shares(this, "{1}", "{2}", "{3}", "{5}")'><?=_('Load Shares');?></button>
 			<p><?=_('Search for Shares or enter the Share name manually');?>.</p>
 		</div>
