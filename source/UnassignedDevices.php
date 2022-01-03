@@ -170,7 +170,11 @@ function render_partition($disk, $partition, $disk_line = false) {
 		} else {
 			$mount_point	= basename($partition['mountpoint']);
 			$disk_label		= $partition['disk_label'];
-			$mpoint			.= "<i class='fa fa-pencil partition-hdd'></i><a title='"._("Change Disk Mount Point")."' class='exec' onclick='chg_mountpoint(\"{$partition['serial']}\",\"{$partition['part']}\",\"{$device}\",\"{$partition['fstype']}\",\"{$mount_point}\",\"{$disk_label}\");'>{$mount_point}</a>";
+			if (! $disk['array_disk']) {
+				$mpoint			.= "<i class='fa fa-pencil partition-hdd'></i><a title='"._("Change Disk Mount Point")."' class='exec' onclick='chg_mountpoint(\"{$partition['serial']}\",\"{$partition['part']}\",\"{$device}\",\"{$partition['fstype']}\",\"{$mount_point}\",\"{$disk_label}\");'>{$mount_point}</a>";
+			} else {
+				$mpoint			.= "<i class='fa fa-pencil partition-hdd'></i>{$mount_point}";
+			}
 			$mpoint			.= "{$rm_partition}</span>";
 		}
 		$mbutton = make_mount_button($partition);
