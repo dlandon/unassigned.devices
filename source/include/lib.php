@@ -1638,7 +1638,7 @@ function get_samba_mounts() {
 
 /* Mount a remote samba or NFS share. */
 function do_mount_samba($info) {
-	global $paths, $var;
+	global $paths, $var, $version;
 
 	$rc				= false;
 	$config_file	= $paths['config_file'];
@@ -1655,7 +1655,11 @@ function do_mount_samba($info) {
 			if ($fs == "nfs") {
 				if ($var['shareNFSEnabled'] == "yes") {
 					$params	= get_mount_params($fs, $dev);
-					$nfs	= (get_config("Config", "nfs_version") == "4") ? "nfs4" : "nfs";
+					if (version_compare($version['version'],"6.9.9", ">")) {
+						$nfs	= (get_config("Config", "nfs_version") == "4") ? "nfs4" : "nfs";
+					} else {
+						$nfs	= "nfs";
+					}
 					$cmd	= "/sbin/mount -t ".escapeshellarg($nfs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 					unassigned_log("Mount NFS command: {$cmd}");
 					$o		= timed_exec(10, $cmd." 2>&1");
