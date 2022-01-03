@@ -57,6 +57,11 @@ $encrypt_devices = array();
 $pool_devices = array();
 
 foreach (get_all_disks_info() as $d) {
+	/* If the disk dropped out of the array, skip it. */
+	if ($d['array_disk']) {
+		continue;
+	}
+
 	/* Get an array of devices that are candidates for uuid change. */
 	if (($d['partitions'][0]['fstype'] == "xfs" || $d['partitions'][0]['fstype'] == "btrfs" || $d['partitions'][0]['fstype'] == "crypto_LUKS") && (! $d['partitions'][0]['mounted'])) {
 		$a = array();
