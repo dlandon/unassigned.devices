@@ -2042,6 +2042,7 @@ function get_disk_info($dev) {
 	$disk['command']			= get_config($disk['serial'],"command.1");
 	$disk['user_command']		= get_config($disk['serial'],"user_command.1");
 	$disk['show_partitions']	= (get_config($disk['serial'], "show_partitions") == "no") ? false : true;
+	$disk['array_disk']			= false;
 
 	/* If Unraid is 6.9 or greater, Unraid manages hot plugs. */
 	if (version_compare($version['version'],"6.8.9", ">")) {
@@ -2049,8 +2050,6 @@ function get_disk_info($dev) {
 		if ((basename($disk['device']) == $disk['ud_dev'])) {
 			$disk['array_disk'] = true;
 		}
-	} else {
-		$disk['array_disk'] = false;
 	}
 
 	return $disk;
