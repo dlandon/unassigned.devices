@@ -393,6 +393,8 @@ _(Enable NFS export)_?
 
 :ud_settings_nfs_shares_plug:
 > Set to **Yes** to export NFS shares. Shares are exported Public with read and write access or Private with the rule you set. Access is controlled with permission settings on files and folders.
+>
+> **Note:** The normal rule used by UD is '*(sec=sys,rw,insecure,anongid=100,anonuid=99,all_squash)'.
 :end
 
 &nbsp;
