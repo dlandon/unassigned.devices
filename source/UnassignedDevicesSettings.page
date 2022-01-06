@@ -385,7 +385,7 @@ _(Enable NFS export)_?
 	<dl>
 		<dt>_(Rule)_:</dt>
 		<dd>
-			<input type="text" name="nfs_rule" class="wide" maxlength="100" value="<?=$cfg['Config']["nfs_rule"];?>">
+			<input type="text" name="nfs_rule" class="wide" maxlength="100" value="<?=$cfg['Config']["nfs_rule"];?>" placeholder="See Help">
 		</dd>
 	</dl>
 	</div>
