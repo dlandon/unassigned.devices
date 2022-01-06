@@ -2027,7 +2027,7 @@ function get_disk_info($dev) {
 
 	$disk						= array();
 	$attrs						= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
-	$disk['serial_short']		= isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
+	$disk['serial_short']		= isset($attrs['ID_SCSI_SERIAL']) ? $attrs['ID_SCSI_SERIAL'] : $attrs['ID_SERIAL_SHORT'];
 	$disk['serial']				= $attrs['ID_MODEL']."_".$disk['serial_short'];
 	$disk['device']				= realpath($dev);
 	$disk['ud_dev']				= get_disk_dev($disk['device']);
@@ -2039,8 +2039,8 @@ function get_disk_info($dev) {
 	$disk['write_rate']			= $rw[3];
 	$disk['running']			= is_disk_running($disk['ud_dev'], $disk['device']);
 	$disk['temperature']		= get_temp($disk['ud_dev'], $disk['device'], $disk['running']);
-	$disk['command']			= get_config($disk['serial'],"command.1");
-	$disk['user_command']		= get_config($disk['serial'],"user_command.1");
+	$disk['command']			= get_config($disk['serial'], "command.1");
+	$disk['user_command']		= get_config($disk['serial'], "user_command.1");
 	$disk['show_partitions']	= (get_config($disk['serial'], "show_partitions") == "no") ? false : true;
 	$disk['array_disk']			= false;
 
@@ -2062,7 +2062,7 @@ function get_partition_info($dev) {
 	$disk	= array();
 	$attrs	= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
 	if ($attrs['DEVTYPE'] == "partition") {
-		$disk['serial_short']	= isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
+		$disk['serial_short']	= isset($attrs['ID_SCSI_SERIAL']) ? $attrs['ID_SCSI_SERIAL'] : $attrs['ID_SERIAL_SHORT'];
 		$disk['serial']			= $attrs['ID_MODEL']."_".$disk['serial_short'];
 		$disk['device']			= realpath($dev);
 		$disk['uuid']			= $attrs['ID_FS_UUID'];
