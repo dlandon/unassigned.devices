@@ -612,7 +612,6 @@ function format_disk($dev, $fs, $pass) {
 				$mapper = "format_".basename($dev);
 				$cmd	= "luksOpen ".escapeshellarg($device)." ".escapeshellarg($mapper);
 
-
 				/* Use a disk password, or Unraid's. */
 				if (! $pass) {
 					$o = exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
@@ -623,7 +622,7 @@ function format_disk($dev, $fs, $pass) {
 					$o				= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
 					exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 				}
-	
+
 				if ($o && stripos($o, "warning") === false) {
 					unassigned_log("luksOpen result: ".$o);
 					$rc = false;
@@ -690,7 +689,7 @@ function remove_partition($dev, $part) {
 				if ($p['part'] == $part && $p['target']) {
 					unassigned_log("Aborting removal: partition '".$part."' is mounted.");
 					$rc = false;
-				} 
+				}
 			}
 		}
 	}
@@ -730,7 +729,7 @@ function remove_all_partitions($dev) {
 				if ($p['target']) {
 					unassigned_log("Aborting clear: partition '".$p['part']."' is mounted.");
 					$rc = false;
-				} 
+				}
 			}
 		}
 	}
