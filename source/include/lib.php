@@ -1772,8 +1772,8 @@ function do_mount_samba($info) {
 
 /* Toggle samba auto mount on/off. */
 function toggle_samba_automount($source, $status) {
-	$config_file = $GLOBALS["paths"]["samba_mount"];
-	$config = @parse_ini_file($config_file, true);
+	$config_file	= $GLOBALS["paths"]["samba_mount"];
+	$config			= @parse_ini_file($config_file, true);
 	$config[$source]["automount"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
 	return ($config[$source]["automount"] == "yes") ? true : false;
@@ -1781,8 +1781,8 @@ function toggle_samba_automount($source, $status) {
 
 /* Toggle samba share on/off. */
 function toggle_samba_share($source, $status) {
-	$config_file = $GLOBALS["paths"]["samba_mount"];
-	$config = @parse_ini_file($config_file, true);
+	$config_file	= $GLOBALS["paths"]["samba_mount"];
+	$config			= @parse_ini_file($config_file, true);
 	$config[$source]["smb_share"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
 	return ($config[$source]["smb_share"] == "yes") ? true : false;
@@ -1790,12 +1790,12 @@ function toggle_samba_share($source, $status) {
 
 /* Remove the samba remote mount configuration. */
 function remove_config_samba($source) {
-	$config_file = $GLOBALS["paths"]["samba_mount"];
-	$config = @parse_ini_file($config_file, true);
+	$config_file	= $GLOBALS["paths"]["samba_mount"];
+	$config			= @parse_ini_file($config_file, true);
 	if ( isset($config[$source]) ) {
 		unassigned_log("Removing configuration '{$source}'.");
 	}
-	$command = $config[$source]['command'];
+	$command		= $config[$source]['command'];
 	if ( isset($command) && is_file($command) ) {
 		@unlink($command);
 		unassigned_log("Removing script '{$command}'.");
@@ -1811,15 +1811,15 @@ function remove_config_samba($source) {
 
 /* Get the iso file configuration parameter. */
 function get_iso_config($source, $variable) {
-	$config_file = $GLOBALS["paths"]["iso_mount"];
-	$config = @parse_ini_file($config_file, true, INI_SCANNER_RAW);
+	$config_file	= $GLOBALS["paths"]["iso_mount"];
+	$config			= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
 	return (isset($config[$source][$variable])) ? $config[$source][$variable] : false;
 }
 
 /* Get an iso file configuration parameter. */
 function set_iso_config($source, $variable, $value) {
-	$config_file = $GLOBALS["paths"]["iso_mount"];
-	$config = @parse_ini_file($config_file, true);
+	$config_file	= $GLOBALS["paths"]["iso_mount"];
+	$config			= @parse_ini_file($config_file, true);
 	$config[$source][$variable] = $value;
 	save_ini_file($config_file, $config);
 	return (isset($config[$source][$variable])) ? $config[$source][$variable] : false;
@@ -1901,8 +1901,8 @@ function do_mount_iso($info) {
 
 /* Toggle iso file automount on/off. */
 function toggle_iso_automount($source, $status) {
-	$config_file = $GLOBALS["paths"]["iso_mount"];
-	$config = @parse_ini_file($config_file, true);
+	$config_file	= $GLOBALS["paths"]["iso_mount"];
+	$config			= @parse_ini_file($config_file, true);
 	$config[$source]["automount"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
 	return ($config[$source]["automount"] == "yes") ? true : false;
@@ -1910,8 +1910,8 @@ function toggle_iso_automount($source, $status) {
 
 /* Remove ISO configuration. */
 function remove_config_iso($source) {
-	$config_file = $GLOBALS["paths"]["iso_mount"];
-	$config = @parse_ini_file($config_file, true);
+	$config_file	= $GLOBALS["paths"]["iso_mount"];
+	$config			= @parse_ini_file($config_file, true);
 	if ( isset($config[$source]) ) {
 		unassigned_log("Removing configuration '{$source}'.");
 	}
@@ -1955,7 +1955,7 @@ function get_unassigned_disks() {
 
 	/* Create the array of unassigned devices. */
 	foreach ($paths as $path => $d) {
-		if ($d && (preg_match("#^(.(?!wwn|part))*$#", $d))) {
+		if ($d && (preg_match("#^(.(?!part))*$#", $d))) {
 			if (! in_array($path, $unraid_disks, true)) {
 				if (! in_array($path, array_map(function($ar){return $ar['device'];}, $ud_disks), true)) {
 					$m = array_values(preg_grep("|$d.*-part\d+|", $paths));
@@ -2187,24 +2187,24 @@ function check_for_duplicate_share($dev, $mountpoint) {
 	$rc = true;
 
 	/* Parse the shares state file. */
-	$smb_file 	= "/usr/local/emhttp/state/shares.ini";
-	$smb_config	= @parse_ini_file($smb_file, true);
+	$smb_file		= "/usr/local/emhttp/state/shares.ini";
+	$smb_config		= @parse_ini_file($smb_file, true);
 
 	/* Get all share names from the state file. */
-	$smb_shares = array_keys($smb_config);
-	$smb_shares = array_flip($smb_shares);
-	$smb_shares	= array_change_key_case($smb_shares, CASE_UPPER);
-	$smb_shares = array_flip($smb_shares);
+	$smb_shares		= array_keys($smb_config);
+	$smb_shares		= array_flip($smb_shares);
+	$smb_shares		= array_change_key_case($smb_shares, CASE_UPPER);
+	$smb_shares		= array_flip($smb_shares);
 
 	/* Parse the disks state file. */
 	$disks_file 	= "/usr/local/emhttp/state/disks.ini";
 	$disks_config	= @parse_ini_file($disks_file, true);
 
 	/* Get all disk names from the disks state file. */
-	$disk_names = array_keys($disks_config);
-	$disk_names = array_flip($disk_names);
-	$disk_names	= array_change_key_case($disk_names, CASE_UPPER);
-	$disk_names = array_flip($disk_names);
+	$disk_names		= array_keys($disks_config);
+	$disk_names		= array_flip($disk_names);
+	$disk_names		= array_change_key_case($disk_names, CASE_UPPER);
+	$disk_names		= array_flip($disk_names);
 
 	/* Get the Unraid reserved names. */
 	$reserved_names = explode(",", $var['reservedNames']);
@@ -2218,7 +2218,7 @@ function check_for_duplicate_share($dev, $mountpoint) {
 	}
 
 	/* Start with an empty array of ud_shares. */
-	$ud_shares = array();
+	$ud_shares		= array();
 
 	/* Get an array of all ud shares. */
 	$share_names	= MiscUD::get_json($paths['share_names']);
