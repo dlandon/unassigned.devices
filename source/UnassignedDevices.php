@@ -503,13 +503,15 @@ switch ($_POST['action']) {
 						}
 
 						/* Check if this disk uuid has already been entered in the share_names array. */
-						$uui		 	= $disk['partitions'][$i]['uuid'];
+						$uuid		 	= $disk['partitions'][$i]['uuid'];
 						$mountpoint		= basename($disk['partitions'][$i]['mountpoint']);
 						$dev			.= $disk['partitions'][$i]['part'];
 						if (! in_array($uuid, $disk_uuid)) {
+							/* Disk is not a pooled device. */
 							$share_names[$dev]				= $mountpoint;
 							$disk_uuid[$dev]				= $uuid;
 						} else {
+							/* Disk is a pooled device. */
 							$share_names					= array_flip($share_names);
 							if (isset($share_names[$mountpoint])) {
 								$share_names[$mountpoint]	.= "-";

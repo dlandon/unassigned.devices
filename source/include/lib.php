@@ -2107,7 +2107,7 @@ function get_partition_info($dev) {
 			$pool_devs			= MiscUD::get_pool_devices($disk['mountpoint']);
 			/* First pooled device is the primary disk. */
 			unset($pool_devs[0]);
-			$disk['pool']		= in_array($disk['device'], $pool_devs) ? true : false;
+			$disk['pool']		= in_array($disk['device'], $pool_devs);
 		} else {
 			$disk['pool']		= false;
 		}
