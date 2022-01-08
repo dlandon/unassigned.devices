@@ -816,6 +816,7 @@ switch ($_POST['action']) {
 		unassigned_log("Refreshed Disks and Configuration.");
 
 		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
+		sleep(1);
 		@touch($paths['hotplug_event']);
 		break;
 
