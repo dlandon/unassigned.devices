@@ -25,7 +25,7 @@
 ###&version;
 - Add: Note on settings page about the normal NFS rule setting.
 - Add: Make adjusments to the hot plug events.
-- Fix: SCSI devices not showing when the dynamix.scsi.devices plug is installed.
+- Fix: SCSI devices not showing when the dynamix.scsi.devices plugin is installed.
 
 ###2022.01.03
 - Add: Sort UD disk devices by Dev X and not sdX on Unraid 6.9 and greater.  Thanks to SimonF for the idea and the coding to do this. 
