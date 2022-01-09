@@ -2046,7 +2046,7 @@ function get_disk_info($dev) {
 	/* If Unraid is 6.9 or greater, Unraid manages hot plugs. */
 	if (version_compare($version['version'],"6.8.9", ">")) {
 		/* If this disk does not have a devX designation, it has dropped out of the array. */
-		if ((basename($disk['device']) == $disk['ud_dev'])) {
+		if (($attrs['ID_BUS'] != "usb") && (basename($disk['device']) == $disk['ud_dev'])) {
 			$disk['array_disk'] = true;
 		}
 	}
