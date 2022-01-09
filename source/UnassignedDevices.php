@@ -309,6 +309,8 @@ function make_mount_button($device) {
 		$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-spinner fa-spin', ' '._('Unmounting'));
 	} elseif ($is_formatting) {
 		$button = sprintf($button, $context, 'format', 'disabled', 'fa fa-spinner fa-spin', ' '._('Formatting'));
+	} elseif ($device['array_disk']) {
+		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-erase', _('Array'));
 	} elseif ($mounted) {
 		if (! isset($device['partitions'])) {
 			$cmd = $device['command'];
@@ -329,8 +331,6 @@ function make_mount_button($device) {
 		} else {
 			$button = sprintf($button, $context, 'umount', $disable, 'fa fa-export', _('Unmount'));
 		}
-	} elseif ($device['array_disk']) {
-		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-erase', _('Array'));
 	} else {
 		$disable = ($device['partitions'][0]['pass_through'] || $preclearing ) ? "disabled" : $disable;
 		if (! $device['partitions'][0]['pass_through']) {
