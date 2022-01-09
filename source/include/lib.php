@@ -1935,8 +1935,8 @@ function get_unassigned_disks() {
 
 	$ud_disks = $paths = $unraid_disks = array();
 
-	/* Get all devices by id. */
-	foreach (listDir("/dev/disk/by-id/") as $p) {
+	/* Get all devices by id and eliminate any duplicates. */
+	foreach (array_unique(listDir("/dev/disk/by-id/")) as $p) {
 		$r = realpath($p);
 		/* Only /dev/sd*, /dev/hd*, and /dev/nvme* devices. */
 		if ((! is_bool(strpos($r, "/dev/sd"))) || (! is_bool(strpos($r, "/dev/hd"))) || (! is_bool(strpos($r, "/dev/nvme")))) {
@@ -2081,7 +2081,7 @@ function get_partition_info($dev) {
 			} else {
 				$disk['label']	= safe_name($attrs['ID_SERIAL_SHORT']);
 			}
-			$all_disks			= array_unique(array_map(function($ar){return realpath($ar);},listDir("/dev/disk/by-id")));
+			$all_disks			= array_unique(array_map(function($ar){return realpath($ar);}, listDir("/dev/disk/by-id")));
 			$disk['label']		= (count(preg_grep("%".$matches[1][0]."%i", $all_disks)) > 2) ? $disk['label']."-part".$matches[2][0] : $disk['label'];
 			$disk['disk_label']	= "";
 		}
