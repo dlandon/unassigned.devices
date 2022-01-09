@@ -1196,7 +1196,7 @@ function do_mount_local($info) {
 }
 
 /* Unmount a device. */
-function do_unmount($dev, $dir, $forc = false, $smb = false, $nfs = false) {
+function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false) {
 	global $paths;
 
 	$rc = false;
