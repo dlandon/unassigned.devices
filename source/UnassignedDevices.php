@@ -579,7 +579,7 @@ switch ($_POST['action']) {
 				$title .= "<br />"._("Share").": ";
 				$title .= ($mount['smb_share'] == 'yes') ? "Yes" : "No";
 
-				echo "<td><a class='info' href='/Main/EditSettings?d=".$mount['device']."&l=".basename($mount['mountpoint'])."&m=".json_encode($mount)."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+				echo "<td><a class='info' href='/Main/EditSettings?d=".$mount['device']."&l=".$mount_point."&m=".json_encode($mount)."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 				echo "<td></td><td></td><td></td>";
 				echo "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				echo render_used_and_free($mount, $mounted);
@@ -588,7 +588,7 @@ switch ($_POST['action']) {
 				echo "</tr>";
 
 				/* Add to the share names. */
-				$share_names[$mount['name']] = basename($mount['mountpoint']);
+				$share_names[$mount['name']] = $mount_point;
 			}
 		}
 
@@ -635,7 +635,7 @@ switch ($_POST['action']) {
 				$title .= "<br />"._("Automount").": ";
 				$title .= ($mount['automount'] == 'yes') ? "Yes" : "No";
 
-				echo "<td><a class='info' href='/Main/EditSettings?i=".$mount['device']."&l=".basename($mount['mountpoint'])."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+				echo "<td><a class='info' href='/Main/EditSettings?i=".$mount['device']."&l=".$mount_point."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 				echo "<td></td><td></td><td></td>";
 				echo "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				echo render_used_and_free($mount, $mounted);
@@ -643,7 +643,7 @@ switch ($_POST['action']) {
 				echo "</tr>";
 
 				/* Add to the share names. */
-				$share_names[$mount['device']] = basename($mount['mountpoint']);
+				$share_names[$mount['device']] = $mount_point;
 			}
 		}
 		if (! count($samba_mounts) && ! count($iso_mounts)) {
