@@ -3,12 +3,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.01.09c">
+<!ENTITY version	"2022.01.09d">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"d73a13a4c5c56434ff988d6836f53c28">
+<!ENTITY MD5		"2205bea8658132ae4fbec64d2e70c349">
 ]>
 
 <PLUGIN name="&name;"
@@ -27,6 +27,7 @@
 - Fix: Show 'Array' on a mounted disk that appears to have dropped out of the array.
 - Fix: Remove duplcate UD devices.
 - Fix: Force unmount on SMB and NFS remote shares on array shutdown.
+- Fix: False detection of an array disk on Unraid versions older that 6.9.
 
 ###2022.01.08a
 - Add: Note on settings page about the normal NFS rule setting.
