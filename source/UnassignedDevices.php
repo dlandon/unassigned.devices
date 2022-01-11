@@ -346,24 +346,67 @@ function make_mount_button($device) {
 switch ($_POST['action']) {
 	case 'get_content':
 		/* Update the UD webpage content. */
+		$all_disks = get_all_disks_info();
 
 		/* Check for a recent hot plug event. */
 		if (file_exists($paths['hotplug_event'])) {
 			@unlink($paths['hotplug_event']);
+			$unassigned_devs	= array();
+
+			/* Check the disks for an already used devX designation. */
+			foreach ($all_disks as $disk) {
+				$unassigned		= $config[$disk['serial']]['unassigned_dev'];
+				if ($unassigned) {
+					$unassigned_devs[$disk['serial']] = $unassigned;
+				}
+			}
+
+			/* Get the current config file to find historical devices. */
+			$config_file = $paths["config_file"];
+			$config = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
+			ksort($config, SORT_NATURAL);
+
+			/* Now go through historical devices. */
+			$disks_serials = array();
+			foreach ($all_disks as $disk) {
+				$disks_serials[] = $disk['partitions'][0]['serial'];
+			}
+			foreach ($config as $serial => $value) {
+				if($serial == "Config") continue;
+				if (! preg_grep("#{$serial}#", $disks_serials)) {
+					$unassigned		= $config[$serial]['unassigned_dev'];
+					if (($unassigned) && (array_search($unassigned, $unassigned_devs) === false)) {
+						$unassigned_devs[$serial]	= $unassigned;
+					}
+				}
+			}
+
+			/* Write devs file for cmdHotplug. */
+			save_ini_file($paths['unassigned_devs'], $unassigned_devs, false);
+
+			/* Command Unraid to update unassigned devices. */
 			exec("/usr/local/sbin/emcmd 'cmdHotplug=apply'");
+
+			/* Update devX designations for newly found unassigned devices. */
+			$all_disks = get_all_disks_info();
+			foreach ($all_disks as $disk) {
+				$unassigned		= $config[$disk['serial']]['unassigned_dev'];
+				if ((! $unassigned) && ($disk['device'] != $disk['ud_dev']) || ($disk['ud_dev'] != $unassigned)) {
+					set_config($disk['serial'], "unassigned_dev", $disk['ud_dev']);					
+				}
+			}
 		}
 
-		/* Create an array of share names for duplicate share checking. */
+		/* Create empty array of share names for duplicate share checking. */
 		$share_names	= array();
 		$disk_uuid		= array();
 
 		/* Disk devices. */
-		$disks = get_all_disks_info();
 		echo "<div id='disks_tab' class='show-disks'>";
 		echo "<table class='disk_status wide disk_mounts'><thead><tr><td>"._('Device')."</td><td>"._('Identification')."</td><td></td><td>"._('Temp').".</td><td>"._('Reads')."</td><td>"._('Writes')."</td><td>"._('Settings')."</td><td>"._('FS')."</td><td>"._('Size')."</td><td>"._('Used')."</td><td>"._('Free')."</td><td>"._('Log')."</td></tr></thead>";
 		echo "<tbody>";
-		if ( count($disks) ) {
-			foreach ($disks as $disk) {
+		if ( count($all_disks) ) {
+			foreach ($all_disks as $disk) {
 				$mounted		= in_array(true, array_map(function($ar){return is_mounted($ar['device']);}, $disk['partitions']), true);
 				$disk_name		= basename($disk['device']);
 				$disk_dev		= $disk['ud_dev'];
@@ -371,6 +414,7 @@ switch ($_POST['action']) {
 				$preclearing	= $Preclear ? $Preclear->isRunning($disk_name) : false;
 				$temp			= my_temp($disk['temperature']);
 
+				/* Create the mount button. */
 				$mbutton		= make_mount_button($disk);
 
 				/* Set up the preclear link for preclearing a disk. */
@@ -659,19 +703,19 @@ switch ($_POST['action']) {
 		$config = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
 		ksort($config, SORT_NATURAL);
 		$disks_serials = array();
-		foreach ($disks as $disk) {
+		foreach ($all_disks as $disk) {
 			$disks_serials[] = $disk['partitions'][0]['serial'];
 		}
 		$ct = "";
 		foreach ($config as $serial => $value) {
 			if($serial == "Config") continue;
 			if (! preg_grep("#{$serial}#", $disks_serials)){
-				$mntpoint	= basename(get_config($serial, "mountpoint.1"));
+				$mntpoint	= basename($config[$serial]['mountpoint.1']);
 				$mountpoint = ($mntpoint) ? "(".$mntpoint.")" : "";
 				$ct .= "<tr><td><i class='fa fa-minus-circle orb grey-orb'></i>"._("not installed")."</td><td>$serial"." $mountpoint</td>";
 				$ct .= "<td></td>";
 				$ct .= "<td><a style='color:#CC0000;font-weight:bold;cursor:pointer;' class='exec info' onclick='remove_disk_config(\"{$serial}\")'><i class='fa fa-remove hdd'></i><span>"._("Remove Device configuration")."</span></a></td>";
-				$ct .= "<td><a class='info' href='/Main/EditSettings?s=".$serial."&l=".basename($mntpoint)."&p="."1"."&t=true'><i class='fa fa-gears'></i><span>"._("Edit Historical Device Settings and Script")."</span></a></td>";
+				$ct .= "<td><a class='info' href='/Main/EditSettings?s=".$serial."&l=".$mntpoint."&p="."1"."&t=true'><i class='fa fa-gears'></i><span>"._("Edit Historical Device Settings and Script")."</span></a></td>";
 				$ct .= "<td></td><td></td><td></td><td></td><td></td></tr>";
 			}
 		}
@@ -697,8 +741,8 @@ switch ($_POST['action']) {
 
 	case 'get_content_json':
 		/* Get the UD disk info and return in a json format. */
-		$disks	= get_all_disks_info();
-		echo json_encode($disks);
+		$all_disks	= get_all_disks_info();
+		echo json_encode($all_disks);
 		break;
 
 	/*	CONFIG	*/
