@@ -2020,7 +2020,7 @@ function get_udev_info($dev, $udev = null) {
 
 /* Get information on specific disk device. */
 function get_disk_info($dev) {
-	global $version;
+	global $paths, $version;
 
 	$disk						= array();
 	$attrs						= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
