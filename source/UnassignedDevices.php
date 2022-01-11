@@ -293,15 +293,15 @@ function make_mount_button($device) {
 	$is_preclearing = shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg($device['device'])." | /bin/grep -v 'grep'") != "" ? true : false;
 
 	if ($pool_disk) {
-		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-erase', _('Pool'));
+		$button = sprintf($button, $context, 'mount', 'disabled', '', _('Pool'));
 	} elseif (($device['size'] == 0) && (! $is_unmounting)) {
-		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-erase', _('Mount'));
+		$button = sprintf($button, $context, 'mount', 'disabled', '', _('Mount'));
 	} elseif ($format) {
 		if ($is_preclearing) {
 			$button = sprintf($button, $context, 'format', 'disabled', 'fa fa-spinner fa-spin', " "._('Preclear'));
 		} else {
 			$disable = $preclearing ? "disabled" : "";
-			$button = sprintf($button, $context, 'format', $disable, 'fa fa-erase', _('Format'));
+			$button = sprintf($button, $context, 'format', $disable, '', _('Format'));
 		}
 	} elseif ($is_mounting) {
 		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-spinner fa-spin', ' '._('Mounting'));
@@ -310,7 +310,7 @@ function make_mount_button($device) {
 	} elseif ($is_formatting) {
 		$button = sprintf($button, $context, 'format', 'disabled', 'fa fa-spinner fa-spin', ' '._('Formatting'));
 	} elseif ($device['array_disk']) {
-		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-erase', _('Array'));
+		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-ban', _('Array'));
 	} elseif ($mounted) {
 		if (! isset($device['partitions'])) {
 			$cmd = $device['command'];
@@ -329,14 +329,14 @@ function make_mount_button($device) {
 		if ($script_running) {
 			$button = sprintf($button, $context, 'running', 'disabled', 'fa fa-spinner fa-spin', ' '._('Running'));
 		} else {
-			$button = sprintf($button, $context, 'umount', $disable, 'fa fa-export', _('Unmount'));
+			$button = sprintf($button, $context, 'umount', $disable, '', _('Unmount'));
 		}
 	} else {
 		$disable = ($device['partitions'][0]['pass_through'] || $preclearing ) ? "disabled" : $disable;
 		if (! $device['partitions'][0]['pass_through']) {
-			$button = sprintf($button, $context, 'mount', $disable, 'fa fa-import', _('Mount'));	
+			$button = sprintf($button, $context, 'mount', $disable, '', _('Mount'));	
 		} else {
-			$button = sprintf($button, $context, 'mount', $disable, 'fa fa-import', _('Passed'));	
+			$button = sprintf($button, $context, 'mount', $disable, '', _('Passed'));	
 		}
 	}
 
@@ -425,7 +425,8 @@ switch ($_POST['action']) {
 				$is_mounting	= (time() - filemtime($is_mounting) < 300) ? true : false;
 				$clear_disk		= (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && $p && ! $mounted && ! $disk['partitions'][0]['pool'] && ! $is_mounting && ! $disk['partitions'][0]['pass_through'] && ! $disk['array_disk']) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
 
-				$hdd_serial = "<a class='info' href=\"#\" onclick=\"openBox('/webGui/scripts/disk_log&amp;arg1={$disk_name}','Disk Log Information',600,900,false);return false\"><i class='fa fa-hdd-o icon'></i><span>"._("Disk Log Information")."</span></a>";
+				$disk_icon = $disk['ssd'] ? "icon-nvme" : "fa fa-hdd-o";
+				$hdd_serial = "<a class='info' href=\"#\" onclick=\"openBox('/webGui/scripts/disk_log&amp;arg1={$disk_name}','Disk Log Information',600,900,false);return false\"><i class='{$disk_icon} icon'></i><span>"._("Disk Log Information")."</span></a>";
 				if ($p) {
 					$add_toggle = true;
 					if (! $disk['show_partitions']) {
