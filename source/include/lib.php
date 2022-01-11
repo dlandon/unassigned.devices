@@ -1264,9 +1264,10 @@ function add_smb_share($dir, $recycle_bin = true) {
 		$config = $config["Config"];
 
 		$vfs_objects = "";
-		if (($recycle_bin) || ($var['enableFruit']) == 'yes') {
+		$enable_fruit = get_config("Config", "mac_os");
+		if (($recycle_bin) || ($enable_fruit == 'yes')) {
 			$vfs_objects .= "\n\tvfs objects = ";
-			if ($var['enableFruit'] == 'yes') {
+			if ($enable_fruit == 'yes') {
 				$vfs_objects .= "catia fruit streams_xattr";
 			}
 		}
