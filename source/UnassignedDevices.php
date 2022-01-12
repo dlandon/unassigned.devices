@@ -127,7 +127,7 @@ function render_used_and_free_disk($disk, $mounted) {
 
 /* Get the partition information and render for html. */
 function render_partition($disk, $partition, $disk_line = false) {
-	global $paths, $plugin;
+	global $paths, $plugin, $Preclear;
 
 	$out = array();
 	if (isset($partition['device'])) {
@@ -160,7 +160,10 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$fscheck .= $partition['part'];
 
 		/* Add remove partition icon if destructive mode is enabled. */
-		$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && ! $is_mounting && ! $disk['partitions'][0]['pass_through'] && ! $disk['array_disk']) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$partition['serial']}\",\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i><span>"._("Remove Partition")."</span></a>" : "";
+		$preclearing	= $Preclear ? $Preclear->isRunning(basename(MiscUD::base_device($partition['device']))) : false;
+		$is_preclearing = shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg(MiscUD::base_device($partition['device']))." | /bin/grep -v 'grep'") != "" ? true : false;
+		$preclearing	= $preclearing || $is_preclearing;
+		$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && ! $is_mounting && ! $disk['partitions'][0]['pass_through'] && ! $disk['array_disk'] && (! $preclearing)) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$partition['serial']}\",\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i><span>"._("Remove Partition")."</span></a>" : "";
 		$mpoint = "<span>{$fscheck}";
 		$mount_point = basename($partition['mountpoint']);
 
@@ -170,7 +173,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		} else {
 			$mount_point	= basename($partition['mountpoint']);
 			$disk_label		= $partition['disk_label'];
-			if (! $disk['array_disk']) {
+			if ((! $disk['array_disk']) && (! $preclearing)) {
 				$mpoint			.= "<i class='fa fa-pencil partition-hdd'></i><a title='"._("Change Disk Mount Point")."' class='exec' onclick='chg_mountpoint(\"{$partition['serial']}\",\"{$partition['part']}\",\"{$device}\",\"{$partition['fstype']}\",\"{$mount_point}\",\"{$disk_label}\");'>{$mount_point}</a>";
 			} else {
 				$mpoint			.= "<i class='fa fa-pencil partition-hdd'></i>{$mount_point}";
@@ -289,16 +292,16 @@ function make_mount_button($device) {
 	$is_formatting	= (time() - filemtime($is_formatting) < 300) ? true : false;
 
 	$preclearing	= $Preclear ? $Preclear->isRunning(basename($device['device'])) : false;
-
 	$is_preclearing = shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg($device['device'])." | /bin/grep -v 'grep'") != "" ? true : false;
+	$preclearing	= $preclearing || $is_preclearing;
 
 	if ($pool_disk) {
 		$button = sprintf($button, $context, 'mount', 'disabled', '', _('Pool'));
 	} elseif (($device['size'] == 0) && (! $is_unmounting)) {
 		$button = sprintf($button, $context, 'mount', 'disabled', '', _('Mount'));
-	} elseif ($format) {
-		if ($is_preclearing) {
-			$button = sprintf($button, $context, 'format', 'disabled', 'fa fa-spinner fa-spin', " "._('Preclear'));
+	} elseif (($format) || ($preclearing)) {
+		if ($preclearing) {
+			$button = sprintf($button, $context, 'format', 'disabled', '', " "._('Preclear'));
 		} else {
 			$disable = $preclearing ? "disabled" : "";
 			$button = sprintf($button, $context, 'format', $disable, '', _('Format'));
@@ -423,7 +426,7 @@ switch ($_POST['action']) {
 				/* Add the clear disk icon. */
 				$is_mounting	= array_values(preg_grep("@/mounting_".basename($disk['device'])."@i", listDir(dirname($paths['mounting']))))[0];
 				$is_mounting	= (time() - filemtime($is_mounting) < 300) ? true : false;
-				$clear_disk		= (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && $p && ! $mounted && ! $disk['partitions'][0]['pool'] && ! $is_mounting && ! $disk['partitions'][0]['pass_through'] && ! $disk['array_disk']) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
+				$clear_disk		= (file_exists("/usr/sbin/parted") && (get_config("Config", "destructive_mode") == "enabled") && ($p) && (! $mounted) && (! $disk['partitions'][0]['pool']) && (! $is_mounting) && (! $disk['partitions'][0]['pass_through']) && (! $disk['array_disk']) && (! $preclearing)) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
 
 				$disk_icon = $disk['ssd'] ? "icon-nvme" : "fa fa-hdd-o";
 				$hdd_serial = "<a class='info' href=\"#\" onclick=\"openBox('/webGui/scripts/disk_log&amp;arg1={$disk_name}','Disk Log Information',600,900,false);return false\"><i class='{$disk_icon} icon'></i><span>"._("Disk Log Information")."</span></a>";
