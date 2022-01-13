@@ -1990,6 +1990,7 @@ function get_all_disks_info() {
 	}
 
 	ksort($ud_disks, SORT_NATURAL);
+
 	return $ud_disks;
 }
 
