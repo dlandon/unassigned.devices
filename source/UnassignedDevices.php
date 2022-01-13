@@ -299,9 +299,11 @@ function make_mount_button($device) {
 		$button = sprintf($button, $context, 'mount', 'disabled', '', _('Pool'));
 	} elseif (($device['size'] == 0) && (! $is_unmounting)) {
 		$button = sprintf($button, $context, 'mount', 'disabled', '', _('Mount'));
+	} elseif ($device['array_disk']) {
+		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-ban', _('Array'));
 	} elseif (($format) || ($preclearing)) {
 		if ($preclearing) {
-			$button = sprintf($button, $context, 'format', 'disabled', '', " "._('Preclear'));
+			$button = sprintf($button, $context, 'mount', 'disabled', '', " "._('Preclear'));
 		} else {
 			$disable = $preclearing ? "disabled" : "";
 			$button = sprintf($button, $context, 'format', $disable, '', _('Format'));
@@ -312,8 +314,6 @@ function make_mount_button($device) {
 		$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-spinner fa-spin', ' '._('Unmounting'));
 	} elseif ($is_formatting) {
 		$button = sprintf($button, $context, 'format', 'disabled', 'fa fa-spinner fa-spin', ' '._('Formatting'));
-	} elseif ($device['array_disk']) {
-		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-ban', _('Array'));
 	} elseif ($mounted) {
 		if (! isset($device['partitions'])) {
 			$cmd = $device['command'];
@@ -375,11 +375,12 @@ switch ($_POST['action']) {
 				$disks_serials[] = $disk['partitions'][0]['serial'];
 			}
 			foreach ($config as $serial => $value) {
-				if($serial == "Config") continue;
-				if (! preg_grep("#{$serial}#", $disks_serials)) {
-					$unassigned		= $config[$serial]['unassigned_dev'];
-					if (($unassigned) && (array_search($unassigned, $unassigned_devs) === false)) {
-						$unassigned_devs[$serial]	= $unassigned;
+				if ($serial != "Config") {
+					if (! preg_grep("#{$serial}#", $disks_serials)) {
+						$unassigned		= $config[$serial]['unassigned_dev'];
+						if (($unassigned) && (array_search($unassigned, $unassigned_devs) === false)) {
+							$unassigned_devs[$serial]	= $unassigned;
+						}
 					}
 				}
 			}
@@ -387,14 +388,14 @@ switch ($_POST['action']) {
 			/* Write devs file for cmdHotplug. */
 			save_ini_file($paths['unassigned_devs'], $unassigned_devs, false);
 
-			/* Command Unraid to update unassigned devices. */
+			/* Tell Unraid to update list of unassigned devices in devs.ini. */
 			exec("/usr/local/sbin/emcmd 'cmdHotplug=apply'");
 
 			/* Update devX designations for newly found unassigned devices. */
 			$all_disks = get_all_disks_info();
 			foreach ($all_disks as $disk) {
 				$unassigned		= $config[$disk['serial']]['unassigned_dev'];
-				if ((! $unassigned) && ($disk['device'] != $disk['ud_dev']) || ($disk['ud_dev'] != $unassigned)) {
+				if (((! $unassigned) && ($disk['device'] != $disk['ud_dev'])) || ($disk['ud_dev'] != $unassigned)) {
 					set_config($disk['serial'], "unassigned_dev", $disk['ud_dev']);					
 				}
 			}
@@ -712,15 +713,24 @@ switch ($_POST['action']) {
 		}
 		$ct = "";
 		foreach ($config as $serial => $value) {
-			if($serial == "Config") continue;
-			if (! preg_grep("#{$serial}#", $disks_serials)){
-				$mntpoint	= basename($config[$serial]['mountpoint.1']);
-				$mountpoint = ($mntpoint) ? "(".$mntpoint.")" : "";
-				$ct .= "<tr><td><i class='fa fa-minus-circle orb grey-orb'></i>"._("not installed")."</td><td>$serial"." $mountpoint</td>";
-				$ct .= "<td></td>";
-				$ct .= "<td><a style='color:#CC0000;font-weight:bold;cursor:pointer;' class='exec info' onclick='remove_disk_config(\"{$serial}\")'><i class='fa fa-remove hdd'></i><span>"._("Remove Device configuration")."</span></a></td>";
-				$ct .= "<td><a class='info' href='/Main/EditSettings?s=".$serial."&l=".$mntpoint."&p="."1"."&t=true'><i class='fa fa-gears'></i><span>"._("Edit Historical Device Settings and Script")."</span></a></td>";
-				$ct .= "<td></td><td></td><td></td><td></td><td></td></tr>";
+			if ($serial != "Config") {
+				if (! preg_grep("#{$serial}#", $disks_serials)){
+					$mntpoint		= basename($config[$serial]['mountpoint.1']);
+					$mountpoint		= ($mntpoint) ? "(".$mntpoint.")" : "";
+					$disk_dev		= $config[$serial]['unassigned_dev'];
+					$disk_display	= _("not installed");
+					if (version_compare($version['version'],"6.9.9", ">")) {
+						if (strpos($disk_dev, "dev") !== false) {
+							$disk_display = substr($disk_dev, 0, 3)." ".substr($disk_dev, 3);
+							$disk_display = ucfirst($disk_display);
+						}
+					}
+					$ct .= "<tr><td><i class='fa fa-minus-circle orb grey-orb'></i>".$disk_display."</td><td>$serial"." $mountpoint</td>";
+					$ct .= "<td></td>";
+					$ct .= "<td><a style='color:#CC0000;font-weight:bold;cursor:pointer;' class='exec info' onclick='remove_disk_config(\"{$serial}\")'><i class='fa fa-remove hdd'></i><span>"._("Remove Device configuration")."</span></a></td>";
+					$ct .= "<td><a class='info' href='/Main/EditSettings?s=".$serial."&l=".$mntpoint."&p="."1"."&t=true'><i class='fa fa-gears'></i><span>"._("Edit Historical Device Settings and Script")."</span></a></td>";
+					$ct .= "<td></td><td></td><td></td><td></td><td></td></tr>";
+				}
 			}
 		}
 		if (strlen($ct)) {
