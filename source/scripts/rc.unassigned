@@ -426,11 +426,24 @@ function unassigned_umount() {
 
 /* Update udev disk info. */
 function unassigned_reload() {
+	global $paths;
+
 	if (isset($_ENV['DEVLINKS'])) {
 		foreach (explode(" ", $_ENV['DEVLINKS']) as $link) {
 			get_udev_info($link, $_ENV);
 		}
 
+		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
+		sleep(1);
+		@touch($paths['hotplug_event']);
+	}
+}
+
+/* A hotplug disk event has arrived. */
+function unassigned_hotplug() {
+	global $paths;
+
+	if ($_ENV['DEVTYPE'] == "disk") {
 		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
 		sleep(1);
 		@touch($paths['hotplug_event']);
@@ -446,8 +459,7 @@ function unassigned_spin_down() {
 }
 
 /* Add status file so mount buttons will show current status of operation. */
-function addFile($file)
-{
+function addFile($file) {
 	global $remove;
 
 	$file = safe_name($file);
@@ -490,6 +502,10 @@ switch ($COMMAND) {
 		unassigned_reload();
 		break;
 
+	case 'hotplug':
+		unassigned_hotplug();
+		break;
+
 	case 'spindown':
 		unassigned_spin_down();
 		break;
@@ -499,7 +515,7 @@ switch ($COMMAND) {
 
 	default:
 		unassigned_log("Error: 'rc.unassigned {$argv[1]} {$argv[2]}' not understood");
-		unassigned_log("rc.unassigned usage: 'mount', 'umount', 'reload', 'spindown', 'refresh'");
+		unassigned_log("rc.unassigned usage: 'mount', 'umount', 'reload', 'hotplug', 'spindown', 'refresh'");
 		exit(0);
 		break;
 }
