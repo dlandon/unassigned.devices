@@ -103,35 +103,43 @@ function unassigned_mount() {
 
 					unassigned_log("Mounting partition '".basename($info['device'])."' at mountpoint '{$info['mountpoint']}'...");
 
-					/* Mount the disk. */
-					if (do_mount( $info )) 
-					{
-						$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV) : get_udev_info($device, null);
+					/* Cannot mount disk with 'UNRAID' label. */
+					if ($info['label'] == "UNRAID") {
+						unassigned_log("Error: Cannot mount device '{$info['device']}' with label 'UNRAID'.");
 
-						/* Add smb and nfs shares for this device. */
-						if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'], "usb"))) {
-							add_smb_share($info['mountpoint']);
-							add_nfs_share($info['mountpoint']);
+						/* Execute device script with error mount action. */
+							execute_script($info, "ERROR_MOUNT");
+					} else {
+						/* Mount the disk. */
+						if (do_mount( $info )) 
+						{
+							$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV) : get_udev_info($device, null);
+
+							/* Add smb and nfs shares for this device. */
+							if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'], "usb"))) {
+								add_smb_share($info['mountpoint']);
+								add_nfs_share($info['mountpoint']);
+							}
+
+							/* Set sleep timer for this device. */
+							setSleepTime($device);
+
+							/* Execute device script with add action. */
+							execute_script($info, "ADD");
+
+							/* Update the partition info. */
+							$info = get_partition_info($partition);
+							export_disk($info, true);
+						} elseif (! is_mounted($info['device'])) {
+							/* There was an error mounting the disk. */
+							unassigned_log("Partition '".basename($info['label'])."' cannot be mounted.");
+
+							/* Set sleep timer for this device. */
+							setSleepTime($device);
+
+							/* Execute device script with error unmount action. */
+							execute_script($info, "ERROR_MOUNT");
 						}
-
-						/* Set sleep timer for this device. */
-						setSleepTime($device);
-
-						/* Execute device script with add action. */
-						execute_script($info, "ADD");
-
-						/* Update the partition info. */
-						$info = get_partition_info($partition);
-						export_disk($info, true);
-					} elseif (! is_mounted($info['device'])) {
-						/* There was an error mounting the disk. */
-						unassigned_log("Partition '".basename($info['label'])."' cannot be mounted.");
-
-						/* Set sleep timer for this device. */
-						setSleepTime($device);
-
-						/* Execute device script with error unmount action. */
-						execute_script($info, "ERROR_MOUNT");
 					}
 				} else {
 					unassigned_log("Error: Cannot mount null device with serial '{$info['serial']}'.");
