@@ -268,7 +268,7 @@ function get_disk_reads_writes($ud_dev, $dev) {
 
 	/* Get the disk_io for this device. */
 	$disk_io	= @(array)parse_ini_file('state/diskload.ini');
-	$data		= explode(' ',$disk_io[$dev] ?? '0 0 0 0');
+	$data		= explode(' ', $disk_io[$dev] ?? '0 0 0 0');
 
 	/* Read rate. */
 	$rc[2] 		= is_numeric($data[0]) ? $data[0] : 0;
