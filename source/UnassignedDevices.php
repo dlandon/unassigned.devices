@@ -712,11 +712,14 @@ switch ($_POST['action']) {
 			$disks_serials[] = $disk['partitions'][0]['serial'];
 		}
 		$ct = "";
+
+		/* Organize the historical devices. */
+		$historical = array();
 		foreach ($config as $serial => $value) {
 			if ($serial != "Config") {
 				if (! preg_grep("#{$serial}#", $disks_serials)){
 					$mntpoint		= basename($config[$serial]['mountpoint.1']);
-					$mountpoint		= ($mntpoint) ? "(".$mntpoint.")" : "";
+					$mountpoint		= ($mntpoint) ? " (".$mntpoint.")" : "";
 					$disk_dev		= $config[$serial]['unassigned_dev'];
 					$disk_display	= _("not installed");
 					if (version_compare($version['version'],"6.9.9", ">")) {
@@ -725,13 +728,21 @@ switch ($_POST['action']) {
 							$disk_display = ucfirst($disk_display);
 						}
 					}
-					$ct .= "<tr><td><i class='fa fa-minus-circle orb grey-orb'></i>".$disk_display."</td><td>$serial"." $mountpoint</td>";
-					$ct .= "<td></td>";
-					$ct .= "<td><a style='color:#CC0000;font-weight:bold;cursor:pointer;' class='exec info' onclick='remove_disk_config(\"{$serial}\")'><i class='fa fa-remove hdd'></i><span>"._("Remove Device configuration")."</span></a></td>";
-					$ct .= "<td><a class='info' href='/Main/EditSettings?s=".$serial."&l=".$mntpoint."&p="."1"."&t=true'><i class='fa fa-gears'></i><span>"._("Edit Historical Device Settings and Script")."</span></a></td>";
-					$ct .= "<td></td><td></td><td></td><td></td><td></td></tr>";
+					$historical[$disk_display]['serial']		= $serial;
+					$historical[$disk_display]['mntpoint']		= $mntpoint;
+					$historical[$disk_display]['mountpoint']	= $mountpoint;
 				}
 			}
+		}
+		ksort($historical, SORT_NATURAL);
+
+		/* Display the historical devices. */
+		foreach ($historical as $ud_disk => $value) {
+			$ct .= "<tr><td><i class='fa fa-minus-circle orb grey-orb'></i>".$ud_disk."</td><td>".$historical[$ud_disk]['serial'].$historical[$ud_disk]['mountpoint']."</td>";
+			$ct .= "<td></td>";
+			$ct .= "<td><a style='color:#CC0000;font-weight:bold;cursor:pointer;' class='exec info' onclick='remove_disk_config(\"{$serial}\")'><i class='fa fa-remove hdd'></i><span>"._("Remove Device configuration")."</span></a></td>";
+			$ct .= "<td><a class='info' href='/Main/EditSettings?s=".$serial."&l=".$historical[$ud_disk]['mntpoint']."&p="."1"."&t=true'><i class='fa fa-gears'></i><span>"._("Edit Historical Device Settings and Script")."</span></a></td>";
+			$ct .= "<td></td><td></td><td></td><td></td><td></td></tr>";
 		}
 		if (strlen($ct)) {
 			echo "<div class='show-disks'><div class='show-historical' id='smb_tab'><div id='title'><span class='left'><img src='/plugins/{$plugin}/icons/historical.png' class='icon'>"._('Historical Devices')."</span></div>";
