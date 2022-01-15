@@ -354,39 +354,6 @@ switch ($_POST['action']) {
 		/* Check for a recent hot plug event. */
 		if (file_exists($paths['hotplug_event'])) {
 			@unlink($paths['hotplug_event']);
-			$unassigned_devs	= array();
-
-			/* Check the disks for an already used devX designation. */
-			foreach ($all_disks as $disk) {
-				$unassigned		= $config[$disk['serial']]['unassigned_dev'];
-				if ($unassigned) {
-					$unassigned_devs[$disk['serial']] = $unassigned;
-				}
-			}
-
-			/* Get the current config file to find historical devices. */
-			$config_file = $paths["config_file"];
-			$config = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
-			ksort($config, SORT_NATURAL);
-
-			/* Now go through historical devices. */
-			$disks_serials = array();
-			foreach ($all_disks as $disk) {
-				$disks_serials[] = $disk['partitions'][0]['serial'];
-			}
-			foreach ($config as $serial => $value) {
-				if ($serial != "Config") {
-					if (! preg_grep("#{$serial}#", $disks_serials)) {
-						$unassigned		= $config[$serial]['unassigned_dev'];
-						if (($unassigned) && (array_search($unassigned, $unassigned_devs) === false)) {
-							$unassigned_devs[$serial]	= $unassigned;
-						}
-					}
-				}
-			}
-
-			/* Write devs file for cmdHotplug. */
-			save_ini_file($paths['unassigned_devs'], $unassigned_devs, false);
 
 			/* Tell Unraid to update list of unassigned devices in devs.ini. */
 			exec("/usr/local/sbin/emcmd 'cmdHotplug=apply'");
@@ -704,10 +671,10 @@ switch ($_POST['action']) {
 		echo "<button onclick='add_samba_share()' $disabled>"._('Add Remote SMB').'/'._('NFS Share')."</button>";
 		echo "<button onclick='add_iso_share()'>"._('Add ISO File Share')."</button></div>";
 
-		$config_file = $paths["config_file"];
-		$config = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
+		$config_file	= $paths["config_file"];
+		$config			= is_file($config_file) ? @parse_ini_file($config_file, true) : array();
 		ksort($config, SORT_NATURAL);
-		$disks_serials = array();
+		$disks_serials	= array();
 		foreach ($all_disks as $disk) {
 			$disks_serials[] = $disk['partitions'][0]['serial'];
 		}
@@ -721,32 +688,31 @@ switch ($_POST['action']) {
 					$mntpoint		= basename($config[$serial]['mountpoint.1']);
 					$mountpoint		= ($mntpoint) ? " (".$mntpoint.")" : "";
 					$disk_dev		= $config[$serial]['unassigned_dev'];
-					$disk_display	= _("not installed");
+					$disk_display	= _("none");
 					if (version_compare($version['version'],"6.9.9", ">")) {
 						if (strpos($disk_dev, "dev") !== false) {
 							$disk_display = substr($disk_dev, 0, 3)." ".substr($disk_dev, 3);
 							$disk_display = ucfirst($disk_display);
 						}
 					}
-					$historical[$disk_display]['serial']		= $serial;
-					$historical[$disk_display]['mntpoint']		= $mntpoint;
-					$historical[$disk_display]['mountpoint']	= $mountpoint;
+					$historical[$serial]['display']			= $disk_display;
+					$historical[$serial]['mntpoint']		= $mntpoint;
+					$historical[$serial]['mountpoint']		= $mountpoint;
 				}
 			}
 		}
 		ksort($historical, SORT_NATURAL);
-
 		/* Display the historical devices. */
-		foreach ($historical as $ud_disk => $value) {
-			$ct .= "<tr><td><i class='fa fa-minus-circle orb grey-orb'></i>".$ud_disk."</td><td>".$historical[$ud_disk]['serial'].$historical[$ud_disk]['mountpoint']."</td>";
+		foreach ($historical as $serial => $value) {
+			$ct .= "<tr><td><i class='fa fa-minus-circle orb grey-orb'></i>".$historical[$serial]['display']."</td><td>".$serial.$historical[$serial]['mountpoint']."</td>";
 			$ct .= "<td></td>";
 			$ct .= "<td><a style='color:#CC0000;font-weight:bold;cursor:pointer;' class='exec info' onclick='remove_disk_config(\"{$serial}\")'><i class='fa fa-remove hdd'></i><span>"._("Remove Device configuration")."</span></a></td>";
-			$ct .= "<td><a class='info' href='/Main/EditSettings?s=".$serial."&l=".$historical[$ud_disk]['mntpoint']."&p="."1"."&t=true'><i class='fa fa-gears'></i><span>"._("Edit Historical Device Settings and Script")."</span></a></td>";
+			$ct .= "<td><a class='info' href='/Main/EditSettings?s=".$serial."&l=".$historical[$serial]['mntpoint']."&p="."1"."&t=true'><i class='fa fa-gears'></i><span>"._("Edit Historical Device Settings and Script")."</span></a></td>";
 			$ct .= "<td></td><td></td><td></td><td></td><td></td></tr>";
 		}
 		if (strlen($ct)) {
 			echo "<div class='show-disks'><div class='show-historical' id='smb_tab'><div id='title'><span class='left'><img src='/plugins/{$plugin}/icons/historical.png' class='icon'>"._('Historical Devices')."</span></div>";
-			echo "<table class='disk_status wide usb_absent'><thead><tr><td>"._('Device')."</td><td>"._('Serial Number (Mount Point)')."</td><td></td><td>"._('Remove')."</td><td>"._('Settings')."</td><td></td><td></td><td></td><td></td><td></td></tr></thead><tbody>{$ct}</tbody></table></div></div>";
+			echo "<table class='disk_status wide usb_absent'><thead><tr><td>"._('Last Device')."</td><td>"._('Serial Number (Mount Point)')."</td><td></td><td>"._('Remove')."</td><td>"._('Settings')."</td><td></td><td></td><td></td><td></td><td></td></tr></thead><tbody>{$ct}</tbody></table></div></div>";
 		}
 
 		MiscUD::save_json($paths['share_names'], $share_names);
