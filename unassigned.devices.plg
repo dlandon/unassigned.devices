@@ -1,14 +1,13 @@
-<?xml version='1.0' standalone='yes'?>
 
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.01.09d">
+<!ENTITY version	"2022.01.15">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"2205bea8658132ae4fbec64d2e70c349">
+<!ENTITY MD5		"81ef497e20dc1892af617e1092e8be1c">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,6 +22,16 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Track the last 'Dev X' device assigned to a UD disk to help with UD disk management.
+- Add: SSD icon for 'Disk Log Information' on SSD drives.
+- Add: 'macOS interoperability' setting for UD devices separate from the array setting.
+- Add: Setting in udev rules so a disk with no partitions will be hot mounted.
+- Fix: Error in detection of an array disk.
+- Fix: Clear disk, clear partition, and change mount point should not be enabled when a disk is preclearing. 
+- Fix: Show 'Preclear' on 'Mount' button when pre and post read operations are occuring.
+- Fix: Don't allow mounting a disk with the label 'UNRAID'.
+
+###2022.01.09d
 - Fix: Don't check USB devices for dropping out of the array.
 - Fix: Show 'Array' on a mounted disk that appears to have dropped out of the array.
 - Fix: Remove duplcate UD devices.
