@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.01.15">
+<!ENTITY version	"2022.01.15a">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"81ef497e20dc1892af617e1092e8be1c">
+<!ENTITY MD5		"80c742d5660e4878efba02955eb6044b">
 ]>
 
 <PLUGIN name="&name;"
@@ -30,6 +30,7 @@
 - Fix: Clear disk, clear partition, and change mount point should not be enabled when a disk is preclearing. 
 - Fix: Show 'Preclear' on 'Mount' button when pre and post read operations are occuring.
 - Fix: Don't allow mounting a disk with the label 'UNRAID'.
+- Fix: Show disk settings even when there is no file system on a partition.
 
 ###2022.01.09d
 - Fix: Don't check USB devices for dropping out of the array.
