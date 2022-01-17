@@ -2032,7 +2032,7 @@ function get_disk_info($dev) {
 	$disk						= array();
 	$attrs						= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
 	$disk['serial_short']		= isset($attrs['ID_SCSI_SERIAL']) ? $attrs['ID_SCSI_SERIAL'] : $attrs['ID_SERIAL_SHORT'];
-	$disk['serial']				= $attrs['ID_MODEL']."_".$disk['serial_short'];
+	$disk['serial']				= trim($attrs['ID_MODEL']."_".$disk['serial_short']);
 	$disk['device']				= realpath($dev);
 	$disk['ud_dev']				= get_disk_dev($disk['device']);
 	$disk['unassigned_dev']		= get_config($disk['serial'], "unassigned_dev");
