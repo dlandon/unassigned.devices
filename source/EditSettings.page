@@ -137,12 +137,18 @@ PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin
 
 case \$ACTION in
   'ADD' )
-    # do your stuff here
+    if [ "\$OWNER" = "udev" ]; then
+        # do your hotplug stuff here
+        sleep 1
+    else
+        # do your user initiated stuff here
+		sleep 1
+    fi
 
-	# sync the file system to commit all writes to disk
-	sync -f "\$MOUNTPOINT"
+    # sync the file system to commit all writes to disk
+    sync -f "\$MOUNTPOINT"
 
-	/usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Device mounted" -i "normal"
+    /usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Device mounted" -i "normal"
   ;;
 
   'UNMOUNT' )
