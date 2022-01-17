@@ -364,7 +364,7 @@ switch ($_POST['action']) {
 				$unassigned		= $config[$disk['serial']]['unassigned_dev'];
 				if ((! $unassigned) && ($disk['device'] != $disk['ud_dev'])) {
 					set_config($disk['serial'], "unassigned_dev", $disk['ud_dev']);					
-				} elseif (($unassigned) && (strpos($unassigned, "dev") !== false && ($unassigned != $disk['ud_dev']))) {
+				} elseif (($unassigned) && ((strpos($unassigned, "dev") !== false || strpos($unassigned, "sd") !== false) && ($unassigned != $disk['ud_dev']))) {
 					set_config($disk['serial'], "unassigned_dev", $disk['ud_dev']);					
 				}
 			}
@@ -373,6 +373,9 @@ switch ($_POST['action']) {
 		/* Create empty array of share names for duplicate share checking. */
 		$share_names	= array();
 		$disk_uuid		= array();
+
+		/* Create array of disk names. */
+		$disk_names	= array();
 
 		/* Disk devices. */
 		echo "<div id='disks_tab' class='show-disks'>";
@@ -515,6 +518,9 @@ switch ($_POST['action']) {
 
 				/* Add to share names. */
 				for ($i = 0; $i < count($disk['partitions']); $i++) {
+					if (! in_array($disk['unassigned_dev'], $disk_names)) {
+						$disk_names[$disk_device] = $disk['unassigned_dev'];
+					}
 					if ($disk['partitions'][$i]['fstype']) {
 						$dev	= basename(($disk['partition'][$i]['fstype'] == "crypto_LUKS") ? $disk['luks'] : $disk['device']);
 						if (MiscUD::is_device_nvme($dev)) {
@@ -715,6 +721,10 @@ switch ($_POST['action']) {
 			echo "<table class='disk_status wide usb_absent'><thead><tr><td>"._('Device')."</td><td>"._('Serial Number (Mount Point)')."</td><td></td><td>"._('Remove')."</td><td>"._('Settings')."</td><td></td><td></td><td></td><td></td><td></td></tr></thead><tbody>{$ct}</tbody></table></div></div>";
 		}
 
+		/* Save the current disk names for a duplicate check. */
+		MiscUD::save_json($paths['disk_names'], $disk_names);
+
+		/* Save the UD share names for duplicate check. */
 		MiscUD::save_json($paths['share_names'], $share_names);
 		break;
 
@@ -770,7 +780,9 @@ switch ($_POST['action']) {
 			set_config($serial, "user_command.{$part}", $user_cmd);
 			echo json_encode(array( 'result' => set_config($serial, "command.{$part}", $cmd)));
 		} else {
-			unassigned_log("Warning: Cannot use '{$cmd}' as a device script file name.");
+			if ($cmd) {
+				unassigned_log("Warning: Cannot use '{$cmd}' as a device script file name.");
+			}
 			echo json_encode(array( 'result' => false));
 		}
 		break;
@@ -785,15 +797,26 @@ switch ($_POST['action']) {
 
 	case 'set_name':
 		/* Set disk name configuration setting. */
-		$serial	= urldecode($_POST['serial']);
-		$dev	= urldecode($_POST['device']);
-		$name	= safe_name(urldecode($_POST['name']), true);
-		if ((! $name) || (strpos($name, "dev") === false)) {
-			if (! $name) {
-				$name	= get_disk_dev($dev);
+		$serial		= urldecode($_POST['serial']);
+		$dev		= urldecode($_POST['device']);
+		$name		= safe_name(urldecode($_POST['name']), true);
+		$disk_names = MiscUD::get_json($paths['disk_names']);
+
+		/* Remove our disk name. */
+		unset($disk_names[$dev]);
+
+		/* Is the name already being used? */
+		if (! in_array($name, $disk_names)) {
+			if ((! $name) || (strpos($name, "dev") === false) && (strpos($name, "sd") === false)) {
+				if (! $name) {
+					$name	= get_disk_dev($dev);
+				}
+				echo json_encode(array( 'result' => set_config($serial, "unassigned_dev", $name)));
+			} else {
+				echo json_encode(array( 'result' => false));
 			}
-			echo json_encode(array( 'result' => set_config($serial, "unassigned_dev", $name)));
 		} else {
+			unassigned_log("Error: '".$name."' is already being used on another device.");
 			echo json_encode(array( 'result' => false));
 		}
 		break;
