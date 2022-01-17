@@ -97,6 +97,11 @@ class MiscUD
 		return (strpos($dev, "nvme") !== false) ? true : false;
 	}
 
+	/* Convert spaces to "\ " for bash. */
+	public function convert_spaces_to_bash($value) {
+		return (str_replace(" ", "\ ", $value));
+	}
+
 	/* Remove the partition number from $dev and return the base device. */
 	public function base_device($dev) {
 		return (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev);
@@ -881,7 +886,7 @@ function execute_script($info, $action, $testing = false) {
 			case 'prog_name':
 			case 'logfile':
 			case 'luks':
-				putenv(strtoupper($key)."={$value}");
+				putenv(strtoupper($key)."=".MiscUD::convert_spaces_to_bash($value));
 			break;
 		}
 	}
@@ -1981,7 +1986,7 @@ function get_all_disks_info() {
 			}
 	        unset($ud_disks[$key]);
 	        $disk['path'] = $key;
-	        $ud_disks[$disk['ud_dev']] = $disk;
+	        $ud_disks[$disk['unassigned_dev']] = $disk;
 		}
 	} else {
 		unassigned_log("Error: unable to get unassigned disks.");
@@ -2029,6 +2034,7 @@ function get_disk_info($dev) {
 	$disk['serial']				= $attrs['ID_MODEL']."_".$disk['serial_short'];
 	$disk['device']				= realpath($dev);
 	$disk['ud_dev']				= get_disk_dev($disk['device']);
+	$disk['unassigned_dev']		= get_config($disk['serial'], "unassigned_dev");
 	$disk['ssd']				= is_disk_ssd($disk['device']);
 	$rw							= get_disk_reads_writes($disk['ud_dev'], $disk['device']);
 	$disk['reads']				= $rw[0];

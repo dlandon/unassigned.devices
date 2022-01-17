@@ -605,8 +605,11 @@ $ud_reload = "reload-".session_id();
 > + '/usr/local/sbin/rc.unassigned umount auto' - all devices and SMB/NFS mounts set to auto mount will be unmounted.
 > + '/usr/local/sbin/rc.unassigned umount all' - all devices and SMB/NFS mounts are unmounted in preparation for shutting down the array.
 > + '/usr/local/sbin/rc.unassigned mount /dev/sdX or devX' - mount device sdX where 'X' is the device designator.  The devX is the device name in the UD page.  If the device name is 'Dev 1', then use dev1 as the device to mount.
+> + '/usr/local/sbin/rc.unassigned mount name=diskname' - mount device by disk name.
 > + '/usr/local/sbin/rc.unassigned umount /dev/sdX or devX' - unmount device sdX where 'X' is the device designator. The devX is the device name in the UD page.  If the device name is 'Dev 1', then use dev1 as the device to unmount. You can use this command in a UD script to unmount the device when the script has completed.
+> + '/usr/local/sbin/rc.unassigned umount name=diskname' - unmount device by disk name.
 > + '/usr/local/sbin/rc.unassigned spindown devX' - spin down a disk.  The devX is the device name in the UD page.  If the device name is 'Dev 1', then use dev1 as the device to spin down.  SSDs will not spin down.
+> + '/usr/local/sbin/rc.unassigned spindown name=diskname' - spin down a disk by disk name.
 > + '/usr/local/sbin/rc.unassigned mount SOURCE' - where SOURCE is the SMB/NFS source.
 > + '/usr/local/sbin/rc.unassigned umount SOURCE' - where SOURCE is the SMB/NFS source.
 >

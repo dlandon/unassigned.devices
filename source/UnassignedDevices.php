@@ -362,7 +362,9 @@ switch ($_POST['action']) {
 			$all_disks = get_all_disks_info();
 			foreach ($all_disks as $disk) {
 				$unassigned		= $config[$disk['serial']]['unassigned_dev'];
-				if (((! $unassigned) && ($disk['device'] != $disk['ud_dev'])) || ($disk['ud_dev'] != $unassigned)) {
+				if ((! $unassigned) && ($disk['device'] != $disk['ud_dev'])) {
+					set_config($disk['serial'], "unassigned_dev", $disk['ud_dev']);					
+				} elseif (($unassigned) && (strpos($unassigned, "dev") !== false && ($unassigned != $disk['ud_dev']))) {
 					set_config($disk['serial'], "unassigned_dev", $disk['ud_dev']);					
 				}
 			}
@@ -379,17 +381,18 @@ switch ($_POST['action']) {
 		if ( count($all_disks) ) {
 			foreach ($all_disks as $disk) {
 				$mounted		= in_array(true, array_map(function($ar){return is_mounted($ar['device']);}, $disk['partitions']), true);
-				$disk_name		= basename($disk['device']);
+				$disk_device	= basename($disk['device']);
 				$disk_dev		= $disk['ud_dev'];
+				$disk_name		= $disk['unassigned_dev'];
 				$p				= (count($disk['partitions']) > 0) ? render_partition($disk, $disk['partitions'][0], true) : false;
-				$preclearing	= $Preclear ? $Preclear->isRunning($disk_name) : false;
+				$preclearing	= $Preclear ? $Preclear->isRunning($disk_device) : false;
 				$temp			= my_temp($disk['temperature']);
 
 				/* Create the mount button. */
 				$mbutton		= make_mount_button($disk);
 
 				/* Set up the preclear link for preclearing a disk. */
-				$preclear_link = ($disk['size'] !== 0 && ! $disk['partitions'][0]['fstype'] && ! $mounted && $Preclear && ! $preclearing && get_config("Config", "destructive_mode") == "enabled") ? "&nbsp;&nbsp;".$Preclear->Link($disk_name, "icon") : "";
+				$preclear_link = ($disk['size'] !== 0 && ! $disk['partitions'][0]['fstype'] && ! $mounted && $Preclear && ! $preclearing && get_config("Config", "destructive_mode") == "enabled") ? "&nbsp;&nbsp;".$Preclear->Link($disk_device, "icon") : "";
 
 				/* Add the clear disk icon. */
 				$is_mounting	= array_values(preg_grep("@/mounting_".basename($disk['device'])."@i", listDir(dirname($paths['mounting']))))[0];
@@ -397,31 +400,31 @@ switch ($_POST['action']) {
 				$clear_disk		= (file_exists("/usr/sbin/parted") && (get_config("Config", "destructive_mode") == "enabled") && ($p) && (! $mounted) && (! $disk['partitions'][0]['pool']) && (! $is_mounting) && (! $disk['partitions'][0]['pass_through']) && (! $disk['array_disk']) && (! $preclearing)) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
 
 				$disk_icon = $disk['ssd'] ? "icon-nvme" : "fa fa-hdd-o";
-				$hdd_serial = "<a class='info' href=\"#\" onclick=\"openBox('/webGui/scripts/disk_log&amp;arg1={$disk_name}','Disk Log Information',600,900,false);return false\"><i class='{$disk_icon} icon'></i><span>"._("Disk Log Information")."</span></a>";
+				$hdd_serial = "<a class='info' href=\"#\" onclick=\"openBox('/webGui/scripts/disk_log&amp;arg1={$disk_device}','Disk Log Information',600,900,false);return false\"><i class='{$disk_icon} icon'></i><span>"._("Disk Log Information")."</span></a>";
 				if ($p) {
 					$add_toggle = true;
 					if (! $disk['show_partitions']) {
-						$hdd_serial .="<span title ='"._("Click to view/hide partitions and mount points")."'class='exec toggle-hdd' hdd='{$disk_name}'><i class='fa fa-plus-square fa-append'></i></span>";
+						$hdd_serial .="<span title ='"._("Click to view/hide partitions and mount points")."'class='exec toggle-hdd' hdd='{$disk_device}'><i class='fa fa-plus-square fa-append'></i></span>";
 					} else {
 						$hdd_serial .="<span><i class='fa fa-minus-square fa-append grey-orb'></i></span>";
 					}
 				} else {
 					$add_toggle = false;
-					$hdd_serial .= "<span class='toggle-hdd' hdd='{$disk_name}'></span>";
+					$hdd_serial .= "<span class='toggle-hdd' hdd='{$disk_device}'></span>";
 				}
 
 
-				$device = strpos($disk_dev, "dev") === false ? "" : " ({$disk_name})";
+				$device = strpos($disk_dev, "dev") === false ? "" : " ({$disk_device})";
 				$hdd_serial .= "{$disk['serial']}$device
 								{$preclear_link}
 								{$clear_disk}
 								<span id='preclear_{$disk['serial_short']}' style='display:block;'></span>";
 
 				echo "<tr class='toggle-disk'>";
-				if (strpos($disk_dev, "dev") === false) {
-					$disk_display = $disk_dev;
+				if (strpos($disk_name, "dev") === false) {
+					$disk_display = $disk_name;
 				} else {
-					$disk_display = substr($disk_dev, 0, 3)." ".substr($disk_dev, 3);
+					$disk_display = substr($disk_name, 0, 3)." ".substr($disk_name, 3);
 					$disk_display = ucfirst($disk_display);
 				}
 				if ( $preclearing ) {
@@ -689,11 +692,8 @@ switch ($_POST['action']) {
 					$mountpoint		= ($mntpoint) ? " (".$mntpoint.")" : "";
 					$disk_dev		= $config[$serial]['unassigned_dev'];
 					$disk_display	= _("none");
-					if (version_compare($version['version'],"6.9.9", ">")) {
-						if (strpos($disk_dev, "dev") !== false) {
-							$disk_display = substr($disk_dev, 0, 3)." ".substr($disk_dev, 3);
-							$disk_display = ucfirst($disk_display);
-						}
+					if ($disk_dev) {
+						$disk_display = $disk_dev;
 					}
 					$historical[$serial]['display']			= $disk_display;
 					$historical[$serial]['mntpoint']		= $mntpoint;
@@ -781,6 +781,21 @@ switch ($_POST['action']) {
 		$part	= urldecode($_POST['part']);
 		$vol	= urldecode($_POST['volume']);
 		echo json_encode(array( 'result' => set_config($serial, "volume.{$part}", $vol)));
+		break;
+
+	case 'set_name':
+		/* Set disk name configuration setting. */
+		$serial	= urldecode($_POST['serial']);
+		$dev	= urldecode($_POST['device']);
+		$name	= safe_name(urldecode($_POST['name']), true);
+		if ((! $name) || (strpos($name, "dev") === false)) {
+			if (! $name) {
+				$name	= get_disk_dev($dev);
+			}
+			echo json_encode(array( 'result' => set_config($serial, "unassigned_dev", $name)));
+		} else {
+			echo json_encode(array( 'result' => false));
+		}
 		break;
 
 	case 'remove_config':

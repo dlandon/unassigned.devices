@@ -63,6 +63,7 @@ if (isset($_GET['s'])) {
 	$show_partitions	= (get_config($serial, "show_partitions") == "no" ) ? "" : "checked";
 	$width				= "60%";
 	$automount_action	= "automount";
+	$name				= get_config($serial, "unassigned_dev");
 	$ud_device			= $serial;
 	$serial 		   .= ($device) ? " (".$device.")" : "";
 	$background_action	= "background";
@@ -238,9 +239,24 @@ EOT;
 
 <button type="button" onclick="done()">_(Done)_</button>
 
+<div style="float:left">
+_(Disk Name)_
+: <input type="text" name="#name" class="narrow" style="width:25%" maxlength="8" value="<?=$name;?>">
+</div>
+<br />
+
+:ud_disk_name_plug:
+> Enter the alias name for this device.  This is the name you want to use to refer to the drive.  Leave the name blank and the 'devX' will be assigned.
+>
+> **Length**: 8 characters max, no spaces or special characters.
+>
+> **Name**: Cannot contain "dev" as the first characters.  This is reserved for the 'devX' devices.
+:end
+<br />
+
 <?if ($fstype == "apfs"):?>
 <div style="float:left">
-_(Volume)_
+apfs _(Volume)_
 : <input type="text" name="#volume" class="narrow" style="width:10%" maxlength="1" value="<?=$volume;?>" placeholder="0">
 </div>
 <br />
@@ -248,7 +264,6 @@ _(Volume)_
 :ud_apfs_volume_plug:
 > Enter the volume to mount on this apfs partition. Click **Save** to commit this setting.
 :end
-
 <br />
 <?endif;?>
 
@@ -359,6 +374,9 @@ _(Volume)_
 		$( "form" ).submit(function( event ) {
 			$.post(UDURL,{action:"set_command",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()},function(data){event.preventDefault()},"json");
 		});
+			$( "form" ).submit(function( event ) {
+				$.post(UDURL,{action:"set_name",serial:"<?=$ud_device;?>",device:"<?=$device;?>",name:$("input[name='#name']").val()},function(data){event.preventDefault()},"json");
+			});
 		<?if ($fstype == "apfs"):?>
 			$( "form" ).submit(function( event ) {
 				$.post(UDURL,{action:"set_volume",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",volume:$("input[name='#volume']").val()},function(data){event.preventDefault()},"json");
