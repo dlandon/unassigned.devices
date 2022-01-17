@@ -245,6 +245,7 @@ EOT;
 
 <button type="button" onclick="done()">_(Done)_</button>
 
+<?if (isset($_GET['s'])):?>
 <div style="float:left">
 _(Disk Name)_
 : <input type="text" name="#name" class="narrow" style="width:25%" maxlength="8" value="<?=$name;?>">
@@ -271,6 +272,7 @@ apfs _(Volume)_
 > Enter the volume to mount on this apfs partition. Click **Save** to commit this setting.
 :end
 <br />
+<?endif;?>
 <?endif;?>
 
 <strong>_(Device Script)_:</strong>
