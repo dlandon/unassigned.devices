@@ -253,11 +253,11 @@ _(Disk Name)_
 <br />
 
 :ud_disk_name_plug:
-> Enter the alias name for this device.  This is the name you want to use to refer to the drive.  Leave the name blank and the 'devX' will be assigned.
+> Enter the alias name for this device.  This is the name you want to use to refer to this drive.  Leave the name blank and the 'devX' will be assigned.
 >
-> **Length**: 8 characters max, no spaces or special characters.
+> **Name:** 8 characters max, spaces converted to '_', minimal special characters allowed, name is case sensitive.
 >
-> **Name**: Cannot contain "dev" as the first characters.  This is reserved for the 'devX' devices.
+> **Note:** Cannot contain "dev" as the first characters.  This is reserved for the 'devX' devices.
 :end
 <br />
 
