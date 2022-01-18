@@ -457,7 +457,7 @@ switch ($_POST['action']) {
 							echo "<a class='info'><i class='fa fa-circle orb green-orb'></i><span>"._("SSD cannot be spun down")."</span></a>";
 						}
 					}
-					echo ($disk['partitions'][0]['fstype'] == "crypto_LUKS" ? "<i class='fa fa-lock orb'></i>" : "");
+					echo ($disk['partitions'][0]['fstype'] == "crypto_LUKS" ? "<i class='fa fa-lock'></i>" : "");
 					echo "<a href='/Main/{$str}={$disk_dev}'><span>".$disk_display."</span></a>";
 					echo "</td>";
 				}
@@ -811,6 +811,7 @@ switch ($_POST['action']) {
 				if (! $name) {
 					$name	= get_disk_dev($dev);
 				}
+				unassigned_log("Changed Disk Name on '".$serial." (".$dev.")' to '".$name."'");
 				echo json_encode(array( 'result' => set_config($serial, "unassigned_dev", $name)));
 			} else {
 				echo json_encode(array( 'result' => false));
