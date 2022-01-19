@@ -12,6 +12,7 @@ ${DOCROOT}/plugins/unassigned.devices/scripts/copy_config.sh
 /usr/bin/touch /tmp/unassigned.devices/hotplug_event
 
 logger "Mounting 'Auto Mount' Devices..." -t"unassigned.devices"
+
 # Trigger udev to update all disk info.
 /sbin/udevadm trigger
 
