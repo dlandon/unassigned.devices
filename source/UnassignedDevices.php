@@ -519,7 +519,7 @@ switch ($_POST['action']) {
 				/* Add to share names. */
 				for ($i = 0; $i < count($disk['partitions']); $i++) {
 					if (! in_array($disk['unassigned_dev'], $disk_names)) {
-						$disk_names[$disk_device] = $disk['unassigned_dev'];
+						$disk_names[$disk_device] = isset($disk['unassigned_dev']) ? $disk['unassigned_dev'] : "";
 					}
 					if ($disk['partitions'][$i]['fstype']) {
 						$dev	= basename(($disk['partition'][$i]['fstype'] == "crypto_LUKS") ? $disk['luks'] : $disk['device']);
@@ -694,6 +694,9 @@ switch ($_POST['action']) {
 		foreach ($config as $serial => $value) {
 			if ($serial != "Config") {
 				if (! preg_grep("#{$serial}#", $disks_serials)){
+					if (! in_array($config['unassigned_dev'], $disk_names)) {
+						$disk_names[$serial] = isset($config[$serial]['unassigned_dev']) ? $config[$serial]['unassigned_dev'] : "";
+					}
 					$mntpoint		= basename($config[$serial]['mountpoint.1']);
 					$mountpoint		= ($mntpoint) ? " (".$mntpoint.")" : "";
 					$disk_dev		= $config[$serial]['unassigned_dev'];
@@ -804,6 +807,7 @@ switch ($_POST['action']) {
 
 		/* Remove our disk name. */
 		unset($disk_names[$dev]);
+		unset($disk_names[$serial]);
 
 		/* Is the name already being used? */
 		if (! in_array($name, $disk_names)) {
@@ -811,13 +815,15 @@ switch ($_POST['action']) {
 				if (! $name) {
 					$name	= get_disk_dev($dev);
 				}
-				unassigned_log("Changed Disk Name on '".$serial." (".$dev.")' to '".$name."'");
+				$ser	= $serial;
+				$ser	.= $dev ?  " (".$dev.")" : "";
+				unassigned_log("Changed Disk Name on '".$ser."' to '".$name."'");
 				echo json_encode(array( 'result' => set_config($serial, "unassigned_dev", $name)));
 			} else {
 				echo json_encode(array( 'result' => false));
 			}
 		} else {
-			unassigned_log("Error: '".$name."' is already being used on another device.");
+			unassigned_log("Error: Disk Name '".$name."' is already being used on another device.");
 			echo json_encode(array( 'result' => false));
 		}
 		break;
