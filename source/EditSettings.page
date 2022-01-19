@@ -248,7 +248,7 @@ EOT;
 <?if (isset($_GET['s'])):?>
 <?if ($partition < 2):?>
 <div style="float:left">
-_(Disk Name)_
+<strong>_(Disk Name)_</strong>
 : <input type="text" name="#name" class="narrow" style="width:25%" maxlength="8" value="<?=$name;?>">
 </div>
 <br />
@@ -265,7 +265,7 @@ _(Disk Name)_
 
 <?if ($fstype == "apfs"):?>
 <div style="float:left">
-apfs _(Volume)_
+<strong>apfs _(Volume)_</strong>
 : <input type="text" name="#volume" class="narrow" style="width:10%" maxlength="1" value="<?=$volume;?>" placeholder="0">
 </div>
 <br />
@@ -299,8 +299,7 @@ apfs _(Volume)_
 :end
 <?endif;?>
 
-<br />
-<strong>_(Script content)_:</strong>
+<strong>_(Device Script content)_:</strong>
 <br />
 
 <textarea spellcheck="false" cols="80" rows="22" name="text" title='_(Enter and Edit the Device Script that runs when a udev or operator event occurs)_.' style="font-family:bitstream;width:80%"><?=$text;?></textarea>
