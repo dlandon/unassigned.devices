@@ -99,7 +99,7 @@ class MiscUD
 	}
 
 	/* Convert spaces to "\ " for bash. */
-	public function convert_spaces_to_bash($value) {
+	public function convert_spaces_for_bash($value) {
 		return (str_replace(" ", "\ ", $value));
 	}
 
@@ -887,7 +887,7 @@ function execute_script($info, $action, $testing = false) {
 			case 'prog_name':
 			case 'logfile':
 			case 'luks':
-				putenv(strtoupper($key)."=".MiscUD::convert_spaces_to_bash($value));
+				putenv(strtoupper($key)."=".MiscUD::convert_spaces_for_bash($value));
 			break;
 		}
 	}
