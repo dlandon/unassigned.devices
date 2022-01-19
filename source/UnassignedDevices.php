@@ -365,7 +365,7 @@ switch ($_POST['action']) {
 				if ((! $unassigned) && ($disk['device'] != $disk['ud_dev'])) {
 					set_config($disk['serial'], "unassigned_dev", $disk['ud_dev']);					
 				} elseif (($unassigned) && ((strpos($unassigned, "dev") !== false || strpos($unassigned, "sd") !== false) && ($unassigned != $disk['ud_dev']))) {
-					set_config($disk['serial'], "unassigned_dev", $disk['ud_dev']);					
+					set_config($disk['serial'], "unassigned_dev", $disk['ud_dev']);
 				}
 			}
 		}
