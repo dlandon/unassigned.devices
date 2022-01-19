@@ -246,6 +246,7 @@ EOT;
 <button type="button" onclick="done()">_(Done)_</button>
 
 <?if (isset($_GET['s'])):?>
+<?if ($partition < 2):?>
 <div style="float:left">
 _(Disk Name)_
 : <input type="text" name="#name" class="narrow" style="width:25%" maxlength="8" value="<?=$name;?>">
@@ -260,6 +261,7 @@ _(Disk Name)_
 > **Note:** Cannot contain "dev" as the first characters.  This is reserved for the 'devX' devices.
 :end
 <br />
+<?endif;?>
 
 <?if ($fstype == "apfs"):?>
 <div style="float:left">
