@@ -694,7 +694,7 @@ switch ($_POST['action']) {
 		foreach ($config as $serial => $value) {
 			if ($serial != "Config") {
 				if (! preg_grep("#{$serial}#", $disks_serials)){
-					if (! in_array($config['unassigned_dev'], $disk_names)) {
+					if (! in_array($config[$serial]['unassigned_dev'], $disk_names)) {
 						$disk_names[$serial] = isset($config[$serial]['unassigned_dev']) ? $config[$serial]['unassigned_dev'] : "";
 					}
 					$mntpoint		= basename($config[$serial]['mountpoint.1']);
@@ -711,6 +711,7 @@ switch ($_POST['action']) {
 			}
 		}
 		ksort($historical, SORT_NATURAL);
+
 		/* Display the historical devices. */
 		foreach ($historical as $serial => $value) {
 			$ct .= "<tr><td><i class='fa fa-minus-circle orb grey-orb'></i>".$historical[$serial]['display']."</td><td>".$serial.$historical[$serial]['mountpoint']."</td>";
