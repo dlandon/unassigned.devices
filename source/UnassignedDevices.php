@@ -349,7 +349,6 @@ function make_mount_button($device) {
 switch ($_POST['action']) {
 	case 'get_content':
 		/* Update the UD webpage content. */
-		$all_disks = get_all_disks_info();
 
 		/* Check for a recent hot plug event. */
 		if (file_exists($paths['hotplug_event'])) {
@@ -381,6 +380,8 @@ switch ($_POST['action']) {
 		echo "<div id='disks_tab' class='show-disks'>";
 		echo "<table class='disk_status wide disk_mounts'><thead><tr><td>"._('Device')."</td><td>"._('Identification')."</td><td></td><td>"._('Temp').".</td><td>"._('Reads')."</td><td>"._('Writes')."</td><td>"._('Settings')."</td><td>"._('FS')."</td><td>"._('Size')."</td><td>"._('Used')."</td><td>"._('Free')."</td><td>"._('Log')."</td></tr></thead>";
 		echo "<tbody>";
+		/* Get updated disks info if devices have been hot plugged. */
+		$all_disks = get_all_disks_info();
 		if ( count($all_disks) ) {
 			foreach ($all_disks as $disk) {
 				$mounted		= in_array(true, array_map(function($ar){return is_mounted($ar['device']);}, $disk['partitions']), true);
@@ -520,10 +521,10 @@ switch ($_POST['action']) {
 					echo "</tr>";
 				}
 
-				/* Add to share names. */
+				/* Add to share names and disk names. */
 				for ($i = 0; $i < count($disk['partitions']); $i++) {
-					if (! in_array($disk['unassigned_dev'], $disk_names)) {
-						$disk_names[$disk_device] = isset($disk['unassigned_dev']) ? $disk['unassigned_dev'] : "";
+					if (($disk['unassigned_dev']) && (! in_array($disk['unassigned_dev'], $disk_names))) {
+						$disk_names[$disk_device] =  $disk['unassigned_dev'];
 					}
 					if ($disk['partitions'][$i]['fstype']) {
 						$dev	= basename(($disk['partition'][$i]['fstype'] == "crypto_LUKS") ? $disk['luks'] : $disk['device']);
@@ -698,8 +699,8 @@ switch ($_POST['action']) {
 		foreach ($config as $serial => $value) {
 			if ($serial != "Config") {
 				if (! preg_grep("#{$serial}#", $disks_serials)){
-					if (! in_array($config[$serial]['unassigned_dev'], $disk_names)) {
-						$disk_names[$serial] = isset($config[$serial]['unassigned_dev']) ? $config[$serial]['unassigned_dev'] : "";
+					if (($config[$serial]['unassigned_dev']) && (! in_array($config[$serial]['unassigned_dev'], $disk_names))) {
+						$disk_names[$serial] = $config[$serial]['unassigned_dev'];
 					}
 					$mntpoint		= basename($config[$serial]['mountpoint.1']);
 					$mountpoint		= ($mntpoint) ? " (".$mntpoint.")" : "";

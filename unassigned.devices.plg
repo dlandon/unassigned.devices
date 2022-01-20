@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.01.19a">
+<!ENTITY version	"2022.01.20">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"da9cece489f570d10456eab6e375246d">
+<!ENTITY MD5		"89a62dd0de62e3215ecc3d1dc6cbcde3">
 ]>
 
 <PLUGIN name="&name;"
@@ -21,6 +21,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Blank disk name being detected as a duplicate name.
+- Fix: Detection of new hot plug devices missed the setting of 'devX'.
+
+###2022.01.19a
 - Add: Disk device alias name.  This overrides the 'Dev X' designation.  Disks are sorted by disk name.  Disks can be mounted, unmounted, and spundown with the device name.
 - Add: Additional code to 'Default' device script to help user with 'udev' or 'user' event.
 - Fix: Mountpoint passed to UD script with spaces not bash compatible.  Spaces are converted to "\ ".
