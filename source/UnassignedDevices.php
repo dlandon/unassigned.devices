@@ -425,7 +425,11 @@ switch ($_POST['action']) {
 
 				echo "<tr class='toggle-disk'>";
 				if (strpos($disk_name, "dev") === false) {
-					$disk_display = $disk_name;
+					if (! $disk['array_disk']) {
+						$disk_display = $disk_name;
+					} else {
+						$disk_display = $disk['ud_dev'];
+					}
 				} else {
 					$disk_display = substr($disk_name, 0, 3)." ".substr($disk_name, 3);
 					$disk_display = ucfirst($disk_display);
@@ -685,7 +689,7 @@ switch ($_POST['action']) {
 		ksort($config, SORT_NATURAL);
 		$disks_serials	= array();
 		foreach ($all_disks as $disk) {
-			$disks_serials[] = $disk['partitions'][0]['serial'];
+			$disks_serials[] = $disk['serial'];
 		}
 		$ct = "";
 
