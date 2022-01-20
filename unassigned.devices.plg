@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.01.19">
+<!ENTITY version	"2022.01.19a">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"9422bb7719381eb36cbf727e51e23d2b">
+<!ENTITY MD5		"da9cece489f570d10456eab6e375246d">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,7 @@
 - Add: Disk device alias name.  This overrides the 'Dev X' designation.  Disks are sorted by disk name.  Disks can be mounted, unmounted, and spundown with the device name.
 - Add: Additional code to 'Default' device script to help user with 'udev' or 'user' event.
 - Fix: Mountpoint passed to UD script with spaces not bash compatible.  Spaces are converted to "\ ".
+- Fix: Unformatted disk showing in UD and Historical devices.
 
 ###2022.01.15a
 - Add: Track the last 'Dev X' device assigned to a UD disk to help with UD disk management.
