@@ -1969,6 +1969,7 @@ function get_unassigned_disks() {
 		}
 	}
 
+
 	return $ud_disks;
 }
 
@@ -1987,7 +1988,8 @@ function get_all_disks_info() {
 			}
 	        unset($ud_disks[$key]);
 	        $disk['path'] = $key;
-	        $ud_disks[$disk['unassigned_dev']] = $disk;
+			$unassigned_dev = $disk['unassigned_dev'] ? $disk['unassigned_dev'] : $ud_disks[$disk['ud_dev']];
+	        $ud_disks[$unassigned_dev] = $disk;
 		}
 	} else {
 		unassigned_log("Error: unable to get unassigned disks.");
