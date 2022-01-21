@@ -6,7 +6,7 @@
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"89a62dd0de62e3215ecc3d1dc6cbcde3">
+<!ENTITY MD5		"3025c546e38025ec98bd614f84289d9c">
 ]>
 
 <PLUGIN name="&name;"
@@ -21,6 +21,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: UD disk detection struggling at times.  Disks don't appear at all when hot plugged.
+- Fix: Blank devices showing at times.
+
+###2022.01.20
 - Fix: Blank disk name being detected as a duplicate name.
 - Fix: Detection of new hot plug devices missed the setting of 'devX'.
 
