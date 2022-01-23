@@ -249,10 +249,12 @@ _(Disk Serial)_: <?=$serial;?>
 <button type="button" onclick="done()">_(Done)_</button>
 
 <?if (isset($_GET['s'])):?>
-<?if ($partition < 2):?>
+<?if ($disk_setting):?>
 _(Disk Name)_:
 : <input type="text" name="#name" class="narrow" style="width:8%" maxlength="8" value="<?=$name;?>">
+<?endif;?>
 
+<?if ($disk_setting):?>
 :ud_disk_name_plug:
 > Enter the alias name for this device.  This is the name you want to use to refer to this drive.  Leave the name blank and the 'devX' will be assigned.
 >
@@ -300,7 +302,7 @@ _(User Script)_:
 :end
 <?endif;?>
 
-_(Device Script content)_:
+&nbsp;&nbsp;_(Device Script content)_:
 <br />
 
 <textarea spellcheck="false" cols="80" rows="22" name="text" title='_(Enter and Edit the Device Script that runs when a udev or operator event occurs)_.' style="font-family:bitstream;width:80%"><?=$text;?></textarea>
