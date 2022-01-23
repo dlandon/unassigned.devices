@@ -98,11 +98,6 @@ class MiscUD
 		return (strpos($dev, "nvme") !== false) ? true : false;
 	}
 
-	/* Convert spaces to "\ " for bash. */
-	public function convert_spaces_for_bash($value) {
-		return (str_replace(" ", "\ ", $value));
-	}
-
 	/* Remove the partition number from $dev and return the base device. */
 	public function base_device($dev) {
 		return (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev);
@@ -242,7 +237,7 @@ function get_disk_dev($dev) {
 	if (is_file($sf)) {
 		$devs = @parse_ini_file($sf, true);
 		foreach ($devs as $d) {
-			if (($d['device'] == basename($dev)) && isset($d['name'])) {
+			if (($d['device'] == $rc) && $d['name']) {
 				$rc = $d['name'];
 				break;
 			}
@@ -887,7 +882,7 @@ function execute_script($info, $action, $testing = false) {
 			case 'prog_name':
 			case 'logfile':
 			case 'luks':
-				putenv(strtoupper($key)."=".MiscUD::convert_spaces_for_bash($value));
+				putenv(strtoupper($key)."="."{$value}");
 			break;
 		}
 	}
@@ -919,7 +914,7 @@ function execute_script($info, $action, $testing = false) {
 				if ($action == "REMOVE" || $action == "ERROR_MOUNT" || $action == "ERROR_UNMOUNT") {
 					sleep(1);
 				}
-				$cmd = isset($info['serial']) ? "$command_script > ".$paths['device_log'].$info['serial']."log 2>&1 $bg" : "$command_script > ".$paths['device_log'].preg_replace('~[^\w]~i', '', $info['device']).".log 2>&1 $bg";
+				$cmd = isset($info['serial']) ? "$command_script > ".$paths['device_log'].$info['prog_name'].".log 2>&1 $bg" : "$command_script > ".$paths['device_log'].preg_replace('~[^\w]~i', '', $info['device']).".log 2>&1 $bg";
 
 				/* Run the script. */
 				exec($cmd, escapeshellarg($out), escapeshellarg($return));
@@ -1990,7 +1985,7 @@ function get_all_disks_info() {
 			}
 	        unset($ud_disks[$key]);
 	        $disk['path'] = $key;
-			$unassigned_dev = $disk['unassigned_dev'] ? $disk['unassigned_dev'] : $ud_disks[$disk['ud_dev']];
+			$unassigned_dev = $disk['unassigned_dev'] ? $disk['unassigned_dev'] : $disk['ud_dev'];
 	        $ud_disks[$unassigned_dev] = $disk;
 		}
 	} else {
@@ -2130,6 +2125,7 @@ function get_partition_info($dev) {
 		$disk['size']			= intval($stats[0])*1024;
 		$disk['used']			= intval($stats[1])*1024;
 		$disk['avail']			= intval($stats[2])*1024;
+		$disk['owner']			= (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
 		$disk['automount']		= is_automount($disk['serial'], ($attrs['ID_BUS'] == "usb") ? true : false);
 		$disk['read_only']		= is_read_only($disk['serial']);
 		$disk['shared']			= config_shared($disk['serial'], $disk['part'], ($attrs['ID_BUS'] == "usb") ? true : false);
