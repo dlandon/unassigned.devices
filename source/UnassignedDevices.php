@@ -373,6 +373,7 @@ switch ($_POST['action']) {
 		/* Create empty array of share names for duplicate share checking. */
 		$share_names	= array();
 		$disk_uuid		= array();
+		$all_disks		= get_all_disks_info();
 
 		/* Create array of disk names. */
 		$disk_names	= array();
