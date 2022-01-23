@@ -380,7 +380,8 @@ switch ($_POST['action']) {
 		echo "<div id='disks_tab' class='show-disks'>";
 		echo "<table class='disk_status wide disk_mounts'><thead><tr><td>"._('Device')."</td><td>"._('Identification')."</td><td></td><td>"._('Temp').".</td><td>"._('Reads')."</td><td>"._('Writes')."</td><td>"._('Settings')."</td><td>"._('FS')."</td><td>"._('Size')."</td><td>"._('Used')."</td><td>"._('Free')."</td><td>"._('Log')."</td></tr></thead>";
 		echo "<tbody>";
-		/* Get updated disks info if devices have been hot plugged. */
+
+		/* Get updated disks info in case devices have been hot plugged. */
 		$all_disks = get_all_disks_info();
 		if ( count($all_disks) ) {
 			foreach ($all_disks as $disk) {
@@ -774,7 +775,7 @@ switch ($_POST['action']) {
 		/* Update background configuration setting. */
 		$device	= urldecode($_POST['device']);
 		$part	= urldecode($_POST['part']);
-		$status = urldecode($_POST['status']);
+		$status = urldecode($_POST['status']) == "yes" ? "true" : "false";
 		echo json_encode(array( 'result' => set_config($device, "command_bg.{$part}", $status)));
 		break;
 
@@ -1078,7 +1079,7 @@ switch ($_POST['action']) {
 	case 'samba_background':
 		/* Set samba share background configuration setting. */
 		$device		= urldecode($_POST['device']);
-		$status		= urldecode($_POST['status']);
+		$status		= urldecode($_POST['status']) == "yes" ? "true" : "false";
 		echo json_encode(array( 'result' => set_samba_config($device, "command_bg", $status)));
 		break;
 
@@ -1125,7 +1126,7 @@ switch ($_POST['action']) {
 	case 'iso_background':
 		/* Set the background configuration setting. */
 		$device		= urldecode($_POST['device']);
-		$status		= urldecode($_POST['status']);
+		$status		= urldecode($_POST['status']) == "yes" ? "true" : "false";
 		echo json_encode(array( 'result' => set_iso_config($device, "command_bg", $status)));
 		break;
 
