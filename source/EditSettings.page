@@ -45,6 +45,8 @@ if (isset($_GET['s'])) {
 	$partition			= $_GET['p'];
 	$mount_point		= $_GET['l'];
 	$info				= $_GET['m'];
+	$id_bus				= ($_GET['u'] == "usb") ? "USB" : "SATA";
+
 	$file				= get_config($serial, "command.{$partition}");
 	if (($file) && (! file_exists($file))) {
 		set_config($serial,"command.{$partition}", "");
@@ -66,6 +68,7 @@ if (isset($_GET['s'])) {
 	$name				= get_config($serial, "unassigned_dev");
 	$ud_device			= $serial;
 	$serial 		   .= ($device) ? " (".$device.")" : "";
+	$serial				.= " - ".$id_bus;
 	$background_action	= "background";
 	$share_action		= "toggle_share";
 	if (! $_GET['t']) {
@@ -203,7 +206,7 @@ EOT;
 <input type="hidden" name="#include" value="/webGui/include/update.file.php">
 
 <?if ($disk_setting):?>
-<strong>_(Disk Serial)_: </strong><?=$serial;?>
+_(Disk Serial)_: <?=$serial;?>
 <?else:?>
 <strong>_(Mount Point)_: </strong><?=$mount_point;?>
 <?endif;?>

@@ -1244,7 +1244,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false) {
 #########################################################
 
 /* Is the samba share on? */
-function config_shared($serial, $part, $usb=false) {
+function config_shared($serial, $part, $usb = false) {
 	$share = get_config($serial, "share.{$part}");
 	$auto_usb = get_config("Config", "automount_usb");
 	return (($share == "yes") || ($usb && $auto_usb == "yes" && (! $share))) ? true : false; 
@@ -1320,7 +1320,9 @@ function add_smb_share($dir, $recycle_bin = true) {
 			$share_cont = "[{$share_name}]\n\tpath = {$dir}\n\tread only = No{$force_user}\n\tguest ok = Yes{$vfs_objects}";
 		}
 
-		if (! is_dir($paths['smb_usb_shares'])) @mkdir($paths['smb_usb_shares'],0755,true);
+		if (! is_dir($paths['smb_usb_shares'])) {
+			@mkdir($paths['smb_usb_shares'], 0755, true);
+		}
 		$share_conf = preg_replace("#\s+#", "_", realpath($paths['smb_usb_shares'])."/".$share_name.".conf");
 
 		unassigned_log("Adding SMB share '{$share_name}'.");
@@ -2036,6 +2038,7 @@ function get_disk_info($dev) {
 	$disk['serial_short']		= isset($attrs['ID_SCSI_SERIAL']) ? $attrs['ID_SCSI_SERIAL'] : $attrs['ID_SERIAL_SHORT'];
 	$disk['serial']				= trim($attrs['ID_MODEL']."_".$disk['serial_short']);
 	$disk['device']				= realpath($dev);
+	$disk['id_bus']				= $attrs['ID_BUS'];
 	$disk['ud_dev']				= get_disk_dev($disk['device']);
 	$disk['unassigned_dev']		= get_config($disk['serial'], "unassigned_dev");
 	$disk['ssd']				= is_disk_ssd($disk['device']);
@@ -2127,10 +2130,9 @@ function get_partition_info($dev) {
 		$disk['size']			= intval($stats[0])*1024;
 		$disk['used']			= intval($stats[1])*1024;
 		$disk['avail']			= intval($stats[2])*1024;
-		$disk['owner']			= (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
-		$disk['automount']		= is_automount($disk['serial'], strpos($attrs['DEVPATH'], "usb"));
+		$disk['automount']		= is_automount($disk['serial'], ($attrs['ID_BUS'] == "usb") ? true : false);
 		$disk['read_only']		= is_read_only($disk['serial']);
-		$disk['shared']			= config_shared($disk['serial'], $disk['part'], strpos($attrs['DEVPATH'], "usb"));
+		$disk['shared']			= config_shared($disk['serial'], $disk['part'], ($attrs['ID_BUS'] == "usb") ? true : false);
 		$disk['command']		= get_config($disk['serial'], "command.{$disk['part']}");
 		$disk['user_command']	= get_config($disk['serial'], "user_command.{$disk['part']}");
 		$disk['command_bg']		= get_config($disk['serial'], "command_bg.{$disk['part']}");

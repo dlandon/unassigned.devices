@@ -229,8 +229,9 @@ function render_partition($disk, $partition, $disk_line = false) {
 
 		$device		= MiscUD::base_device(basename($device)) ;
 		$serial		= $partition['serial'];
+		$id_bus		= $disk['id_bus'];
 		if (! $disk['array_disk']) {
-			$out[]		= "<td><a class='info' href='/Main/EditSettings?s=".$serial."&b=".$device."&f=".$fstype."&l=".basename($partition['mountpoint'])."&p=".$partition['part']."&m=".json_encode($partition)."&t=".$disk_line."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+			$out[]		= "<td><a class='info' href='/Main/EditSettings?s=".$serial."&b=".$device."&f=".$fstype."&l=".basename($partition['mountpoint'])."&p=".$partition['part']."&m=".json_encode($partition)."&t=".$disk_line."&u=".$id_bus."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 		} else {
 			$out[]		= "<td><i class='fa fa-gears' disabled></i></td>";
 		}
