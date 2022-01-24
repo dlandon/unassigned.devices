@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.01.23a">
+<!ENTITY version	"2022.01.24">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"2002426d6429d89542d4cbe20226c927">
+<!ENTITY MD5		"4604f4ec7f8aff9cfaef5bb919111127">
 ]>
 
 <PLUGIN name="&name;"
@@ -21,6 +21,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Default mount point not always consistent.
+- Fix: Disk name would change to default devX when editing settings on any partition other than 1.
+
+###2022.01.23a
 - Add: Display bus type (SATA or USB) on the device settings page.
 - Fix: Rewrite the device settings page to better conform to Unraid standards.  The individual help settings were not working.
 - Fix: More fixes for devices showing blank.
