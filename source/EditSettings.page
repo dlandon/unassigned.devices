@@ -38,6 +38,7 @@ $user_disabled			= "";
 $default_file			= safe_filename("/boot/config/plugins/{$plugin}/".$_GET['l']).".sh";
 $fstype					= "";
 $volume					= "";
+$id_bus					= "";
 
 if (isset($_GET['s'])) {
 	$serial				= $_GET['s'];
@@ -45,7 +46,9 @@ if (isset($_GET['s'])) {
 	$partition			= $_GET['p'];
 	$mount_point		= $_GET['l'];
 	$info				= $_GET['m'];
-	$id_bus				= ($_GET['u'] == "usb") ? "USB" : "SATA";
+	if ($_GET['m']) {
+		$id_bus			= ($_GET['u'] == "usb") ? " - USB" : " - SATA";
+	}
 
 	$file				= get_config($serial, "command.{$partition}");
 	if (($file) && (! file_exists($file))) {
@@ -68,7 +71,7 @@ if (isset($_GET['s'])) {
 	$name				= get_config($serial, "unassigned_dev");
 	$ud_device			= $serial;
 	$serial 		   .= ($device) ? " (".$device.")" : "";
-	$serial				.= " - ".$id_bus;
+	$serial				.= $id_bus;
 	$background_action	= "background";
 	$share_action		= "toggle_share";
 	if (! $_GET['t']) {
