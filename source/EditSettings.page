@@ -281,7 +281,7 @@ _(Device Script)_:
 > This is the Script File that runs when the device is mounted. Choose your Script File name from the file selection dropdown, or enter your desired script.
 :end
 
-_(Run Device Script File in the background)_:
+_(Run Device Script File in the background)_?
 : <select name="#background" size="1">
   <?=mk_option($background, "yes", "_(Yes)_");?>
   <?=mk_option($background, "no", "_(No)_");?>
@@ -376,7 +376,9 @@ _(User Script)_:
 			$.post(UDURL,{action:"set_command",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()},function(data){event.preventDefault()},"json");
 		});
 			$( "form" ).submit(function( event ) {
+		<?if ($disk_setting):?>
 				$.post(UDURL,{action:"set_name",serial:"<?=$ud_device;?>",device:"<?=$device;?>",name:$("input[name='#name']").val()},function(data){event.preventDefault()},"json");
+		<?endif;?>
 				$.post(UDURL,{action:"<?=$background_action;?>",device:"<?=$ud_device;?>",part:"<?=$partition;?>",status:$("select[name='#background']").val()},function(data){event.preventDefault()},"json");
 			});
 		<?if ($fstype == "apfs"):?>
