@@ -49,6 +49,8 @@ function uuid_change() {
 	$first		= strpos($dev, "(") + 1;
 	$last		= strpos($dev, ")") - 1;
 	$dev		= substr($dev, $first, $last);
+
+	/* Change the device UUID. */
 	change_UUID($dev);
 
 	/* Now clear the setting from the tmp file. */
