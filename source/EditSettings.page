@@ -248,7 +248,6 @@ _(Disk Serial)_: <?=$serial;?>
 
 <button type="button" onclick="done()">_(Done)_</button>
 
-<?if (isset($_GET['s'])):?>
 <?if ($disk_setting):?>
 _(Disk Name)_:
 : <input type="text" name="#name" class="narrow" style="width:8%" maxlength="8" value="<?=$name;?>">
@@ -273,7 +272,6 @@ apfs _(Volume)_:
 :ud_apfs_volume_plug:
 > Enter the volume to mount on this apfs partition. Click **Save** to commit this setting.
 :end
-<?endif;?>
 <?endif;?>
 
 _(Device Script)_:
