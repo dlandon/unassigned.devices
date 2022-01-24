@@ -914,7 +914,8 @@ function execute_script($info, $action, $testing = false) {
 				if ($action == "REMOVE" || $action == "ERROR_MOUNT" || $action == "ERROR_UNMOUNT") {
 					sleep(1);
 				}
-				$cmd = isset($info['serial']) ? "$command_script > ".$paths['device_log'].$info['prog_name'].".log 2>&1 $bg" : "$command_script > ".$paths['device_log'].preg_replace('~[^\w]~i', '', $info['device']).".log 2>&1 $bg";
+				$clear_log	= ($action == "ADD") ? " > " : " >> ";
+				$cmd = isset($info['serial']) ? $command_script.$clear_log.$paths['device_log'].$info['prog_name'].".log 2>&1 $bg" : $command_script.$clear_log.$paths['device_log'].preg_replace('~[^\w]~i', '', $info['device']).".log 2>&1 $bg";
 
 				/* Run the script. */
 				exec($cmd, escapeshellarg($out), escapeshellarg($return));
