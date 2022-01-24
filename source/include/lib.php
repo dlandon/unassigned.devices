@@ -2097,8 +2097,8 @@ function get_partition_info($dev) {
 		/* Get the file system type. */
 		$disk['fstype']			= safe_name($attrs['ID_FS_TYPE']);
 		$disk['mountpoint']		= get_config($disk['serial'], "mountpoint.{$disk['part']}");
-		if ( ($mountpoint === false) || (! $disk['mountpoint']) ) { 
-			$disk['mountpoint']	= $disk['target'] ? $disk['target'] : preg_replace("%\s+%", "_", sprintf("%s/%s", $paths['usb_mountpoint'], $disk['label']));
+		if (! $disk['mountpoint']) { 
+			$disk['mountpoint']	= preg_replace("%\s+%", "_", sprintf("%s/%s", $paths['usb_mountpoint'], $disk['label']));
 		}
 
 		/* crypto_LUKS file system. */
