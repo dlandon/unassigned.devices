@@ -27,6 +27,7 @@ $paths = [	"smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"script_run"		=> "/tmp/{$plugin}/script_run",
 			"hotplug_event"		=> "/tmp/{$plugin}/hotplug_event",
 			"state"				=> "/var/state/{$plugin}/{$plugin}.ini",
+			"diag_state"		=> "/var/local/emhttp/{$plugin}.ini",
 			"mounted"			=> "/var/state/{$plugin}/{$plugin}.json",
 			"hdd_temp"			=> "/var/state/{$plugin}/hdd_temp.json",
 			"run_status"		=> "/var/state/{$plugin}/run_status.json",
@@ -70,7 +71,7 @@ class MiscUD
 {
 	/* Save contect to a json file. */
 	public function save_json($file, $content) {
-		file_put_contents($file."-", json_encode($content, JSON_PRETTY_PRINT));
+		@file_put_contents($file."-", json_encode($content, JSON_PRETTY_PRINT));
 		@rename($file."-", $file);
 	}
 
@@ -142,13 +143,13 @@ function save_ini_file($file, $array, $save_config = true) {
 	}
 
 	/* Write changes to tmp file. */
-	file_put_contents($file, implode(PHP_EOL, $res));
+	@file_put_contents($file, implode(PHP_EOL, $res));
 
 	/* Write cfg file changes back to flash. */
 	if ($save_config) {
 		$file_path = pathinfo($file);
 		if ($file_path['extension'] == "cfg") {
-			file_put_contents("/boot/config/plugins/".$plugin."/".basename($file), implode(PHP_EOL, $res));
+			@file_put_contents("/boot/config/plugins/".$plugin."/".basename($file), implode(PHP_EOL, $res));
 		}
 	}
 }
@@ -598,7 +599,7 @@ function format_disk($dev, $fs, $pass) {
 			} else {
 				$luks			= basename($dev);
 				$luks_pass_file	= "{$paths['luks_pass']}_".$luks;
-				file_put_contents($luks_pass_file, $pass);
+				@file_put_contents($luks_pass_file, $pass);
 				$o				= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
 				exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 			}
@@ -616,7 +617,7 @@ function format_disk($dev, $fs, $pass) {
 				} else {
 					$luks			= basename($dev);
 					$luks_pass_file	= "{$paths['luks_pass']}_".$luks;
-					file_put_contents($luks_pass_file, $pass);
+					@file_put_contents($luks_pass_file, $pass);
 					$o				= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
 					exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 				}
@@ -901,7 +902,7 @@ function execute_script($info, $action, $testing = false) {
 
 	/* If there is a command, execute the script. */
 	$cmd	= escapeshellcmd($info['command']);
-	$bg		= ($info['command_bg'] != "false" && $action == "ADD") ? "&" : "";
+	$bg		= (($info['command_bg'] != "false") && ($action == "ADD")) ? "&" : "";
 	if ($cmd) {
 		$command_script = $paths['scripts'].basename($cmd);
 		copy($cmd, $command_script);
@@ -911,11 +912,11 @@ function execute_script($info, $action, $testing = false) {
 		$script_running = is_script_running($cmd);
 		if ((! $script_running) || (($script_running) && ($action != "ADD"))) {
 			if (! $testing) {
-				if ($action == "REMOVE" || $action == "ERROR_MOUNT" || $action == "ERROR_UNMOUNT") {
+				if (($action == "REMOVE") || ($action == "ERROR_MOUNT") || ($action == "ERROR_UNMOUNT")) {
 					sleep(1);
 				}
 				$clear_log	= ($action == "ADD") ? " > " : " >> ";
-				$cmd = isset($info['serial']) ? $command_script.$clear_log.$paths['device_log'].$info['prog_name'].".log 2>&1 $bg" : $command_script.$clear_log.$paths['device_log'].preg_replace('~[^\w]~i', '', $info['device']).".log 2>&1 $bg";
+				$cmd		= $command_script.$clear_log.$info['logfile']." 2>&1 $bg";
 
 				/* Run the script. */
 				exec($cmd, escapeshellarg($out), escapeshellarg($return));
@@ -923,7 +924,7 @@ function execute_script($info, $action, $testing = false) {
 					unassigned_log("Error: device script failed: '{$return}'");
 				}
 			} else {
-				$rc = $command_script;
+				$rc			= $command_script;
 			}
 		} else {
 			unassigned_log("Device script '".basename($cmd)."' aleady running!");
@@ -1085,7 +1086,7 @@ function do_mount($info) {
 				}
 			} else {
 				$luks_pass_file = "{$paths['luks_pass']}_".$luks;
-				file_put_contents($luks_pass_file, $pass);
+				@file_put_contents($luks_pass_file, $pass);
 				unassigned_log("Using disk password to open the 'crypto_LUKS' device.");
 				$o		= shell_exec("/sbin/cryptsetup ".escapeshellcmd($cmd)." -d ".escapeshellarg($luks_pass_file)." 2>&1");
 				exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
@@ -1322,7 +1323,7 @@ function add_smb_share($dir, $recycle_bin = true) {
 		$share_conf = preg_replace("#\s+#", "_", realpath($paths['smb_usb_shares'])."/".$share_name.".conf");
 
 		unassigned_log("Adding SMB share '{$share_name}'.");
-		file_put_contents($share_conf, $share_cont);
+		@file_put_contents($share_conf, $share_cont);
 		if (! MiscUD::exist_in_file($paths['smb_extra'], $share_conf)) {
 			$c		= (is_file($paths['smb_extra'])) ? @file($paths['smb_extra'],FILE_IGNORE_NEW_LINES) : array();
 			$c[]	= "";
@@ -1337,7 +1338,7 @@ function add_smb_share($dir, $recycle_bin = true) {
 			} 
 			$c		= array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_extra_includes);
 			$c		= preg_replace('/\n\s*\n\s*\n/s', PHP_EOL.PHP_EOL, implode(PHP_EOL, $c));
-			file_put_contents($paths['smb_extra'], $c);
+			@file_put_contents($paths['smb_extra'], $c);
 
 			/* If the recycle bin plugin is installed, add the recycle bin to the share. */
 			if ($recycle_bin) {
@@ -1351,7 +1352,7 @@ function add_smb_share($dir, $recycle_bin = true) {
 					}
 				}
 			} else {
-				file_put_contents($share_conf, "\n", FILE_APPEND);
+				@file_put_contents($share_conf, "\n", FILE_APPEND);
 			}
 		}
 
@@ -1384,7 +1385,7 @@ function rm_smb_share($dir) {
 		} 
 		$c = array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_extra_includes);
 		$c = preg_replace('/\n\s*\n\s*\n/s', PHP_EOL.PHP_EOL, implode(PHP_EOL, $c));
-		file_put_contents($paths['smb_extra'], $c);
+		@file_put_contents($paths['smb_extra'], $c);
 		timed_exec(5, "/usr/bin/smbcontrol $(/bin/cat /var/run/smbd.pid 2>/dev/null) close-share ".escapeshellarg($share_name)." 2>&1");
 		timed_exec(5, "/usr/bin/smbcontrol $(/bin/cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
 	}
@@ -1412,7 +1413,7 @@ function add_nfs_share($dir) {
 				}
 				$c[]		= "\"{$dir}\" -async,no_subtree_check,fsid={$fsid} {$sec}";
 				$c[]		= "";
-				file_put_contents($file, implode(PHP_EOL, $c));
+				@file_put_contents($file, implode(PHP_EOL, $c));
 				$reload		= true;
 			}
 		}
@@ -1436,7 +1437,7 @@ function rm_nfs_share($dir) {
 			$c		= (is_file($file)) ? @file($file, FILE_IGNORE_NEW_LINES) : array();
 			$c		= preg_grep("@\"{$dir}\"@i", $c, PREG_GREP_INVERT);
 			$c[]	= "";
-			file_put_contents($file, implode(PHP_EOL, $c));
+			@file_put_contents($file, implode(PHP_EOL, $c));
 			$reload	= true;
 		}
 	}
@@ -1619,13 +1620,18 @@ function get_samba_mounts() {
 					$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$path}";
 				}
 			}
+
+			/* Get the disk size, used, and free stats. */
 			$stats					= get_device_stats($mount['mountpoint'], $mount['mounted'], $mount['is_alive']);
 			$mount['size']			= intval($stats[0])*1024;
 			$mount['used']			= intval($stats[1])*1024;
 			$mount['avail']			= intval($stats[2])*1024;
-			$mount['target']		= $mount['mountpoint'];
-			$mount['prog_name']		= basename($mount['command'], ".sh");
+
+			/* Target is set to the mount point when the device is mounted. */
+			$mount['target']		= $mount['mounted'] ? $mount['mountpoint'] : "";
+
 			$mount['command']		= get_samba_config($mount['device'],"command");
+			$mount['prog_name']		= basename($mount['command'], ".sh");
 			$mount['user_command']	= get_samba_config($mount['device'],"user_command");
 			$mount['logfile']		= ($mount['prog_name']) ? $paths['device_log'].$mount['prog_name'].".log" : "";
 			$o[] = $mount;
@@ -1673,9 +1679,9 @@ function do_mount_samba($info) {
 			} elseif ($var['shareSMBEnabled'] != "no") {
 				/* Create the credentials file. */
 				$credentials_file = "{$paths['credentials']}_".basename($dev);
-				file_put_contents("$credentials_file", "username=".($info['user'] ? $info['user'] : 'guest')."\n");
-				file_put_contents("$credentials_file", "password=".decrypt_data($info['pass'])."\n", FILE_APPEND);
-				file_put_contents("$credentials_file", "domain=".$info['domain']."\n", FILE_APPEND);
+				@file_put_contents("$credentials_file", "username=".($info['user'] ? $info['user'] : 'guest')."\n");
+				@file_put_contents("$credentials_file", "password=".decrypt_data($info['pass'])."\n", FILE_APPEND);
+				@file_put_contents("$credentials_file", "domain=".$info['domain']."\n", FILE_APPEND);
 
 				/* If the smb version is not required, just mount the remote share with no version. */
 				$smb_version = (get_config("Config", "smb_version") == "yes") ? true : false;
@@ -1845,19 +1851,22 @@ function get_iso_mounts() {
 		foreach ($iso_mounts as $device => $mount) {
 			$mount['device']		= $device;
 			$mount['fstype']		= "loop";
+			$mount['mounted']		= is_mounted($mount['device']);
 			$mount['automount'] = is_iso_automount($mount['device']);
 			if (! $mount["mountpoint"]) {
 				$mount["mountpoint"] = preg_replace("%\s+%", "_", "{$paths['usb_mountpoint']}/{$mount['share']}");
 			}
-			$mount['target']		= $mount['mountpoint'];
+
+			/* Target is set to the mount point when the device is mounted. */
+			$mount['target']		= $mount['mounted'] ? $mount['mountpoint'] : "";
+
 			$is_alive				= is_file($mount['file']);
-			$mount['mounted']		= is_mounted($mount['device']);
 			$stats					= get_device_stats($mount['mountpoint'], $mount['mounted']);
 			$mount['size']			= intval($stats[0])*1024;
 			$mount['used']			= intval($stats[1])*1024;
 			$mount['avail']			= intval($stats[2])*1024;
-			$mount['prog_name']		= basename($mount['command'], ".sh");
 			$mount['command']		= get_iso_config($mount['device'],"command");
+			$mount['prog_name']		= basename($mount['command'], ".sh");
 			$mount['user_command']	= get_iso_config($mount['device'],"user_command");
 			$mount['logfile']		= ($mount['prog_name']) ? $paths['device_log'].$mount['prog_name'].".log" : "";
 			$rc[] = $mount;
@@ -1967,7 +1976,6 @@ function get_unassigned_disks() {
 		}
 	}
 
-
 	return $ud_disks;
 }
 
@@ -2008,6 +2016,8 @@ function get_udev_info($dev, $udev = null) {
 	if ($udev) {
 		$state[$device]= $udev;
 		save_ini_file($paths['state'], $state);
+		@copy($paths['state'], $paths['diag_state']."-");
+		@rename($paths['diag_state']."-", $paths['diag_state']);
 		$rc	= $udev;
 	} else if (array_key_exists($device, $state)) {
 		$rc	= $state[$device];
@@ -2016,6 +2026,8 @@ function get_udev_info($dev, $udev = null) {
 		if (is_array($dev_state)) {
 			$state[$device] = $dev_state;
 			save_ini_file($paths['state'], $state);
+			@copy($paths['state'], $paths['diag_state']."-");
+			@rename($paths['diag_state']."-", $paths['diag_state']);
 			$rc	= $state[$device];
 		} else {
 			$rc = array();
@@ -2096,6 +2108,8 @@ function get_partition_info($dev) {
 
 		/* Get the file system type. */
 		$disk['fstype']			= safe_name($attrs['ID_FS_TYPE']);
+
+		/* Get the mount point from the configuration and if not set create a default mount point. */
 		$disk['mountpoint']		= get_config($disk['serial'], "mountpoint.{$disk['part']}");
 		if (! $disk['mountpoint']) { 
 			$disk['mountpoint']	= preg_replace("%\s+%", "_", sprintf("%s/%s", $paths['usb_mountpoint'], $disk['label']));
@@ -2112,16 +2126,23 @@ function get_partition_info($dev) {
 		/* Set up all disk parameters and status. */
 		$disk['mounted']		= is_mounted($disk['mountpoint'], true);
 		if ($disk['mounted'] && $disk['fstype'] == "btrfs") {
+			/* Get the members of a pool if this is a pooled disk. */
 			$pool_devs			= MiscUD::get_pool_devices($disk['mountpoint']);
-			/* First pooled device is the primary disk. */
+
+			/* First pooled device is the primary member. */
 			unset($pool_devs[0]);
+
+			/* This is a secondary pooled member if not the primary member. */
 			$disk['pool']		= in_array($disk['device'], $pool_devs);
 		} else {
 			$disk['pool']		= false;
 		}
 
 		$disk['pass_through']	= (! $disk['mounted']) ? is_pass_through($disk['serial']) : false;
+
+		/* Target is set to the mount point when the device is mounted. */
 		$disk['target']			= str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep ".escapeshellarg($disk['device'])." | /bin/awk '{print $2}'")));
+
 		$stats					= get_device_stats($disk['mountpoint'], $disk['mounted']);
 		$disk['size']			= intval($stats[0])*1024;
 		$disk['used']			= intval($stats[1])*1024;
@@ -2302,7 +2323,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 						}
 					} else {
 						$luks_pass_file = "{$paths['luks_pass']}_".basename($dev);
-						file_put_contents($luks_pass_file, $pass);
+						@file_put_contents($luks_pass_file, $pass);
 						unassigned_log("Using disk password to open the 'crypto_LUKS' device.");
 						$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
 						exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
@@ -2411,7 +2432,7 @@ function change_UUID($dev) {
 			}
 		} else {
 			$luks_pass_file = "{$paths['luks_pass']}_".basename($luks);
-			file_put_contents($luks_pass_file, $pass);
+			@file_put_contents($luks_pass_file, $pass);
 			unassigned_log("Using disk password to open the 'crypto_LUKS' device.");
 			$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
 			exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
