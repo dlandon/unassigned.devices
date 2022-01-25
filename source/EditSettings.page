@@ -126,6 +126,7 @@ if ((! file_exists($file)) || (! is_dir("/boot/config/plugins/user.scripts/scrip
 }
 
 $text			= @file_get_contents($file);
+
 $default_text	= <<<EOT
 #!/bin/bash
 PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin
@@ -297,7 +298,9 @@ _(Run Device Script File in the background)_?
 <? if (! $_GET['i']):?>
 _(User Script)_:
 : <input type="text" title='_(Enter User Script File Name)_.' name="#user_file" style="width:40%;" onclick="openFileBrowser(this, '/boot/config/plugins/user.scripts/scripts', '', false);" autocomplete="off" placeholder="_(Enter the User Script that will be using this device)_" value="<?=$user_file;?>" <?=$user_disabled;?>>
+<?endif;?>
 
+<? if (! $_GET['i']):?>
 :ud_edit_user_script_choose_name_plug:
 > If you have the User Scripts plugin installed, you can have Unassigned Devices show the running status of the User Script that will be using this device.  This field will only be enabled when a Device Script File exists.
 :end
