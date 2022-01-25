@@ -143,7 +143,10 @@ function save_ini_file($file, $array, $save_config = true) {
 	}
 
 	/* Write changes to tmp file. */
-	@file_put_contents($file, implode(PHP_EOL, $res));
+	@file_put_contents($file."-", implode(PHP_EOL, $res));
+
+	/* Rename temp file. */
+	@rename($file."-", $file);
 
 	/* Write cfg file changes back to flash. */
 	if ($save_config) {
