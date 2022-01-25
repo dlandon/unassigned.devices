@@ -65,11 +65,11 @@ function my_diskio($data) {
 }
 
 /* Get the used and free space for a partition and render for html. */
-function render_used_and_free($partition, $mounted) {
+function render_used_and_free($partition) {
 	global $display;
 
 	/* Only show used and free when disk is mounted. */
-	if (strlen($partition['target']) && $mounted) {
+	if ($partition['target']) {
 		$free_pct = $partition['size'] ? round(100*$partition['avail']/$partition['size']) : 0;
 		$used_pct = 100-$free_pct;
 
@@ -251,7 +251,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 			$out[] = render_used_and_free_disk($disk, $mounted_disk);
 		} else {
 			$out[] = "<td>".my_scale($partition['size'], $unit)." $unit</td>";
-			$out[] = render_used_and_free($partition, $mounted);
+			$out[] = render_used_and_free($partition);
 		}
 
 		/* Add device log icon. */
@@ -615,7 +615,7 @@ switch ($_POST['action']) {
 				echo "<td><a class='info' href='/Main/EditSettings?d=".$mount['device']."&l=".$mount_point."&m=".json_encode($mount)."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 				echo "<td></td><td></td><td></td>";
 				echo "<td>".my_scale($mount['size'], $unit)." $unit</td>";
-				echo render_used_and_free($mount, $mounted);
+				echo render_used_and_free($mount);
 
 				echo "<td><a title='"._("View Remote SMB")."/"._("NFS Script Log")."' href='/Main/ScriptLog?d=".$mount['device']."'><i class='fa fa-align-left".( $mount['command'] ? "":" grey-orb" )."'></i></a></td>";
 				echo "</tr>";
@@ -671,7 +671,7 @@ switch ($_POST['action']) {
 				echo "<td><a class='info' href='/Main/EditSettings?i=".$mount['device']."&l=".$mount_point."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 				echo "<td></td><td></td><td></td>";
 				echo "<td>".my_scale($mount['size'], $unit)." $unit</td>";
-				echo render_used_and_free($mount, $mounted);
+				echo render_used_and_free($mount);
 				echo "<td><a title='"._("View ISO File Script Log")."' href='/Main/ScriptLog?i=".$mount['device']."'><i class='fa fa-align-left".( $mount['command'] ? "":" grey-orb" )."'></i></a></td>";
 				echo "</tr>";
 
@@ -848,7 +848,7 @@ switch ($_POST['action']) {
 		$info	= json_decode(html_entity_decode($_POST['info']), true);
 		$status	= urldecode($_POST['status']);
 		$result	= toggle_share($info['serial'], $info['part'],$status);
-		if ($result && strlen($info['target']) && $info['mounted']) {
+		if ($result && $info['target']) {
 			add_smb_share($info['mountpoint']);
 			add_nfs_share($info['mountpoint']);
 		} elseif ($info['mounted']) {
@@ -961,9 +961,9 @@ switch ($_POST['action']) {
 		$user	= isset($_POST['USER']) ? $_POST['USER'] : NULL;
 		$pass	= isset($_POST['PASS']) ? $_POST['PASS'] : NULL;
 		$domain	= isset($_POST['DOMAIN']) ? $_POST['DOMAIN'] : NULL;
-		file_put_contents("{$paths['authentication']}", "username=".$user."\n");
-		file_put_contents("{$paths['authentication']}", "password=".$pass."\n", FILE_APPEND);
-		file_put_contents("{$paths['authentication']}", "domain=".$domain."\n", FILE_APPEND);
+		@file_put_contents("{$paths['authentication']}", "username=".$user."\n");
+		@file_put_contents("{$paths['authentication']}", "password=".$pass."\n", FILE_APPEND);
+		@file_put_contents("{$paths['authentication']}", "domain=".$domain."\n", FILE_APPEND);
 
 		/* Update this server status before listing shares. */
 		exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats is_online $ip");
@@ -1068,7 +1068,7 @@ switch ($_POST['action']) {
 		$info		= json_decode(html_entity_decode($_POST['info']), true);
 		$status		= urldecode($_POST['status']);
 		$result		= toggle_samba_share($info['device'], $status);
-		if ($result && strlen($info['target']) && $info['mounted']) {
+		if ($result && $info['target']) {
 			add_smb_share($info['mountpoint']);
 			add_nfs_share($info['mountpoint']);
 		} elseif ($info['mounted']) {
@@ -1175,7 +1175,7 @@ switch ($_POST['action']) {
 		if ($run_status[$device]['running'] == 'yes') {
 			$run_status[$device]['spin_time'] = time();
 			$run_status[$device]['spin'] = 'down';
-			file_put_contents($tc, json_encode($run_status));
+			@file_put_contents($tc, json_encode($run_status));
 			echo json_encode(MiscUD::spin_disk(true, $device));
 		}
 		break;
@@ -1190,7 +1190,7 @@ switch ($_POST['action']) {
 		if ($run_status[$device]['running'] == 'no') {
 			$run_status[$device]['spin_time'] = time();
 			$run_status[$device]['spin'] = 'up';
-			file_put_contents($tc, json_encode($run_status));
+			@file_put_contents($tc, json_encode($run_status));
 			echo json_encode(MiscUD::spin_disk(false, $device));
 		}
 		break;
