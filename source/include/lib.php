@@ -1655,8 +1655,18 @@ function do_mount_samba($info) {
 	$config			= @parse_ini_file($config_file, true);
 
 	/* Be sure the server online status is current. */
-	$info['is_alive'] = is_samba_server_online($info['ip']);
-	if ($info['is_alive']) {
+	$is_alive = is_samba_server_online($info['ip']);
+
+	/* If the remote server is not online, run the ping update and see if ping status needs to be refreshed. */
+	if (! $is_alive) {
+		/* Update the remote server ping status. */
+		exec("/usr/local/emhttp/plugins/unassigned.devices/scripts/get_ud_stats ping");
+
+		/* See if the server is online now. */
+		$is_alive = is_samba_server_online($info['ip']);
+	}
+	
+	if ($is_alive) {
 		$dir		= $info['mountpoint'];
 		$fs			= $info['fstype'];
 		$dev		= ($fs == "cifs") ? "//".$info['ip']."/".$info['path'] : $info['device'];
