@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.01.24a">
+<!ENTITY version	"2022.01.28">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"9979e68ca99d04d8444d11141199cd88">
+<!ENTITY MD5		"2d07920a3e04cb50ec9138b8fced218f">
 ]>
 
 <PLUGIN name="&name;"
@@ -21,8 +21,17 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Link to install Unassigned Devices plus in Unassigned Devices Settings.  This will take you directly to CA to install the plugin.
+- Fix: Many logging issues like incorrect log file when executing SMB/NFS and ISO device scripts, and periodically a blank log file name.
+- Fix: Logs getting cleared on every device script execution.  Only 'ADD' event will clear the log now.  Logs won't continue to grow.  If you want to keep a log, download it.
+- Fix: Display issue with edit historical device settings.
+- Fix: Mounting remote shares with rc.unassigned can sometimes fail if the current ping status is not up to date and the last check showed a remote server was offline.
+- Fix: Some devices installed in UD show up as Historical devices.
+- Fix: Revert back to a single nchan channel for page refresh instead of per session.
+
+###202.01.24a
 - Fix: Default mount point not always consistent.
-- Fix: Disk name would change to default devX when editing settings on any partition.  It only applies to the disk.
+- Fix: Disk name would change to default devX when editing settings on any partition.  Disk Name only applies to the disk, not a partition.
 - Fix: Don't show bus type on historical devices.
 
 ###2022.01.23a
