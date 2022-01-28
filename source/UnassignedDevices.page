@@ -31,8 +31,8 @@ require_once "plugins/$plugin/include/lib.php";
 /* Get the version of Unraid we are running. */
 $version = parse_ini_file("/etc/unraid-version");
 
-/* Set up name for nchan socket. Make it unique by adding the browser session id. */
-$ud_reload = "reload-".session_id();
+/* Set up name for nchan socket. */
+$ud_reload = "UD_reload";
 ?>
 
 <script type="text/javascript" src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
@@ -702,7 +702,7 @@ $ud_reload = "reload-".session_id();
 
 		/* Add icons to Tab/Title bar. */
 		$('#tab4').bind({click:function() {$('i.toggle').show('slow');}});
-		if ($.cookie('diskio')===undefined) {
+		if ($.cookie('diskio') === undefined) {
 			$('i.toggle').removeClass('fa-tachometer').addClass('fa-list');
 		} else {
 			$('i.toggle').removeClass('fa-list').addClass('fa-tachometer');
