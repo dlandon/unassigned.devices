@@ -2008,7 +2008,17 @@ function get_all_disks_info() {
 	        unset($ud_disks[$key]);
 	        $disk['path'] = $key;
 			$unassigned_dev = $disk['unassigned_dev'] ? $disk['unassigned_dev'] : $disk['ud_dev'];
-	        $ud_disks[$unassigned_dev] = $disk;
+			$unassigned_dev	= $unassigned_dev ? $unassigned_dev : basename($disk['device']);
+
+			/* If there is already a devX that is the same, use the disk device' */
+			if (isset($ud_disks[$unassigned_dev]) && (strpos($unassigned_dev, "dev") !== false)) {
+				
+				$unassigned_dev = basename($disk['device']);
+
+				/* Set the ud_dev to the current value in the devs.ini file. */
+				$disk['ud_dev'] = get_disk_dev($disk['device']);
+			}
+			$ud_disks[$unassigned_dev] = $disk;
 		}
 	} else {
 		unassigned_log("Error: unable to get unassigned disks.");
