@@ -368,12 +368,13 @@ switch ($_POST['action']) {
 					set_config($disk['serial'], "unassigned_dev", $disk['ud_dev']);
 				}
 			}
+		} else {
+			$all_disks = get_all_disks_info();
 		}
 
 		/* Create empty array of share names for duplicate share checking. */
 		$share_names	= array();
 		$disk_uuid		= array();
-		$all_disks		= get_all_disks_info();
 
 		/* Create array of disk names. */
 		$disk_names	= array();
@@ -384,7 +385,6 @@ switch ($_POST['action']) {
 		echo "<tbody>";
 
 		/* Get updated disks info in case devices have been hot plugged. */
-		$all_disks = get_all_disks_info();
 		if ( count($all_disks) ) {
 			foreach ($all_disks as $disk) {
 				$mounted		= in_array(true, array_map(function($ar){return is_mounted($ar['device']);}, $disk['partitions']), true);
@@ -695,7 +695,6 @@ switch ($_POST['action']) {
 		foreach ($all_disks as $disk) {
 			$disks_serials[] = $disk['serial'];
 		}
-		$ct = "";
 
 		/* Organize the historical devices. */
 		$historical = array();
@@ -721,6 +720,7 @@ switch ($_POST['action']) {
 		ksort($historical, SORT_NATURAL);
 
 		/* Display the historical devices. */
+		$ct = "";
 		foreach ($historical as $serial => $value) {
 			$ct .= "<tr><td><i class='fa fa-minus-circle orb grey-orb'></i>".$historical[$serial]['display']."</td><td>".$serial.$historical[$serial]['mountpoint']."</td>";
 			$ct .= "<td></td>";
