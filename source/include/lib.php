@@ -2024,7 +2024,6 @@ function get_all_disks_info() {
 		unassigned_log("Error: unable to get unassigned disks.");
 		$ud_disks = array();
 	}
-
 	ksort($ud_disks, SORT_NATURAL);
 
 	return $ud_disks;
