@@ -539,5 +539,6 @@ switch ($COMMAND) {
 		break;
 }
 
+/* Clear all the status files. */
 array_map(function($f){@unlink($f);}, $remove);
 ?>

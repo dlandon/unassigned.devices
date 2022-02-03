@@ -358,7 +358,7 @@ switch ($_POST['action']) {
 			/* Tell Unraid to update list of unassigned devices in devs.ini. */
 			exec("/usr/local/sbin/emcmd 'cmdHotplug=apply'");
 
-			/* Update devX designations for newly found unassigned devices. */
+			/* Get all updated unassigned disks and update devX designations for newly found unassigned devices. */
 			$all_disks = get_all_disks_info();
 			foreach ($all_disks as $disk) {
 				$unassigned		= $config[$disk['serial']]['unassigned_dev'];
@@ -367,6 +367,11 @@ switch ($_POST['action']) {
 				} elseif (($unassigned) && ((strpos($unassigned, "dev") !== false || strpos($unassigned, "sd") !== false) && ($unassigned != $disk['ud_dev']))) {
 					set_config($disk['serial'], "unassigned_dev", $disk['ud_dev']);
 				}
+			}
+
+			/* Update the preclear diskinfo. */
+			if (file_exists("/etc/rc.d/rc.diskinfo")) {
+				exec("/etc/rc.d/rc.diskinfo force &");
 			}
 		} else {
 			$all_disks = get_all_disks_info();
@@ -399,7 +404,7 @@ switch ($_POST['action']) {
 				$mbutton		= make_mount_button($disk);
 
 				/* Set up the preclear link for preclearing a disk. */
-				$preclear_link = ($disk['size'] !== 0 && ! $disk['partitions'][0]['fstype'] && ! $mounted && $Preclear && ! $preclearing && get_config("Config", "destructive_mode") == "enabled") ? "&nbsp;&nbsp;".$Preclear->Link($disk_device, "icon") : "";
+				$preclear_link = (($disk['size'] !== 0) && (! $disk['partitions'][0]['fstype']) && (! $mounted) && ($Preclear) && (! $preclearing) && (get_config("Config", "destructive_mode") == "enabled")) ? "&nbsp;&nbsp;".$Preclear->Link($disk_device, "icon") : "";
 
 				/* Add the clear disk icon. */
 				$is_mounting	= array_values(preg_grep("@/mounting_".basename($disk['device'])."@i", listDir(dirname($paths['mounting']))))[0];
@@ -407,25 +412,22 @@ switch ($_POST['action']) {
 				$clear_disk		= (file_exists("/usr/sbin/parted") && (get_config("Config", "destructive_mode") == "enabled") && ($p) && (! $mounted) && (! $disk['partitions'][0]['pool']) && (! $is_mounting) && (! $disk['partitions'][0]['pass_through']) && (! $disk['array_disk']) && (! $preclearing)) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
 
 				$disk_icon = $disk['ssd'] ? "icon-nvme" : "fa fa-hdd-o";
-				$hdd_serial = "<a class='info' href=\"#\" onclick=\"openBox('/webGui/scripts/disk_log&amp;arg1={$disk_device}','Disk Log Information',600,900,false);return false\"><i class='{$disk_icon} icon'></i><span>"._("Disk Log Information")."</span></a>";
+				$hdd_serial = "<a class='info' href=\"#\" onclick=\"openBox('/webGui/scripts/disk_log&amp;arg1={$disk_device}','Disk Log Information',600,900,false);return false\"><i class='".$disk_icon." icon'></i><span>"._("Disk Log Information")."</span></a>";
 				if ($p) {
 					$add_toggle = true;
 					if (! $disk['show_partitions']) {
-						$hdd_serial .="<span title ='"._("Click to view/hide partitions and mount points")."'class='exec toggle-hdd' hdd='{$disk_device}'><i class='fa fa-plus-square fa-append'></i></span>";
+						$hdd_serial .="<span title ='"._("Click to view/hide partitions and mount points")."'class='exec toggle-hdd' hdd='".$disk_device."'><i class='fa fa-plus-square fa-append'></i></span>";
 					} else {
 						$hdd_serial .="<span><i class='fa fa-minus-square fa-append grey-orb'></i></span>";
 					}
 				} else {
 					$add_toggle = false;
-					$hdd_serial .= "<span class='toggle-hdd' hdd='{$disk_device}'></span>";
+					$hdd_serial .= "<span class='toggle-hdd' hdd='".$disk_device."'></span>";
 				}
 
 
 				$device = strpos($disk_dev, "dev") === false ? "" : " ({$disk_device})";
-				$hdd_serial .= "{$disk['serial']}$device
-								{$preclear_link}
-								{$clear_disk}
-								<span id='preclear_{$disk['serial_short']}' style='display:block;'></span>";
+				$hdd_serial .= $disk['serial'].$device.$preclear_link.$clear_disk."<span id='preclear_".$disk['serial_short']."' style='display:block;'></span>";
 
 				echo "<tr class='toggle-disk'>";
 				if (strpos($disk_name, "dev") === false) {
@@ -439,34 +441,34 @@ switch ($_POST['action']) {
 					$disk_display = ucfirst($disk_display);
 				}
 				if ( $preclearing ) {
-					echo "<td><i class='fa fa-circle orb ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>{$disk_display}</td>";
+					echo "<td><i class='fa fa-circle orb ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>".$disk_display."</td>";
 				} else {
 					echo "<td>";
 					if (strpos($disk_dev, "dev") === false) {
 						$str = "New?name";
-						echo "<i class='fa fa-circle orb ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>";
+						echo "<i class='fa fa-circle ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>";
 					} else {
 						$str = "Device?name";
 						if (! $disk['ssd']) {
 							if (! is_disk_spin($disk['ud_dev'], $disk['running'])) {
 								if ($disk['running']) {
-									echo "<a style='cursor:pointer' class='exec info' onclick='spin_down_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle orb green-orb'></i><span>"._("Click to spin down device")."</span></a>";
+									echo "<a style='cursor:pointer' class='exec info' onclick='spin_down_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle green-orb'></i><span>"._("Click to spin down device")."</span></a>";
 								} else {
-									echo "<a style='cursor:pointer' class='exec info' onclick='spin_up_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle orb grey-orb'></i><span>"._("Click to spin up device")."</span></a>";
+									echo "<a style='cursor:pointer' class='exec info' onclick='spin_up_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle grey-orb'></i><span>"._("Click to spin up device")."</span></a>";
 								}
 							} else {
 								if ($disk['running']) {
-									echo "<i class='fa fa-refresh fa-spin orb green-orb'></i>";
+									echo "<i class='fa fa-refresh fa-spin green-orb'></i>";
 								} else {
-									echo "<i class='fa fa-refresh fa-spin orb grey-orb'></i>";
+									echo "<i class='fa fa-refresh fa-spin grey-orb'></i>";
 								}
 							}
 						} else {
-							echo "<a class='info'><i class='fa fa-circle orb green-orb'></i><span>"._("SSD cannot be spun down")."</span></a>";
+							echo "<a class='info'><i class='fa fa-circle green-orb'></i><span>"._("SSD cannot be spun down")."</span></a>";
 						}
 					}
-					echo ($disk['partitions'][0]['fstype'] == "crypto_LUKS" ? "<i class='fa fa-lock'></i>" : "");
-					echo "<a href='/Main/{$str}={$disk_dev}'><span>".$disk_display."</span></a>";
+					$fs_lock = ($disk['partitions'][0]['fstype'] == "crypto_LUKS") ? "<i class='fa fa-lock orb'></i>" : "";
+					echo "<a href='/Main/".$str."=".$disk_dev."'><span>".$fs_lock.$disk_display."</span></a>";
 					echo "</td>";
 				}
 
@@ -705,7 +707,7 @@ switch ($_POST['action']) {
 						$disk_names[$serial] = $config[$serial]['unassigned_dev'];
 					}
 					$mntpoint		= basename($config[$serial]['mountpoint.1']);
-					$mountpoint		= ($mntpoint) ? " (".$mntpoint.")" : "";
+					$mount_point	= ($mntpoint) ? " (".$mntpoint.")" : "";
 					$disk_dev		= $config[$serial]['unassigned_dev'];
 					$disk_display	= _("none");
 					if ($disk_dev) {
@@ -713,7 +715,12 @@ switch ($_POST['action']) {
 					}
 					$historical[$serial]['display']			= $disk_display;
 					$historical[$serial]['mntpoint']		= $mntpoint;
-					$historical[$serial]['mountpoint']		= $mountpoint;
+					$historical[$serial]['mountpoint']		= $mount_point;
+				}
+
+				/* Add to the share names. */
+				if ($mntpoint) {
+					$share_names[$disk_dev] = $mntpoint;
 				}
 			}
 		}
