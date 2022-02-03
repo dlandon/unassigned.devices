@@ -62,6 +62,9 @@ if (! isset($var)){
 if ( is_file( "plugins/preclear.disk/assets/lib.php" ) ) {
 	require_once( "plugins/preclear.disk/assets/lib.php" );
 	$Preclear = new Preclear;
+} elseif ( is_file( "plugins/".$plugin.".preclear/include/lib.php" ) ) {
+	require_once( "plugins/".$plugin.".preclear/include/lib.php" );
+	$Preclear = new Preclear;
 } else {
 	$Preclear = null;
 }
@@ -636,7 +639,7 @@ function format_disk($dev, $fs, $pass) {
 			}
 		} else {
 			/* Format the disk. */
-			exec(get_format_cmd($device, $fs),escapeshellarg($out), escapeshellarg($return));
+			exec(get_format_cmd($device, $fs), escapeshellarg($out), escapeshellarg($return));
 		}
 
 		/* Finish up the format. */
