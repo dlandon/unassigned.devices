@@ -39,10 +39,11 @@ if ($dev_pos !== false) {
 	}
 }
 
-$remove = [];
+$remove = array();
 
 /* If the DEVNAME is empty, the device is not defined - exit with an error. */
 if (! $DEVNAME) {
+	unassigned_log("rc.unassigned died with no DEVNAME");
 	die("Fail: device not defined.\n");
 }
 
@@ -73,7 +74,9 @@ function unassigned_mount() {
 
 				/* If disk is not set to auto mount, skip to the next disk. */
 				if (! $info['automount'] && ( $DEVNAME == "auto" || $DEVNAME == "autodevices" || isset($_ENV['DEVNAME']) )) {
-					unassigned_log("Disk with ID '{$info['serial']} (".MIscUD::base_device(basename($device)).")' is not set to auto mount.");
+					if ($info['fstype']) {
+						unassigned_log("Disk with ID '{$info['serial']} (".MIscUD::base_device(basename($device)).")' is not set to auto mount.");
+					}
 
 					/* Set sleep timer for this device. */
 					setSleepTime($device);
@@ -277,6 +280,7 @@ function unassigned_mount() {
 	if (isset($_ENV['DEVTYPE']) && ($_ENV['DEVTYPE'] == "partition")) {
 		sleep(1);
 		@touch($paths['hotplug_event']);
+		@file_put_contents($paths['hotplug_event'], "");
 	}
 }
 
@@ -440,6 +444,7 @@ function unassigned_umount() {
 	if (isset($_ENV['DEVTYPE']) && ($_ENV['DEVTYPE'] == "disk")) {
 		sleep(1);
 		@touch($paths['hotplug_event']);
+		@file_put_contents($paths['hotplug_event'], "");
 	}
 }
 
@@ -447,7 +452,9 @@ function unassigned_umount() {
 function unassigned_reload() {
 	global $paths;
 
+echo("here 1\n");
 	if (isset($_ENV['DEVLINKS'])) {
+echo("here 2\n");
 		foreach (explode(" ", $_ENV['DEVLINKS']) as $link) {
 			get_udev_info($link, $_ENV);
 		}
@@ -455,6 +462,7 @@ function unassigned_reload() {
 		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
 		sleep(1);
 		@touch($paths['hotplug_event']);
+		@file_put_contents($paths['hotplug_event'], "");
 	}
 }
 
@@ -466,6 +474,7 @@ function unassigned_hotplug() {
 		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
 		sleep(1);
 		@touch($paths['hotplug_event']);
+		@file_put_contents($paths['hotplug_event'], "");
 	}
 }
 
