@@ -203,7 +203,6 @@ function safe_name($string, $convert_spaces = true) {
 	}
 	$string = htmlentities($string, ENT_QUOTES, 'UTF-8');
 	$string = html_entity_decode($string, ENT_QUOTES, 'UTF-8');
-	$string = preg_replace('/[^A-Za-z0-9\-_] /', '', $string);
 
 	return trim($string);
 }
@@ -724,6 +723,7 @@ function remove_partition($dev, $part) {
 
 /* Remove all disk partitions. */
 function remove_all_partitions($dev) {
+	global $paths;
 
 	$rc = true;
 
@@ -747,14 +747,19 @@ function remove_all_partitions($dev) {
 		/* Remove all partitions - this clears the disk. */
 		shell_exec("/sbin/wipefs -a ".escapeshellarg($device)." 2>&1");
 
+		/* Update udev info. */
+		shell_exec("/sbin/udevadm trigger --action=change ".escapeshellarg($device));
+
+		/* Give the disk time to settle. */
+		sleep(3);
+
 		/* Refresh partition information. */
 		exec("/usr/sbin/partprobe ".escapeshellarg($device));
 
-		/* Give the disk time to settle. */
-		sleep(5);
-
-		/* Update udev info. */
-		shell_exec("/sbin/udevadm trigger --action=change ".escapeshellarg($device));
+		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
+		sleep(1);
+		@touch($paths['hotplug_event']);
+		@file_put_contents($paths['hotplug_event'], "");
 	}
 
 	return $rc;
