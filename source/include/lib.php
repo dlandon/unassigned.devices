@@ -2175,7 +2175,6 @@ function get_partition_info($dev) {
 		/* Set up all disk parameters and status. */
 		$disk['mounted']		= is_mounted($disk['mountpoint'], true);
 		if ($disk['mounted'] && $disk['fstype'] == "btrfs") {
-
 			/* Get the members of a pool if this is a pooled disk. */
 			$pool_devs			= MiscUD::get_pool_devices($disk['mountpoint']);
 
