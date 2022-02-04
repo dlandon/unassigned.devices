@@ -707,7 +707,7 @@ switch ($_POST['action']) {
 						$disk_names[$serial] = $config[$serial]['unassigned_dev'];
 					}
 					$mntpoint		= basename($config[$serial]['mountpoint.1']);
-					$mount_point	= ($mntpoint) ? " (".$mntpoint.")" : "";
+					$mountpoint		= ($mntpoint) ? " (".$mntpoint.")" : "";
 					$disk_dev		= $config[$serial]['unassigned_dev'];
 					$disk_display	= _("none");
 					if ($disk_dev) {
@@ -715,12 +715,7 @@ switch ($_POST['action']) {
 					}
 					$historical[$serial]['display']			= $disk_display;
 					$historical[$serial]['mntpoint']		= $mntpoint;
-					$historical[$serial]['mountpoint']		= $mount_point;
-				}
-
-				/* Add to the share names. */
-				if ($mntpoint) {
-					$share_names[$disk_dev] = $mntpoint;
+					$historical[$serial]['mountpoint']		= $mountpoint;
 				}
 			}
 		}
@@ -905,7 +900,7 @@ switch ($_POST['action']) {
 
 				/* Refresh partition information. */
 				exec("/usr/sbin/partprobe ".escapeshellarg($device));
-	
+
 				/* Update disk info. */
 				shell_exec("/sbin/udevadm trigger --action=change ".escapeshellarg($device));
 			}
@@ -916,6 +911,7 @@ switch ($_POST['action']) {
 		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
 		sleep(1);
 		@touch($paths['hotplug_event']);
+		@file_put_contents($paths['hotplug_event'], "");
 		break;
 
 	case 'format_disk':
