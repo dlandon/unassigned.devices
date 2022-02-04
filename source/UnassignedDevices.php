@@ -910,7 +910,6 @@ switch ($_POST['action']) {
 
 		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
 		sleep(1);
-		@touch($paths['hotplug_event']);
 		@file_put_contents($paths['hotplug_event'], "");
 		break;
 

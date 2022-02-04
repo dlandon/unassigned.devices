@@ -279,7 +279,6 @@ function unassigned_mount() {
 	/* Tell Unraid to update devs.ini file of unassigned devices. */
 	if (isset($_ENV['DEVTYPE']) && ($_ENV['DEVTYPE'] == "partition")) {
 		sleep(1);
-		@touch($paths['hotplug_event']);
 		@file_put_contents($paths['hotplug_event'], "");
 	}
 }
@@ -443,7 +442,6 @@ function unassigned_umount() {
 	/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
 	if (isset($_ENV['DEVTYPE']) && ($_ENV['DEVTYPE'] == "disk")) {
 		sleep(1);
-		@touch($paths['hotplug_event']);
 		@file_put_contents($paths['hotplug_event'], "");
 	}
 }
@@ -452,16 +450,13 @@ function unassigned_umount() {
 function unassigned_reload() {
 	global $paths;
 
-echo("here 1\n");
 	if (isset($_ENV['DEVLINKS'])) {
-echo("here 2\n");
 		foreach (explode(" ", $_ENV['DEVLINKS']) as $link) {
 			get_udev_info($link, $_ENV);
 		}
 
 		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
 		sleep(1);
-		@touch($paths['hotplug_event']);
 		@file_put_contents($paths['hotplug_event'], "");
 	}
 }
@@ -473,7 +468,6 @@ function unassigned_hotplug() {
 	if ($_ENV['DEVTYPE'] == "disk") {
 		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
 		sleep(1);
-		@touch($paths['hotplug_event']);
 		@file_put_contents($paths['hotplug_event'], "");
 	}
 }
