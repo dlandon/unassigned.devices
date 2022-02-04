@@ -1010,13 +1010,13 @@ function is_disk_ssd($dev) {
 #########################################################
 
 /* Is a device mounted? */
-function is_mounted($dev, $dir = false) {
+function is_mounted($dev) {
 
 	$rc = false;
 	if ($dev) {
-		$data	= timed_exec(1, "/sbin/mount");
-		$append	= ($dir) ? " " : " on";
-		$rc		= (strpos($data, $dev.$append) != 0) ? true : false;
+		$data	= timed_exec(1, "/usr/bin/cat /proc/mounts");
+		$data	= str_replace("\\040", " ", $data);
+		$rc		= (strpos($data, $dev) !== false) ? true : false;
 	}
 
 	return $rc;
@@ -1094,7 +1094,7 @@ function do_mount($info) {
 
 	/* Mount a luks encrypted disk device. */
 	} else if ($info['fstype'] == "crypto_LUKS") {
-		if (! is_mounted($info['device']) || ! is_mounted($info['mountpoint'], true)) {
+		if (! is_mounted($info['device']) || ! is_mounted($info['mountpoint'])) {
 			$luks		= basename($info['device']);
 			$discard	= is_disk_ssd($info['luks']) ? "--allow-discards" : "";
 			$cmd		= "luksOpen $discard ".escapeshellarg($info['luks'])." ".escapeshellarg($luks);
@@ -1142,7 +1142,7 @@ function do_mount_local($info) {
 	$dir	= $info['mountpoint'];
 	$fs		= $info['fstype'];
 	$ro		= ($info['read_only'] == 'yes') ? true : false;
-	if (! is_mounted($dev) || ! is_mounted($dir, true)) {
+	if (! is_mounted($dev) || ! is_mounted($dir)) {
 		if ($fs) {
 			@mkdir($dir, 0777, true);
 			if ($fs != "crypto_LUKS") {
@@ -1183,7 +1183,7 @@ function do_mount_local($info) {
 
 			/* Check to see if the device really mounted. */
 			for ($i=0; $i < 5; $i++) {
-				if (is_mounted($dir, true)) {
+				if (is_mounted($dir)) {
 					@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
 
 					unassigned_log("Successfully mounted '".basename($dev)."' on '{$dir}'.");
@@ -1230,7 +1230,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false) {
 	global $paths;
 
 	$rc = false;
-	if ( is_mounted($dev) && is_mounted($dir, true) ) {
+	if ( is_mounted($dev) && is_mounted($dir) ) {
 		unassigned_log("Synching file system on '{$dir}'.");
 		exec("/bin/sync -f ".escapeshellarg($dir));
 		$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : ($nfs ? " -l" : ""))." ".escapeshellarg($dev)." 2>&1";
@@ -1240,7 +1240,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false) {
 
 		/* Check to see if the device really unmounted. */
 		for ($i=0; $i < 5; $i++) {
-			if ((! is_mounted($dev)) && (! is_mounted($dir, true))) {
+			if ((! is_mounted($dev)) && (! is_mounted($dir))) {
 				if (is_dir($dir)) {
 					@rmdir($dir);
 					$link = $paths['usb_mountpoint']."/".basename($dir);
@@ -1640,13 +1640,13 @@ function get_samba_mounts() {
 			$mount['smb_share']		= is_samba_share($mount['name']);
 			if (! $mount['mountpoint']) {
 				$mount['mountpoint'] = "{$paths['usb_mountpoint']}/{$mount['ip']}_{$path}";
-				if (! $mount['mounted'] || ! is_mounted($mount['mountpoint'], true) || is_link($mount['mountpoint'])) {
+				if (! $mount['mounted'] || ! is_mounted($mount['mountpoint']) || is_link($mount['mountpoint'])) {
 					$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$mount['ip']}_{$path}";
 				}
 			} else {
 				$path = basename($mount['mountpoint']);
 				$mount['mountpoint'] = "{$paths['usb_mountpoint']}/{$path}";
-				if (! $mount['mounted'] || ! is_mounted($mount['mountpoint'], true) || is_link($mount['mountpoint'])) {
+				if (! $mount['mounted'] || ! is_mounted($mount['mountpoint']) || is_link($mount['mountpoint'])) {
 					$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$path}";
 				}
 			}
@@ -1697,7 +1697,7 @@ function do_mount_samba($info) {
 		$dir		= $info['mountpoint'];
 		$fs			= $info['fstype'];
 		$dev		= ($fs == "cifs") ? "//".$info['ip']."/".$info['path'] : $info['device'];
-		if (! is_mounted($dev) || ! is_mounted($dir, true)) {
+		if (! is_mounted($dev) || ! is_mounted($dir)) {
 			@mkdir($dir, 0777, true);
 			if ($fs == "nfs") {
 				if ($var['shareNFSEnabled'] == "yes") {
@@ -1794,7 +1794,7 @@ function do_mount_samba($info) {
 			}
 
 			/* Did the share successfully mount? */
-			if (is_mounted($dev) && is_mounted($dir, true)) {
+			if (is_mounted($dev) && is_mounted($dir)) {
 				@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
 				$link = $paths['usb_mountpoint']."/";
 				if ((get_config("Config", "symlinks") == "yes" ) && (dirname($dir) == $paths['remote_mountpoint'])) {
@@ -1891,11 +1891,11 @@ function get_iso_mounts() {
 		foreach ($iso_mounts as $device => $mount) {
 			$mount['device']		= $device;
 			$mount['fstype']		= "loop";
-			$mount['mounted']		= is_mounted($mount['device']);
 			$mount['automount'] = is_iso_automount($mount['device']);
 			if (! $mount["mountpoint"]) {
 				$mount["mountpoint"] = preg_replace("%\s+%", "_", "{$paths['usb_mountpoint']}/{$mount['share']}");
 			}
+			$mount['mounted']		= is_mounted($mount['mountpoint']);
 
 			/* Target is set to the mount point when the device is mounted. */
 			$mount['target']		= $mount['mounted'] ? $mount['mountpoint'] : "";
@@ -1926,12 +1926,12 @@ function do_mount_iso($info) {
 	$dev = $info['device'];
 	$dir = $info['mountpoint'];
 	if (is_file($info['file'])) {
-		if (! is_mounted($dev) || ! is_mounted($dir, true)) {
+		if (! is_mounted($dir)) {
 			@mkdir($dir, 0777, true);
 			$cmd = "/sbin/mount -ro loop ".escapeshellarg($dev)." ".escapeshellarg($dir);
 			unassigned_log("Mount iso command: mount -ro loop '{$dev}' '{$dir}'");
 			$o = timed_exec(15, $cmd." 2>&1");
-			if (is_mounted($dev) && is_mounted($dir, true)) {
+			if (is_mounted($dir)) {
 				unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
 
 				$rc = true;
@@ -2173,7 +2173,7 @@ function get_partition_info($dev) {
 		}
 
 		/* Set up all disk parameters and status. */
-		$disk['mounted']		= is_mounted($disk['mountpoint'], true);
+		$disk['mounted']		= is_mounted($disk['mountpoint']);
 		if ($disk['mounted'] && $disk['fstype'] == "btrfs") {
 			/* Get the members of a pool if this is a pooled disk. */
 			$pool_devs			= MiscUD::get_pool_devices($disk['mountpoint']);

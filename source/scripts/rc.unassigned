@@ -409,7 +409,7 @@ function unassigned_umount() {
 				unassigned_log("ISO File share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), 1);
 
 				/* If iso file is mounted, unmlount it. */
-				if ( is_mounted($info['device']) ) {
+				if ( is_mounted($info['mountpoint']) ) {
 					/* Create mounting status file. */
 					addFile(sprintf($paths['unmounting'], basename($info['device'])));
 
@@ -421,7 +421,7 @@ function unassigned_umount() {
 					unassigned_log("Unmounting ISO File '{$info['device']}'...");
 
 					/* Unmount the iso file. */
-					if ( do_unmount($info['device'], $info['mountpoint'], $force) ) {
+					if ( do_unmount($info['mountpoint'], $info['mountpoint'], $force) ) {
 						/* Remove the smb and nfs shares. */
 						if ( rm_smb_share($info['mountpoint']) && rm_nfs_share($info['mountpoint']) ) {
 							/* Execute the iso file script with the remove action. */
