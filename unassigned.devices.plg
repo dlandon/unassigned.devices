@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.02.04">
+<!ENTITY version	"2022.02.04a">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"fba474eb035594f002cbf2d191ded370">
+<!ENTITY MD5		"8b501b4ea40a7961ff97a2b6ec2d1520">
 ]>
 
 <PLUGIN name="&name;"
@@ -26,6 +26,8 @@
 - Fix: Minor GUI changes.
 - Fix: Change message about needing credentials to list shares when adding a SMB share.
 - Fix: Only query the btrfs status on pool disks when they are first mounted.
+- Fix: Change device mounted check to 'cat /proc/mounts' instead of the 'mount' command.
+- Fix: Remove the hotplug trigger in disks_mounted event.  Seems to be causing issues with udev.
 
 ###2022.01.28
 - Add: Link to install Unassigned Devices plus in Unassigned Devices Settings.  This will take you directly to CA to install the plugin.
@@ -1840,7 +1842,6 @@ if [ -f /var/log/plugins/&name;-plus.plg ] ; then
 	plugin remove &name;-plus.plg
 	rm -rf /boot/config/plugins/&name;-plus.plg
 fi
-
 
 echo ""
 echo "-----------------------------------------------------------"
