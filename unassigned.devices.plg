@@ -1841,11 +1841,6 @@ if [ -f /var/log/plugins/&name;-plus.plg ] ; then
 	rm -rf /boot/config/plugins/&name;-plus.plg
 fi
 
-# Remove Unassigned Devices Preclear plugin
-if [ -f /var/log/plugins/&name;.preclear.plg ] ; then
-	plugin remove &name;.preclear.plg
-	rm -rf /boot/config/plugins/&name;.preclerar.plg
-fi
 
 echo ""
 echo "-----------------------------------------------------------"
