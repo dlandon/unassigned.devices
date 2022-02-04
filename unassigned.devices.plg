@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.01.28">
+<!ENTITY version	"2022.02.04">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"2d07920a3e04cb50ec9138b8fced218f">
+<!ENTITY MD5		"fba474eb035594f002cbf2d191ded370">
 ]>
 
 <PLUGIN name="&name;"
@@ -21,6 +21,13 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Changes to support preclear plugin better.
+- Add: Historical devices to the list of share names to check for duplicates.
+- Fix: Minor GUI changes.
+- Fix: Change message about needing credentials to list shares when adding a SMB share.
+- Fix: Only query the btrfs status on pool disks when they are first mounted.
+
+###2022.01.28
 - Add: Link to install Unassigned Devices plus in Unassigned Devices Settings.  This will take you directly to CA to install the plugin.
 - Fix: Many logging issues like incorrect log file when executing SMB/NFS and ISO device scripts, and periodically a blank log file name.
 - Fix: Logs getting cleared on every device script execution.  Only 'ADD' event will clear the log now.  Logs won't continue to grow.  If you want to keep a log, download it.
@@ -1591,13 +1598,6 @@ Unassigned devices background start script.
 # Copy configuration files to tmp file system.
 /usr/local/emhttp/plugins/&name;/scripts/copy_config.sh 2>/dev/null
 
-# Kill ud_diskio task.
-kill `cat /var/run/ud_diskio.pid` 2>/dev/null
-rm -f /var/run/ud_diskio.pid 2>/dev/null
-
-# Start the background diskio update script
-/usr/local/emhttp/plugins/&name;/scripts/ud_diskio 2>/dev/null
-
 # Remove the background start script.
 rm -f /tmp/start_unassigned_devices 2>/dev/null
 </INLINE>
@@ -1839,6 +1839,12 @@ rm -rf /boot/config/plugins/&name;/&name;-&version;.tgz
 if [ -f /var/log/plugins/&name;-plus.plg ] ; then
 	plugin remove &name;-plus.plg
 	rm -rf /boot/config/plugins/&name;-plus.plg
+fi
+
+# Remove Unassigned Devices Preclear plugin
+if [ -f /var/log/plugins/&name;.preclear.plg ] ; then
+	plugin remove &name;.preclear.plg
+	rm -rf /boot/config/plugins/&name;.preclerar.plg
 fi
 
 echo ""
