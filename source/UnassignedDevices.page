@@ -1075,7 +1075,8 @@ $ud_reload = "UD_reload";
 		<div data-question-content>
 			<div class="swal-content">
 				<input type="text" class="swal-content__input" name="USER" autocomplete="off" placeholder="<?=_('Username');?>">
-				<p><?=_('Enter the Username if the share is password protected');?>. <?=_('You will need to enter credentials for Windows shares just to list them');?>.</p>
+				<p><?=_('Enter the Username if the share is password protected');?>.</p>
+				<p><?=_('You will need to enter credentials to list the shares');?>.</p>
 			</div>
 		</div>
 	</div>
@@ -1086,7 +1087,8 @@ $ud_reload = "UD_reload";
 		<div data-question-content>
 			<div class="swal-content">
 				<input type="password" class="swal-content__input" name="PASS" autocomplete="new-password" placeholder="<?=_('Password');?>">
-				<p><?=_('Enter the Password if the share is password protected');?>. <?=_('You will need to enter credentials for Windows shares just to list them');?>.</p>
+				<p><?=_('Enter the Password if the share is password protected');?>.</p>
+				<p><?=_('You will need to enter credentials to list the shares');?>.</p>
 			</div>
 		</div>
 	</div>
