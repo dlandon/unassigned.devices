@@ -35,6 +35,7 @@ $paths = [	"smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"df_status"			=> "/var/state/{$plugin}/df_status.json",
 			"disk_names"		=> "/var/state/{$plugin}/disk_names.json",
 			"share_names"		=> "/var/state/{$plugin}/share_names.json",
+			"pool_state"		=> "/var/state/{$plugin}/pool_state.json",
 			"unmounting"		=> "/var/state/{$plugin}/unmounting_%s.state",
 			"mounting"			=> "/var/state/{$plugin}/mounting_%s.state",
 			"formatting"		=> "/var/state/{$plugin}/formatting_%s.state"
@@ -118,8 +119,20 @@ class MiscUD
 
 	/* Get array of pool devices on a mount point. */
 	public function get_pool_devices($mountpoint) {
-		$s	= shell_exec("/sbin/btrfs fi show ".escapeshellarg($mountpoint)." | /bin/grep 'path' | /bin/awk '{print $8}'");
-		$rc	= explode("\n", $s);
+		global $paths;
+
+		$pool_state	= Misc::get_json($paths['pool_state']);
+		if (! count($pool_state[$mountpoint])) {
+			/* Get the brfs pool status from the mountpoint. */
+			$s	= shell_exec("/sbin/btrfs fi show ".escapeshellarg($mountpoint)." | /bin/grep 'path' | /bin/awk '{print $8}'");
+			$rc	= explode("\n", $s);
+			$pool_state[$mountpoint] = array_filter($rc);
+			MiscUD::save_json($paths['pool_state'], $pool_state);
+		} else {
+			/* Get the pool status from the pool_state. */
+			$rc = $pool_state[$mountpoint];
+		}
+
 		return array_filter($rc);
 	}
 }
@@ -758,7 +771,6 @@ function remove_all_partitions($dev) {
 
 		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
 		sleep(1);
-		@touch($paths['hotplug_event']);
 		@file_put_contents($paths['hotplug_event'], "");
 	}
 
@@ -1191,6 +1203,13 @@ function do_mount_local($info) {
 				unassigned_log("Mount of '".basename($dev)."' failed: '{$o}'");
 				@rmdir($dir);
 			} else {
+				if ($info['fstype'] == "btrfs") {
+					/* Update the btrfs state file for single scan for pool devices. */
+					$pool_state			= MiscUD::get_json($paths['pool_state']);
+					$pool_state[$dir]	= array();
+					MiscUD::save_json($paths['pool_state'], $pool_state);
+				}
+
 				/* Ntfs is mounted but is most likely mounted r/o. Display the mount command warning. */
 				if ($o && ($fs == "ntfs")) {
 					unassigned_log("Mount warning: {$o}.");
@@ -2156,6 +2175,7 @@ function get_partition_info($dev) {
 		/* Set up all disk parameters and status. */
 		$disk['mounted']		= is_mounted($disk['mountpoint'], true);
 		if ($disk['mounted'] && $disk['fstype'] == "btrfs") {
+
 			/* Get the members of a pool if this is a pooled disk. */
 			$pool_devs			= MiscUD::get_pool_devices($disk['mountpoint']);
 
