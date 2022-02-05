@@ -123,6 +123,8 @@ class MiscUD
 
 		$pool_state	= MiscUD::get_json($paths['pool_state']);
 		if (! count($pool_state[$mountpoint])) {
+			unassigned_log("Get Disk Pool members on path '".$mountpoint."'.", 1);
+
 			/* Get the brfs pool status from the mountpoint. */
 			$s	= shell_exec("/sbin/btrfs fi show ".escapeshellarg($mountpoint)." | /bin/grep 'path' | /bin/awk '{print $8}'");
 			$rc	= explode("\n", $s);
@@ -768,6 +770,8 @@ function remove_all_partitions($dev) {
 
 		/* Refresh partition information. */
 		exec("/usr/sbin/partprobe ".escapeshellarg($device));
+
+		unassigned_log("Remove all Disk partitions initiated a Hotplug event.", 1);
 
 		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
 		sleep(1);
