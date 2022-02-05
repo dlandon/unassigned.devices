@@ -363,7 +363,7 @@ switch ($_POST['action']) {
 			/* Get all updated unassigned disks and update devX designations for newly found unassigned devices. */
 			$all_disks = get_all_disks_info();
 			foreach ($all_disks as $disk) {
-				$unassigned		= $config[$disk['serial']]['unassigned_dev'];
+				$unassigned		= get_config($disk['serial'], "unassigned_dev");
 				if ((! $unassigned) && ($disk['device'] != $disk['ud_dev'])) {
 					set_config($disk['serial'], "unassigned_dev", $disk['ud_dev']);					
 				} elseif (($unassigned) && ((strpos($unassigned, "dev") !== false || strpos($unassigned, "sd") !== false) && ($unassigned != $disk['ud_dev']))) {
@@ -910,7 +910,7 @@ switch ($_POST['action']) {
 
 		unassigned_log("Refreshed Disks and Configuration.");
 
-		unassigned_log("Refreshing Configuration initiated a Hotplug event.", 1);
+		unassigned_log("Rescan Disks: initiated a Hotplug event.", 1);
 
 		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
 		sleep(1);

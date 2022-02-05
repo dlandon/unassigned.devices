@@ -47,9 +47,7 @@ $disks		= @parse_ini_file("$docroot/state/disks.ini", true);
 
 /* Set the log level for debugging. */
 /* 0 - normal logging */
-$config_file	= $paths['config_file'];
-$config			= @parse_ini_file($config_file, true);
-$DEBUG_LEVEL	= isset($config['Config']['debug_level']) ? (int) $config['Config']['debug_level'] : 0;
+$DEBUG_LEVEL	= (int) get_config("Config", "debug_level");
 
 /* Read Unraid variables file. Used to determine disks not assigned to the array and other array parameters. */
 if (! isset($var)){
@@ -123,7 +121,7 @@ class MiscUD
 
 		$pool_state	= MiscUD::get_json($paths['pool_state']);
 		if (! count($pool_state[$mountpoint])) {
-			unassigned_log("Get Disk Pool members on path '".$mountpoint."'.", 1);
+			unassigned_log("Get Disk Pool members on mountpoint '".$mountpoint."'.", 1);
 
 			/* Get the brfs pool status from the mountpoint. */
 			$s	= shell_exec("/sbin/btrfs fi show ".escapeshellarg($mountpoint)." | /bin/grep 'path' | /bin/awk '{print $8}'");

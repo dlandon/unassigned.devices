@@ -275,14 +275,6 @@ function unassigned_mount() {
 			}
 		}
 	}
-
-	/* Tell Unraid to update devs.ini file of unassigned devices. */
-	if (isset($_ENV['DEVTYPE']) && ($_ENV['DEVTYPE'] == "partition")) {
-		unassigned_log("Disk added initiated a Hotplug event.", 1);
-
-		sleep(1);
-		@file_put_contents($paths['hotplug_event'], "");
-	}
 }
 
 /* Unmount devices. */
@@ -456,7 +448,7 @@ function unassigned_reload() {
 		}
 	}
 
-	unassigned_log("A partition change or disk removal initiated a Hotplug event.", 1);
+	unassigned_log("Reload: A udev 'remove' initiated a Hotplug event.", 1);
 
 	/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
 	sleep(1);
@@ -469,7 +461,7 @@ function unassigned_hotplug() {
 
 	if ($_ENV['DEVTYPE'] == "disk") {
 
-		unassigned_log("Disk added with no partition initiated a Hotplug event.", 1);
+		unassigned_log("Hotplug: A udev 'change' or 'add' initiated a Hotplug event.", 1);
 
 		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
 		sleep(1);
