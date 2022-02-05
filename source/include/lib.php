@@ -121,7 +121,7 @@ class MiscUD
 	public function get_pool_devices($mountpoint) {
 		global $paths;
 
-		$pool_state	= Misc::get_json($paths['pool_state']);
+		$pool_state	= MiscUD::get_json($paths['pool_state']);
 		if (! count($pool_state[$mountpoint])) {
 			/* Get the brfs pool status from the mountpoint. */
 			$s	= shell_exec("/sbin/btrfs fi show ".escapeshellarg($mountpoint)." | /bin/grep 'path' | /bin/awk '{print $8}'");
