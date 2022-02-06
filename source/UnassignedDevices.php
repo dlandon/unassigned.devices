@@ -203,9 +203,12 @@ function render_partition($disk, $partition, $disk_line = false) {
 			if (! isset($_COOKIE['diskio'])) {
 				$out[] = "<td>".my_number($disk['reads'])."</td>";
 				$out[] = "<td>".my_number($disk['writes'])."</td>";
-			} else {
+			} else if ((! $Preclear) || ($mounted))  {
 				$out[] = "<td>".my_diskio($disk['read_rate'])."</td>";
 				$out[] = "<td>".my_diskio($disk['write_rate'])."</td>";
+			} else {
+				$out[] = "<td>".my_diskio(0)."</td>";
+				$out[] = "<td>".my_diskio(0)."</td>";
 			}
 		} else {
 			$out[] = "<td></td><td></td><td></td>";
@@ -488,9 +491,12 @@ switch ($_POST['action']) {
 					if (! isset($_COOKIE['diskio'])) {
 						$reads		= my_number($rw[0]);
 						$writes		= my_number($rw[1]);
-					} else {
+					} else if ((! $Preclear) || ($mounted))  {
 						$reads		= my_diskio($rw[2]);
 						$writes		= my_diskio($rw[3]);
+					} else {
+						$reads		= my_diskio(0);
+						$writes		= my_diskio(0);
 					}
 				}
 
