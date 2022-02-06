@@ -163,9 +163,9 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$preclearing	= $Preclear ? $Preclear->isRunning(basename(MiscUD::base_device($partition['device']))) : false;
 		$is_preclearing = shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg(MiscUD::base_device($partition['device']))." | /bin/grep -v 'grep'") != "" ? true : false;
 		$preclearing	= $preclearing || $is_preclearing;
-		$rm_partition = (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && ! $is_mounting && ! $disk['partitions'][0]['pass_through'] && ! $disk['array_disk'] && (! $preclearing)) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$partition['serial']}\",\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i><span>"._("Remove Partition")."</span></a>" : "";
-		$mpoint = "<span>{$fscheck}";
-		$mount_point = basename($partition['mountpoint']);
+		$rm_partition	= (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled" && ! $is_mounting && ! $disk['partitions'][0]['pass_through'] && ! $disk['array_disk'] && (! $preclearing)) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$partition['serial']}\",\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i><span>"._("Remove Partition")."</span></a>" : "";
+		$mpoint			= "<span>{$fscheck}";
+		$mount_point	= basename($partition['mountpoint']);
 
 		/* Add change mount point or browse disk share icon if disk is mounted. */
 		if ($mounted) {
@@ -203,7 +203,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 			if (! isset($_COOKIE['diskio'])) {
 				$out[] = "<td>".my_number($disk['reads'])."</td>";
 				$out[] = "<td>".my_number($disk['writes'])."</td>";
-			} else if ((! $Preclear) || ($mounted))  {
+			} else if ((! $Preclear) || ($Preclear && $mounted))  {
 				$out[] = "<td>".my_diskio($disk['read_rate'])."</td>";
 				$out[] = "<td>".my_diskio($disk['write_rate'])."</td>";
 			} else {
@@ -491,7 +491,7 @@ switch ($_POST['action']) {
 					if (! isset($_COOKIE['diskio'])) {
 						$reads		= my_number($rw[0]);
 						$writes		= my_number($rw[1]);
-					} else if ((! $Preclear) || ($mounted))  {
+					} else if ((! $Preclear) || ($Preclear && $mounted))  {
 						$reads		= my_diskio($rw[2]);
 						$writes		= my_diskio($rw[3]);
 					} else {
