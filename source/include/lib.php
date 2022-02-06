@@ -827,15 +827,15 @@ function luks_fs_type($dev) {
 
 /* Get device configuration parameter. */
 function get_config($serial, $variable) {
-	$config_file = $GLOBALS["paths"]["config_file"];
-	$config = @parse_ini_file($config_file, true);
+	$config_file	= $GLOBALS["paths"]["config_file"];
+	$config			= @parse_ini_file($config_file, true);
 	return (isset($config[$serial][$variable])) ? html_entity_decode($config[$serial][$variable], ENT_COMPAT) : false;
 }
 
 /* Set device configuration parameter. */
 function set_config($serial, $variable, $value) {
-	$config_file = $GLOBALS["paths"]["config_file"];
-	$config = @parse_ini_file($config_file, true);
+	$config_file	= $GLOBALS["paths"]["config_file"];
+	$config			= @parse_ini_file($config_file, true);
 	$config[$serial][$variable] = htmlentities($value, ENT_COMPAT);
 	save_ini_file($config_file, $config);
 	return (isset($config[$serial][$variable])) ? $config[$serial][$variable] : false;
@@ -863,8 +863,8 @@ function is_pass_through($serial) {
 
 /* Toggle auto mount on/off. */
 function toggle_automount($serial, $status) {
-	$config_file = $GLOBALS["paths"]["config_file"];
-	$config = @parse_ini_file($config_file, true);
+	$config_file	= $GLOBALS["paths"]["config_file"];
+	$config			= @parse_ini_file($config_file, true);
 	$config[$serial]["automount"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
 	return ($config[$serial]["automount"] == "yes") ? 'true' : 'false';
@@ -872,8 +872,8 @@ function toggle_automount($serial, $status) {
 
 /* Toggle read only on/off. */
 function toggle_read_only($serial, $status) {
-	$config_file = $GLOBALS["paths"]["config_file"];
-	$config = @parse_ini_file($config_file, true);
+	$config_file	= $GLOBALS["paths"]["config_file"];
+	$config			= @parse_ini_file($config_file, true);
 	$config[$serial]["read_only"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
 	return ($config[$serial]["read_only"] == "yes") ? 'true' : 'false';
@@ -881,8 +881,8 @@ function toggle_read_only($serial, $status) {
 
 /* Toggle pass through on/off. */
 function toggle_pass_through($serial, $status) {
-	$config_file = $GLOBALS["paths"]["config_file"];
-	$config = @parse_ini_file($config_file, true);
+	$config_file	= $GLOBALS["paths"]["config_file"];
+	$config			= @parse_ini_file($config_file, true);
 	$config[$serial]["pass_through"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
 	return ($config[$serial]["pass_through"] == "yes") ? 'true' : 'false';
@@ -1235,8 +1235,10 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false) {
 	if ( is_mounted($dev) && is_mounted($dir) ) {
 		unassigned_log("Synching file system on '{$dir}'.");
 		exec("/bin/sync -f ".escapeshellarg($dir));
+
 		$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : ($nfs ? " -l" : ""))." ".escapeshellarg($dev)." 2>&1";
 		unassigned_log("Unmount cmd: {$cmd}");
+
 		$timeout = ($smb || $nfs) ? ($force ? 30 : 10) : 90;
 		$o = timed_exec($timeout, $cmd);
 
@@ -1281,7 +1283,7 @@ function config_shared($serial, $part, $usb = false) {
 
 /* Toggle samba share on/off. */
 function toggle_share($serial, $part, $status) {
-	$new = ($status == "true") ? "yes" : "no";
+	$new 		= ($status == "true") ? "yes" : "no";
 	set_config($serial, "share.{$part}", $new);
 	return ($new == 'yes') ? true : false;
 }
@@ -1551,15 +1553,15 @@ function reload_shares() {
 
 /* Get samba mount configuration parameter. */
 function get_samba_config($source, $variable) {
-	$config_file = $GLOBALS["paths"]["samba_mount"];
-	$config = @parse_ini_file($config_file, true, INI_SCANNER_RAW);
+	$config_file	= $GLOBALS["paths"]["samba_mount"];
+	$config 		= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
 	return (isset($config[$source][$variable])) ? $config[$source][$variable] : false;
 }
 
 /* Set samba mount configuration parameter. */
 function set_samba_config($source, $variable, $value) {
-	$config_file = $GLOBALS["paths"]["samba_mount"];
-	$config = @parse_ini_file($config_file, true);
+	$config_file	= $GLOBALS["paths"]["samba_mount"];
+	$config			= @parse_ini_file($config_file, true);
 	$config[$source][$variable] = $value;
 	save_ini_file($config_file, $config);
 	return (isset($config[$source][$variable])) ? $config[$source][$variable] : false;
@@ -1567,19 +1569,19 @@ function set_samba_config($source, $variable, $value) {
 
 /* Encrypt passwords. */
 function encrypt_data($data) {
-	$key = get_config("Config", "key");
+	$key	= get_config("Config", "key");
 	if ((! $key) || strlen($key) != 32) {
 		$key = substr(base64_encode(openssl_random_pseudo_bytes(32)), 0, 32);
 		set_config("Config", "key", $key);
 	}
-	$iv = get_config("Config", "iv");
+	$iv		= get_config("Config", "iv");
 	if ((! $iv) || strlen($iv) != 16) {
 		$iv = substr(base64_encode(openssl_random_pseudo_bytes(16)), 0, 16);
 		set_config("Config", "iv", $iv);
 	}
 
-	$value = openssl_encrypt($data, 'aes256', $key, $options=0, $iv);
-	$value = str_replace("\n", "", $value);
+	$value	= openssl_encrypt($data, 'aes256', $key, $options=0, $iv);
+	$value	= str_replace("\n", "", $value);
 
 	return $value;
 }
@@ -1602,13 +1604,13 @@ function decrypt_data($data) {
 
 /* Is the samba mount set for auto mount? */
 function is_samba_automount($serial) {
-	$auto = get_samba_config($serial, "automount");
+	$auto	= get_samba_config($serial, "automount");
 	return ( ($auto) ? ( ($auto == "yes") ? true : false ) : false);
 }
 
 /* Is the samba mount set to share? */
 function is_samba_share($serial) {
-	$smb_share = get_samba_config($serial, "smb_share");
+	$smb_share	= get_samba_config($serial, "smb_share");
 	return ( ($smb_share) ? ( ($smb_share == "yes") ? true : false ) : true);
 }
 
@@ -1617,8 +1619,8 @@ function get_samba_mounts() {
 	global $paths;
 
 	$o = array();
-	$config_file = $paths['samba_mount'];
-	$samba_mounts = @parse_ini_file($config_file, true);
+	$config_file	= $paths['samba_mount'];
+	$samba_mounts	= @parse_ini_file($config_file, true);
 	if (is_array($samba_mounts)) {
 		ksort($samba_mounts, SORT_NATURAL);
 		foreach ($samba_mounts as $device => $mount) {
@@ -1874,7 +1876,7 @@ function set_iso_config($source, $variable, $value) {
 
 /* Is the iso file set to auto mount? */
 function is_iso_automount($serial) {
-	$auto = get_iso_config($serial, "automount");
+	$auto			= get_iso_config($serial, "automount");
 	return ( ($auto) ? ( ($auto == "yes") ? true : false ) : false);
 }
 
