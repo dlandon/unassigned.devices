@@ -47,6 +47,7 @@ $disks		= @parse_ini_file("$docroot/state/disks.ini", true);
 
 /* Set the log level for debugging. */
 /* 0 - normal logging */
+/* 1 - udev and disk discovery logging */
 $DEBUG_LEVEL	= (int) get_config("Config", "debug_level");
 
 /* Read Unraid variables file. Used to determine disks not assigned to the array and other array parameters. */

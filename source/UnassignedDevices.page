@@ -564,7 +564,7 @@ $ud_reload = "UD_reload";
 > You can spin a disk up or down by clicking on the disk ball <i class='fa fa-circle orb green-orb'></i>or <i class='fa fa-circle orb grey-orb'></i>indicator.  Applies to version 6.9 RC2 and later only.
 :end
 
-<div id="usb_devices_list">
+<div id='usb_devices_list'>
 </div>
 
 :unassigned_devices_general_help_plug:
