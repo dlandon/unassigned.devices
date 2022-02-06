@@ -127,10 +127,8 @@ function unassigned_mount() {
 						/* Mount the disk. */
 						if (do_mount( $info )) 
 						{
-							$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV) : get_udev_info($device, null);
-
 							/* Add smb and nfs shares for this device. */
-							if (config_shared( $info['serial'], $info['part'], $attrs['ID_BUS'] == "usb")) {
+							if ($info['shared']) {
 								add_smb_share($info['mountpoint']);
 								add_nfs_share($info['mountpoint']);
 							}
@@ -328,7 +326,7 @@ function unassigned_umount() {
 							unassigned_log("Unmounting partition '".basename($info['device'])."' at mountpoint '{$info['mountpoint']}'...");
 
 							/* Unmount the device. */
-							if ( do_unmount($info['device'], $info['mountpoint']) ) {
+							if (do_unmount($info['device'], $info['mountpoint'])) {
 								if ($info['fstype'] == "crypto_LUKS" ) {
 									shell_exec("/sbin/cryptsetup luksClose ".basename($info['device']));
 								}
