@@ -843,16 +843,16 @@ function set_config($serial, $variable, $value) {
 
 /* Is device set to auto mount? */
 function is_automount($serial, $usb = false) {
-	$auto = get_config($serial, "automount");
-	$auto_usb = get_config("Config", "automount_usb");
-	$pass_through = get_config($serial, "pass_through");
-	return ( (($pass_through != "yes") && ($auto == "yes")) || ($usb && $auto_usb == "yes" && (! $auto)) ) ? true : false;
+	$auto			= get_config($serial, "automount");
+	$auto_usb		= get_config("Config", "automount_usb");
+	$pass_through	= get_config($serial, "pass_through");
+	return ( (($pass_through != "yes") && (($auto == "yes") || ($usb && $auto_usb == "yes"))) ) ? true : false;
 }
 
 /* Is device set to mount read only? */
 function is_read_only($serial) {
-	$read_only = get_config($serial, "read_only");
-	$pass_through = get_config($serial, "pass_through");
+	$read_only		= get_config($serial, "read_only");
+	$pass_through	= get_config($serial, "pass_through");
 	return ( $pass_through != "yes" && $read_only == "yes" ) ? true : false;
 }
 
@@ -1274,9 +1274,9 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false) {
 
 /* Is the samba share on? */
 function config_shared($serial, $part, $usb = false) {
-	$share = get_config($serial, "share.{$part}");
-	$auto_usb = get_config("Config", "automount_usb");
-	return (($share == "yes") || ($usb && $auto_usb == "yes" && (! $share))) ? true : false; 
+	$share		= get_config($serial, "share.{$part}");
+	$auto_usb	= get_config("Config", "automount_usb");
+	return (($share == "yes") || ($usb && $auto_usb == "yes")) ? true : false; 
 }
 
 /* Toggle samba share on/off. */
@@ -1489,8 +1489,7 @@ function remove_shares() {
 			$info = get_partition_info($p);
 			if ( $info['mounted'] ) {
 				$device = $disk['device'];
-				$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV) : get_udev_info($device, null);
-				if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'], "usb"))) {
+				if ($info['shared']) {
 					rm_smb_share($info['target']);
 					rm_nfs_share($info['target']);
 				}
@@ -1522,8 +1521,7 @@ function reload_shares() {
 			$info = get_partition_info($p);
 			if ( $info['mounted'] ) {
 				$device = $disk['device'];
-				$attrs = (isset($_ENV['DEVTYPE'])) ? get_udev_info($device, $_ENV) : get_udev_info($device, null);
-				if (config_shared( $info['serial'], $info['part'], strpos($attrs['DEVPATH'], "usb"))) {
+				if ($info['shared']) {
 					add_smb_share($info['mountpoint']);
 					add_nfs_share($info['mountpoint']);
 				}
@@ -2065,6 +2063,8 @@ function get_udev_info($dev, $udev = null) {
 	$state	= is_file($paths['state']) ? @parse_ini_file($paths['state'], true, INI_SCANNER_RAW) : array();
 	$device	= safe_name($dev);
 	if ($udev) {
+		unassigned_log("Udev: Update udev info for ".$dev.".", 1);
+
 		$state[$device]= $udev;
 		save_ini_file($paths['state'], $state);
 		@copy($paths['state'], $paths['diag_state']."-");
@@ -2207,7 +2207,7 @@ function get_partition_info($dev) {
 		$disk['command_bg']		= get_config($disk['serial'], "command_bg.{$disk['part']}");
 		$disk['prog_name']		= basename($disk['command'], ".sh");
 		$disk['logfile']		= ($disk['prog_name']) ? $paths['device_log'].$disk['prog_name'].".log" : "";
-	
+
 		return $disk;
 	}
 }
