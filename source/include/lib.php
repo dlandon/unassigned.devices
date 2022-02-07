@@ -10,8 +10,8 @@
  * all copies or substantial portions of the Software.
  */
 
-set_error_handler("log_error");
-set_exception_handler( "log_exception" );
+set_error_handler("unassigned_log_error");
+set_exception_handler( "unassigned_log_exception" );
 
 $plugin = "unassigned.devices";
 $paths = [	"smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
@@ -77,8 +77,7 @@ class MiscUD
 {
 	/* Save contect to a json file. */
 	public function save_json($file, $content) {
-		@file_put_contents($file."-", json_encode($content, JSON_PRETTY_PRINT));
-		@rename($file."-", $file);
+		@file_put_contents($file, json_encode($content, JSON_PRETTY_PRINT));
 	}
 
 	/* Get content from a json file. */
@@ -178,7 +177,7 @@ function save_ini_file($file, $array, $save_config = true) {
 }
 
 /* Log program error. */
-function log_error($errno, $errstr, $errfile, $errline)
+function unassigned_log_error($errno, $errstr, $errfile, $errline)
 {
 	switch($errno){
 	case E_ERROR:
@@ -231,7 +230,7 @@ function log_error($errno, $errstr, $errfile, $errline)
 }
 
 /* Log program exception. */
-function log_exception( $e )
+function unassigned_log_exception( $e )
 {
 	unassigned_log("PHP Exception: {$e->getMessage()} in {$e->getFile()} on line {$e->getLine()}");
 }
@@ -1087,6 +1086,19 @@ function is_mounted($dev) {
 	return $rc;
 }
 
+/* Is a device mounted read only? */
+function is_mounted_read_only($dev) {
+
+	$rc = false;
+	if ($dev) {
+		$data	= timed_exec(1, "/usr/bin/cat /proc/mounts|sort | awk '{print $2 \",\" toupper(substr($4,0,2))}'");
+		$data	= str_replace("\\040", " ", $data);
+		$rc		= (strpos($data, $dev.",RO") !== false) ? true : false;
+	}
+
+	return $rc;
+}
+
 /* Get the mount parameters based on the file system. */
 function get_mount_params($fs, $dev, $ro = false) {
 	global $paths;
@@ -1249,7 +1261,11 @@ function do_mount_local($info) {
 			/* Check to see if the device really mounted. */
 			for ($i=0; $i < 5; $i++) {
 				if (is_mounted($dir)) {
-					@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
+					if (! is_mounted_read_only($dir)) {
+						@chmod($dir, 0777);
+						@chown($dir, 99);
+						@chgrp($dir, 100);
+					}
 
 					unassigned_log("Successfully mounted '".basename($dev)."' on '{$dir}'.");
 
