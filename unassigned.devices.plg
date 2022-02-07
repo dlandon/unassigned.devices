@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.02.05">
+<!ENTITY version	"2022.02.06">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"26da0c4d954a117b672ce4dc4569fb52">
+<!ENTITY MD5		"a618e5e4f1980ecb4ea240b55e72bdd5">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,6 +23,7 @@
 ###&version;
 - Add: Udev and hotplug debug messages.
 - Fix: Rework udev rules for hotplug events.
+- Fix: Rework udev handling to cut down on udev thrashing.
 
 ###2022.02.04b
 - Add: Changes to support preclear plugin better.
