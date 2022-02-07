@@ -1078,8 +1078,9 @@ function is_mounted($dev) {
 
 	$rc = false;
 	if ($dev) {
-		$data	= timed_exec(1, "/usr/bin/cat /proc/mounts");
+		$data	= timed_exec(1, "/usr/bin/cat /proc/mounts | awk '{print $1 \",\" $2}'");
 		$data	= str_replace("\\040", " ", $data);
+
 		$rc		= (strpos($data, $dev) !== false) ? true : false;
 	}
 
@@ -1091,7 +1092,7 @@ function is_mounted_read_only($dev) {
 
 	$rc = false;
 	if ($dev) {
-		$data	= timed_exec(1, "/usr/bin/cat /proc/mounts|sort | awk '{print $2 \",\" toupper(substr($4,0,2))}'");
+		$data	= timed_exec(1, "/usr/bin/cat /proc/mounts | awk '{print $2 \",\" toupper(substr($4,0,2))}'");
 		$data	= str_replace("\\040", " ", $data);
 		$rc		= (strpos($data, $dev.",RO") !== false) ? true : false;
 	}
