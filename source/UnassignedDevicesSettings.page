@@ -317,9 +317,9 @@ _(Enable SMB Security)_?
 		<dt><?=$user['name'];?></dt>
 		<dd>
 			<select name="smb_<?=$user['name'];?>" size="1">
-			<?=mk_option($cfg["Config"]["smb_{$user[name]}"], "no-access", "_(No Access)_");?>
-			<?=mk_option($cfg["Config"]["smb_{$user[name]}"], "read-write", "_(Read/Write)_");?>
-			<?=mk_option($cfg["Config"]["smb_{$user[name]}"], "read-only", "_(Read-only)_");?>
+			<?=mk_option($cfg["Config"]["smb_{$user['name']}"], "no-access", "_(No Access)_");?>
+			<?=mk_option($cfg["Config"]["smb_{$user['name']}"], "read-write", "_(Read/Write)_");?>
+			<?=mk_option($cfg["Config"]["smb_{$user['name']}"], "read-only", "_(Read-only)_");?>
 			</select>
 		</dd>
 	</dl>
