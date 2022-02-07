@@ -390,10 +390,10 @@ switch ($_POST['action']) {
 		$disk_names	= array();
 
 		/* Disk devices. */
-		$o_disk	= "";
-		$o_disk .= "<div id='disks_tab' class='show-disks'>";
-		$o_disk .= "<table class='disk_status wide disk_mounts'><thead><tr><td>"._('Device')."</td><td>"._('Identification')."</td><td></td><td>"._('Temp').".</td><td>"._('Reads')."</td><td>"._('Writes')."</td><td>"._('Settings')."</td><td>"._('FS')."</td><td>"._('Size')."</td><td>"._('Used')."</td><td>"._('Free')."</td><td>"._('Log')."</td></tr></thead>";
-		$o_disk .= "<tbody>";
+		$o_disks	= "";
+		$o_disks .= "<div id='disks_tab' class='show-disks'>";
+		$o_disks .= "<table class='disk_status wide disk_mounts'><thead><tr><td>"._('Device')."</td><td>"._('Identification')."</td><td></td><td>"._('Temp').".</td><td>"._('Reads')."</td><td>"._('Writes')."</td><td>"._('Settings')."</td><td>"._('FS')."</td><td>"._('Size')."</td><td>"._('Used')."</td><td>"._('Free')."</td><td>"._('Log')."</td></tr></thead>";
+		$o_disks .= "<tbody>";
 
 		/* Get updated disks info in case devices have been hot plugged. */
 		if ( count($all_disks) ) {
@@ -435,7 +435,7 @@ switch ($_POST['action']) {
 				$device = strpos($disk_dev, "dev") === false ? "" : " ({$disk_device})";
 				$hdd_serial .= $disk['serial'].$device.$preclear_link.$clear_disk."<span id='preclear_".$disk['serial_short']."' style='display:block;'></span>";
 
-				$o_disk .= "<tr class='toggle-disk'>";
+				$o_disks .= "<tr class='toggle-disk'>";
 				if (strpos($disk_name, "dev") === false) {
 					if (! $disk['array_disk']) {
 						$disk_display = $disk_name;
@@ -447,45 +447,45 @@ switch ($_POST['action']) {
 					$disk_display = ucfirst($disk_display);
 				}
 				if ( $preclearing ) {
-					$o_disk .= "<td><i class='fa fa-circle orb ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>".$disk_display."</td>";
+					$o_disks .= "<td><i class='fa fa-circle orb ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>".$disk_display."</td>";
 				} else {
-					$o_disk .= "<td>";
+					$o_disks .= "<td>";
 					if (strpos($disk_dev, "dev") === false) {
 						$str = "New?name";
-						$o_disk .= "<i class='fa fa-circle ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>";
+						$o_disks .= "<i class='fa fa-circle ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>";
 					} else {
 						$str = "Device?name";
 						if (! $disk['ssd']) {
 							if (! is_disk_spin($disk['ud_dev'], $disk['running'])) {
 								if ($disk['running']) {
-									$o_disk .= "<a style='cursor:pointer' class='exec info' onclick='spin_down_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle green-orb'></i><span>"._("Click to spin down device")."</span></a>";
+									$o_disks .= "<a style='cursor:pointer' class='exec info' onclick='spin_down_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle green-orb'></i><span>"._("Click to spin down device")."</span></a>";
 								} else {
-									$o_disk .= "<a style='cursor:pointer' class='exec info' onclick='spin_up_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle grey-orb'></i><span>"._("Click to spin up device")."</span></a>";
+									$o_disks .= "<a style='cursor:pointer' class='exec info' onclick='spin_up_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle grey-orb'></i><span>"._("Click to spin up device")."</span></a>";
 								}
 							} else {
 								if ($disk['running']) {
-									$o_disk .= "<i class='fa fa-refresh fa-spin green-orb'></i>";
+									$o_disks .= "<i class='fa fa-refresh fa-spin green-orb'></i>";
 								} else {
-									$o_disk .= "<i class='fa fa-refresh fa-spin grey-orb'></i>";
+									$o_disks .= "<i class='fa fa-refresh fa-spin grey-orb'></i>";
 								}
 							}
 						} else {
-							$o_disk .= "<a class='info'><i class='fa fa-circle green-orb'></i><span>"._("SSD cannot be spun down")."</span></a>";
+							$o_disks .= "<a class='info'><i class='fa fa-circle green-orb'></i><span>"._("SSD cannot be spun down")."</span></a>";
 						}
 					}
 					$fs_lock = ($disk['partitions'][0]['fstype'] == "crypto_LUKS") ? "<i class='fa fa-lock orb'></i>" : "";
-					$o_disk .= "<a href='/Main/".$str."=".$disk_dev."'><span>".$fs_lock.$disk_display."</span></a>";
-					$o_disk .= "</td>";
+					$o_disks .= "<a href='/Main/".$str."=".$disk_dev."'><span>".$fs_lock.$disk_display."</span></a>";
+					$o_disks .= "</td>";
 				}
 
 				/* Device serial number. */
-				$o_disk .= "<td>{$hdd_serial}</td>";
+				$o_disks .= "<td>{$hdd_serial}</td>";
 
 				/* Mount button. */
-				$o_disk .= "<td class='mount'>{$mbutton}</td>";
+				$o_disks .= "<td class='mount'>{$mbutton}</td>";
 
 				/* Disk temperature. */
-				$o_disk .= "<td>{$temp}</td>";
+				$o_disks .= "<td>{$temp}</td>";
 
 				if (! $p) {
 					$rw = get_disk_reads_writes($disk['ud_dev'], $disk['device']);
@@ -502,37 +502,37 @@ switch ($_POST['action']) {
 				}
 
 				/* Reads. */
-				$o_disk .= ($p)?$p[4]:"<td>".$reads."</td>";
+				$o_disks .= ($p)?$p[4]:"<td>".$reads."</td>";
 
 				/* Writes. */
-				$o_disk .= ($p)?$p[5]:"<td>".$writes."</td>";
+				$o_disks .= ($p)?$p[5]:"<td>".$writes."</td>";
 
 				/* Settings. */
-				$o_disk .= ($p)?$p[6]:"<td></td>";
+				$o_disks .= ($p)?$p[6]:"<td></td>";
 
 				/* File system. */
-				$o_disk .= ($p)?$p[7]:"<td></td>";
+				$o_disks .= ($p)?$p[7]:"<td></td>";
 
 				/* Disk size. */
-				$o_disk .= "<td>".my_scale($disk['size'],$unit)." {$unit}</td>";
+				$o_disks .= "<td>".my_scale($disk['size'],$unit)." {$unit}</td>";
 
 				/* Disk used and free space. */
-				$o_disk .= ($p)?$p[8]:"<td></td><td></td>";
+				$o_disks .= ($p)?$p[8]:"<td></td><td></td>";
 
 				/* Log button. */
-				$o_disk .= ($p)?$p[9]:"<td></td>";
-				$o_disk .= "</tr>";
+				$o_disks .= ($p)?$p[9]:"<td></td>";
+				$o_disks .= "</tr>";
 
 				if ($add_toggle)
 				{
-					$o_disk .= "<tr>";
+					$o_disks .= "<tr>";
 					foreach ($disk['partitions'] as $partition) {
 						foreach (render_partition($disk, $partition) as $l)
 						{
-							$o_disk .= $l;
+							$o_disks .= $l;
 						}
 					}
-					$o_disk .= "</tr>";
+					$o_disks .= "</tr>";
 				}
 
 				/* Add to share names and disk names. */
@@ -567,12 +567,12 @@ switch ($_POST['action']) {
 				}
 			}
 		} else {
-			$o_disk .= "<tr><td colspan='12' style='text-align:center;'>"._('No Unassigned Disks available').".</td></tr>";
+			$o_disks .= "<tr><td colspan='12' style='text-align:center;'>"._('No Unassigned Disks available').".</td></tr>";
 		}
-		$o_disk .= "</tbody></table></div>";
+		$o_disks .= "</tbody></table></div>";
 
 		/* Refresh the disk table. */
-		echo $o_disk;
+		echo $o_disks;
 
 		/* SAMBA Mounts. */
 		echo "<div id='smb_tab' class='show-shares'>";
