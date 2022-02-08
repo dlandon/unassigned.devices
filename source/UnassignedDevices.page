@@ -557,6 +557,32 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 <?=$Preclear ? $Preclear->html() : "";?>
 
+<table id ='usb_devices_list' class='disk_status wide disk_mounts show-disks'>
+	<thead>
+		<tr>
+			<td><?=('Device')?></td>
+			<td><?=('Identification')?></td>
+			<td></td>
+			<td><?=_('Temp')?>.</td>
+			<td><?=_('Reads')?></td>
+			<td><?=_('Writes')?></td>
+			<td><?=_('Settings')?></td>
+			<td><?=_('FS')?></td>
+			<td><?=_('Size')?></td>
+			<td><?=_('Used')?></td>
+			<td><?=_('Free')?></td>
+			<td><?=_('Log')?></td>
+		</tr>
+	</thead>
+	<tbody id="disk-table-body">
+		<tr>
+			<td colspan='12'><div class='spinner'></div>
+			</td>
+		</tr>
+		<?for ($i=0; $i < $numdisks; $i++) echo "<tr><td colspan='12'>&nbsp;</td></tr>";?>
+	</tbody>
+</table>
+
 :unassgned_devices_switches_plug:
 > Turn on the **Disks** switch to change the web page to show disk devices. Turn off the **Diskss** switch to change the web page to hide disk devices.
 >
@@ -570,34 +596,6 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 >
 > You can spin a disk up or down by clicking on the disk ball <i class='fa fa-circle orb green-orb'></i>or <i class='fa fa-circle orb grey-orb'></i>indicator.  Applies to version 6.9 RC2 and later only.
 :end
-
-<div id='usb_devices_list' class='show-disks'>
-	<table class='disk_status wide disk_mounts custom_head'>
-		<thead>
-			<tr>
-				<td><?=('Device')?></td>
-				<td><?=('Identification')?></td>
-				<td></td>
-				<td><?=_('Temp')?>.</td>
-				<td><?=_('Reads')?></td>
-				<td><?=_('Writes')?></td>
-				<td><?=_('Settings')?></td>
-				<td><?=_('FS')?></td>
-				<td><?=_('Size')?></td>
-				<td><?=_('Used')?></td>
-				<td><?=_('Free')?></td>
-				<td><?=_('Log')?></td>
-			</tr>
-		</thead>
-		<tbody id="disk-table-body">
-			<tr>
-				<td colspan='12'><div class='spinner'></div>
-				</td>
-			</tr>
-			<?for ($i=0; $i < $numdisks; $i++) echo "<tr><td colspan='12'>&nbsp;</td></tr>";?>
-		</tbody>
-	</table>
-</div>
 
 <div id='smb_tab' class='show-shares'>
 	<div id='title' class='show-disks samba_mounts'>
@@ -872,7 +870,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			$.post(UDURL, opts).done(function(data)
 			{
 				swalShowResult((data == "true") ? true : false);
-			},"json").fail(function(){swalShowResult(false);});
+			},'json').fail(function(){swalShowResult(false);});
 		}
 	</div>
 	<div>
@@ -950,7 +948,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			$("button[device='"+surveyOption.device+"']").prop('disabled',true);
 			$("button[device='"+surveyOption.device+"']").html( data.status ? "<?=_('Formated');?>" : "<?=_('Format failed');?>" );
 			swalShowResult(data.status);
-		},"json").fail(function(){swalShowResult(false);});
+		},'json').fail(function(){swalShowResult(false);});
 	</div>
 	<div>
 		<script type="text/javascript">
@@ -999,7 +997,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		$.post(UDURL, {'action' : 'rm_partition', serial:surveyOption.serial, device:surveyOption.device, partition:surveyOption.partition}).done(function(data)
 		{
 			swalShowResult((data == "true") ? true : false);
-		},"json").fail(function(){swalShowResult(false);});
+		},'json').fail(function(){swalShowResult(false);});
 	</div>
 	<div>
 		<script type="text/javascript">
@@ -1032,7 +1030,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		$.post(UDURL, {'action' : 'clr_disk', serial:surveyOption.serial, device:surveyOption.device}).done(function(data)
 		{
 			swalShowResult((data == "true") ? true : false);
-		},"json").fail(function(){swalShowResult(false);});
+		},'json').fail(function(){swalShowResult(false);});
 	</div>
 	<div>
 		<script type="text/javascript">
@@ -1064,7 +1062,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		$.post(UDURL, {'action' : 'remove_iso_config', device:surveyOption}).done(function(data)
 		{
 			swalShowResult((data == "true") ? true : false);
-		},"json").fail(function(){swalShowResult(false);});
+		},'json').fail(function(){swalShowResult(false);});
 	</div>
 	<div>
 		<script type="text/javascript">
@@ -1096,7 +1094,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		$.post(UDURL, {'action' : 'remove_config', serial:surveyOption}).done(function(data)
 		{
 			swalShowResult((data == "true") ? true : false);
-		},"json").fail(function(){swalShowResult(false);});
+		},'json').fail(function(){swalShowResult(false);});
 	</div>
 	<div>
 		<script type="text/javascript">
@@ -1128,7 +1126,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		$.post(UDURL, {'action' : 'remove_samba_config', device:surveyOption}).done(function(data)
 		{
 			swalShowResult((data == "true") ? true : false);
-		},"json").fail(function(){swalShowResult(false);});
+		},'json').fail(function(){swalShowResult(false);});
 	</div>
 	<div>
 		<script type="text/javascript">
@@ -1227,7 +1225,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			$.post(UDURL, opts).done(function(data)
 			{
 				swalShowResult((data == "true") ? true : false);
-			},"json").fail(function(){swalShowResult(false);});
+			},'json').fail(function(){swalShowResult(false);});
 		}
 	</div>
 	<div>
@@ -1255,7 +1253,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		$.post(UDURL, {'action' : 'chg_mountpoint', serial:surveyOption.serial, partition:surveyOption.partition, device:surveyOption.device, fstype:surveyOption.fstype, mountpoint:surveyData['MOUNTPOINT']}).done(function(data)
 		{
 			swalShowResult((data == "true") ? true : false);
-		},"json").fail(function(){swalShowResult(false);});
+		},'json').fail(function(){swalShowResult(false);});
 	</div>
 	<div>
 		<script type="text/javascript">
@@ -1283,7 +1281,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		$.post(UDURL, {'action' : 'chg_samba_mountpoint', device:surveyOption.device,mountpoint:surveyData['MOUNTPOINT']}).done(function(data)
 		{
 			swalShowResult((data == "true") ? true : false);
-		},"json").fail(function(){swalShowResult(false);});
+		},'json').fail(function(){swalShowResult(false);});
 	</div>
 	<div>
 		<script type="text/javascript">
@@ -1311,7 +1309,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		$.post(UDURL, {'action' : 'chg_iso_mountpoint', device:surveyOption.device,mountpoint:surveyData['MOUNTPOINT']}).done(function(data)
 		{
 			swalShowResult((data == "true") ? true : false);
-		},"json").fail(function(){swalShowResult(false);});
+		},'json').fail(function(){swalShowResult(false);});
 	</div>
 	<div>
 		<script type="text/javascript">
