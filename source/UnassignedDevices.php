@@ -680,7 +680,7 @@ switch ($_POST['action']) {
 				$o_remotes .= "</tr>";
 
 				/* Add to the share names. */
-				$share_names[$mount['device']] = $mount_point;
+				$share_names[$mount['mountpoint']] = $mount_point;
 			}
 		}
 		if (! count($samba_mounts) && ! count($iso_mounts)) {
@@ -715,6 +715,11 @@ switch ($_POST['action']) {
 					$historical[$serial]['display']			= $disk_display;
 					$historical[$serial]['mntpoint']		= $mntpoint;
 					$historical[$serial]['mountpoint']		= $mountpoint;
+
+					/* Add to the share names. */
+					if ($mntpoint) {
+						$share_names[$mntpoint] = $mntpoint;
+					}
 				}
 			}
 		}
@@ -1171,7 +1176,7 @@ switch ($_POST['action']) {
 
 		/* Set the spinning_down state. */
 		$tc			= $paths['run_status'];
-		$run_status	= is_file($tc) ? json_decode(file_get_contents($tc), true) : array();
+		$run_status	= file_exists($tc) ? json_decode(file_get_contents($tc), true) : array();
 		if ($run_status[$device]['running'] == 'yes') {
 			$run_status[$device]['spin_time'] = time();
 			$run_status[$device]['spin'] = 'down';
@@ -1186,7 +1191,7 @@ switch ($_POST['action']) {
 
 		/* Set the spinning_up state. */
 		$tc			= $paths['run_status'];
-		$run_status	= is_file($tc) ? json_decode(file_get_contents($tc), true) : array();
+		$run_status	= file_exists($tc) ? json_decode(file_get_contents($tc), true) : array();
 		if ($run_status[$device]['running'] == 'no') {
 			$run_status[$device]['spin_time'] = time();
 			$run_status[$device]['spin'] = 'up';

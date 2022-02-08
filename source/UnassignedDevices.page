@@ -599,7 +599,9 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 <div id='smb_tab' class='show-shares'>
 	<div id='title' class='show-disks samba_mounts'>
-		<span class='left'><img src='/plugins/<?=$plugin?>/icons/smbsettings.png' class='icon'><?=_('SMB Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/nfs.png' class='icon'><?=_('NFS Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/iso.png' class='icon' style='width:16px;'><?=_('ISO File Shares')?></span>
+		<span class='left'>
+			<img src='/plugins/<?=$plugin?>/icons/smbsettings.png' class='icon'><?=_('SMB Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/nfs.png' class='icon'><?=_('NFS Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/iso.png' class='icon' style='width:16px;'><?=_('ISO File Shares')?>
+		</span>
 	</div>
 	<table class='disk_status wide samba_mounts'>
 		<thead>
@@ -620,14 +622,10 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		</tr>
 		</thead>
 		<tbody id="remotes-table-body">
-			<tr>
-				<td colspan='12'><div class='spinner'></div>
-				</td>
-			</tr>
 		</tbody>
 	</table>
 	<div id='remotes-buttons'>
-		<button onclick='add_samba_share()' <?=$disabled?>><?=_('Add Remote SMB')?><?=_('NFS Share')?></button>
+		<button onclick='add_samba_share()' <?=$disabled?>><?=_('Add Remote SMB')?>/<?=_('NFS Share')?></button>
 		<button onclick='add_iso_share()'><?=_('Add ISO File Share')?></button>
 	</div>
 </div>

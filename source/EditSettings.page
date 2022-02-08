@@ -126,7 +126,7 @@ if ((! file_exists($file)) || (! is_dir("/boot/config/plugins/user.scripts/scrip
 	$user_disabled = "disabled";
 }
 
-$text			= @file_get_contents($file);
+$text			= (file_exists($file)) ? @file_get_contents($file) : "";
 
 $default_text	= <<<EOT
 #!/bin/bash

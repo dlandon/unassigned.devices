@@ -1057,7 +1057,7 @@ function is_disk_ssd($dev) {
 	$device	= MiscUD::base_device(basename($dev));
 	if (! MiscUD::is_device_nvme($device)) {
 		$file = "/sys/block/".basename($device)."/queue/rotational";
-		if (is_file($file)) {
+		if (file_exists($file)) {
 			$rc = (@file_get_contents($file) == 0) ? true : false;
 		} else {
 			unassigned_log("Warning: Can't get rotational setting of '{$device}'.");
