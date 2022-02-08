@@ -571,15 +571,12 @@ switch ($_POST['action']) {
 		}
 		$o_disks .= "</tbody></table></div>";
 
-		/* Refresh the disk table. */
-		echo $o_disks;
-
 		/* SAMBA Mounts. */
 		$o_remotes = "";
-		echo "<div id='smb_tab' class='show-shares'>";
-		echo "<div id='title' class='show-disks samba_mounts'><span class='left'><img src='/plugins/$plugin/icons/smbsettings.png' class='icon'>"._('SMB Shares')." &nbsp;|&nbsp;<img src='/plugins/$plugin/icons/nfs.png' class='icon'>"._('NFS Shares')." &nbsp;|&nbsp;<img src='/plugins/$plugin/icons/iso.png' class='icon' style='width:16px;'>"._('ISO File Shares')."</span></div>";
-		echo "<table class='disk_status wide samba_mounts'><thead><tr><td>"._('Share Type')."</td><td>"._('Source')."</td><td>"._('Mount point')."</td><td></td><td>"._('Remove')."</td><td>"._('Settings')."</td><td></td><td></td><td></td><td>"._('Size')."</td><td>"._('Used')."</td><td>"._('Free')."</td><td>"._('Log')."</td></tr></thead>";
-		echo "<tbody>";
+		$o_remotes .= "<div id='smb_tab' class='show-shares'>";
+		$o_remotes .= "<div id='title' class='show-disks samba_mounts'><span class='left'><img src='/plugins/$plugin/icons/smbsettings.png' class='icon'>"._('SMB Shares')." &nbsp;|&nbsp;<img src='/plugins/$plugin/icons/nfs.png' class='icon'>"._('NFS Shares')." &nbsp;|&nbsp;<img src='/plugins/$plugin/icons/iso.png' class='icon' style='width:16px;'>"._('ISO File Shares')."</span></div>";
+		$o_remotes .= "<table class='disk_status wide samba_mounts'><thead><tr><td>"._('Share Type')."</td><td>"._('Source')."</td><td>"._('Mount point')."</td><td></td><td>"._('Remove')."</td><td>"._('Settings')."</td><td></td><td></td><td></td><td>"._('Size')."</td><td>"._('Used')."</td><td>"._('Free')."</td><td>"._('Log')."</td></tr></thead>";
+		$o_remotes .= "<tbody>";
 		$ds1 = -microtime(true);
 		$samba_mounts = get_samba_mounts();
 		if (count($samba_mounts)) {
@@ -699,9 +696,6 @@ switch ($_POST['action']) {
 		}
 		$o_remotes .= "</tbody></table>";
 
-		/* Update the remotes table. */
-		echo $o_remotes;
-
 		/* Historical devices. */
 		$o_historical = "";
 		$disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "no")) ? "disabled" : "";
@@ -753,7 +747,9 @@ switch ($_POST['action']) {
 			$o_historical .= "<table class='disk_status wide usb_absent'><thead><tr><td>"._('Device')."</td><td>"._('Serial Number (Mount Point)')."</td><td></td><td>"._('Remove')."</td><td>"._('Settings')."</td><td></td><td></td><td></td><td></td><td></td></tr></thead><tbody>{$ct}</tbody></table></div></div>";
 		}
 
-		/* Update the historical table. */
+		/* Update all tables. */
+		echo $o_disks;
+		echo $o_remotes;
 		echo $o_historical;
 
 		/* Save the current disk names for a duplicate check. */
