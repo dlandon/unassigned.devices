@@ -391,9 +391,6 @@ switch ($_POST['action']) {
 
 		/* Disk devices. */
 		$o_disks	= "";
-		$o_disks .= "<div id='disks_tab' class='show-disks'>";
-		$o_disks .= "<table class='disk_status wide disk_mounts'><thead><tr><td>"._('Device')."</td><td>"._('Identification')."</td><td></td><td>"._('Temp').".</td><td>"._('Reads')."</td><td>"._('Writes')."</td><td>"._('Settings')."</td><td>"._('FS')."</td><td>"._('Size')."</td><td>"._('Used')."</td><td>"._('Free')."</td><td>"._('Log')."</td></tr></thead>";
-		$o_disks .= "<tbody>";
 
 		/* Get updated disks info in case devices have been hot plugged. */
 		if ( count($all_disks) ) {
@@ -430,7 +427,6 @@ switch ($_POST['action']) {
 					$add_toggle = false;
 					$hdd_serial .= "<span class='toggle-hdd' hdd='".$disk_device."'></span>";
 				}
-
 
 				$device = strpos($disk_dev, "dev") === false ? "" : " ({$disk_device})";
 				$hdd_serial .= $disk['serial'].$device.$preclear_link.$clear_disk."<span id='preclear_".$disk['serial_short']."' style='display:block;'></span>";
@@ -573,10 +569,6 @@ switch ($_POST['action']) {
 
 		/* SAMBA Mounts. */
 		$o_remotes = "";
-		$o_remotes .= "<div id='smb_tab' class='show-shares'>";
-		$o_remotes .= "<div id='title' class='show-disks samba_mounts'><span class='left'><img src='/plugins/$plugin/icons/smbsettings.png' class='icon'>"._('SMB Shares')." &nbsp;|&nbsp;<img src='/plugins/$plugin/icons/nfs.png' class='icon'>"._('NFS Shares')." &nbsp;|&nbsp;<img src='/plugins/$plugin/icons/iso.png' class='icon' style='width:16px;'>"._('ISO File Shares')."</span></div>";
-		$o_remotes .= "<table class='disk_status wide samba_mounts'><thead><tr><td>"._('Share Type')."</td><td>"._('Source')."</td><td>"._('Mount point')."</td><td></td><td>"._('Remove')."</td><td>"._('Settings')."</td><td></td><td></td><td></td><td>"._('Size')."</td><td>"._('Used')."</td><td>"._('Free')."</td><td>"._('Log')."</td></tr></thead>";
-		$o_remotes .= "<tbody>";
 		$ds1 = -microtime(true);
 		$samba_mounts = get_samba_mounts();
 		if (count($samba_mounts)) {
@@ -694,14 +686,9 @@ switch ($_POST['action']) {
 		if (! count($samba_mounts) && ! count($iso_mounts)) {
 			$o_remotes .= "<tr><td colspan='13' style='text-align:center;'>"._('No Remote SMB')."/"._('NFS or ISO File Shares configured').".</td></tr>";
 		}
-		$o_remotes .= "</tbody></table>";
 
 		/* Historical devices. */
 		$o_historical = "";
-		$disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "no")) ? "disabled" : "";
-		$o_historical .= "<button onclick='add_samba_share()' $disabled>"._('Add Remote SMB').'/'._('NFS Share')."</button>";
-		$o_historical .= "<button onclick='add_iso_share()'>"._('Add ISO File Share')."</button></div>";
-
 		$config_file	= $paths["config_file"];
 		$config			= is_file($config_file) ? @parse_ini_file($config_file, true) : array();
 		ksort($config, SORT_NATURAL);
@@ -734,29 +721,21 @@ switch ($_POST['action']) {
 		ksort($historical, SORT_NATURAL);
 
 		/* Display the historical devices. */
-		$ct = "";
 		foreach ($historical as $serial => $value) {
-			$ct .= "<tr><td><i class='fa fa-minus-circle orb grey-orb'></i>".$historical[$serial]['display']."</td><td>".$serial.$historical[$serial]['mountpoint']."</td>";
-			$ct .= "<td></td>";
-			$ct .= "<td><a style='color:#CC0000;font-weight:bold;cursor:pointer;' class='exec info' onclick='remove_disk_config(\"{$serial}\")'><i class='fa fa-remove hdd'></i><span>"._("Remove Device configuration")."</span></a></td>";
-			$ct .= "<td><a class='info' href='/Main/EditSettings?s=".$serial."&l=".$historical[$serial]['mntpoint']."&p="."1"."&t=true'><i class='fa fa-gears'></i><span>"._("Edit Historical Device Settings and Script")."</span></a></td>";
-			$ct .= "<td></td><td></td><td></td><td></td><td></td></tr>";
+			$o_historical .= "<tr><td><i class='fa fa-minus-circle orb grey-orb'></i>".$historical[$serial]['display']."</td><td>".$serial.$historical[$serial]['mountpoint']."</td>";
+			$o_historical .= "<td></td>";
+			$o_historical .= "<td><a style='color:#CC0000;font-weight:bold;cursor:pointer;' class='exec info' onclick='remove_disk_config(\"{$serial}\")'><i class='fa fa-remove hdd'></i><span>"._("Remove Device configuration")."</span></a></td>";
+			$o_historical .= "<td><a class='info' href='/Main/EditSettings?s=".$serial."&l=".$historical[$serial]['mntpoint']."&p="."1"."&t=true'><i class='fa fa-gears'></i><span>"._("Edit Historical Device Settings and Script")."</span></a></td>";
+			$o_historical .= "<td></td><td></td><td></td><td></td><td></td></tr>";
 		}
-		if (strlen($ct)) {
-			$o_historical .= "<div class='show-disks'><div class='show-historical' id='smb_tab'><div id='title'><span class='left'><img src='/plugins/{$plugin}/icons/historical.png' class='icon'>"._('Historical Devices')."</span></div>";
-			$o_historical .= "<table class='disk_status wide usb_absent'><thead><tr><td>"._('Device')."</td><td>"._('Serial Number (Mount Point)')."</td><td></td><td>"._('Remove')."</td><td>"._('Settings')."</td><td></td><td></td><td></td><td></td><td></td></tr></thead><tbody>{$ct}</tbody></table></div></div>";
-		}
-
-		/* Update all tables. */
-		echo $o_disks;
-		echo $o_remotes;
-		echo $o_historical;
 
 		/* Save the current disk names for a duplicate check. */
 		MiscUD::save_json($paths['disk_names'], $disk_names);
 
 		/* Save the UD share names for duplicate check. */
 		MiscUD::save_json($paths['share_names'], $share_names);
+
+		echo json_encode(array("disks" => $o_disks, "remotes" => $o_remotes, "historical" => $o_historical, "buttons" => $o_buttons));
 		break;
 
 	case 'refresh_page':

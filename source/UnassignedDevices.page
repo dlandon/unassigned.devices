@@ -33,6 +33,8 @@ $version = parse_ini_file("/etc/unraid-version");
 
 /* Set up name for nchan socket. */
 $ud_reload = "UD_reload";
+
+$disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "no")) ? "disabled" : "";
 ?>
 
 <script type="text/javascript" src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
@@ -202,7 +204,9 @@ $ud_reload = "UD_reload";
 			maxWidth	= [];
 			var toggled	= $("tr.toggle-parts").filter(":visible").map(function(){return $(this).attr("name");}).get();
 			if (data) {
-				$('#usb_devices_list').html(data);
+				$('#disk-table-body').html(data.disks);
+				$('#remotes-table-body').html(data.remotes);
+				$('#historical-table-body').html(data.historical);
 			}
 
 			/* Show toggled disk partitions. */
@@ -211,7 +215,7 @@ $ud_reload = "UD_reload";
 					$("tr[name='"+v+"']").css("display", "table-row");
 				}
 			});
-		});
+		},'json');
 	}
 
 	/* Detect a change in the diskio cookie and refresh the page to update diskio if it changes. */
@@ -380,171 +384,175 @@ $ud_reload = "UD_reload";
 		var surveyData		= new Array
 		var index			= 0;
 		var evalCondition	= function(obj, selector){
-			rc = null;
-			if (obj.find(selector).length) {
-				evaled = $.trim(obj.find(selector).eq(0).text())
-				if (evaled.length ) {
-					rc = eval(evaled);
+
+		rc = null;
+		if (obj.find(selector).length) {
+			evaled = $.trim(obj.find(selector).eq(0).text())
+			if (evaled.length ) {
+				rc = eval(evaled);
+			}
+		}
+
+		return rc;
+	}
+
+	var getAttr = function(obj, name, defaultValue) {
+		return (typeof obj.attr(name) !== "undefined") ? obj.attr(name) : defaultValue;
+	}
+
+	function showSwal(direction = "=") {
+		switch(direction) {
+			case '>':
+				index++;
+				break;
+
+			case '<':
+				index--;
+				break;
+		}
+
+		if (index >= numQuestions) {
+			return false;
+		}
+
+		question	= survey.find("div[data-question]").eq(index);
+		condition	= question.find("div[data-question-condition]").eq(0);
+
+		if (condition.length && ! eval($.trim(condition.text())) ) {
+			showSwal(direction);
+		}
+
+		content = question.find("div[data-question-content]").html();
+		format = question.find("div[data-question-format]");
+
+		if (format.length) { 
+			eval("formatOpts = " + $.trim(format.text()));
+			content = content.formatUnicorn(formatOpts);
+		}
+
+		has_checked = ["checkbox","radio","option"];
+		restore_content = $("<div></div>").html(content);
+		restore_content.find(":input").each(function(i,v) {
+			name = $(this).prop("name");
+			if (name in surveyData) {
+				if ($.inArray($(this).prop("type"), has_checked) != -1 ) {
+					if ($(this).val() == surveyData[name]) { 
+						$(this).attr("checked", true);
+					}
+				} else {
+					if ($(this).prop("type") == "select-one") {
+						$(this).find("option[value="+ surveyData[name] +"]").attr("selected",true);
+					} else { 
+						$(this).attr("value",surveyData[name]);
+					}
 				}
 			}
+		});
 
-			return rc;
-		}
+		content = restore_content[0].outerHTML;
+		button = {back:getAttr(question, "data-question-button-back", "<?=_('Back')?>"), cancel:getAttr(question, "data-question-button-cancel", "<?=_('Cancel')?>"),
+				  done:getAttr(question, "data-question-button-done", "<?=_('Done')?>"), next:getAttr(question, "data-question-button-next", "<?=_('Next')?>")};
 
-		var getAttr = function(obj, name, defaultValue) {
-			return (typeof obj.attr(name) !== "undefined") ? obj.attr(name) : defaultValue;
-		}
+		swalOpts					= new Object;
+		swalOpts.title				= question.attr("data-question-title");
+		swalOpts.content			= {element:"div", attributes:{innerHTML:content}};
+		swalOpts.icon				= getAttr(question, "data-question-icon", "info");
+		swalOpts.closeOnClickOutside = false;
+		swalOpts.buttons			= new Object;
+		swalOpts.buttons.confirm	= (index > 0) ? {text: button.cancel, value: null, visible: true, className: "", closeModal: true} :
+													{text: "", value: null, visible: false, className: "", closeModal: true};
+		swalOpts.buttons.cancel		= (index > 0) ? {text: button.back,  value: false, visible: true, className: "", closeModal: false} :
+													{text: button.cancel, value: null, visible: true, className: "", closeModal: true};
+		swalOpts.buttons.next		= (index == numQuestions - 1 ) ? {text:button.done, value: true, visible: true, className: "", closeModal: false} : {text:button.next, value: true, visible: true, className: "", closeModal: false};
+		swal2(swalOpts).then( (response) => {
+			emptyInputs = $.grep($(".swal-modal").find(":input"), function (e,v){ e = $(e);
+				switch (e.prop('type')) {
+					case 'radio':
+						if (e.is(":checked")) {
+							surveyData[e.prop("name")] = e.val();
+						}
+						n = $(":input[name="+e.prop("name")+"]");
+						return (n.is("[required]") && ! n.is(":checked"));
+						break;
 
-		function showSwal(direction = "=") {
-			switch(direction) {
-				case '>':
-					index++;
-					break;
+					case 'option':
+					case 'checkbox':
+						if (e.is(":checked")) {
+							surveyData[e.prop("name")] = e.val()
+						}
+						return (e.is("[required]") && ! e.is(":checked"));
+						break;
 
-				case '<':
-					index--;
-					break;
+					case 'select-one':
+						if (e.has(":checked")) {
+							surveyData[e.prop("name")] = e.find(":checked").val();
+						}
+						n = $(":input[name="+e.prop("name")+"]");
+						return (n.is("[required]") && ! n.has(":checked"));
+						break;
+
+					default:
+						if (e.val() || e.prop("name")) {
+							surveyData[e.prop("name")] = e.val()
+						}
+						return (e.is("[required]") && ! e.val());
+						break;
+				}
+			});
+
+			if (response) {
+				if (emptyInputs.length) {
+					return "=";
+				} else if (! emptyInputs.length && index <= numQuestions - 1) {
+					evaled = evalCondition(question, "div[data-question-done]");
+					if (index < numQuestions - 1) {
+						if (evaled !== null && evaled === true) {
+							return ">";
+						}
+
+						if (evaled !== null && evaled === false) {
+							return "<";
+						} else {
+							return ">";
+						}
+					} else if(index == numQuestions - 1) {
+						if (evaled !== null && evaled === false) {
+							return "=";
+						} else {
+							$(".swal-button--cancel").prop("disabled",true);
+							$(".swal-button--confirm").prop("disabled",true);
+							evalCondition(survey,"div[data-survey-done]");
+							if (getAttr(survey.find("div[data-survey-done]").eq(0),"data-survey-done-wait", "true") == "false" ) {
+								setTimeout(() => { swal2({buttons:{confirm:{visible:false},cancel:{visible:false}},timer:100}) }, 1500)
+							}
+
+							return true;
+						}
+					}
+				} else {
+					return "=";
+				}
+			} else if ( response === false && index <= numQuestions ) {
+				return "<";
+			} else if  (response === null) { 
+				return true;
 			}
 
-			if (index >= numQuestions) {
+			return "=";
+		}).then( (response2) => {
+			if (typeof response2 !== "boolean") {
+				return showSwal(response2);
+			} else {
 				return false;
 			}
-
-			question	= survey.find("div[data-question]").eq(index);
-			condition	= question.find("div[data-question-condition]").eq(0);
-
-			if (condition.length && ! eval($.trim(condition.text())) ) {
-				showSwal(direction);
-			}
-
-			content = question.find("div[data-question-content]").html();
-			format = question.find("div[data-question-format]");
-
-			if (format.length) { 
-				eval("formatOpts = " + $.trim(format.text()));
-				content = content.formatUnicorn(formatOpts);
-			}
-
-			has_checked = ["checkbox","radio","option"];
-			restore_content = $("<div></div>").html(content);
-			restore_content.find(":input").each(function(i,v) {
-				name = $(this).prop("name");
-				if (name in surveyData) {
-					if ($.inArray($(this).prop("type"), has_checked) != -1 ) {
-						if ($(this).val() == surveyData[name]) { 
-							$(this).attr("checked", true);
-						}
-					} else {
-						if ($(this).prop("type") == "select-one") {
-							$(this).find("option[value="+ surveyData[name] +"]").attr("selected",true);
-						} else { 
-							$(this).attr("value",surveyData[name]);
-						}
-					}
-				}
-			});
-
-			content = restore_content[0].outerHTML;
-			button = {back:getAttr(question, "data-question-button-back", "<?=_('Back')?>"), cancel:getAttr(question, "data-question-button-cancel", "<?=_('Cancel')?>"),
-					  done:getAttr(question, "data-question-button-done", "<?=_('Done')?>"), next:getAttr(question, "data-question-button-next", "<?=_('Next')?>")};
-
-			swalOpts					= new Object;
-			swalOpts.title				= question.attr("data-question-title");
-			swalOpts.content			= {element:"div", attributes:{innerHTML:content}};
-			swalOpts.icon				= getAttr(question, "data-question-icon", "info");
-			swalOpts.closeOnClickOutside = false;
-			swalOpts.buttons			= new Object;
-			swalOpts.buttons.confirm	= (index > 0) ? {text: button.cancel, value: null, visible: true, className: "", closeModal: true} :
-														{text: "", value: null, visible: false, className: "", closeModal: true};
-			swalOpts.buttons.cancel		= (index > 0) ? {text: button.back,  value: false, visible: true, className: "", closeModal: false} :
-														{text: button.cancel, value: null, visible: true, className: "", closeModal: true};
-			swalOpts.buttons.next		= (index == numQuestions - 1 ) ? {text:button.done, value: true, visible: true, className: "", closeModal: false} : {text:button.next, value: true, visible: true, className: "", closeModal: false};
-			swal2(swalOpts).then( (response) => {
-				emptyInputs = $.grep($(".swal-modal").find(":input"), function (e,v){ e = $(e);
-					switch (e.prop('type')) {
-						case 'radio':
-							if (e.is(":checked")) {
-								surveyData[e.prop("name")] = e.val();
-							}
-							n = $(":input[name="+e.prop("name")+"]");
-							return (n.is("[required]") && ! n.is(":checked"));
-							break;
-
-						case 'option':
-						case 'checkbox':
-							if (e.is(":checked")) {
-								surveyData[e.prop("name")] = e.val()
-							}
-							return (e.is("[required]") && ! e.is(":checked"));
-							break;
-
-						case 'select-one':
-							if (e.has(":checked")) {
-								surveyData[e.prop("name")] = e.find(":checked").val();
-							}
-							n = $(":input[name="+e.prop("name")+"]");
-							return (n.is("[required]") && ! n.has(":checked"));
-							break;
-
-						default:
-							if (e.val() || e.prop("name")) {
-								surveyData[e.prop("name")] = e.val()
-							}
-							return (e.is("[required]") && ! e.val());
-							break;
-					}
-				});
-
-				if (response) {
-					if (emptyInputs.length) {
-						return "=";
-					} else if (! emptyInputs.length && index <= numQuestions - 1) {
-						evaled = evalCondition(question, "div[data-question-done]");
-						if (index < numQuestions - 1) {
-							if (evaled !== null && evaled === true) {
-								return ">";
-							}
-
-							if (evaled !== null && evaled === false) {
-								return "<";
-							} else {
-								return ">";
-							}
-						} else if(index == numQuestions - 1) {
-							if (evaled !== null && evaled === false) {
-								return "=";
-							} else {
-								$(".swal-button--cancel").prop("disabled",true);
-								$(".swal-button--confirm").prop("disabled",true);
-								evalCondition(survey,"div[data-survey-done]");
-								if (getAttr(survey.find("div[data-survey-done]").eq(0),"data-survey-done-wait", "true") == "false" ) {
-									setTimeout(() => { swal2({buttons:{confirm:{visible:false},cancel:{visible:false}},timer:100}) }, 1500)
-								}
-
-								return true;
-							}
-						}
-					} else {
-						return "=";
-					}
-				} else if ( response === false && index <= numQuestions ) {
-					return "<";
-				} else if  (response === null) { 
-					return true;
-				}
-
-				return "=";
-			}).then( (response2) => {
-				if (typeof response2 !== "boolean") {
-					return showSwal(response2);
-				} else {
-					return false;
-				}
-			});
-		}
-
-		showSwal();
+		});
 	}
+
+	showSwal();
+}
+	$(function() {
+		$('div.spinner').html(unraid_logo);
+	});
 </script>
 
 <?=$Preclear ? $Preclear->html() : "";?>
@@ -563,7 +571,85 @@ $ud_reload = "UD_reload";
 > You can spin a disk up or down by clicking on the disk ball <i class='fa fa-circle orb green-orb'></i>or <i class='fa fa-circle orb grey-orb'></i>indicator.  Applies to version 6.9 RC2 and later only.
 :end
 
-<div id='usb_devices_list'>
+<div id='usb_devices_list' class='show-disks'>
+	<table class='disk_status wide disk_mounts custom_head'>
+		<thead>
+			<tr>
+				<td><?=('Device')?></td>
+				<td><?=('Identification')?></td>
+				<td></td>
+				<td><?=_('Temp')?>.</td>
+				<td><?=_('Reads')?></td>
+				<td><?=_('Writes')?></td>
+				<td><?=_('Settings')?></td>
+				<td><?=_('FS')?></td>
+				<td><?=_('Size')?></td>
+				<td><?=_('Used')?></td>
+				<td><?=_('Free')?></td>
+				<td><?=_('Log')?></td>
+			</tr>
+		</thead>
+		<tbody id="disk-table-body">
+			<tr>
+				<td colspan='12'><div class='spinner'></div>
+				</td>
+			</tr>
+			<?for ($i=0; $i < $numdisks; $i++) echo "<tr><td colspan='12'>&nbsp;</td></tr>";?>
+		</tbody>
+	</table>
+</div>
+
+<div id='smb_tab' class='show-shares'>
+	<div id='title' class='show-disks samba_mounts'><span class='left'><img src='/plugins/<?=$plugin?>/icons/smbsettings.png' class='icon'><?=_('SMB Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/nfs.png' class='icon'><?=_('NFS Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/iso.png' class='icon' style='width:16px;'><?=_('ISO File Shares')?></span></div>
+	<table class='disk_status wide samba_mounts'>
+		<thead>
+		<tr>
+			<td><?=_('Share Type')?></td>
+			<td><?=_('Source')?></td>
+			<td><?=_('Mount point')?></td>
+			<td></td>
+			<td><?=_('Remove')?></td>
+			<td><?=_('Settings')?></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td><?=_('Size')?></td>
+			<td><?=_('Used')?></td>
+			<td><?=_('Free')?></td>
+			<td><?=_('Log')?></td>
+		</tr>
+		</thead>
+		<tbody id="remotes-table-body">
+			<td colspan='12'><div class='spinner'></div>
+			</td>
+		</tbody>
+	</table>
+	<div id='remotes-buttons'>
+		<button onclick='add_samba_share()' <?=$disabled?>><?=_('Add Remote SMB')?><?=_('NFS Share')?></button>
+		<button onclick='add_iso_share()'><?=_('Add ISO File Share')?></button>
+	</div>
+</div>
+
+<div class='show-disks'>
+	<div class='show-historical' id='smb_tab'><div id='title'><span class='left'><img src='/plugins/<?=$plugin?>/icons/historical.png' class='icon'><?=_('Historical Devices')?></span></div></div>
+	<table class='disk_status wide usb_absent'>
+		<thead>
+		<tr>
+			<td><?=_('Device')?></td>
+			<td><?=_('Serial Number (Mount Point)')?></td>
+			<td></td>
+			<td><?=_('Remove')?></td>
+			<td><?=_('Settings')?></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+		</tr>
+		</thead>
+		<tbody id="historical-table-body">
+		</tbody>
+	</table>
 </div>
 
 :unassigned_devices_general_help_plug:
@@ -674,19 +760,21 @@ $ud_reload = "UD_reload";
 			disk_op(this, $(this).attr("role"), $(this).attr("device"));
 		});
 
-		tr.find("button[role=format]").click(function(){format_disk(this, $(this).attr("context"), $(this).attr("device"));});
+		tr.find("button[role=format]").click(function(){
+			format_disk(this, $(this).attr("context"), $(this).attr("device"));
+		});
 	});
 
 	$( "#usb_devices_list" ).arrive(".show-shares", {onceOnly:false}, function() {
-		$(this).css("display", $(".shares-switch").is(":checked") ? "block" : "none");
+		$(this).css("display", $.cookie('unassigned-shares-view') != 'false' ? "block" : "none");
 	});
 
 	$( "#usb_devices_list" ).arrive(".show-disks", {onceOnly:false}, function() {
-		$(this).css("display", $(".disks-switch").is(":checked") ? "block" : "none");
+		$(this).css("display", $.cookie('unassigned-disks-view') != 'false' ? "block" : "none");
 	});
 
 	$( "#usb_devices_list" ).arrive(".show-historical", {onceOnly:false}, function() {
-		$(this).css("display", $(".historical-switch").is(":checked") ? "block" : "none");
+		$(this).css("display", $.cookie('unassigned-historical-view') != 'false' ? "block" : "none");
 	});
 
 	$(function() {
