@@ -579,7 +579,6 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			<td colspan='12'><div class='spinner'></div>
 			</td>
 		</tr>
-		<?for ($i=0; $i < $numdisks; $i++) echo "<tr><td colspan='12'>&nbsp;</td></tr>";?>
 	</tbody>
 </table>
 
