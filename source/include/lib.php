@@ -1057,11 +1057,7 @@ function is_disk_ssd($dev) {
 	$device	= MiscUD::base_device(basename($dev));
 	if (! MiscUD::is_device_nvme($device)) {
 		$file = "/sys/block/".basename($device)."/queue/rotational";
-		if (file_exists($file)) {
-			$rc = (@file_get_contents($file) == 0) ? true : false;
-		} else {
-			unassigned_log("Warning: Can't get rotational setting of '{$device}'.");
-		}
+		$rc = (exec("/bin/cat ".$file) == 0) ? true : false;
 	} else {
 		$rc = true;
 	}
@@ -1263,9 +1259,9 @@ function do_mount_local($info) {
 			for ($i=0; $i < 5; $i++) {
 				if (is_mounted($dir)) {
 					if (! is_mounted_read_only($dir)) {
-						@chmod($dir, 0777);
-						@chown($dir, 99);
-						@chgrp($dir, 100);
+						exec("/bin/chmod 0777 {$dir} 2>/dev/null");
+						exec("/bin/chown 99 {$dir} 2>/dev/null");
+						exec("/bin/chgrp 100 {$dir} 2>/dev/null");
 					}
 
 					unassigned_log("Successfully mounted '".basename($dev)."' on '{$dir}'.");
@@ -2383,12 +2379,17 @@ function check_for_duplicate_share($dev, $mountpoint) {
 
 	/* Get an array of all ud shares. */
 	$share_names	= MiscUD::get_json($paths['share_names']);
-	foreach ($share_names as $device => $name) {
-		$name = strtoupper($name);
-		if (strpos($device, basename($dev)) === false) {
-			$ud_shares[] = $name;
-		}
-	}
+	$device			= basename($dev);
+
+	/* Don't check our device for a duplicate. */
+	unset($share_names[$device]);
+
+	/* If this device was a historical device, don't check it. */
+	unset($share_names[$mountpoint]);	
+
+	$share_names		= array_flip($share_names);
+	$share_names		= array_change_key_case($share_names, CASE_UPPER);
+	$share_names		= array_flip($share_names);
 
 	/* Merge samba shares, reserved names, and ud shares. */
 	$shares = array_merge($smb_shares, $ud_shares, $disk_names);
