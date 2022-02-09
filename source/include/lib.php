@@ -2378,15 +2378,13 @@ function check_for_duplicate_share($dev, $mountpoint) {
 	$ud_shares		= array();
 
 	/* Get an array of all ud shares. */
-	$ud_shares	= MiscUD::get_json($paths['share_names']);
-
-	/* Don't check our device for a duplicate. */
-	$device			= basename($dev);
-	unset($ud_shares[$device]);
-
-	$ud_shares		= array_flip($ud_shares);
-	$ud_shares		= array_change_key_case($ud_shares, CASE_UPPER);
-	$ud_shares		= array_flip($ud_shares);
+	$share_names	= MiscUD::get_json($paths['share_names']);
+	foreach ($share_names as $device => $name) {
+		$name = strtoupper($name);
+		if (strpos($device, basename($dev)) === false) {
+			$ud_shares[] = $name;
+		}
+	}
 
 	/* Merge samba shares, reserved names, and ud shares. */
 	$shares = array_merge($smb_shares, $ud_shares, $disk_names);
