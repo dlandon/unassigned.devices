@@ -1057,7 +1057,7 @@ function is_disk_ssd($dev) {
 	$device	= MiscUD::base_device(basename($dev));
 	if (! MiscUD::is_device_nvme($device)) {
 		$file = "/sys/block/".basename($device)."/queue/rotational";
-		$rc = (exec("/bin/cat ".$file) == 0) ? true : false;
+		$rc = (exec("/bin/cat {$file} 2>/dev/null") == 0) ? true : false;
 	} else {
 		$rc = true;
 	}
@@ -2383,9 +2383,6 @@ function check_for_duplicate_share($dev, $mountpoint) {
 
 	/* Don't check our device for a duplicate. */
 	unset($share_names[$device]);
-
-	/* If this device was a historical device, don't check it. */
-	unset($share_names[$mountpoint]);	
 
 	$share_names		= array_flip($share_names);
 	$share_names		= array_change_key_case($share_names, CASE_UPPER);
