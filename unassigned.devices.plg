@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.02.06a">
+<!ENTITY version	"2022.02.09">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"aa6c63e9d945afca001ceab47359815b">
+<!ENTITY MD5		"7a597ad293da001c428f96ed3f3e8694">
 ]>
 
 <PLUGIN name="&name;"
@@ -21,6 +21,14 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Unraid spinner.
+- Add: Rewrite of table creation and refresh of UI.
+- Fix: Help not enabled on table header.  Help not working properly when in non-tabbed view.
+- Fix: Changing a device label would not update the udev disk information.
+- Fix: More work on udev rules and updates.
+- Fix: Some php errors.
+
+###2022.02.06a
 - Add: Udev and hotplug debug messages.
 - Fix: Rework udev rules for hotplug events.
 - Fix: Rework udev handling to cut down on udev thrashing.
