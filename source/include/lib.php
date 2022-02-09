@@ -2151,6 +2151,8 @@ function get_udev_info($dev, $udev = null) {
 	} else if (array_key_exists($device, $state)) {
 		$rc	= $state[$device];
 	} else {
+		unassigned_log("Udev: Refresh udev info for ".$dev.".", 1);
+
 		$dev_state = @parse_ini_string(timed_exec(5, "/sbin/udevadm info --query=property --path $(/sbin/udevadm info -q path -n ".escapeshellarg($device)." 2>/dev/null) 2>/dev/null"), INI_SCANNER_RAW);
 		if (is_array($dev_state)) {
 			$state[$device] = $dev_state;
@@ -2195,7 +2197,7 @@ function get_disk_info($dev) {
 	if (version_compare($version['version'],"6.8.9", ">")) {
 		/* If this disk does not have a devX designation, it has dropped out of the array. */
 		$sf		= $paths['dev_state'];
-		if ((is_file($sf)) && ($attrs['ID_BUS'] != "usb") && (basename($disk['device']) == $disk['ud_dev'])) {
+		if ((is_file($sf)) && ($disk['id_bus'] != "usb") && (basename($disk['device']) == $disk['ud_dev'])) {
 			$disk['array_disk'] = true;
 		}
 	}
@@ -2476,9 +2478,6 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 						unassigned_log("Warning: Cannot change the disk label on device '".basename($dev)."'.");
 					break;
 			}
-
-			/* Force udev to update cached info. */
-			unlink($paths['state']);
 		}
 	} else {
 		/* Update the mountpoint. */
