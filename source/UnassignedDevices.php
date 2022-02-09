@@ -715,11 +715,6 @@ switch ($_POST['action']) {
 					$historical[$serial]['display']			= $disk_display;
 					$historical[$serial]['mntpoint']		= $mntpoint;
 					$historical[$serial]['mountpoint']		= $mountpoint;
-
-					/* Add to the share names. */
-					if ($mntpoint) {
-						$share_names[$mntpoint] = $mntpoint;
-					}
 				}
 			}
 		}
