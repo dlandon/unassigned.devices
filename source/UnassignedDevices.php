@@ -407,7 +407,7 @@ switch ($_POST['action']) {
 				$mbutton		= make_mount_button($disk);
 
 				/* Set up the preclear link for preclearing a disk. */
-				$preclear_link = (($disk['size'] !== 0) && (! $disk['partitions'][0]['fstype']) && (! $mounted) && ($Preclear) && (! $preclearing) && (get_config("Config", "destructive_mode") == "enabled")) ? "&nbsp;&nbsp;".$Preclear->Link($disk_device, "icon") : "";
+				$preclear_link = (($disk['size'] !== 0) && (! $disk['partitions'][0]['fstype']) && (! $mounted) && ($Preclear) && (! $preclearing) && (file_exists("/usr/sbin/parted")) && (get_config("Config", "destructive_mode") == "enabled")) ? "&nbsp;&nbsp;".$Preclear->Link($disk_device, "icon") : "";
 
 				/* Add the clear disk icon. */
 				$is_mounting	= array_values(preg_grep("@/mounting_".basename($disk['device'])."@i", listDir(dirname($paths['mounting']))))[0];
