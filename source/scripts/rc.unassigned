@@ -449,7 +449,7 @@ function unassigned_reload() {
 			$str = "change partition";
 		}
 
-		unassigned_log("Reload: A udev '".$str."' initiated a Hotplug event.", 1);
+		unassigned_log("Reload: A udev '".$str."' initiated a reload of udev info.", 1);
 
 		if (isset($_ENV['DEVLINKS'])) {
 			unassigned_log("Updating udev information...", 1);
@@ -458,10 +458,6 @@ function unassigned_reload() {
 				get_udev_info($link, $_ENV);
 			}
 		}
-
-		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
-		sleep(1);
-		@file_put_contents($paths['hotplug_event'], "");
 	}
 }
 
@@ -472,6 +468,14 @@ function unassigned_hotplug() {
 	if ($_ENV['DEVTYPE'] == "disk") {
 
 		unassigned_log("Hotplug: A udev 'add disk' initiated a Hotplug event.", 1);
+
+		if (isset($_ENV['DEVLINKS'])) {
+			unassigned_log("Updating udev information...", 1);
+
+			foreach (explode(" ", $_ENV['DEVLINKS']) as $link) {
+				get_udev_info($link, $_ENV);
+			}
+		}
 
 		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
 		sleep(1);
