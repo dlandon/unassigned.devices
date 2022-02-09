@@ -902,7 +902,6 @@ switch ($_POST['action']) {
 		}
 
 		unassigned_log("Refreshed Disks and Configuration.");
-
 		unassigned_log("Rescan Disks: initiated a Hotplug event.", 1);
 
 		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
