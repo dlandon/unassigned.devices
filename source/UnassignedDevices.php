@@ -565,7 +565,6 @@ switch ($_POST['action']) {
 		} else {
 			$o_disks .= "<tr><td colspan='12' style='text-align:center;'>"._('No Unassigned Disks available').".</td></tr>";
 		}
-		$o_disks .= "</tbody></table></div>";
 
 		/* SAMBA Mounts. */
 		$o_remotes = "";
@@ -680,7 +679,7 @@ switch ($_POST['action']) {
 				$o_remotes .= "</tr>";
 
 				/* Add to the share names. */
-				$share_names[$mount['mountpoint']] = $mount_point;
+				$share_names[$mount['device']] = $mount_point;
 			}
 		}
 		if (! count($samba_mounts) && ! count($iso_mounts)) {
