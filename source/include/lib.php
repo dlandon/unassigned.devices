@@ -607,9 +607,6 @@ function format_disk($dev, $fs, $pass) {
 			unassigned_log("Reload partition table result:\n".$o);
 		}
 
-		/* Update udev. */
-		shell_exec("/sbin/udevadm trigger --action=change ".escapeshellarg($dev));
-
 		/* Get partition designation based on type of device. */
 		if (MiscUD::is_device_nvme($dev)) {
 			$device	= $dev."p1";
@@ -741,9 +738,6 @@ function format_disk($dev, $fs, $pass) {
 				/* Clear the $pass variable. */
 				unset($pass);
 
-				/* Update udev. */
-				shell_exec("/sbin/udevadm trigger --action=change ".escapeshellarg($dev));
-
 				/* Let things settle a bit. */
 				sleep(3);
 
@@ -784,12 +778,6 @@ function remove_partition($dev, $part) {
 		} else {
 			/* Refresh partition information. */
 			exec("/usr/sbin/partprobe ".escapeshellarg($dev));
-
-			/* Give the disk time to settle. */
-			sleep(5);
-
-			/* Update udev info. */
-			shell_exec("/sbin/udevadm trigger --action=change ".escapeshellarg($dev));
 		}
 	}
 
@@ -821,15 +809,6 @@ function remove_all_partitions($dev) {
 
 		/* Remove all partitions - this clears the disk. */
 		shell_exec("/sbin/wipefs -a ".escapeshellarg($device)." 2>&1");
-
-		/* Update udev info. */
-		shell_exec("/sbin/udevadm trigger --action=change ".escapeshellarg($device));
-
-		/* Give the disk time to settle. */
-		sleep(3);
-
-		/* Refresh partition information. */
-		exec("/usr/sbin/partprobe ".escapeshellarg($device));
 
 		unassigned_log("Remove all Disk partitions initiated a Hotplug event.", 1);
 
