@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.02.09">
+<!ENTITY version	"2022.02.09a">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"7a597ad293da001c428f96ed3f3e8694">
+<!ENTITY MD5		"339a8aec6a1382ceef93266cbc31c30a">
 ]>
 
 <PLUGIN name="&name;"
@@ -21,6 +21,7 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Any disk with a partition label of 'UNRAID' is marked as an array disk.
 - Add: Unraid spinner.
 - Add: Rewrite of table creation and refresh of UI.
 - Fix: Help not enabled on table header.  Help not working properly when in non-tabbed view.
