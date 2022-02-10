@@ -2087,6 +2087,7 @@ function get_all_disks_info() {
 			foreach ($disk['partitions'] as $k => $p) {
 				if ($p) {
 					$disk['partitions'][$k] = get_partition_info($p);
+					$disk['array_disk'] = $disk['array_disk'] || $disk['partitions'][$k]['array_disk'];
 				}
 			}
 	        unset($ud_disks[$key]);
@@ -2216,6 +2217,11 @@ function get_partition_info($dev) {
 			$disk['disk_label']	= "";
 		}
 
+		/* Any partition with an 'UNRAID' label is an array disk. */
+		if ($disk['label'] == "UNRAID") {
+			$disk['array_disk'] = true;
+		}
+
 		/* Get the file system type. */
 		$disk['fstype']			= safe_name($attrs['ID_FS_TYPE']);
 
@@ -2266,7 +2272,6 @@ function get_partition_info($dev) {
 		$disk['command_bg']		= get_config($disk['serial'], "command_bg.{$disk['part']}");
 		$disk['prog_name']		= basename($disk['command'], ".sh");
 		$disk['logfile']		= ($disk['prog_name']) ? $paths['device_log'].$disk['prog_name'].".log" : "";
-
 		return $disk;
 	}
 }
