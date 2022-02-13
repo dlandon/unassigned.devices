@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.02.09a">
+<!ENTITY version	"2022.02.12">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"339a8aec6a1382ceef93266cbc31c30a">
+<!ENTITY MD5		"47256a117fc3d4e0927d2de6f64a9efa">
 ]>
 
 <PLUGIN name="&name;"
@@ -21,13 +21,17 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: More improvements in the debug section.
+- Fix: Php warnings.
+
+###2022.02.09a.
 - Add: Any disk with a partition label of 'UNRAID' is marked as an array disk.
 - Add: Unraid spinner.
 - Add: Rewrite of table creation and refresh of UI.
 - Fix: Help not enabled on table header.  Help not working properly when in non-tabbed view.
 - Fix: Changing a device label would not update the udev disk information.
 - Fix: More work on udev rules and updates.
-- Fix: Some php errors.
+- Fix: Some php warnings.
 
 ###2022.02.06a
 - Add: Udev and hotplug debug messages.
@@ -1855,12 +1859,6 @@ rm -rf /boot/config/plugins/&name;/&name;-&version;.tgz
 if [ -f /var/log/plugins/&name;-plus.plg ] ; then
 	plugin remove &name;-plus.plg
 	rm -rf /boot/config/plugins/&name;-plus.plg
-fi
-
-# Remove Unassigned Devices Preclear plugin
-if [ -f /var/log/plugins/&name;.preclear.plg ] ; then
-	plugin remove &name;.preclear.plg
-	rm -rf /boot/config/plugins/&name;.preclear.plg
 fi
 
 echo ""
