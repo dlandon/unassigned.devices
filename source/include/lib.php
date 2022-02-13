@@ -28,7 +28,6 @@ $paths = [	"smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"luks_pass"			=> "/tmp/{$plugin}/luks_pass",
 			"script_run"		=> "/tmp/{$plugin}/script_run",
 			"hotplug_event"		=> "/tmp/{$plugin}/hotplug_event",
-			"tmp_storage"		=> "/tmp/{$plugin}/",
 			"state"				=> "/var/state/{$plugin}/{$plugin}.ini",
 			"diag_state"		=> "/var/local/emhttp/{$plugin}.ini",
 			"mounted"			=> "/var/state/{$plugin}/{$plugin}.json",
@@ -83,15 +82,8 @@ class MiscUD
 {
 	/* Save contect to a json file. */
 	public function save_json($file, $content) {
-		global $paths;
-
-		$tmp_file	= $paths['tmp_storage'].basename($file);
-
 		/* Write file to temp. */
-		@file_put_contents($tmp_file, json_encode($content, JSON_PRETTY_PRINT));
-
-		/* Rename the file. */
-		rename($tmp_file, $file);
+		@file_put_contents($file, json_encode($content, JSON_PRETTY_PRINT));
 	}
 
 	/* Get content from a json file. */
@@ -178,11 +170,7 @@ function save_ini_file($file, $array, $save_config = true) {
 	}
 
 	/* Write changes to tmp file. */
-	$tmp_file	= $paths['tmp_storage'].basename($file);
-	@file_put_contents($tmp_file, implode(PHP_EOL, $res));
-
-	/* Move the file. */
-	@rename($tmp_file, $file);
+	@file_put_contents($file, implode(PHP_EOL, $res));
 
 	/* Write cfg file changes back to flash. */
 	if ($save_config) {
@@ -2135,6 +2123,8 @@ function get_all_disks_info() {
 function get_udev_info($dev, $udev = null) {
 	global $paths;
 
+	$rc		= array();
+
 	$state	= is_file($paths['state']) ? @parse_ini_file($paths['state'], true, INI_SCANNER_RAW) : array();
 	$device	= safe_name($dev);
 	if ($udev) {
@@ -2142,9 +2132,7 @@ function get_udev_info($dev, $udev = null) {
 
 		$state[$device]= $udev;
 		save_ini_file($paths['state'], $state);
-
-		@copy($paths['state'], $paths['tmp_storage'].basename($paths['diag_state']));
-		@rename($paths['tmp_storage'].basename($paths['diag_state']), $paths['diag_state']);
+		@copy($paths['state'], $paths['diag_state']);
 
 		$rc	= $udev;
 	} else if (array_key_exists($device, $state)) {
@@ -2156,16 +2144,14 @@ function get_udev_info($dev, $udev = null) {
 		if (is_array($dev_state)) {
 			$state[$device] = $dev_state;
 			save_ini_file($paths['state'], $state);
-
-			@copy($paths['state'], $paths['tmp_storage'].basename($paths['diag_state']));
-			@rename($paths['tmp_storage'].basename($paths['diag_state']), $paths['diag_state']);
+			@copy($paths['state'], $paths['diag_state']);
 
 			$rc	= $state[$device];
 		} else {
 			$rc = array();
 		}
 	}
-
+	
 	return $rc;
 }
 
