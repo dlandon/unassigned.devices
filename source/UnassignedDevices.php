@@ -887,6 +887,7 @@ switch ($_POST['action']) {
 	case 'rescan_disks':
 		/* Refresh all disk partition information, update config files from flash, and clear status files. */
 		exec("plugins/{$plugin}/scripts/copy_config.sh");
+
 		$sf		= $paths['dev_state'];
 		if (is_file($sf)) {
 			$devs = @parse_ini_file($sf, true);
@@ -894,10 +895,7 @@ switch ($_POST['action']) {
 				$device = "/dev/".$d['device'];
 
 				/* Refresh partition information. */
-				exec("/usr/sbin/partprobe ".escapeshellarg($device));
-
-				/* Update disk info. */
-				shell_exec("/sbin/udevadm trigger --action=change ".escapeshellarg($device));
+				exec("/usr/sbin/partprobe -d ".escapeshellarg($device));
 			}
 		}
 
