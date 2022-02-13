@@ -59,7 +59,7 @@ function unassigned_mount() {
 			if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "auto" || $DEVNAME == "autodevices" ) {
 				$info = get_partition_info($partition);
 
-				unassigned_log("Partition found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) && (strpos($k, "pass_through") === false)? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), 1);
+				unassigned_log("Partition found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) && (strpos($k, "pass_through") === false)? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
 
 				/* If disk is passed through, skip to the next disk. */
 				if ($info['pass_through']) {
@@ -105,7 +105,7 @@ function unassigned_mount() {
 				}
 
 				if ($info['device']) {
-					unassigned_log("Disk found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = ((strpos($k, "pass") !== false) && (strpos($k, "pass_through") === false)) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), 1);
+					unassigned_log("Disk found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = ((strpos($k, "pass") !== false) && (strpos($k, "pass_through") === false)) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
 					unassigned_log("Adding partition '".basename($info['device'])."'...");
 
 					/* Create the mounting status file for this device. */
@@ -181,7 +181,7 @@ function unassigned_mount() {
 					continue;
 				}
 
-				unassigned_log("Remote SMB/NFS share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = ((strpos($k, "pass") !== false) || ((strpos($k, "user") !== false) && (strpos($k, "user_command") === false))) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), 1);
+				unassigned_log("Remote SMB/NFS share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = ((strpos($k, "pass") !== false) || ((strpos($k, "user") !== false) && (strpos($k, "user_command") === false))) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
 
 				/* Remove any special characters. */
 				$mount_device = basename($info['device'])."_".$info['fstype'];
@@ -238,7 +238,7 @@ function unassigned_mount() {
 					continue;
 				}
 
-				unassigned_log("ISO File share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), 1);
+				unassigned_log("ISO File share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
 
 				/* Remove any special characters. */
 				$mount_device = basename($info['device']);
@@ -276,7 +276,7 @@ function unassigned_mount() {
 
 	/* A udev mount event? */
 	if (isset($_ENV['DEVTYPE']) && ($_ENV['DEVTYPE'] == "partition")) {
-		unassigned_log("Mount: Received a udev 'add'.", 1);
+		unassigned_log("Mount: Received a udev 'add'.", $GLOBALS['UDEV_DEBUG']);
 	}
 }
 
@@ -296,7 +296,7 @@ function unassigned_umount() {
 					continue;
 				}
 
-				unassigned_log("Partition found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) && (strpos($k, "pass_through") === false)? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), 1);
+				unassigned_log("Partition found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) && (strpos($k, "pass_through") === false)? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
 
 				/* Cannot unmount disk with 'UNRAID' label. */
 				if ($info['label'] == "UNRAID") {
@@ -355,7 +355,7 @@ function unassigned_umount() {
 				if (! $info['automount'] && $DEVNAME == "auto" ) {
 					continue;
 				}
-				unassigned_log("Remote SMB/NFS share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), 1);
+				unassigned_log("Remote SMB/NFS share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
 
 				$force = $info['is_alive'] ? $force : true;
 
@@ -403,7 +403,7 @@ function unassigned_umount() {
 				if (! $info['automount'] && $DEVNAME == "auto" ) {
 					continue;
 				}
-				unassigned_log("ISO File share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), 1);
+				unassigned_log("ISO File share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
 
 				/* If iso file is mounted, unmlount it. */
 				if ( is_mounted($info['mountpoint']) ) {
@@ -449,10 +449,10 @@ function unassigned_reload() {
 			$str = "change partition";
 		}
 
-		unassigned_log("Reload: A udev '".$str."' initiated a reload of udev info.", 1);
+		unassigned_log("Reload: A udev '".$str."' initiated a reload of udev info.", $GLOBALS['UDEV_DEBUG']);
 
 		if (isset($_ENV['DEVLINKS'])) {
-			unassigned_log("Updating udev information...", 1);
+			unassigned_log("Updating udev information...", $GLOBALS['UDEV_DEBUG']);
 
 			foreach (explode(" ", $_ENV['DEVLINKS']) as $link) {
 				get_udev_info($link, $_ENV);
@@ -467,10 +467,10 @@ function unassigned_hotplug() {
 
 	if ($_ENV['DEVTYPE'] == "disk") {
 
-		unassigned_log("Hotplug: A udev 'add disk' initiated a Hotplug event.", 1);
+		unassigned_log("Hotplug: A udev 'add disk' initiated a Hotplug event.", $GLOBALS['UDEV_DEBUG']);
 
 		if (isset($_ENV['DEVLINKS'])) {
-			unassigned_log("Updating udev information...", 1);
+			unassigned_log("Updating udev information...", $GLOBALS['UDEV_DEBUG']);
 
 			foreach (explode(" ", $_ENV['DEVLINKS']) as $link) {
 				get_udev_info($link, $_ENV);

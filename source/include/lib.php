@@ -12,7 +12,6 @@
 
 set_error_handler("unassigned_log_error");
 set_exception_handler( "unassigned_log_exception" );
-
 $plugin = "unassigned.devices";
 $paths = [	"smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"smb_usb_shares"	=> "/etc/samba/unassigned-shares",
@@ -29,6 +28,7 @@ $paths = [	"smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"luks_pass"			=> "/tmp/{$plugin}/luks_pass",
 			"script_run"		=> "/tmp/{$plugin}/script_run",
 			"hotplug_event"		=> "/tmp/{$plugin}/hotplug_event",
+			"tmp_storage"		=> "/tmp/{$plugin}/",
 			"state"				=> "/var/state/{$plugin}/{$plugin}.ini",
 			"diag_state"		=> "/var/local/emhttp/{$plugin}.ini",
 			"mounted"			=> "/var/state/{$plugin}/{$plugin}.json",
@@ -49,8 +49,14 @@ $users		= @parse_ini_file("$docroot/state/users.ini", true);
 $disks		= @parse_ini_file("$docroot/state/disks.ini", true);
 
 /* Set the log level for debugging. */
-/* 0 - normal logging */
-/* 1 - udev and disk discovery logging */
+/* 0 - normal logging, */
+
+/* 1 - udev and disk discovery logging, */
+$UDEV_DEBUG	= 1;
+
+/* 8 - command time outs. */
+$CMD_DEBUG	= 8;
+
 $DEBUG_LEVEL	= (int) get_config("Config", "debug_level");
 
 /* Read Unraid variables file. Used to determine disks not assigned to the array and other array parameters. */
@@ -77,7 +83,15 @@ class MiscUD
 {
 	/* Save contect to a json file. */
 	public function save_json($file, $content) {
-		@file_put_contents($file, json_encode($content, JSON_PRETTY_PRINT));
+		global $paths;
+
+		$tmp_file	= $paths['tmp_storage'].basename($file);
+
+		/* Write file to temp. */
+		@file_put_contents($tmp_file, json_encode($content, JSON_PRETTY_PRINT));
+
+		/* Rename the file. */
+		rename($tmp_file, $file);
 	}
 
 	/* Get content from a json file. */
@@ -122,9 +136,11 @@ class MiscUD
 	public function get_pool_devices($mountpoint) {
 		global $paths;
 
+		$rc = array();
+
 		$pool_state	= MiscUD::get_json($paths['pool_state']);
-		if (! count($pool_state[$mountpoint])) {
-			unassigned_log("Get Disk Pool members on mountpoint '".$mountpoint."'.", 1);
+		if (is_array($pool_state) && (! count($pool_state[$mountpoint]))) {
+			unassigned_log("Get Disk Pool members on mountpoint '".$mountpoint."'.", $GLOBALS['UDEV_DEBUG']);
 
 			/* Get the brfs pool status from the mountpoint. */
 			$s	= shell_exec("/sbin/btrfs fi show ".escapeshellarg($mountpoint)." | /bin/grep 'path' | /bin/awk '{print $8}'");
@@ -162,10 +178,11 @@ function save_ini_file($file, $array, $save_config = true) {
 	}
 
 	/* Write changes to tmp file. */
-	@file_put_contents($file."-", implode(PHP_EOL, $res));
+	$tmp_file	= $paths['tmp_storage'].basename($file);
+	@file_put_contents($tmp_file, implode(PHP_EOL, $res));
 
-	/* Rename temp file. */
-	@rename($file."-", $file);
+	/* Move the file. */
+	@rename($tmp_file, $file);
 
 	/* Write cfg file changes back to flash. */
 	if ($save_config) {
@@ -348,7 +365,7 @@ function get_disk_reads_writes($ud_dev, $dev) {
 	$dev	= MiscUD::base_device(basename($dev));
 
 	/* Get the disk_io for this device. */
-	$disk_io	= @(array)parse_ini_file('state/diskload.ini');
+	$disk_io	= is_file('state/diskload.ini') ? @parse_ini_file('state/diskload.ini') : array();
 	$data		= explode(' ', $disk_io[$dev] ?? '0 0 0 0');
 
 	/* Read rate. */
@@ -810,7 +827,7 @@ function remove_all_partitions($dev) {
 		/* Remove all partitions - this clears the disk. */
 		shell_exec("/sbin/wipefs -a ".escapeshellarg($device)." 2>&1");
 
-		unassigned_log("Remove all Disk partitions initiated a Hotplug event.", 1);
+		unassigned_log("Remove all Disk partitions initiated a Hotplug event.", $GLOBALS['UDEV_DEBUG']);
 
 		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
 		sleep(1);
@@ -843,7 +860,7 @@ function timed_exec($timeout = 10, $cmd) {
 		unassigned_log("Error: shell_exec(".$cmd.") took longer than ".sprintf('%d', $timeout)."s!");
 		$out	= "command timed out";
 	} else {
-		unassigned_log("Timed Exec: shell_exec(".$cmd.") took ".sprintf('%f', $time)."s!", 3);
+		unassigned_log("Timed Exec: shell_exec(".$cmd.") took ".sprintf('%f', $time)."s!", $GLOBALS['CMD_DEBUG']);
 	}
 
 	return $out;
@@ -2121,24 +2138,28 @@ function get_udev_info($dev, $udev = null) {
 	$state	= is_file($paths['state']) ? @parse_ini_file($paths['state'], true, INI_SCANNER_RAW) : array();
 	$device	= safe_name($dev);
 	if ($udev) {
-		unassigned_log("Udev: Update udev info for ".$dev.".", 1);
+		unassigned_log("Udev: Update udev info for ".$dev.".", $GLOBALS['UDEV_DEBUG']);
 
 		$state[$device]= $udev;
 		save_ini_file($paths['state'], $state);
-		@copy($paths['state'], $paths['diag_state']."-");
-		@rename($paths['diag_state']."-", $paths['diag_state']);
+
+		@copy($paths['state'], $paths['tmp_storage'].basename($paths['diag_state']));
+		@rename($paths['tmp_storage'].basename($paths['diag_state']), $paths['diag_state']);
+
 		$rc	= $udev;
 	} else if (array_key_exists($device, $state)) {
 		$rc	= $state[$device];
 	} else {
-		unassigned_log("Udev: Refresh udev info for ".$dev.".", 1);
+		unassigned_log("Udev: Refresh udev info for ".$dev.".", $GLOBALS['UDEV_DEBUG']);
 
 		$dev_state = @parse_ini_string(timed_exec(5, "/sbin/udevadm info --query=property --path $(/sbin/udevadm info -q path -n ".escapeshellarg($device)." 2>/dev/null) 2>/dev/null"), INI_SCANNER_RAW);
 		if (is_array($dev_state)) {
 			$state[$device] = $dev_state;
 			save_ini_file($paths['state'], $state);
-			@copy($paths['state'], $paths['diag_state']."-");
-			@rename($paths['diag_state']."-", $paths['diag_state']);
+
+			@copy($paths['state'], $paths['tmp_storage'].basename($paths['diag_state']));
+			@rename($paths['tmp_storage'].basename($paths['diag_state']), $paths['diag_state']);
+
 			$rc	= $state[$device];
 		} else {
 			$rc = array();
@@ -2196,7 +2217,6 @@ function get_partition_info($dev) {
 		$disk['serial']			= $attrs['ID_MODEL']."_".$disk['serial_short'];
 		$disk['device']			= realpath($dev);
 		$disk['uuid']			= $attrs['ID_FS_UUID'];
-
 		/* Get partition number */
 		preg_match_all("#(.*?)(\d+$)#", $disk['device'], $matches);
 		$disk['part']			= $matches[2][0];

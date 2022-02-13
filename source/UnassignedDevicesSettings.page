@@ -269,15 +269,18 @@ _(NFS Version to use when Mounting Remote Shares)_:
 _(Debug Log Level)_:
 : <select name="debug_level" size="1">
   <?=mk_option($cfg["Config"]["debug_level"], "0", "_(None)_");?>
-  <?=mk_option($cfg["Config"]["debug_level"], "1", "1");?>
-  <?=mk_option($cfg["Config"]["debug_level"], "2", "2");?>
-  <?=mk_option($cfg["Config"]["debug_level"], "3", "3");?>
+  <?=mk_option($cfg["Config"]["debug_level"], "1", "Udev and Hotplug");?>
+  <?=mk_option($cfg["Config"]["debug_level"], "8", "Command times");?>
   </select>&nbsp;_(Use only when directed for support)_.
 
 :ud_settings_debug_level_plug:
 > Setting a Debug Log Level adds additional logging in specific areas of UD for troubleshooting.
 >
 > Set to **None** to turn off debug logging.
+>
+> **Udev and Hotplug** udev, disk discovery and hotplug debug.
+>
+> **Command times** command execution times. **Warning:** very chatty.
 >
 > Set the Debug Log Level to a numeric value to debug a specific area of UD.
 >
