@@ -131,7 +131,7 @@ class MiscUD
 		$rc = array();
 
 		$pool_state	= MiscUD::get_json($paths['pool_state']);
-		if (is_array($pool_state) && (! count($pool_state[$mountpoint]))) {
+		if (is_array($pool_state[$mountpoint]) && (! count($pool_state[$mountpoint]))) {
 			unassigned_log("Get Disk Pool members on mountpoint '".$mountpoint."'.", $GLOBALS['UDEV_DEBUG']);
 
 			/* Get the brfs pool status from the mountpoint. */
