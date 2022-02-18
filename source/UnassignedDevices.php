@@ -216,6 +216,8 @@ function render_partition($disk, $partition, $disk_line = false) {
 		if ($disk_line) {
 			$title .= "<br />"._("Passed Through").": ";
 			$title .= ($partition['pass_through'] == 'yes') ? "Yes" : "No";
+			$title .= "<br />"._("Disable Mount Button").": ";
+			$title .= ($partition['disable_mount'] == 'yes') ? "Yes" : "No";
 			$title .= "<br />"._("Read Only").": ";
 			$title .= ($partition['read_only'] == 'yes') ? "Yes" : "No";
 			$title .= "<br />"._("Automount").": ";
@@ -333,14 +335,16 @@ function make_mount_button($device) {
 		if ($script_running) {
 			$button = sprintf($button, $context, 'running', 'disabled', 'fa fa-spinner fa-spin', ' '._('Running'));
 		} else {
+			$disable = ! $device['partitions'][0]['disable_mount'] ? $disable : "disabled";
 			$button = sprintf($button, $context, 'umount', $disable, '', _('Unmount'));
 		}
 	} else {
 		$disable = ($device['partitions'][0]['pass_through'] || $preclearing ) ? "disabled" : $disable;
-		if (! $device['partitions'][0]['pass_through']) {
-			$button = sprintf($button, $context, 'mount', $disable, '', _('Mount'));	
-		} else {
+		if ($device['partitions'][0]['pass_through']) {
 			$button = sprintf($button, $context, 'mount', $disable, '', _('Passed'));	
+		} else {
+			$disable = ! $device['partitions'][0]['disable_mount'] ? $disable : "disabled";
+			$button = sprintf($button, $context, 'mount', $disable, '', _('Mount'));	
 		}
 	}
 
@@ -861,6 +865,13 @@ switch ($_POST['action']) {
 		$serial	= urldecode($_POST['serial']);
 		$status	= urldecode($_POST['status']);
 		echo json_encode(array( 'result' => toggle_pass_through($serial, $status) ));
+		break;
+
+	case 'toggle_disable_mount':
+		/* Toggle the disable mount button setting. */
+		$serial	= urldecode($_POST['serial']);
+		$status	= urldecode($_POST['status']);
+		echo json_encode(array( 'result' => toggle_disable_mount($serial, $status) ));
 		break;
 
 	/*	DISK	*/

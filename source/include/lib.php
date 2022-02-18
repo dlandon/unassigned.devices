@@ -907,6 +907,11 @@ function is_pass_through($serial) {
 	return (get_config($serial, "pass_through") == "yes") ? true : false;
 }
 
+/* Is device set to pass through. */
+function is_disable_mount($serial) {
+	return (get_config($serial, "disable_mount") == "yes") ? true : false;
+}
+
 /* Toggle auto mount on/off. */
 function toggle_automount($serial, $status) {
 	$config_file	= $GLOBALS["paths"]["config_file"];
@@ -932,6 +937,15 @@ function toggle_pass_through($serial, $status) {
 	$config[$serial]["pass_through"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
 	return ($config[$serial]["pass_through"] == "yes") ? 'true' : 'false';
+}
+
+/* Toggle hide mount on/off. */
+function toggle_disable_mount($serial, $status) {
+	$config_file	= $GLOBALS["paths"]["config_file"];
+	$config			= @parse_ini_file($config_file, true);
+	$config[$serial]["disable_mount"] = ($status == "true") ? "yes" : "no";
+	save_ini_file($config_file, $config);
+	return ($config[$serial]["disable_mount"] == "yes") ? 'true' : 'false';
 }
 
 /* Execute the device script. */
@@ -2261,6 +2275,7 @@ function get_partition_info($dev) {
 		}
 
 		$disk['pass_through']	= (! $disk['mounted']) ? is_pass_through($disk['serial']) : false;
+		$disk['disable_mount']	= is_disable_mount($disk['serial']);
 
 		/* Target is set to the mount point when the device is mounted. */
 		$disk['target']			= str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep ".escapeshellarg($disk['device'])." | /bin/awk '{print $2}'")));
