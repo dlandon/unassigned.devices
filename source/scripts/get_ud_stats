@@ -136,6 +136,7 @@ function is_server_online($server, $log = false) {
 		$no_pings = 0;
 	}
 
+	/* When the server first goes offline, log a message. */
 	if ($was_alive != $is_alive) {
 		if (! $is_alive) {
 			unassigned_log("Remote server '".$server."' is not responding to a ping and appears to be offline.");
@@ -145,6 +146,7 @@ function is_server_online($server, $log = false) {
 		$changed = false;
 	}
 
+	/* Update the server status file. */
 	$ping_status[$server] = array('no_pings' => $no_pings, 'online' => $is_alive ? 'yes' : 'no', 'changed' => $changed ? 'yes' : 'no');
 	MiscUD::save_json($tc, $ping_status);
 
