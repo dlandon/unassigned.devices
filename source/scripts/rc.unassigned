@@ -277,6 +277,9 @@ function unassigned_mount() {
 	/* A udev mount event? */
 	if (isset($_ENV['DEVTYPE']) && ($_ENV['DEVTYPE'] == "partition")) {
 		unassigned_log("Mount: Received a udev 'add'.", $GLOBALS['UDEV_DEBUG']);
+
+		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
+		@file_put_contents($paths['hotplug_event'], "");
 	}
 }
 
