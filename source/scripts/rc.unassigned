@@ -461,6 +461,10 @@ function unassigned_reload() {
 				get_udev_info($link, $_ENV);
 			}
 		}
+
+		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
+		sleep(1);
+		@file_put_contents($paths['hotplug_event'], "");
 	}
 }
 
