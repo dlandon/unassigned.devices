@@ -43,7 +43,7 @@ if (version_compare($version['version'],"6.8.9", ">")) {
 	$cfg["Config"]["spin_down"] = "yes";
 }
 
-/* If Unraid is 6.10 or greater, set NFS version for v3. */
+/* If Unraid is 6.9 or less, set NFS version for v3. */
 if (version_compare($version['version'],"6.9.9", "<")) {
 	$cfg["Config"]["nfs_version"] = "3";
 }
@@ -53,9 +53,6 @@ $uuid_devices = array();
 
 /* Get array of encrypted devices that can have a password set in settings. */
 $encrypt_devices = array();
-
-/* Get array of btrfs devices that can be pooled. */
-$pool_devices = array();
 
 foreach (get_all_disks_info() as $d) {
 	/* If the disk dropped out of the array, skip it. */
@@ -84,14 +81,6 @@ foreach (get_all_disks_info() as $d) {
 		$a = array();
 		$a['label'] = $d['serial'];
 		$encrypt_devices[] = $a;
-	}
-
-	/* btrfs file systems disks are candidates for pool devices. */
-	if ($d['partitions'][0]['fstype'] == "btrfs" && (! $d['partitions'][0]['mounted'])) {
-		$a = array();
-		$a['device'] = $d['device'];
-		$a['label'] = $d['serial'];
-		$pool_devices[] = $a;
 	}
 }
 ?>
