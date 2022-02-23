@@ -167,9 +167,14 @@ function save_ini_file($file, $array, $save_config = true) {
 	/* Check the lock file for previous process havng a lock. */
 	$i = 0;
 	while (file_exists($lock_file) && ($i < 5)) {
-		unassigned_log("Waiting for lock file.", $UDEV_DEBUG);
+		unassigned_log("Waiting for save_ini lock file.", $UDEV_DEBUG);
 		sleep(0.01);
 		$i++;
+	}
+
+	/* Did we time out waiting for unlock file? */
+	if ($i == 5) {
+		unassigned_log("Timed out waiting for save_ini lock file.", $UDEV_DEBUG);
 	}
 
 	/* Create the lock file. */
@@ -2157,9 +2162,28 @@ function get_all_disks_info() {
 
 /* Get the udev disk information. */
 function get_udev_info($dev, $udev = null) {
-	global $paths;
+	global $plugin, $paths;
 
 	$rc		= array();
+
+	/* Lock file for concurrent operations. */
+	$lock_file	= "/tmp/".$plugin."/udev.lock";
+
+	/* Check the lock file for previous process havng a lock. */
+	$i = 0;
+	while (file_exists($lock_file) && ($i < 10)) {
+		unassigned_log("Waiting for udev lock file.", $UDEV_DEBUG);
+		sleep(0.01);
+		$i++;
+	}
+
+	/* Did we time out waiting for unlock file? */
+	if ($i == 10) {
+		unassigned_log("Timed out waiting for udev lock file.", $UDEV_DEBUG);
+	}
+
+	/* Create the lock file. */
+	touch($lock_file);
 
 	$state	= is_file($paths['state']) ? @parse_ini_file($paths['state'], true, INI_SCANNER_RAW) : array();
 	$device	= safe_name($dev);
@@ -2194,6 +2218,9 @@ function get_udev_info($dev, $udev = null) {
 		}
 	}
 	
+	/* Remove the lock file. */
+	@unlink($lock_file);
+
 	return $rc;
 }
 
