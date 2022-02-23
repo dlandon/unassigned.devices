@@ -161,6 +161,20 @@ function _echo($m) {
 function save_ini_file($file, $array, $save_config = true) {
 	global $plugin, $paths;
 
+	/* Lock file for concurrent operations. */
+	$lock_file	= "/tmp/".$plugin."/save_ini.lock";
+
+	/* Check the lock file for previous process havng a lock. */
+	$i = 0;
+	while (file_exists($lock_file) && ($i < 5)) {
+		unassigned_log("Waiting for lock file.", $UDEV_DEBUG);
+		sleep(0.01);
+		$i++;
+	}
+
+	/* Create the lock file. */
+	touch($lock_file);
+
 	$res = array();
 	foreach($array as $key => $val) {
 		if (is_array($val)) {
@@ -184,6 +198,9 @@ function save_ini_file($file, $array, $save_config = true) {
 			@file_put_contents("/boot/config/plugins/".$plugin."/".basename($file), implode(PHP_EOL, $res));
 		}
 	}
+
+	/* Remove the lock file. */
+	@unlink($lock_file);
 }
 
 /* Log program error. */
