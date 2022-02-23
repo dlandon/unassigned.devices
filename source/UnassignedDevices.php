@@ -364,7 +364,7 @@ switch ($_POST['action']) {
 		if (file_exists($paths['hotplug_event'])) {
 			@unlink($paths['hotplug_event']);
 
-			unassigned_log("Processing Hotplug event...", 1);
+			unassigned_log("Processing Hotplug event...", $UDEV_DEBUG);
 
 			/* Tell Unraid to update list of unassigned devices in devs.ini. */
 			exec("/usr/local/sbin/emcmd 'cmdHotplug=apply'");
@@ -910,7 +910,7 @@ switch ($_POST['action']) {
 		}
 
 		unassigned_log("Refreshed Disks and Configuration.");
-		unassigned_log("Rescan Disks: initiated a Hotplug event.", 1);
+		unassigned_log("Rescan Disks: initiated a Hotplug event.", $UDEV_DEBUG);
 
 		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
 		sleep(1);
