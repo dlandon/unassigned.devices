@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.02.23">
+<!ENTITY version	"2022.02.23a">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"94de5cc3b2640954ea4b759bf363da5d">
+<!ENTITY MD5		"844b483333024ff002a4c5108a451648">
 ]>
 
 <PLUGIN name="&name;"
@@ -1867,6 +1867,12 @@ rm -rf /boot/config/plugins/&name;/&name;-&version;.tgz
 if [ -f /var/log/plugins/&name;-plus.plg ] ; then
 	plugin remove &name;-plus.plg
 	rm -rf /boot/config/plugins/&name;-plus.plg
+fi
+
+# Remove Unassigned Devices Preclear plugin
+if [ -f /var/log/plugins/&name;.preclear.plg ] ; then
+	plugin remove &name;.preclear.plg
+	rm -rf /boot/config/plugins/&name;.preclear.plg
 fi
 
 echo ""
