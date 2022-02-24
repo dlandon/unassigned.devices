@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.02.23a">
+<!ENTITY version	"2022.02.24">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"844b483333024ff002a4c5108a451648">
+<!ENTITY MD5		"37a0ac1ecfc1cea2c19cce98beaddacb">
 ]>
 
 <PLUGIN name="&name;"
@@ -21,6 +21,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Php warnings with lock files.
+
+###2022.02.23a
 - Add: Device Settings Switch to disable mount button.  This also disables disk clear and remove partition.
 - Add: Initiate a hotplug event when a device is removed.
 - Add: File locking mechanism to be sure udev ini file is not corrupted.
