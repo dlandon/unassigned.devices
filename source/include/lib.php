@@ -140,8 +140,14 @@ class MiscUD
 		/* If this mount point is not defined, set it as an empty array. */
 		$pool_state[$mountpoint] = is_array($pool_state[$mountpoint]) ? $pool_state[$mountpoint] : array();
 
-		/* Get the pool parameters if they are not already defined. */
-		if (is_array($pool_state[$mountpoint]) && (! count($pool_state[$mountpoint]))) {
+		if ($remove) {
+			/* Remove this from the pool devices if unmounting. */
+			if (isset($pool_state[$mountpoint])) {
+				unset($pool_state[$mountpoint]);
+				MiscUD::save_json($paths['pool_state'], $pool_state);
+			}
+		} else if (is_array($pool_state[$mountpoint]) && (! count($pool_state[$mountpoint]))) {
+			/* Get the pool parameters if they are not already defined. */
 			unassigned_log("Get Disk Pool members on mountpoint '".$mountpoint."'.", $GLOBALS['UDEV_DEBUG']);
 
 			/* Get the brfs pool status from the mountpoint. */
@@ -149,11 +155,6 @@ class MiscUD
 			$rc	= explode("\n", $s);
 			$pool_state[$mountpoint] = array_filter($rc);
 			MiscUD::save_json($paths['pool_state'], $pool_state);
-		} else if ($remove) {
-			if (isset($pool_state[$mountpoint])) {
-				unset($pool_state[$mountpoint]);
-				MiscUD::save_json($paths['pool_state'], $pool_state);
-			}
 		} else {
 			/* Get the pool status from the pool_state. */
 			$rc = $pool_state[$mountpoint];
