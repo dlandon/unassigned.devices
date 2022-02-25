@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.02.24">
+<!ENTITY version	"2022.02.24a">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"37a0ac1ecfc1cea2c19cce98beaddacb">
+<!ENTITY MD5		"0f68fad520cefc310d36bf7a63ea2e0f">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,8 @@
 ##&name;
 ###&version;
 - Fix: Php warnings with lock files.
+- Fix: Remove saved pool devices when device is unmounted.
+- Fix: Php warning when pool device has not already been saved in json file.
 
 ###2022.02.23a
 - Add: Device Settings Switch to disable mount button.  This also disables disk clear and remove partition.
