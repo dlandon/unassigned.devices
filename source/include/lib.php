@@ -129,12 +129,18 @@ class MiscUD
 	}
 
 	/* Get array of pool devices on a mount point. */
-	public function get_pool_devices($mountpoint) {
+	public function get_pool_devices($mountpoint, $remove = false) {
 		global $paths;
 
 		$rc = array();
 
+		/* Get the current pool status. */
 		$pool_state	= MiscUD::get_json($paths['pool_state']);
+
+		/* If this mount point is not defined, set it as an empty array. */
+		$pool_state[$mountpoint] = is_array($pool_state[$mountpoint]) ? $pool_state[$mountpoint] : array();
+
+		/* Get the pool parameters if they are not already defined. */
 		if (is_array($pool_state[$mountpoint]) && (! count($pool_state[$mountpoint]))) {
 			unassigned_log("Get Disk Pool members on mountpoint '".$mountpoint."'.", $GLOBALS['UDEV_DEBUG']);
 
@@ -143,6 +149,11 @@ class MiscUD
 			$rc	= explode("\n", $s);
 			$pool_state[$mountpoint] = array_filter($rc);
 			MiscUD::save_json($paths['pool_state'], $pool_state);
+		} else if ($remove) {
+			if (isset($pool_state[$mountpoint])) {
+				unset($pool_state[$mountpoint]);
+				MiscUD::save_json($paths['pool_state'], $pool_state);
+			}
 		} else {
 			/* Get the pool status from the pool_state. */
 			$rc = $pool_state[$mountpoint];
@@ -1335,6 +1346,9 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false) {
 	if ( is_mounted($dev) && is_mounted($dir) ) {
 		unassigned_log("Synching file system on '{$dir}'.");
 		exec("/bin/sync -f ".escapeshellarg($dir));
+
+		/* Remove saved pool devices if this is a pooled device. */
+		MiscUD::get_pool_devices($dir, true);
 
 		$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : ($nfs ? " -l" : ""))." ".escapeshellarg($dev)." 2>&1";
 		unassigned_log("Unmount cmd: {$cmd}");
