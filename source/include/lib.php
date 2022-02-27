@@ -851,7 +851,7 @@ function remove_all_partitions($dev) {
 		unassigned_log("Removing all partitions from disk '".$device."'.");
 
 		/* Remove all partitions - this clears the disk. */
-		shell_exec("/sbin/wipefs -a ".escapeshellarg($device)." 2>&1");
+		shell_exec("/sbin/sgdisk -Z ".escapeshellarg($device)." 2>&1");
 
 		unassigned_log("Remove all Disk partitions initiated a Hotplug event.", $GLOBALS['UDEV_DEBUG']);
 
