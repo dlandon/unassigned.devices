@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.02.24b">
+<!ENTITY version	"2022.02.27">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"de989d4638184e71659abd726c590fcc">
+<!ENTITY MD5		"fe9070afff6779502260e99b06eae96a">
 ]>
 
 <PLUGIN name="&name;"
@@ -21,8 +21,12 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Don't show the remove partition icon if the partition doesn't have a file system.
+- Fix: Use 'sgdisk' to clear a disk of all partitions instead of 'wipefs'.
+
+###2022.02.24b
 - Fix: Php warnings with lock files.
-- Fix: Remove saved pool devices when device is unmounted.
+- Fix: Remove device from saved pool devices when device is unmounted.
 - Fix: Php warning when pool device has not already been saved in json file.
 
 ###2022.02.23a
@@ -30,7 +34,7 @@
 - Add: Initiate a hotplug event when a device is removed.
 - Add: File locking mechanism to be sure udev ini file is not corrupted.
 - Fix: Disk read and write rates not showing when disk is passed through.
-- Fix: More php error fixes.
+- Fix: More php warning fixes.
 - Fix: Code cleanup.
 
 ###2022.02.12a
