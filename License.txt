@@ -1,14 +1,20 @@
-### Unassigned Devices plugin for unRAID
+### Unassigned Devices and Unassigned Devices Preclear plugins for unRAID
 
+Unassigned Devices
 Copyright (C) 2015 Guilherme Jardim
 Copyright (C) 2016-2017 Dan Landon
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
+Unassigned Devices Preclear
+Copyright (C) 2015-2020 Guilherme Jardim
+Copyright (C) 2022 Dan Landon
+
+
+These programs are free software; you can redistribute them and/or modify
+them under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 2 of the License, or
 (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
+These programs are distributed in the hope that they will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
