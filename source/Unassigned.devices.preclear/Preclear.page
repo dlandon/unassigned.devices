@@ -130,7 +130,7 @@ $(function() {
 >
 > + Clear Disk - The disk is cleared and the Unraid signature is written to the disk.  This will create an empty partition on the disk.
 > + Erase Disk - Erase the entire disk by writing all zeros.  The preclear signature is removed.
-> + Erase and Clear Disk - random patterns are written to the disk and then zeroes are written.  This is a good choice for a disk to be discard to insure all traces of files are removed.
+> + Erase and Clear Disk - random patterns are written to the disk and then zeroes are written.  This is a good choice for a disk to be discard to ensure all traces of files are removed.
 > + Verify Signature - The disk signature is checked.
 > + Verify Disk - The disk signature is checked and the disk is verified to be zeroed.
 > + Post-read Verify - Perform a post read verify to check the disk.
