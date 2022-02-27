@@ -163,7 +163,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$preclearing	= $Preclear ? $Preclear->isRunning(basename(MiscUD::base_device($partition['device']))) : false;
 		$is_preclearing = shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg(MiscUD::base_device($partition['device']))." | /bin/grep -v 'grep'") != "" ? true : false;
 		$preclearing	= $preclearing || $is_preclearing;
-		$rm_partition	= (file_exists("/usr/sbin/parted") && (get_config("Config", "destructive_mode") == "enabled") && (! $is_mounting) && (! $disk['partitions'][0]['pass_through']) && (! $disk['partitions'][0]['disable_mount']) && (! $disk['array_disk']) && (! $preclearing)) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$partition['serial']}\",\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i><span>"._("Remove Partition")."</span></a>" : "";
+		$rm_partition	= (file_exists("/usr/sbin/parted") && (get_config("Config", "destructive_mode") == "enabled") && (! $is_mounting) && (! $disk['partitions'][0]['pass_through']) && (! $disk['partitions'][0]['disable_mount']) && (! $disk['array_disk']) && (! $preclearing) && ($fstype)) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$partition['serial']}\",\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i><span>"._("Remove Partition")."</span></a>" : "";
 		$mpoint			= "<span>{$fscheck}";
 		$mount_point	= basename($partition['mountpoint']);
 
@@ -277,7 +277,7 @@ function make_mount_button($device) {
 	if (isset($device['partitions'])) {
 		$mounted		= in_array(true, array_map(function($ar){return $ar['mounted'];}, $device['partitions']), true);
 		$disable		= count(array_filter($device['partitions'], function($p){ if (! empty($p['fstype'])) return true;})) ? "" : "disabled";
-		$format			= (isset($device['partitions']) && ! count($device['partitions'])) ? true : false;
+		$format			= (! count($device['partitions'])) ? true : false;
 		$context		= "disk";
 		$pool_disk		= $device['partitions'][0]['pool'];
 		$pass_through	= $device['partitions'][0]['pass_through'];
@@ -285,7 +285,7 @@ function make_mount_button($device) {
 	} else {
 		$mounted		= $device['mounted'];
 		$disable		= (! empty($device['fstype']) && $device['fstype'] != "crypto_LUKS") ? "" : "disabled";
-		$format			= ((isset($device['fstype']) && empty($device['fstype']))) ? true : false;
+		$format			= (empty($device['fstype'])) ? true : false;
 		$context		= "partition";
 		$pool_disk		= false;
 		$pass_through	= $device['pass_through'];
