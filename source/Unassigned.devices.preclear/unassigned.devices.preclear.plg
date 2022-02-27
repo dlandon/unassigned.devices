@@ -1,0 +1,265 @@
+<!DOCTYPE PLUGIN [
+<!ENTITY name		"unassigned.devices.preclear">
+<!ENTITY author		"dlandon">
+<!ENTITY version	"2022.01.29">
+<!ENTITY launch		"Tools/Preclear">
+<!ENTITY gitURL		"https://github.com/&author;/unassigned.devices/raw/master">
+<!ENTITY pluginURL	"&gitURL;/&name;.plg">
+<!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
+<!ENTITY scriptVer	"20">
+<!ENTITY MD5		"447bf722c263ddc808ff282a8b796a2a">
+]>
+<PLUGIN name="&name;"
+		author="&author;"
+		launch="&launch;"
+		version="&version;"
+		pluginURL="&pluginURL;"
+		support="&supportURL;"
+		icon="icon-preclear"
+		min="6.8.9">
+
+<CHANGES>
+##&name;
+- Initial release.
+</CHANGES>
+
+<!--
+The 'pre-install' script.
+-->
+<FILE Run="/bin/bash">
+<INLINE>
+# Unassigned Devices must be installed.
+if [ ! -f /boot/config/plugins/unassigned.devices.plg ] ; then
+echo ""
+echo "-----------------------------------------------------------"
+echo " &name; has not been installed!"
+echo " Install Unassigned Devices plugin first."
+echo "-----------------------------------------------------------"
+echo ""
+exit 1
+fi
+
+# Remove emhttp files so we can re-install.
+rm -rf /usr/local/emhttp/plugins/&name;/* 2>/dev/null
+
+# Remove old 'bundle' files.
+rm -f $(ls /boot/config/plugins/&name;/*.tgz 2>/dev/null | grep -v '&version;')
+</INLINE>
+</FILE>
+
+<!--
+Get the plugin bundle.
+-->
+<FILE Name="/boot/config/plugins/&name;/&name;-&version;.tgz">
+<URL>"&gitURL;/&name;-&version;.tgz"</URL>
+<MD5>&MD5;</MD5>
+</FILE>
+
+<!--The 'readvz' executable.-->
+<FILE Name="/boot/config/plugins/&name;/readvz">
+<URL>&gitURL;/packages/readvz</URL>
+</FILE>
+
+<!--
+dialog-1.3_20200327-x86_64-1.txz
+-->
+<FILE Name="/boot/config/plugins/&name;/dialog-1.3_20200327-x86_64-1.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/dialog-1.3_20200327-x86_64-1.txz"</URL>
+<MD5>f7de2c4a0984e8f0e32a2140845dc862</MD5>
+</FILE>
+
+<!--
+tmux-3.1b-x86_64-1.txz
+-->
+<FILE Name="/boot/config/plugins/&name;/tmux-3.1b-x86_64-1.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/tmux-3.1b-x86_64-1.txz"</URL>
+<MD5>c8367090c89d26690be706c7fb3db5fc</MD5>
+</FILE>
+
+<!--
+libevent-2.1.12-x86_64-1.txz
+-->
+<FILE Name="/boot/config/plugins/&name;/libevent-2.1.12-x86_64-1.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/libevent-2.1.12-x86_64-1.txz"</URL>
+<MD5>0ba0a06b7e079585060b9e32fd90c58f</MD5>
+</FILE>
+
+<!--
+utempter-1.2.0-x86_64-1.txz
+-->
+<FILE Name="/boot/config/plugins/&name;/utempter-1.2.0-x86_64-1.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/utempter-1.2.0-x86_64-1.txz"</URL>
+<MD5>008650a8b81cd52222058d54a464102e</MD5>
+</FILE>
+
+<!--The 'preclear_disk_ori.sh' script.-->
+<FILE Name="/boot/config/plugins/&name;/preclear_disk_&scriptVer;.sh">
+<URL>&gitURL;/packages/preclear_disk_&scriptVer;.sh</URL>
+</FILE>
+
+<!--
+The 'packages-install' script.
+-->
+<FILE Run="/bin/bash">
+<INLINE>
+unsupported="/var/state/&name;/unsupported"
+
+# Creating some directories
+mkdir -p /tmp/.preclear/ /usr/local/bin/ /var/state/&name;/
+
+# Fix tmux tmp directory if needed
+if [ ! -d "/tmp/tmux-0" ]; then
+  mkdir /tmp/tmux-0
+fi
+chmod 700 /tmp/tmux-0
+chown -R root:root /tmp/tmux-0
+
+# Verify if tmux is working correctly
+/usr/bin/tmux new-session -d -x 140 -y 200 -s "install_test_session" &amp;>/dev/null
+sleep 0.5
+/usr/bin/tmux kill-session -t "install_test_session" &amp;>/dev/null
+if [ $? -ne 0 ]; then
+  echo "tmux is not working properly"
+  echo "tmux is not working properly" | logger -t "root: plugin: &name;.plg"
+  touch "$unsupported"
+fi
+
+# Create plugin directory
+mkdir -p /boot/config/plugins/&name;
+
+# Remove old packages
+find "/boot/config/plugins/&name;/" -type f -iname "*.txz" -delete
+
+# Install the 'bundle'.
+tar -xf /boot/config/plugins/&name;/&name;-&version;.tgz -C /usr/local/emhttp/plugins 2>/dev/null
+
+# Fix permissions of executable files
+chmod +x /usr/local/emhttp/plugins/&name;/scripts/* /usr/local/emhttp/plugins/&name;/event/*
+
+cp /boot/config/plugins/&name;/readvz /usr/local/sbin/readvz
+chmod 755 /usr/local/sbin/readvz
+
+cp /boot/config/plugins/&name;/preclear_disk_&scriptVer;.sh /usr/local/sbin/preclear_disk_ori.sh
+chmod 755 /usr/local/sbin/preclear_disk_ori.sh
+
+# Some fixups
+# mkdir -p /usr/local/emhttp/plugins/&name; 2 >/dev/null
+# cp /usr/local/emhttp/plugins/&name;/README.md /usr/local/emhttp/plugins/&name; 2>/dev/null
+</INLINE>
+</FILE>
+
+<!--
+The 'post-install' script.
+-->
+<FILE Run="/bin/bash">
+<INLINE>
+# Create a symlink to /root/mdcmd
+if [[ ! -e /root/mdcmd ]]; then
+  ln -sf /usr/local/sbin/mdcmd /root/mdcmd
+fi
+
+# Make sure log file exists
+touch /var/log/preclear.disk.log
+
+# Set correct terminal type for TMUX
+echo "set -g default-terminal '$TERM'" > /root/.tmux.conf
+
+# Update file access mode
+chmod 644 $(awk '/\.(htm|php|js|page|css|png|plg|gif|cfg|md)$/ {print "/"$0}' /var/log/packages/&name;-&version;) 
+chmod -R 755 /usr/local/emhttp/plugins/&name;/script/
+ln -sf /usr/local/emhttp/plugins/&name;/script/preclear.sh /usr/local/bin/preclear
+
+# Install diskinfo
+cp /usr/local/emhttp/plugins/&name;/scripts/rc.diskinfo /etc/rc.d/rc.diskinfo
+chmod +x /etc/rc.d/rc.diskinfo
+
+# Cleaning old source files
+find /boot/config/plugins/&name;/ -type f -iname "&name;*.txz" ! -iname "*&version;*" -delete
+find /boot/config/plugins/&name;/ -type f -iname "&name;*.md5" ! -iname "*&version;*" -delete
+
+# Add ignore rule to Unraid Flash Backup
+echo "*.resume" > /boot/config/plugins/&name;/.gitignore
+
+# Plugin version
+echo "&version;" &gt; /var/state/preclear.disk/version
+
+echo ""
+echo "-----------------------------------------------------------"
+echo " &name; has been installed."
+echo " Copyright 2015-2020, gfjardim"
+echo " Copyright 2022, &author;"
+echo " Version: &version;"
+echo "-----------------------------------------------------------"
+echo ""
+</INLINE>
+</FILE>
+
+<!-- 
+Change image icon to font icon if possible
+-->
+<FILE Run="/usr/bin/at -M now 2>/dev/null ">
+<INLINE>
+#!/bin/bash
+
+# Change PNG icon to SVG icon if possible
+font_file="/usr/local/emhttp/webGui/styles/font-unraid.svg"
+if [ -f "$font_file" ]; then
+  icon_exists=$(grep -c "preclear" "$font_file" 2>/dev/null)
+  if [ "$icon_exists" -gt 0 ]; then
+    sed -i -e 's/preclear.disk.png/icon-preclear/g' /usr/local/emhttp/plugins/&name;/Preclear.page
+    sed -i -e '/^---/i Tag=\"icon-preclear\"' /usr/local/emhttp/plugins/&name;/Preclear.page
+  elif [ "$icon_exists" -eq 0 ]; then
+    sleep 5
+    sed -i -e 's/icon=\"icon-preclear\"//g' /boot/config/plugins/&name;.plg
+  fi
+fi
+</INLINE>
+</FILE>
+
+<!--
+The 'remove' script.
+-->
+<FILE Run="/bin/bash" Method="remove">
+<INLINE>
+
+# kill all preclear sessions
+/usr/local/emhttp/plugins/&name;/script/clear_preclear.sh
+
+# Remove diskinfo
+rm /var/local/emhttp/plugins/diskinfo/diskinfo.json \
+   /etc/rc.d/rc.diskinfo
+
+# Remove plugin related files
+rm -f /usr/local/bin/preclear \
+      /var/run/preclear_queue.pid \
+      /var/log/preclear.disk.log \
+      /usr/local/sbin/preclear_disk_ori.sh \
+      /usr/local/sbin/readvz
+
+# Remove plugin related directories
+rm -rf /boot/config/plugins/&name; \
+       /usr/local/emhttp/plugins/&name; \
+       /usr/local/emhttp/plugins/&name; \
+       /var/state/&name; \
+       /boot/.preclear \
+       /tmp/.preclear
+
+# Remove all installed packages.
+removepkg dialog-1.3_20200327-x86_64-1.txz 2>/dev/null
+removepkg tmux-3.1b-x86_64-1.txz 2>/dev/null
+removepkg libevent-2.1.12-x86_64-1.txz 2>/dev/null
+removepkg utempter-1.2.0-x86_64-1.txz 2>/dev/null
+
+echo ""
+echo "-----------------------------------------------------------"
+echo " &name; has been uninstalled."
+echo " Please reboot your server to complete uninstall this plugin."
+echo " Copyright 2015-2020, gfjardim"
+echo " Copyright 2022, &author;"
+echo " Version: &version;"
+echo "-----------------------------------------------------------"
+echo ""
+</INLINE>
+</FILE>
+
+</PLUGIN>

@@ -1,0 +1,164 @@
+Menu="DiskUtilities"
+Title="Preclear Disk"
+Icon="unlink"
+Tag="icon-preclear"
+---
+<?
+/* Copyright 2015-2020, Guilherme Jardim
+ * Copyright 2022, Dan Landon
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+
+$preclear_plugin	= "unassigned.devices.preclear";
+$docroot			= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+$translations 		= file_exists("$docroot/webGui/include/Translations.php");
+require_once 		"$docroot/plugins/{$preclear_plugin}/include/Legacy.php";
+?>
+<?if (! $translations):?>
+<?eval('?>'.parse_file("$docroot/plugins/{$preclear_plugin}/Preclear.page"))?>
+<?else:?>
+<?
+require_once("$docroot/plugins/{$preclear_plugin}/Preclear.php");
+$Preclear	= new Preclear;
+$zipFile	= sprintf("log/%s-%s-%s.zip", str_replace(' ','_',strtoupper($var['NAME'])), $preclear_plugin, date('Ymd-Hi') );
+?>
+
+<script type="text/javascript">
+
+	function cleanUp()
+	{
+		if (document.hasFocus()) {
+			$('input[value="Downloading..."]').val('Download').prop('disabled',false);
+			$.post('/webGui/include/Download.php',{cmd:'delete',file:'<?=$zipFile;?>'});
+		} else {
+			setTimeout(cleanUp,4000);
+		}
+	}
+
+	function getlog()
+	{
+		$('input[value="Download"]').val('Downloading...').prop('disabled',true);
+		$.post('/plugins/<?=$preclear_plugin;?>/Preclear.php',{action:'download',file:'<?=$zipFile;?>'},function(zip)
+		{
+			location = zip;
+			setTimeout(cleanUp,4000);
+		});
+	}
+
+	function addTooltip(target)
+	{
+		$(target).tooltipster({delay:100, trigger:'custom', triggerOpen:{mouseenter: true}, triggerClose:{click:false,scroll:true,mouseleave:true}});
+	}
+
+	function preclearFixHelp()
+	{ 
+		$.each($("table.preclear"), function(i,v)
+		{
+			$(this).find('tr:first,dt:last').css("cursor","default").unbind();
+			help = $(this).next('.inline_help').attr("id");
+			$.each($(this).find('tr:first > td,dt:last > dd').not( ":first" ), function(i,v){
+				$(this).css("cursor","help").bind("click", function(){$("#"+help).toggle('slow');})
+			});
+		});
+	}
+
+$(function() {
+    $('div.spinner').html(unraid_logo);
+});
+</script>
+
+<style>
+	table.preclear {padding:0px;border-collapse:collapse;white-space:nowrap;}
+	table.preclear thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;}
+	table.preclear thead tr:last-child{border-bottom:0px solid}
+ 
+	table.disk_status tr>td+td+td+td+td+td{text-align:right;width:38%;}
+	table.disk_status tr td:last-child{min-width:375px;padding-right:10px}
+
+	table.preclear tbody tr>td{vertical-align:top;text-align:left;padding-left:12px;padding-right:0;white-space:nowrap;}
+	table.preclear tbody tr>td+td+td{text-align: center;}
+	table.preclear tbody tr>td+td+td+td{text-align:right;padding-left:15px;}
+
+	button[type=button] {margin:0px 14px 0 14px;}
+	i.fa{margin:0px 0px 0 0px;}
+	i.hdd{margin:0px 0px;font-size: 1.3em}
+	i.partition{margin-left: 18px;}
+	.exec{cursor: pointer;}
+	i.fa-append{margin:0px;font-size: 0.8em;position: relative; left:-0.5em;top:0.6em;}
+</style>
+
+<?=$Preclear->html();?>
+<table class=' disk_status preclear custom_head '>
+	<thead>
+		<tr>
+		<td><?=_('Device')?></td>
+		<td><?=_('Identification')?></td>
+		<td><?=_('Temp')?>.</td>
+		<td><?=_('Size')?></td>
+		<td><?=_('Preclear Status')?></td>
+		</tr>
+	</thead>
+	<tbody id="preclear-table-body">
+		<tr>
+			<td colspan='5'>
+				<div class='spinner'></div>
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+:preclear_general_help_plug:
+> The Unassigned Devices Preclear can be used to prepare disks for inclusion in the array, clear disks for disposal, and perform stress tests before disks are used in the array.
+>
+> Only disks that are not being used in the array and have no partitions with file systems will be listed as candidates for preclearing.
+>
+> When a disk is being precleared, you can follow the status on this page, on the Unassigned Devices page, or the preclear status icon in the footer of the Unraid web page.
+> 
+> There are multiple choices for preclearing:
+>
+> The **Enhanced** script authored by user **gfjardim** has the advantage that it supports the enhanced features like pause and resume preclearing.  It also has extensive logging.
+>
+> The **Docker** is the binhex Docker container that performs preclear.  The advantage of this is the preclearing is isolated in the Docker container.
+>
+> Preclear operations:
+>
+> + Clear Disk - The disk is cleared and the Unraid signature is written to the disk.  This will create an empty partition on the disk.
+> + Erase Disk - Erase the entire disk by writing all zeros.  The preclear signature is removed.
+> + Erase and Clear Disk - random patterns are written to the disk and then zeroes are written.  This is a good choice for a disk to be discard to insure all traces of files are removed.
+> + Verify Signature - The disk signature is checked.
+> + Verify Disk - The disk signature is checked and the disk is verified to be zeroed.
+> + Post-read Verify - Perform a post read verify to check the disk.
+> + Clear Signature - Remove the preclear signature from the disk.
+>
+> The text <em style='color:#00BE37;'>Precleared</em> next to the disk serial number indicates that the disk has a precleared signature.  This will only show when the disk is precleared and the Preclear Stats have been removed.
+:end
+
+<script type="text/javascript">
+	<?if (isset($_GET['disk']) && ! $Preclear->isRunning($_GET['disk']) ) echo "startDisk = '{$_GET[disk]}';";?>
+
+	$(function(){
+		addButtonTab('<a class="tooltip-toggle" style="cursor:pointer" onclick="getlog(this)" title="_(Download Logs)_"><i class="fa fa-download"></i></a>', "Preclear Disk", true, true);
+		addButtonTab(' | ', "Preclear Disk", true, true);
+		addButtonTab('<a class="tooltip-toggle" style="cursor:pointer" onclick="openPreclearLog();return false;" title="_(Preclear Log)_"><i class="fa fa-align-left"></i></a>', "Preclear Disk", true, true);
+		addButtonTab(' | ', "Preclear Disk", true, true);
+		addButtonTab('<a class="tooltip-toggle" style="cursor:pointer;" onclick="preclearClear()" title="_(Fix Preclear)_"><i class="fa fa-refresh"></i></a>', "Preclear Disk", true, true);
+		addButtonTab( '| ', "Preclear Disk", true, true);
+		addButtonTab('<a class="tooltip-toggle preclear-queue" style="cursor:pointer" onclick="setPreclearQueue();" title="_(Set Preclear Queue)_"><i class="fa fa-list-ol"></i></a>', "Preclear Disk", true, true);
+		addButtonTab(' | ', "Preclear Disk", true, true);
+		addButtonTab('<a class="tooltip-toggle" style="cursor:pointer;" onclick="preclearResumeAll()" title="_(Resume all Sessions)_"><i class="fa fa-play green-text"></i></a>', "Preclear Disk", true, true);
+		addButtonTab('<a class="tooltip-toggle" style="cursor:pointer;" onclick="preclearPauseAll()" title="_(Pause all Sessions)_"><i class="fa fa-pause yellow-orb"></i></a>', "Preclear Disk", true, true);
+		addButtonTab('<a class="tooltip-toggle" style="cursor:pointer;" onclick="preclearStopAll()" title="_(Stop all Sessions)_"><i class="fa fa-stop red-text"></i></a>', "Preclear Disk", true, true);
+		addButtonTab(' | ', "Preclear Disk", true, true);
+		addButtonTab('<a class="tooltip-toggle" style="cursor:pointer" onclick="startPreclear(\'\', \'yes\');" title="_(Start Multiple Sessions)_"><i class="fa fa-toggle-right"></i></a>', "Preclear Disk", true, true);
+
+		setTimeout(preclearFixHelp,100);
+	});
+
+</script>
+<?endif;?>

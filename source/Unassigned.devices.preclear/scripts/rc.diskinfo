@@ -1,0 +1,594 @@
+#!/usr/bin/php
+<?php
+/* Copyright 2015-2020, Guilherme Jardim
+ * Copyright 2022, Dan Landon
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+
+declare(ticks = 1);
+set_time_limit(0);
+
+##############################
+######	ERROR HANDLING	######
+##############################
+set_error_handler("log_error");
+set_exception_handler( "log_exception" );
+
+$debug = FALSE;
+$prog		= pathinfo(__FILE__, PATHINFO_BASENAME);
+$lockfile	= "/var/run/${prog}.pid";
+$log_file	= "/var/log/diskinfo.log";
+$dev_file	= "/usr/local/emhttp/state/devs.ini";
+openlog("$prog", LOG_PID | LOG_PERROR, LOG_LOCAL0);
+
+
+##############################
+###### FUNCTION SECTION ######
+##############################
+
+/* logger */
+function logger($msg, $quiet = false)
+{
+	syslog(LOG_INFO, $msg);
+	if (! $quiet)
+	{
+		echo PHP_EOL.$msg.PHP_EOL;
+	}
+}
+
+function log_error($errno, $errstr, $errfile, $errline)
+{
+	switch($errno){
+		case E_ERROR:
+			$error = "Error";
+			break;
+		case E_WARNING:
+			$error = "Warning";
+			break;
+		case E_PARSE:
+			$error = "Parse Error";
+			break;
+		case E_NOTICE:
+			$error = "Notice";
+			return; break;
+		case E_CORE_ERROR:
+			$error = "Core Error";
+			break;
+		case E_CORE_WARNING:
+			$error = "Core Warning";
+			break;
+		case E_COMPILE_ERROR:
+			$error = "Compile Error";
+			break;
+		case E_COMPILE_WARNING:
+			$error = "Compile Warning";
+			break;
+		case E_USER_ERROR:
+			$error = "User Error";
+			break;
+		case E_USER_WARNING:
+			$error = "User Warning";
+			break;
+		case E_USER_NOTICE:
+			$error = "User Notice";
+			break;
+		case E_STRICT:
+			$error = "Strict Notice";
+			break;
+		case E_RECOVERABLE_ERROR:
+			$error = "Recoverable Error";
+			break;
+		default:
+			$error = "Unknown error ($errno)";
+			return;
+			break;
+	}
+
+	preclear_log("PHP {$error}: $errstr in {$errfile} on line {$errline}", "ERROR");
+}
+
+function log_exception( $e )
+{
+	 preclear_log("PHP Exception: {$e->getMessage()} in {$e->getFile()} on line {$e->getLine()}", "ERROR");
+}
+
+function preclear_log($msg, $type = "NOTICE")
+{
+	global $prog, $debug;
+
+	if ( $type == "DEBUG" && ! $GLOBALS["debug"] ) {
+		return NULL;
+	}
+
+	$msg_date = "\n".date("M j G:i:s").": ".print_r($msg,true);
+
+	file_put_contents($GLOBALS["log_file"], $msg_date, FILE_APPEND);
+	if ($debug) {
+		$STDERR = fopen('php://stderr', 'w+');
+		fwrite($STDERR, $msg.PHP_EOL);
+		fclose($STDERR);
+	}
+	if ($type == "ERROR") {
+		syslog(LOG_ERR, $msg);
+	}
+}
+
+/* Get the devX designation for this device from the devs.ini. */
+function get_disk_dev($dev) {
+	global $dev_file;
+
+	$rc		= basename($dev);
+
+	/* Check for devs.ini file and get the devX designation for this device. */
+	if (is_file($dev_file)) {
+		$devs = @parse_ini_file($dev_file, true);
+		foreach ($devs as $d) {
+			if (($d['device'] == $rc) && $d['name']) {
+				$rc = $d['name'];
+				break;
+			}
+		}
+	}
+
+	return $rc;
+}
+
+/* Check to see if the disk is spun up or down. */
+function is_disk_running($ud_dev) {
+	global $dev_file;
+
+	$rc			= false;
+
+	/* Check for dev state file to get the current spindown state. */
+	if (is_file($dev_file)) {
+		$devs	= @parse_ini_file($dev_file, true);
+		if (isset($devs[$ud_dev])) {
+			$rc	= ($devs[$ud_dev]['spundown'] == '0') ? true : false;
+		}
+	}
+
+	return $rc;
+}
+
+/* Is disk device an SSD? */
+function is_disk_ssd($dev) {
+
+	$rc		= false;
+
+	/* Get the base device - remove the partition number. */
+	$device	= basename($dev);
+	if ((strpos($dev, "nvme") === false)) {
+		$file = "/sys/block/".basename($device)."/queue/rotational";
+		if (is_file($file)) {
+			$rc = (@file_get_contents($file) == 0) ? true : false;
+		}
+	} else {
+		$rc = true;
+	}
+
+	return $rc;
+}
+
+/* Get disk temperature. */
+function get_temp($ud_dev) {
+	global $dev_file;
+
+	$rc		= "*";
+	$temp	= "";
+
+	/* Get temperature from the devs.ini file. */
+	if (is_file($dev_file)) {
+		$devs = @parse_ini_file($dev_file, true);
+		if (isset($devs[$ud_dev])) {
+			$temp	= $devs[$ud_dev]['temp'];
+			$rc		= $temp;
+		}
+	}
+
+	return $rc;
+}
+
+/* Run a command and time out if it takes too long. */
+function timed_exec($timeout = 10, $cmd) {
+	$time		= -microtime(true); 
+	$out		= shell_exec("/usr/bin/timeout ".escapeshellarg($timeout)." ".$cmd);
+	$time		+= microtime(true);
+	if ($time > $timeout) {
+		preclear_log("Error: shell_exec(".$cmd.") took longer than ".sprintf('%d', $timeout)."s!");
+		$out	= "command timed out";
+	}
+
+	return $out;
+}
+
+class Misc
+{
+	public static function save_json($file, $content)
+	{
+		file_put_contents($file, json_encode($content, JSON_PRETTY_PRINT ));
+	}
+
+	public static function get_json($file)
+	{
+		return file_exists($file) ? @json_decode(file_get_contents($file), true) : array();
+	}
+
+	public static function disk_device($disk)
+	{
+		$disk = (file_exists($disk)) ? $disk : "/dev/${disk}";
+		return file_exists($disk) ? $disk : null;
+	}
+
+	public static function disk_name($disk)
+	{
+		return basename($disk);
+	}
+
+	public static function array_first_element($arr)
+	{
+		return (is_array($arr) && count($arr)) ? $arr[0] : $arr;
+	}
+}
+
+
+class Disks
+{
+	function __construct()
+	{
+		global $VERBOSE;
+		$this->verbose	= $VERBOSE;
+		$this->smartdir	= "/var/local/emhttp/smart";
+		$this->cache	= "/var/local/emhttp/plugins/diskinfo/diskcache.json";
+		$this->diskinfo	= "/var/local/emhttp/plugins/diskinfo/diskinfo.json";
+		$this->interval	= 900; // Refresh interval in seconds
+
+		$this->get_unraid_config();
+		$this->get_disks();
+	}
+
+	public function get_unraid_config()
+	{
+		$this->unraid = array();
+
+		/* Make sure paths exist. */
+		if (! is_dir(dirname($this->cache))) {
+			@mkdir(dirname($this->cache), 0775);
+		}
+
+		/* Get array disks. */
+		if (is_file("/var/local/emhttp/disks.ini")) {
+			$disksIni = @parse_ini_file("/var/local/emhttp/disks.ini", true);
+			$this->unraid = array_values(array_filter(array_map(function($disk){return $disk['device'];}, $disksIni)));
+		}
+
+		$this->unraid = array_unique($this->unraid);
+	}
+
+	public function get_disks()
+	{
+		$this->all			= array();
+		$this->assigned		= array();
+		$this->unassigned	= array();
+		$this->partitions	= array();
+
+		/* Get all disks and define those which are unassigned. */
+		exec("/usr/bin/timeout 10 /bin/lsblk -nbP -o name,type,size,fstype 2>/dev/null", $blocks);
+
+		if (is_array($blocks)) {
+			foreach ($blocks as $b) {
+				$block	= @parse_ini_string(preg_replace('$"\s(\w+[=])$', '"'.PHP_EOL.'${1}', $b)) ?: array();
+				$device = "/dev/${block['NAME']}";
+				if ($block['TYPE'] == "disk" && file_exists($device)) {
+					$attrs = @parse_ini_string(timed_exec(1, "/sbin/udevadm info --query=property --name ".escapeshellarg($device)." 2>/dev/null")) ?: array();
+					$block['SERIAL'] = isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
+
+					$this->all[$block['NAME']] = $block;
+
+					if ( in_array($block['NAME'], $this->unraid)) {
+						$this->assigned[$block['NAME']] = $block;
+					} else {
+						$this->unassigned[$block['NAME']] = $block;
+					}
+				} elseif ($block['TYPE'] == "part") {
+					$disk = (is_bool(strpos($block['NAME'], "nvme"))) ? preg_replace("#\d+$#", "", $block['NAME']) : preg_replace("#p\d+$#", "", $block['NAME']);
+					$this->partitions[$disk][$block['NAME']] = $block;
+				}
+			}
+		}
+
+	}
+
+	public function unassigned_disks_info($force = false)
+	{
+		$disks = array();
+
+		/* Get cached info from file. */
+		if ($force) {
+			$GLOBALS['reload_force'] = true;
+			$cache = array();
+		} else {
+			$cache = Misc::get_json($this->cache);
+		}
+
+		foreach ($this->unassigned as $key => $disk) {
+			/* If the disk has partitions, it is not a candidate for preclear. */
+			$disk = $this->get_info($disk["NAME"], $cache);
+			if ($GLOBALS['reload_force']) {
+				$cache[$key] = $disk;
+			}
+			$no_file_system	= true;
+			foreach ($disk['PARTS'] as $part) {
+				if ($part['FSTYPE']) {
+					$no_file_system	= false;
+					break;
+				}
+			}
+			if ((count($disk['PARTS']) == 0) || ($disk['PRECLEAR']) || ($no_file_system)) {
+				$disks[$key] = $disk;
+			}
+		}
+
+		foreach ($this->assigned as $disk) {
+			unset($disks[$disk["NAME"]]);
+		}
+		if ($GLOBALS['reload_force']) {
+			/* Save the disk cache json. */
+			Misc::save_json($this->cache, $cache);
+
+			$GLOBALS['reload_force'] = false;
+		}
+
+		/* Save the unassigned disks that can be precleared for the UI. */
+		Misc::save_json($this->diskinfo, $disks);
+
+		return $cache;
+	}
+
+	public function get_info($device, &$cache)
+	{
+		$device = Misc::disk_device($device);
+		if (! $device) {
+			return array();
+		}
+
+		$name		= Misc::disk_name($device);
+		$smart_file = $this->smartdir . "/${name}";
+		$whitelist	= array("ID_MODEL", "DEVPATH", "ID_SCSI_SERIAL", "ID_SERIAL_SHORT", "ID_FS_LABEL", "ID_VENDOR");
+
+		/* SMART parser function. */
+		$parse_smart = function($smart, $property) {
+						$value = trim(explode(":", array_values(preg_grep("#$property#", $smart))[0])[1]);
+						return ($value) ? $value : "n/a";
+					};
+
+		/* Get current info. */
+		$current = $this->all[$name];
+
+		$disk = isset($cache[$name]) ? $cache[$name] : $current;
+
+		/* Trigger reload if current and cached serials mismatch. */
+		if (count($current) && isset($disk["SERIAL_SHORT"])) {
+			$reload = ( strpos(trim($current["SERIAL"]), trim($disk["SERIAL_SHORT"])) !== -1 ) ? false : true;
+		} else {
+			$reload = false;
+		}
+		$dev = basename($device);
+
+		/* Probe persistent disk data if data isn't cached or reload triggered. */
+		if ((! isset($cache[$name]['NAME']) || $reload)) {
+			preclear_log("Probing disk ${device} info...", "DEBUG");
+
+			/* Get info using UDEV subsystem. */
+			$udev = trim(timed_exec(1, "/sbin/udevadm info --query=property --name ".escapeshellarg($device)." 2>/dev/null"));
+			$udev = @parse_ini_string($udev);
+			if ($udev['DEVNAME'] == $device) {
+				$disk = array_intersect_key($udev, array_flip($whitelist));
+
+				$disk['SERIAL_SHORT']	= isset($disk["ID_SCSI_SERIAL"]) ? $disk["ID_SCSI_SERIAL"] : $disk['ID_SERIAL_SHORT'];
+				$disk['SERIAL']			= trim("{$disk['ID_MODEL']}_{$disk['SERIAL_SHORT']}");
+
+				/* Get device BUS. */
+				$disk['BUS']			= $udev['ID_BUS'];
+				unset($disk["DEVPATH"]);
+
+				/* Get SMART device type from cached info or get it using get_smart_type function. */
+				$disk['SMART']			= $disk['SMART'] ? $disk['SMART'] : $this->get_smart_type($device);
+
+				/* Probe SMART data. */
+				if ($disk['SMART'] != "none") {
+					$smartInfo = explode(PHP_EOL, timed_exec(10, "/usr/sbin/smartctl --info --attributes ".$disk['SMART']." ".escapeshellarg($device)." 2>/dev/null"));
+				} else {
+					$smartInfo = array();
+				}
+				$disk['FAMILY']		= $parse_smart($smartInfo, "Model Family");
+				$disk['MODEL']		= $parse_smart($smartInfo, "Device Model");
+
+				if ($disk['FAMILY'] == "n/a" && $disk['MODEL'] == "n/a" ) {
+					$vendor			= $parse_smart($smartInfo, "Vendor");
+					$product		= $parse_smart($smartInfo, "Product");
+					$revision		= $parse_smart($smartInfo, "Revision");
+					$disk['FAMILY']	= "{$vendor} {$product}";
+					$disk['MODEL']	= "{$vendor} {$product} - Rev. {$revision}";
+				}
+
+				$disk['FIRMWARE']	= $parse_smart($smartInfo, "Firmware Version");
+				$disk['SIZE']		= $current["SIZE"];
+				$disk['SIZE_H']		= trim(timed_exec(1, "/usr/bin/numfmt --to=si --suffix=B --format='%1.f' --round=nearest ".escapeshellarg($disk['SIZE'])." 2>/dev/null"));
+				$disk['SIZE_H']		= preg_replace("/(^\d+)(.*)/", "$1 $2", $disk['SIZE_H']);
+				$disk["DEVICE"]		= $device;
+
+				$smartInfo = implode(PHP_EOL, $smartInfo);
+				file_put_contents($smart_file, $smartInfo);
+			}
+
+			/* Refreshing partition info. */ 
+			$disk['PARTS'] = is_array($this->partitions[$name]) ? $this->partitions[$name] : array();
+
+			$timeout = (time() - $disk["TIMESTAMP"]) > $this->interval;
+
+			/* Get the devX for this device. */
+			$disk['NAME']		= get_disk_dev($disk['DEVICE']);
+			if (strpos($disk['NAME'], "dev") !== false) {
+				$disk['NAME_H']		= ucfirst(substr($disk['NAME'], 0, 3)." ".substr($disk['NAME'], 3));
+			} else {
+				$disk['NAME_H']		= $disk['NAME'];
+			}
+
+			/* Update disk running status. */
+			$disk['RUNNING']	= is_disk_running($disk['NAME']);
+
+			/* Update the timestamp. */
+			$disk['TIMESTAMP']	= $disk["RUNNING"] ? time() : 0;
+
+			/* Update the disk temperature. */
+			$disk['TEMP']		= get_temp($disk['NAME']);
+
+			/* Is this device a SSD? */
+			$disk['SSD']		= is_disk_ssd($disk['DEVICE']);
+
+			/* Check for a preclear signature on the disk partition. */
+			if ( (count($disk['PARTS']) && (($disk['RUNNING']) && (! isset($disk['PRECLEAR']) && ($disk['SMART'] != "none"))) || (($disk['SMART'] != "none") && ($GLOBALS['reload_force']))) ) {
+				$disk['PRECLEAR'] = $this->verify_precleared($device);
+			} elseif (! isset($disk['PRECLEAR'])) {
+				$disk['PRECLEAR'] = false;
+			}
+		} else {
+			/* Get the devX for this device. */
+			$disk['NAME']		= get_disk_dev($dev);
+
+			/* Update disk running status. */
+			$disk['RUNNING']	= is_disk_running($disk['NAME']);
+
+			/* Update the disk temperature. */
+			$disk['TEMP']		= get_temp($disk['NAME']);
+		}
+
+		return $disk;
+	}
+
+	public function get_smart_type($device)
+	{
+		$device	= Misc::disk_device($device);
+		$cache	 = Misc::get_json($this->cache);
+		$types_1 = [ "-d auto", "-d sat,auto", "-d scsi", "-d ata", "-d sat,12", "-d usbjmicron", "-d usbjmicron,0", "-d usbjmicron,1" ]; 
+		$types_2 = [ "-x -d usbjmicron,x,0", "-x -d usbjmicron,x,1", "-d usbsunplus", "-d usbcypress", "-d sat -T permissive" ];
+		$smart	 = isset($cache[$device]['SMART']) ? $cache[$device]['SMART'] : null;
+
+		if ( ! $smart ) {
+			preclear_log("SMART parameters for drive [{$device}] not found, probing...", "DEBUG");
+			$smart = "none";
+			foreach (array_merge($types_1, $types_2) as $type) {
+				preclear_log("Trying SMART parameter ($type) for disk [{$device}]...", "DEBUG");
+				$out	= timed_exec(10, "/usr/sbin/smartctl --info --attributes ".$type." ".escapeshellarg($device)." 2>/dev/null");
+				$info = trim(shell_exec("echo -e \"${out}\" | grep -v '\[No Information Found\]' | grep -c -e 'Vendor:' -e 'Product:' -e 'Serial Number:' -e 'Device Model:'"));
+				$attr = trim(shell_exec("echo -e \"${out}\" | grep -c 'ATTRIBUTE_NAME'"));
+				/* SMART info and attributes present. */
+				if ( intval($info) > 0 && intval($attr) > 0 ) {
+					$smart = $type;
+					break;
+				} elseif ( intval($info) > 0 ) {
+					/* SMART info only. */
+					$smart = $type;
+					break;
+				} else {
+					/* No SMART info. */
+					break;
+				}
+			}
+
+			$cache[$device]['SMART'] = $smart;
+		}
+
+		return $smart;
+	}
+
+
+	public function benchmark()
+	{
+		$params		= func_get_args();
+		$function	= $params[0];
+		array_shift($params);
+		$time		= -microtime(true); 
+		$out		= call_user_func_array($function, $params);
+		$time		+= microtime(true); 
+		$type		= ($time > 10) ? "INFO" : "DEBUG";
+		preclear_log("benchmark: $function(".implode(",", $params).") took ".sprintf('%f', $time)."s.", $type);
+		return $out;
+	}
+
+
+	public function verify_precleared($dev) {
+		$dev						= Misc::disk_device($dev);
+		$cleared		= TRUE;
+		$disk_blocks	= intval(trim(timed_exec(1, "/sbin/blockdev --getsz ".escapeshellarg($dev)." | /bin/awk '{ print $1 }'")));
+		$max_mbr_blocks	= hexdec("0xFFFFFFFF");
+		$over_mbr_size	= ( $disk_blocks >= $max_mbr_blocks ) ? TRUE : FALSE;
+		$pattern				= $over_mbr_size ? array("00000", "00000", "00002", "00000", "00000", "00255", "00255", "00255") : 
+						array("00000", "00000", "00000", "00000", "00000", "00000", "00000", "00000");
+
+		$b["mbr1"] = trim(shell_exec("/usr/bin/dd bs=446 count=1 if=".escapeshellarg($dev)." 2>/dev/null | sum|/bin/awk '{print $1}'"));
+		$b["mbr2"] = trim(shell_exec("/usr/bin/dd bs=1 count=48 skip=462 if=".escapeshellarg($dev)." 2>/dev/null | sum | /bin/awk '{print $1}'"));
+		$b["mbr3"] = trim(shell_exec("/usr/bin/dd bs=1 count=1  skip=450 if=".escapeshellarg($dev)." 2>/dev/null | sum | /bin/awk '{print $1}'"));
+		$b["mbr4"] = trim(shell_exec("/usr/bin/dd bs=1 count=1  skip=511 if=".escapeshellarg($dev)." 2>/dev/null | sum | /bin/awk '{print $1}'"));
+		$b["mbr5"] = trim(shell_exec("/usr/bin/dd bs=1 count=1  skip=510 if=".escapeshellarg($dev)." 2>/dev/null | sum | /bin/awk '{print $1}'"));
+
+		foreach (range(0,15) as $n) {
+			$b["byte{$n}"] = trim(shell_exec("/usr/bin/dd bs=1 count=1 skip=".(446+$n)." if=".escapeshellarg($dev)." 2>/dev/null|sum|/bin/awk '{print $1}'"));
+			$b["byte{$n}h"] = sprintf("%02x",$b["byte{$n}"]);}
+
+			preclear_log("Verifying '$dev' for preclear signature.", "DEBUG");
+
+			if ( $b["mbr1"] != "00000" || $b["mbr2"] != "00000" || $b["mbr3"] != "00000" || $b["mbr4"] != "00170" || $b["mbr5"] != "00085" ) {
+				preclear_log("Failed test 1: MBR signature not valid.", "DEBUG"); 
+				$cleared = FALSE;
+			}
+
+			/* Verify signature. */
+			foreach ($pattern as $key => $value) {
+				if ($b["byte{$key}"] != $value) {
+					preclear_log("Failed test 2: signature pattern $key ['$value'] != '".$b["byte{$key}"]."'", "DEBUG");
+					$cleared = FALSE;
+				}
+			}
+			$sc = hexdec("0x{$b['byte11h']}{$b['byte10h']}{$b['byte9h']}{$b['byte8h']}");
+			$sl = hexdec("0x{$b['byte15h']}{$b['byte14h']}{$b['byte13h']}{$b['byte12h']}");
+			switch ($sc) {
+				case 63:
+				case 64:
+					$partition_size = $disk_blocks - $sc;
+					break;
+				case 1:
+					if ( ! $over_mbr_size) {
+						preclear_log("Failed test 3: start sector ($sc) is invalid.", "DEBUG");
+						$cleared = FALSE;
+					}
+					$partition_size = $max_mbr_blocks;
+					break;
+				default:
+					preclear_log("Failed test 4: start sector ($sc) is invalid.", "DEBUG");
+					$cleared = FALSE;
+					break;
+			}
+			if ( $partition_size != $sl ) {
+				preclear_log("Failed test 5: disk size doesn't match.", "DEBUG");
+				$cleared = FALSE;
+			}
+
+			return $cleared;
+		}
+	}
+
+	##############################
+	#####	PROGRAM SECTION	######
+	##############################
+	$Disks	= new Disks;
+	$force	= ($argv[1] == "force") ? true : false;
+	
+	$Disks->unassigned_disks_info($force);
+?>
