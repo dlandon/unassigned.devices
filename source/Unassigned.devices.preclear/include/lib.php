@@ -317,7 +317,7 @@ class Preclear
 
 	public function html()
 	{
-		for ($i=1; $i <= 20; $i++) {
+		for ($i=1; $i <= 3; $i++) {
 			$cycles .= "<option value='$i'>$i</option>";
 		}
 
@@ -326,7 +326,7 @@ class Preclear
 			$size .= "<option value='65536 -b ".($x*16)."'>{$x}M</option>";
 		}
 
-		for ($i=1; $i <= 7; $i++) {
+		for ($i=1; $i <= 3; $i++) {
 			$cycles2 .= "<option value='$i'>$i</option>";
 		}
 
@@ -336,7 +336,7 @@ class Preclear
 		}
 
 		$queue = "";
-		for ($i=0; $i <= 20; $i++) {
+		for ($i=0; $i <= 10; $i++) {
 			$queue .= ($i == 0) ? "<option value='$i'>disable</option>" : "<option value='$i'>$i</option>";
 		}
 		$scripts = $this->scriptFiles();
