@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.02.27">
+<!ENTITY version	"2022.02.27a">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"fe9070afff6779502260e99b06eae96a">
+<!ENTITY MD5		"63f759351123629dfa7909a12ab50889">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,7 +22,7 @@
 ##&name;
 ###&version;
 - Fix: Don't show the remove partition icon if the partition doesn't have a file system.
-- Fix: Use 'sgdisk' to clear a disk of all partitions instead of 'wipefs'.
+- Fix: Use 'sgdisk' and 'wipefs' to clear a disk of all partitions.
 
 ###2022.02.24b
 - Fix: Php warnings with lock files.
