@@ -2,7 +2,7 @@
 
 Unassigned Devices
 Copyright (C) 2015 Guilherme Jardim
-Copyright (C) 2016-2017 Dan Landon
+Copyright (C) 2016-2022 Dan Landon
 
 Unassigned Devices Preclear
 Copyright (C) 2015-2020 Guilherme Jardim
