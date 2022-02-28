@@ -1256,7 +1256,6 @@ function do_mount_local($info) {
 	$ro		= ($info['read_only'] == 'yes') ? true : false;
 	if (! is_mounted($dev) || ! is_mounted($dir)) {
 		if ($fs) {
-			@mkdir($dir, 0777, true);
 			if ($fs != "crypto_LUKS") {
 				if ($fs == "apfs") {
 					/* See if there is a disk password. */
@@ -1284,8 +1283,14 @@ function do_mount_local($info) {
 			if (($fs == "apfs") && (! is_file("/usr/bin/apfs-fuse"))) {
 				$o = "Install Unassigned Devices Plus to mount an apfs file system";
 			} else {
+				/* Create mount point and set permissions. */
+				@mkdir($dir, 0777, true);
+
+				/* Do the mount command. */
 				$o = shell_exec(escapeshellcmd($cmd)." 2>&1");
 			}
+
+			/* Do some cleanup if we mounted an apfs disk, */
 			if ($fs == "apfs") {
 				/* Remove all password variables. */
 				unset($password);
@@ -1817,7 +1822,9 @@ function do_mount_samba($info) {
 		$fs			= $info['fstype'];
 		$dev		= ($fs == "cifs") ? "//".$info['ip']."/".$info['path'] : $info['device'];
 		if (! is_mounted($dev) || ! is_mounted($dir)) {
+			/* Create the mount point and set permissions. */
 			@mkdir($dir, 0777, true);
+
 			if ($fs == "nfs") {
 				if ($var['shareNFSEnabled'] == "yes") {
 					$params	= get_mount_params($fs, $dev);
@@ -1827,7 +1834,10 @@ function do_mount_samba($info) {
 						$nfs	= "nfs";
 					}
 					$cmd	= "/sbin/mount -t ".escapeshellarg($nfs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
+
 					unassigned_log("Mount NFS command: {$cmd}");
+
+					/* Mount the remote share. */
 					$o		= timed_exec(10, $cmd." 2>&1");
 					if ($o) {
 						unassigned_log("NFS mount failed: '{$o}'.");
@@ -1848,8 +1858,11 @@ function do_mount_samba($info) {
 					$ver	= "";
 					$params	= sprintf(get_mount_params($fs, $dev), $ver);
 					$cmd	= "/sbin/mount -t ".escapeshellarg($fs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
+
 					unassigned_log("Mount SMB share '{$dev}' using SMB default protocol.");
 					unassigned_log("Mount SMB command: {$cmd}");
+
+					/* Mount the remote share. */
 					$o		= timed_exec(10, $cmd." 2>&1");
 				}
 
@@ -1861,8 +1874,11 @@ function do_mount_samba($info) {
 					$ver	= ",vers=3.1.1";
 					$params	= sprintf(get_mount_params($fs, $dev), $ver);
 					$cmd	= "/sbin/mount -t $fs -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
+
 					unassigned_log("Mount SMB share '{$dev}' using SMB 3.1.1 protocol.");
 					unassigned_log("Mount SMB command: {$cmd}");
+
+					/* Mount the remote share. */
 					$o		= timed_exec(10, $cmd." 2>&1");
 				}
 
@@ -1873,8 +1889,11 @@ function do_mount_samba($info) {
 					$ver	= ",vers=3.0";
 					$params	= sprintf(get_mount_params($fs, $dev), $ver);
 					$cmd	= "/sbin/mount -t $fs -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
+
 					unassigned_log("Mount SMB share '{$dev}' using SMB 3.0 protocol.");
 					unassigned_log("Mount SMB command: {$cmd}");
+
+					/* Mount the remote share. */
 					$o		= timed_exec(10, $cmd." 2>&1");
 				}
 
@@ -1885,8 +1904,11 @@ function do_mount_samba($info) {
 					$ver	= ",vers=2.0";
 					$params	= sprintf(get_mount_params($fs, $dev), $ver);
 					$cmd	= "/sbin/mount -t ".escapeshellarg($fs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
+
 					unassigned_log("Mount SMB share '{$dev}' using SMB 2.0 protocol.");
 					unassigned_log("Mount SMB command: {$cmd}");
+
+					/* Mount the remote share. */
 					$o		= timed_exec(10, $cmd." 2>&1");
 				}
 
@@ -1898,8 +1920,11 @@ function do_mount_samba($info) {
 						$ver	= ",sec=ntlm,vers=1.0";
 						$params	= sprintf(get_mount_params($fs, $dev), $ver);
 						$cmd	= "/sbin/mount -t ".escapeshellarg($fs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
+
 						unassigned_log("Mount SMB share '{$dev}' using SMB 1.0 protocol.");
 						unassigned_log("Mount SMB command: {$cmd}");
+
+						/* Mount the remote share. */
 						$o		= timed_exec(10, $cmd." 2>&1");
 						if ($o) {
 							unassigned_log("SMB 1.0 mount failed: '{$o}'.");
