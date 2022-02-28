@@ -6,7 +6,7 @@
 <!ENTITY gitURL		"https://github.com/&author;/unassigned.devices/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"5e34b66e6121beccdc00611bf8ee1ce8">
+<!ENTITY MD5		"2cdc964d1588dc66146b9778fa1e744d">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
