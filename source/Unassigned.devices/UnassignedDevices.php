@@ -402,6 +402,7 @@ switch ($_POST['action']) {
 		if ( count($all_disks) ) {
 			foreach ($all_disks as $disk) {
 				$mounted		= in_array(true, array_map(function($ar){return is_mounted($ar['device']);}, $disk['partitions']), true);
+				$file_system	= in_array(true, array_map(function($ar){return ! empty($ar['fstype']);}, $disk['partitions']), true);
 				$disk_device	= basename($disk['device']);
 				$disk_dev		= $disk['ud_dev'];
 				$disk_name		= $disk['unassigned_dev'];
@@ -413,7 +414,7 @@ switch ($_POST['action']) {
 				$mbutton		= make_mount_button($disk);
 
 				/* Set up the preclear link for preclearing a disk. */
-				$preclear_link = (($disk['size'] !== 0) && (! $disk['partitions'][0]['fstype']) && (! $mounted) && ($Preclear) && (! $preclearing)) ? "&nbsp;&nbsp;".$Preclear->Link($disk_device, "icon") : "";
+				$preclear_link = (($disk['size'] !== 0) && (! $file_system) && (! $mounted) && ($Preclear) && (! $preclearing)) ? "&nbsp;&nbsp;".$Preclear->Link($disk_device, "icon") : "";
 
 				/* Add the clear disk icon. */
 				$is_mounting	= array_values(preg_grep("@/mounting_".basename($disk['device'])."@i", listDir(dirname($paths['mounting']))))[0];
