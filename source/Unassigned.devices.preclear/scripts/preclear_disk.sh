@@ -17,7 +17,7 @@ export LC_CTYPE
 ionice -c3 -p$BASHPID
 
 # Version
-version="1.0.23"
+version="1.0.24"
 #
 # Change Log
 # 1.0.23
@@ -27,6 +27,9 @@ version="1.0.23"
 # Fixed head stress holding up pre-read status.
 # Lots of tmux adjustments.
 # Stop logging everything to the syslog.  Way too chatty!
+#
+# 1.0.24
+# Fix preclear status to right justify the preclear results.
 #
 ######################################################
 ##													##
@@ -2432,12 +2435,12 @@ if [ "$verify_disk_mbr" == "y" ]; then
 	sleep 5
 
 	if verify_mbr $theDisk; then
-		append display_step "Verifying Unraid's signature on the MBR: ${bold}SUCCESS${norm}"
+		append display_step "Verifying Unraid's signature:|${bold}SUCCESS${norm}"
 		debug "success - Unraid preclear signature valid!"
 		echo -n "${disk_properties[name]}|NN|Verifying Unraid's signature on the MBR successful|$$" > ${all_files[stat]}
 		display_status
 	else
-		append display_step "Verifying Unraid's signature: ${bold}FAIL${norm}"
+		append display_step "Verifying Unraid's signature:|${bold}FAIL${norm}"
 		echo "${disk_properties[name]}|NY|Verifying Unraid's signature on the MBR failed|$$" > ${all_files[stat]}
 		debug "fail - Unraid preclear signature invalid!"
 		display_status
@@ -2475,13 +2478,13 @@ if [ "$verify_disk_mbr" == "y" ]; then
 			echo -n "${disk_properties[name]}|NN|Verifying if disk is zeroed...|${script_pid}" > ${all_files[stat]}
 
 			if read_the_disk verify zeroed start_bytes start_timer preread_average preread_speed; then
-				append display_step "Verifying if disk is zeroed: ${preread_average} ${bold}SUCCESS${norm}"
+				append display_step "Verifying if disk is zeroed:|${preread_average} ${bold}SUCCESS${norm}"
 				debug "success - the disk is zeroed!"
 				echo -n "${disk_properties[name]}|NN|Verifying if disk is zeroed: SUCCESS|$$" > ${all_files[stat]}
 				display_status
 				sleep 10
 			else
-				append display_step "Verifying if disk is zeroed: ${bold}FAIL${norm}"
+				append display_step "Verifying if disk is zeroed:|${bold}FAIL${norm}"
 				debug "fail - the disk is NOT zeroed!"
 				echo "${disk_properties[name]}|NY|Verifying if disk is zeroed: FAIL|$$" > ${all_files[stat]}
 				display_status
@@ -2642,7 +2645,7 @@ for cycle in $(seq $cycles); do
 				read_the_disk no-verify preread start_bytes start_timer preread_average preread_speed
 				ret_val=$?
 				if [ "$ret_val" -eq 0 ]; then
-					append display_step "Pre-read verification: [${preread_average}] ${bold}SUCCESS${norm}"
+					append display_step "Pre-read verification:|[${preread_average}] ${bold}SUCCESS${norm}"
 					debug "Pre-read: pre-read verification completed!"
 					display_status
 					break
@@ -2650,7 +2653,7 @@ for cycle in $(seq $cycles); do
 					debug "dd process hung at ${start_bytes}, killing ..."
 					continue
 				else
-					append display_step "Pre-read verification: ${bold}FAIL${norm}"
+					append display_step "Pre-read verification:|${bold}FAIL${norm}"
 					debug "Pre-read: pre-read verification failed!"
 					echo "${disk_properties[name]}|NY|Pre-read failed - Aborted|$$" > ${all_files[stat]}
 					send_notify "FAIL! Pre-read $diskName (${disk_properties[name]}) failed" "FAIL! Pre-read $diskName (${disk_properties[name]}) failed." "Pre-read $diskName (${disk_properties[name]}) failed - Aborted" "" "alert"
@@ -2663,7 +2666,7 @@ for cycle in $(seq $cycles); do
 				fi
 			done
 		else
-			append display_step "Pre-read verification: [${preread_average}] ${bold}SUCCESS${norm}"
+			append display_step "Pre-read verification:|[${preread_average}] ${bold}SUCCESS${norm}"
 			display_status
 		fi
 	fi
@@ -2711,14 +2714,14 @@ for cycle in $(seq $cycles); do
 				ret_val=$?
 				if [ "$ret_val" -eq 0 ]; then
 					debug "Erasing: erasing the disk completed!"
-					append display_step "Erasing the disk: [${write_average}] ${bold}SUCCESS${norm}"
+					append display_step "Erasing the disk:|[${write_average}] ${bold}SUCCESS${norm}"
 					display_status
 					break
 				elif [ "$ret_val" -eq 2 -a "$x" -lt $retries ]; then
 					debug "dd process hung at ${start_bytes}, killing ..."
 					continue
 				else
-					append display_step "Erasing the disk: ${bold}FAIL${norm}"
+					append display_step "Erasing the disk:|${bold}FAIL${norm}"
 					debug "Erasing: erasing the disk failed!"
 					echo "${disk_properties[name]}|NY|Erasing failed - Aborted|$$" > ${all_files[stat]}
 					send_notify "FAIL! Erasing $diskName (${disk_properties[name]}) failed" "FAIL! Erasing $diskName (${disk_properties[name]}) failed." "Erasing $diskName (${disk_properties[name]}) failed - Aborted" "" "alert"
@@ -2731,7 +2734,7 @@ for cycle in $(seq $cycles); do
 				fi
 			done
 		else
-			append display_step "Erasing the disk: [${write_average}] ${bold}SUCCESS${norm}"
+			append display_step "Erasing the disk:|[${write_average}] ${bold}SUCCESS${norm}"
 			display_status
 		fi
 	fi
@@ -2772,14 +2775,14 @@ for cycle in $(seq $cycles); do
 			write_the_disk $write_op start_bytes start_timer write_average write_speed
 			ret_val=$?
 			if [ "$ret_val" -eq 0 ]; then
-				append display_step "${title_write} the disk: [${write_average}] ${bold}SUCCESS${norm}"
+				append display_step "${title_write} the disk:|[${write_average}] ${bold}SUCCESS${norm}"
 				debug "${title_write}: ${title_write,,} the disk completed!"
 				break
 			elif [ "$ret_val" -eq 2 -a "$x" -lt $retries ]; then
 				debug "dd process hung at ${start_bytes}, killing ..."
 				continue
 			else
-				append display_step "${title_write} the disk: ${bold}FAIL${norm}"
+				append display_step "${title_write} the disk:|${bold}FAIL${norm}"
 				debug "${title_write}: ${title_write,,} the disk failed!"
 				echo "${disk_properties[name]}|NY|${title_write} the disk failed - Aborted|$$" > ${all_files[stat]}
 				send_notify "FAIL! ${title_write} $diskName (${disk_properties[name]}) failed" "FAIL! ${title_write} $diskName (${disk_properties[name]}) failed." "${title_write} $diskName (${disk_properties[name]}) failed - Aborted" "" "alert"
@@ -2792,7 +2795,7 @@ for cycle in $(seq $cycles); do
 			fi
 		done
 	else
-		append display_step "${title_write} the disk: [${write_average}] ${bold}SUCCESS${norm}"
+		append display_step "${title_write} the disk:|[${write_average}] ${bold}SUCCESS${norm}"
 		display_status
 	fi
 
@@ -2821,11 +2824,11 @@ for cycle in $(seq $cycles); do
 			#
 			blockdev --rereadpt $theDisk
 			# sleep 10
-			append display_step "Writing Unraid's Preclear signature: ${bold}SUCCESS${norm}"
+			append display_step "Writing Unraid's Preclear signature:|${bold}SUCCESS${norm}"
 			echo -n "${disk_properties[name]}|NN|Writing Unraid's Preclear signature finished|$$" > ${all_files[stat]}
 			# sleep 10
 		else
-			append display_step "Writing Unraid's Preclear signature: ${bold}SUCCESS${norm}"
+			append display_step "Writing Unraid's Preclear signature:|${bold}SUCCESS${norm}"
 			display_status
 		fi
 
@@ -2841,12 +2844,12 @@ for cycle in $(seq $cycles); do
 			debug "Signature: verifying Unraid's signature on the MBR ..."
 
 			if verify_mbr $theDisk; then
-				append display_step "Verifying Unraid's Preclear signature: ${bold}SUCCESS${norm}"
+				append display_step "Verifying Unraid's Preclear signature:|${bold}SUCCESS${norm}"
 				display_status
 				debug "Signature: Unraid preclear signature is valid!"
 				echo -n "${disk_properties[name]}|NN|Unraid's signature on the MBR is valid|$$" > ${all_files[stat]}
 			else
-				append display_step "Verifying Unraid's Preclear signature: ${bold}FAIL${norm}"
+				append display_step "Verifying Unraid's Preclear signature:|${bold}FAIL${norm}"
 				debug "Signature: Unraid preclear signature is invalid!"
 				echo -e "--> FAIL: Unraid's Preclear signature is invalid. \n\n"
 				echo "${disk_properties[name]}|NY|Unraid's signature on the MBR failed - Aborted|$$" > ${all_files[stat]}
@@ -2858,7 +2861,7 @@ for cycle in $(seq $cycles); do
 				do_exit 1
 			fi
 		else
-			append display_step "Verifying Unraid's Preclear signature: ${bold}SUCCESS${norm}"
+			append display_step "Verifying Unraid's Preclear signature:|${bold}SUCCESS${norm}"
 			display_status
 		fi
 
@@ -2901,7 +2904,7 @@ for cycle in $(seq $cycles); do
 				read_the_disk verify postread start_bytes start_timer postread_average postread_speed
 				ret_val=$?
 				if [ "$ret_val" -eq 0 ]; then
-					append display_step "Post-Read verification: [${postread_average}] ${bold}SUCCESS${norm}"
+					append display_step "Post-Read verification:|[${postread_average}] ${bold}SUCCESS${norm}"
 					debug "Post-Read: post-read verification completed!"
 					display_status
 					echo "${disk_properties[name]}|NY|Post-Read verification successful|$$" > ${all_files[stat]}
@@ -2910,7 +2913,7 @@ for cycle in $(seq $cycles); do
 					debug "dd process hung at ${start_bytes}, killing ..."
 					continue
 				else
-					append display_step "Post-Read verification: ${bold}FAIL${norm}"
+					append display_step "Post-Read verification:|${bold}FAIL${norm}"
 					debug "Post-Read: post-read verification failed!"
 					echo -e "--> FAIL: Post-Read verification failed. Your drive is not zeroed.\n\n"
 					echo "${disk_properties[name]}|NY|Post-Read failed - Aborted|$$" > ${all_files[stat]}
