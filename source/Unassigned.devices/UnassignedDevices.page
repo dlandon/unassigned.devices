@@ -101,8 +101,6 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 <script type="text/javascript">
 
-	<?=$Preclear ? $Preclear->Script() : "";?>
-
 	function spin_down_disk(dev) {
 		document.getElementById('disk_orb-'+dev).className = "fa fa-refresh fa-spin orb green-orb";
 		$.post(UDURL, {'action' : 'spin_down_disk', device:dev});
@@ -1016,6 +1014,9 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			<div class="swal-title" style="font-size: 20px;"><?=_('Clear Disk');?> <span class="red">{0}?</span></div>
 			<div style="margin-bottom: 25px;font-size: 20px;"><?=_('Type');?> <span class="red">'<?=_('Yes');?>'</span> <?=_('to clear this disk of all partitions');?>:</div>
 			<input type="text" name="confirmation" class="swal-content__input" autocomplete="off" required >
+			<?if ($Preclear):?>
+			<p><?=_('If this disk was pre-cleared, you will remove the pre-clear signature.  If you add the disk to the array and the pre-clear signature is removed, Unraid will go through the lengthy process of clearing the disk again')?>.</p>
+			<?endif;?>
 		</div>
 		<div data-question-load></div>
 		<div data-question-done>
