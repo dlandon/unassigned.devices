@@ -1201,7 +1201,7 @@ function do_mount($info) {
 		$rc = do_mount_samba($info);
 
 	/* Mount an ISO file. */
-	} else if($info['fstype'] == "loop") {
+	} else if ($info['fstype'] == "loop") {
 		$rc = do_mount_iso($info);
 
 	/* Mount a luks encrypted disk device. */
