@@ -750,9 +750,6 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	$("#usb_devices_list").arrive("tr",{onceOnly:false},function() {
 		tr = $(this);
 
-		maxWidth.push(tr.find("td:nth-child(2) > span").getHiddenDimensions().width );
-		$(".usb_disks > thead > tr > td:nth-child(2)").css("min-width", Math.max.apply(Math, maxWidth) + 10 );
-
 		tr.find("span.toggle-hdd").click(function(e) {
 			$(this).disableSelection();disk = $(this).attr("hdd");el = $(this);
 			$(".toggle-"+disk).slideToggle(0);
@@ -762,7 +759,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			disk_op(this, $(this).attr("role"), $(this).attr("device"));
 		});
 
-		tr.find("button[role=format]").click(function(){
+		tr.find("button[role$=format]").on( "click", function() {
 			format_disk(this, $(this).attr("context"), $(this).attr("device"));
 		});
 	});
