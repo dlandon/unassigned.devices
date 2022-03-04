@@ -233,7 +233,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$serial		= $partition['serial'];
 		$id_bus		= $disk['id_bus'];
 		if (! $disk['array_disk']) {
-			$out[]		= "<td><a class='info' href='/Main/EditSettings?s=".$serial."&b=".$device."&f=".$fstype."&l=".basename($partition['mountpoint'])."&p=".$partition['part']."&m=".json_encode($partition)."&t=".$disk_line."&u=".$id_bus."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+			$out[]		= "<td><a class='info' href='/Main/EditDeviceSettings?s=".$serial."&b=".$device."&f=".$fstype."&l=".basename($partition['mountpoint'])."&p=".$partition['part']."&m=".json_encode($partition)."&t=".$disk_line."&u=".$id_bus."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 		} else {
 			$out[]		= "<td><i class='fa fa-gears' disabled></i></td>";
 		}
@@ -623,7 +623,7 @@ switch ($_POST['action']) {
 				$title .= "<br />"._("Share").": ";
 				$title .= ($mount['smb_share'] == 'yes') ? "Yes" : "No";
 
-				$o_remotes .= "<td><a class='info' href='/Main/EditSettings?d=".$mount['device']."&l=".$mount_point."&m=".json_encode($mount)."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+				$o_remotes .= "<td><a class='info' href='/Main/EditDeviceSettings?d=".$mount['device']."&l=".$mount_point."&m=".json_encode($mount)."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 				$o_remotes .= "<td></td><td></td><td></td>";
 				$o_remotes .= "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				$o_remotes .= render_used_and_free($mount);
@@ -679,7 +679,7 @@ switch ($_POST['action']) {
 				$title .= "<br />"._("Automount").": ";
 				$title .= ($mount['automount'] == 'yes') ? "Yes" : "No";
 
-				$o_remotes .= "<td><a class='info' href='/Main/EditSettings?i=".$mount['device']."&l=".$mount_point."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+				$o_remotes .= "<td><a class='info' href='/Main/EditDeviceSettings?i=".$mount['device']."&l=".$mount_point."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 				$o_remotes .= "<td></td><td></td><td></td>";
 				$o_remotes .= "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				$o_remotes .= render_used_and_free($mount);
@@ -732,7 +732,7 @@ switch ($_POST['action']) {
 			$o_historical .= "<tr><td><i class='fa fa-minus-circle orb grey-orb'></i>".$historical[$serial]['display']."</td><td>".$serial.$historical[$serial]['mountpoint']."</td>";
 			$o_historical .= "<td></td>";
 			$o_historical .= "<td><a style='color:#CC0000;font-weight:bold;cursor:pointer;' class='exec info' onclick='remove_disk_config(\"{$serial}\")'><i class='fa fa-remove hdd'></i><span>"._("Remove Device configuration")."</span></a></td>";
-			$o_historical .= "<td><a class='info' href='/Main/EditSettings?s=".$serial."&l=".$historical[$serial]['mntpoint']."&p="."1"."&t=true'><i class='fa fa-gears'></i><span>"._("Edit Historical Device Settings and Script")."</span></a></td>";
+			$o_historical .= "<td><a class='info' href='/Main/EditDeviceSettings?s=".$serial."&l=".$historical[$serial]['mntpoint']."&p="."1"."&t=true'><i class='fa fa-gears'></i><span>"._("Edit Historical Device Settings and Script")."</span></a></td>";
 			$o_historical .= "<td></td><td></td><td></td><td></td><td></td></tr>";
 		}
 
