@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.02.27">
+<!ENTITY version	"2022.03.04">
 <!ENTITY launch		"Tools/Preclear">
 <!ENTITY gitURL		"https://github.com/&author;/unassigned.devices/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"2cdc964d1588dc66146b9778fa1e744d">
+<!ENTITY MD5		"5070d0fd4c1808f9946b1e40ecbb42a6">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
@@ -19,6 +19,10 @@
 
 <CHANGES>
 ##&name;
+- Add: Remove libevent (it's included in Unraid) and update utempter package.
+- Fix: Right justify the preclear results on the status page.
+
+### 2022.02.27
 - Initial release.
 </CHANGES>
 
@@ -80,19 +84,11 @@ tmux-3.1b-x86_64-1.txz
 </FILE>
 
 <!--
-libevent-2.1.12-x86_64-1.txz
+utempter-1.2.0-x86_64-3.txz
 -->
-<FILE Name="/boot/config/plugins/&name;/libevent-2.1.12-x86_64-1.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/libevent-2.1.12-x86_64-1.txz"</URL>
-<MD5>0ba0a06b7e079585060b9e32fd90c58f</MD5>
-</FILE>
-
-<!--
-utempter-1.2.0-x86_64-1.txz
--->
-<FILE Name="/boot/config/plugins/&name;/utempter-1.2.0-x86_64-1.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/utempter-1.2.0-x86_64-1.txz"</URL>
-<MD5>008650a8b81cd52222058d54a464102e</MD5>
+<FILE Name="/boot/config/plugins/&name;/utempter-1.2.0-x86_64-3.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/utempter-1.2.0-x86_64-3.txz"</URL>
+<MD5>4cdaf07c99e2264e8b354b23c84b0431</MD5>
 </FILE>
 
 <!--
@@ -252,12 +248,6 @@ rm -rf	/var/state/&name; \
 		/tmp/preclear/ \
 		/tmp/.preclear/ \
 		/var/state/&name;/
-
-
-# Remove all installed packages.
-removepkg tmux-3.1b-x86_64-1.txz 2>/dev/null
-removepkg libevent-2.1.12-x86_64-1.txz 2>/dev/null
-removepkg utempter-1.2.0-x86_64-1.txz 2>/dev/null
 
 echo ""
 echo "-----------------------------------------------------------"
