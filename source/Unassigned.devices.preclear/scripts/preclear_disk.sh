@@ -30,6 +30,7 @@ version="1.0.24"
 #
 # 1.0.24
 # Fix preclear status to right justify the preclear results.
+# Fix integer error on notify check.
 #
 ######################################################
 ##													##
@@ -634,6 +635,7 @@ write_the_disk(){
 	local disk_bytes=${disk_properties[size]}
 	local disk_serial=${disk_properties[serial]}
 	local last_progress=-1
+	local next_notify=-1
 
 	declare -A is_paused_by
 	declare -A paused_by
@@ -743,7 +745,6 @@ write_the_disk(){
 	if [ "$notify_channel" -gt 0 ] && [ "$notify_freq" -ge 3 ] ; then
 		report_out="${write_type_s} started on $disk_serial ($disk_name).\\nDisk temperature: $(get_disk_temp $disk "$smart_type")\\n"
 		send_notify "${write_type_s} started on $disk_serial ($disk_name)" "${write_type_s} started on $disk_serial ($disk_name). Cycle $cycle of ${cycles}. " "$report_out"
-		local next_notify=-1
 	fi
 
 	local timelapse=$(( $(timer) - 20 ))
