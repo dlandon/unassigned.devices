@@ -61,7 +61,6 @@ echo ""
 exit 1
 fi
 
-exit
 # Remove emhttp files so we can re-install.
 rm -rf /usr/local/emhttp/plugins/&name;/* 2>/dev/null
 
@@ -176,10 +175,6 @@ chmod +x /usr/local/emhttp/plugins/&name;/scripts/* /usr/local/emhttp/plugins/&n
 
 # Initiate a hot plug event for unassigned devices and preclear
 echo "" > /tmp/unassigned.devices/hotplug_event
-
-# Cleaning old source files
-find /boot/config/plugins/&name;/ -type f -iname "&name;*.txz" ! -iname "*&version;*" -delete
-find /boot/config/plugins/&name;/ -type f -iname "&name;*.md5" ! -iname "*&version;*" -delete
 
 # Add ignore rule to Unraid Flash Backup
 echo "*.resume" > /boot/config/plugins/&name;/.gitignore
