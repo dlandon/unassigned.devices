@@ -552,6 +552,12 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	$(function() {
 		$('div.spinner').html(unraid_logo);
 	});
+
+	$(function() {
+	  if ( typeof caPluginUpdateCheck === "function" ) {
+		caPluginUpdateCheck("unassigned.devices.plg");
+	  }
+	});
 </script>
 
 <?=$Preclear ? $Preclear->html() : "";?>
