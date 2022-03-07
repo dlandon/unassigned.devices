@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.03.06">
+<!ENTITY version	"2022.03.07">
 <!ENTITY launch		"Tools/Preclear">
 <!ENTITY gitURL		"https://github.com/&author;/unassigned.devices/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"23b5d0f703d4fda5ad707c17535e0a1e">
+<!ENTITY MD5		"1f961232b651c32c5591a552211dc09c">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
@@ -19,6 +19,9 @@
 
 <CHANGES>
 ##&name;
+- Fix: '/tmp/.preclear/sdX/dd_output_complete: No such file or directory' error message.
+
+###2022.03.07
 - Add: Updated plugin check.
 - Fix: Integer error in prelcear script.
 
