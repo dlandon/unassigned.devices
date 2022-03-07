@@ -670,6 +670,7 @@ write_the_disk(){
 	time_elapsed $write_type set $resume_timer
 
 	touch $dd_output
+	touch ${dd_output}_complete
 
 	if [ "$short_test" == "y" ]; then
 		total_bytes=$(( ($write_bs * 2048 * 2) + 1 ))
