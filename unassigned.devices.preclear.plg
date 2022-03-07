@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.03.05">
+<!ENTITY version	"2022.03.06">
 <!ENTITY launch		"Tools/Preclear">
 <!ENTITY gitURL		"https://github.com/&author;/unassigned.devices/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"6233a54e75de47fe8eb4781f439a0ff8">
+<!ENTITY MD5		"23b5d0f703d4fda5ad707c17535e0a1e">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
@@ -19,6 +19,7 @@
 
 <CHANGES>
 ##&name;
+- Add: Updated plugin check.
 - Fix: Integer error in prelcear script.
 
 ###2022.03.04
