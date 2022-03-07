@@ -1073,6 +1073,7 @@ read_the_disk() {
 	local disk_blocks=${disk_properties[blocks_512]}
 	local disk_serial=${disk_properties[serial]}
 	local last_progress=-1
+	local next_notify=-1
 
 	declare -A is_paused_by
 	declare -A paused_by
@@ -1159,7 +1160,6 @@ read_the_disk() {
 	if [ "$notify_channel" -gt 0 ] && [ "$notify_freq" -ge 3 ] ; then
 		report_out="$read_type_s started on $disk_serial ($disk_name).\\nDisk temperature: $(get_disk_temp $disk "$smart_type")\\n"
 		send_notify "$read_type_s started on $disk_serial ($disk_name)" "$read_type_s started on $disk_serial ($disk_name). Cycle $cycle of ${cycles}. " "$report_out" &
-		local next_notify=-1
 	fi
 
 	#
