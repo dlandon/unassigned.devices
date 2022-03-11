@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.03.04">
+<!ENTITY version	"2022.03.11">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"2d30a89459d7cbf138a89b1a667a0fdb">
+<!ENTITY MD5		"ae4829c14d4b6a551c0155faae50d7e4">
 ]>
 
 <PLUGIN name="&name;"
@@ -21,6 +21,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Plugin update check.
+- Add: Mounting of root shares.
+
+###2022.03.04
 - Add: Message when clearing a disk about losing the preclear signature.
 - Fix: Preclear icon showing up on a disk when the first partition did't have a file system, but other partitions did.
 - Fix: Changes for 6.10 jQuery and Java updates.
@@ -1751,7 +1755,7 @@ ln -sf /usr/local/emhttp/plugins/&name;/scripts/mkmbr.sh /usr/local/sbin
 
 # Create state folder and mount points
 rm -rf /var/state/&name;
-mkdir -p /mnt/disks /mnt/remotes /var/state/&name;
+mkdir -p /mnt/disks /mnt/remotes /mnt/rootshare/ /var/state/&name;
 chmod 777 /var/state/&name;
 
 # Create a tmpfs mountpoint at /mnt/disks
@@ -1789,6 +1793,24 @@ if ! mountpoint -q /mnt/remotes 2>/dev/null; then
   fi
 fi
 chown nobody:users /mnt/remotes
+
+# Create a tmpfs mountpoint at /mnt/rootshare
+# to make sure that a CIFS connection dropout doesn't fill all rootfs
+# ps: tmpfs mountpoint will only be created if no remote mounts are mounted yet
+mounted_remotes="n"
+if ! mountpoint -q /mnt/rootshare 2>/dev/null; then
+  for dir in /mnt/rootshare/*; do 
+    if mountpoint -q "$dir" 2>/dev/null; then 
+      mounted_remotes="y" 
+    fi
+  done
+  if [ $mounted_remotes == "n" ]; then
+    mount -t tmpfs -o size=1M tmpfs /mnt/rootshare
+  else
+    touch /var/state/&name;/reboot_required
+  fi
+fi
+chown nobody:users /mnt/rootshare
 
 # Add unassigned_devices to smb-extra.conf.
 at -M -f /tmp/&name;/add-smb-extra now 2>/dev/null
@@ -1848,6 +1870,10 @@ if mountpoint -q "/mnt/remotes"; then
 fi
 rmdir /mnt/remotes 2>/dev/null
 
+if mountpoint -q "/mnt/rootshare"; then
+  umount "/mnt/rootshare"
+fi
+rmdir /mnt/rootshare 2>/dev/null
 # Remove installed packages
 find "/boot/config/plugins/&name;/" -type f -iname "*.txz" -delete
 
