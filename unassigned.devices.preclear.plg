@@ -157,11 +157,6 @@ The 'post-install' script.
 -->
 <FILE Run="/bin/bash">
 <INLINE>
-# Create a symlink to /root/mdcmd
-if [[ ! -e /root/mdcmd ]]; then
-	ln -sf /usr/local/sbin/mdcmd /root/mdcmd
-fi
-
 # Make sure log file exists
 touch /var/log/preclear/preclear.log
 
