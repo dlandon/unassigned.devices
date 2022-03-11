@@ -1145,7 +1145,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 <div style="display:none;" data-survey-name="remove_remote_share" data-survey-title="<?=_('Remove SMB/NFS mount');?>?">
 	<div data-question data-question-title="" data-question-button-done="<?=_('Remove');?>" data-question-icon="warning">
 		<div data-question-format>
-			[surveyOption, (surveyOption.startsWith("//" ? "SMB" : "NFS"))]
+			[surveyOption, (surveyOption.startsWith("//") ? "SMB" : "NFS")]
 		</div>
 		<div data-question-content>
 			<div class="swal-title" style="font-size: 20px;"><?=_('This will remove the remote');?> <span style="font-weight: bold;">{1}</span> <?=_('share for');?>:</div>
