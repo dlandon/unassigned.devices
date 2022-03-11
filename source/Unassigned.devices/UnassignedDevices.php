@@ -1150,6 +1150,35 @@ switch ($_POST['action']) {
 		echo json_encode(array( 'result' => set_iso_config($device, "command", $cmd)));
 		break;
 
+	/* ROOT SHARES */
+	case 'add_root_share':
+		/* Add iso file share. */
+		$share		= urldecode($_POST['share']);
+		$mountpoint	= urldecode($_POST['mountpoint']);
+		$ip			= strtoupper($var['NAME']);
+		$device		= "//".$ip.$mountpoint;
+
+		set_samba_config("{$device}", "protocol", "ROOT");
+		set_samba_config("{$device}", "ip", $ip);
+		set_samba_config("{$device}", "path", $share);
+		set_samba_config("{$device}", "share", safe_name($share, false));
+
+		echo json_encode(true);
+		break;
+
+	case 'remove_root_config':
+		/* Remove the iso share configuration. */
+		$device = urldecode($_POST['device']);
+		echo json_encode(remove_config_samba($device));
+		break;
+
+	case 'root_automount':
+		/* Set the iso auto mount configuration setting. */
+		$device		= urldecode($_POST['device']);
+		$status		= urldecode($_POST['status']);
+		echo json_encode(array( 'result' => toggle_samba_automount($device, $status) ));
+		break;
+
 	/*	MISC */
 	case 'rm_partition':
 		/* Remove a partition from a disk. */

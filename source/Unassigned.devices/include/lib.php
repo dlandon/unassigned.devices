@@ -17,6 +17,7 @@ $paths = [	"smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"smb_usb_shares"	=> "/etc/samba/unassigned-shares",
 			"usb_mountpoint"	=> "/mnt/disks",
 			"remote_mountpoint"	=> "/mnt/remotes",
+			"root_mountpoint"	=> "/mnt/rootshare",
 			"dev_state"			=> "/usr/local/emhttp/state/devs.ini",
 			"device_log"		=> "/tmp/{$plugin}/logs/",
 			"config_file"		=> "/tmp/{$plugin}/config/{$plugin}.cfg",
@@ -1183,6 +1184,10 @@ function get_mount_params($fs, $dev, $ro = false) {
 			$rc = "rw,noacl";
 			break;
 
+		case 'root':
+			$rc = "rw --bind";
+			break;
+
 		default:
 			$rc = "{$rw},noatime,nodiratime";
 			break;
@@ -1199,6 +1204,10 @@ function do_mount($info) {
 	/* Mount a CIFS or NFS remote mount. */
 	if ($info['fstype'] == "cifs" || $info['fstype'] == "nfs") {
 		$rc = do_mount_samba($info);
+
+	/* Mount root share. */
+	} else if ($info['fstype'] == "root") {
+		$rc = do_mount_root($info);
 
 	/* Mount an ISO file. */
 	} else if ($info['fstype'] == "loop") {
@@ -1341,6 +1350,63 @@ function do_mount_local($info) {
 		}
 	} else {
 		unassigned_log("Partition '".basename($dev)."' is already mounted.");
+	}
+
+	return $rc;
+}
+
+/* Mount root share. */
+function do_mount_root($info) {
+	global $paths;
+
+	$rc		= false;
+
+	/* Be sure the server online status is current. */
+	$is_alive = is_samba_server_online($info['ip']);
+
+	/* If the remote server is not online, run the ping update and see if ping status needs to be refreshed. */
+	if (! $is_alive) {
+		/* Update the remote server ping status. */
+		exec("/usr/local/emhttp/plugins/unassigned.devices/scripts/get_ud_stats ping");
+
+		/* See if the server is online now. */
+		$is_alive = is_samba_server_online($info['ip']);
+	}
+	
+	if ($is_alive) {
+		$dir		= $info['mountpoint'];
+		$fs			= $info['fstype'];
+		$dev		= str_replace("//".$info['ip'], "", $info['device']);
+		if (! is_mounted($dir)) {
+			/* Create the mount point and set permissions. */
+			@mkdir($dir, 0777, true);
+
+			$params	= get_mount_params($fs, $dev);
+			$cmd	= "/sbin/mount -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
+
+			unassigned_log("Mount ROOT command: {$cmd}");
+
+			/* Mount the remote share. */
+			$o		= timed_exec(10, $cmd." 2>&1");
+			if ($o) {
+				unassigned_log("Root mount failed: '{$o}'.");
+			}
+
+			/* Did the share successfully mount? */
+			if (is_mounted($dir)) {
+				@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
+
+				unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
+
+				$rc = true;
+			} else {
+				@rmdir($dir);
+			}
+		} else {
+			unassigned_log("Root Share '{$dev}' is already mounted.");
+		}
+	} else {
+		unassigned_log("Root Server '{$info['ip']}' is offline and share '{$info['device']}' cannot be mounted."); 
 	}
 
 	return $rc;
@@ -1656,7 +1722,7 @@ function reload_shares() {
 	/* SMB Mounts */
 	foreach (get_samba_mounts() as $name => $info) {
 		if ( $info['mounted'] ) {
-			add_smb_share($info['mountpoint'], false);
+			add_smb_share($info['mountpoint'], $info['fstype'] == "root" ? true : false);
 		}
 	}
 
@@ -1753,25 +1819,40 @@ function get_samba_mounts() {
 			if ($mount['protocol'] == "NFS") {
 				$mount['fstype'] = "nfs";
 				$path = basename($mount['path']);
+			} else if ($mount['protocol'] == "ROOT") {
+				$mount['fstype'] = "root";
+				$path = $mount['mountpoint'] ? $mount['mountpoint'] : $mount['ip']."_".$mount['path'];
 			} else {
 				$mount['fstype'] = "cifs";
 				$path = $mount['path'];
 			}
 
-			$mount['mounted']		= is_mounted(($mount['fstype'] == "cifs") ? "//".$mount['ip']."/".$path : $mount['device']);
+			if ($mount['fstype'] != "root") {
+				$mount['mounted']		= is_mounted(($mount['fstype'] == "cifs") ? "//".$mount['ip']."/".$path : $mount['device']);
+			} else {
+				$mount['mounted']		= is_mounted($paths['root_mountpoint']."/".$path);
+			}
 			$mount['is_alive']		= is_samba_server_online($mount['ip']);
 			$mount['automount']		= is_samba_automount($mount['name']);
 			$mount['smb_share']		= is_samba_share($mount['name']);
 			if (! $mount['mountpoint']) {
 				$mount['mountpoint'] = "{$paths['usb_mountpoint']}/{$mount['ip']}_{$path}";
 				if (! $mount['mounted'] || ! is_mounted($mount['mountpoint']) || is_link($mount['mountpoint'])) {
-					$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$mount['ip']}_{$path}";
+					if ($mount['fstype'] != "root") {
+						$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$mount['ip']}_{$path}";
+					} else {
+						$mount['mountpoint'] = "{$paths['root_mountpoint']}/{$path}";
+					}
 				}
 			} else {
 				$path = basename($mount['mountpoint']);
 				$mount['mountpoint'] = "{$paths['usb_mountpoint']}/{$path}";
 				if (! $mount['mounted'] || ! is_mounted($mount['mountpoint']) || is_link($mount['mountpoint'])) {
-					$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$path}";
+					if ($mount['fstype'] != "root") {
+						$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$path}";
+					} else {
+						$mount['mountpoint'] = "{$paths['root_mountpoint']}/{$path}";
+					}
 				}
 			}
 
@@ -1955,7 +2036,7 @@ function do_mount_samba($info) {
 			unassigned_log("Share '{$dev}' is already mounted.");
 		}
 	} else {
-		unassigned_log("Remote SMB/NFS server '{$info['ip']}' is offline and share '{$info['device']}' cannot be mounted."); 
+		unassigned_log("Remote Server '{$info['ip']}' is offline and share '{$info['device']}' cannot be mounted."); 
 	}
 
 	return $rc;

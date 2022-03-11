@@ -554,9 +554,9 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	});
 
 	$(function() {
-	  if ( typeof caPluginUpdateCheck === "function" ) {
-		caPluginUpdateCheck("unassigned.devices.plg");
-	  }
+		if ( typeof caPluginUpdateCheck === "function" ) {
+			caPluginUpdateCheck("unassigned.devices.plg");
+		}
 	});
 </script>
 
@@ -631,6 +631,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	<div id='remotes-buttons'>
 		<button onclick='add_samba_share()' <?=$disabled?>><?=_('Add Remote SMB')?>/<?=_('NFS Share')?></button>
 		<button onclick='add_iso_share()'><?=_('Add ISO File Share')?></button>
+		<button onclick='add_root_share()'><?=_('Add Root Share')?></button>
 	</div>
 </div>
 
@@ -849,6 +850,40 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	});
 </script>
 
+<div style="display:none;" data-survey-name="add_root_share" data-survey-title="<?=_('Add Root Share');?>">
+	<div data-question data-question-title="<?=_('Root Share')?>" data-question-button-done="<?=_('Add');?>">
+		<div data-question-content>
+			<div class="swal-content">
+				<p><?=_('Root Share Name');?>:
+				<input type="text" class="swal-content__input" name="SHARE" autocomplete="off" required="required" placeholder="<?=_('Enter Root Share Name');?>">
+				<p><?=_('Mount Point');?>:
+				<select name="MOUNTPOINT" class="swal-content__input">
+					<option value="/mnt/user/">User</option>
+					<option value="/mnt/disks/">Disks</option>
+					<option value="/mnt/remotes/">Remotes</option>
+				</select>
+				<p><?=_('This is a way to gather Unraid shares into one Root Share');?>.</p>
+				<p><span style="font-weight:bold;"><?=_('Note');?>:</span> <?=_('Use caution when gathering shares into one Root share');?>. <?=_('Do not put files or folders into the root share');?>.
+				<p><?=_('You can also subject yourself to security issues like ransomware by exposing all your shares in one Root Share');?>.</p>
+			</div>
+		</div>
+	</div>
+
+	<div data-survey-done>
+		$.post(UDURL, {'action' : 'add_root_share', share:surveyData['SHARE'], mountpoint:surveyData['MOUNTPOINT']}).done(function(data)
+		{
+			swalShowResult((data == "true") ? true : false);
+		},'json').fail(function(){swalShowResult(false);});
+	</div>
+
+	<div>
+		<script type="text/javascript">
+			$(function() {
+				window.add_root_share = function(){doUnassignedDevicesSurvey("add_root_share")}
+			})
+		</script>
+	</div>
+</div>
 
 <div style="display:none;" data-survey-name="add_iso_share" data-survey-title="<?=_('Add ISO File Share');?>">
 	<div data-question data-question-title="<?=_('Choose ISO File')?>" data-question-button-done="<?=_('Add');?>">
@@ -956,7 +991,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			});
 		</script>
 	</div>
-<?else:?>
+	<?else:?>
 	<div data-question data-question-title="<?=_('Partition and Format Disk');?>">
 		<div data-question-content>
 			<p><?=_('You must enable the Destructive Mode in UD Settings before you can Format this disk');?>.</p>
@@ -964,7 +999,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	</div>
 	<div data-survey-done data-survey-done-wait="false">
 	</div>
-<?endif;?>
+	<?endif;?>
 	<div>
 		<script type="text/javascript">
 			$(function() {
@@ -1110,7 +1145,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 <div style="display:none;" data-survey-name="remove_remote_share" data-survey-title="<?=_('Remove SMB/NFS mount');?>?">
 	<div data-question data-question-title="" data-question-button-done="<?=_('Remove');?>" data-question-icon="warning">
 		<div data-question-format>
-			[surveyOption, (surveyOption.startsWith("//") ? "SMB" : "NFS")]
+			[surveyOption, (surveyOption.startsWith("//" ? "SMB" : "NFS"))]
 		</div>
 		<div data-question-content>
 			<div class="swal-title" style="font-size: 20px;"><?=_('This will remove the remote');?> <span style="font-weight: bold;">{1}</span> <?=_('share for');?>:</div>

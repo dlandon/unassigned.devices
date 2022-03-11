@@ -160,7 +160,7 @@ function unassigned_mount() {
 		}
 	}
 
-	/* Mount Remote SMB/NFS mounts. */
+	/* Mount Remote mounts. */
 	if (strpos($DEVNAME, "//") === 0 || strpos($DEVNAME, ":/") || $DEVNAME == "auto" || $DEVNAME == "autoshares") {
 		foreach (get_samba_mounts() as $info) {
 			$device = $info['device'];
@@ -168,20 +168,20 @@ function unassigned_mount() {
 
 				/* if remote mount is not set to auto mount, go to the next one. */
 				if (! $info['automount'] && ($DEVNAME == "auto" || $DEVNAME == "autoshares")) {
-					unassigned_log("Remote SMB/NFS '".$info['device']."' is not set to auto mount.");
+					unassigned_log("Remote Share '".$info['device']."' is not set to auto mount.");
 					continue;
 				}
 
 				/* See if the mountpoint is a duplicate reserved, share, or UD name. Don't mount if a duplicate.*/
 				if (! check_for_duplicate_share($info['device'], basename($info['mountpoint']))) {
-					unassigned_log("Remote SMB/NFS '".$info['device']."' cannot be mounted.");
+					unassigned_log("Remote Share '".$info['device']."' cannot be mounted.");
 
 					/* Execute device script with error mounting action. */
 					execute_script($info, "ERROR_MOUNT");
 					continue;
 				}
 
-				unassigned_log("Remote SMB/NFS share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = ((strpos($k, "pass") !== false) || ((strpos($k, "user") !== false) && (strpos($k, "user_command") === false))) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
+				unassigned_log("Remote Share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = ((strpos($k, "pass") !== false) || ((strpos($k, "user") !== false) && (strpos($k, "user_command") === false))) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
 
 				/* Remove any special characters. */
 				$mount_device = basename($info['device'])."_".$info['fstype'];
@@ -189,13 +189,13 @@ function unassigned_mount() {
 				/* Create mounting status file. */
 				addFile(sprintf($paths['mounting'], $mount_device));
 
-				unassigned_log("Mounting Remote SMB/NFS Share '{$info['device']}'...");
+				unassigned_log("Mounting Remote Share '{$info['device']}'...");
 
 				/* Mount the remote share. */
 				if (do_mount( $info )) {
 					if ($info['smb_share']) {
 						/* Add smb share for the remote share. */
-						add_smb_share($info['mountpoint'], false);
+						add_smb_share($info['mountpoint'], $info['fstype'] == "root" ? true : false);
 
 						/* Update the samba mount status. */
 						foreach (get_samba_mounts() as $info) {
@@ -363,9 +363,10 @@ function unassigned_umount() {
 				$force = $info['is_alive'] ? $force : true;
 
 				/* Unmount the remote share if it is mounted. */
-				if ( is_mounted(($info['fstype'] == "cifs") ? "//".$info['ip']."/".$info['path'] : $info['device']) ) {
+				$dev	= $info['fstype'] == "root" ? $info['mountpoint'] : $info['device'];
+				if ( is_mounted(($info['fstype'] == "cifs") ? "//".$info['ip']."/".$info['path'] : $dev) ) {
 					/* Remove special characters. */
-					$mount_device = basename($info['device'])."_".$info['fstype'];
+					$mount_device = basename($dev)."_".$info['fstype'];
 
 					/* Create unmounting status file. */
 					addFile(sprintf($paths['unmounting'], $mount_device));
@@ -381,7 +382,7 @@ function unassigned_umount() {
 					$nfs = $info['fstype'] == "nfs" ? true : false;
 
 					/* Unmount the remote share. */
-					if ( do_unmount(($info['fstype'] == "cifs") ? "//".$info['ip']."/".$info['path'] : $info['device'], $info['mountpoint'], $force, $smb, $nfs) ) {
+					if ( do_unmount(($info['fstype'] == "cifs") ? "//".$info['ip']."/".$info['path'] : $dev, $info['mountpoint'], $force, $smb, $nfs) ) {
 						if ( rm_smb_share($info['mountpoint']) ) {
 							/* Execute remote mount script with remove action. */
 							execute_script($info, "REMOVE");
