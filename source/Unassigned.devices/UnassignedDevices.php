@@ -451,7 +451,7 @@ switch ($_POST['action']) {
 					}
 				} else {
 					$disk_display = substr($disk_name, 0, 3)." ".substr($disk_name, 3);
-					$disk_display = ucfirst($disk_display);
+					$disk_display = my_disk($disk_display);
 				}
 				if ( $preclearing ) {
 					$o_disks .= "<td><i class='fa fa-circle orb ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>".$disk_display."</td>";
