@@ -853,19 +853,21 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 <div style="display:none;" data-survey-name="add_root_share" data-survey-title="<?=_('Add Root Share');?>">
 	<div data-question data-question-title="<?=_('Root Share')?>" data-question-button-done="<?=_('Add');?>">
 		<div data-question-content>
-			<div class="swal-content">
-				<p><?=_('Root Share Name');?>:
-				<input type="text" class="swal-content__input" name="SHARE" autocomplete="off" required="required" placeholder="<?=_('Enter Root Share Name');?>">
-				<p><?=_('Mount Point');?>:
-				<select name="MOUNTPOINT" class="swal-content__input">
-					<option value="/mnt/user/">User</option>
-					<option value="/mnt/disks/">Disks</option>
-					<option value="/mnt/remotes/">Remotes</option>
-				</select>
-				<p><?=_('This is a way to gather Unraid shares into one Root Share');?>.</p>
-				<p><span style="font-weight:bold;"><?=_('Note');?>:</span> <?=_('Use caution when gathering shares into one Root share');?>. <?=_('Do not put files or folders into the root share');?>.
-				<p><?=_('You can also subject yourself to security issues like ransomware by exposing all your shares in one Root Share');?>.</p>
-			</div>
+			<input type="text" class="swal-content__input" name="SHARE" autocomplete="off" required placeholder="<?=_('Enter Root Share Name');?>">
+			<p><?=_('This is a way to gather Unraid shares into one Root Share');?>.</p>
+			<p><span style="font-weight:bold;"><?=_('Note');?>:</span> <?=_('Use caution when gathering shares into one Root share');?>. <?=_('Do not put files or folders into the root share');?>.
+			<p><?=_('You can also subject yourself to security issues like ransomware by exposing all your shares in one Root Share');?>.</p>
+		</div>
+	</div>
+
+	<div data-question data-question-title="<?=_('Root Share')?>" data-question-button-done="<?=_('Add');?>">
+		<div data-question-content>
+			<select name="MOUNTPOINT" class="swal-content__input">
+				<option value="/mnt/user/">User</option>
+				<option value="/mnt/disks/">Disks</option>
+				<option value="/mnt/remotes/">Remotes</option>
+			</select>
+			<p><?=_('Select the Mount Point to Root Share');?>.</p>
 		</div>
 	</div>
 
@@ -891,7 +893,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			["data-pickroot","ISO_FILE"]
 		</div>
 		<div data-question-content>
-			<input type='text' name='{1}' placeholder="<?=_('Click to select ISO file');?>" data-pickcloseonfile='true' data-pickfilter='iso' {0}='/mnt/user/isos/' data-pickfolders='true' required='required' class='swal-content__input' autocomplete="off" >
+			<input type='text' name='{1}' placeholder="<?=_('Click to select ISO file');?>" data-pickcloseonfile='true' data-pickfilter='iso' {0}='/mnt/user/isos/' data-pickfolders='true' required class='swal-content__input' autocomplete="off" >
 		</div>
 		<div data-question-load></div>
 		<div data-question-done>
