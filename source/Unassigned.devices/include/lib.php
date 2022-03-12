@@ -1394,7 +1394,9 @@ function do_mount_root($info) {
 
 			/* Did the share successfully mount? */
 			if (is_mounted($dir)) {
-				@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
+				@chmod($dir, 0777);
+				@chown($dir, 99);
+				@chgrp($dir, 100);
 
 				unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
 
@@ -2020,7 +2022,9 @@ function do_mount_samba($info) {
 
 			/* Did the share successfully mount? */
 			if (is_mounted($dev) && is_mounted($dir)) {
-				@chmod($dir, 0777);@chown($dir, 99);@chgrp($dir, 100);
+				@chmod($dir, 0777);
+				@chown($dir, 99);
+				@chgrp($dir, 100);
 				$link = $paths['usb_mountpoint']."/";
 				if ((get_config("Config", "symlinks") == "yes" ) && (dirname($dir) == $paths['remote_mountpoint'])) {
 					$dir .= "/".
