@@ -1,4 +1,4 @@
-<?
+<?php
 /* Copyright 2015-2020, Guilherme Jardim
  * Copyright 2022, Dan Landon
  *
@@ -498,6 +498,8 @@ switch ($_POST['action'])
 			echo "true";
 		}
 		preclear_log("Preclear report '".$file."' removed");
+
+		echo json_encode(true);
 		break;
 
 	case 'download':
@@ -529,6 +531,7 @@ switch ($_POST['action'])
 			unlink($file);
 		}
 		preclear_log("Preclear resumed on ".$disk);
+		echo json_encode(true);
 		break;
 
 	case 'set_queue':

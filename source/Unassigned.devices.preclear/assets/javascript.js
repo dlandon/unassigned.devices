@@ -141,16 +141,6 @@ function getPreclearContent()
 	});
 }
 
-function updateCsrfToken(jqXHR, textStatus, error)
-{
-	if (jqXHR.status == 200) {
-		swal2({title:"Your CSRF token is not valid')?>!", text:"Please try to refresh your browser or log in again.", icon:"error", buttons:{confirm:{visible:true}, cancel:{visible:false}}});
-		clearTimeout(timers.getPreclearContent);
-	} else if (jqXHR.status == 404) {	
-		setTimeout( clearTimeout, 300, timers.getPreclearContent);
-	}
-}
-
 function openPreclear(serial)
 {
 	var width	= 1000;
@@ -297,13 +287,12 @@ function startPreclear(serial, multiple = "no")
 				preclearShowResult(data);
 			},'json').always(function(data)	{
 				preclearUpdateContent();
-			},'json').fail(updateCsrfToken);
+			},'json').fail(preclearShowResult(data));
 		}
 	});
 
 	/* Allow dropdown overflow. */
 	$('.swal-modal').css('overflow', 'visible');
-	$('.swal-modal').find('.chosen.swal').chosen({ width: '60%', allow_single_deselect: false });
 	$("#multiple_preclear_chosen > .chosen-choices").css("min-height", "27px");
 }
 
@@ -316,7 +305,7 @@ function stopPreclear(serial, ask, multiple = 'no')
 		$.post(PreclearURL,{action:"stop_preclear",'serial':serial}, function(data){
 			preclearShowResult(data);
 			preclearUpdateContent();
-		},'json').fail(updateCsrfToken);
+		},'json').fail(preclearShowResult(data));
 
 		return true;
 	}
@@ -392,15 +381,10 @@ function stopPreclear(serial, ask, multiple = 'no')
 				{
 					preclearShowResult(data);
 					preclearUpdateContent();
-				},'json').fail(updateCsrfToken);
+				},'json').fail(preclearShowResult(data));
 			}
 		}
 	});
-
-	/* Allow dropdown overflow. */
-	$('.swal-modal').css('overflow', 'visible');
-	$('.swal-modal').find('.chosen.swal').chosen({ width: '58%', allow_single_deselect: false });
-	$("#multiple_preclear_chosen > .chosen-choices").css("min-height", "27px");
 }
 
 
@@ -421,7 +405,7 @@ function preclearClear()
 			{
 				preclearShowResult(data);
 				getPreclearContent();
-			},'json').fail(updateCsrfToken);
+			},'json').fail(preclearShowResult(data));
 		}
 	});
 }
@@ -574,8 +558,9 @@ function rmReport(file, el)
 				$(el).closest("td").find(".fa-minus-circle, .fa-plus-circle").css("opacity", "0.0");
 			}
 			$(el).parent().remove();
+			preclearShowResult(data)
 		}
-	}).fail(updateCsrfToken);
+	}).fail(preclearShowResult(data));
 }
 
 function get_tab_title_by_name(name) {
@@ -669,7 +654,7 @@ function getResumablePreclear(serial)
 					$.post(PreclearURL, opts).done(function(data) {
 						preclearShowResult(data);
 						preclearUpdateContent();
-					}).fail(updateCsrfToken);
+					}).fail(preclearShowResult(data));
 				} else if (answer == 2) {
 					swal2.stopLoading();
 					startPreclear(serial);
@@ -678,7 +663,7 @@ function getResumablePreclear(serial)
 		} else {
 			startPreclear(serial);
 		}
-	}, "json").fail(updateCsrfToken);
+	}, "json").fail(preclearShowResult(data));
 }
 
 function setPreclearQueue()
@@ -723,8 +708,9 @@ function resumePreclear(disk)
 {
   $.post(PreclearURL,{action:'resume_preclear', disk:disk}, function(data)
   {
+	preclearShowResult(data)
     getPreclearContent();
-  }).fail(updateCsrfToken);
+  }).fail(preclearShowResult(data));
 }
 
 
@@ -744,7 +730,7 @@ function preclearPauseAll()
 			{
 				preclearShowResult(data);
 				getPreclearContent();
-			}, 'json').fail(updateCsrfToken);
+			}, 'json').fail(preclearShowResult(data));
 		}
 	});
 }
@@ -766,7 +752,7 @@ function preclearResumeAll()
 			{
 				preclearShowResult(data);
 				getPreclearContent();
-			}, 'json').fail(updateCsrfToken);
+			}, 'json').fail(preclearShowResult(data));
 		}
 	});
 }
@@ -787,7 +773,7 @@ function preclearStopAll()
 			{
 				preclearShowResult(data);
 				getPreclearContent();
-			}, 'json').fail(updateCsrfToken);
+			}, 'json').fail(preclearShowResult(data));
 		}
 	});
 }
