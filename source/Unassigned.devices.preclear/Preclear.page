@@ -68,15 +68,15 @@ $zipFile	= sprintf("log/%s-%s-%s.zip", str_replace(' ','_',strtoupper($var['NAME
 		});
 	}
 
-$(function() {
-	$('div.spinner').html(unraid_logo);
-});
+	$(function() {
+		$('div.spinner').html(unraid_logo);
+	});
 
-$(function() {
-	if ( typeof caPluginUpdateCheck === "function" ) {
-		caPluginUpdateCheck("unassigned.devices.preclear.plg");
-	}
-});
+	$(function() {
+		if ( typeof caPluginUpdateCheck === "function" ) {
+			caPluginUpdateCheck("unassigned.devices.preclear.plg");
+		}
+	});
 </script>
 
 <style>
