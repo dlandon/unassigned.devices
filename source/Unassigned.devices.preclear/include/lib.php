@@ -1,4 +1,4 @@
-<?
+<?php
 /* Copyright 2015-2020, Guilherme Jardim
  * Copyright 2022, Dan Landon
  *
