@@ -1,0 +1,17 @@
+#!/bin/bash
+#
+# Copyright 2015-2020, Guilherme Jardim
+# Copyright 2022, Dan Landon
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License version 2,
+# as published by the Free Software Foundation.
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+
+for disk in $(find /tmp/.preclear/ -mindepth 1 -maxdepth 1 -type d -exec basename '{}' \;); do
+	echo "Pausing preclear of disk '$disk'"|logger -t preclear.disk
+	touch "/tmp/.preclear/${disk}/pause"
+done
