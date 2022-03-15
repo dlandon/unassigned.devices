@@ -663,7 +663,7 @@ function getResumablePreclear(serial)
 		} else {
 			startPreclear(serial);
 		}
-	}, "json").fail(preclearShowResult(data));
+	}, "json").fail(preclearShowResult(false));
 }
 
 function setPreclearQueue()
