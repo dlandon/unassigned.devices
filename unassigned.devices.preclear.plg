@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.03.14">
+<!ENTITY version	"2022.03.15">
 <!ENTITY launch		"Tools/Preclear">
 <!ENTITY gitURL		"https://github.com/&author;/unassigned.devices/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"fa6080a6e15c47a09d8ed841bef155ca">
+<!ENTITY MD5		"4bb7e26d82e69171ec0a153f60c9e894">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
@@ -19,6 +19,9 @@
 
 <CHANGES>
 ##&name;
+- Fix: Only write resume file to flash when absolutely necessary to minimize flash writes.
+
+###2022.03.14
 - Fix: Replace the confusing csrf token error message with fail message.  It's an incorrect message.
 - Fix: Add 'Success' dialogs where missing on certain actions.
 
