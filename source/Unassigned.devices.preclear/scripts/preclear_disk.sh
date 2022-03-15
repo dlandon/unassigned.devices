@@ -32,6 +32,9 @@ version="1.0.24"
 # Fix preclear status to right justify the preclear results.
 # Fix integer error on notify check.
 #
+# 1.0.25
+# Only write resume file to flash when absolutely necessary.
+#
 ######################################################
 ##													##
 ##				PROGRAM FUNCTIONS					##
@@ -600,12 +603,8 @@ save_current_status() {
 	echo -e "cycle_elapsed_time='$( time_elapsed cycle export )'" >> "$tmp_resume"
 	mv -f "$tmp_resume" "${all_files[resume_temp]}"
 
-	local last_updated=$(( $(timer) - ${diskop[last_update]} ))
- 
-	if [ "$1" = "1" ] || [ "$last_updated" -gt "${diskop[update_interval]}" ]; then
-		cp "${all_files[resume_temp]}" "${all_files[resume_file]}.tmp"
-		mv "${all_files[resume_file]}.tmp" "${all_files[resume_file]}"
-		diskop[last_update]=$(timer)
+	if [ "$1" = "1" ]; then
+		cp "${all_files[resume_temp]}" "${all_files[resume_file]}"
 	fi
 
 	sleep 0.1 && rm -f "${all_files[wait]}"
@@ -908,6 +907,7 @@ write_the_disk(){
 		if [ "$do_pause" -gt 0 ] && [ "$is_paused" == "n" ]; then
 			kill -TSTP $dd_pid
 			is_paused=y
+			save_current_status 1
 			time_elapsed $write_type && time_elapsed cycle && time_elapsed main
 			debug "Paused"
 		fi
@@ -1021,7 +1021,7 @@ write_the_disk(){
 		while read l; do debug "${write_type_s}: dd output: ${l}"; done < <(cat "${dd_output}_complete")
 
 		diskop+=([current_op]="$write_type" [current_pos]="$bytes_written" [current_timer]=$current_elapsed )
-		save_current_status
+		save_current_status 1
 
 		exit_code=1
 	fi
@@ -1444,6 +1444,7 @@ read_the_disk() {
 		if [ "$do_pause" -gt 0 ] && [ "$is_paused" == "n" ]; then
 			kill -TSTP $dd_pid
 			is_paused=y
+			save_current_status 1
 			time_elapsed $read_type && time_elapsed cycle && time_elapsed main
 			debug "Paused"
 		fi
@@ -1575,7 +1576,8 @@ read_the_disk() {
 		while read l; do debug "${read_type_s}: dd output: ${l}"; done < <(cat "${dd_output}_complete")
 
 		diskop+=([current_op]="$read_type" [current_pos]="$bytes_read" [current_timer]=$(time_elapsed $read_type display) )
-		save_current_status
+		save_current_status 1
+
 		return 1
 	fi
 
@@ -2201,8 +2203,6 @@ append arguments 'erase_preclear'	"$erase_preclear"
 append diskop 'current_op' ""
 append diskop 'current_pos' ""
 append diskop 'current_timer' ""
-append diskop 'last_update' 0
-append diskop 'update_interval' "120"
 
 #
 # Disk properties
