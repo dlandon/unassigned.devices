@@ -48,7 +48,7 @@ if ( isset($_GET['device']) && isset($_GET['type']) ) {
 		while (! feof($proc)) {
 			write_log(fgets($proc));
 		}
-	} elseif ($command !== false) {
+	} else if ($command !== false) {
 		echo _("No script file to execute")."!";
 	} else {
 		echo _("Script is already running")."!";

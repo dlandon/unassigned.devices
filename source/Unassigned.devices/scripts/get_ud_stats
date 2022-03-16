@@ -104,7 +104,7 @@ function is_server_online($server, $log = false) {
 				shell_exec("/bin/sed -i '/".escapeshellarg($server)."/d' /etc/hosts");
 				shell_exec("/bin/echo -e '".escapeshellarg($ip_local)."''\t''".escapeshellarg($server)."' >> /etc/hosts" );
 			}
-		} elseif ((strpos($ip_arp, "no match found") === false) && ($log)) {
+		} else if ((strpos($ip_arp, "no match found") === false) && ($log)) {
 			unassigned_log("Remote server '".$server."' cannot be found on the LAN.");
 		}
 	}
@@ -129,7 +129,7 @@ function is_server_online($server, $log = false) {
 		$no_pings++;
 		if (($no_pings <= 3) && ($ping_status[$server]['online'] == 'yes')) {
 			$is_alive = true;
-		} elseif ($no_pings > 3){
+		} else if ($no_pings > 3){
 			$no_pings = 0;
 		}
 	} else {

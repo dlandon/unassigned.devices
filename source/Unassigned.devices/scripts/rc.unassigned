@@ -142,7 +142,7 @@ function unassigned_mount() {
 							/* Update the partition info. */
 							$info = get_partition_info($partition);
 							export_disk($info, true);
-						} elseif (! is_mounted($info['device'])) {
+						} else if (! is_mounted($info['device'])) {
 							/* There was an error mounting the disk. */
 							unassigned_log("Partition '".basename($info['label'])."' cannot be mounted.");
 
