@@ -72,7 +72,7 @@ if (! isset($var)){
 if ( is_file( "plugins/preclear.disk/assets/lib.php" ) ) {
 	require_once( "plugins/preclear.disk/assets/lib.php" );
 	$Preclear = new Preclear;
-} elseif ( is_file( "plugins/".$plugin.".preclear/include/lib.php" ) ) {
+} else if ( is_file( "plugins/".$plugin.".preclear/include/lib.php" ) ) {
 	require_once( "plugins/".$plugin.".preclear/include/lib.php" );
 	$Preclear = new Preclear;
 } else {
@@ -1509,7 +1509,7 @@ function add_smb_share($dir, $recycle_bin = true) {
 
 			$invalid_users = array_filter($valid_users, function($v) use($config, &$read_users, &$write_users) { 
 				if ($config["smb_{$v}"] == "read-only") {$read_users[] = $v;}
-				elseif ($config["smb_{$v}"] == "read-write") {$write_users[] = $v;}
+				else if ($config["smb_{$v}"] == "read-write") {$write_users[] = $v;}
 				else {return $v;}
 			});
 			$valid_users = array_diff($valid_users, $invalid_users);
@@ -1521,9 +1521,9 @@ function add_smb_share($dir, $recycle_bin = true) {
 			$force_user = ( get_config("Config", "force_user") != "no" ) ? "\n\tforce User = nobody" : "";
 			if (($config["case_names"]) || ($config["case_names"] == "auto")) {
 				$case_names = "\n\tcase sensitive = auto\n\tpreserve case = yes\n\tshort preserve case = yes";
-			} elseif ($config["case_names"] == "yes") {
+			} else if ($config["case_names"] == "yes") {
 				$case_names = "\n\tcase sensitive = yes\n\tpreserve case = yes\n\tshort preserve case = yes";
-			} elseif ($config["case_names"] == "force") {
+			} else if ($config["case_names"] == "force") {
 				$case_names = "\n\tcase sensitive = yes\n\tpreserve case = no\n\tshort preserve case = no";
 			} else {
 				$case_names = "";
@@ -1823,7 +1823,8 @@ function get_samba_mounts() {
 				$path = basename($mount['path']);
 			} else if ($mount['protocol'] == "ROOT") {
 				$mount['fstype'] = "root";
-				$path = $mount['mountpoint'] ? $mount['mountpoint'] : $mount['ip']."_".$mount['path'];
+				$root_type = basename($mount['device']);
+				$path = $mount['mountpoint'] ? $mount['mountpoint'] : $root_type.".".$mount['path'];
 			} else {
 				$mount['fstype'] = "cifs";
 				$path = $mount['path'];
@@ -1928,7 +1929,7 @@ function do_mount_samba($info) {
 				} else {
 					unassigned_log("NFS must be enabled in 'Settings->NFS' to mount NFS remote shares.");
 				}
-			} elseif ($var['shareSMBEnabled'] != "no") {
+			} else if ($var['shareSMBEnabled'] != "no") {
 				/* Create the credentials file. */
 				$credentials_file = "{$paths['credentials']}_".basename($dev);
 				@file_put_contents("$credentials_file", "username=".($info['user'] ? $info['user'] : 'guest')."\n");
@@ -2678,6 +2679,7 @@ function change_samba_mountpoint($dev, $mountpoint) {
 
 	$rc = true;
 	if ($mountpoint) {
+unassigned_log("*** mountpoint ".$mountpoint);
 		$rc = check_for_duplicate_share($dev, $mountpoint);
 		if ($rc) {
 			$mountpoint = $mountpoint;
@@ -2766,7 +2768,7 @@ function change_UUID($dev) {
 			if (stripos($o, "XFS") !== false) {
 				/* Change the xfs UUID. */
 				$rc = timed_exec(10, "/usr/sbin/xfs_admin -U generate ".escapeshellarg($mapper_dev));
-			} elseif (stripos($o, "BTRFS") !== false) {
+			} else if (stripos($o, "BTRFS") !== false) {
 				$rc = timed_exec(10, "/sbin/btrfstune -uf ".escapeshellarg($mapper_dev));
 			} else {
 				$rc = "Cannot change UUID.";
@@ -2775,10 +2777,10 @@ function change_UUID($dev) {
 			/* Close the luks device. */
 			shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
 		}
-	} elseif ($fs_type == "xfs") {
+	} else if ($fs_type == "xfs") {
 		/* Change the xfs UUID. */
 		$rc		= timed_exec(20, "/usr/sbin/xfs_admin -U generate ".escapeshellarg($device));
-	} elseif ($fs_type == "btrfs") {
+	} else if ($fs_type == "btrfs") {
 		/* Change the btrfs UUID. */
 		$rc		= timed_exec(20, "/sbin/btrfstune -uf ".escapeshellarg($device));
 	}
