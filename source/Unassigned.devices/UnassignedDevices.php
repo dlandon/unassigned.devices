@@ -154,7 +154,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 			} else {
 				$fscheck .= "<i class='fa fa-flash partition-script'></i>";
 			}
-		} elseif ($mounted) {
+		} else if ($mounted) {
 			$fscheck .= "<i class='fa fa-flash partition-script'></i>";
 		}
 		$fscheck .= $partition['part'];
@@ -308,24 +308,24 @@ function make_mount_button($device) {
 
 	if ($pool_disk) {
 		$button = sprintf($button, $context, 'mount', 'disabled', '', _('Pool'));
-	} elseif (($device['size'] == 0) && (! $is_unmounting)) {
+	} else if (($device['size'] == 0) && (! $is_unmounting)) {
 		$button = sprintf($button, $context, 'mount', 'disabled', '', _('Mount'));
-	} elseif ($device['array_disk']) {
+	} else if ($device['array_disk']) {
 		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-ban', _('Array'));
-	} elseif (($format) || ($preclearing)) {
+	} else if (($format) || ($preclearing)) {
 		if ($preclearing) {
 			$button = sprintf($button, $context, 'mount', 'disabled', '', " "._('Preclear'));
 		} else {
 			$disable = $preclearing ? "disabled" : "";
 			$button = sprintf($button, $context, 'format', $disable, '', _('Format'));
 		}
-	} elseif ($is_mounting) {
+	} else if ($is_mounting) {
 		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-spinner fa-spin', ' '._('Mounting'));
-	} elseif ($is_unmounting) {
+	} else if ($is_unmounting) {
 		$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-spinner fa-spin', ' '._('Unmounting'));
-	} elseif ($is_formatting) {
+	} else if ($is_formatting) {
 		$button = sprintf($button, $context, 'format', 'disabled', 'fa fa-spinner fa-spin', ' '._('Formatting'));
-	} elseif ($mounted) {
+	} else if ($mounted) {
 		if (! isset($device['partitions'])) {
 			$cmd = $device['command'];
 			$user_cmd = $device['user_command'];
@@ -375,7 +375,7 @@ switch ($_POST['action']) {
 				$unassigned		= get_config($disk['serial'], "unassigned_dev");
 				if ((! $unassigned) && ($disk['device'] != $disk['ud_dev'])) {
 					set_config($disk['serial'], "unassigned_dev", $disk['ud_dev']);					
-				} elseif (($unassigned) && ((strpos($unassigned, "dev") !== false || strpos($unassigned, "sd") !== false) && ($unassigned != $disk['ud_dev']))) {
+				} else if (($unassigned) && ((strpos($unassigned, "dev") !== false || strpos($unassigned, "sd") !== false) && ($unassigned != $disk['ud_dev']))) {
 					set_config($disk['serial'], "unassigned_dev", $disk['ud_dev']);
 				}
 			}
@@ -609,7 +609,7 @@ switch ($_POST['action']) {
 					$is_unmounting	= (time() - filemtime($is_unmounting) < 300) ? true : false;
 					if ($is_mounting) {
 						$o_remotes .= "<td><button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Mounting')."</button></td>";
-					} elseif ($is_unmounting) {
+					} else if ($is_unmounting) {
 						$o_remotes .= "<td><button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Unmounting')."</button></td>";
 					} else {
 						$o_remotes .= "<td>".($mounted ? "<button class='mount' device ='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>"._('Unmount')."</button>" : "<button class='mount'device ='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>"._('Mount')."</button>")."</td>";
@@ -667,7 +667,7 @@ switch ($_POST['action']) {
 					$is_unmounting	= (time() - filemtime($is_unmounting) < 300) ? true : false;
 					if ($is_mounting) {
 						$o_remotes .= "<td><button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Mounting')."</button></td>";
-					} elseif ($is_unmounting) {
+					} else if ($is_unmounting) {
 						$o_remotes .= "<td><button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Unmounting')."</button></td>";
 					} else {
 						$o_remotes .= "<td>".($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>"._('Unmount')."</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>"._('Mount')."</button>")."</td>";
@@ -856,7 +856,7 @@ switch ($_POST['action']) {
 		if ($result && $info['target']) {
 			add_smb_share($info['mountpoint']);
 			add_nfs_share($info['mountpoint']);
-		} elseif ($info['mounted']) {
+		} else if ($info['mounted']) {
 			rm_smb_share($info['mountpoint']);
 			rm_nfs_share($info['mountpoint']);
 		}
@@ -1082,7 +1082,7 @@ switch ($_POST['action']) {
 		if ($result && $info['target']) {
 			add_smb_share($info['mountpoint']);
 			add_nfs_share($info['mountpoint']);
-		} elseif ($info['mounted']) {
+		} else if ($info['mounted']) {
 			rm_smb_share($info['mountpoint']);
 			rm_nfs_share($info['mountpoint']);
 		}
@@ -1158,12 +1158,17 @@ switch ($_POST['action']) {
 		$ip			= strtoupper($var['NAME']);
 		$device		= "//".$ip.$mountpoint;
 
-		set_samba_config("{$device}", "protocol", "ROOT");
-		set_samba_config("{$device}", "ip", $ip);
-		set_samba_config("{$device}", "path", $share);
-		set_samba_config("{$device}", "share", safe_name($share, false));
+		if (! get_samba_config("{$device}", "protocol")) {
+			set_samba_config("{$device}", "protocol", "ROOT");
+			set_samba_config("{$device}", "ip", $ip);
+			set_samba_config("{$device}", "path", $share);
+			set_samba_config("{$device}", "share", safe_name($share, false));
 
-		echo json_encode(true);
+			echo json_encode(true);
+		} else {
+			unassigned_log("Error: Root Share already assigned to '".$mountpoint."'!");
+			echo json_encode(false);
+		}
 		break;
 
 	case 'remove_root_config':
