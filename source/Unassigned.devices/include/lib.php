@@ -898,11 +898,12 @@ function timed_exec($timeout = 10, $cmd) {
 /* Find the file system type of a luks device. */
 function luks_fs_type($dev) {
 
+
 	$rc = "luks";
 	if ($dev) {
-		$return	= shell_exec( "/bin/cat /proc/mounts | /bin/grep -w ".escapeshellarg($dev)." | /bin/awk '{print $3}'");
-		$rc		= (! $return) ? $rc : $return;
-		$rc		= str_replace("\n", "", $rc);
+		$return	= shell_exec("/bin/cat /proc/mounts | /bin/grep -w ".escapeshellarg($dev)." | /bin/awk '{print $3}'");
+		$return	= explode("\n", $return);
+		$rc		= (! $return) ? $rc : $return[0];
 	}
 
 	return $rc;
@@ -1823,7 +1824,7 @@ function get_samba_mounts() {
 				$path = basename($mount['path']);
 			} else if ($mount['protocol'] == "ROOT") {
 				$mount['fstype'] = "root";
-				$root_type = basename($mount['device']);
+				$root_type = basename($mount['device']) == "user" ? "user-pool" : "user";
 				$path = $mount['mountpoint'] ? $mount['mountpoint'] : $root_type.".".$mount['path'];
 			} else {
 				$mount['fstype'] = "cifs";
