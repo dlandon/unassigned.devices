@@ -842,7 +842,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		}
 
 		/* Create cookie for the nchan socket. */
-		$.cookie("ud_reload", "<?=$ud_reload?>", { setMaxAge : 0, path: '/' });
+		$.cookie("ud_reload", "<?=$ud_reload?>", { setMaxAge:0, path:"/;SameSite=Lax" });
 
 		pingPoll();
 		refreshPage();
