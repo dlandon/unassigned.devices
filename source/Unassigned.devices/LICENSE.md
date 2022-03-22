@@ -1,7 +1,7 @@
 ### Unassigned Devices plugin for Unraid
 
 Copyright (C) 2015 Guilherme Jardim
-Copyright (C) 2016-2021 Dan Landon
+Copyright (C) 2016-2022 Dan Landon
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
