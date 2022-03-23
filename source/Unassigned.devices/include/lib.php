@@ -1358,58 +1358,62 @@ function do_mount_local($info) {
 
 /* Mount root share. */
 function do_mount_root($info) {
-	global $paths;
+	global $paths, $var;
 
 	$rc		= false;
 
-	/* Be sure the server online status is current. */
-	$is_alive = is_samba_server_online($info['ip']);
-
-	/* If the remote server is not online, run the ping update and see if ping status needs to be refreshed. */
-	if (! $is_alive) {
-		/* Update the remote server ping status. */
-		exec("/usr/local/emhttp/plugins/unassigned.devices/scripts/get_ud_stats ping");
-
-		/* See if the server is online now. */
+	if ($var['shareDisk'] == "no") {
+		/* Be sure the server online status is current. */
 		$is_alive = is_samba_server_online($info['ip']);
-	}
+
+		/* If the remote server is not online, run the ping update and see if ping status needs to be refreshed. */
+		if (! $is_alive) {
+			/* Update the remote server ping status. */
+			exec("/usr/local/emhttp/plugins/unassigned.devices/scripts/get_ud_stats ping");
+
+			/* See if the server is online now. */
+			$is_alive = is_samba_server_online($info['ip']);
+		}
 	
-	if ($is_alive) {
-		$dir		= $info['mountpoint'];
-		$fs			= $info['fstype'];
-		$dev		= str_replace("//".$info['ip'], "", $info['device']);
-		if (! is_mounted($dir)) {
-			/* Create the mount point and set permissions. */
-			@mkdir($dir, 0777, true);
+		if ($is_alive) {
+			$dir		= $info['mountpoint'];
+			$fs			= $info['fstype'];
+			$dev		= str_replace("//".$info['ip'], "", $info['device']);
+			if (! is_mounted($dir)) {
+				/* Create the mount point and set permissions. */
+				@mkdir($dir, 0777, true);
 
-			$params	= get_mount_params($fs, $dev);
-			$cmd	= "/sbin/mount -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
+				$params	= get_mount_params($fs, $dev);
+				$cmd	= "/sbin/mount -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 
-			unassigned_log("Mount ROOT command: {$cmd}");
+				unassigned_log("Mount ROOT command: {$cmd}");
 
-			/* Mount the remote share. */
-			$o		= timed_exec(10, $cmd." 2>&1");
-			if ($o) {
-				unassigned_log("Root mount failed: '{$o}'.");
-			}
+				/* Mount the remote share. */
+				$o		= timed_exec(10, $cmd." 2>&1");
+				if ($o) {
+					unassigned_log("Root mount failed: '{$o}'.");
+				}
 
-			/* Did the share successfully mount? */
-			if (is_mounted($dir)) {
-				@chmod($dir, 0777);
-				@chown($dir, 99);
-				@chgrp($dir, 100);
+				/* Did the share successfully mount? */
+				if (is_mounted($dir)) {
+					@chmod($dir, 0777);
+					@chown($dir, 99);
+					@chgrp($dir, 100);
 
-				unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
+					unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
 
-				$rc = true;
+					$rc = true;
+				} else {
+					@rmdir($dir);
+				}
 			} else {
-				@rmdir($dir);
+				unassigned_log("Root Share '{$dev}' is already mounted.");
 			}
 		} else {
-			unassigned_log("Root Share '{$dev}' is already mounted.");
+			unassigned_log("Root Server '{$info['ip']}' is offline and share '{$info['device']}' cannot be mounted."); 
 		}
 	} else {
-		unassigned_log("Root Server '{$info['ip']}' is offline and share '{$info['device']}' cannot be mounted."); 
+		unassigned_log("Error: Root Server share '{$info['device']}' cannot be mounted with Disk Sharing enabled."); 
 	}
 
 	return $rc;
