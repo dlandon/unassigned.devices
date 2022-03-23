@@ -631,7 +631,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	<div id='remotes-buttons'>
 		<button onclick='add_samba_share()' <?=$disabled?>><?=_('Add Remote SMB')?>/<?=_('NFS Share')?></button>
 		<button onclick='add_iso_share()'><?=_('Add ISO File Share')?></button>
-		<button onclick='add_root_share()' <?=($var['shareDisk']=="yes") ? "disabled" : "";?>><?=_('Add Root Share')?></button>
+		<button onclick='add_root_share()' <?=($var['shareDisk']!="no") ? "disabled" : "";?>><?=_('Add Root Share')?></button>
 	</div>
 </div>
 

@@ -597,7 +597,7 @@ switch ($_POST['action']) {
 						</td>";
 				}
 
-				$disabled = $var['shareDisk'] == "yes" && $mount['fstype'] == "root" ? "disabled" : ($is_alive ? "enabled" : "disabled");
+				$disabled = $var['shareDisk'] != "no" && $mount['fstype'] == "root" ? "disabled" : ($is_alive ? "enabled" : "disabled");
 				if ($mount['mounted'] && (is_script_running($mount['command']) || is_script_running($mount['user_command'], true))) {
 					$o_remotes .= "<td><button class='mount' disabled> <i class='fa fa-spinner fa-spin'></i>"." "._("Running")."</button></td>";
 				} else {
