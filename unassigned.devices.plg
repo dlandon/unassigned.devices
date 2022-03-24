@@ -1634,6 +1634,14 @@ Fix: Duplicate UD disk serial number check not working properly.
 </CHANGES>
 
 <!--
+Get the plugin bundle.
+-->
+<FILE Name="/boot/config/plugins/&name;/&name;-&version;.tgz">
+<URL>"&gitURL;/&name;-&version;.tgz"</URL>
+<MD5>&MD5;</MD5>
+</FILE>
+
+<!--
 The 'pre-install' script.
 -->
 <FILE Run="/bin/bash">
@@ -1644,14 +1652,6 @@ rm -rf /usr/local/emhttp/plugins/&name;/* 2>/dev/null
 # Remove old 'bundle' files.
 rm -f $(ls /boot/config/plugins/&name;/*.tgz 2>/dev/null | grep -v '&version;')
 </INLINE>
-</FILE>
-
-<!--
-Get the plugin bundle.
--->
-<FILE Name="/boot/config/plugins/&name;/&name;-&version;.tgz">
-<URL>"&gitURL;/&name;-&version;.tgz"</URL>
-<MD5>&MD5;</MD5>
 </FILE>
 
 <!--
