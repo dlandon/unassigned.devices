@@ -1362,7 +1362,7 @@ function do_mount_root($info) {
 
 	$rc		= false;
 
-	if ($var['shareDisk'] == "no") {
+	if ($var['shareDisk'] != "yes") {
 		/* Be sure the server online status is current. */
 		$is_alive = is_samba_server_online($info['ip']);
 

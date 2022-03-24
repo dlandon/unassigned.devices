@@ -631,7 +631,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	<div id='remotes-buttons'>
 		<button onclick='add_samba_share()' <?=$disabled?>><?=_('Add Remote SMB')?>/<?=_('NFS Share')?></button>
 		<button onclick='add_iso_share()'><?=_('Add ISO File Share')?></button>
-		<button onclick='add_root_share()' <?=($var['shareDisk']!="no") ? "disabled" : "";?>><?=_('Add Root Share')?></button>
+		<button onclick='add_root_share()'><?=_('Add Root Share')?></button>
 	</div>
 </div>
 
@@ -855,11 +855,16 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 <div style="display:none;" data-survey-name="add_root_share" data-survey-title="<?=_('Add Root Share');?>">
 	<div data-question data-question-title="<?=_('Root Share')?>" data-question-button-done="<?=_('Add');?>">
 		<div data-question-content>
-			<input type="text" class="swal-content__input" name="SHARE" autocomplete="off" required placeholder="<?=_('Enter Root Share Name');?>">
+			<input type="text" class="swal-content__input" name="SHARE" autocomplete="off" required placeholder="<?=_('Enter Root Share Name');?>" <?=($var['shareDisk']!="no") ? "disabled" : "";?>>
 			<p><?=_('This is a way to gather Unraid shares into one Root Share');?>.</p>
+			<?if ($var['shareDisk'] != "yes"):?>
 			<p><span style="font-weight:bold;"><?=_('Note');?>:</span> <?=_('Use caution when gathering shares into one Root Share');?>. <?=_('Do not put files or folders into the /mnt/rootshare/ folder');?>.
 			<p><?=_('When you copy files between shares in the Root Share, the files may not end up on the expected disks');?>.</p>
 			<p><?=_('You can also subject yourself to security issues like ransomware by exposing all your shares in one Root Share');?>.</p>
+			<?else:?>
+			<p><span style="font-weight:bold;"><?=_('Note');?>:</span> <?=_('Disk Sharing must be disabled to add a Root Share')?>.</p>
+			<p><?=_('Go to Settings->Global Share Settings and set Enable Disk Shares to Auto or Off');?>.</p>
+			<?endif;?>
 		</div>
 	</div>
 
