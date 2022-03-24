@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.03.22c">
+<!ENTITY version	"2022.03.24">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"27f56a6b53f09feb20f541d90d3f959d">
+<!ENTITY MD5		"">
 ]>
 
 <PLUGIN name="&name;"
@@ -21,6 +21,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Increase NFS rule field length to 125 characters.
+- Add: Dialog message explaining that disk shares has to be turned to off or auto to add a Root Share.
+- Fix: Allow a Root Share if disk sharing is set to auto.
+
+###2022.03.22c
 - Add: 'User Shares' (/mnt/user0/) and 'User and Pool Shares' (/mnt/user/) can both be root shared.
 - Add: Disable Root Share button when disk share is enabled.
 - Fix: Remove 'disks' and 'remotes' root shares.  Protection on UD folders prevents this from working.
