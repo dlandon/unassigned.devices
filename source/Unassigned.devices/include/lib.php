@@ -902,8 +902,10 @@ function luks_fs_type($dev) {
 	$rc = "luks";
 	if ($dev) {
 		$return	= shell_exec("/bin/cat /proc/mounts | /bin/grep -w ".escapeshellarg($dev)." | /bin/awk '{print $3}'");
-		$return	= explode("\n", $return);
-		$rc		= (! $return) ? $rc : $return[0];
+		if ($return) {
+			$return	= explode("\n", $return);
+			$rc		= $return[0];
+		}
 	}
 
 	return $rc;
@@ -1143,12 +1145,8 @@ function get_mount_params($fs, $dev, $ro = false) {
 	$rc				= "";
 	$config_file	= $paths['config_file'];
 	$config			= @parse_ini_file($config_file, true);
-	if (($config['Config']['discard'] != "no") && ($fs != "cifs") && ($fs != "nfs")) {
-		$discard = is_disk_ssd($dev) ? ",discard" : "";;
-	} else {
-		$discard = "";
-	}
-	$rw	= $ro ? "ro" : "rw";
+	$discard 		= (($config['Config']['discard'] == "yes") && is_disk_ssd($dev)) ? ",discard" : "";
+	$rw				= $ro ? "ro" : "rw";
 	switch ($fs) {
 		case 'hfsplus':
 			$rc = "force,{$rw},users,umask=000";
@@ -2403,6 +2401,7 @@ function get_partition_info($dev) {
 		$disk['serial']			= $attrs['ID_MODEL']."_".$disk['serial_short'];
 		$disk['device']			= realpath($dev);
 		$disk['uuid']			= $attrs['ID_FS_UUID'];
+
 		/* Get partition number */
 		preg_match_all("#(.*?)(\d+$)#", $disk['device'], $matches);
 		$disk['part']			= $matches[2][0];
