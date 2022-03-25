@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.03.24">
+<!ENTITY version	"2022.03.25">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"1e5ea5eb94f3299a4e224400b01133b1">
+<!ENTITY MD5		"1b39bb742bdecafab471cc16d9ea7e2a">
 ]>
 
 <PLUGIN name="&name;"
@@ -21,6 +21,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Disable 'Mount' button on Root Share when array is stopped.
+- Fix: 'luks' file system designation not showing.
+- Fix: Clean up discard option code on disk mounts.
+
+###2022.03.24
 - Add: Increase NFS rule field length to 125 characters.
 - Add: Dialog message explaining that disk shares has to be turned to off or auto to add a Root Share.
 - Fix: Allow a Root Share if disk sharing is set to auto.
