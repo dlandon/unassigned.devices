@@ -454,7 +454,8 @@ switch ($_POST['action']) {
 					$disk_display = my_disk($disk_display);
 				}
 				if ( $preclearing ) {
-					$o_disks .= "<td><i class='fa fa-circle orb ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>".$disk_display."</td>";
+					$o_disks .= "<td><i class='fa fa-circle orb ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>";
+					$o_disks .= "<a href='/Main/".$str."=".$disk_dev."'><span>".$disk_display."</span></a></td>";
 				} else {
 					$o_disks .= "<td>";
 					if (strpos($disk_dev, "dev") === false) {
