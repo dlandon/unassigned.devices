@@ -453,16 +453,14 @@ switch ($_POST['action']) {
 					$disk_display = substr($disk_name, 0, 3)." ".substr($disk_name, 3);
 					$disk_display = my_disk($disk_display);
 				}
-				if ( $preclearing ) {
-					$o_disks .= "<td><i class='fa fa-circle orb ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>";
-					$o_disks .= "<a href='/Main/".$str."=".$disk_dev."'><span>".$disk_display."</span></a></td>";
+
+				$o_disks .= "<td>";
+				if (strpos($disk_dev, "dev") === false) {
+					$str = "New?name";
+					$o_disks .= "<i class='fa fa-circle ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>";
 				} else {
-					$o_disks .= "<td>";
-					if (strpos($disk_dev, "dev") === false) {
-						$str = "New?name";
-						$o_disks .= "<i class='fa fa-circle ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>";
-					} else {
-						$str = "Device?name";
+					$str = "Device?name";
+					if (! $preclearing ) {
 						if (! $disk['ssd']) {
 							if (! is_disk_spin($disk['ud_dev'], $disk['running'])) {
 								if ($disk['running']) {
@@ -480,11 +478,13 @@ switch ($_POST['action']) {
 						} else {
 							$o_disks .= "<a class='info'><i class='fa fa-circle green-orb'></i><span>"._("SSD cannot be spun down")."</span></a>";
 						}
+					} else {
+						$o_disks .= "<i class='fa fa-circle ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>";
 					}
-					$fs_lock = ($disk['partitions'][0]['fstype'] == "crypto_LUKS") ? "<i class='fa fa-lock orb'></i>" : "";
-					$o_disks .= "<a href='/Main/".$str."=".$disk_dev."'><span>".$fs_lock.$disk_display."</span></a>";
-					$o_disks .= "</td>";
 				}
+				$fs_lock = ($disk['partitions'][0]['fstype'] == "crypto_LUKS") ? "<i class='fa fa-lock orb'></i>" : "";
+				$o_disks .= "<a href='/Main/".$str."=".$disk_dev."'><span>".$fs_lock.$disk_display."</span></a>";
+				$o_disks .= "</td>";
 
 				/* Device serial number. */
 				$o_disks .= "<td>{$hdd_serial}</td>";
