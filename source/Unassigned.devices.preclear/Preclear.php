@@ -239,7 +239,7 @@ switch ($_POST['action'])
 			}
 		} else {
 			$sort['none']			= $counter;
-			$all_disks_o['none']	= "<tr><td colspan='5' style='text-align:center;font-weight:bold;'>"._('There are no disks that can be precleared').".</td></tr>";
+			$all_disks_o['none']	= "<tr><td colspan='5' style='text-align:center;'>"._('There are no disks that can be precleared').".</td></tr>";
 		}
 
 		preclear_log("get_content Finished: ".(time() - $start_time),'DEBUG');
