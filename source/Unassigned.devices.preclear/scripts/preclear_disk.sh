@@ -17,7 +17,7 @@ export LC_CTYPE
 ionice -c3 -p$BASHPID
 
 # Version
-version="1.0.24"
+version="1.0.25"
 #
 # Change Log
 # 1.0.23
@@ -34,6 +34,7 @@ version="1.0.24"
 #
 # 1.0.25
 # Only write resume file to flash when absolutely necessary.
+# Fix diff calculation when POS is H/M/S notation.
 #
 ######################################################
 ##													##
@@ -1887,7 +1888,7 @@ output_smart() {
 		local attr=$(echo "$line" | cut -d'|' -f1)
 		local inival=$(echo "$line" | cut -d'|' -f2)
 		local lasval=$(echo "$line" | grep -o '[^|]*$')
-		let diff=($lasval - $inival)
+		let diff=($((`cut -d h -f1 <<< ${lasval}`)) - $((`cut -d h -f1 <<< ${inival}`)))
 		if [ "$diff" -gt "0" ]; then
 			msg="Up $diff"
 		elif [ "$diff" -lt "0" ]; then
