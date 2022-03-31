@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.03.15">
+<!ENTITY version	"2022.03.31">
 <!ENTITY launch		"Tools/Preclear">
 <!ENTITY gitURL		"https://github.com/&author;/unassigned.devices/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"4bb7e26d82e69171ec0a153f60c9e894">
+<!ENTITY MD5		"74914aaf353478392219c97049f88d3a">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
@@ -19,6 +19,9 @@
 
 <CHANGES>
 ##&name;
+- Fix: Convert POH values that show as '22h+07m+23.077s' to hours for SMART difference comparison.
+
+###2022.03.15
 - Fix: Only write resume file to flash when absolutely necessary to minimize flash writes.
 
 ###2022.03.14
@@ -72,13 +75,10 @@ echo ""
 exit 1
 fi
 
-# Remove emhttp files so we can re-install.
-rm -rf /usr/local/emhttp/plugins/&name;/* 2>/dev/null
-
-# Remove old 'bundle' files.
-rm -f $(ls /boot/config/plugins/&name;/*.tgz 2>/dev/null | grep -v '&version;')
-</INLINE>
-</FILE>
+<!--
+Copyright 2016-2022, Dan Landon
+This plugin allows you to preclear disks and prepare them to include in the array.
+-->
 
 <!--
 Get the plugin bundle.
@@ -86,6 +86,14 @@ Get the plugin bundle.
 <FILE Name="/boot/config/plugins/&name;/&name;-&version;.tgz">
 <URL>"&gitURL;/&name;-&version;.tgz"</URL>
 <MD5>&MD5;</MD5>
+</FILE>
+
+# Remove emhttp files so we can re-install.
+rm -rf /usr/local/emhttp/plugins/&name;/* 2>/dev/null
+
+# Remove old 'bundle' files.
+rm -f $(ls /boot/config/plugins/&name;/*.tgz 2>/dev/null | grep -v '&version;')
+</INLINE>
 </FILE>
 
 <!--
