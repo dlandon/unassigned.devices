@@ -109,7 +109,20 @@ The 'preclear_disk_ori.sh' script.
 -->
 
 <!--
-The 'packages-install' script.
+The 'pre-install' script.
+-->
+<FILE Run="/bin/bash">
+<INLINE>
+# Remove emhttp files so we can re-install.
+rm -rf /usr/local/emhttp/plugins/&name;/* 2>/dev/null
+
+# Remove old 'bundle' files.
+rm -f $(ls /boot/config/plugins/&name;/&name;*.tgz 2>/dev/null | grep -v '&version;')
+</INLINE>
+</FILE>
+
+<!--
+The 'post-install' script.
 -->
 <FILE Run="/bin/bash">
 <INLINE>
@@ -138,27 +151,14 @@ fi
 # Create plugin directory
 mkdir -p /boot/config/plugins/&name;
 
-# Remove emhttp files so we can re-install.
-rm -rf /usr/local/emhttp/plugins/&name;/* 2>/dev/null
-
-# Remove old 'bundle' files.
-rm -f $(ls /boot/config/plugins/&name;/*.tgz 2>/dev/null | grep -v '&version;')
-
 # Install the 'bundle'.
 tar -xf /boot/config/plugins/&name;/&name;-&version;.tgz -C /usr/local/emhttp/plugins 2>/dev/null
 
-# copy preclear script to executables
-# cp /boot/config/plugins/&name;/preclear_disk_ori.sh /usr/local/emhttp/plugins/&name;/scripts/preclear_disk_ori.sh
-# chmod 755 /usr/local/emhttp/plugins/&name;/scripts/preclear_disk_ori.sh
- 
 # Fix permissions of executable files
 chmod +x /usr/local/emhttp/plugins/&name;/scripts/* /usr/local/emhttp/plugins/&name;/event/*
 
 # Create a symlink to readvz
 ln -sf /usr/local/emhttp/plugins/&name;/scripts/readvz /usr/local/sbin/readvz
-
-# Create symlink to the preclear script
-# ln -sf /usr/local/emhttp/plugins/&name;/scripts/preclear_disk_ori.sh /usr/local/sbin/preclear_disk_ori.sh
 </INLINE>
 </FILE>
 
