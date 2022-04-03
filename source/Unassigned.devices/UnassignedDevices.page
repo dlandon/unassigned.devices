@@ -562,6 +562,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 <?=$Preclear ? $Preclear->html() : "";?>
 
+<div>
 <table id ='usb_devices_list' class='disk_status wide disk_mounts show-disks'>
 	<thead>
 		<tr>
@@ -586,6 +587,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		</tr>
 	</tbody>
 </table>
+</div>
 
 :unassgned_devices_switches_plug:
 > Turn on the **Disks** switch to change the web page to show disk devices. Turn off the **Disks** switch to change the web page to hide disk devices.
@@ -601,12 +603,12 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 > You can spin a disk up or down by clicking on the disk ball <i class='fa fa-circle orb green-orb'></i>or <i class='fa fa-circle orb grey-orb'></i>indicator.  Applies to version 6.9 RC2 and later only.
 :end
 
-<div id='smb_tab_1' class='show-shares'>
-	<div id='title_1' class='show-disks samba_mounts'>
-		<span class='left'>
-			<img src='/plugins/<?=$plugin?>/icons/smbsettings.png' class='icon'><?=_('SMB Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/nfs.png' class='icon'><?=_('NFS Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/iso.png' class='icon' style='width:16px;'><?=_('ISO File Shares')?>
-		</span>
-	</div>
+<div id='title'>
+	<span class='left'>
+		<img src='/plugins/<?=$plugin?>/icons/smbsettings.png' class='icon'><?=_('SMB Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/nfs.png' class='icon'><?=_('NFS Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/iso.png' class='icon' style='width:16px;'><?=_('ISO File Shares')?>
+	</span>
+</div>
+<div>
 	<table class='disk_status wide samba_mounts'>
 		<thead>
 		<tr>
@@ -628,37 +630,35 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		<tbody id="remotes-table-body">
 		</tbody>
 	</table>
-	<div id='remotes-buttons'>
-		<button onclick='add_samba_share()' <?=$disabled?>><?=_('Add Remote SMB')?>/<?=_('NFS Share')?></button>
-		<button onclick='add_iso_share()'><?=_('Add ISO File Share')?></button>
-		<button onclick='add_root_share()'><?=_('Add Root Share')?></button>
-	</div>
+</div>
+<div id='remotes-buttons'>
+	<button onclick='add_samba_share()' <?=$disabled?>><?=_('Add Remote SMB')?>/<?=_('NFS Share')?></button>
+	<button onclick='add_iso_share()'><?=_('Add ISO File Share')?></button>
+	<button onclick='add_root_share()'><?=_('Add Root Share')?></button>
 </div>
 
-<div class='show-disks'>
-	<div class='show-historical' id='smb_tab_2'>
-		<div id='title_2'>
-			<span class='left'><img src='/plugins/<?=$plugin?>/icons/historical.png' class='icon'><?=_('Historical Devices')?></span>
-		</div>
-		<table class='disk_status wide usb_absent'>
-			<thead>
-			<tr>
-				<td><?=_('Device')?></td>
-				<td><?=_('Serial Number (Mount Point)')?></td>
-				<td></td>
-				<td><?=_('Remove')?></td>
-				<td><?=_('Settings')?></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-				<td></td>
-			</tr>
-			</thead>
-			<tbody id="historical-table-body">
-			</tbody>
-		</table>
-	</div>
+<div id='title'>
+	<span class='left'><img src='/plugins/<?=$plugin?>/icons/historical.png' class='icon'><?=_('Historical Devices')?></span>
+</div>
+<div>
+	<table class='disk_status wide usb_absent'>
+		<thead>
+		<tr>
+			<td><?=_('Device')?></td>
+			<td><?=_('Serial Number (Mount Point)')?></td>
+			<td></td>
+			<td><?=_('Remove')?></td>
+			<td><?=_('Settings')?></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+		</tr>
+		</thead>
+		<tbody id="historical-table-body">
+		</tbody>
+	</table>
 </div>
 
 :unassigned_devices_general_help_plug:
