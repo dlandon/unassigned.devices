@@ -304,14 +304,11 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 	function get_tab_title_by_name(name) {
 		var tab		= $("input[name$=tabs] + label").filter(function(){return $(this).text() === name;}).prev();
-		var title	= $("div#title > span.left").filter(function(){return $(this).text() === name;}).parent();
 
 		if (tab.length) {
-			rc = tab
-		} else if (title.length) {
-			rc = title
+			rc = tab;
 		} else {
-			rc = $(document)
+			rc = $(document);
 		}
 
 		return rc;
@@ -605,7 +602,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 <div id='title'>
 	<span class='left'>
-		<img src='/plugins/<?=$plugin?>/icons/smbsettings.png' class='icon'><?=_('SMB Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/nfs.png' class='icon'><?=_('NFS Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/iso.png' class='icon' style='width:16px;'><?=_('ISO File Shares')?>
+		<img src='/plugins/<?=$plugin?>/icons/smbsettings.png' class='icon'><?=_('SMB Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/nfs.png' class='icon'><?=_('NFS Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/iso.png' class='icon'><?=_('ISO File Shares')?>
 	</span>
 </div>
 <div>
