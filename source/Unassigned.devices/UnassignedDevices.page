@@ -601,8 +601,8 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 > You can spin a disk up or down by clicking on the disk ball <i class='fa fa-circle orb green-orb'></i>or <i class='fa fa-circle orb grey-orb'></i>indicator.  Applies to version 6.9 RC2 and later only.
 :end
 
-<div id='smb_tab' class='show-shares'>
-	<div id='title' class='show-disks samba_mounts'>
+<div id='smb_tab_1' class='show-shares'>
+	<div id='title_1' class='show-disks samba_mounts'>
 		<span class='left'>
 			<img src='/plugins/<?=$plugin?>/icons/smbsettings.png' class='icon'><?=_('SMB Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/nfs.png' class='icon'><?=_('NFS Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/iso.png' class='icon' style='width:16px;'><?=_('ISO File Shares')?>
 		</span>
@@ -636,8 +636,8 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 </div>
 
 <div class='show-disks'>
-	<div class='show-historical' id='smb_tab'>
-		<div id='title'>
+	<div class='show-historical' id='smb_tab_2'>
+		<div id='title_2'>
 			<span class='left'><img src='/plugins/<?=$plugin?>/icons/historical.png' class='icon'><?=_('Historical Devices')?></span>
 		</div>
 		<table class='disk_status wide usb_absent'>
