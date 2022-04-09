@@ -1,0 +1,4 @@
+ACTION=="add",    KERNEL=="sd*", ENV{DEVTYPE}=="partition" RUN+="/usr/local/emhttp/plugins/unassigned.devices/scripts/rc.unassigned mount >/dev/null 2>&1 & disown"
+ACTION=="add",    KERNEL=="sd*", ENV{DEVTYPE}=="disk"      RUN+="/usr/local/emhttp/plugins/unassigned.devices/scripts/rc.unassigned hotplug >/dev/null 2>&1 & disown"
+ACTION=="change", KERNEL=="sd*", ENV{DEVTYPE}=="partition" RUN+="/usr/local/emhttp/plugins/unassigned.devices/scripts/rc.unassigned reload >/dev/null 2>&1 & disown"
+ACTION=="remove", KERNEL=="sd*"  ENV{DEVTYPE}=="disk"      RUN+="/usr/local/emhttp/plugins/unassigned.devices/scripts/rc.unassigned reload >/dev/null 2>&1 & disown"

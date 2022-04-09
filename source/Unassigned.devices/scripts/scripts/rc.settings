@@ -1,0 +1,127 @@
+#!/usr/bin/php
+<?php
+/* Copyright 2016-2022, Dan Landon
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+
+$plugin = "unassigned.devices";
+$docroot = $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+require_once("$docroot/plugins/{$plugin}/include/lib.php");
+
+function save() {
+	global $paths;
+
+	/* Copy the updated configuration from the flash drive to the tmp config file. */
+	@copy("/boot/config/plugins/unassigned.devices/unassigned.devices.cfg", $paths['config_file']);
+}
+
+function apply() {
+	global $paths;
+
+	unassigned_log("Updating share settings...");
+
+	/* Remove the old shares based on the old settings. */
+	remove_shares();
+
+	/* Copy the updated configuration from the flash drive to the tmp config file. */
+	@copy("/boot/config/plugins/unassigned.devices/unassigned.devices.cfg", $paths['config_file']);
+
+	/* Reload the shares based on the new settings. */
+	reload_shares();
+
+	unassigned_log("Share settings updated.");
+}
+
+function uuid_change() {
+	global $paths;
+
+	$config_file = $paths['config_file'];
+	$cfg		= is_file($config_file) ? @parse_ini_file($config_file, true) : array();
+
+	/* Get the device from the passed in device and serial number. */
+	$dev		= $cfg['Config']['change_uuid'];
+	$first		= strpos($dev, "(") + 1;
+	$last		= strpos($dev, ")") - 1;
+	$dev		= substr($dev, $first, $last);
+
+	/* Change the device UUID. */
+	change_UUID($dev);
+
+	/* Now clear the setting from the tmp file. */
+	unset($cfg['Config']['change_uuid']);
+	save_ini_file($config_file, $cfg, false);
+}
+
+function set_pass() {
+	global $paths;
+
+	$config_file = $paths['config_file'];
+	$cfg		= is_file($config_file) ? @parse_ini_file($config_file, true) : array();
+
+	$serial		= $cfg['Config']['set_pass'];
+	$password	= $cfg['Config']['password'];
+
+	/* Now clear the settings from the tmp file. */
+	unset($cfg['Config']['set_pass']);
+	unset($cfg['Config']['password']);
+	save_ini_file($config_file, $cfg, false);
+
+	/* Save the new password */
+	set_config($serial, "pass", encrypt_data($password));
+}
+
+function set_mountpoint() {
+	global $paths;
+
+	$config_file = $paths['config_file'];
+	$cfg		= is_file($config_file) ? @parse_ini_file($config_file, true) : array();
+
+	/* Get the serial number. */
+	$serial		= $cfg['Config']['pool_serial'];
+
+	/* Get the new mount point. */
+	$mountpoint	= $cfg['Config']['pool_mountpoint'];
+
+	/* Now clear the settings from the tmp file. */
+	unset($cfg['Config']['pool_serial']);
+	unset($cfg['Config']['pool_mountpoint']);
+	save_ini_file($config_file, $cfg, false);
+
+	/* Update the mountpoint. */
+	set_config($serial, "mountpoint.1", $mountpoint);
+}
+
+switch ($argv[1]) {
+	case 'save':
+		save();
+		break;
+
+	case 'apply':
+		apply();
+		break;
+
+	case 'uuid_change':
+		uuid_change();
+		break;
+
+	case 'set_pass':
+		set_pass();
+		break;
+
+	case 'set_mountpoint':
+		set_mountpoint();
+		break;
+
+	default:
+		unassigned_log("Error: 'rc.settings {$argv[1]} {$argv[2]}' not understood");
+		unassigned_log("rc.settings usage: 'save', 'apply', 'uuid_change', 'set_pass'");
+		exit(0);
+		break;
+}
+?>

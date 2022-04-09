@@ -1,0 +1,81 @@
+Title="Script Log"
+---
+<?php
+/* Copyright 2015, Lime Technology
+ * Copyright 2015, Bergware International.
+ * Copyright 2016-2022, Dan Landon
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+
+$plugin = "unassigned.devices";
+$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+$translations = file_exists("$docroot/webGui/include/Translations.php");
+require_once "$docroot/plugins/$plugin/include/Legacy.php";
+?>
+<?if (! $translations):?>
+<?eval('?>'.parse_file("$docroot/plugins/$plugin/ScriptLog.page"))?>
+<?else:?>
+<?
+
+/* read translations */
+parse_plugin('UnassignedDevices');
+
+require_once("plugins/{$plugin}/include/lib.php");
+
+if (isset($_GET['s'])) {
+	$serial = $_GET['s'];
+	$partition = $_GET['p'];
+	$file = get_config($serial,"command.{$partition}");
+} else if (isset($_GET['d'])) {
+	$device = $_GET['d'];
+	$file = get_samba_config($device,"command");
+} else if (isset($_GET['i'])) {
+	$device = $_GET['i'];
+	$file = get_iso_config($device,"command");
+}
+
+$zip_file	= "-".basename($file, ".sh")."-";
+$zip		= str_replace(' ','_',strtolower($var['NAME'])).$zip_file.date('Ymd-Hi').".zip";
+$file		= $paths['device_log'].basename($file, ".sh").".log";
+$cmd		= "cat ".$file." | tail -n 1000 2>/dev/null";
+echo $display['resize'] ? "<pre class='up' style='display:none'>" : "<pre class='up'>";
+echo `{$cmd}`;
+echo "</pre>";
+?>
+<script>
+function cleanUp() {
+	if (document.hasFocus()) {
+		$('input[value="Downloading..."]').val('Download').prop('disabled',false);
+		$.post('/webGui/include/Download.php',{cmd:'delete',file:'<?=$zip;?>'});
+	} else {
+		setTimeout(cleanUp,4000);
+	}
+}	
+function getlog() {
+	$('input[value="Download"]').val('Downloading...').prop('disabled', true);
+	$.post('/webGui/include/Download.php', {cmd:'save', source:'<?=$file;?>', file:'<?=$zip;?>'}, function(zip) {
+		location = zip;
+		setTimeout(cleanUp,4000);
+	});
+}
+<?if ($display['resize']):?>
+$(function() {
+	$('pre.up').css('height',Math.max(window.innerHeight-280,370)).show();
+});
+<?endif;?>
+</script>
+
+<?if (is_file($file)):?>
+	<input type="button" value=_(Download)_ onclick="getlog()">
+<?else:?>
+	<input type="button" value=_(Download)_ disabled>
+<?endif;?>
+<input type="button" value=_(Refresh)_ onclick="refresh()">
+<input type="button" value=_(Done)_ onclick="done()">
+<?endif;?>
