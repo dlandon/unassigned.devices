@@ -1423,8 +1423,10 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false) {
 
 	$rc = false;
 	if ( is_mounted($dev) && is_mounted($dir) ) {
-		unassigned_log("Synching file system on '{$dir}'.");
-		exec("/bin/sync -f ".escapeshellarg($dir));
+		if (! $force) {
+			unassigned_log("Synching file system on '{$dir}'.");
+			exec("/bin/sync -f ".escapeshellarg($dir));
+		}
 
 		/* Remove saved pool devices if this is a pooled device. */
 		MiscUD::get_pool_devices($dir, true);
