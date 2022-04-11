@@ -76,6 +76,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	i.partition-script{margin-left: 10px; margin-right: 6px;}
 	.exec{cursor: pointer;}
 	i.fa-append{margin:0px;font-size: 0.8em;position: relative; left:-0.3em;top:0.7em;}
+	i.fa-switch{margin:5px; 5px; 0px; 0px;}
 	.underline{text-decoration: underline;}
 
 	form.inline{display:inline;margin: 0px; padding: 0px;}
@@ -304,11 +305,14 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 	function get_tab_title_by_name(name) {
 		var tab		= $("input[name$=tabs] + label").filter(function(){return $(this).text() === name;}).prev();
+		var title	= $("div#title > span.left").filter(function(){return $(this).text() === name;}).parent();
 
 		if (tab.length) {
-			rc = tab;
+			rc = tab
+		} else if (title.length) {
+			rc = title
 		} else {
-			rc = $(document);
+			rc = $(document)
 		}
 
 		return rc;
@@ -803,9 +807,9 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			$('.show-historical').slideToggle('slow');
 		}
 
-		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Unassigned Devices Settings");?>" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>',
+		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Unassigned Devices Settings");?>" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear hdd fa-switch"></i></a>',
 								"<?=_('Unassigned Devices');?>");
-		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Refresh Disks and Configuration");?>" onclick="rescan_disks()"><i class="fa fa-refresh"></i></a>',
+		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Refresh Disks and Configuration");?>" onclick="rescan_disks()"><i class="fa fa-refresh fa-switc"></i></a>',
 								"<?=_('Unassigned Devices');?>");
 		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Show Historical Devices");?>"><input type="checkbox" class="historical-switch"></a>',
 								"<?=_('Unassigned Devices');?>");
