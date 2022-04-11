@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.03.25">
+<!ENTITY version	"2022.04.11">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"1b39bb742bdecafab471cc16d9ea7e2a">
+<!ENTITY MD5		"248a34489c5b9c0d7f626c97db7dc61c">
 ]>
 
 <PLUGIN name="&name;"
@@ -21,6 +21,12 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Allow viewing disk attributes while preclearing a disk.
+- Fix: Don't sync remote shares when shutting down server.
+- Fix: Logic issue on unmounting of UD devices and remote shares.
+- Fix: Remove unused duplicate div ID's.
+
+###2022.03.25
 - Add: Disable 'Mount' button on Root Share when array is stopped.
 - Fix: 'luks' file system designation not showing.
 - Fix: Clean up discard option code on disk mounts.
@@ -1637,6 +1643,11 @@ Fix: Duplicate UD disk serial number check not working properly.
 ###2015.03.08
 - initial release.
 </CHANGES>
+
+<!--
+Copyright 2016-2022, Dan Landon
+This plugin lets you manage disks and remote shares outside of the array.
+-->
 
 <!--
 Get the plugin bundle.
