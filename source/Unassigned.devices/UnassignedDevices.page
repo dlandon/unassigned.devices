@@ -604,12 +604,12 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 > You can spin a disk up or down by clicking on the disk ball <i class='fa fa-circle orb green-orb'></i>or <i class='fa fa-circle orb grey-orb'></i>indicator.  Applies to version 6.9 RC2 and later only.
 :end
 
-<div id='title'>
-	<span class='left'>
-		<img src='/plugins/<?=$plugin?>/icons/smbsettings.png' class='icon'><?=_('SMB Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/nfs.png' class='icon'><?=_('NFS Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/iso.png' class='icon'><?=_('ISO File Shares')?>
-	</span>
-</div>
-<div>
+<div class='show-shares'>
+	<div id='title' class='show-disks samba_mounts'>
+		<span class='left'>
+			<img src='/plugins/<?=$plugin?>/icons/smbsettings.png' class='icon'><?=_('SMB Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/nfs.png' class='icon'><?=_('NFS Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/iso.png' class='icon' style='width:16px;'><?=_('ISO File Shares')?>
+		</span>
+	</div>
 	<table class='disk_status wide samba_mounts'>
 		<thead>
 		<tr>
@@ -631,35 +631,37 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		<tbody id="remotes-table-body">
 		</tbody>
 	</table>
-</div>
-<div id='remotes-buttons'>
-	<button onclick='add_samba_share()' <?=$disabled?>><?=_('Add Remote SMB')?>/<?=_('NFS Share')?></button>
-	<button onclick='add_iso_share()'><?=_('Add ISO File Share')?></button>
-	<button onclick='add_root_share()'><?=_('Add Root Share')?></button>
+	<div id='remotes-buttons'>
+		<button onclick='add_samba_share()' <?=$disabled?>><?=_('Add Remote SMB')?>/<?=_('NFS Share')?></button>
+		<button onclick='add_iso_share()'><?=_('Add ISO File Share')?></button>
+		<button onclick='add_root_share()'><?=_('Add Root Share')?></button>
+	</div>
 </div>
 
-<div id='title'>
-	<span class='left'><img src='/plugins/<?=$plugin?>/icons/historical.png' class='icon'><?=_('Historical Devices')?></span>
-</div>
-<div>
-	<table class='disk_status wide usb_absent'>
-		<thead>
-		<tr>
-			<td><?=_('Device')?></td>
-			<td><?=_('Serial Number (Mount Point)')?></td>
-			<td></td>
-			<td><?=_('Remove')?></td>
-			<td><?=_('Settings')?></td>
-			<td></td>
-			<td></td>
-			<td></td>
-			<td></td>
-			<td></td>
-		</tr>
-		</thead>
-		<tbody id="historical-table-body">
-		</tbody>
-	</table>
+<div class='show-disks'>
+	<div class='show-historical'>
+		<div id='title'>
+			<span class='left'><img src='/plugins/<?=$plugin?>/icons/historical.png' class='icon'><?=_('Historical Devices')?></span>
+		</div>
+		<table class='disk_status wide usb_absent'>
+			<thead>
+			<tr>
+				<td><?=_('Device')?></td>
+				<td><?=_('Serial Number (Mount Point)')?></td>
+				<td></td>
+				<td><?=_('Remove')?></td>
+				<td><?=_('Settings')?></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+			</tr>
+			</thead>
+			<tbody id="historical-table-body">
+			</tbody>
+		</table>
+	</div>
 </div>
 
 :unassigned_devices_general_help_plug:
@@ -809,7 +811,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Unassigned Devices Settings");?>" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear hdd fa-switch"></i></a>',
 								"<?=_('Unassigned Devices');?>");
-		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Refresh Disks and Configuration");?>" onclick="rescan_disks()"><i class="fa fa-refresh fa-switc"></i></a>',
+		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Refresh Disks and Configuration");?>" onclick="rescan_disks()"><i class="fa fa-refresh fa-switch"></i></a>',
 								"<?=_('Unassigned Devices');?>");
 		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Show Historical Devices");?>"><input type="checkbox" class="historical-switch"></a>',
 								"<?=_('Unassigned Devices');?>");
