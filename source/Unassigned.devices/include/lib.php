@@ -49,6 +49,9 @@ $docroot	= $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $users		= @parse_ini_file("$docroot/state/users.ini", true);
 $disks		= @parse_ini_file("$docroot/state/disks.ini", true);
 
+/* Get the version of Unraid we are running. */
+$version = @parse_ini_file("/etc/unraid-version");
+
 /* Set the log level for debugging. */
 /* 0 - normal logging, */
 
