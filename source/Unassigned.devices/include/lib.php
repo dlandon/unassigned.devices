@@ -1217,7 +1217,7 @@ function do_mount($info) {
 
 	/* Mount a luks encrypted disk device. */
 	} else if ($info['fstype'] == "crypto_LUKS") {
-		if (! is_mounted($info['device']) && ! is_mounted($info['mountpoint'])) {
+		if (! is_mounted($info['device']) || ! is_mounted($info['mountpoint'])) {
 			$luks		= basename($info['device']);
 			$discard	= is_disk_ssd($info['luks']) ? "--allow-discards" : "";
 			$cmd		= "luksOpen $discard ".escapeshellarg($info['luks'])." ".escapeshellarg($luks);
@@ -1265,7 +1265,7 @@ function do_mount_local($info) {
 	$dir	= $info['mountpoint'];
 	$fs		= $info['fstype'];
 	$ro		= ($info['read_only'] == 'yes') ? true : false;
-	if (! is_mounted($dev) && ! is_mounted($dir)) {
+	if (! is_mounted($dev) || ! is_mounted($dir)) {
 		if ($fs) {
 			if ($fs != "crypto_LUKS") {
 				if ($fs == "apfs") {
@@ -1913,7 +1913,7 @@ function do_mount_samba($info) {
 		$dir		= $info['mountpoint'];
 		$fs			= $info['fstype'];
 		$dev		= ($fs == "cifs") ? "//".$info['ip']."/".$info['path'] : $info['device'];
-		if (! is_mounted($dev) && ! is_mounted($dir)) {
+		if (! is_mounted($dev) || ! is_mounted($dir)) {
 			/* Create the mount point and set permissions. */
 			@mkdir($dir, 0777, true);
 
