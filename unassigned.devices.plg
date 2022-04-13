@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.04.11c">
+<!ENTITY version	"2022.04.13>
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"90bf5708acddbcaddffe7bf9e9b6e483">
+<!ENTITY MD5		"0d05a7c56e5dc185cd6e99eb58f08577">
 ]>
 
 <PLUGIN name="&name;"
@@ -21,6 +21,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Revert mount check logic change.
+
+###2022.04.11c
 - Fix: Allow viewing disk attributes while preclearing a disk.
 - Fix: Don't sync remote shares when shutting down server.
 - Fix: Logic issue on unmounting of UD devices and remote shares.
