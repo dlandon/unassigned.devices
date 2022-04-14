@@ -1815,7 +1815,7 @@ function is_samba_share($serial) {
 /* Is device set to pass through. */
 function is_samba_disable_mount($serial) {
 	$disable_mount	= get_samba_config($serial, "disable_mount");
-	return ( ($disable_mount) ? ( ($disable_mount == "yes") ? true : false ) : true);
+	return ($disable_mount == "yes") ? true : false;
 }
 
 /* Get all defined samba and NFS remote shares. */
