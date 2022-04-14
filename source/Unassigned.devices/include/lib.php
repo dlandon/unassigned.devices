@@ -1812,6 +1812,12 @@ function is_samba_share($serial) {
 	return ( ($smb_share) ? ( ($smb_share == "yes") ? true : false ) : true);
 }
 
+/* Is device set to pass through. */
+function is_samba_disable_mount($serial) {
+	$disable_mount	= get_samba_config($serial, "disable_mount");
+	return ( ($disable_mount) ? ( ($disable_mount == "yes") ? true : false ) : true);
+}
+
 /* Get all defined samba and NFS remote shares. */
 function get_samba_mounts() {
 	global $paths;
@@ -2071,6 +2077,15 @@ function toggle_samba_share($source, $status) {
 	$config[$source]["smb_share"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
 	return ($config[$source]["smb_share"] == "yes") ? true : false;
+}
+
+/* Toggle hide mount on/off. */
+function toggle_samba_disable_mount($device, $status) {
+	$config_file	= $GLOBALS["paths"]["samba_mount"];
+	$config			= @parse_ini_file($config_file, true);
+	$config[$device]["disable_mount"] = ($status == "true") ? "yes" : "no";
+	save_ini_file($config_file, $config);
+	return ($config[$serial]["disable_mount"] == "yes") ? 'true' : 'false';
 }
 
 /* Remove the samba remote mount configuration. */

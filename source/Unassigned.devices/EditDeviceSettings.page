@@ -76,6 +76,7 @@ if (isset($_GET['s'])) {
 	$serial				.= $id_bus;
 	$background_action	= "background";
 	$share_action		= "toggle_share";
+	$disable_action		= "toggle_disable_mount";
 	if (! $_GET['t']) {
 		$disk_setting			= false;
 		$show_device_switches	= false;
@@ -97,13 +98,15 @@ if (isset($_GET['s'])) {
 		$user_file		= "";
 	}
 	$background			= (get_samba_config($device, "command_bg") != "false" ) ? "yes" : "no";
+	$disable_mount		= (is_samba_disable_mount($device)) ? "checked" : "";
 	$automount			= (is_samba_automount($device)) ? "checked" : "";
 	$share				= (is_samba_share($device)) ? "checked" : "";
-	$width				= "18%";
+	$width				= "35%";
 	$automount_action	= "samba_automount";
 	$ud_device			= $device;
 	$background_action	= "samba_background";
 	$share_action		= "toggle_samba_share";
+	$disable_action		= "toggle_samba_disable_mount";
 	$disk_setting		= false;
 } else if (isset($_GET['i'])) {
 	$device				= $_GET['i'];
@@ -231,6 +234,7 @@ _(Disk Serial)_: <?=$serial;?>
 <?endif;?>
 
 <?if (isset($_GET['d'])):?>
+<td title='_(Disable Mount/Unmount Buttons)_.'><input type='checkbox' class='disable-mount-switch'></td>
 <td title='_(Mount Remote SMB or NFS Share when Array is Started)_.'><input type='checkbox' class='automount-switch'></td>
 <?endif;?>
 
@@ -347,7 +351,7 @@ _(User Script)_:
 	$('.disable-mount-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Disable Mount Button');?>", off_label: "<?=_('Disable Mount Button');?>", checked:"<?=$disable_mount;?>" });
 	$('.disable-mount-switch').change(function()
 	{
-		$.post(UDURL,{action:"toggle_disable_mount",serial:"<?=$ud_device;?>",status:$(this).is(":checked")},function(data)
+		$.post(UDURL,{action:"<?=$disable_action?>",device:"<?=$ud_device;?>",status:$(this).is(":checked")},function(data)
 		{
 			$(this).prop("checked",data.result);
 		},"json");

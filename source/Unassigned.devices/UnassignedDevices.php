@@ -598,10 +598,12 @@ switch ($_POST['action']) {
 						</td>";
 				}
 
-				$disabled = (($mount['fstype'] == "root") && ($var['shareDisk'] == "yes" || $var['mdState'] != "STARTED")) ? "disabled" : ($is_alive ? "enabled" : "disabled");
+				$disabled	= (($mount['fstype'] == "root") && ($var['shareDisk'] == "yes" || $var['mdState'] != "STARTED")) ? "disabled" : ($is_alive ? "enabled" : "disabled");
+				$disabled	= $mount['disable_mount'] == 'yes' ? "disabled" : $disabled;
 				if ($mount['mounted'] && (is_script_running($mount['command']) || is_script_running($mount['user_command'], true))) {
 					$o_remotes .= "<td><button class='mount' disabled> <i class='fa fa-spinner fa-spin'></i>"." "._("Running")."</button></td>";
 				} else {
+					$class		= $mount['disable_mount'] == "yes" ? "fa fa-ban" : "";
 					/* Remove special characters. */
 					$mount_device	= safe_name(basename($mount['device'])."_".$mount['fstype']);
 					$is_mounting	= array_values(preg_grep("@/mounting_".$mount_device."@i", listDir(dirname($paths['mounting']))))[0];
@@ -613,12 +615,14 @@ switch ($_POST['action']) {
 					} else if ($is_unmounting) {
 						$o_remotes .= "<td><button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Unmounting')."</button></td>";
 					} else {
-						$o_remotes .= "<td>".($mounted ? "<button class='mount' device ='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>"._('Unmount')."</button>" : "<button class='mount'device ='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>"._('Mount')."</button>")."</td>";
+						$o_remotes .= "<td>".($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\" {$disabled}><i class='$class'></i>"._('Unmount')."</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='$class'></i>"._('Mount')."</button>")."</td>";
 					}
 				}
 				$o_remotes .= $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec info' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount['name']}\");'><i class='fa fa-remove hdd'></i><span>"._("Remove Remote SMB")."/"._("NFS Share")."</span></a></td>";
 
 				$title = _("Edit Remote SMB")."/".("NFS Settings and Script");
+				$title .= "<br />"._("Disable Mount").": ";
+				$title .= ($mount['disable_mount'] == 'yes') ? "Yes" : "No";
 				$title .= "<br />"._("Automount").": ";
 				$title .= ($mount['automount'] == 'yes') ? "Yes" : "No";
 				$title .= "<br />"._("Share").": ";
@@ -880,7 +884,7 @@ switch ($_POST['action']) {
 
 	case 'toggle_disable_mount':
 		/* Toggle the disable mount button setting. */
-		$serial	= urldecode($_POST['serial']);
+		$serial	= urldecode($_POST['device']);
 		$status	= urldecode($_POST['status']);
 		echo json_encode(array( 'result' => toggle_disable_mount($serial, $status) ));
 		break;
@@ -1088,6 +1092,13 @@ switch ($_POST['action']) {
 			rm_nfs_share($info['mountpoint']);
 		}
 		echo json_encode(array( 'result' => $result));
+		break;
+
+	case 'toggle_samba_disable_mount':
+		/* Toggle the disable mount button setting. */
+		$device	= urldecode($_POST['device']);
+		$status	= urldecode($_POST['status']);
+		echo json_encode(array( 'result' => toggle_samba_disable_mount($device, $status) ));
 		break;
 
 	case 'samba_background':
