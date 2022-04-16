@@ -1731,7 +1731,7 @@ display_status(){
 	if [ -f "$smart_output" ]; then
 		init=$(( $hpos + $height + 2 ))
 		if [ -z "${canvas[smart]}" ]; then
-			append canvas "smart" "$(draw_canvas $init $height $width)"
+			append canvas "smart" "$(draw_canvas $init $(($height + 1)) $width)"
 		fi
 
 		echo -n "${canvas[smart]}" >> $out
@@ -1746,7 +1746,7 @@ display_status(){
 			echo -e -n "$line" >> $out
 			let "l+=1"
 		done < <(head -n -1 "$smart_output")
-		tput cup $(( $init + $height - 1)) $wpos >> $out
+		tput cup $(( $init + $height)) $wpos >> $out
 		tail -n 1 "$smart_output" >> $out
 		tput cup $(( $init + $height )) $width >> $out
 		tput cup $(( $init + $height + 2 )) 0 >> $out
