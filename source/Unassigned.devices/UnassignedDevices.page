@@ -563,31 +563,31 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 <?=$Preclear ? $Preclear->html() : "";?>
 
-<div>
-<table id ='usb_devices_list' class='disk_status wide disk_mounts show-disks'>
-	<thead>
-		<tr>
-			<td><?=('Device')?></td>
-			<td><?=('Identification')?></td>
-			<td></td>
-			<td><?=_('Temp')?>.</td>
-			<td><?=_('Reads')?></td>
-			<td><?=_('Writes')?></td>
-			<td><?=_('Settings')?></td>
-			<td><?=_('FS')?></td>
-			<td><?=_('Size')?></td>
-			<td><?=_('Used')?></td>
-			<td><?=_('Free')?></td>
-			<td><?=_('Log')?></td>
-		</tr>
-	</thead>
-	<tbody id="disk-table-body">
-		<tr>
-			<td colspan='12'><div class='spinner'></div>
-			</td>
-		</tr>
-	</tbody>
-</table>
+<div class='show-disks'>
+	<table id ='usb_devices_list' class='disk_status wide disk_mounts'>
+		<thead>
+			<tr>
+				<td><?=('Device')?></td>
+				<td><?=('Identification')?></td>
+				<td></td>
+				<td><?=_('Temp')?>.</td>
+				<td><?=_('Reads')?></td>
+				<td><?=_('Writes')?></td>
+				<td><?=_('Settings')?></td>
+				<td><?=_('FS')?></td>
+				<td><?=_('Size')?></td>
+				<td><?=_('Used')?></td>
+				<td><?=_('Free')?></td>
+				<td><?=_('Log')?></td>
+			</tr>
+		</thead>
+		<tbody id="disk-table-body">
+			<tr>
+				<td colspan='12'><div class='spinner'></div>
+				</td>
+			</tr>
+		</tbody>
+	</table>
 </div>
 
 :unassgned_devices_switches_plug:
@@ -605,7 +605,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 :end
 
 <div class='show-shares'>
-	<div id='title' class='show-disks samba_mounts'>
+	<div id='title' class='show-disks'>
 		<span class='left'>
 			<img src='/plugins/<?=$plugin?>/icons/smbsettings.png' class='icon'><?=_('SMB Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/nfs.png' class='icon'><?=_('NFS Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/iso.png' class='icon' style='width:16px;'><?=_('ISO File Shares')?>
 		</span>
@@ -809,7 +809,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			$('.show-historical').slideToggle('slow');
 		}
 
-		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Unassigned Devices Settings");?>" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear hdd fa-switch"></i></a>',
+		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Unassigned Devices Settings");?>" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear fa-switch"></i></a>',
 								"<?=_('Unassigned Devices');?>");
 		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Refresh Disks and Configuration");?>" onclick="rescan_disks()"><i class="fa fa-refresh fa-switch"></i></a>',
 								"<?=_('Unassigned Devices');?>");
