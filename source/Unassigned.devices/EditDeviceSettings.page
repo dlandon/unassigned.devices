@@ -42,6 +42,7 @@ $volume					= "";
 $id_bus					= "";
 
 if (isset($_GET['s'])) {
+	/* Disk devices. */
 	$serial				= $_GET['s'];
 	$device				= isset($_GET['b']) ? $_GET['b'] : $_GET['l'];
 	$partition			= $_GET['p'];
@@ -84,6 +85,7 @@ if (isset($_GET['s'])) {
 	$fstype				= $_GET['f'];
 	$volume				= ($fstype == "apfs") ? get_config($ud_device, "volume.{$partition}") : "0";
 } else if (isset($_GET['d'])) {
+	/* Remote shares. */
 	$device				= $_GET['d'];
 	$mount_point		= $_GET['l'];
 	$info				= $_GET['m'];
@@ -109,6 +111,7 @@ if (isset($_GET['s'])) {
 	$disable_action		= "toggle_samba_disable_mount";
 	$disk_setting		= false;
 } else if (isset($_GET['i'])) {
+	/* ISO files. */
 	$device				= $_GET['i'];
 	$mount_point		= $_GET['l'];
 	$file				= get_iso_config($device, "command");

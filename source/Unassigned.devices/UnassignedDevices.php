@@ -603,7 +603,7 @@ switch ($_POST['action']) {
 				if ($mount['mounted'] && (is_script_running($mount['command']) || is_script_running($mount['user_command'], true))) {
 					$o_remotes .= "<td><button class='mount' disabled> <i class='fa fa-spinner fa-spin'></i>"." "._("Running")."</button></td>";
 				} else {
-					$class		= $mount['disable_mount'] == "yes" ? "fa fa-ban" : "";
+					$class	= $mount['disable_mount'] == "yes" ? "fa fa-ban" : "";
 					/* Remove special characters. */
 					$mount_device	= safe_name(basename($mount['device'])."_".$mount['fstype']);
 					$is_mounting	= array_values(preg_grep("@/mounting_".$mount_device."@i", listDir(dirname($paths['mounting']))))[0];
