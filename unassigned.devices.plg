@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.04.13">
+<!ENTITY version	"2022.04.18">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"0d05a7c56e5dc185cd6e99eb58f08577">
+<!ENTITY MD5		"c487328d35c0a57371bf4c89025b569b">
 ]>
 
 <PLUGIN name="&name;"
@@ -21,6 +21,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Add 'Disable Mount Button' to SMB/NFS remote shares.
+- Fix: A little code cleanup.
+
+###2022.04.13
 - Fix: Revert mount check logic change.
 
 ###2022.04.11c
