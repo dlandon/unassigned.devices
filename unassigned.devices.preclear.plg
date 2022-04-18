@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.03.31">
+<!ENTITY version	"2022.04.18">
 <!ENTITY launch		"Tools/Preclear">
 <!ENTITY gitURL		"https://github.com/&author;/unassigned.devices/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"74914aaf353478392219c97049f88d3a">
+<!ENTITY MD5		"06e8fbbc1f838b37a5d2fa7df649f26b">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
@@ -19,6 +19,9 @@
 
 <CHANGES>
 ##&name;
+- Fix: Add additional line to SMART statistics in preclear view.
+
+###2022.03.31
 - Fix: Convert POH values that show as '22h+07m+23.077s' to hours for SMART difference comparison.
 
 ###2022.03.15
