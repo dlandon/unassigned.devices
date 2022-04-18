@@ -621,7 +621,7 @@ switch ($_POST['action']) {
 				$o_remotes .= $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec info' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount['name']}\");'><i class='fa fa-remove hdd'></i><span>"._("Remove Remote SMB")."/"._("NFS Share")."</span></a></td>";
 
 				$title = _("Edit Remote SMB")."/".("NFS Settings and Script");
-				$title .= "<br />"._("Disable Mount").": ";
+				$title .= "<br />"._("Disable Mount Button").": ";
 				$title .= ($mount['disable_mount'] == 'yes') ? "Yes" : "No";
 				$title .= "<br />"._("Automount").": ";
 				$title .= ($mount['automount'] == 'yes') ? "Yes" : "No";
