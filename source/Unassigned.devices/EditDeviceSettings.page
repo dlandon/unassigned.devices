@@ -19,7 +19,7 @@ $translations = file_exists("$docroot/webGui/include/Translations.php");
 require_once "$docroot/plugins/$plugin/include/Legacy.php";
 ?>
 <?if (! $translations):?>
-<?eval('?>'.parse_file("$docroot/plugins/$plugin/EditSettings.page"))?>
+<?eval('?>'.parse_file("$docroot/plugins/$plugin/EditDeviceSettings.page"))?>
 <?else:?>
 <?
 require_once("plugins/{$plugin}/include/lib.php");
