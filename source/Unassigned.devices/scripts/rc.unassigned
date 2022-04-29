@@ -309,7 +309,7 @@ function unassigned_umount() {
 					execute_script($info, "ERROR_UNMOUNT");
 				} else {
 					/* If the device is mounted, unmount it. */
-					if ( is_mounted($info['device']) )
+					if ( is_mounted($info['device']) || is_mounted($info['mountpoint']) )
 					{
 						/* Create unmounting status file for this device. */
 						if ($info['fstype'] != "crypto_LUKS") {
@@ -323,7 +323,7 @@ function unassigned_umount() {
 
 						/* Remove smb and nfs shares for this device. */
 						if ( rm_smb_share($info['target']) && rm_nfs_share($info['target']) ) {
-							/* Execute device script with unmlount action. */
+							/* Execute device script with unmount action. */
 							execute_script($info, "UNMOUNT");
 
 							unassigned_log("Unmounting partition '".basename($info['device'])."' at mountpoint '{$info['mountpoint']}'...");
