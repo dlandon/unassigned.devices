@@ -122,7 +122,7 @@ function unassigned_mount() {
 						unassigned_log("Error: Cannot mount device '{$info['device']}' with label 'UNRAID'.");
 
 						/* Execute device script with error mount action. */
-							execute_script($info, "ERROR_MOUNT");
+						execute_script($info, "ERROR_MOUNT");
 					} else {
 						/* Mount the disk. */
 						if (do_mount( $info )) 
