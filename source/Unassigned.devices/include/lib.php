@@ -1462,7 +1462,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false) {
 			unassigned_log("Unmount of '".basename($dev)."' failed: '{$o}'"); 
 		}
 	} else {
-		unassigned_log("Cannot unmount '".basename($dev)."'. UD did not mount the device or it was removed before being unmounted.");
+		unassigned_log("Cannot unmount '".basename($dev)."'. UD did not mount the device or it was not properly unmounted.");
 	}
 
 	return $rc;
@@ -2466,6 +2466,8 @@ function get_partition_info($dev) {
 
 		/* Set up all disk parameters and status. */
 		$disk['mounted']		= is_mounted($disk['mountpoint']);
+		$disk['not_unmounted']	= ($disk['mounted'] && ! is_mounted($disk['device'])) ? true : false;
+
 		if ($disk['mounted'] && $disk['fstype'] == "btrfs") {
 			/* Get the members of a pool if this is a pooled disk. */
 			$pool_devs			= MiscUD::get_pool_devices($disk['mountpoint']);
