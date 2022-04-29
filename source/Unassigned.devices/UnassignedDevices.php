@@ -282,6 +282,7 @@ function make_mount_button($device) {
 		$pool_disk		= $device['partitions'][0]['pool'];
 		$pass_through	= $device['partitions'][0]['pass_through'];
 		$disable_mount	= $device['partitions'][0]['disable_mount'];
+		$not_unmounted	= $device['partitions'][0]['not_unmounted'];
 	} else {
 		$mounted		= $device['mounted'];
 		$disable		= (! empty($device['fstype']) && $device['fstype'] != "crypto_LUKS") ? "" : "disabled";
@@ -290,6 +291,7 @@ function make_mount_button($device) {
 		$pool_disk		= false;
 		$pass_through	= $device['pass_through'];
 		$disable_mount	= $device['disable_mount'];
+		$not_unmounted	= false;
 	}
 
 	$is_mounting	= array_values(preg_grep("@/mounting_".basename($device['device'])."@i", listDir(dirname($paths['mounting']))))[0];
@@ -303,8 +305,8 @@ function make_mount_button($device) {
 	$is_preclearing = shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg($device['device'])." | /bin/grep -v 'grep'") != "" ? true : false;
 	$preclearing	= $preclearing || $is_preclearing;
 
-	$disable		= (($pass_through) || ($disable_mount) || ($preclearing)) ? "disabled" : $disable;
-	$class			= (($pass_through) || ($disable_mount)) ? "fa fa-ban" : "";
+	$disable		= ( ($pass_through) || ($disable_mount) || ($preclearing) || ($not_unmounted) ) ? "disabled" : $disable;
+	$class			= ( ($pass_through) || ($disable_mount) || ($not_unmounted) ) ? "fa fa-ban" : "";
 
 	if ($pool_disk) {
 		$button = sprintf($button, $context, 'mount', 'disabled', '', _('Pool'));
