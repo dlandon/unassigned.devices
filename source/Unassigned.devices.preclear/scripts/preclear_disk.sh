@@ -605,6 +605,7 @@ save_current_status() {
 	mv -f "$tmp_resume" "${all_files[resume_temp]}"
 
 	if [ "$1" = "1" ]; then
+		mkdir -p /boot/preclear_reports/
 		cp "${all_files[resume_temp]}" "${all_files[resume_file]}"
 	fi
 
