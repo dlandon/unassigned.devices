@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.04.18">
+<!ENTITY version	"2022.05.03">
 <!ENTITY launch		"Tools/Preclear">
 <!ENTITY gitURL		"https://github.com/&author;/unassigned.devices/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"06e8fbbc1f838b37a5d2fa7df649f26b">
+<!ENTITY MD5		"eed796fd77616ec5a152ede48f72f246">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
@@ -19,6 +19,9 @@
 
 <CHANGES>
 ##&name;
+- Fix: Pausing preclears fails to save resume file on flash device.
+
+###2022.04.18
 - Fix: Add additional line to SMART statistics in preclear view.
 
 ###2022.03.31
