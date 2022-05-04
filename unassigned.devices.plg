@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.04.20">
+<!ENTITY version	"2022.05.04">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"595f0e645fb61f594fea63c694c74da0">
+<!ENTITY MD5		"1a7960dd45ea06678cc9f5eb3fc546e6">
 ]>
 
 <PLUGIN name="&name;"
@@ -21,6 +21,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: 'Unmount' button will show gray with the 'not' symbol when a disk is not properly unmounted.
+- Fix: Better handle the situation where disks are removed before being unmounted.
+
+###2022.04.20
 - Fix: File name in EditDeviceSettings.page when there is no language translation.  Affects Unraid versions before 6.9.
 
 ###2022.04.18
