@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.05.04a">
+<!ENTITY version	"2022.05.04b">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"fda5c14e086034aa2f84d02e59e54a68">
+<!ENTITY MD5		"dc776f80646ce2a4483670de08b7eaf5">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,7 @@
 ##&name;
 ###&version;
 - Add: 'Unmount' button will show gray with the 'not' symbol when a disk is not properly unmounted.
+- Add: 'Show Partitions' to tooltip.
 - Fix: Better handle the situation where disks are removed before being unmounted.
 - Fix: Fat32 format not working.
 
