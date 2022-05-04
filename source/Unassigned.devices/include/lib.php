@@ -692,9 +692,12 @@ function format_disk($dev, $fs, $pass) {
 				unassigned_log("Reload partition table result:\n".$o);
 			}
 		} else {
-			/* All other file system partitions are gpt. */
-			unassigned_log("Creating a 'gpt' partition table on disk '".$dev."'.");
-			$o = trim(shell_exec("/usr/sbin/parted ".escapeshellarg($dev)." --script -- mklabel gpt 2>&1"));
+			/* If the file system is fat32, the disk_schema is msdos. */
+			$disk_schema = ($fs == "fat32") ? "msdos" : "gpt";
+
+			/* All other file system partitions are gpt, except fat32. */
+			unassigned_log("Creating a '{$disk_schema}' partition table on disk '".$dev."'.");
+			$o = trim(shell_exec("/usr/sbin/parted ".escapeshellarg($dev)." --script -- mklabel ".escapeshellarg($disk_schema)." 2>&1"));
 			if ($o) {
 				unassigned_log("Create 'gpt' partition table result:\n".$o);
 			}
