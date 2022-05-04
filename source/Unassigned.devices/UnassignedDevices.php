@@ -222,12 +222,13 @@ function render_partition($disk, $partition, $disk_line = false) {
 			$title .= ($partition['read_only'] == 'yes') ? "Yes" : "No";
 			$title .= "<br />"._("Automount").": ";
 			$title .= ($partition['automount'] == 'yes') ? "Yes" : "No";
-			$title .= "<br />";
-		} else {
-			$title .= "<br />";
 		}
-		$title .= _("Share").": ";
+		$title .= "<br />"._("Share").": ";
 		$title .= ($partition['shared'] == 'yes') ? "Yes" : "No";
+		if ($disk_line) {
+			$title .= "<br />"._("Show Partitions").": ";
+			$title .= ($disk['show_partitions'] == 'yes') ? "Yes" : "No";
+		}
 
 		$device		= MiscUD::base_device(basename($device)) ;
 		$serial		= $partition['serial'];
