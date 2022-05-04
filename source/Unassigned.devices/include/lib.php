@@ -621,6 +621,8 @@ function get_format_cmd($dev, $fs) {
 function format_disk($dev, $fs, $pass) {
 	global $paths;
 
+	unassigned_log("Format device '".$dev."'.");
+
 	$rc	= true;
 
 	/* Make sure it doesn't have any partitions. */
@@ -699,7 +701,7 @@ function format_disk($dev, $fs, $pass) {
 			unassigned_log("Creating a '{$disk_schema}' partition table on disk '".$dev."'.");
 			$o = trim(shell_exec("/usr/sbin/parted ".escapeshellarg($dev)." --script -- mklabel ".escapeshellarg($disk_schema)." 2>&1"));
 			if ($o) {
-				unassigned_log("Create 'gpt' partition table result:\n".$o);
+				unassigned_log("Create '{$disk_schema}' partition table result:\n".$o);
 			}
 
 			/* Create an optimal disk partition. */
