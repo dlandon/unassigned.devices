@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.05.04b">
+<!ENTITY version	"2022.05.11">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"dc776f80646ce2a4483670de08b7eaf5">
+<!ENTITY MD5		"4ea594e25aa68ffaa8b5cf05cfb62ce7">
 ]>
 
 <PLUGIN name="&name;"
@@ -21,6 +21,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: False mount detection when mount point names are very similar.
+
+###2022.05.04b
 - Add: 'Unmount' button will show gray with the 'not' symbol when a disk is not properly unmounted.
 - Add: 'Show Partitions' to tooltip.
 - Fix: Better handle the situation where disks are removed before being unmounted.
