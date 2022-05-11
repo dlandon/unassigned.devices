@@ -1127,7 +1127,6 @@ function is_mounted($dev) {
 		$data	= timed_exec(1, "/usr/bin/cat /proc/mounts | awk '{print $1 \",\" $2}'");
 		$data	= str_replace("\\040", " ", $data);
 		$data	= str_replace("\n", ",", $data);
-
 		$rc		= (strpos($data, $dev.",") !== false) ? true : false;
 	}
 
