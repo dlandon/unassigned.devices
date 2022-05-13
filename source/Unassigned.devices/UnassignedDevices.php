@@ -412,7 +412,7 @@ switch ($_POST['action']) {
 
 				$disk_device	= basename($disk['device']);
 				$disk_dev		= $disk['ud_dev'];
-				$disk_name		= $disk['unassigned_dev'];
+				$disk_name		= $disk['unassigned_dev'] ? $disk['unassigned_dev'] : $disk['ud_dev'];
 				$p				= (count($disk['partitions']) > 0) ? render_partition($disk, $disk['partitions'][0], true) : false;
 				$preclearing	= $Preclear ? $Preclear->isRunning($disk_device) : false;
 				$temp			= my_temp($disk['temperature']);
