@@ -140,6 +140,27 @@ function get_disk_dev($dev) {
 	return $rc;
 }
 
+/* Get the disk id for this device from the devs.ini. */
+function get_disk_id($dev, $udev_id) {
+	global $dev_file;
+
+	$rc		= $udev_id;
+	$device	= basename($dev);
+
+	/* Check for devs.ini file and get the devX designation for this device. */
+	if (is_file($dev_file)) {
+		$devs = @parse_ini_file($dev_file, true);
+		foreach ($devs as $d) {
+			if (($d['device'] == $device) && $d['id']) {
+				$rc = $d['id'];
+				break;
+			}
+		}
+	}
+
+	return $rc;
+}
+
 /* Check to see if the disk is spun up or down. */
 function is_disk_running($ud_dev) {
 	global $dev_file;
@@ -360,7 +381,7 @@ class Disks
 
 		$name		= Misc::disk_name($device);
 		$smart_file = $this->smartdir . "/${name}";
-		$whitelist	= array("ID_MODEL", "DEVPATH", "ID_SCSI_SERIAL", "ID_SERIAL_SHORT", "ID_FS_LABEL", "ID_VENDOR");
+		$whitelist	= array("ID_SERIAL", "DEVPATH", "ID_SCSI_SERIAL", "ID_SERIAL_SHORT", "ID_FS_LABEL", "ID_VENDOR");
 
 		/* SMART parser function. */
 		$parse_smart = function($smart, $property) {
@@ -392,7 +413,7 @@ class Disks
 				$disk = array_intersect_key($udev, array_flip($whitelist));
 
 				$disk['SERIAL_SHORT']	= isset($disk["ID_SCSI_SERIAL"]) ? $disk["ID_SCSI_SERIAL"] : $disk['ID_SERIAL_SHORT'];
-				$disk['SERIAL']			= trim("{$disk['ID_MODEL']}_{$disk['SERIAL_SHORT']}");
+				$disk['SERIAL']			= get_disk_id($device, $disk['ID_SERIAL']);
 
 				/* Get device BUS. */
 				$disk['BUS']			= $udev['ID_BUS'];
