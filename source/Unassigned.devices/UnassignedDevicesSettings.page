@@ -38,11 +38,6 @@ if ((! $parted) && ($cfg['Config']['destructive_mode'] == "enabled")) {
 	$cfg['Config']['destructive_mode'] = "disabled";
 }
 
-/* If Unraid is 6.9 or greater, Unraid manages disk spin down. */
-if (version_compare($version['version'],"6.8.9", ">")) {
-	$cfg["Config"]["spin_down"] = "yes";
-}
-
 /* If Unraid is 6.9 or less, set NFS version for v3. */
 if (version_compare($version['version'],"6.9.9", "<")) {
 	$cfg["Config"]["nfs_version"] = "3";
@@ -196,16 +191,6 @@ _(Mount SSDs with 'discard' option)_?
 
 :ud_settings_discard_plug:
 > Mount SSDs that support discard with 'discard' option. If you are using the SSD Trim Settings to do a periodic trim of SSDs you can set this to **No**.
-:end
-
-_(Spin down disks)_?
-: <select name="spin_down" size="1" <?if (version_compare($version['version'],"6.8.9", ">")):?>disabled<?endif;?>>
-  <?=mk_option($cfg["Config"]["spin_down"], "yes", "_(Yes)_");?>
-  <?=mk_option($cfg["Config"]["spin_down"], "no", "_(No)_");?>
-  </select><?if (version_compare($version['version'],"6.8.9", ">")):?>&nbsp;_(Disk spin down is managed by Unraid)_.<?endif;?>
-
-:ud_settings_spin_down_plug:
-> Set to **Yes** to set a 15 minute disk spin down timer. Set to **No** to keep disks spun up. Unraid version 6.9 and higher manages disk spin down.
 :end
 
 _(Legacy Mount Point Compatibility)_?
