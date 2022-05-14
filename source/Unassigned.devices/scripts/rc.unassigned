@@ -78,8 +78,6 @@ function unassigned_mount() {
 						unassigned_log("Disk with ID '{$info['serial']} (".MIscUD::base_device(basename($device)).")' is not set to auto mount.");
 					}
 
-					/* Set sleep timer for this device. */
-					setSleepTime($device);
 					break;
 				}
 
@@ -133,9 +131,6 @@ function unassigned_mount() {
 								add_nfs_share($info['mountpoint']);
 							}
 
-							/* Set sleep timer for this device. */
-							setSleepTime($device);
-
 							/* Execute device script with add action. */
 							execute_script($info, "ADD");
 
@@ -145,9 +140,6 @@ function unassigned_mount() {
 						} else if (! is_mounted($info['device'])) {
 							/* There was an error mounting the disk. */
 							unassigned_log("Partition '".basename($info['label'])."' cannot be mounted.");
-
-							/* Set sleep timer for this device. */
-							setSleepTime($device);
 
 							/* Execute device script with error unmount action. */
 							execute_script($info, "ERROR_MOUNT");
@@ -317,9 +309,6 @@ function unassigned_umount() {
 						} else {
 							addFile(sprintf($paths['unmounting'], basename($info['luks'])));
 						}
-
-						/* Set sleep timer for this device. */
-						setSleepTime($device);
 
 						/* Remove smb and nfs shares for this device. */
 						if ( rm_smb_share($info['target']) && rm_nfs_share($info['target']) ) {
