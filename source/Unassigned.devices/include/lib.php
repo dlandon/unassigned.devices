@@ -375,6 +375,28 @@ function get_disk_dev($dev) {
 	return $rc;
 }
 
+/* Get the disk id for this device from the devs.ini. */
+function get_disk_id($dev, $udev_id) {
+	global $paths;
+
+	$rc		= $udev_id;
+	$device	= basename($dev);
+	$sf		= $paths['dev_state'];
+
+	/* Check for devs.ini file and get the devX designation for this device. */
+	if (is_file($sf)) {
+		$devs = @parse_ini_file($sf, true);
+		foreach ($devs as $d) {
+			if (($d['device'] == $device) && $d['id']) {
+				$rc = $d['id'];
+				break;
+			}
+		}
+	}
+
+	return $rc;
+}
+
 /* Get the reads and writes from diskload.ini. */
 function get_disk_reads_writes($ud_dev, $dev) {
 	global $paths;
@@ -2149,7 +2171,7 @@ function get_iso_mounts() {
 		foreach ($iso_mounts as $device => $mount) {
 			$mount['device']		= $device;
 			$mount['fstype']		= "loop";
-			$mount['automount'] = is_iso_automount($mount['device']);
+			$mount['automount'] 	= is_iso_automount($mount['device']);
 			if (! $mount["mountpoint"]) {
 				$mount["mountpoint"] = preg_replace("%\s+%", "_", "{$paths['usb_mountpoint']}/{$mount['share']}");
 			}
@@ -2385,8 +2407,9 @@ function get_disk_info($dev) {
 	$disk						= array();
 	$attrs						= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
 	$disk['serial_short']		= isset($attrs['ID_SCSI_SERIAL']) ? $attrs['ID_SCSI_SERIAL'] : $attrs['ID_SERIAL_SHORT'];
-	$disk['serial']				= trim($attrs['ID_MODEL']."_".$disk['serial_short']);
 	$disk['device']				= realpath($dev);
+	$disk['serial']				= trim($attrs['ID_SERIAL']);
+	$disk['serial']				= get_disk_id($disk['device'], $disk['serial']);
 	$disk['id_bus']				= $attrs['ID_BUS'];
 	$disk['ud_dev']				= get_disk_dev($disk['device']);
 	$disk['unassigned_dev']		= get_config($disk['serial'], "unassigned_dev");
@@ -2420,10 +2443,11 @@ function get_partition_info($dev) {
 	global $paths;
 
 	$disk	= array();
+	$device	= basename($dev);
 	$attrs	= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
 	if ($attrs['DEVTYPE'] == "partition") {
 		$disk['serial_short']	= isset($attrs['ID_SCSI_SERIAL']) ? $attrs['ID_SCSI_SERIAL'] : $attrs['ID_SERIAL_SHORT'];
-		$disk['serial']			= $attrs['ID_MODEL']."_".$disk['serial_short'];
+		$disk['serial']			= get_disk_id($device, $attrs['ID_SERIAL']);
 		$disk['device']			= realpath($dev);
 		$disk['uuid']			= $attrs['ID_FS_UUID'];
 
@@ -2819,24 +2843,6 @@ function change_UUID($dev) {
 	/* Show the result of the UUID change operation. */
 	if ($rc) {
 		unassigned_log("Changed partition UUID on '{$device}' with result: {$rc}");
-	}
-}
-
-/* If the disk is not a SSD, set the spin down timer if allowed by settings. */
-function setSleepTime($dev) {
-	global $paths;
-
-	$sf	= $paths['dev_state'];
-
-	/* If devs.ini does not exist, do the spindown using the disk timer. */
-	if ((! is_file($sf)) && get_config("Config", "spin_down") == 'yes') {
-		if (! is_disk_ssd($dev)) {
-			unassigned_log("Set spin down timer for device '{$dev}'.");
-			timed_exec(5, "/usr/sbin/hdparm -S180 $dev 2>&1");
-		} else {
-			unassigned_log("Don't spin down device '{$dev}'.");
-			timed_exec(5, "/usr/sbin/hdparm -S0 $dev 2>&1");
-		}
 	}
 }
 
