@@ -1102,15 +1102,6 @@ function remove_config_disk($serial) {
 	if ( isset($config[$serial]) ) {
 		unassigned_log("Removing configuration '{$serial}'.");
 	}
-	/* Remove up to five partition script files. */
-	for ($i = 1; $i <= 5; $i++) {
-		$command	= "command.".$i;
-		$cmd		= $config[$serial][$command];
-		if ( isset($cmd) && is_file($cmd) ) {
-			@unlink($cmd);
-			unassigned_log("Removing script file '{$cmd}'.");
-		}
-	}
 
 	/* Remove this configuration. */
 	unset($config[$serial]);
