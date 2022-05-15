@@ -739,7 +739,7 @@ switch ($_POST['action']) {
 		foreach ($historical as $serial => $value) {
 			$o_historical .= "<tr><td><i class='fa fa-minus-circle orb grey-orb'></i>".$historical[$serial]['display']."</td><td>".$serial.$historical[$serial]['mountpoint']."</td>";
 			$o_historical .= "<td></td>";
-			$o_historical .= "<td><a style='color:#CC0000;font-weight:bold;cursor:pointer;' class='exec info' onclick='remove_disk_config(\"{$serial}\")'><i class='fa fa-remove hdd'></i><span>"._("Remove Device configuration")."</span></a></td>";
+			$o_historical .= "<td><a style='color:#CC0000;font-weight:bold;cursor:pointer;' class='exec info' onclick='remove_disk_config(\"{$serial}\")'><i class='fa fa-remove hdd'></i><span>"._("Remove Device Configuration")."</span></a></td>";
 			$o_historical .= "<td><a class='info' href='/Main/EditDeviceSettings?s=".$serial."&l=".$historical[$serial]['mntpoint']."&p="."1"."&t=true'><i class='fa fa-gears'></i><span>"._("Edit Historical Device Settings and Script")."</span></a></td>";
 			$o_historical .= "<td></td><td></td><td></td><td></td><td></td></tr>";
 		}
