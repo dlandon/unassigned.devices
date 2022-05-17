@@ -383,7 +383,7 @@ function get_disk_id($dev, $udev_id) {
 	$device	= basename($dev);
 	$sf		= $paths['dev_state'];
 
-	/* Check for devs.ini file and get the devX designation for this device. */
+	/* Check for devs.ini file and get the id for this device. */
 	if (is_file($sf)) {
 		$devs = @parse_ini_file($sf, true);
 		foreach ($devs as $d) {
