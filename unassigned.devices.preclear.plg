@@ -6,7 +6,7 @@
 <!ENTITY gitURL		"https://github.com/&author;/unassigned.devices/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"eed796fd77616ec5a152ede48f72f246">
+<!ENTITY MD5		"">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
@@ -19,6 +19,9 @@
 
 <CHANGES>
 ##&name;
+- Fix: Use the device id from devs.ini and not the id from the udev ID_MODEL and ID_SERIAL_SHORT.
+
+###2022.05.03
 - Fix: Pausing preclears fails to save resume file on flash device.
 
 ###2022.04.18
