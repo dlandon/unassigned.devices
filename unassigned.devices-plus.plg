@@ -3,7 +3,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices-plus">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2021.12.12">
+<!ENTITY version   "2022.05.17">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL    "https://github.com/&author;/unassigned.devices/raw/master">
 <!ENTITY pluginURL "&gitURL;/&name;.plg">
@@ -18,11 +18,14 @@
 		pluginURL="&pluginURL;"
 		support="&supportURL;"
 		icon="unlink"
-		min="6.7.0">
+		min="6.9.0">
 
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Set min Unraid version to 6.9.
+
+###2021.12.12
 - Add: Update libbsd package.
 - Add: Change icon to unlink.
 
