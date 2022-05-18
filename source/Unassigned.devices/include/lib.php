@@ -380,7 +380,8 @@ function get_disk_id($dev, $udev_id) {
 	global $paths;
 
 	$rc		= $udev_id;
-	$device	= basename($dev);
+	$device	= MiscUD::base_device(basename($dev));
+
 	$sf		= $paths['dev_state'];
 
 	/* Check for devs.ini file and get the id for this device. */
@@ -2399,8 +2400,7 @@ function get_disk_info($dev) {
 	$attrs						= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
 	$disk['serial_short']		= isset($attrs['ID_SCSI_SERIAL']) ? $attrs['ID_SCSI_SERIAL'] : $attrs['ID_SERIAL_SHORT'];
 	$disk['device']				= realpath($dev);
-	$disk['serial']				= trim($attrs['ID_SERIAL']);
-	$disk['serial']				= get_disk_id($disk['device'], $disk['serial']);
+	$disk['serial']				= get_disk_id($disk['device'], trim($attrs['ID_SERIAL']));
 	$disk['id_bus']				= $attrs['ID_BUS'];
 	$disk['ud_dev']				= get_disk_dev($disk['device']);
 	$disk['unassigned_dev']		= get_config($disk['serial'], "unassigned_dev");
@@ -2434,12 +2434,11 @@ function get_partition_info($dev) {
 	global $paths;
 
 	$disk	= array();
-	$device	= basename($dev);
 	$attrs	= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
 	if ($attrs['DEVTYPE'] == "partition") {
 		$disk['serial_short']	= isset($attrs['ID_SCSI_SERIAL']) ? $attrs['ID_SCSI_SERIAL'] : $attrs['ID_SERIAL_SHORT'];
-		$disk['serial']			= get_disk_id($device, $attrs['ID_SERIAL']);
 		$disk['device']			= realpath($dev);
+		$disk['serial']			= get_disk_id($disk['device'], trim($attrs['ID_SERIAL']));
 		$disk['uuid']			= $attrs['ID_FS_UUID'];
 
 		/* Get partition number */
