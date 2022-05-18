@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.05.17">
+<!ENTITY version	"2022.05.18">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"cf13e13af28b6de087d6d1e1c6beea01">
+<!ENTITY MD5		"84565ba48ebabfad3555d3d8e54d11e9">
 ]>
 
 <PLUGIN name="&name;"
@@ -21,6 +21,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Lookup of id from devs.ini.
+
+###2022.05.17
 - Add: Set min Unraid version to 6.9.  Older Unraid versions don't support devs.ini creation that is used by UD for new features.
 - Fix: Use the device id from devs.ini and not an id created from the udev ID_MODEL and ID_SERIAL_SHORT.  This will cause some device ids to change requiring re-configuration.
 - Fix: Don't delete script files when deleting a Historical Device.  User can do this manually.
