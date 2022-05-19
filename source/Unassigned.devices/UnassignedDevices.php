@@ -405,7 +405,7 @@ switch ($_POST['action']) {
 		if ( count($all_disks) ) {
 			foreach ($all_disks as $disk) {
 				/* See if any partitions are mounted. */
-				$mounted		= in_array(true, array_map(function($ar){return is_mounted($ar['device']);}, $disk['partitions']), true);
+				$mounted		= in_array(true, array_map(function($ar){return is_mounted($ar['mountpoint']);}, $disk['partitions']), true);
 
 				/* See if any partitions have a file system. */
 				$file_system	= in_array(true, array_map(function($ar){return ! empty($ar['fstype']);}, $disk['partitions']), true);
