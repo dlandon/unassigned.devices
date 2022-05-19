@@ -345,6 +345,8 @@ function make_mount_button($device) {
 		}
 		if ($script_running) {
 			$button = sprintf($button, $context, 'running', 'disabled', 'fa fa-spinner fa-spin', ' '._('Running'));
+		} else if ($not_unmounted) {
+			$button = sprintf($button, $context, 'umount', $disable, $class, _('Reboot'));
 		} else {
 			$button = sprintf($button, $context, 'umount', $disable, $class, _('Unmount'));
 		}
