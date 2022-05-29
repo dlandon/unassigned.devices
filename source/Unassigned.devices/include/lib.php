@@ -2297,33 +2297,46 @@ function get_all_disks_info() {
 	$ud_disks = get_unassigned_disks();
 	if (is_array($ud_disks)) {
 		foreach ($ud_disks as $key => $disk) {
+			/* Get the device size. */
 			$disk['size']	= intval(trim(timed_exec(5, "/bin/lsblk -nb -o size ".escapeshellarg(realpath($key))." 2>/dev/null")));
-			$disk			= array_merge($disk, get_disk_info($key));
-			foreach ($disk['partitions'] as $k => $p) {
-				if ($p) {
-					$disk['partitions'][$k] = get_partition_info($p);
-					$disk['array_disk'] = $disk['array_disk'] || $disk['partitions'][$k]['array_disk'];
+
+			/* If the size is not zero, then add as a UD device. */
+			if ($disk['size'] != 0) {
+				/* Get all the disk partitions. */
+				$disk			= array_merge($disk, get_disk_info($key));
+				foreach ($disk['partitions'] as $k => $p) {
+					if ($p) {
+						$disk['partitions'][$k] = get_partition_info($p);
+						$disk['array_disk'] = $disk['array_disk'] || $disk['partitions'][$k]['array_disk'];
+					}
 				}
-			}
-	        unset($ud_disks[$key]);
-	        $disk['path'] = $key;
-			$unassigned_dev = $disk['unassigned_dev'] ? $disk['unassigned_dev'] : $disk['ud_dev'];
-			$unassigned_dev	= $unassigned_dev ? $unassigned_dev : basename($disk['device']);
+				unset($ud_disks[$key]);
+				$disk['path'] = $key;
 
-			/* If there is already a devX that is the same, use the disk device' */
-			if (isset($ud_disks[$unassigned_dev]) && (strpos($unassigned_dev, "dev") !== false)) {
-				
-				$unassigned_dev = basename($disk['device']);
+				/* Use the devX designation os the sdX if there is no devX designation. */
+				$unassigned_dev = $disk['unassigned_dev'] ? $disk['unassigned_dev'] : $disk['ud_dev'];
+				$unassigned_dev	= $unassigned_dev ? $unassigned_dev : basename($disk['device']);
 
-				/* Set the ud_dev to the current value in the devs.ini file. */
-				$disk['ud_dev'] = get_disk_dev($disk['device']);
+				/* If there is already a devX that is the same, use the disk device sdX designation. */
+				if (isset($ud_disks[$unassigned_dev]) && (strpos($unassigned_dev, "dev") !== false)) {
+					/* Get the sdX device designation. */
+					$unassigned_dev = basename($disk['device']);
+
+					/* Set the ud_dev to the current value in the devs.ini file. */
+					$disk['ud_dev'] = get_disk_dev($disk['device']);
+				}
+
+				/* Add this device as a UD device. */
+				$ud_disks[$unassigned_dev] = $disk;
 			}
-			$ud_disks[$unassigned_dev] = $disk;
 		}
 	} else {
+		/* The was a problem getting the unassigned disks array. */
 		unassigned_log("Error: unable to get unassigned disks.");
 		$ud_disks = array();
 	}
+
+	/* Sort the unassigned devoces in natural order. */
 	ksort($ud_disks, SORT_NATURAL);
 
 	return $ud_disks;
