@@ -2412,8 +2412,9 @@ function get_udev_info($dev, $udev = null) {
 
 /* Get information on specific disk device. */
 function get_disk_info($dev) {
-	global $paths, $version;
+	global $paths;
 
+	/* Get all the disk information for this disk device. */
 	$disk						= array();
 	$attrs						= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
 	$disk['serial_short']		= isset($attrs['ID_SCSI_SERIAL']) ? $attrs['ID_SCSI_SERIAL'] : $attrs['ID_SERIAL_SHORT'];
@@ -2435,13 +2436,10 @@ function get_disk_info($dev) {
 	$disk['show_partitions']	= (get_config($disk['serial'], "show_partitions") == "no") ? false : true;
 	$disk['array_disk']			= false;
 
-	/* If Unraid is 6.9 or greater, Unraid manages hot plugs. */
-	if (version_compare($version['version'],"6.8.9", ">")) {
-		/* If this disk does not have a devX designation, it has dropped out of the array. */
-		$sf		= $paths['dev_state'];
-		if ((is_file($sf)) && ($disk['id_bus'] != "usb") && (basename($disk['device']) == $disk['ud_dev'])) {
-			$disk['array_disk'] = true;
-		}
+	/* If this disk does not have a devX designation, it has dropped out of the array. */
+	$sf		= $paths['dev_state'];
+	if ((is_file($sf)) && ($disk['id_bus'] != "usb") && (basename($disk['device']) == $disk['ud_dev'])) {
+		$disk['array_disk'] = true;
 	}
 
 	return $disk;
