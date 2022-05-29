@@ -2300,7 +2300,7 @@ function get_all_disks_info() {
 			/* Get the device size. */
 			$disk['size']	= intval(trim(timed_exec(5, "/bin/lsblk -nb -o size ".escapeshellarg(realpath($key))." 2>/dev/null")));
 
-			/* If the size is not zero, then add as a UD device. */
+			/* If the device size is not zero, then add as a UD device. */
 			if ($disk['size'] != 0) {
 				/* Get all the disk partitions. */
 				$disk			= array_merge($disk, get_disk_info($key));
@@ -2315,7 +2315,7 @@ function get_all_disks_info() {
 				unset($ud_disks[$key]);
 				$disk['path'] = $key;
 
-				/* Use the devX designation os the sdX if there is no devX designation. */
+				/* Use the devX designation of the sdX if there is no devX designation. */
 				$unassigned_dev = $disk['unassigned_dev'] ? $disk['unassigned_dev'] : $disk['ud_dev'];
 				$unassigned_dev	= $unassigned_dev ? $unassigned_dev : basename($disk['device']);
 
@@ -2331,7 +2331,7 @@ function get_all_disks_info() {
 				/* Add this device as a UD device. */
 				$ud_disks[$unassigned_dev] = $disk;
 			} else {
-				/* Remove this disk from the list of UD disks. */
+				/* Remove this disk from the list of UD disks because it's size is zero. */
 				unset($ud_disks[$key]);
 			}
 		}
