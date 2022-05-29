@@ -2310,6 +2310,8 @@ function get_all_disks_info() {
 						$disk['array_disk'] = $disk['array_disk'] || $disk['partitions'][$k]['array_disk'];
 					}
 				}
+
+				/* Remove the original UD entry and add the new UD reference. */
 				unset($ud_disks[$key]);
 				$disk['path'] = $key;
 
@@ -2328,10 +2330,13 @@ function get_all_disks_info() {
 
 				/* Add this device as a UD device. */
 				$ud_disks[$unassigned_dev] = $disk;
+			} else {
+				/* Remove this disk from the list of UD disks. */
+				unset($ud_disks[$key]);
 			}
 		}
 	} else {
-		/* The was a problem getting the unassigned disks array. */
+		/* There was a problem getting the unassigned disks array. */
 		unassigned_log("Error: unable to get unassigned disks.");
 		$ud_disks = array();
 	}
