@@ -1382,19 +1382,21 @@ function do_mount_root($info) {
 
 	$rc		= false;
 
+	/* A rootshare device is treated similar to a CIFS mount. */
 	if ($var['shareDisk'] != "yes") {
 		/* Be sure the server online status is current. */
 		$is_alive = is_samba_server_online($info['ip']);
 
-		/* If the remote server is not online, run the ping update and see if ping status needs to be refreshed. */
+		/* If the root server is not online, run the ping update and see if ping status needs to be refreshed. */
 		if (! $is_alive) {
-			/* Update the remote server ping status. */
+			/* Update the root share server ping status. */
 			exec("/usr/local/emhttp/plugins/unassigned.devices/scripts/get_ud_stats ping");
 
-			/* See if the server is online now. */
+			/* See if the root share server is online now. */
 			$is_alive = is_samba_server_online($info['ip']);
 		}
 	
+		/* If server shows as being on-line, we can mount the rootshare. */
 		if ($is_alive) {
 			$dir		= $info['mountpoint'];
 			$fs			= $info['fstype'];
@@ -1408,13 +1410,13 @@ function do_mount_root($info) {
 
 				unassigned_log("Mount ROOT command: {$cmd}");
 
-				/* Mount the remote share. */
+				/* Mount the root share. */
 				$o		= timed_exec(10, $cmd." 2>&1");
 				if ($o) {
 					unassigned_log("Root mount failed: '{$o}'.");
 				}
 
-				/* Did the share successfully mount? */
+				/* Did the root share successfully mount? */
 				if (is_mounted($dir)) {
 					@chmod($dir, 0777);
 					@chown($dir, 99);
