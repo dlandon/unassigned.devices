@@ -16,13 +16,7 @@ Tag="unlink"
 
 $plugin = "unassigned.devices";
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-$translations = file_exists("$docroot/webGui/include/Translations.php");
-require_once "$docroot/plugins/$plugin/include/Legacy.php";
-?>
-<?if (! $translations):?>
-<?eval('?>'.parse_file("$docroot/plugins/$plugin/UnassignedDevices.page"))?>
-<?else:?>
-<?
+
 /* read translations */
 parse_plugin('UnassignedDevices');
 
@@ -615,7 +609,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		<tr>
 			<td><?=_('Share Type')?></td>
 			<td><?=_('Source')?></td>
-			<td><?=_('Mount point')?></td>
+			<td><?=_('Mount Point')?></td>
 			<td></td>
 			<td><?=_('Remove')?></td>
 			<td><?=_('Settings')?></td>
@@ -1369,4 +1363,3 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		</script>
 	</div>
 </div>
-<?endif;?>

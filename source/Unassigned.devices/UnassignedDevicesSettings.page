@@ -17,13 +17,7 @@ Tag="unlink"
 
 $plugin			= "unassigned.devices";
 $docroot		= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-$translations	= file_exists("$docroot/webGui/include/Translations.php");
-require_once "$docroot/plugins/$plugin/include/Legacy.php";
-?>
-<?if (! $translations):?>
-<?eval('?>'.parse_file("$docroot/plugins/$plugin/UnassignedDevicesSettings.page"))?>
-<?else:?>
-<?
+
 require_once "plugins/$plugin/include/lib.php";
 
 $config_file = $paths['config_file'];
@@ -439,5 +433,3 @@ _(Select Disk)_:
 &nbsp;
 : <input type="submit" value='_(Change UUID)_' title='_(Change the disk UUID)_.' <?=count($uuid_devices) ? "" : "disabled";?>>
 </form>
-
-<?endif;?>

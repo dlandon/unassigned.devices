@@ -15,13 +15,6 @@ Tag="unlink"
 
 $plugin = "unassigned.devices";
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-$translations = file_exists("$docroot/webGui/include/Translations.php");
-require_once "$docroot/plugins/$plugin/include/Legacy.php";
-?>
-<?if (! $translations):?>
-<?eval('?>'.parse_file("$docroot/plugins/$plugin/EditDeviceSettings.page"))?>
-<?else:?>
-<?
 require_once("plugins/{$plugin}/include/lib.php");
 
 function safe_filename($string) {
@@ -480,4 +473,3 @@ _(User Script)_:
 		$.post("/update.php",{"#command":"/plugins/unassigned.devices/scripts/rm","#arg[1]":file}).done(function(){location.reload();});
 	}
 </script>
-<?endif;?>
