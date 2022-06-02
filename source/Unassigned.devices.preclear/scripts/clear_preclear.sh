@@ -50,7 +50,7 @@ get_serial()
 }
 
 
-for dir in $(find /tmp/.preclear -mindepth 1 -maxdepth 1 -type d ); do
+for dir in $(find /tmp/preclear -mindepth 1 -maxdepth 1 -type f ); do
 	pidfile="$dir/pid"
 	disk_name=$(basename $dir)
 	serial=$( get_serial $disk_name )
@@ -82,7 +82,7 @@ for dir in $(find /tmp/.preclear -mindepth 1 -maxdepth 1 -type d ); do
 		fi
 		tmux kill-session -t "$session"
 
-		rm -f "/tmp/preclear_stat_${disk_name}"
+		rm -f "/tmp/preclear/preclear_stat_${disk_name}"
 	fi
 done
 
