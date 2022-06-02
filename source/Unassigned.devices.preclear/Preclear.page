@@ -17,16 +17,9 @@ Tag="icon-preclear"
 
 $preclear_plugin	= "unassigned.devices.preclear";
 $docroot			= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-$translations 		= file_exists("$docroot/webGui/include/Translations.php");
-require_once 		"$docroot/plugins/{$preclear_plugin}/include/Legacy.php";
-?>
-<?if (! $translations):?>
-<?eval('?>'.parse_file("$docroot/plugins/{$preclear_plugin}/Preclear.page"))?>
-<?else:?>
-<?
 require_once("$docroot/plugins/{$preclear_plugin}/Preclear.php");
-$Preclear	= new Preclear;
-$zipFile	= sprintf("log/%s-%s-%s.zip", str_replace(' ','_',strtoupper($var['NAME'])), $preclear_plugin, date('Ymd-Hi') );
+$Preclear			= new Preclear;
+$zipFile			= sprintf("log/%s-%s-%s.zip", str_replace(' ','_',strtoupper($var['NAME'])), $preclear_plugin, date('Ymd-Hi') );
 ?>
 
 <script type="text/javascript">
@@ -167,4 +160,3 @@ $zipFile	= sprintf("log/%s-%s-%s.zip", str_replace(' ','_',strtoupper($var['NAME
 	});
 
 </script>
-<?endif;?>

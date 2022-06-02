@@ -16,17 +16,9 @@ set_exception_handler( "preclear_log_exception" );
 $preclear_plugin	= "unassigned.devices.preclear";
 $docroot			= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 
-$translations		= file_exists("{$docroot}/webGui/include/Translations.php");
-
-if ($translations) {
-	/* add translations */
-	$_SERVER['REQUEST_URI'] = 'preclear';
-	require_once "$docroot/webGui/include/Translations.php";
-} else {
-	/* legacy support (without javascript) */
-	$noscript = true;
-	require_once "$docroot/plugins/[$preclear_plugin]/include/Legacy.php";
-}
+/* add translations */
+$_SERVER['REQUEST_URI'] = 'preclear';
+require_once "$docroot/webGui/include/Translations.php";
 
 require_once( "webGui/include/Helpers.php" );
 require_once( "plugins/{$preclear_plugin}/include/lib.php" );
@@ -601,7 +593,7 @@ switch ($_POST['action'])
 		break;;
 
 	case 'clear_all_preclear':
-		shell_exec("/usr/local/emhttp/plugins/{$preclear_plugn}/scripts/clear_preclear.sh");
+		shell_exec("/usr/local/emhttp/plugins/{$preclear_plugin}/scripts/clear_preclear.sh");
 		echo json_encode(true);
 		break;;
 
