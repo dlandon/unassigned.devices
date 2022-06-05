@@ -1511,12 +1511,14 @@ function toggle_share($serial, $part, $status) {
 function add_smb_share($dir, $recycle_bin = true) {
 	global $paths, $var, $users;
 
+	/* Get the current UD configuration. */
+	$config = @parse_ini_file($paths['config_file'], true);
+	$config = $config["Config"];
+
 	/* Add mountpoint to samba shares. */
-	if ( ($var['shareSMBEnabled'] != "no") ) {
+	if ( ($var['shareSMBEnabled'] != "no") && ($config["smb_security"] != "no") ) {
 		/* Remove special characters from share name. */
 		$share_name = str_replace( array("(", ")"), "", basename($dir));
-		$config = @parse_ini_file($paths['config_file'], true);
-		$config = $config["Config"];
 
 		$vfs_objects = "";
 		$enable_fruit = get_config("Config", "mac_os");
