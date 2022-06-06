@@ -1314,7 +1314,9 @@ function do_mount_local($info) {
 				$o = "Install Unassigned Devices Plus to mount an apfs file system";
 			} else {
 				/* Create mount point and set permissions. */
-				@mkdir($dir, 0777, true);
+				if (! is_dir($dir)) {
+					@mkdir($dir, 0777, true);
+				}
 
 				/* Do the mount command. */
 				$o = shell_exec(escapeshellcmd($cmd)." 2>&1");
@@ -1332,9 +1334,9 @@ function do_mount_local($info) {
 			for ($i=0; $i < 5; $i++) {
 				if (is_mounted($dir)) {
 					if (! is_mounted_read_only($dir)) {
-						exec("/bin/chmod 0777 {$dir} 2>/dev/null");
-						exec("/bin/chown 99 {$dir} 2>/dev/null");
-						exec("/bin/chgrp 100 {$dir} 2>/dev/null");
+						exec("/bin/chmod 0777 escapeshellarg($dir) 2>/dev/null");
+						exec("/bin/chown 99 escapeshellarg($dir) 2>/dev/null");
+						exec("/bin/chgrp 100 escapeshellarg($dir) 2>/dev/null");
 					}
 
 					unassigned_log("Successfully mounted '".basename($dev)."' on '{$dir}'.");
@@ -1465,7 +1467,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false) {
 		for ($i=0; $i < 5; $i++) {
 			if ((! is_mounted($dev)) && (! is_mounted($dir))) {
 				if (is_dir($dir)) {
-					@rmdir($dir);
+					exec("/bin/rmdir ".escapeshellarg($dir)." 2>/dev/null");
 					$link = $paths['usb_mountpoint']."/".basename($dir);
 					if (is_link($link)) {
 						@unlink($link);
@@ -1944,7 +1946,9 @@ function do_mount_samba($info) {
 		$dev		= ($fs == "cifs") ? "//".$info['ip']."/".$info['path'] : $info['device'];
 		if (! is_mounted($dev) && ! is_mounted($dir)) {
 			/* Create the mount point and set permissions. */
-			@mkdir($dir, 0777, true);
+			if (! is_dir($dir)) {
+				@mkdir($dir, 0777, true);
+			}
 
 			if ($fs == "nfs") {
 				if ($var['shareNFSEnabled'] == "yes") {
@@ -2060,9 +2064,11 @@ function do_mount_samba($info) {
 
 			/* Did the share successfully mount? */
 			if (is_mounted($dev) && is_mounted($dir)) {
-				@chmod($dir, 0777);
-				@chown($dir, 99);
-				@chgrp($dir, 100);
+				if (! is_mounted_read_only($dir)) {
+					exec("/bin/chmod 0777 escapeshellarg($dir) 2>/dev/null");
+					exec("/bin/chown 99 escapeshellarg($dir) 2>/dev/null");
+					exec("/bin/chgrp 100 escapeshellarg($dir) 2>/dev/null");
+				}
 				$link = $paths['usb_mountpoint']."/";
 				if ((get_config("Config", "symlinks") == "yes" ) && (dirname($dir) == $paths['remote_mountpoint'])) {
 					$dir .= "/".
