@@ -15,10 +15,17 @@ $plugin = "unassigned.devices";
 require_once("plugins/{$plugin}/include/lib.php");
 
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+$translations = file_exists("$docroot/webGui/include/Translations.php");
 
-/* add translations */
-$_SERVER['REQUEST_URI'] = 'unassigneddevices';
-require_once "$docroot/webGui/include/Translations.php";
+if ($translations) {
+	/* add translations */
+	$_SERVER['REQUEST_URI'] = 'unassigneddevices';
+	require_once "$docroot/webGui/include/Translations.php";
+} else {
+	/* legacy support (without javascript) */
+	$noscript = true;
+	require_once "$docroot/plugins/$plugin/include/Legacy.php";
+}
 
 readfile('logging.htm');
 
@@ -96,11 +103,13 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 
 		/* Get the file system check command based on the file system. */
 		$command = get_fsck_commands($file_system, $device, $check_type)." 2>&1";
-		write_log(escapeshellcmd($command)."<br /><br />");
+		write_log($command."<br /><br />");
 		$proc = popen($command, 'r');
 		while (! feof($proc)) {
 			write_log(fgets($proc));
 		}
+		$rc_check = pclose($proc);
+//$rc_check = 2;
 	}
 
 	if (($fs == "crypto_LUKS") && (! $mounted)) {
@@ -111,5 +120,13 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 		}
 	}
 }
-write_log("<center><button type='button' onclick='document.location=\"/plugins/{$plugin}/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=rw&type="._('Done')."\"'>"._('Run with CORRECT flag')."</button></center>");
+write_log("Return code ".(int)$rc_check);
+if ($rc_check != 0) {
+	if (($file_system == "xfs") && ($rc_check == 2)) {
+		write_log("<center><button type='button' onclick='document.location=\"/plugins/{$plugin}/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=log&type="._('Done')."\"'>"._('Force Log Zeroing')."</button></center>");
+		write_log("<br />"._('Note: When using the Force Log Zeroing option the filesystem will likely appear to be corrupt, and can cause the loss of user files and/or data')."<br />");
+	} else {
+		write_log("<center><button type='button' onclick='document.location=\"/plugins/{$plugin}/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=rw&type="._('Done')."\"'>"._('Run with CORRECT flag')."</button></center>");
+	}
+}
 ?>

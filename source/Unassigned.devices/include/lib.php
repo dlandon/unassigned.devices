@@ -2553,7 +2553,7 @@ function get_partition_info($dev) {
 function get_fsck_commands($fs, $dev, $type = "ro") {
 	switch ($fs) {
 		case 'vfat':
-			$cmd = array('ro'=>'/sbin/fsck -n %s', 'rw'=>'/sbin/fsck -a %s');
+			$cmd = array('ro'=>'/sbin/fsck.vfat -n %s', 'rw'=>'/sbin/fsck -a %s');
 			break;
 
 		case 'ntfs':
@@ -2565,11 +2565,11 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 			break;
 
 		case 'xfs':
-			$cmd = array('ro'=>'/sbin/xfs_repair -n %s', 'rw'=>'/sbin/xfs_repair %s');
+			$cmd = array('ro'=>'/sbin/xfs_repair -n %s', 'rw'=>'/sbin/xfs_repair %s', 'log'=>'/sbin/xfs_repair -L %s');
 			break;
 
 		case 'exfat':
-			$cmd = array('ro'=>'/usr/sbin/fsck.exfat %s', 'rw'=>'/usr/sbin/fsck.exfat %s');
+			$cmd = array('ro'=>'/usr/sbin/fsck.exfat -n %s', 'rw'=>'/usr/sbin/fsck.exfat %s');
 			break;
 
 		case 'btrfs':
