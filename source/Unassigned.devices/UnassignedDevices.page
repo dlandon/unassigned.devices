@@ -557,32 +557,30 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 <?=$Preclear ? $Preclear->html() : "";?>
 
-<div class='show-disks'>
-	<table id ='usb_devices_list' class='disk_status wide disk_mounts'>
-		<thead>
-			<tr>
-				<td><?=('Device')?></td>
-				<td><?=('Identification')?></td>
-				<td></td>
-				<td><?=_('Temp')?>.</td>
-				<td><?=_('Reads')?></td>
-				<td><?=_('Writes')?></td>
-				<td><?=_('Settings')?></td>
-				<td><?=_('FS')?></td>
-				<td><?=_('Size')?></td>
-				<td><?=_('Used')?></td>
-				<td><?=_('Free')?></td>
-				<td><?=_('Log')?></td>
-			</tr>
-		</thead>
-		<tbody id="disk-table-body">
-			<tr>
-				<td colspan='12'><div class='spinner'></div>
-				</td>
-			</tr>
-		</tbody>
-	</table>
-</div>
+<table id ='usb_devices_list' class='disk_status wide disk_mounts show-disks'>
+	<thead>
+		<tr>
+			<td><?=('Device')?></td>
+			<td><?=('Identification')?></td>
+			<td></td>
+			<td><?=_('Temp')?>.</td>
+			<td><?=_('Reads')?></td>
+			<td><?=_('Writes')?></td>
+			<td><?=_('Settings')?></td>
+			<td><?=_('FS')?></td>
+			<td><?=_('Size')?></td>
+			<td><?=_('Used')?></td>
+			<td><?=_('Free')?></td>
+			<td><?=_('Log')?></td>
+		</tr>
+	</thead>
+	<tbody id="disk-table-body">
+		<tr>
+			<td colspan='12'><div class='spinner'></div>
+			</td>
+		</tr>
+	</tbody>
+</table>
 
 :unassgned_devices_switches_plug:
 > Turn on the **Disks** switch to change the web page to show disk devices. Turn off the **Disks** switch to change the web page to hide disk devices.
