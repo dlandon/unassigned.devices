@@ -109,7 +109,6 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 			write_log(fgets($proc));
 		}
 		$rc_check = pclose($proc);
-//$rc_check = 2;
 	}
 
 	if (($fs == "crypto_LUKS") && (! $mounted)) {
@@ -120,13 +119,17 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 		}
 	}
 }
-write_log("Return code ".(int)$rc_check);
 if ($rc_check != 0) {
 	if (($file_system == "xfs") && ($rc_check == 2)) {
+		write_log("<br />"._('Dirty log detected')."!<br />");
 		write_log("<center><button type='button' onclick='document.location=\"/plugins/{$plugin}/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=log&type="._('Done')."\"'>"._('Force Log Zeroing')."</button></center>");
-		write_log("<br />"._('Note: When using the Force Log Zeroing option the filesystem will likely appear to be corrupt, and can cause the loss of user files and/or data')."<br />");
+		write_log("<br />"._('Note: All metadata updates in progress at the time of the crash will be lost, which may cause significant filesystem damage').".&nbsp;&nbsp;");
+		write_log(_('This should only be used as a last resort if the filesystem cannot be mounted to replay the log').".<br />");
 	} else {
-		write_log("<center><button type='button' onclick='document.location=\"/plugins/{$plugin}/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=rw&type="._('Done')."\"'>"._('Run with CORRECT flag')."</button></center>");
+		write_log("<br />"._('File system corruption detected')."!<br />");
+		write_log("<center><button type='button' onclick='document.location=\"/plugins/{$plugin}/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=rw&type="._('Done')."\"'>"._('Run with Correct flag')."</button></center>");
 	}
+} else if ($file_system == "xfs") {
+	write_log("<br />"._('No file system corruption detected')."!<br />");
 }
 ?>
