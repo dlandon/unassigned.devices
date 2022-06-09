@@ -108,6 +108,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 		while (! feof($proc)) {
 			write_log(fgets($proc));
 		}
+		/* Close $proc and get the process error code. */
 		$rc_check = pclose($proc);
 	}
 
@@ -120,15 +121,17 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 	}
 }
 if ($rc_check != 0) {
-	if (($file_system == "xfs") && ($rc_check == 2)) {
+	if ((($file_system == "xfs") && ($rc_check == 1)) || ($file_system != "xfs")) {
+		write_log("<br />"._('File system corruption detected')."!<br />");
+		write_log("<center><button type='button' onclick='document.location=\"/plugins/{$plugin}/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=rw&type="._('Done')."\"'>"._('Run with Correct flag')."</button></center>");
+	} else if (($file_system == "xfs") && ($rc_check == 2)) {
 		write_log("<br />"._('Dirty log detected')."!<br />");
 		write_log("<center><button type='button' onclick='document.location=\"/plugins/{$plugin}/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=log&type="._('Done')."\"'>"._('Force Log Zeroing')."</button></center>");
 		write_log("<br />"._('Note: All metadata updates in progress at the time of the crash will be lost, which may cause significant filesystem damage').".&nbsp;&nbsp;");
 		write_log(_('This should only be used as a last resort if the filesystem cannot be mounted to replay the log').".<br />");
-	} else {
-		write_log("<br />"._('File system corruption detected')."!<br />");
-		write_log("<center><button type='button' onclick='document.location=\"/plugins/{$plugin}/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=rw&type="._('Done')."\"'>"._('Run with Correct flag')."</button></center>");
-	}
+	} else if (($file_system == "xfs") && ($rc_check == 4)){
+		write_log("<br />"._('File system corruption fixed')."!<br />");
+	} 
 } else if ($file_system == "xfs") {
 	write_log("<br />"._('No file system corruption detected')."!<br />");
 }

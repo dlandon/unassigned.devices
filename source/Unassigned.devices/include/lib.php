@@ -2565,7 +2565,7 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 			break;
 
 		case 'xfs':
-			$cmd = array('ro'=>'/sbin/xfs_repair -n %s', 'rw'=>'/sbin/xfs_repair %s', 'log'=>'/sbin/xfs_repair -L %s');
+			$cmd = array('ro'=>'/sbin/xfs_repair -n %s', 'rw'=>'/sbin/xfs_repair -e %s', 'log'=>'/sbin/xfs_repair -e -L %s');
 			break;
 
 		case 'exfat':
