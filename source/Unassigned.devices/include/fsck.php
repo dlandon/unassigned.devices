@@ -17,7 +17,7 @@ require_once("plugins/{$plugin}/include/lib.php");
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 
 /* add translations */
-$_SERVER['REQUEST_URI'] = 'unassigneddevices';
+$_SERVER['REQUEST_URI'] = 'fsck';
 require_once "$docroot/webGui/include/Translations.php";
 
 readfile('logging.htm');
