@@ -2850,7 +2850,7 @@ function change_UUID($dev) {
 		}
 	} else if ($fs_type == "xfs") {
 		/* Change the xfs UUID. */
-		$rc		= timed_exec(20, "/usr/sbin/xfs_admin -U generate ".escapeshellarg($device));
+		$rc		= timed_exec(60, "/usr/sbin/xfs_admin -U generate ".escapeshellarg($device));
 	} else if ($fs_type == "btrfs") {
 		/* Change the btrfs UUID. */
 		$rc		= timed_exec(20, "/sbin/btrfstune -uf ".escapeshellarg($device));
