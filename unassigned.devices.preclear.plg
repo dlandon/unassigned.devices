@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.05.17">
+<!ENTITY version	"2022.06.10">
 <!ENTITY launch		"Tools/Preclear">
 <!ENTITY gitURL		"https://github.com/&author;/unassigned.devices/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"577ab084159dbce8176c18f0ea7a45e3">
+<!ENTITY MD5		"077e95cb1527126bc97e21a91e2945fc">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
@@ -19,6 +19,10 @@
 
 <CHANGES>
 ##&name;
+- Fix: Preclear fix script not working.
+- Fix: Remove legacy code for language translations.
+
+###2022.05.17
 - Fix: Use the device id from devs.ini and not the id from the udev ID_MODEL and ID_SERIAL_SHORT.
 
 ###2022.05.03
