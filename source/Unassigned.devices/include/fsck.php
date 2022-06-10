@@ -22,6 +22,7 @@ require_once "$docroot/webGui/include/Translations.php";
 
 readfile('logging.htm');
 
+/* Write text to the pop up dialog. */
 function write_log($string) {
 	global $var;
 
@@ -34,6 +35,7 @@ function write_log($string) {
 	@flush();
 }
 
+/* Main entry point. */
 if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 	$device		= $_GET['device'];
 	$fs			= $_GET['fs'];
@@ -43,7 +45,10 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 	$mounted	= is_mounted($device);
 	$rc			= true;
 
+	/* Display the file system. */
 	write_log("FS: $fs<br /><br />");
+
+	/* If the disk format is encrypted, we need to open the luks device. */
 	if (($fs == "crypto_LUKS") && (! $mounted)) {
 		$mapper	= basename($device);
 		$cmd	= "luksOpen {$luks} ".escapeshellarg($mapper);
@@ -68,11 +73,12 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 			$rc = false;
 		}
 
+		/* Remove the password/passphrase. */
 		unset($pass);
 		exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 	}
 
-	/* If there was no error from the luks open command, then go ahead with the file check. */
+	/* If there was no error from the luks open command or the disk is not encrypted, go ahead with the file check. */
 	if ($rc) {
 		$file_system = $fs;
 		if ($fs == "crypto_LUKS") {
@@ -88,6 +94,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 			}
 		}
 
+		/* If the file system is btrfs, we will do a scrub. */
 		if ($file_system != "btrfs") {
 			write_log("Executing file system check:&nbsp;");
 		} else {
@@ -97,14 +104,18 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 		/* Get the file system check command based on the file system. */
 		$command = get_fsck_commands($file_system, $device, $check_type)." 2>&1";
 		write_log($command."<br /><br />");
+
+		/* Execute the fsck command and pipe it to $proc. */
 		$proc = popen($command, 'r');
 		while (! feof($proc)) {
 			write_log(fgets($proc));
 		}
+
 		/* Close $proc and get the process error code. */
 		$rc_check = pclose($proc);
 	}
 
+	/* Close the device if it is encrypted. */
 	if (($fs == "crypto_LUKS") && (! $mounted)) {
 		write_log("Closing crypto_LUKS device '$luks'...<br />");
 		$o = shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
@@ -113,6 +124,8 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 		}
 	}
 }
+
+/* Check the fsck return code and process the return code. */
 if ($rc_check != 0) {
 	if ((($file_system == "xfs") && ($rc_check == 1)) || ($file_system != "xfs")) {
 		write_log("<br />"._('File system corruption detected')."!<br />");

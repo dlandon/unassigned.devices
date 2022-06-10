@@ -14,6 +14,7 @@ $plugin = "unassigned.devices";
 $docroot = $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 require_once("$docroot/plugins/{$plugin}/include/lib.php");
 
+/* Save changed settings. */
 function save() {
 	global $paths;
 
@@ -21,6 +22,7 @@ function save() {
 	@copy("/boot/config/plugins/unassigned.devices/unassigned.devices.cfg", $paths['config_file']);
 }
 
+/* Save settings and update shares based on any changes to settings. */
 function apply() {
 	global $paths;
 
@@ -38,6 +40,7 @@ function apply() {
 	unassigned_log("Share settings updated.");
 }
 
+/* Change the UUID of a device. */
 function uuid_change() {
 	global $paths;
 
@@ -58,6 +61,7 @@ function uuid_change() {
 	save_ini_file($config_file, $cfg, false);
 }
 
+/* Set an encrypted device password. */
 function set_pass() {
 	global $paths;
 
@@ -76,27 +80,7 @@ function set_pass() {
 	set_config($serial, "pass", encrypt_data($password));
 }
 
-function set_mountpoint() {
-	global $paths;
-
-	$config_file = $paths['config_file'];
-	$cfg		= is_file($config_file) ? @parse_ini_file($config_file, true) : array();
-
-	/* Get the serial number. */
-	$serial		= $cfg['Config']['pool_serial'];
-
-	/* Get the new mount point. */
-	$mountpoint	= $cfg['Config']['pool_mountpoint'];
-
-	/* Now clear the settings from the tmp file. */
-	unset($cfg['Config']['pool_serial']);
-	unset($cfg['Config']['pool_mountpoint']);
-	save_ini_file($config_file, $cfg, false);
-
-	/* Update the mountpoint. */
-	set_config($serial, "mountpoint.1", $mountpoint);
-}
-
+/* Main entry point, */
 switch ($argv[1]) {
 	case 'save':
 		save();
@@ -112,10 +96,6 @@ switch ($argv[1]) {
 
 	case 'set_pass':
 		set_pass();
-		break;
-
-	case 'set_mountpoint':
-		set_mountpoint();
 		break;
 
 	default:

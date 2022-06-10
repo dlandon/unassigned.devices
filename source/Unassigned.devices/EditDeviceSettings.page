@@ -34,6 +34,7 @@ $fstype					= "";
 $volume					= "";
 $id_bus					= "";
 
+/* Main entry point. */
 if (isset($_GET['s'])) {
 	/* Disk devices. */
 	$serial				= $_GET['s'];
@@ -66,7 +67,7 @@ if (isset($_GET['s'])) {
 	$automount_action	= "automount";
 	$name				= get_config($serial, "unassigned_dev");
 	$ud_device			= $serial;
-	$serial 		   .= ($device) ? " (".$device.")" : "";
+	$serial 			.= ($device) ? " (".$device.")" : "";
 	$serial				.= $id_bus;
 	$background_action	= "background";
 	$share_action		= "toggle_share";
