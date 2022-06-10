@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.05.19">
+<!ENTITY version	"2022.06.10">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"884a94e45aa47af8d99dd9866996ccf3">
+<!ENTITY MD5		"b584c9bf15181c0ad9af67e687babeab">
 ]>
 
 <PLUGIN name="&name;"
@@ -21,7 +21,19 @@
 <CHANGES>
 ##&name;
 ###&version;
-- Add: 'Reboot' text with the not symbol on the mount button when the disk has not been properly unmounted.
+- Add: Check return codes from fsck.xfs and show correct buttons to make repairs.  This makes it easier for a user to follow the appropriate steps to correct xfs file system issues.
+- Add: Show 'Run With Correct Flag' when fsck detects a file system corruption.
+- Add: Show 'Force Log Zeroing' when fsck.xfs detects a file system dirty log.
+- Fix: Don't show disk devices that are zero size.
+- Fix: Remove version check for detection of 'Array' disk.  It's no longer necessary.
+- Fix: Remove legacy code for language translations.
+- Fix: SMB share settings being set when UD settings has SMB disabled.
+- Fix: Prevent php errors when the mount point cannot be created because it already exists.  This can occur with improper mapping of UD devices in VM or Docker containers.
+- Fix: Prevent php errors when the mount point cannot be removed because the mount point contains files.  This can occur with improper mapping of UD devices in VM or Docker containers.
+- Fix: Help not enabled on disks table header.
+
+###2022.05.19
+- Add: 'Reboot' text with the 'not' symbol on the mount button when the disk has not been properly unmounted.
 - Fix: Clear disk red 'X' icon shows when a disk has not been unmounted properly.
 
 ###2022.05.18
