@@ -2627,9 +2627,8 @@ function check_for_duplicate_share($dev, $mountpoint) {
 
 	/* Add the reserved names to the disk names. */
 	foreach ($reserved_names as $name) {
-		$name = strtoupper($name);
 		if (! in_array($name, $disk_names, true)) {
-			$disk_names[] = $name;
+			$disk_names[] = strtoupper($name);
 		}
 	}
 
@@ -2639,9 +2638,8 @@ function check_for_duplicate_share($dev, $mountpoint) {
 	/* Get an array of all ud shares. */
 	$share_names	= MiscUD::get_json($paths['share_names']);
 	foreach ($share_names as $device => $name) {
-		$name = strtoupper($name);
 		if (strpos($device, basename($dev)) === false) {
-			$ud_shares[] = $name;
+			$ud_shares[] = strtoupper($name);
 		}
 	}
 
