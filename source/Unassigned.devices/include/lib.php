@@ -2042,7 +2042,7 @@ function do_mount_samba($info) {
 					unassigned_log("SMB 2.0 mount failed: '{$o}'.");
 					if ($var['USE_NETBIOS'] == "yes") {
 						/* If the mount failed, try to mount with samba vers=1.0. */
-						$ver	= ",sec=ntlm,vers=1.0";
+						$ver	= ",vers=1.0";
 						$params	= sprintf(get_mount_params($fs, $dev), $ver);
 						$cmd	= "/sbin/mount -t ".escapeshellarg($fs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 
