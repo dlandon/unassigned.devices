@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.06.10">
+<!ENTITY version	"2022.06.19">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"b584c9bf15181c0ad9af67e687babeab">
+<!ENTITY MD5		"a4d9e9c0157770cb59225099b5a70d4f">
 ]>
 
 <PLUGIN name="&name;"
@@ -21,6 +21,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: 'Public' setting to SMB Security settings to share devices public.  The 'No' setting used to set 'Public' sharing.
+- Fix: Extend the change disk UUID timeout.
+- Fix: Remove the 'sec=ntlm' setting from SMB 1.0 mounts.  The default protocol is 'ntlm', so this really didn't do anything anyway.
+
+###2022.06.10
 - Add: Check return codes from fsck.xfs and show correct buttons to make repairs.  This makes it easier for a user to follow the appropriate steps to correct xfs file system issues.
 - Add: Show 'Run With Correct Flag' when fsck detects a file system corruption.
 - Add: Show 'Force Log Zeroing' when fsck.xfs detects a file system dirty log.
