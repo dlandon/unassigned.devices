@@ -17,7 +17,7 @@ export LC_CTYPE
 ionice -c3 -p$BASHPID
 
 # Version
-version="1.0.25"
+version="1.0.26"
 #
 # Change Log
 # 1.0.23
@@ -35,6 +35,9 @@ version="1.0.25"
 # 1.0.25
 # Only write resume file to flash when absolutely necessary.
 # Fix diff calculation when POS is H/M/S notation.
+#
+# 1.0.26
+# Remove SMART assessment in SMART report.
 #
 ######################################################
 ##													##
@@ -1907,7 +1910,8 @@ output_smart() {
 		sed -i "/^$attr/ s/$/|${msg}/" $nfinal
 	done < <(cat $nfinal | tail -n +2)
 	cat $nfinal | column -t -s '|' -o '	'> $output
-	timeout -s 9 30 smartctl --health $type $device | sed -n '/SMART DATA SECTION/,/^$/p'| tail -n +2 | head -n 1 >> $output
+	echo "" >> $output
+#	timeout -s 9 30 smartctl --health $type $device | sed -n '/SMART DATA SECTION/,/^$/p'| tail -n +2 | head -n 1 >> $output
 	rm $nfinal
 }
 
