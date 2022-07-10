@@ -408,9 +408,6 @@ switch ($_POST['action'])
 			}
 
 			reload_partition($serial);
-
-			/* Trigger a hot plug event for UD. */
-			@file_put_contents($GLOBALS['hotplug_event'], "");
 		}
 
 		echo json_encode(true);
