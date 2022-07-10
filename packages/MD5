@@ -1,9 +1,11 @@
 7535b1bd7122c4ffcbac6e2bff22144f  apfsfuse-v20200708-x86_64-1.txz
 5f7e017b6a56075b6232483b8028a37c  exfat-utils-1.3.0-x86_64-1_slonly.txz
 97298a972e2c0ac0ea12256134a2a723  fuse-exfat-1.3.0-x86_64-1_slonly.txz
+27dec6e0c0fdc793c865b1ef49c2d4ec  glibc-2.35-x86_64-2.txz
 9ddd7cb7e0782e9fb7756b1946808228  hfsprogs-332.25-x86_64-2sl.txz
 1b8dbaa180721964bf9d864e50dae1ac  libbsd-0.10.0-x86_64-2_slonly.txz
 0ba0a06b7e079585060b9e32fd90c58f  libevent-2.1.12-x86_64-1.txz
 0f298896be48094a690a19cdc5e0c1e6  parted-3.3-x86_64-1.txz
 c8367090c89d26690be706c7fb3db5fc  tmux-3.1b-x86_64-1.txz
+6f929e52a448007bf5468ae541fda15c  tmux-3.3a-x86_64-1.txz
 4cdaf07c99e2264e8b354b23c84b0431  utempter-1.2.0-x86_64-3.txz
