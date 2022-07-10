@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.06.10">
+<!ENTITY version	"2022.07.10">
 <!ENTITY launch		"Tools/Preclear">
 <!ENTITY gitURL		"https://github.com/&author;/unassigned.devices/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"077e95cb1527126bc97e21a91e2945fc">
+<!ENTITY MD5		"61b6a85da757a4917fa2bc60394cebd5">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
@@ -19,6 +19,10 @@
 
 <CHANGES>
 ##&name;
+- Fix: Remove the SMART self-assessment text from the SMART report.  It is confusing when trying to decide if a disk is failing.
+- Fix: UI appears to hang when stopping a single disk preclear.
+
+###2022.06.10
 - Fix: Preclear fix script not working.
 - Fix: Remove legacy code for language translations.
 
