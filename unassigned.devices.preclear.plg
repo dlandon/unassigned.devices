@@ -1,7 +1,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.07.10a">
+<!ENTITY version	"2022.07.11">
 <!ENTITY launch		"Tools/Preclear">
 <!ENTITY gitURL		"https://github.com/&author;/unassigned.devices/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
@@ -19,6 +19,9 @@
 
 <CHANGES>
 ##&name;
+- Fix: Revert tmux to 3.1b for Unraid 6.10.
+
+###2022.07.10a
 - Fix: Remove the SMART self-assessment text from the SMART report.  It is confusing when trying to decide if a disk is failing.
 - Fix: UI appears to hang when stopping a single disk preclear.
 - Fix: Update tmux to 3.3a ad add glibc required by tmux.
@@ -104,20 +107,13 @@ Get the plugin bundle.
 </FILE>
 
 <!--
-tmux-3.3a-x86_64-1.txz
+tmux-3.1b-x86_64-1.txz
 -->
-<FILE Name="/boot/config/plugins/&name;/tmux-3.3a-x86_64-1.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/tmux-3.3a-x86_64-1.txz"</URL>
-<MD5>6f929e52a448007bf5468ae541fda15c</MD5>
+<FILE Name="/boot/config/plugins/&name;/tmux-3.1b-x86_64-1.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/tmux-3.1b-x86_64-1.txz"</URL>
+<MD5>c8367090c89d26690be706c7fb3db5fc</MD5>
 </FILE>
 
-<!--
-glibc-2.35-x86_64-2.txz
--->
-<FILE Name="/boot/config/plugins/&name;/glibc-2.35-x86_64-2.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/glibc-2.35-x86_64-2.txz"</URL>
-<MD5>27dec6e0c0fdc793c865b1ef49c2d4ec</MD5>
-</FILE>
 <!--
 utempter-1.2.0-x86_64-3.txz
 -->
@@ -125,13 +121,6 @@ utempter-1.2.0-x86_64-3.txz
 <URL>"&gitURL;/packages/utempter-1.2.0-x86_64-3.txz"</URL>
 <MD5>4cdaf07c99e2264e8b354b23c84b0431</MD5>
 </FILE>
-
-<!--
-The 'preclear_disk_ori.sh' script.
-<FILE Name="/boot/config/plugins/&name;/preclear_disk_ori.sh">
-<URL>&gitURL;/packages/preclear_disk_ori.sh</URL>
-</FILE>
--->
 
 <!--
 The 'pre-install' script.
