@@ -1334,9 +1334,9 @@ function do_mount_local($info) {
 			for ($i=0; $i < 5; $i++) {
 				if (is_mounted($dir)) {
 					if (! is_mounted_read_only($dir)) {
-						exec("/bin/chmod 0777 escapeshellarg($dir) 2>/dev/null");
-						exec("/bin/chown 99 escapeshellarg($dir) 2>/dev/null");
-						exec("/bin/chgrp 100 escapeshellarg($dir) 2>/dev/null");
+						exec("/bin/chmod 0777 ".escapeshellarg($dir)." 2>/dev/null");
+						exec("/bin/chown 99 ".escapeshellarg($dir)." 2>/dev/null");
+						exec("/bin/chgrp 100 ".escapeshellarg($dir)." 2>/dev/null");
 					}
 
 					unassigned_log("Successfully mounted '".basename($dev)."' on '{$dir}'.");
@@ -2065,9 +2065,9 @@ function do_mount_samba($info) {
 			/* Did the share successfully mount? */
 			if (is_mounted($dev) && is_mounted($dir)) {
 				if (! is_mounted_read_only($dir)) {
-					exec("/bin/chmod 0777 escapeshellarg($dir) 2>/dev/null");
-					exec("/bin/chown 99 escapeshellarg($dir) 2>/dev/null");
-					exec("/bin/chgrp 100 escapeshellarg($dir) 2>/dev/null");
+					exec("/bin/chmod 0777 ".escapeshellarg($dir)." 2>/dev/null");
+					exec("/bin/chown 99 ".escapeshellarg($dir)." 2>/dev/null");
+					exec("/bin/chgrp 100 ".escapeshellarg($dir)." 2>/dev/null");
 				}
 				$link = $paths['usb_mountpoint']."/";
 				if ((get_config("Config", "symlinks") == "yes" ) && (dirname($dir) == $paths['remote_mountpoint'])) {
