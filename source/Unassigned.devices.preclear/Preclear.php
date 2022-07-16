@@ -254,14 +254,15 @@ switch ($_POST['action'])
 
 		if (count($devices)) {
 			foreach ($devices as $device) {
-				$serial	= $Preclear->diskSerial($device);
-				$session = "preclear_disk_{$serial}";
+				$serial		= $Preclear->diskSerial($device);
+				$session	= "preclear_disk_{$serial}";
 				$op			= (isset($_POST['op']) && $_POST['op'] != "0") ? urldecode($_POST['op']) : "";
 				$file		= (isset($_POST['file'])) ? urldecode($_POST['file']) : "";
 				$scope		= $_POST['scope'];
 				$script		= $script_files[$scope];
 				$devname	= basename($device);
-				# Verify if the disk is suitable to preclear
+
+				/* Verify if the disk is suitable to preclear */
 				if ( $Preclear->isRunning($device) || (array_key_exists($devname, $Preclear->allDisks) && $Preclear->allDisks[$devname]["MOUNTED"] )) {
 					preclear_log("Disk {$serial} not suitable for preclear.");
 					continue;
@@ -483,7 +484,7 @@ switch ($_POST['action'])
 	case 'remove_report':
 		$file = $_POST['file'];
 		if (! is_bool( strpos($file, $GLOBALS['preclear_reports']))) {
-			unlink($file);
+			@unlink($file);
 			echo "true";
 		}
 		preclear_log("Preclear report '".$file."' removed");
@@ -517,7 +518,7 @@ switch ($_POST['action'])
 		$disk = $_POST['disk'];
 		$file = $GLOBALS['tmp_preclear'].$disk."/pause";
 		if (file_exists($file)) {
-			unlink($file);
+			@unlink($file);
 		}
 		preclear_log("Preclear resumed on ".$disk);
 		echo json_encode(true);
@@ -569,7 +570,7 @@ switch ($_POST['action'])
 		$paused = glob($GLOBALS['tmp_preclear']."*/pause");
 		if ($paused) {
 			foreach ($paused as $file) {
-				unlink($file);
+				@unlink($file);
 			}
 		}
 		preclear_log("Preclear resumed on all devices.");
@@ -689,7 +690,7 @@ switch ($_GET['action']) {
 		header('Content-Length: ' . filesize($tmpfile));
 		readfile($tmpfile);
 
-		unlink($tmpfile);
+		@unlink($tmpfile);
 		break;
 }
 

@@ -251,7 +251,7 @@ function startPreclear(serial, multiple = "no")
 			if(serial) {
 				opts["device"].push(getDiskInfo(serial, 'DEVICE'));
 			}
-			popup = $(".swal-content");
+			popup			= $(".swal-content");
 			opts["action"]	= "start_preclear";
 			opts["op"]		= getVal(popup, "op");
 			opts["scope"]	= preclear_scope;
