@@ -358,9 +358,6 @@ switch ($_POST['action'])
 					}
 				}
 			}
-
-			/* Trigger a hot plug event for UD. */
-			@file_put_contents($GLOBALS['hotplug_event'], "");
 		} else {
 			$success = false;
 		}
