@@ -444,24 +444,12 @@ function is_disk_running($ud_dev, $dev) {
 		if (isset($devs[$ud_dev])) {
 			$rc			= ($devs[$ud_dev]['spundown'] == '0') ? true : false;
 			$device		= $ud_dev;
-			$run_devs	= true;
 			$timestamp	= time();
 		}
 	}
 
-	/* If the spindown can't be gotten from the devs state, do hdparm to get it. */
+	/* Get the current run status. */
 	$run_status	= MiscUD::get_json($tc);
-	if (! $run_devs) {
-		$device = basename($dev);
-		if (isset($run_status[$device]) && ((time() - $run_status[$device]['timestamp']) < 60)) {
-			$rc			= ($run_status[$device]['running'] == 'yes') ? true : false;
-			$timestamp	= $run_status[$device]['timestamp'];
-		} else {
-			$state		= trim(timed_exec(10, "/usr/sbin/hdparm -C ".escapeshellarg($dev)." 2>/dev/null | /bin/grep -c standby"));
-			$rc			= ($state == 0) ? true : false;
-			$timestamp	= time();
-		}
-	}
 
 	/* Update the spin status. */
 	$spin		= isset($run_status[$device]['spin']) ? $run_status[$device]['spin'] : "";
