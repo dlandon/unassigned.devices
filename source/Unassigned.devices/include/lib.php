@@ -33,7 +33,6 @@ $paths = [	"smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"state"				=> "/var/state/{$plugin}/{$plugin}.ini",
 			"diag_state"		=> "/var/local/emhttp/{$plugin}.ini",
 			"mounted"			=> "/var/state/{$plugin}/{$plugin}.json",
-			"hdd_temp"			=> "/var/state/{$plugin}/hdd_temp.json",
 			"run_status"		=> "/var/state/{$plugin}/run_status.json",
 			"ping_status"		=> "/var/state/{$plugin}/ping_status.json",
 			"df_status"			=> "/var/state/{$plugin}/df_status.json",
@@ -573,10 +572,9 @@ function is_script_running($cmd, $user = false) {
 
 /* Get disk temperature. */
 function get_temp($ud_dev, $dev, $running) {
-	global $var, $paths;
+	global $paths;
 
 	$rc		= "*";
-	$temp	= "";
 	$sf		= $paths['dev_state'];
 	$device	= basename($dev);
 
@@ -584,23 +582,7 @@ function get_temp($ud_dev, $dev, $running) {
 	if (is_file($sf)) {
 		$devs = @parse_ini_file($sf, true);
 		if (isset($devs[$ud_dev])) {
-			$temp	= $devs[$ud_dev]['temp'];
-			$rc		= $temp;
-		}
-	}
-
-	/* If devs.ini does not exist, then query the disk for the temperature. */
-	if (($running) && (! $temp)) {
-		$tc		= $paths['hdd_temp'];
-		$temps	= MiscUD::get_json($tc);
-		if (isset($temps[$device]) && ((time() - $temps[$device]['timestamp']) < $var['poll_attributes']) ) {
-			$rc = $temps[$device]['temp'];
-		} else {
-			$temp	= trim(timed_exec(10, "/usr/sbin/smartctl -n standby -A ".escapeshellarg($dev)." | /bin/awk 'BEGIN{t=\"*\"} $1==\"Temperature:\"{t=$2;exit};$1==190||$1==194{t=$10;exit} END{print t}'"));
-			$temp	= ($temp < 128) ? $temp : "*";
-			$temps[$device] = array('timestamp' => time(), 'temp' => $temp);
-			MiscUD::save_json($tc, $temps);
-			$rc		= $temp;
+			$rc	= $devs[$ud_dev]['temp'];
 		}
 	}
 
