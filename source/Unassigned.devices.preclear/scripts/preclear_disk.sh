@@ -2551,6 +2551,8 @@ else
 	write_op="zero"
 fi
 
+# Numner of times to try the current operation
+
 retries=5
 
 for cycle in $(seq $cycles); do
@@ -2648,7 +2650,7 @@ for cycle in $(seq $cycles); do
 				# update elapsed time
 				#
 				time_elapsed main && time_elapsed cycle
-				debug "Pre-read: pre-read verification started ($x/$retries) ..."
+				debug "Pre-read: pre-read verification started $x of $retries retries..."
 				
 				read_the_disk no-verify preread start_bytes start_timer preread_average preread_speed
 				ret_val=$?
@@ -2716,7 +2718,7 @@ for cycle in $(seq $cycles); do
 				# update elapsed time
 				#
 				time_elapsed main && time_elapsed cycle 
-				debug "Erasing: erasing the disk started ($x/$retries) ..."
+				debug "Erasing: erasing the disk started $x of $retries retries..."
 
 				write_the_disk erase start_bytes start_timer write_average write_speed
 				ret_val=$?
@@ -2778,7 +2780,7 @@ for cycle in $(seq $cycles); do
 			# update elapsed time
 			#
 			time_elapsed main && time_elapsed cycle 
-			debug "${title_write}: ${title_write,,} the disk started ($x/$retries) ..."
+			debug "${title_write}: ${title_write,,} the disk started $x of $retries retries..."
 
 			write_the_disk $write_op start_bytes start_timer write_average write_speed
 			ret_val=$?
@@ -2907,7 +2909,7 @@ for cycle in $(seq $cycles); do
 				# update elapsed time
 				#
 				time_elapsed main && time_elapsed cycle
-				debug "Post-Read: post-read verification started ($x/$retries) ..."
+				debug "Post-Read: post-read verification started $x of $retries retries..."
 
 				read_the_disk verify postread start_bytes start_timer postread_average postread_speed
 				ret_val=$?
