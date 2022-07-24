@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.07.11">
+<!ENTITY version	"2022.07.24">
 <!ENTITY launch		"Tools/Preclear">
 <!ENTITY gitURL		"https://github.com/&author;/unassigned.devices/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"61b6a85da757a4917fa2bc60394cebd5">
+<!ENTITY MD5		"f0f7ddea765f18b46015a2ef77fdaca3">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
@@ -19,12 +19,17 @@
 
 <CHANGES>
 ##&name;
+- Add: Install tmux 3.3a for Unraid 6.11.
+- Fix: Delay when starting a preclear when a disk is spun down.
+- Fix: Remove legacy code from plugin file.  It was causing an error when installing the plugin.
+
+###2022.07.11
 - Fix: Revert tmux to 3.1b for Unraid 6.10.
 
 ###2022.07.10a
 - Fix: Remove the SMART self-assessment text from the SMART report.  It is confusing when trying to decide if a disk is failing.
 - Fix: UI appears to hang when stopping a single disk preclear.
-- Fix: Update tmux to 3.3a ad add glibc required by tmux.
+- Fix: Update tmux to 3.3a and add glibc package required by tmux.
 
 ###2022.06.10
 - Fix: Preclear fix script not working.
@@ -60,7 +65,7 @@
 - Add: Remove libevent (it's included in Unraid) and update utempter package.
 - Fix: Right justify the preclear results on the status page.
 
-### 2022.02.27
+###2022.02.27
 - Initial release.
 </CHANGES>
 
@@ -112,6 +117,14 @@ tmux-3.1b-x86_64-1.txz
 <FILE Name="/boot/config/plugins/&name;/tmux-3.1b-x86_64-1.txz" Run="upgradepkg --install-new">
 <URL>"&gitURL;/packages/tmux-3.1b-x86_64-1.txz"</URL>
 <MD5>c8367090c89d26690be706c7fb3db5fc</MD5>
+</FILE>
+
+<!--
+tmux-3.3a-x86_64-1.txz
+-->
+<FILE Min='6.11.0-rc1' Name="/boot/config/plugins/&name;/tmux-3.3a-x86_64-1.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/tmux-3.3a-x86_64-1.txz"</URL>
+<MD5>6f929e52a448007bf5468ae541fda15c</MD5>
 </FILE>
 
 <!--
@@ -216,28 +229,6 @@ echo " Copyright 2022, &author;"
 echo " Version: &version;"
 echo "-----------------------------------------------------------"
 echo ""
-</INLINE>
-</FILE>
-
-<!-- 
-Change image icon to font icon if possible
--->
-<FILE Run="/usr/bin/at -M now 2>/dev/null ">
-<INLINE>
-#!/bin/bash
-
-# Change PNG icon to SVG icon if possible
-font_file="/usr/local/emhttp/webGui/styles/font-unraid.svg"
-if [ -f "$font_file" ]; then
-	icon_exists=$(grep -c "preclear" "$font_file" 2>/dev/null)
-	if [ "$icon_exists" -gt 0 ]; then
-		sed -i -e 's/&name;.png/icon-preclear/g' /usr/local/emhttp/plugins/&name;/Preclear.page
-		sed -i -e '/^---/i Tag=\"icon-preclear\"' /usr/local/emhttp/plugins/&name;/Preclear.page
-	elif [ "$icon_exists" -eq 0 ]; then
-		sleep 5
-		sed -i -e 's/icon=\"icon-preclear\"//g' /boot/config/plugins/&name;.plg
-	fi
-fi
 </INLINE>
 </FILE>
 
