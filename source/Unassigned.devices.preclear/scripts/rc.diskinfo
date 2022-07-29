@@ -14,7 +14,13 @@
 declare(ticks = 1);
 set_time_limit(0);
 
-require_once( "webGui/include/Helpers.php" );
+$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+require_once( "$docroot/webGui/include/Helpers.php" );
+
+/* add translations */
+$_SERVER['REQUEST_URI'] = 'preclear';
+require_once "$docroot/webGui/include/Translations.php";
+
 ##############################
 ######	ERROR HANDLING	######
 ##############################
@@ -440,9 +446,8 @@ class Disks
 				}
 
 				$disk['FIRMWARE']	= $parse_smart($smartInfo, "Firmware Version");
-				$disk['SIZE']		= $current["SIZE"];
-				$disk['SIZE_H']		= trim(timed_exec(1, "/usr/bin/numfmt --to=si --suffix=B --format='%1.f' --round=nearest ".escapeshellarg($disk['SIZE'])." 2>/dev/null"));
-				$disk['SIZE_H']		= preg_replace("/(^\d+)(.*)/", "$1 $2", $disk['SIZE_H']);
+				$disk['SIZE']		= $current['SIZE'];
+				$disk['SIZE_H']		= my_scale($disk['SIZE'], $unit, -1, -1)." {$unit}";
 				$disk["DEVICE"]		= $device;
 
 				$smartInfo = implode(PHP_EOL, $smartInfo);
