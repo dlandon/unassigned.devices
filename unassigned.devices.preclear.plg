@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.07.24a">
+<!ENTITY version	"2022.07.29">
 <!ENTITY launch		"Tools/Preclear">
 <!ENTITY gitURL		"https://github.com/&author;/unassigned.devices/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"f0f7ddea765f18b46015a2ef77fdaca3">
+<!ENTITY MD5		"8a749f0928aadd6794ee96458616b287">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
@@ -19,6 +19,9 @@
 
 <CHANGES>
 ##&name;
+- Fix: Use standard Unraid disk size display format.  Fixes where Preclear showed a 1.5TB disk as 2TB because of a rounding up issue in the preclear plugin.
+
+###2022.07.24a
 - Add: Install tmux 3.3a for Unraid 6.11.
 - Fix: Delay when starting a preclear when a disk is spun down.
 - Fix: Remove legacy code from plugin file.  It was causing an error when installing the plugin.
