@@ -523,7 +523,7 @@ switch ($_POST['action']) {
 				$o_disks .= ($p)?$p[7]:"<td></td>";
 
 				/* Disk size. */
-				$o_disks .= "<td>".my_scale($disk['size'],$unit)." {$unit}</td>";
+				$o_disks .= "<td>".my_scale($disk['size'], $unit)." {$unit}</td>";
 
 				/* Disk used and free space. */
 				$o_disks .= ($p)?$p[8]:"<td></td><td></td>";
