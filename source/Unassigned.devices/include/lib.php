@@ -774,7 +774,7 @@ function format_disk($dev, $fs, $pass) {
 
 				unassigned_log("Reloading disk '".$dev."' partition table.");
 
-				/* Reload partition table. */
+				/* Reload the partition table. */
 				$o = trim(shell_exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." 2>&1"));
 				if ($o) {
 					unassigned_log("Reload partition table result:\n".$o);
@@ -887,7 +887,7 @@ function timed_exec($timeout = 10, $cmd) {
 	$out		= shell_exec("/usr/bin/timeout ".escapeshellarg($timeout)." ".$cmd);
 	$time		+= microtime(true);
 	if ($time > $timeout) {
-		unassigned_log("Error: shell_exec(".$cmd.") took longer than ".sprintf('%d', $timeout)."s!");
+		unassigned_log("Warning: shell_exec(".$cmd.") took longer than ".sprintf('%d', $timeout)."s!");
 		$out	= "command timed out";
 	} else {
 		unassigned_log("Timed Exec: shell_exec(".$cmd.") took ".sprintf('%f', $time)."s!", $GLOBALS['CMD_DEBUG']);
