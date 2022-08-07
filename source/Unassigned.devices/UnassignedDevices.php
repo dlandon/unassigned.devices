@@ -465,22 +465,18 @@ switch ($_POST['action']) {
 				} else {
 					$str = "Device?name";
 					if (! $preclearing ) {
-						if (! $disk['ssd']) {
-							if (! is_disk_spin($disk['ud_dev'], $disk['running'])) {
-								if ($disk['running']) {
-									$o_disks .= "<a style='cursor:pointer' class='exec info' onclick='spin_down_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle green-orb'></i><span>"._("Click to spin down device")."</span></a>";
-								} else {
-									$o_disks .= "<a style='cursor:pointer' class='exec info' onclick='spin_up_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle grey-orb'></i><span>"._("Click to spin up device")."</span></a>";
-								}
+						if (! is_disk_spin($disk['ud_dev'], $disk['running'])) {
+							if ($disk['running']) {
+								$o_disks .= "<a style='cursor:pointer' class='exec info' onclick='spin_down_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle green-orb'></i><span>"._("Click to spin down device")."</span></a>";
 							} else {
-								if ($disk['running']) {
-									$o_disks .= "<i class='fa fa-refresh fa-spin green-orb'></i>";
-								} else {
-									$o_disks .= "<i class='fa fa-refresh fa-spin grey-orb'></i>";
-								}
+								$o_disks .= "<a style='cursor:pointer' class='exec info' onclick='spin_up_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle grey-orb'></i><span>"._("Click to spin up device")."</span></a>";
 							}
 						} else {
-							$o_disks .= "<a class='info'><i class='fa fa-circle green-orb'></i><span>"._("SSD cannot be spun down")."</span></a>";
+							if ($disk['running']) {
+								$o_disks .= "<i class='fa fa-refresh fa-spin green-orb'></i>";
+							} else {
+								$o_disks .= "<i class='fa fa-refresh fa-spin grey-orb'></i>";
+							}
 						}
 					} else {
 						$o_disks .= "<i class='fa fa-circle ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>";
