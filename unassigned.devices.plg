@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.07.12">
+<!ENTITY version	"2022.08.07">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"b3853fc045057cca2f08266941c0d243">
+<!ENTITY MD5		"abbd2fa390b349f468672812c0bc1f17">
 ]>
 
 <PLUGIN name="&name;"
@@ -21,6 +21,12 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Remove legacy hdd temperature code.  Starting with Unraid 6.9, UD does not need to query disks for temperature.
+- Fix: Remove legacy hdd spinning check.  Starting with Unraid 6.9, UD does not need to query disks for standby status.
+- Fix: Change command timeout log message from 'Error' to 'Warning'.
+- Add: Remove block on spin down of SSD devices.  6.11 now supports spin down on SSD disks.
+
+###2022.07.12
 - Fix: Bash errors when setting permissions on mount point when mounting disks and remote shares.
 
 ###2022.07.04
