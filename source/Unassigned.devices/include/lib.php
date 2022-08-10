@@ -2356,7 +2356,16 @@ function get_udev_info($dev, $udev = null) {
 	if ($udev) {
 		unassigned_log("Udev: Update udev info for ".$dev.".", $GLOBALS['UDEV_DEBUG']);
 
-		$state[$device]= $udev;
+ 		if ($udev['ACTION'] != "remove") {
+			$state[$device] = $udev;
+		} else {
+			$serial	= $udev['ID_SERIAL'];
+			foreach ($state as $key => $val) {
+				if ($val['ID_SERIAL'] == $serial) {
+					unset($state[$key]);
+				}
+			}
+		}
 		save_ini_file($paths['state'], $state);
 
 		/* Write to temp file and then move to destination file. */
