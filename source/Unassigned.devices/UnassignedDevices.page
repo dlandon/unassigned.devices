@@ -97,12 +97,12 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 <script type="text/javascript">
 
 	function spin_down_disk(dev) {
-		document.getElementById('disk_orb-'+dev).className = "fa fa-refresh fa-spin orb green-orb";
+		document.getElementById('disk_orb-'+dev).className = "fa fa-refresh fa-spin green-orb";
 		$.post(UDURL, {'action' : 'spin_down_disk', device:dev});
 	}
 
 	function spin_up_disk(dev) {
-		document.getElementById('disk_orb-'+dev).className = "fa fa-refresh fa-spin orb grey-orb";
+		document.getElementById('disk_orb-'+dev).className = "fa fa-refresh fa-spin grey-orb";
 		$.post(UDURL, {'action' : 'spin_up_disk', device:dev});
 	}
 
