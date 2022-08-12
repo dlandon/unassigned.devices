@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.08.07">
+<!ENTITY version	"2022.08.12">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"abbd2fa390b349f468672812c0bc1f17">
+<!ENTITY MD5		"3b299429db5070c6e4be43443f9febfb">
 ]>
 
 <PLUGIN name="&name;"
@@ -21,6 +21,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Remove all entries in the cached udev for a disk device when it is removed.  If the udev info is not removed and the device is changed on another computer, the udev info UD uses will be stale.
+- Fix: Minor cosmetic adjustment to disk orbs.
+
+###2022.08.07
 - Fix: Remove legacy hdd temperature code.  Starting with Unraid 6.9, UD does not need to query disks for temperature.
 - Fix: Remove legacy hdd spinning check.  Starting with Unraid 6.9, UD does not need to query disks for standby status.
 - Fix: Change command timeout log message from 'Error' to 'Warning'.
