@@ -178,9 +178,9 @@ switch ($_POST['action'])
 				$disk_orb		= "<i class='fa fa-circle orb ".($disk['RUNNING'] ? "green-orb" : "grey-orb")."'></i>";
 				$disk_icon		= $disk['SSD'] ? "icon-nvme" : "fa fa-hdd-o";
 				$serial			= trim($disk['SERIAL'])." (".$disk_name.")";
-				$precleared		.= $disk['PRECLEAR'] && ! $disk['PRECLEARING'] ? " - <em>Precleared</em>" : "";
+				$precleared		= $disk['PRECLEAR'] && ! $disk['PRECLEARING'] ? " - <em>Precleared</em>" : "";
 				$temp			= $disk['TEMP'] ? my_temp($disk['TEMP']) : "*";
-				$disk_reports	 = array_filter($reports, function ($report) use ($disk) {
+				$disk_reports	= array_filter($reports, function ($report) use ($disk) {
 									return preg_match("|".$disk["SERIAL_SHORT"]."|", $report) && ( preg_match("|_report_|", $report) || preg_match("|_rpt_|", $report) );
 									});
 
