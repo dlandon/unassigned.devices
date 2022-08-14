@@ -1,12 +1,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.07.29">
+<!ENTITY version	"2022.08.14">
 <!ENTITY launch		"Tools/Preclear">
 <!ENTITY gitURL		"https://github.com/&author;/unassigned.devices/raw/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"8a749f0928aadd6794ee96458616b287">
+<!ENTITY MD5		"97f7fa811f1cbfa6b9a669665542d3d7">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
@@ -19,6 +19,10 @@
 
 <CHANGES>
 ##&name;
+- Fix: Php array error in rc.diskinfo under certain circumstances.
+- Fix: Disk incorrectly shows as 'precleared' when it is not.
+
+###2022.07.29
 - Fix: Use standard Unraid disk size display format.  Fixes where Preclear showed a 1.5TB disk as 2TB because of a rounding up issue in the preclear plugin.
 
 ###2022.07.24a
