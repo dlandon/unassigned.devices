@@ -1,9 +1,10 @@
+<?xml version='1.0' standalone='yes'?>
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.08.12">
+<!ENTITY version	"2022.08.19">
 <!ENTITY launch		"Main/UnassignedDevices">
-<!ENTITY gitURL		"https://github.com/&author;/&name;/raw/master">
+<!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
 <!ENTITY MD5		"3b299429db5070c6e4be43443f9febfb">
@@ -21,6 +22,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Reference to GitHub repository.
+
+###2022.08.12
 - Fix: Remove all entries in the cached udev for a disk device when it is removed.  If the udev info is not removed and the device is changed on another computer, the udev info UD uses will be stale.
 - Fix: Minor cosmetic adjustment to disk orbs.
 
@@ -2004,16 +2008,9 @@ rm -r /tmp/&name; 2>/dev/null
 # Remove the unassigned devices 'bundle' so it will be downloaded if re-installed.
 rm -rf /boot/config/plugins/&name;/&name;-&version;.tgz
 
-# Remove Unassigned Devices Plus plugin
-if [ -f /var/log/plugins/&name;-plus.plg ] ; then
-	plugin remove &name;-plus.plg
-	rm -rf /boot/config/plugins/&name;-plus.plg
-fi
-
 # Remove Unassigned Devices Preclear plugin
 if [ -f /var/log/plugins/&name;.preclear.plg ] ; then
 	plugin remove &name;.preclear.plg
-	rm -rf /boot/config/plugins/&name;.preclear.plg
 fi
 
 echo ""
