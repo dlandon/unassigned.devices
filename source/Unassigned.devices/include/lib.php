@@ -2727,7 +2727,6 @@ function change_samba_mountpoint($dev, $mountpoint) {
 
 	$rc = true;
 	if ($mountpoint) {
-unassigned_log("*** mountpoint ".$mountpoint);
 		$rc = check_for_duplicate_share($dev, $mountpoint);
 		if ($rc) {
 			$mountpoint = $mountpoint;
