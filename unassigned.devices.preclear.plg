@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.08.19">
+<!ENTITY version	"2022.09.02">
 <!ENTITY launch		"Tools/Preclear">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/unassigned.devices/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"97f7fa811f1cbfa6b9a669665542d3d7">
+<!ENTITY MD5		"9a3c56fcd0e55185fab4fcff9b3dbaf9">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
@@ -20,6 +20,10 @@
 
 <CHANGES>
 ##&name;
+- Fix: Don't allow a preclear on a disk that Unraid does not see as Unassigned.
+
+###2022.08.19
+- Fix: Reference to GitHub repository.
 
 ###2022.08.14
 - Fix: Php array error in rc.diskinfo under certain circumstances.
