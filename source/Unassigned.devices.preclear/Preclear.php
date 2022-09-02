@@ -210,8 +210,10 @@ switch ($_POST['action'])
 					$status	= $Preclear->Status($disk_name, $disk["SERIAL_SHORT"]);
 					$all_status[$disk['SERIAL_SHORT']]['footer'] = "<span>{$disk['SERIAL']} ({$disk['NAME']}) <br /> Size: {$disk['SIZE_H']} | Temp: ". my_temp($disk['TEMP']) ."</span><br /><span style='float:right;'>$status</span>";
 					$all_status[$disk['SERIAL_SHORT']]['status'] = $status;
-				} else {
+				} elseif (strpos($disk['NAME'], "dev") !== false) {
 					$status	= $Preclear->Link($disk_name, "text");
+				} else {
+					$status	= "<span>"._('Cannot Preclear')."</span>";
 				}
 
 				$disk_log_title	= _('Disk Log Information');

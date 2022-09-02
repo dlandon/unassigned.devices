@@ -490,6 +490,11 @@ class Disks
 		} else {
 			/* Get the devX for this device. */
 			$disk['NAME']		= get_disk_dev($dev);
+			if (strpos($disk['NAME'], "dev") !== false) {
+				$disk['NAME_H']		= my_disk(substr($disk['NAME'], 0, 3)." ".substr($disk['NAME'], 3));
+			} else {
+				$disk['NAME_H']		= $disk['NAME'];
+			}
 
 			/* Update disk running status. */
 			$disk['RUNNING']	= is_disk_running($disk['NAME']);
