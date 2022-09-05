@@ -133,17 +133,17 @@ $default_text	= <<<EOT
 #!/bin/bash
 PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin
 ## Available variables:
-# ACTION     : if mounting, ADD; if unmounting, UNMOUNT; if unmounted, REMOVE; if error, ERROR_MOUNT, ERROR_UNMOUNT
-# DEVICE     : partition device, e.g. /dev/sda1
-# UD_DEVICE  : unassigned devX designation
-# SERIAL     : disk serial number
-# LABEL      : partition label
-# LUKS       : if the device is encrypted, this is the partition device, e.g. /dev/sda1
-# FSTYPE     : partition filesystem
-# MOUNTPOINT : where the partition is mounted
-# OWNER      : "udev" if executed by UDEV, otherwise "user"
-# PROG_NAME  : program name of this script
-# LOGFILE    : log file for this script
+# ACTION - if mounting, ADD; if unmounting, UNMOUNT; if unmounted, REMOVE; if error, ERROR_MOUNT, ERROR_UNMOUNT
+# DEVICE - partition device, e.g. /dev/sda1
+# UD_DEVICE - unassigned devX designation
+# SERIAL - disk serial number
+# LABEL - partition label
+# LUKS - if the device is encrypted, this is the partition device, e.g. /dev/sda1
+# FSTYPE - partition filesystem
+# MOUNTPOINT - where the partition is mounted
+# OWNER - "udev" if executed by UDEV, otherwise "user"
+# PROG_NAME - program name of this script
+# LOGFILE - log file for this script
 
 case \$ACTION in
   'ADD' )
@@ -167,8 +167,8 @@ case \$ACTION in
   'REMOVE' )
     # do your stuff here
 
-	# Safely remove the disk
-	/usr/local/sbin/rc.unassigned safely_remove \$DEVICE
+	# Safely remove the disk - uncomment this if you want the disk to be detached when the disk is unmounted
+#	/usr/local/sbin/rc.unassigned safely_remove \$DEVICE
 
 	/usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Device unmounted" -i "normal"
   ;;
@@ -314,7 +314,7 @@ _(User Script)_:
 &nbsp;&nbsp;_(Device Script content)_:
 <br />
 
-<textarea spellcheck="false" cols="80" rows="22" name="text" title='_(Enter and Edit the Device Script that runs when a udev or operator event occurs)_.' style="font-family:bitstream;width:80%"><?=$text;?></textarea>
+<textarea spellcheck="false" cols="80" rows="22" name="text" title='_(Enter and Edit the Device Script that runs when a udev or operator event occurs)_.' style="width:80%"><?=$text;?></textarea>
 
 <button type="button" title='_(Load the default Device Script)_.' onclick="setDefault(this.form)">_(Default)_</button>
 <?if (is_file($file)):?>
