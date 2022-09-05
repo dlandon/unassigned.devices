@@ -505,6 +505,7 @@ function unassigned_safely_remove() {
 			if (is_dir("/sys/block/{$dev}/")) {
 				exec("echo 'offline' > /sys/block/{$dev}/device/state");
 				exec("echo '1' > /sys/block/{$dev}/device/delete");
+				unassigned_log("Device '{$dev}' has been detached.");
 				break;
 			}
 		}
