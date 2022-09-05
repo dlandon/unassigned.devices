@@ -28,6 +28,7 @@ if ($dev_pos !== false) {
 			} else {
 				$DEVNAME = basename($disk['ud_dev']);
 			}
+			break;
 		}
 	}
 } elseif ($COMMAND != 'spindown') {
@@ -492,7 +493,25 @@ function unassigned_spin_down() {
 	MiscUD::spin_disk(true, $dev);
 }
 
-/* Add status file so mount buttons will show current status of operation. */
+/* Safely remove the disk device. */
+function unassigned_safely_remove() {
+	global $DEVNAME;
+
+	$dev = MiscUD::base_device(basename($DEVNAME));
+
+	/* We only allow removing USB devices. */
+	foreach (get_all_disks_info() as $disk) {
+		if ((basename($disk['device']) == $dev) && ($disk['id_bus'] == "usb")){
+			if (is_dir("/sys/block/{$dev}/")) {
+				exec("echo 'offline' > /sys/block/{$dev}/device/state");
+				exec("echo '1' > /sys/block/{$dev}/device/delete");
+				break;
+			}
+		}
+	}
+}
+
+/* Add status file so mount butt/* Add status file so mount buttons will show current status of operation. */
 function addFile($file) {
 	global $remove;
 
@@ -542,6 +561,10 @@ switch ($COMMAND) {
 
 	case 'spindown':
 		unassigned_spin_down();
+		break;
+
+	case 'safely_remove':
+		unassigned_safely_remove();
 		break;
 
 	case 'refresh':

@@ -167,8 +167,8 @@ case \$ACTION in
   'REMOVE' )
     # do your stuff here
 
-	# Spin down the disk
-	/usr/local/sbin/rc.unassigned spindown \$DEVICE
+	# Safely remove the disk
+	/usr/local/sbin/rc.unassigned safely_remove \$DEVICE
 
 	/usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Device unmounted" -i "normal"
   ;;
