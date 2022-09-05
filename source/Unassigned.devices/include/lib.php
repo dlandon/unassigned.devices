@@ -1018,6 +1018,10 @@ function execute_script($info, $action, $testing = false) {
 		}
 	}
 
+	/* Set the device devX designation. */
+	$ud_dev = get_disk_dev(MiscUD::base_device(basename($info['device'])));
+	putenv("UD_DEVICE"."="."{$ud_dev}");
+
 	/* Execute the common script if it is defined. */
 	if ($common_cmd = escapeshellcmd(get_config("Config", "common_cmd"))) {
 		$common_script = $paths['scripts'].basename($common_cmd);
