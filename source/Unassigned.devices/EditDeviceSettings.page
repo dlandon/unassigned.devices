@@ -135,6 +135,7 @@ PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin
 ## Available variables:
 # ACTION     : if mounting, ADD; if unmounting, UNMOUNT; if unmounted, REMOVE; if error, ERROR_MOUNT, ERROR_UNMOUNT
 # DEVICE     : partition device, e.g. /dev/sda1
+# UD_DEVICE  : unassigned devX designation
 # SERIAL     : disk serial number
 # LABEL      : partition label
 # LUKS       : if the device is encrypted, this is the partition device, e.g. /dev/sda1
@@ -154,9 +155,6 @@ case \$ACTION in
 		sleep 1
     fi
 
-    # sync the file system to commit all writes to disk
-    sync -f "\$MOUNTPOINT"
-
     /usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Device mounted" -i "normal"
   ;;
 
@@ -168,6 +166,9 @@ case \$ACTION in
 
   'REMOVE' )
     # do your stuff here
+
+	# Spin down the disk
+	/usr/local/sbin/rc.unassigned spindown \$DEVICE
 
 	/usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Device unmounted" -i "normal"
   ;;
