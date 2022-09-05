@@ -30,12 +30,16 @@ if ($dev_pos !== false) {
 			}
 		}
 	}
-		
-} else {
+} elseif ($COMMAND != 'spindown') {
 	$sf = $paths['dev_state'];
 	if (is_file($sf) && (strpos(basename($DEVNAME), 'dev') !== false)) {
 		$devs = @parse_ini_file($sf, true);
 		$DEVNAME = isset($devs[$DEVNAME]) ? $devs[$DEVNAME]['device'] : $DEVNAME;
+	}
+} else {
+	$sf = $paths['dev_state'];
+	if (is_file($sf) && (strpos(basename($DEVNAME), 'dev') === false)) {
+		$DEVNAME = get_disk_dev(MiscUD::base_device(basename($DEVNAME)));
 	}
 }
 
