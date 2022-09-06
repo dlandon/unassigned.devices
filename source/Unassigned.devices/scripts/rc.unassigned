@@ -18,9 +18,9 @@ require_once("$docroot/plugins/{$plugin}/include/lib.php");
 $COMMAND = $argv[1];
 $DEVNAME = (isset($_ENV['DEVNAME'])) ? $_ENV['DEVNAME'] : ( isset($argv[2]) ? $argv[2] : NULL );
 $DEVNAME = (file_exists($DEVNAME)) ? realpath($DEVNAME) : $DEVNAME;
-$dev_pos = strpos($DEVNAME, '=');
+$dev_pos = strpos($DEVNAME, 'name=');
 if ($dev_pos !== false) {
-	$dev_name		= substr($DEVNAME, $dev_pos+1);
+	$dev_name		= substr($DEVNAME, $dev_pos+5);
 	foreach (get_all_disks_info() as $disk) {
 		if ($disk['unassigned_dev'] == $dev_name) {
 			if ($COMMAND != 'spindown') {
