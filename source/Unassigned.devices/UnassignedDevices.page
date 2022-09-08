@@ -703,7 +703,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 > + '/usr/local/sbin/rc.unassigned spindown name=diskname' - spin down a disk by disk name.
 > + '/usr/local/sbin/rc.unassigned mount SOURCE' - where SOURCE is the SMB/NFS source.
 > + '/usr/local/sbin/rc.unassigned umount SOURCE' - where SOURCE is the SMB/NFS source.
-> + '/usr/local/sbin/rc.unassigned safely_remove /dev/sdX or devX' - safely remove (detach) USB device sdX where 'X' is the device designator.  The devX is the device name in the UD page.  If the device name is 'Dev 1', then use dev1 as the device to detach.
+> + '/usr/local/sbin/rc.unassigned detach /dev/sdX or devX' - detach (safely remove) USB device sdX where 'X' is the device designator.  The devX is the device name in the UD page.  If the device name is 'Dev 1', then use dev1 as the device to detach.
 > Note: Safely removing a USB device detaches it and it cannot be re-attached unless it is removed and re-installed.  This is currently experimental.
 >
 > Be careful using the /dev/sdX or devX designation because they can change after a reboot.
