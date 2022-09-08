@@ -493,21 +493,34 @@ function unassigned_spin_down() {
 	MiscUD::spin_disk(true, $dev);
 }
 
-/* Safely remove the disk device. */
-function unassigned_safely_remove() {
+/* Detach the disk device. */
+function unassigned_detach() {
 	global $DEVNAME;
 
 	$dev = MiscUD::base_device(basename($DEVNAME));
 
 	/* We only allow removing USB devices. */
 	foreach (get_all_disks_info() as $disk) {
-		if ((basename($disk['device']) == $dev) && ($disk['id_bus'] == "usb")){
-			if (is_dir("/sys/block/{$dev}/")) {
-				exec("echo 'offline' > /sys/block/{$dev}/device/state");
-				exec("echo '1' > /sys/block/{$dev}/device/delete");
-				unassigned_log("Device '{$dev}' has been detached.");
-				break;
+		if (basename($disk['device']) == $dev) {
+			if ($disk['id_bus'] == "usb") {
+				foreach ($disk['partitions'] as $partition) {
+					if ($partition['mounted']) {
+						$mounted = true;
+					}
+				}
+				if (! $mounted) {
+					if (is_dir("/sys/block/{$dev}/")) {
+						exec("echo 'offline' > /sys/block/{$dev}/device/state");
+						exec("echo '1' > /sys/block/{$dev}/device/delete");
+						unassigned_log("Device '{$dev}' has been detached.");
+					}
+				} else {
+					unassigned_log("Device '{$DEVNAME}' is mounted and cannot be detached!");
+				}
+			} else {
+				unassigned_log("Device '{$dev}' is not a USB device and cannot be detached!");
 			}
+			break;
 		}
 	}
 }
@@ -564,8 +577,8 @@ switch ($COMMAND) {
 		unassigned_spin_down();
 		break;
 
-	case 'safely_remove':
-		unassigned_safely_remove();
+	case 'detach':
+		unassigned_detach();
 		break;
 
 	case 'refresh':
@@ -573,7 +586,7 @@ switch ($COMMAND) {
 
 	default:
 		unassigned_log("Error: 'rc.unassigned {$argv[1]} {$argv[2]}' not understood");
-		unassigned_log("rc.unassigned usage: 'mount', 'umount', 'reload', 'hotplug', 'spindown', 'refresh'");
+		unassigned_log("rc.unassigned usage: 'mount', 'umount', 'reload', 'hotplug', 'spindown', 'detach', 'refresh'");
 		exit(0);
 		break;
 }
