@@ -258,8 +258,11 @@ _(Disk Serial)_: <?=$serial;?>
 > Select the options for this device/mount point.  These changes are made immediately.  You don't need to click **Save** to save them.
 :end
 
-<?if (isset($_GET['s']) && ($_GET['u'] == "usb") && (! is_mounted($mount_point))):?>
+<?if (isset($_GET['s']) && isset($_GET['m']) && (! is_mounted($mount_point))):?>
 <button type="button" title='_(Detach This Disk)_.' onclick='detach_disk("<?=$device;?>");'>_(Detach)_</button>
+<?endif;?>
+<?if (isset($_GET['s']) && (! isset($_GET['m']))):?>
+<button type="button" title='_(Attach This Disk)_.' onclick='attach_disk("<?=$serial;?>");'>_(Attach)_</button>
 <?endif;?>
 <button type="button" onclick="done()">_(Done)_</button>
 
@@ -482,6 +485,10 @@ _(User Script)_:
 	}
 
 	function detach_disk(device) {
-		$.post("/update.php",{"#command":"/plugins/unassigned.devices/scripts/rc.unassigned","#arg[1]":"detach","#arg[2]":device}).done(function(){location.reload();});
+		$.post("/update.php",{"#command":"/plugins/unassigned.devices/scripts/rc.unassigned","#arg[1]":"detach","#arg[2]":device, "#arg[3]":"true"}).done(function(){location.reload();});
+	}
+
+	function attach_disk(serial) {
+		$.post("/update.php",{"#command":"/plugins/unassigned.devices/scripts/rc.unassigned","#arg[1]":"attach","#arg[2]":serial}).done(function(){location.reload();});
 	}
 </script>
