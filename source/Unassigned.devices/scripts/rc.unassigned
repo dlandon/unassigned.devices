@@ -494,7 +494,7 @@ function unassigned_spin_down() {
 }
 
 /* Detach the disk device. */
-function unassigned_detach() {
+function unassigned_detach($ata) {
 	global $DEVNAME;
 
 	$dev = MiscUD::base_device(basename($DEVNAME));
@@ -502,7 +502,7 @@ function unassigned_detach() {
 	/* We only allow removing USB devices. */
 	foreach (get_all_disks_info() as $disk) {
 		if (basename($disk['device']) == $dev) {
-			if ($disk['id_bus'] == "usb") {
+			if (($disk['id_bus'] == "usb") || ($ata)) {
 				foreach ($disk['partitions'] as $partition) {
 					if ($partition['mounted']) {
 						$mounted = true;
@@ -522,6 +522,18 @@ function unassigned_detach() {
 			}
 			break;
 		}
+	}
+}
+
+/* Attach a disk device that is detached. */
+function unassigned_attach() {
+	global $DEVNAME;
+
+	/* Get this device's hostX. */
+	$host	= MiscUD::get_device_host($DEVNAME);
+
+	if ($host) {
+		@file_put_contents("/sys/class/scsi_host/${host}/scan", "- - -");
 	}
 }
 
@@ -578,7 +590,12 @@ switch ($COMMAND) {
 		break;
 
 	case 'detach':
-		unassigned_detach();
+		$ata = ($argv[3] == "true") ? true : false;
+		unassigned_detach($ata);
+		break;
+
+	case 'attach':
+		unassigned_attach();
 		break;
 
 	case 'refresh':
@@ -586,7 +603,7 @@ switch ($COMMAND) {
 
 	default:
 		unassigned_log("Error: 'rc.unassigned {$argv[1]} {$argv[2]}' not understood");
-		unassigned_log("rc.unassigned usage: 'mount', 'umount', 'reload', 'hotplug', 'spindown', 'detach', 'refresh'");
+		unassigned_log("rc.unassigned usage: 'mount', 'umount', 'reload', 'hotplug', 'spindown', 'detach', 'attach', 'refresh'");
 		exit(0);
 		break;
 }
