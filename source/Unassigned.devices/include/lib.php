@@ -39,6 +39,7 @@ $paths = [	"smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
 			"disk_names"		=> "/var/state/{$plugin}/disk_names.json",
 			"share_names"		=> "/var/state/{$plugin}/share_names.json",
 			"pool_state"		=> "/var/state/{$plugin}/pool_state.json",
+			"device_hosts"		=> "/var/state/{$plugin}/device_hosts.json",
 			"unmounting"		=> "/var/state/{$plugin}/unmounting_%s.state",
 			"mounting"			=> "/var/state/{$plugin}/mounting_%s.state",
 			"formatting"		=> "/var/state/{$plugin}/formatting_%s.state"
@@ -164,6 +165,37 @@ class MiscUD
 		}
 
 		return array_filter($rc);
+	}
+
+	/* Save the hostX from the DEVPATH so we can re-attach a disk device. */
+	public function save_device_host($serial, $devpath) {
+		global $paths;
+
+		/* Get the current hostX status. */
+		$device_hosts	= MiscUD::get_json($paths['device_hosts']);
+
+		/* Find the hostX in the DEVPATH and parse it from the DEVPATH. */
+		$begin	= strpos($devpath, "host");
+		$end	= strpos($devpath, "/", $begin);
+		$host	= substr($devpath, $begin, $end-$begin);
+
+		/* Save the hostX. */
+		$device_hosts[$serial] = $host;
+
+		MiscUD::save_json($paths['device_hosts'], $device_hosts);
+	}
+
+	/* Get the device hostX. */
+	public function get_device_host($serial) {
+		global $paths;
+
+		/* Get the current hostX status. */
+		$device_hosts	= MiscUD::get_json($paths['device_hosts']);
+
+		/* Return the hostX. */
+		$rc	= $device_hosts[$serial];
+
+		return $rc;
 	}
 }
 
@@ -2434,6 +2466,9 @@ function get_disk_info($dev) {
 	if ((is_file($sf)) && ($disk['id_bus'] != "usb") && (basename($disk['device']) == $disk['ud_dev'])) {
 		$disk['array_disk'] = true;
 	}
+
+	/* Get the hostX from the DEVPATH so we can re-attach a disk. */
+	MiscUD::save_device_host($disk['serial'], $attrs['DEVPATH']);
 
 	return $disk;
 }
