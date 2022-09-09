@@ -258,6 +258,9 @@ _(Disk Serial)_: <?=$serial;?>
 > Select the options for this device/mount point.  These changes are made immediately.  You don't need to click **Save** to save them.
 :end
 
+<?if (isset($_GET['s']) && ($_GET['u'] == "usb") && (! is_mounted($mount_point))):?>
+<button type="button" title='_(Detach This Disk)_.' onclick='detach_disk("<?=$device;?>");'>_(Detach)_</button>
+<?endif;?>
 <button type="button" onclick="done()">_(Done)_</button>
 
 <?if ($disk_setting):?>
@@ -476,5 +479,9 @@ _(User Script)_:
 
 	function rmfile(file) {
 		$.post("/update.php",{"#command":"/plugins/unassigned.devices/scripts/rm","#arg[1]":file}).done(function(){location.reload();});
+	}
+
+	function detach_disk(device) {
+		$.post("/update.php",{"#command":"/plugins/unassigned.devices/scripts/rc.unassigned","#arg[1]":"detach","#arg[2]":device}).done(function(){location.reload();});
 	}
 </script>
