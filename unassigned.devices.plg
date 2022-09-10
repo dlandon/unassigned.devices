@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.09.02">
+<!ENTITY version	"2022.09.10">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"b49f5e224fa0e6bbf00dd2c9eee5a130">
+<!ENTITY MD5		"4efa5b3591577f0c8fab8a8d08f6fc55">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,18 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Spin down of a devX device not working in rc.unassigned.
+- Fix: Allow spin down of disk device by sdX, devX, or name=alias.
+- Fix: Set environment variable UD_DEVICE (devX) to pass to UD script.
+- Fix: Change font of edit device settings script text to Unraid default.
+- Fix: Update default UD script.
+- Fix: Revise Help text in 'Edit Device Settings'.
+- Add: Detach option to rc.unassigned to detach the disk when it is unmounted.
+- Add: Attach option to rc.unassigned to attach the disk when it is detached.
+- Add: Detach button to 'Edit Device Settings'.
+- Add: Attach button to Historical Disk Devices 'Edit Device Settings'.
+
+###2022.09.02
 - Fix: Don't allow a preclear on a disk that Unraid does not see as Unassigned.
 
 ###2022.08.19
