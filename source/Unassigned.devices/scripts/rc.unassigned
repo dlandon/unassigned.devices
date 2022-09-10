@@ -44,13 +44,14 @@ if ($dev_pos !== false) {
 	}
 }
 
-$remove = array();
-
 /* If the DEVNAME is empty, the device is not defined - exit with an error. */
 if (! $DEVNAME) {
 	unassigned_log("rc.unassigned died with no DEVNAME");
 	die("Fail: device not defined.\n");
 }
+
+/* Create array for mount button status files. */
+$remove = array();
 
 /* Mount devices. */
 function unassigned_mount() {
@@ -537,7 +538,7 @@ function unassigned_attach() {
 	}
 }
 
-/* Add status file so mount butt/* Add status file so mount buttons will show current status of operation. */
+/* Add status file so mount buttons will show current status of operation. */
 function addFile($file) {
 	global $remove;
 
