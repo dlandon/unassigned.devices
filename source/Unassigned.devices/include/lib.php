@@ -189,11 +189,16 @@ class MiscUD
 	public function get_device_host($serial) {
 		global $paths;
 
+		$rc	= "";
+
 		/* Get the current hostX status. */
 		$device_hosts	= MiscUD::get_json($paths['device_hosts']);
 
-		/* Return the hostX. */
-		$rc	= $device_hosts[$serial];
+		$host	= $device_hosts[$serial];
+		if (is_file("/sys/class/scsi_host/${host}/scan")) {
+			/* Return the hostX. */
+			$rc	= $host;
+		}
 
 		return $rc;
 	}
