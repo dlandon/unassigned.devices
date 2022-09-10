@@ -695,18 +695,20 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 > + '/usr/local/sbin/rc.unassigned mount autoshares' - all SMB/NFS mounts set to auto mount will be mounted.
 > + '/usr/local/sbin/rc.unassigned umount auto' - all devices and SMB/NFS mounts set to auto mount will be unmounted.
 > + '/usr/local/sbin/rc.unassigned umount all' - all devices and SMB/NFS mounts are unmounted in preparation for shutting down the array.
-> + '/usr/local/sbin/rc.unassigned mount /dev/sdX or devX' - mount device sdX where 'X' is the device designator.  The devX is the device name in the UD page.  If the device name is 'Dev 1', then use dev1 as the device to mount.
-> + '/usr/local/sbin/rc.unassigned mount name=diskname' - mount device by disk name.
-> + '/usr/local/sbin/rc.unassigned umount /dev/sdX or devX' - unmount device sdX where 'X' is the device designator. The devX is the device name in the UD page.  If the device name is 'Dev 1', then use dev1 as the device to unmount. You can use this command in a UD script to unmount the device when the script has completed.
+> + '/usr/local/sbin/rc.unassigned mount /dev/sdX or devX' - mount disk device.
+> + '/usr/local/sbin/rc.unassigned mount name=diskname' - mount disk device by disk name.
+> + '/usr/local/sbin/rc.unassigned umount /dev/sdX or devX' - unmount disk device. You can use this command in a UD script to unmount the device when the script has completed.
 > + '/usr/local/sbin/rc.unassigned umount name=diskname' - unmount device by disk name.
-> + '/usr/local/sbin/rc.unassigned spindown /dev/sdX or devX' - spin down device sdX where 'X' is the device designator.  The devX is the device name in the UD page.  If the device name is 'Dev 1', then use dev1 as the device to spin down.
+> + '/usr/local/sbin/rc.unassigned spindown /dev/sdX or devX' - spin down disk device.
 > + '/usr/local/sbin/rc.unassigned spindown name=diskname' - spin down a disk by disk name.
-> + '/usr/local/sbin/rc.unassigned mount SOURCE' - where SOURCE is the SMB/NFS source.
-> + '/usr/local/sbin/rc.unassigned umount SOURCE' - where SOURCE is the SMB/NFS source.
-> + '/usr/local/sbin/rc.unassigned detach /dev/sdX or devX' - detach (safely remove) USB device sdX where 'X' is the device designator.  The devX is the device name in the UD page.  If the device name is 'Dev 1', then use dev1 as the device to detach.
-> Note: Safely removing a USB device detaches it and it cannot be re-attached unless it is removed and re-installed.  This is currently experimental.
+> + '/usr/local/sbin/rc.unassigned detach /dev/sdX or devX' - detach a USB disk device. You can use this command in a UD script to detach the device when the script has completed.
+> + '/usr/local/sbin/rc.unassigned attach serial - attach a disk device. You can use this command in a UD script to attach the device.
+> + '/usr/local/sbin/rc.unassigned mount source' - where source is the SMB/NFS source.
+> + '/usr/local/sbin/rc.unassigned umount source' - where source is the SMB/NFS source.
 >
-> Be careful using the /dev/sdX or devX designation because they can change after a reboot.
+> Note: /dev/sdX where 'X' is the device designator.  The devX is the device name in the UD page.  If the device name is 'Dev 1', then use dev1 as the device to spin down.  Using the name=diskname is useful if you have a User Script needing to perform UD operations on a disk.
+>
+> Be careful using the /dev/sdX or devX designation because they can change after a reboot.  It's best to use the values passes into the US script for sdX (DEVICE) and devX (UD_DEVICE).
 :end
 
 <script type="text/javascript">
