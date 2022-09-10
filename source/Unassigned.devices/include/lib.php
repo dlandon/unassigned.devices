@@ -2392,9 +2392,11 @@ function get_udev_info($dev, $udev = null) {
 	if ($udev) {
 		unassigned_log("Udev: Update udev info for ".$dev.".", $GLOBALS['UDEV_DEBUG']);
 
+ 		/* Save this entry unless the ACTION is remove. */
  		if ($udev['ACTION'] != "remove") {
 			$state[$device] = $udev;
 		} else {
+			/* Remove all entries for this serial number. */
 			$serial	= $udev['ID_SERIAL'];
 			foreach ($state as $key => $val) {
 				if ($val['ID_SERIAL'] == $serial) {
