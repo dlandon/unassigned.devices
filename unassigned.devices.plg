@@ -1872,9 +1872,8 @@ ln -sf /usr/local/emhttp/plugins/&name;/scripts/rc.unassigned /usr/local/sbin
 ln -sf /usr/local/emhttp/plugins/&name;/scripts/mkmbr.sh /usr/local/sbin
 
 # Create state folder and mount points
-rm -rf /var/state/&name;
 mkdir -p /mnt/disks /mnt/remotes /mnt/rootshare/ /var/state/&name;
-chmod 777 /var/state/&name;
+chmod 755 /var/state/&name;
 
 # Create a tmpfs mountpoint at /mnt/disks
 # to make sure that writting to an unmounted device doesn't fill all rootfs
