@@ -181,7 +181,9 @@ class MiscUD
 
 		/* Prevent duplicate hostX elements. */
 		$check = array_flip($device_hosts);
-		unset($check[$host]);
+		if ($check[$host] != $serial) {
+			unset($check[$host]);
+		}
 		$device_hosts	= array_flip($check);
 
 		/* Save the hostX. */
