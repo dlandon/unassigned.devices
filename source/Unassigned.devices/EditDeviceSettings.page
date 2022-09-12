@@ -33,6 +33,7 @@ $default_file			= safe_filename("/boot/config/plugins/{$plugin}/".($_GET['l'] ? 
 $fstype					= "";
 $volume					= "";
 $id_bus					= "";
+$is_precearing			= false;
 
 /* Main entry point. */
 if (isset($_GET['s'])) {
@@ -78,6 +79,7 @@ if (isset($_GET['s'])) {
 	}
 	$fstype				= $_GET['f'];
 	$volume				= ($fstype == "apfs") ? get_config($ud_device, "volume.{$partition}") : "0";
+	$is_preclearing		= shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg(MiscUD::base_device($device))." | /bin/grep -v 'grep'") != "" ? true : false;
 } else if (isset($_GET['d'])) {
 	/* Remote shares. */
 	$device				= $_GET['d'];
@@ -258,7 +260,7 @@ _(Disk Serial)_: <?=$serial;?>
 > Select the options for this device/mount point.  These changes are made immediately.  You don't need to click **Save** to save them.
 :end
 
-<?if (isset($_GET['s']) && isset($_GET['m']) && (! is_mounted($mount_point)) && MiscUD::get_device_host($_GET['s'])):?>
+<?if (($disk_setting) && isset($_GET['s']) && isset($_GET['m']) && (! is_mounted($mount_point)) && (! $is_preclearing) && MiscUD::get_device_host($_GET['s'])):?>
 <button type="button" title='_(Detach This Disk)_.' onclick='detach_disk("<?=$device;?>");'>_(Detach)_</button>
 <?endif;?>
 <?if (isset($_GET['s']) && (! isset($_GET['m'])) && MiscUD::get_device_host($_GET['s'])):?>
