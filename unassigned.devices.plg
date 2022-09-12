@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.09.12">
+<!ENTITY version	"2022.09.12a">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"cdd177fad45ff1158b02b1f0d979fca4">
+<!ENTITY MD5		"e95afa508900e52597fad65f91007e65">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,7 +22,7 @@
 <CHANGES>
 ##&name;
 ###&version;
-- Fix: Possibility of attaching the wrong device.
+- Fix: Possibility of re-attaching the wrong device.
 
 ###2022.09.10
 - Fix: Spin down of a devX device not working in rc.unassigned.
