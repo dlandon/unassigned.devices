@@ -133,7 +133,8 @@ function unassigned_mount() {
 						{
 							/* Add smb and nfs shares for this device. */
 							if ($info['shared']) {
-								add_smb_share($info['mountpoint']);
+								$fruit	= ($info['fstype'] != "exfat") ? true : false;
+								add_smb_share($info['mountpoint'], true, $fruit);
 								add_nfs_share($info['mountpoint']);
 							}
 
@@ -249,7 +250,7 @@ function unassigned_mount() {
 				/* Mount the iso file. */
 				if (do_mount( $info )) {
 					/* Add smb and nfs shares for the iso file. */
-					add_smb_share($info['mountpoint'], false);
+					add_smb_share($info['mountpoint']);
 					add_nfs_share($info['mountpoint']);
 
 					/* Execute iso file script with add action. */
@@ -490,8 +491,10 @@ function unassigned_hotplug() {
 function unassigned_spin_down() {
 	global $DEVNAME;
 
-	$dev = basename($DEVNAME);
-	MiscUD::spin_disk(true, $dev);
+	if (! is_file("/tmp/unassigned.devices/shuttingdown")) {
+		$dev = basename($DEVNAME);
+		MiscUD::spin_disk(true, $dev);
+	}
 }
 
 /* Detach the disk device. */

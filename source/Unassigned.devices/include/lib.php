@@ -1528,7 +1528,7 @@ function toggle_share($serial, $part, $status) {
 }
 
 /* Add mountpoint to samba shares. */
-function add_smb_share($dir, $recycle_bin = true) {
+function add_smb_share($dir, $recycle_bin = false, $fruit = true) {
 	global $paths, $var, $users;
 
 	/* Get the current UD configuration. */
@@ -1541,14 +1541,12 @@ function add_smb_share($dir, $recycle_bin = true) {
 		$share_name = str_replace( array("(", ")"), "", basename($dir));
 
 		$vfs_objects = "";
-		$enable_fruit = get_config("Config", "mac_os");
-		if (($recycle_bin) || ($enable_fruit == 'yes')) {
-			$vfs_objects .= "\n\tvfs objects = ";
-			if ($enable_fruit == 'yes') {
-				$vfs_objects .= "catia fruit streams_xattr";
+		$enable_fruit = ($var['enableFruit'] == "yes") ? $fruit : false;
+		if (($recycle_bin) || ($enable_fruit)) {
+			if ($enable_fruit) {
+				$vfs_objects .= "\n\tvfs objects = catia fruit streams_xattr";
 			}
 		}
-		$vfs_objects .= "";
 
 		if (($config["smb_security"] == "yes") || ($config["smb_security"] == "hidden")) {
 			$read_users = $write_users = $valid_users = array();
@@ -1624,6 +1622,8 @@ function add_smb_share($dir, $recycle_bin = true) {
 					if ($recycle_bin_cfg['INCLUDE_UD'] == "yes") {
 						unassigned_log("Enabling the Recycle Bin on share '{$share_name}'.");
 						shell_exec(escapeshellcmd("$recycle_script $share_conf"));
+					} else {
+						@file_put_contents($share_conf, "\n", FILE_APPEND);
 					}
 				}
 			} else {
@@ -1756,7 +1756,7 @@ function remove_shares() {
 	}
 }
 
-/* Reload samba and NFS shares. */
+/* Reload disk samba and NFS shares. */
 function reload_shares() {
 	/* Disk mounts */
 	foreach (get_unassigned_disks() as $name => $disk) {
@@ -1765,7 +1765,8 @@ function reload_shares() {
 			if ( $info['mounted'] ) {
 				$device = $disk['device'];
 				if ($info['shared']) {
-					add_smb_share($info['mountpoint']);
+					$fruit	= ($info['fstype'] != "exfat") ? true : false;
+					add_smb_share($info['mountpoint'], true, $fruit);
 					add_nfs_share($info['mountpoint']);
 				}
 			}
@@ -1782,7 +1783,7 @@ function reload_shares() {
 	/* ISO File Mounts */
 	foreach (get_iso_mounts() as $name => $info) {
 		if ( $info['mounted'] ) {
-			add_smb_share($info['mountpoint'], false);
+			add_smb_share($info['mountpoint']);
 			add_nfs_share($info['mountpoint']);
 		}
 	}
