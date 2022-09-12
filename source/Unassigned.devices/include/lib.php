@@ -179,6 +179,11 @@ class MiscUD
 		$end	= strpos($devpath, "/", $begin);
 		$host	= substr($devpath, $begin, $end-$begin);
 
+		/* See if there is a duplicate hostX and remove it if there is. */
+		$check = array_flip($device_hosts);
+		unset($check[$host]);
+		$device_hosts	= array_flip($check);
+
 		/* Save the hostX. */
 		$device_hosts[$serial] = $host;
 
