@@ -316,16 +316,6 @@ _(Case-sensitive names)_:
 > A value of **Forced lower** is special: the case of all incoming client filenames, not just new filenames, will be set to lower-case. In other words, no matter what mixed case name is created on the Windows side, it will be stored and accessed in all lower-case. This ensures all Windows apps will properly find any file regardless of case, but case will not be preserved in folder listings.
 :end
 
-_(Enhanced macOS interoperability)_;
-: <select name="mac_os" size="1">
-  <?=mk_option($cfg["Config"]["mac_os"], "no", "_(No)_");?>
-  <?=mk_option($cfg["Config"]["mac_os"], "yes", "_(Yes)_");?>
-  </select>
-
-:ud_settings_mac_os_plug:
-> When set to 'Yes' provides enhanced compatibility with Apple SMB clients, resulting, for example, in faster Finder browsing, and ability to export Time Machine shares. This may cause some issues with Windows clients, however. Please also refer to the VFS_FRUIT MAN PAGE.
-:end
-
 _(Add)_ 'force user = nobody' _(to SMB share config)_?
 : <select name="force_user" size="1">
   <?=mk_option($cfg["Config"]["force_user"], "yes", "_(Yes)_");?>
