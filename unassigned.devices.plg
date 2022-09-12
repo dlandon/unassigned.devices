@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.09.12b">
+<!ENTITY version	"2022.09.12c">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"2b1877de27bbff4750cb11a8125a17f7">
+<!ENTITY MD5		"c2a563942b9b9f58d415c8697b7b968d">
 ]>
 
 <PLUGIN name="&name;"
@@ -25,6 +25,7 @@
 - Fix: Possibility of re-attaching the wrong device.
 - Fix: Don't enable 'Detach' button on partition settings.
 - Fix: Don't enable 'Detach' button if a disk is preclearing.
+- Fix: Array hangs when a UD disk is unmounted when shutting down with the rc.unassigned spindown command in the UD script.
 
 ###2022.09.10
 - Fix: Spin down of a devX device not working in rc.unassigned.
