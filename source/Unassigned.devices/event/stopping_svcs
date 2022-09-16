@@ -6,7 +6,7 @@ if [ -z ${DOCROOT} ];then
 fi
 
 # Set status that the array is shutting down
-touch /tmp/unassigned.devices/shuttingdown
+touch /tmp/unassigned.devices/shut_down
 
 logger "Unmounting All Devices..." -t"unassigned.devices"
 ${DOCROOT}/plugins/unassigned.devices/scripts/rc.unassigned umount all
