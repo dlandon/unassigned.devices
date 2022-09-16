@@ -1528,7 +1528,7 @@ function toggle_share($serial, $part, $status) {
 }
 
 /* Add mountpoint to samba shares. */
-function add_smb_share($dir, $recycle_bin = false, $fruit = true) {
+function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 	global $paths, $var, $users;
 
 	/* Get the current UD configuration. */
@@ -1541,10 +1541,34 @@ function add_smb_share($dir, $recycle_bin = false, $fruit = true) {
 		$share_name = str_replace( array("(", ")"), "", basename($dir));
 
 		$vfs_objects = "";
-		$enable_fruit = ($var['enableFruit'] == "yes") ? $fruit : false;
+		$enable_fruit = ($var['enableFruit'] == "yes");
 		if (($recycle_bin) || ($enable_fruit)) {
 			if ($enable_fruit) {
-				$vfs_objects .= "\n\tvfs objects = catia fruit streams_xattr";
+				if (! $fat_fruit) {
+					/* See if the smb-fruit.conf from the /boot/config/ folder. */
+					$fruit_file = "/boot/config/smb-fruit.conf";
+					if (file_exists($fruit_file)) {
+						$fruit_file_settings = explode("\n", file_get_contents($fruit_file));
+					} else {
+						/* Use the smb-fruit.conf from the /etc/samba/ folder. */
+						$fruit_file = "/etc/samba/smb-fruit.conf";
+						if (file_exists($fruit_file)) {
+							$fruit_file_settings = explode("\n", file_get_contents($fruit_file));
+						} else {
+							$fruit_file_settings = array( "vfs objects = catia fruit streams_xattr" );
+						}
+					}
+				} else {
+					/* For fat and exfat file systems. */
+					$fruit_file_settings = array( "vfs objects = catia fruit streams_xattr", "fruit:resource = file", "fruit:metadata = netatalk", "fruit:encoding = native" );
+				}
+				/* Apply the fruit settings. */
+				foreach ($fruit_file_settings as $f) {
+					/* Remove comment lines. */
+					if (($f) && (strpos($f, "#") === false)) {
+						$vfs_objects .= "\n\t".$f;
+					}
+				}
 			}
 		}
 
@@ -1587,7 +1611,7 @@ function add_smb_share($dir, $recycle_bin = false, $fruit = true) {
 				unassigned_log("Error: No valid smb users defined. Share '{$dir}' cannot be accessed.");
 			}
 		} else {
-			$share_cont = "[{$share_name}]\n\tpath = {$dir}\n\tread only = No{$force_user}\n\tguest ok = Yes{$vfs_objects}";
+			$share_cont = "[{$share_name}]\n\tpath = {$dir}\n\tread only = No{$force_user}\n\tguest ok = Yes{$vfs_objects}{$vfs_settings}";
 		}
 
 		if (! is_dir($paths['smb_usb_shares'])) {
@@ -1765,8 +1789,8 @@ function reload_shares() {
 			if ( $info['mounted'] ) {
 				$device = $disk['device'];
 				if ($info['shared']) {
-					$fruit	= ($info['fstype'] != "exfat") ? true : false;
-					add_smb_share($info['mountpoint'], true, $fruit);
+					$fat_fruit = (($info['fstype'] == "vfat") || ($info['fstype'] == "exfat")) ? true : false;
+					add_smb_share($info['mountpoint'], true, $fat_fruit);
 					add_nfs_share($info['mountpoint']);
 				}
 			}

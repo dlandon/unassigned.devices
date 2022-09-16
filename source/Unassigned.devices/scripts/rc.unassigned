@@ -133,8 +133,8 @@ function unassigned_mount() {
 						{
 							/* Add smb and nfs shares for this device. */
 							if ($info['shared']) {
-								$fruit	= ($info['fstype'] != "exfat") ? true : false;
-								add_smb_share($info['mountpoint'], true, $fruit);
+								$fat_fruit	= (($info['fstype'] == "vfat") || ($info['fstype'] == "exfat")) ? true : false;
+								add_smb_share($info['mountpoint'], true, $fat_fruit);
 								add_nfs_share($info['mountpoint']);
 							}
 
@@ -491,7 +491,7 @@ function unassigned_hotplug() {
 function unassigned_spin_down() {
 	global $DEVNAME;
 
-	if (! is_file("/tmp/unassigned.devices/shuttingdown")) {
+	if (! is_file("/tmp/unassigned.devices/shut_down")) {
 		$dev = basename($DEVNAME);
 		MiscUD::spin_disk(true, $dev);
 	}
@@ -503,28 +503,30 @@ function unassigned_detach($ata) {
 
 	$dev = MiscUD::base_device(basename($DEVNAME));
 
-	/* We only allow removing USB devices. */
-	foreach (get_all_disks_info() as $disk) {
-		if (basename($disk['device']) == $dev) {
-			if (($disk['id_bus'] == "usb") || ($ata)) {
-				foreach ($disk['partitions'] as $partition) {
-					if ($partition['mounted']) {
-						$mounted = true;
+	if (! is_file("/tmp/unassigned.devices/shut_down")) {
+		/* We only allow removing USB devices. */
+		foreach (get_all_disks_info() as $disk) {
+			if (basename($disk['device']) == $dev) {
+				if (($disk['id_bus'] == "usb") || ($ata)) {
+					foreach ($disk['partitions'] as $partition) {
+						if ($partition['mounted']) {
+							$mounted = true;
+						}
 					}
-				}
-				if (! $mounted) {
-					if (is_dir("/sys/block/{$dev}/")) {
-						exec("echo 'offline' > /sys/block/{$dev}/device/state");
-						exec("echo '1' > /sys/block/{$dev}/device/delete");
-						unassigned_log("Device '{$dev}' has been detached.");
+					if (! $mounted) {
+						if (is_dir("/sys/block/{$dev}/")) {
+							exec("echo 'offline' > /sys/block/{$dev}/device/state");
+							exec("echo '1' > /sys/block/{$dev}/device/delete");
+							unassigned_log("Device '{$dev}' has been detached.");
+						}
+					} else {
+						unassigned_log("Device '{$DEVNAME}' is mounted and cannot be detached!");
 					}
 				} else {
-					unassigned_log("Device '{$DEVNAME}' is mounted and cannot be detached!");
+					unassigned_log("Device '{$dev}' is not a USB device and cannot be detached!");
 				}
-			} else {
-				unassigned_log("Device '{$dev}' is not a USB device and cannot be detached!");
+				break;
 			}
-			break;
 		}
 	}
 }

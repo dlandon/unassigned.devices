@@ -859,8 +859,8 @@ switch ($_POST['action']) {
 		$status	= urldecode($_POST['status']);
 		$result	= toggle_share($info['serial'], $info['part'],$status);
 		if ($result && $info['target']) {
-			$mac_os	= ($info['fstype'] != "exfat") ? true : false;
-			add_smb_share($info['mountpoint'], true, $mac_os);
+			$fat_fruit	= (($info['fstype'] == "vfat") || ($info['fstype'] == "exfat")) ? true : false;
+			add_smb_share($info['mountpoint'], true, $fat_fruit);
 			add_nfs_share($info['mountpoint']);
 		} else if ($info['mounted']) {
 			rm_smb_share($info['mountpoint']);
