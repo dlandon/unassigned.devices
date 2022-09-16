@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.09.12c">
+<!ENTITY version	"2022.09.16">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"c2a563942b9b9f58d415c8697b7b968d">
+<!ENTITY MD5		"00d12ea2103ef5212c53db73e2fa8f56">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Fruit (MacOS) SMB handling settings to SMB share config files for Unraid 6.11. 
+
+###2022.09.12c
 - Fix: Possibility of re-attaching the wrong device.
 - Fix: Don't enable 'Detach' button on partition settings.
 - Fix: Don't enable 'Detach' button if a disk is preclearing.
