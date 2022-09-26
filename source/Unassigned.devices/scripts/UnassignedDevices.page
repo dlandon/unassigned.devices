@@ -987,7 +987,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		$.post(UDURL, {'action' : 'format_'+surveyOption. type, device:surveyOption.device, fs:surveyData["FS"], pass:surveyData["PASS"]}, function(data)
 		{
 			$("button[device='"+surveyOption.device+"']").prop('disabled',true);
-			$("button[device='"+surveyOption.device+"']").html( data.status ? "<?=_('Formated');?>" : "<?=_('Format failed');?>" );
+			$("button[device='"+surveyOption.device+"']").html( data.status ? "<?=_('Formatted');?>" : "<?=_('Format failed');?>" );
 			swalShowResult(data.status);
 		},'json').fail(function(){swalShowResult(false);});
 	</div>
