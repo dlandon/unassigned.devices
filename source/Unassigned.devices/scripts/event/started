@@ -1,9 +1,0 @@
-#!/bin/bash
-#
-DOCROOT=`grep -Po '^chdir = \K.*' /etc/php-fpm.d/www.conf 2>/dev/null`
-if [ -z ${DOCROOT} ];then
-	DOCROOT="/usr/local/emhttp"
-fi
-
-# Run network check and automount of remote shares in the background
-${DOCROOT}/plugins/unassigned.devices/scripts/rc.started &
