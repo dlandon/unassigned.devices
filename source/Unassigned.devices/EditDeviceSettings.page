@@ -133,8 +133,9 @@ $text			= (file_exists($file)) ? @file_get_contents($file) : "";
 
 $default_text	= <<<EOT
 #!/bin/bash
-PATH=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin
-## Available variables:
+#
+# Available variables:
+#
 # ACTION - if mounting, ADD; if unmounting, UNMOUNT; if unmounted, REMOVE; if error, ERROR_MOUNT, ERROR_UNMOUNT
 # DEVICE - partition device, e.g. /dev/sda1
 # UD_DEVICE - unassigned devX designation
