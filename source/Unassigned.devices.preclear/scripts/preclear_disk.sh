@@ -3045,8 +3045,8 @@ sed -i '/^$/{:a;N;s/\n$//;ta}' $report
 # Save report to Flash disk
 #
 mkdir -p /boot/preclear_reports/
-date_formated=$(date "+%Y.%m.%d_%H.%M.%S")
-file_name=$(echo "preclear_report_${disk_properties[serial]}_${date_formated}.txt" | sed -e 's/[^A-Za-z0-9._-]/_/g')
+date_formatted=$(date "+%Y.%m.%d_%H.%M.%S")
+file_name=$(echo "preclear_report_${disk_properties[serial]}_${date_formatted}.txt" | sed -e 's/[^A-Za-z0-9._-]/_/g')
 todos < $report > "/boot/preclear_reports/${file_name}"
 
 do_exit
