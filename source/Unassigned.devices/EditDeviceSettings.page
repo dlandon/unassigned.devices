@@ -261,7 +261,7 @@ _(Disk Serial)_: <?=$serial;?>
 > Select the options for this device/mount point.  These changes are made immediately.  You don't need to click **Save** to save them.
 :end
 
-<?if (($disk_setting) && isset($_GET['s']) && isset($_GET['m']) && (! is_mounted($mount_point)) && (! $is_preclearing) && MiscUD::get_device_host($_GET['s'])):?>
+<?if (($disk_setting) && isset($_GET['s']) && isset($_GET['m']) && (! is_mounted($mount_point)) && (! $is_preclearing) && (! is_pass_through($_GET['s'])) && MiscUD::get_device_host($_GET['s'])):?>
 <button type="button" title='_(Detach This Disk)_.' onclick='detach_disk("<?=$device;?>");'>_(Detach)_</button>
 <?endif;?>
 <?if (isset($_GET['s']) && (! isset($_GET['m'])) && MiscUD::get_device_host($_GET['s'])):?>
