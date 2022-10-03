@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.09.16">
+<!ENTITY version	"2022.10.03">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"00d12ea2103ef5212c53db73e2fa8f56">
+<!ENTITY MD5		"668933d622c05b0eb4d921cc70b38478">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Remove PATH setting in default device script.  The PATH is set by Unraid whenever a script is executed with php.
+- Fix: Disable 'Detach' button if disk is passed through.
+
+###2022.09.16
 - Add: Fruit (MacOS) SMB handling settings to SMB share config files for Unraid 6.11. 
 
 ###2022.09.12c
