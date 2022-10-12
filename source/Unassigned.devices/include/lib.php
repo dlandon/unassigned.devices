@@ -13,7 +13,7 @@
 set_error_handler("unassigned_log_error");
 set_exception_handler( "unassigned_log_exception" );
 $plugin = "unassigned.devices";
-$paths = [	"smb_extra"			=> "/tmp/{$plugin}/smb-settings.conf",
+$paths = [	"smb_unassigned"	=> "/etc/samba/smb-unassigned.conf",
 			"smb_usb_shares"	=> "/etc/samba/unassigned-shares",
 			"usb_mountpoint"	=> "/mnt/disks",
 			"remote_mountpoint"	=> "/mnt/remotes",
@@ -1621,21 +1621,20 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 
 		unassigned_log("Adding SMB share '{$share_name}'.");
 		@file_put_contents($share_conf, $share_cont);
-		if (! MiscUD::exist_in_file($paths['smb_extra'], $share_conf)) {
-			$c		= (is_file($paths['smb_extra'])) ? @file($paths['smb_extra'],FILE_IGNORE_NEW_LINES) : array();
-			$c[]	= "";
+		if (! MiscUD::exist_in_file($paths['smb_unassigned'], $share_conf)) {
+			$c		= (is_file($paths['smb_unassigned'])) ? @file($paths['smb_unassigned'], FILE_IGNORE_NEW_LINES) : array();
 			$c[]	= "include = $share_conf";
 
 			/* Do some cleanup. */
-			$smb_extra_includes = array_unique(preg_grep("/include/i", $c));
-			foreach($smb_extra_includes as $key => $inc) {
+			$smb_unassigned_includes = array_unique(preg_grep("/include/i", $c));
+			foreach($smb_unassigned_includes as $key => $inc) {
 				if (! is_file(parse_ini_string($inc)['include'])) {
-					unset($smb_extra_includes[$key]);
+					unset($smb_unassigned_includes[$key]);
 				}
 			} 
-			$c		= array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_extra_includes);
+			$c		= array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_unassigned_includes);
 			$c		= preg_replace('/\n\s*\n\s*\n/s', PHP_EOL.PHP_EOL, implode(PHP_EOL, $c));
-			@file_put_contents($paths['smb_extra'], $c);
+			@file_put_contents($paths['smb_unassigned'], $c);
 
 			/* If the recycle bin plugin is installed, add the recycle bin to the share. */
 			if ($recycle_bin) {
@@ -1672,19 +1671,19 @@ function rm_smb_share($dir) {
 		unassigned_log("Removing SMB share '{$share_name}'");
 		@unlink($share_conf);
 	}
-	if (MiscUD::exist_in_file($paths['smb_extra'], $share_conf)) {
-		$c = (is_file($paths['smb_extra'])) ? @file($paths['smb_extra'],FILE_IGNORE_NEW_LINES) : array();
+	if (MiscUD::exist_in_file($paths['smb_unassigned'], $share_conf)) {
+		$c = (is_file($paths['smb_unassigned'])) ? @file($paths['smb_unassigned'], FILE_IGNORE_NEW_LINES) : array();
 
 		/* Do some cleanup. */
-		$smb_extra_includes = array_unique(preg_grep("/include/i", $c));
-		foreach($smb_extra_includes as $key => $inc) {
+		$smb_unassigned_includes = array_unique(preg_grep("/include/i", $c));
+		foreach($smb_unassigned_includes as $key => $inc) {
 			if (! is_file(parse_ini_string($inc)['include'])) {
-				unset($smb_extra_includes[$key]);
+				unset($smb_unassigned_includes[$key]);
 			}
 		} 
-		$c = array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_extra_includes);
+		$c = array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_unassigned_includes);
 		$c = preg_replace('/\n\s*\n\s*\n/s', PHP_EOL.PHP_EOL, implode(PHP_EOL, $c));
-		@file_put_contents($paths['smb_extra'], $c);
+		@file_put_contents($paths['smb_unassigned'], $c);
 		timed_exec(5, "/usr/bin/smbcontrol $(/bin/cat /var/run/smbd.pid 2>/dev/null) close-share ".escapeshellarg($share_name)." 2>&1");
 		timed_exec(5, "/usr/bin/smbcontrol $(/bin/cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
 	}
