@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.10.03">
+<!ENTITY version	"2022.10.12">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"668933d622c05b0eb4d921cc70b38478">
+<!ENTITY MD5		"2c90b1272fa53ead69c84b14bd56e23b">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Remove UD settings from smb-extra.conf and move to /etc/samba/smb-unassigned.conf.
+
+###2022.10.03
 - Fix: Remove PATH setting in default device script.  The PATH is set by Unraid whenever a script is executed with php.
 - Fix: Disable 'Detach' button if disk is passed through.
 
@@ -1802,53 +1805,25 @@ rm -f /tmp/start_unassigned_devices 2>/dev/null
 </INLINE>
 </FILE>
 
-<FILE Name="/tmp/&name;/smb-settings.conf">
-<INLINE>
-<![CDATA[
-]]>
-</INLINE>
-</FILE>
-
-<FILE Name="/tmp/&name;/config/smb-extra.conf">
-<INLINE>
-<![CDATA[
-#unassigned_devices_start
-#Unassigned devices share includes
-   include = /tmp/unassigned.devices/smb-settings.conf
-#unassigned_devices_end
-]]>
-</INLINE>
-</FILE>
-
 <!--
-Add smb-extra parameters.
+Add smb parameters for UD.
 -->
-<FILE Name="/tmp/&name;/add-smb-extra" Mode="0770">
+<FILE Name="/tmp/&name;/add-smb" Mode="0770">
 <INLINE>
 <![CDATA[
 #!/bin/bash
-if [[ `grep '#unassigned_devices' /boot/config/smb-extra.conf` = "" ]]; then
-	cat /boot/config/smb-extra.conf | grep 'include = /etc/samba/unassigned-shares/' > /tmp/unassigned.devices/smb-settings.conf
-	sed -i "/include = \/etc\/samba\/unassigned-shares/d" /boot/config/smb-extra.conf
-	sed -i '/^\s*$/d' /boot/config/smb-extra.conf
-	printf "\n" >> /boot/config/smb-extra.conf
-	cat /tmp/unassigned.devices/config/smb-extra.conf >> /boot/config/smb-extra.conf
+# Add entry to /etc/samba/smb.conf
+if [[ `grep '# unassigned devices' /etc/samba/smb.conf` = "" ]]; then
+	echo "" >> /etc/samba/smb.conf
+	echo "	# unassigned devices" >> /etc/samba/smb.conf
+	echo "	include = /etc/samba/smb-unassigned.conf" >> /etc/samba/smb.conf
 	/usr/bin/smbcontrol $(/usr/bin/cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1
 fi
-]]>
-</INLINE>
-</FILE>
 
-<!--
-Remove smb-extra parameters.
--->
-<FILE Name="/tmp/&name;/remove-smb-extra" Mode="0770">
-<INLINE>
-<![CDATA[
-#!/bin/bash
-sed '/#unassigned_devices_start/,/#unassigned_devices_end/d' /boot/config/smb-extra.conf >> smb.tmp
-printf %s "$(< smb.tmp)" > /boot/config/smb-extra.conf
-rm -f smb.tmp
+if [ -e /tmp/unassigned.devices/smb-settings.conf ]; then
+	# Move the previous smb-settings.conf file
+	mv /tmp/unassigned.devices/smb-settings.conf /etc/samba/smb-unassigned.conf
+fi
 ]]>
 </INLINE>
 </FILE>
@@ -1858,14 +1833,14 @@ The 'post-install' script.
 -->
 <FILE Run="/bin/bash">
 <INLINE>
-# Create logs directory.
-mkdir -p /tmp/&name;/logs
+# Create logs, config, and device scripts directory.
+mkdir -p /tmp/&name;/logs /tmp/&name;/config /tmp/&name;/scripts
+
+# Create smb-unassigned.conf if it does not exist
+touch /etc/samba/smb-unassigned.conf
 
 # Create plugin directory
 mkdir -p /boot/config/plugins/&name;
-
-# Remove old packages
-find "/boot/config/plugins/&name;/" -type f -iname "*.txz" -delete
 
 # Install the 'bundle'.
 tar -xf /boot/config/plugins/&name;/&name;-&version;.tgz -C /usr/local/emhttp/plugins 2>/dev/null
@@ -1941,13 +1916,10 @@ if ! mountpoint -q /mnt/rootshare 2>/dev/null; then
 fi
 chown nobody:users /mnt/rootshare
 
-# Add unassigned_devices to smb-extra.conf.
-at -M -f /tmp/&name;/add-smb-extra now 2>/dev/null
+# Add unassigned_devices to smb.conf.
+at -M -f /tmp/&name;/add-smb now 2>/dev/null
 
-# Create a scripts directory to run UD device scripts
-mkdir -p /tmp/&name;/scripts
-
-# Mount disks
+# Copy configuration to tmpfs
 at -M -f /tmp/start_unassigned_devices now 2>/dev/null
 
 # Rename original Dynamix page
@@ -1961,6 +1933,12 @@ find /boot/config/plugins/&name; -type f -iname "&name;*.md5" ! -iname "*&versio
 
 # reload udev rules
 udevadm control --reload-rules
+
+# Remove the unused smb-extra.conf entries
+if [[ `/usr/bin/grep '#unassigned_devices' /boot/config/smb-extra.conf` != "" ]]; then
+	/usr/bin/sed '/#unassigned_devices_start/,/#unassigned_devices_end/d' /boot/config/smb-extra.conf > /tmp/smb.tmp
+	mv /tmp/smb.tmp /boot/config/smb-extra.conf
+fi
 
 echo ""
 echo "-----------------------------------------------------------"
@@ -2026,7 +2004,7 @@ mv -f /usr/local/emhttp/plugins/dynamix/OpenDevices.page- /usr/local/emhttp/plug
 rm -rf /usr/local/emhttp/plugins/&name; 2>/dev/null
 
 # Remove unassigned_devices from smb-extra.conf.
-at -M -f /tmp/&name;/remove-smb-extra now 2>/dev/null
+at -M -f /tmp/&name;/remove-smb now 2>/dev/null
 
 # Remove the tmp directory.
 rm -r /tmp/&name; 2>/dev/null
