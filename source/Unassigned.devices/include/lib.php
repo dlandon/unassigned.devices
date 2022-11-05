@@ -1654,7 +1654,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 			}
 		}
 
-		timed_exec(5, "$(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
+		timed_exec(2, "/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
 	}
 
 	return true;
@@ -1684,8 +1684,8 @@ function rm_smb_share($dir) {
 		$c = array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_unassigned_includes);
 		$c = preg_replace('/\n\s*\n\s*\n/s', PHP_EOL.PHP_EOL, implode(PHP_EOL, $c));
 		@file_put_contents($paths['smb_unassigned'], $c);
-		timed_exec(5, "/usr/bin/smbcontrol $(/bin/cat /var/run/smbd.pid 2>/dev/null) close-share ".escapeshellarg($share_name)." 2>&1");
-		timed_exec(5, "/usr/bin/smbcontrol $(/bin/cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
+		timed_exec(2, "/usr/bin/smbcontrol $(/bin/cat /var/run/smbd.pid 2>/dev/null) close-share ".escapeshellarg($share_name)." 2>&1");
+		timed_exec(2, "/usr/bin/smbcontrol $(/bin/cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
 	}
 
 	return true;

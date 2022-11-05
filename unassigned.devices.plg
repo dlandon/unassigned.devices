@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.10.12">
+<!ENTITY version	"2022.11.04">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"2c90b1272fa53ead69c84b14bd56e23b">
+<!ENTITY MD5		"426e1ad470af2498afacbb384f02187b">
 ]>
 
 <PLUGIN name="&name;"
@@ -1824,6 +1824,8 @@ if [ -e /tmp/unassigned.devices/smb-settings.conf ]; then
 	# Move the previous smb-settings.conf file
 	mv /tmp/unassigned.devices/smb-settings.conf /etc/samba/smb-unassigned.conf
 fi
+
+/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1
 ]]>
 </INLINE>
 </FILE>
@@ -1917,7 +1919,7 @@ fi
 chown nobody:users /mnt/rootshare
 
 # Add unassigned_devices to smb.conf.
-at -M -f /tmp/&name;/add-smb now 2>/dev/null
+at -M -f /tmp/&name;/add-smb now +1 minutes 2>/dev/null
 
 # Copy configuration to tmpfs
 at -M -f /tmp/start_unassigned_devices now 2>/dev/null
