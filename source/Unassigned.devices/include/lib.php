@@ -686,6 +686,9 @@ function format_disk($dev, $fs, $pass) {
 			unassigned_log("Clear partition result:\n".$o);
 		}
 
+		/* Let things settle a bit. */
+		sleep(2);
+
 		/* Reload the partition table. */
 		unassigned_log("Reloading disk '".$dev."' partition table.");
 		$o = trim(shell_exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." 2>&1"));
@@ -723,6 +726,9 @@ function format_disk($dev, $fs, $pass) {
 					unassigned_log("Create mbr partition table result:\n".$o);
 				}
 			}
+
+			/* Let things settle a bit. */
+			sleep(2);
 
 			/* Reload the partition table. */
 			unassigned_log("Reloading disk ".escapeshellarg($dev)." partition table.");
@@ -765,7 +771,7 @@ function format_disk($dev, $fs, $pass) {
 			} else {
 				$luks			= basename($dev);
 				$luks_pass_file	= "{$paths['luks_pass']}_".$luks;
-				@file_put_contents($luks_pass_file, $pass);
+				@file_put_contents($luks_pass_file, $pass."\n");
 				$o				= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
 				exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 			}
@@ -783,7 +789,7 @@ function format_disk($dev, $fs, $pass) {
 				} else {
 					$luks			= basename($dev);
 					$luks_pass_file	= "{$paths['luks_pass']}_".$luks;
-					@file_put_contents($luks_pass_file, $pass);
+					@file_put_contents($luks_pass_file, $pass."\n");
 					$o				= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
 					exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 				}
@@ -1079,9 +1085,9 @@ function execute_script($info, $action, $testing = false) {
 	}
 
 	/* If there is a command, execute the script. */
-	$cmd	= escapeshellcmd($info['command']);
+	$cmd	= $info['command'];
 	$bg		= (($info['command_bg'] != "false") && ($action == "ADD")) ? "&" : "";
-	if ($cmd) {
+	if (file_exists($cmd)) {
 		$command_script = $paths['scripts'].basename($cmd);
 		copy($cmd, $command_script);
 		@chmod($command_script, 0755);
@@ -1097,7 +1103,7 @@ function execute_script($info, $action, $testing = false) {
 				$cmd		= $command_script.$clear_log.$info['logfile']." 2>&1 $bg";
 
 				/* Run the script. */
-				exec($cmd, escapeshellarg($out), escapeshellarg($return));
+				exec(escapeshellcmd($cmd), escapeshellarg($out), escapeshellarg($return));
 				if ($return) {
 					unassigned_log("Error: device script failed: '{$return}'");
 				}
@@ -1269,7 +1275,7 @@ function do_mount($info) {
 				}
 			} else {
 				$luks_pass_file = "{$paths['luks_pass']}_".$luks;
-				@file_put_contents($luks_pass_file, $pass);
+				@file_put_contents($luks_pass_file, $pass."\n");
 				unassigned_log("Using disk password to open the 'crypto_LUKS' device.");
 				$o		= shell_exec("/sbin/cryptsetup ".escapeshellcmd($cmd)." -d ".escapeshellarg($luks_pass_file)." 2>&1");
 				exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
@@ -2765,7 +2771,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 						}
 					} else {
 						$luks_pass_file = "{$paths['luks_pass']}_".basename($dev);
-						@file_put_contents($luks_pass_file, $pass);
+						@file_put_contents($luks_pass_file, $pass."\n");
 						unassigned_log("Using disk password to open the 'crypto_LUKS' device.");
 						$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
 						exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
@@ -2874,7 +2880,7 @@ function change_UUID($dev) {
 			}
 		} else {
 			$luks_pass_file = "{$paths['luks_pass']}_".basename($luks);
-			@file_put_contents($luks_pass_file, $pass);
+			@file_put_contents($luks_pass_file, $pass."\n");
 			unassigned_log("Using disk password to open the 'crypto_LUKS' device.");
 			$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
 			exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
