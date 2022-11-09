@@ -548,7 +548,6 @@ function addFile($file) {
 	global $remove;
 
 	$file = safe_name($file);
-
 	@touch($file);
 	$remove[] = $file;
 }
