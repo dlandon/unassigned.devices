@@ -150,6 +150,8 @@ $default_text	= <<<EOT
 
 case \$ACTION in
   'ADD' )
+    /usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Device mounted" -i "normal"
+
     if [ "\$OWNER" = "udev" ]; then
         # do your hotplug stuff here
         sleep 1
@@ -157,8 +159,6 @@ case \$ACTION in
         # do your user initiated stuff here
 		sleep 1
     fi
-
-    /usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Device mounted" -i "normal"
   ;;
 
   'UNMOUNT' )
