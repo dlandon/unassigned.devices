@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.11.04">
+<!ENTITY version	"2022.11.09">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"426e1ad470af2498afacbb384f02187b">
+<!ENTITY MD5		"3a00613bafb3fc22385dfafd811da5ae">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,15 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Device busy errors when formatting a disk.
+- Fix: Php errors when a device script file does not exist.
+- Fix: Errors with disk password when mounting a crypto_LUKS device.
+- Fix: Disable Clear Disk and Remove Partition if destructive mode is enabled and UD+ is removed.
+- Fix: Device script doesn't run in the background.
+- Fix: Change the position of the mount notification in the default script.
+- Fix: Some code cleanup.
+
+###2022.11.04
 - Fix: Remove UD settings from smb-extra.conf and move to /etc/samba/smb-unassigned.conf.
 
 ###2022.10.03
@@ -1919,7 +1928,7 @@ fi
 chown nobody:users /mnt/rootshare
 
 # Add unassigned_devices to smb.conf.
-at -M -f /tmp/&name;/add-smb now +1 minutes 2>/dev/null
+at -M -f /tmp/&name;/add-smb now 2>/dev/null
 
 # Copy configuration to tmpfs
 at -M -f /tmp/start_unassigned_devices now 2>/dev/null
