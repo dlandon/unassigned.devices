@@ -126,9 +126,9 @@ class MiscUD
 	/* Spin disk up or down using Unraid api. */
 	public function spin_disk($down, $dev) {
 		if ($down) {
-			exec(escapeshellcmd("/usr/local/sbin/emcmd cmdSpindown=".escapeshellarg($dev)));
+			shell_exec("/usr/local/sbin/emcmd cmdSpindown=".escapeshellarg($dev));
 		} else {
-			exec(escapeshellcmd("/usr/local/sbin/emcmd cmdSpinup=".escapeshellarg($dev)));
+			shell_exec("/usr/local/sbin/emcmd cmdSpinup=".escapeshellarg($dev));
 		}
 	}
 
@@ -333,7 +333,7 @@ function unassigned_log($m, $debug_level = 0) {
 		$m		= print_r($m,true);
 		$m		= str_replace("\n", " ", $m);
 		$m		= str_replace('"', "'", $m);
-		exec("/usr/bin/logger"." ".escapeshellarg($m)." -t ".escapeshellarg($plugin));
+		shell_exec("/usr/bin/logger"." ".escapeshellarg($m)." -t ".escapeshellarg($plugin));
 	}
 }
 
@@ -384,7 +384,7 @@ function get_device_stats($mountpoint, $mounted, $active = true) {
 		$df_status	= MiscUD::get_json($tc);
 		/* Run the stats script to update the state file. */
 		if (($active) && ((time() - $df_status[$mountpoint]['timestamp']) > 90)) {
-			exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." &");
+			shell_exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." &");
 		}
 
 		/* Get the updated device stats. */
@@ -1100,10 +1100,14 @@ function execute_script($info, $action, $testing = false) {
 					sleep(1);
 				}
 				$clear_log	= ($action == "ADD") ? " > " : " >> ";
-				$cmd		= $command_script.$clear_log.$info['logfile']." 2>&1 $bg";
+
+				/* Apply escapeshellarg() to the command and logfile of the command. */
+				$cmd		= escapeshellarg($command_script).$clear_log.escapeshellarg($info['logfile'])." 2>&1 $bg";
 
 				/* Run the script. */
-				exec(escapeshellcmd($cmd), escapeshellarg($out), escapeshellarg($return));
+				$out		= null;
+				$return		= null;
+				exec($cmd, $out, $return);
 				if ($return) {
 					unassigned_log("Error: device script failed: '{$return}'");
 				}
@@ -1416,7 +1420,7 @@ function do_mount_root($info) {
 		/* If the root server is not online, run the ping update and see if ping status needs to be refreshed. */
 		if (! $is_alive) {
 			/* Update the root share server ping status. */
-			exec("/usr/local/emhttp/plugins/unassigned.devices/scripts/get_ud_stats ping");
+			shell_exec("/usr/local/emhttp/plugins/unassigned.devices/scripts/get_ud_stats ping");
 
 			/* See if the root share server is online now. */
 			$is_alive = is_samba_server_online($info['ip']);
@@ -1982,7 +1986,7 @@ function do_mount_samba($info) {
 	/* If the remote server is not online, run the ping update and see if ping status needs to be refreshed. */
 	if (! $is_alive) {
 		/* Update the remote server ping status. */
-		exec("/usr/local/emhttp/plugins/unassigned.devices/scripts/get_ud_stats ping");
+		shell_exec("/usr/local/emhttp/plugins/unassigned.devices/scripts/get_ud_stats ping");
 
 		/* See if the server is online now. */
 		$is_alive = is_samba_server_online($info['ip']);
