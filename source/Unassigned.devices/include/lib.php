@@ -1615,7 +1615,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 				$valid_users	= "\n\tvalid users = ".implode(', ', $valid_users);
 				$write_users	= count($write_users) ? "\n\twrite list = ".implode(', ', $write_users) : "";
 				$read_users		= count($read_users) ? "\n\tread list = ".implode(', ', $read_users) : "";
-				$share_cont		= "[{$share_name}]\n\tpath = {$dir}{$hidden}{$force_user}{$valid_users}{$write_users}{$read_users}{$vfs_objects}{$case_names}";
+				$share_cont		= "[{$share_name}]\n\tcomment = {$share_name}\n\tpath = {$dir}{$hidden}{$force_user}{$valid_users}{$write_users}{$read_users}{$vfs_objects}{$case_names}";
 			} else {
 				$share_cont 	= "[{$share_name}]\n\tpath = {$dir}{$hidden}\n\tinvalid users = @users";
 				unassigned_log("Error: No valid smb users defined. Share '{$dir}' cannot be accessed.");
@@ -1663,6 +1663,9 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 				@file_put_contents($share_conf, "\n", FILE_APPEND);
 			}
 		}
+
+		/* Add the [global] tag to the end of the share file. */
+		@file_put_contents($share_conf, "[global]\n", FILE_APPEND);
 
 		timed_exec(2, "/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
 	}
