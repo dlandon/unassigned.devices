@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.11.09">
+<!ENTITY version	"2022.11.10a">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"3a00613bafb3fc22385dfafd811da5ae">
+<!ENTITY MD5		"2b3d815f6128c3bf14593c117d68bfea">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,9 +22,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Move UD include to before smb-shares in smb.conf.
+
+###2022.11.09
 - Fix: Device busy errors when formatting a disk.
 - Fix: Php errors when a device script file does not exist.
-- Fix: Errors with disk password when mounting a crypto_LUKS device.
 - Fix: Disable Clear Disk and Remove Partition if destructive mode is enabled and UD+ is removed.
 - Fix: Device script doesn't run in the background.
 - Fix: Change the position of the mount notification in the default script.
@@ -1776,6 +1778,9 @@ rm -rf /usr/local/emhttp/plugins/&name;/* 2>/dev/null
 
 # Remove old 'bundle' files.
 rm -f $(ls /boot/config/plugins/&name;/*.tgz 2>/dev/null | grep -v '&version;')
+
+# Remove old add-smb file
+rm -f /tmp/&name;/add-smb
 </INLINE>
 </FILE>
 
@@ -1821,11 +1826,16 @@ Add smb parameters for UD.
 <INLINE>
 <![CDATA[
 #!/bin/bash
+# Remove legacy setting from /etc/samba/smb.conf
+if [[ `grep '# unassigned devices' /etc/samba/smb.conf` != "" ]]; then
+	sed '/# unassigned devices/, /smb-unassigned.conf/d' /etc/samba/smb.conf  > /tmp/smb.tmp
+	mv /tmp/smb.tmp /etc/samba/smb.conf
+	sleep 1
+fi
+
 # Add entry to /etc/samba/smb.conf
-if [[ `grep '# unassigned devices' /etc/samba/smb.conf` = "" ]]; then
-	echo "" >> /etc/samba/smb.conf
-	echo "	# unassigned devices" >> /etc/samba/smb.conf
-	echo "	include = /etc/samba/smb-unassigned.conf" >> /etc/samba/smb.conf
+if [[ `grep '# hook for unassigned devices shares' /etc/samba/smb.conf` = "" ]]; then
+	sed -i "/# auto-configured shares/i \	# hook for unassigned devices shares\n	include = /etc/samba/smb-unassigned.conf\n" /etc/samba/smb.conf
 	/usr/bin/smbcontrol $(/usr/bin/cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1
 fi
 
