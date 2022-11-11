@@ -771,7 +771,7 @@ function format_disk($dev, $fs, $pass) {
 			} else {
 				$luks			= basename($dev);
 				$luks_pass_file	= "{$paths['luks_pass']}_".$luks;
-				@file_put_contents($luks_pass_file, $pass."\n");
+				@file_put_contents($luks_pass_file, $pass);
 				$o				= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
 				exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 			}
@@ -789,7 +789,7 @@ function format_disk($dev, $fs, $pass) {
 				} else {
 					$luks			= basename($dev);
 					$luks_pass_file	= "{$paths['luks_pass']}_".$luks;
-					@file_put_contents($luks_pass_file, $pass."\n");
+					@file_put_contents($luks_pass_file, $pass);
 					$o				= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
 					exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 				}
@@ -1279,7 +1279,7 @@ function do_mount($info) {
 				}
 			} else {
 				$luks_pass_file = "{$paths['luks_pass']}_".$luks;
-				@file_put_contents($luks_pass_file, $pass."\n");
+				@file_put_contents($luks_pass_file, $pass);
 				unassigned_log("Using disk password to open the 'crypto_LUKS' device.");
 				$o		= shell_exec("/sbin/cryptsetup ".escapeshellcmd($cmd)." -d ".escapeshellarg($luks_pass_file)." 2>&1");
 				exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
@@ -2775,7 +2775,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 						}
 					} else {
 						$luks_pass_file = "{$paths['luks_pass']}_".basename($dev);
-						@file_put_contents($luks_pass_file, $pass."\n");
+						@file_put_contents($luks_pass_file, $pass);
 						unassigned_log("Using disk password to open the 'crypto_LUKS' device.");
 						$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
 						exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
@@ -2884,7 +2884,7 @@ function change_UUID($dev) {
 			}
 		} else {
 			$luks_pass_file = "{$paths['luks_pass']}_".basename($luks);
-			@file_put_contents($luks_pass_file, $pass."\n");
+			@file_put_contents($luks_pass_file, $pass);
 			unassigned_log("Using disk password to open the 'crypto_LUKS' device.");
 			$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
 			exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
