@@ -1779,9 +1779,6 @@ rm -rf /usr/local/emhttp/plugins/&name;/* 2>/dev/null
 
 # Remove old 'bundle' files.
 rm -f $(ls /boot/config/plugins/&name;/*.tgz 2>/dev/null | grep -v '&version;')
-
-# Remove old add-smb file
-rm -f /tmp/&name;/add-smb
 </INLINE>
 </FILE>
 
