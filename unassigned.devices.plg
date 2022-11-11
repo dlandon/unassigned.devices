@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.11.10a">
+<!ENTITY version	"2022.11.11">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"2b3d815f6128c3bf14593c117d68bfea">
+<!ENTITY MD5		"3a7bd3436b16f4fb48ff5458aecfe7bc">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Better handling of smb configuration.
+
+###2022.11.10a
 - Fix: Move UD include to before smb-shares in smb.conf.
 
 ###2022.11.09
@@ -1835,7 +1838,7 @@ fi
 
 # Add entry to /etc/samba/smb.conf
 if [[ `grep '# hook for unassigned devices shares' /etc/samba/smb.conf` = "" ]]; then
-	sed -i "/# auto-configured shares/i \	# hook for unassigned devices shares\n	include = /etc/samba/smb-unassigned.conf\n" /etc/samba/smb.conf
+	sed -i "/# auto-configured shares/i \[global]\n	# hook for unassigned devices shares\n	include = /etc/samba/smb-unassigned.conf\n" /etc/samba/smb.conf
 	/usr/bin/smbcontrol $(/usr/bin/cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1
 fi
 
