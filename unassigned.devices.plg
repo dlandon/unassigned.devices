@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.11.10">
+<!ENTITY version	"2022.11.09">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
@@ -22,9 +22,6 @@
 <CHANGES>
 ##&name;
 ###&version;
-- Fix: Move UD include to before smb-shares in smb.conf.
-
-###2022.11.09
 - Fix: Device busy errors when formatting a disk.
 - Fix: Php errors when a device script file does not exist.
 - Fix: Errors with disk password when mounting a crypto_LUKS device.
@@ -1824,16 +1821,11 @@ Add smb parameters for UD.
 <INLINE>
 <![CDATA[
 #!/bin/bash
-# Remove legacy setting from /etc/samba/smb.conf
-if [[ `grep '# unassigned devices' /etc/samba/smb.conf` != "" ]]; then
-	sed '/# unassigned devices/,smb-unassigned.conf/d' /etc/samba/smb.conf  >> /tmp/smb.tmp
-	mv /tmp/smb.tmp /etc/samba/smb.conf
-	sleep 1
-fi
-
 # Add entry to /etc/samba/smb.conf
-if [[ `grep '# hook for unassigned devices shares' /etc/samba/smb.conf` = "" ]]; then
-	sed -i "/# auto-configured shares/i \	# hook for unassigned devices shares\n	include = /etc/samba/smb-unassigned.conf\n" /etc/samba/smb.conf
+if [[ `grep '# unassigned devices' /etc/samba/smb.conf` = "" ]]; then
+	echo "" >> /etc/samba/smb.conf
+	echo "	# unassigned devices" >> /etc/samba/smb.conf
+	echo "	include = /etc/samba/smb-unassigned.conf" >> /etc/samba/smb.conf
 	/usr/bin/smbcontrol $(/usr/bin/cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1
 fi
 
