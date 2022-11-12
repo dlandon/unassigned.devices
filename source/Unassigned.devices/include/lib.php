@@ -1653,19 +1653,17 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 				if (is_file($recycle_script)) {
 					$recycle_bin_cfg = @parse_ini_file( "/boot/config/plugins/recycle.bin/recycle.bin.cfg" );
 					if ($recycle_bin_cfg['INCLUDE_UD'] == "yes") {
-						unassigned_log("Enabling the Recycle Bin on share '{$share_name}'.");
+						if (is_file("/var/run/recycle.bin.pid")) {
+							unassigned_log("Enabling the Recycle Bin on share '{$share_name}'.");
+						}
 						shell_exec(escapeshellcmd("$recycle_script $share_conf"));
-					} else {
-						@file_put_contents($share_conf, "\n", FILE_APPEND);
 					}
 				}
-			} else {
-				@file_put_contents($share_conf, "\n", FILE_APPEND);
 			}
 		}
 
 		/* Add the [global] tag to the end of the share file. */
-		@file_put_contents($share_conf, "[global]\n", FILE_APPEND);
+		@file_put_contents($share_conf, "\n[global]\n", FILE_APPEND);
 
 		timed_exec(2, "/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
 	}
