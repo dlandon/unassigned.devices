@@ -133,8 +133,7 @@ if ($rc_check != 0) {
 	} else if (($file_system == "xfs") && ($rc_check == 2)) {
 		write_log("<br />"._('Dirty log detected')."!<br />");
 		write_log("<center><button type='button' onclick='document.location=\"/plugins/{$plugin}/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=log&type="._('Done')."\"'>"._('Force Log Zeroing')."</button></center>");
-		write_log("<br />"._('Note: All metadata updates in progress at the time of the crash will be lost, which may cause significant filesystem damage').".&nbsp;&nbsp;");
-		write_log(_('This should only be used as a last resort if the filesystem cannot be mounted to replay the log').".<br />");
+		write_log("<br />"._('Note: While there is some risk, if it is not possible to first mount the filesystem to clear the log, zeroing it is the only option to try and repair the filesystem, and in most cases it results in little or no data loss.').".&nbsp;&nbsp;");
 	} else if (($file_system == "xfs") && ($rc_check == 4)){
 		write_log("<br />"._('File system corruption fixed')."!<br />");
 	} 
