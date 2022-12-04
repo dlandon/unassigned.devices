@@ -2035,7 +2035,7 @@ rm -r /tmp/&name; 2>/dev/null
 rm -rf /boot/config/plugins/&name;/&name;-&version;.tgz
 
 # Remove Unassigned Devices Preclear plugin
-if [ -f /var/log/plugins/&name;.preclear.plg ] ; then
+if [ -f /var/log/plugins/&name;.preclear-beta.plg ] ; then
 	plugin remove &name;.preclear.plg
 fi
 
