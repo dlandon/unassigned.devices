@@ -92,7 +92,7 @@ The 'pre-install' script.
 <FILE Run="/bin/bash">
 <INLINE>
 # Unassigned Devices must be installed.
-if [ ! -f /boot/config/plugins/unassigned.devices.plg ] ; then
+if [ ! -f /boot/config/plugins/unassigned.devices-beta.plg ] ; then
 echo ""
 echo "-----------------------------------------------------------"
 echo " &name; has not been installed!"
