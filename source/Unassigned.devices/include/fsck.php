@@ -91,28 +91,35 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 				$file_system = "resierfs";
 			} elseif (stripos($o, "BTRFS") !== false) {
 				$file_system = "btrfs";
+			} else {
+				write_log("Cannot determine file system on an encrypted disk!<br />");
+				$file_system	= "";
 			}
 		}
 
-		/* If the file system is btrfs, we will do a scrub. */
-		if ($file_system != "btrfs") {
-			write_log("Executing file system check:&nbsp;");
+		if ($file_system) {
+			/* If the file system is btrfs, we will do a scrub. */
+			if ($file_system != "btrfs") {
+				write_log("Executing file system check:&nbsp;");
+			} else {
+				write_log("Executing file system scrub:&nbsp;");
+			}
+
+			/* Get the file system check command based on the file system. */
+			$command = get_fsck_commands($file_system, $device, $check_type)." 2>&1";
+			write_log($command."<br />");
+
+			/* Execute the fsck command and pipe it to $proc. */
+			$proc = popen($command, 'r');
+			while (! feof($proc)) {
+				write_log(fgets($proc));
+			}
+
+			/* Close $proc and get the process error code. */
+			$rc_check = pclose($proc);
 		} else {
-			write_log("Executing file system scrub:&nbsp;");
+			$rc_check = 0;
 		}
-
-		/* Get the file system check command based on the file system. */
-		$command = get_fsck_commands($file_system, $device, $check_type)." 2>&1";
-		write_log($command."<br /><br />");
-
-		/* Execute the fsck command and pipe it to $proc. */
-		$proc = popen($command, 'r');
-		while (! feof($proc)) {
-			write_log(fgets($proc));
-		}
-
-		/* Close $proc and get the process error code. */
-		$rc_check = pclose($proc);
 	}
 
 	/* Close the device if it is encrypted. */
@@ -125,19 +132,24 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 	}
 }
 
-/* Check the fsck return code and process the return code. */
-if ($rc_check != 0) {
-	if ((($file_system == "xfs") && ($rc_check == 1)) || ($file_system != "xfs")) {
-		write_log("<br />"._('File system corruption detected')."!<br />");
-		write_log("<center><button type='button' onclick='document.location=\"/plugins/{$plugin}/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=rw&type="._('Done')."\"'>"._('Run with Correct flag')."</button></center>");
-	} else if (($file_system == "xfs") && ($rc_check == 2)) {
-		write_log("<br />"._('Dirty log detected')."!<br />");
-		write_log("<center><button type='button' onclick='document.location=\"/plugins/{$plugin}/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=log&type="._('Done')."\"'>"._('Force Log Zeroing')."</button></center>");
-		write_log("<br />"._('Note: While there is some risk, if it is not possible to first mount the filesystem to clear the log, zeroing it is the only option to try and repair the filesystem, and in most cases it results in little or no data loss.').".&nbsp;&nbsp;");
-	} else if (($file_system == "xfs") && ($rc_check == 4)){
-		write_log("<br />"._('File system corruption fixed')."!<br />");
-	} 
-} else if ($file_system == "xfs") {
-	write_log("<br />"._('No file system corruption detected')."!<br />");
+/* Btrfs file systems have to be mounted to scrub them. */
+if (($file_system == "btrfs") && (! $mounted)) {
+	write_log("<br />"._('A btrfs file system has to be mounted to be scrubbed')."!<br />");
+} else {
+	/* Check the fsck return code and process the return code. */
+	if ($rc_check != 0) {
+		if ((($file_system == "xfs") && ($rc_check == 1)) || ($file_system != "xfs")) {
+			write_log("<br />"._('File system corruption detected')."!<br />");
+			write_log("<center><button type='button' onclick='document.location=\"/plugins/{$plugin}/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=rw&type="._('Done')."\"'>"._('Run with Correct flag')."</button></center>");
+		} else if (($file_system == "xfs") && ($rc_check == 2)) {
+			write_log("<br />"._('Dirty log detected')."!<br />");
+			write_log("<center><button type='button' onclick='document.location=\"/plugins/{$plugin}/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=log&type="._('Done')."\"'>"._('Force Log Zeroing')."</button></center>");
+			write_log("<br />"._('Note: While there is some risk, if it is not possible to first mount the filesystem to clear the log, zeroing it is the only option to try and repair the filesystem, and in most cases it results in little or no data loss').".&nbsp;&nbsp;");
+		} else if (($file_system == "xfs") && ($rc_check == 4)){
+			write_log("<br />"._('File system corruption fixed')."!<br />");
+		} 
+	} else if ($file_system == "xfs") {
+		write_log("<br />"._('No file system corruption detected')."!<br />");
+	}
 }
 ?>

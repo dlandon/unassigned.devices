@@ -40,7 +40,7 @@ if ($dev_pos !== false) {
 } else {
 	$sf = $paths['dev_state'];
 	if (is_file($sf) && (strpos(basename($DEVNAME), 'dev') === false)) {
-		$DEVNAME = get_disk_dev(MiscUD::base_device(basename($DEVNAME)));
+		$DEVNAME = get_disk_dev((new MiscUD)->base_device(basename($DEVNAME)));
 	}
 }
 
@@ -74,14 +74,14 @@ function unassigned_mount() {
 				}
 
 				/* If disk is formatting, skip to the next one. */
-				if (array_values(preg_grep("@/formatting_".basename($device)."@i", listDir(dirname($paths['formatting']))))[0]) {
+				if ((new MiscUD)->get_formatting_status($device)) {
 					break;
 				}
 
 				/* If disk is not set to auto mount, skip to the next disk. */
 				if (! $info['automount'] && ( $DEVNAME == "auto" || $DEVNAME == "autodevices" || isset($_ENV['DEVNAME']) )) {
 					if ($info['fstype']) {
-						unassigned_log("Disk with ID '{$info['serial']} (".MIscUD::base_device(basename($device)).")' is not set to auto mount.");
+						unassigned_log("Disk with ID '{$info['serial']} (".(new MiscUD)->base_device(basename($device)).")' is not set to auto mount.");
 					}
 
 					break;
@@ -493,7 +493,7 @@ function unassigned_spin_down() {
 
 	if (! is_file("/tmp/unassigned.devices/shut_down")) {
 		$dev = basename($DEVNAME);
-		MiscUD::spin_disk(true, $dev);
+		(new MiscUD)->spin_disk(true, $dev);
 	}
 }
 
@@ -501,7 +501,7 @@ function unassigned_spin_down() {
 function unassigned_detach($ata) {
 	global $DEVNAME;
 
-	$dev = MiscUD::base_device(basename($DEVNAME));
+	$dev = (new MiscUD)->base_device(basename($DEVNAME));
 
 	if (! is_file("/tmp/unassigned.devices/shut_down")) {
 		/* We only allow removing USB devices. */
@@ -511,6 +511,8 @@ function unassigned_detach($ata) {
 					foreach ($disk['partitions'] as $partition) {
 						if ($partition['mounted']) {
 							$mounted = true;
+						} else {
+							$mounted = false;
 						}
 					}
 					if (! $mounted) {
@@ -536,7 +538,7 @@ function unassigned_attach() {
 	global $DEVNAME;
 
 	/* Get this device's hostX. */
-	$host	= MiscUD::get_device_host($DEVNAME);
+	$host	= (new MiscUD)->get_device_host($DEVNAME);
 
 	if ($host) {
 		@file_put_contents("/sys/class/scsi_host/${host}/scan", "- - -");
@@ -550,13 +552,16 @@ function addFile($file) {
 	$file = safe_name($file);
 	@touch($file);
 	$remove[] = $file;
+
+	publish();
+	sleep(0.5);
 }
 
 /* Update json mounted disk status. */
 function export_disk($disk, $add) {
 	global $paths;
 
-	$info	= MiscUD::get_json($paths['mounted']);
+	$info	= (new MiscUD)->get_json($paths['mounted']);
 	$dev	= $disk['device'];
 	if ($add)
 	{
@@ -570,7 +575,7 @@ function export_disk($disk, $add) {
 		unset($info[$dev]);
 	}
 
-	MiscUD::save_json($paths['mounted'], $info);	
+	(new MiscUD)->save_json($paths['mounted'], $info);	
 }
 
 switch ($COMMAND) {
@@ -615,4 +620,6 @@ switch ($COMMAND) {
 
 /* Clear all the status files. */
 array_map(function($f){@unlink($f);}, $remove);
+publish();
+sleep(0.5);
 ?>

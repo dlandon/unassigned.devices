@@ -45,7 +45,7 @@ $paths = [	"smb_unassigned"	=> "/etc/samba/smb-unassigned.conf",
 			"formatting"		=> "/var/state/{$plugin}/formatting_%s.state"
 		];
 
-$docroot	= $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $users		= @parse_ini_file("$docroot/state/users.ini", true);
 $disks		= @parse_ini_file("$docroot/state/disks.ini", true);
 
@@ -139,29 +139,31 @@ class MiscUD
 		$rc = array();
 
 		/* Get the current pool status. */
-		$pool_state	= MiscUD::get_json($paths['pool_state']);
+		$pool_state	= (new MiscUD)->get_json($paths['pool_state']);
 
 		/* If this mount point is not defined, set it as an empty array. */
-		$pool_state[$mountpoint] = is_array($pool_state[$mountpoint]) ? $pool_state[$mountpoint] : array();
+		if (in_array($mountpoint, $pool_state)) {
+			$pool_state[$mountpoint]	= is_array($pool_state[$mountpoint]) ? $pool_state[$mountpoint] : array();
+		}
 
-		if ($remove) {
-			/* Remove this from the pool devices if unmounting. */
-			if (isset($pool_state[$mountpoint])) {
+		if (isset($pool_state[$mountpoint])) {
+			if ($remove) {
+				/* Remove this from the pool devices if unmounting. */
 				unset($pool_state[$mountpoint]);
-				MiscUD::save_json($paths['pool_state'], $pool_state);
-			}
-		} else if (is_array($pool_state[$mountpoint]) && (! count($pool_state[$mountpoint]))) {
-			/* Get the pool parameters if they are not already defined. */
-			unassigned_log("Get Disk Pool members on mountpoint '".$mountpoint."'.", $GLOBALS['UDEV_DEBUG']);
+				(new MiscUD)->save_json($paths['pool_state'], $pool_state);
+			} else if (is_array($pool_state[$mountpoint]) && (! count($pool_state[$mountpoint]))) {
+				/* Get the pool parameters if they are not already defined. */
+				unassigned_log("Get Disk Pool members on mountpoint '".$mountpoint."'.", $GLOBALS['UDEV_DEBUG']);
 
-			/* Get the brfs pool status from the mountpoint. */
-			$s	= shell_exec("/sbin/btrfs fi show ".escapeshellarg($mountpoint)." | /bin/grep 'path' | /bin/awk '{print $8}'");
-			$rc	= explode("\n", $s);
-			$pool_state[$mountpoint] = array_filter($rc);
-			MiscUD::save_json($paths['pool_state'], $pool_state);
-		} else {
-			/* Get the pool status from the pool_state. */
-			$rc = $pool_state[$mountpoint];
+				/* Get the brfs pool status from the mountpoint. */
+				$s	= shell_exec("/sbin/btrfs fi show ".escapeshellarg($mountpoint)." | /bin/grep 'path' | /bin/awk '{print $8}'");
+				$rc	= explode("\n", $s);
+				$pool_state[$mountpoint] = array_filter($rc);
+				(new MiscUD)->save_json($paths['pool_state'], $pool_state);
+			} else {
+				/* Get the pool status from the pool_state. */
+				$rc = $pool_state[$mountpoint];
+			}
 		}
 
 		return array_filter($rc);
@@ -172,7 +174,7 @@ class MiscUD
 		global $paths;
 
 		/* Get the current hostX status. */
-		$device_hosts	= MiscUD::get_json($paths['device_hosts']);
+		$device_hosts	= (new MiscUD)->get_json($paths['device_hosts']);
 
 		/* Find the hostX in the DEVPATH and parse it from the DEVPATH. */
 		$begin	= strpos($devpath, "host");
@@ -181,7 +183,7 @@ class MiscUD
 
 		/* Prevent duplicate hostX elements. */
 		$check = array_flip($device_hosts);
-		if ($check[$host] != $serial) {
+		if ((isset($check[$host])) && ($check[$host] != $serial)) {
 			unset($check[$host]);
 		}
 		$device_hosts	= array_flip($check);
@@ -189,7 +191,7 @@ class MiscUD
 		/* Save the hostX. */
 		$device_hosts[$serial] = $host;
 
-		MiscUD::save_json($paths['device_hosts'], $device_hosts);
+		(new MiscUD)->save_json($paths['device_hosts'], $device_hosts);
 	}
 
 	/* Get the device hostX. */
@@ -199,15 +201,41 @@ class MiscUD
 		$rc	= "";
 
 		/* Get the current hostX status. */
-		$device_hosts	= MiscUD::get_json($paths['device_hosts']);
+		$device_hosts	= (new MiscUD)->get_json($paths['device_hosts']);
 
-		$host	= $device_hosts[$serial];
-		if (is_file("/sys/class/scsi_host/${host}/scan")) {
+		if (isset($device_hosts[$serial]) && (is_file("/sys/class/scsi_host/${device_hosts[$serial]}/scan"))) {
 			/* Return the hostX. */
-			$rc	= $host;
+			$rc	= $device_hosts[$serial];
 		}
 
 		return $rc;
+	}
+
+	/* Get disk mounting status. */
+	public function get_mounting_status($device) {
+		global $paths;
+
+		$mounting		= array_values(preg_grep("@/mounting_".$device."@i", listDir(dirname($paths['mounting']))))[0] ?? null;
+		$is_mounting	= (isset($mounting) && (time() - filemtime($mounting) < 300)) ? true : false;
+		return $is_mounting;
+	}
+
+	/* Get the unmounting status. */
+	public function get_unmounting_status($device) {
+		global $paths;
+
+		$unmounting		= array_values(preg_grep("@/unmounting_".$device."@i", listDir(dirname($paths['unmounting']))))[0] ?? null;
+		$is_unmounting	= (isset($unmounting) && (time() - filemtime($unmounting)) < 300) ? true : false;
+		return $is_unmounting;
+	}
+
+	/* Get the formatting status. */
+	public function get_formatting_status($device) {
+		global $paths;
+
+		$formatting		= array_values(preg_grep("@/formatting_".$device."@i", listDir(dirname($paths['formatting']))))[0] ?? null;
+		$is_formatting	= (isset($formatting) && (time() - filemtime($formatting) < 300)) ? true : false;
+		return $is_formatting;
 	}
 }
 
@@ -381,20 +409,25 @@ function get_device_stats($mountpoint, $mounted, $active = true) {
 
 	/* Get the device stats if device is mounted. */
 	if ($mounted) {
-		$df_status	= MiscUD::get_json($tc);
+		$df_status	= (new MiscUD)->get_json($tc);
 		/* Run the stats script to update the state file. */
+		$df_status[$mountpoint]['timestamp']	= $df_status[$mountpoint]['timestamp'] ?? 0;
 		if (($active) && ((time() - $df_status[$mountpoint]['timestamp']) > 90)) {
 			shell_exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." &");
 		}
 
 		/* Get the updated device stats. */
-		$df_status	= MiscUD::get_json($tc);
+		$df_status	= (new MiscUD)->get_json($tc);
 		if (isset($df_status[$mountpoint])) {
 			$rc = $df_status[$mountpoint]['stats'];
 		}
 	}
 
-	return preg_split('/\s+/', $rc);
+	$stats		= preg_split('/\s+/', $rc);
+	$stats[1]	= $stats[1] ?? 0;
+	$stats[2]	= $stats[2] ?? 0;
+
+	return $stats;
 }
 
 /* Get the devX designation for this device from the devs.ini. */
@@ -423,7 +456,7 @@ function get_disk_id($dev, $udev_id) {
 	global $paths;
 
 	$rc		= $udev_id;
-	$device	= MiscUD::base_device(basename($dev));
+	$device	= (new MiscUD)->base_device(basename($dev));
 
 	$sf		= $paths['dev_state'];
 
@@ -458,10 +491,10 @@ function get_disk_reads_writes($ud_dev, $dev) {
 	}
 
 	/* Get the base device - remove the partition number. */
-	$dev	= MiscUD::base_device(basename($dev));
+	$dev	= (new MiscUD)->base_device(basename($dev));
 
 	/* Get the disk_io for this device. */
-	$disk_io	= is_file('state/diskload.ini') ? @parse_ini_file('state/diskload.ini') : array();
+	$disk_io	= (is_file('state/diskload.ini')) ? @parse_ini_file('state/diskload.ini') : array();
 	$data		= explode(' ', $disk_io[$dev] ?? '0 0 0 0');
 
 	/* Read rate. */
@@ -493,13 +526,15 @@ function is_disk_running($ud_dev, $dev) {
 	}
 
 	/* Get the current run status. */
-	$run_status	= MiscUD::get_json($tc);
+	$run_status	= (new MiscUD)->get_json($tc);
 
-	/* Update the spin status. */
-	$spin		= isset($run_status[$device]['spin']) ? $run_status[$device]['spin'] : "";
-	$spin_time	= isset($run_status[$device]['spin']) ? $run_status[$device]['spin_time'] : 0;
-	$run_status[$device] = array('timestamp' => $timestamp, 'running' => $rc ? 'yes' : 'no', 'spin_time' => $spin_time, 'spin' => $spin);
-	MiscUD::save_json($tc, $run_status);
+	if (isset($device)) {
+		/* Update the spin status. */
+		$spin		= isset($run_status[$device]['spin']) ? $run_status[$device]['spin'] : "";
+		$spin_time	= isset($run_status[$device]['spin_time']) ? $run_status[$device]['spin_time'] : 0;
+		$run_status[$device] = array('timestamp' => $timestamp, 'running' => $rc ? 'yes' : 'no', 'spin_time' => $spin_time, 'spin' => $spin);
+		(new MiscUD)->save_json($tc, $run_status);
+	}
 
 	return $rc;
 }
@@ -510,7 +545,7 @@ function is_disk_spin($ud_dev, $running) {
 
 	$rc			= false;
 	$tc			= $paths['run_status'];
-	$run_status	= MiscUD::get_json($tc);
+	$run_status	= (new MiscUD)->get_json($tc);
 
 	/* Is disk spinning up or down? */
 	if (isset($run_status[$ud_dev]['spin'])) {
@@ -536,7 +571,7 @@ function is_disk_spin($ud_dev, $running) {
 		if ((! $rc) && ($run_status[$ud_dev]['spin'])) {
 			$run_status[$ud_dev]['spin']		= "";
 			$run_status[$ud_dev]['spin_time']	= 0;
-			MiscUD::save_json($tc, $run_status);
+			(new MiscUD)->save_json($tc, $run_status);
 		}
 	}
 
@@ -552,7 +587,7 @@ function is_samba_server_online($ip) {
 	$tc				= $paths['ping_status'];
 
 	/* Get the updated ping status. */
-	$ping_status	= MiscUD::get_json($tc);
+	$ping_status	= (new MiscUD)->get_json($tc);
 	if (isset($ping_status[$server])) {
 		$is_alive = ($ping_status[$server]['online'] == 'yes') ? true : false;
 	}
@@ -570,7 +605,7 @@ function is_script_running($cmd, $user = false) {
 	if ($cmd) {
 		$script_name	= $cmd;
 		$tc				= $paths['script_run'];
-		$script_run		= MiscUD::get_json($tc);
+		$script_run		= (new MiscUD)->get_json($tc);
 
 		/* Check to see if the script was running. */
 		if (isset($script_run[$script_name])) {
@@ -593,7 +628,7 @@ function is_script_running($cmd, $user = false) {
 		$script_run[$script_name] = array('running' => $is_running ? 'yes' : 'no','user' => $user ? 'yes' : 'no');
 
 		/* Update the current running state. */
-		MiscUD::save_json($tc, $script_run);
+		(new MiscUD)->save_json($tc, $script_run);
 		if (($was_running) && (! $is_running)) {
 			publish();
 		}
@@ -697,7 +732,7 @@ function format_disk($dev, $fs, $pass) {
 		}
 
 		/* Get partition designation based on type of device. */
-		if (MiscUD::is_device_nvme($dev)) {
+		if ((new MiscUD)->is_device_nvme($dev)) {
 			$device	= $dev."p1";
 		} else {
 			$device	= $dev."1";
@@ -759,7 +794,7 @@ function format_disk($dev, $fs, $pass) {
 		/* Format the disk. */
 		if (strpos($fs, "-encrypted") !== false) {
 			/* nvme partition designations are 'p1', not '1'. */
-			if (MiscUD::is_device_nvme($dev)) {
+			if ((new MiscUD)->is_device_nvme($dev)) {
 				$cmd = "luksFormat {$dev}p1";
 			} else {
 				$cmd = "luksFormat {$dev}1";
@@ -798,6 +833,8 @@ function format_disk($dev, $fs, $pass) {
 					unassigned_log("luksOpen result: ".$o);
 					$rc = false;
 				} else {
+					$out	= null;
+					$return	= null;
 					exec(get_format_cmd("/dev/mapper/{$mapper}", $fs),escapeshellarg($out), escapeshellarg($return));
 					sleep(3);
 					shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
@@ -805,6 +842,8 @@ function format_disk($dev, $fs, $pass) {
 			}
 		} else {
 			/* Format the disk. */
+			$out	= null;
+			$return	= null;
 			exec(get_format_cmd($device, $fs), escapeshellarg($out), escapeshellarg($return));
 		}
 
@@ -898,14 +937,19 @@ function remove_all_partitions($dev) {
 	}
 
 	if ($rc) {
-		$device	= MiscUD::base_device($dev);
+		$device	= (new MiscUD)->base_device($dev);
 
 		unassigned_log("Removing all partitions from disk '".$device."'.");
 
 		/* Remove all partitions - this clears the disk. */
-		shell_exec("/sbin/wipefs -a ".escapeshellarg($device)." 2>&1");
+		shell_exec("/sbin/wipefs -af ".escapeshellarg($device)." 2>&1");
 		sleep(0.5);
 		shell_exec("/sbin/sgdisk -Z ".escapeshellarg($device)." 2>&1");
+		sleep(0.5);
+		$o	= shell_exec("/usr/sbin/partprobe ".escapeshellarg($device)." 2>&1");
+		if ($o) {
+			unassigned_log("Remove all partitions 'partprobe' result: ".$o);
+		}
 
 		unassigned_log("Remove all Disk partitions initiated a Hotplug event.", $GLOBALS['UDEV_DEBUG']);
 
@@ -969,14 +1013,14 @@ function luks_fs_type($dev) {
 /* Get device configuration parameter. */
 function get_config($serial, $variable) {
 	$config_file	= $GLOBALS["paths"]["config_file"];
-	$config			= @parse_ini_file($config_file, true);
+	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	return (isset($config[$serial][$variable])) ? html_entity_decode($config[$serial][$variable], ENT_COMPAT) : false;
 }
 
 /* Set device configuration parameter. */
 function set_config($serial, $variable, $value) {
 	$config_file	= $GLOBALS["paths"]["config_file"];
-	$config			= @parse_ini_file($config_file, true);
+	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	$config[$serial][$variable] = htmlentities($value, ENT_COMPAT);
 	save_ini_file($config_file, $config);
 	return (isset($config[$serial][$variable])) ? $config[$serial][$variable] : false;
@@ -1010,7 +1054,7 @@ function is_disable_mount($serial) {
 /* Toggle auto mount on/off. */
 function toggle_automount($serial, $status) {
 	$config_file	= $GLOBALS["paths"]["config_file"];
-	$config			= @parse_ini_file($config_file, true);
+	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	$config[$serial]["automount"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
 	return ($config[$serial]["automount"] == "yes") ? 'true' : 'false';
@@ -1019,7 +1063,7 @@ function toggle_automount($serial, $status) {
 /* Toggle read only on/off. */
 function toggle_read_only($serial, $status) {
 	$config_file	= $GLOBALS["paths"]["config_file"];
-	$config			= @parse_ini_file($config_file, true);
+	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	$config[$serial]["read_only"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
 	return ($config[$serial]["read_only"] == "yes") ? 'true' : 'false';
@@ -1028,7 +1072,7 @@ function toggle_read_only($serial, $status) {
 /* Toggle pass through on/off. */
 function toggle_pass_through($serial, $status) {
 	$config_file	= $GLOBALS["paths"]["config_file"];
-	$config			= @parse_ini_file($config_file, true);
+	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	$config[$serial]["pass_through"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
 	return ($config[$serial]["pass_through"] == "yes") ? 'true' : 'false';
@@ -1037,7 +1081,7 @@ function toggle_pass_through($serial, $status) {
 /* Toggle hide mount on/off. */
 function toggle_disable_mount($serial, $status) {
 	$config_file	= $GLOBALS["paths"]["config_file"];
-	$config			= @parse_ini_file($config_file, true);
+	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	$config[$serial]["disable_mount"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
 	return ($config[$serial]["disable_mount"] == "yes") ? 'true' : 'false';
@@ -1069,7 +1113,7 @@ function execute_script($info, $action, $testing = false) {
 	}
 
 	/* Set the device devX designation. */
-	$ud_dev = get_disk_dev(MiscUD::base_device(basename($info['device'])));
+	$ud_dev = get_disk_dev((new MiscUD)->base_device(basename($info['device'])));
 	putenv("UD_DEVICE"."="."{$ud_dev}");
 
 	/* Execute the common script if it is defined. */
@@ -1086,6 +1130,7 @@ function execute_script($info, $action, $testing = false) {
 
 	/* If there is a command, execute the script. */
 	$cmd	= $info['command'];
+	$info['command_bg']	= $info['command_bg'] ?? false;
 	$bg		= (($info['command_bg'] != "false") && ($action == "ADD")) ? "&" : "";
 	if (file_exists($cmd)) {
 		$command_script = $paths['scripts'].basename($cmd);
@@ -1127,7 +1172,7 @@ function remove_config_disk($serial) {
 
 	/* Get the all disk configurations. */
 	$config_file	= $GLOBALS["paths"]["config_file"];
-	$config			= @parse_ini_file($config_file, true);
+	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	if ( isset($config[$serial]) ) {
 		unassigned_log("Removing configuration '{$serial}'.");
 	}
@@ -1146,8 +1191,8 @@ function is_disk_ssd($dev) {
 	$rc		= false;
 
 	/* Get the base device - remove the partition number. */
-	$device	= MiscUD::base_device(basename($dev));
-	if (! MiscUD::is_device_nvme($device)) {
+	$device	= (new MiscUD)->base_device(basename($dev));
+	if (! (new MiscUD)->is_device_nvme($device)) {
 		$file = "/sys/block/".basename($device)."/queue/rotational";
 		$rc = (exec("/bin/cat {$file} 2>/dev/null") == 0) ? true : false;
 	} else {
@@ -1194,17 +1239,19 @@ function get_mount_params($fs, $dev, $ro = false) {
 
 	$rc				= "";
 	$config_file	= $paths['config_file'];
-	$config			= @parse_ini_file($config_file, true);
-	$discard 		= (($config['Config']['discard'] == "yes") && is_disk_ssd($dev)) ? ",discard" : "";
+	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
+	$discard 		= ((isset($config['Config']['discard'])) && ($config['Config']['discard'] == "yes") && is_disk_ssd($dev)) ? ",discard" : "";
 	$rw				= $ro ? "ro" : "rw";
 	switch ($fs) {
 		case 'hfsplus':
 			$rc = "force,{$rw},users,umask=000";
 			break;
 
-		case 'xfs':
 		case 'btrfs':
-		case 'crypto_LUKS':
+			$rc = "{$rw},noatime,nodiratime,space_cache=v2{$discard}";
+			break;
+
+		case 'xfs':
 			$rc = "{$rw},noatime,nodiratime{$discard}";
 			break;
 
@@ -1314,11 +1361,11 @@ function do_mount_local($info) {
 	$ro		= ($info['read_only'] == 'yes') ? true : false;
 	if (! is_mounted($dev) && ! is_mounted($dir)) {
 		if ($fs) {
+			$recovery = "";
 			if ($fs != "crypto_LUKS") {
 				if ($fs == "apfs") {
 					/* See if there is a disk password. */
 					$password = decrypt_data(get_config($info['serial'], "pass"));
-					$recovery = "";
 					if ($password) {
 						$recovery = ",pass='".$password."'";
 					}
@@ -1330,9 +1377,21 @@ function do_mount_local($info) {
 					$cmd = "/sbin/mount -t ".escapeshellarg($fs)." -o $params ".escapeshellarg($dev)." ".escapeshellarg($dir);
 				}
 			} else {
+				/* Physical device being mounted. */
 				$device = $info['luks'];
-				$params	= get_mount_params($fs, $device, $ro);
-				$cmd = "/sbin/mount -o $params ".escapeshellarg($dev)." ".escapeshellarg($dir);
+
+				/* Find the file system type on the luks device to use the proper mount options. */
+				$mapper	= "/dev/mapper/".basename($info['device']);
+				$command = get_fsck_commands($fs, $mapper)." 2>&1";
+				$o = shell_exec(escapeshellcmd($command));
+				if (stripos($o, "BTRFS") !== false) {
+					$file_system	= "btrfs";
+				} else {
+					$file_system	= "xfs";
+				}
+				
+				$params	= get_mount_params($file_system, $device, $ro);
+				$cmd = "/sbin/mount -t ".escapeshellarg($file_system)." -o $params ".escapeshellarg($dev)." ".escapeshellarg($dir);
 			}
 			$str = str_replace($recovery, ", pass='*****'", $cmd);
 			unassigned_log("Mount drive command: {$str}");
@@ -1386,9 +1445,9 @@ function do_mount_local($info) {
 			} else {
 				if ($info['fstype'] == "btrfs") {
 					/* Update the btrfs state file for single scan for pool devices. */
-					$pool_state			= MiscUD::get_json($paths['pool_state']);
+					$pool_state			= (new MiscUD)->get_json($paths['pool_state']);
 					$pool_state[$dir]	= array();
-					MiscUD::save_json($paths['pool_state'], $pool_state);
+					(new MiscUD)->save_json($paths['pool_state'], $pool_state);
 				}
 
 				/* Ntfs is mounted but is most likely mounted r/o. Display the mount command warning. */
@@ -1483,7 +1542,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false) {
 		}
 
 		/* Remove saved pool devices if this is a pooled device. */
-		MiscUD::get_pool_devices($dir, true);
+		(new MiscUD)->get_pool_devices($dir, true);
 
 		$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : ($nfs ? " -l" : ""))." ".escapeshellarg($dev)." 2>&1";
 		unassigned_log("Unmount cmd: {$cmd}");
@@ -1542,8 +1601,9 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 	global $paths, $var, $users;
 
 	/* Get the current UD configuration. */
-	$config = @parse_ini_file($paths['config_file'], true);
-	$config = $config["Config"];
+	$config_file	= $paths['config_file'];
+	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
+	$config			= (isset($config["Config"])) ? $config["Config"] : array();
 
 	/* Add mountpoint to samba shares. */
 	if ( ($var['shareSMBEnabled'] != "no") && ($config["smb_security"] != "no") ) {
@@ -1631,7 +1691,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 
 		unassigned_log("Adding SMB share '{$share_name}'.");
 		@file_put_contents($share_conf, $share_cont);
-		if (! MiscUD::exist_in_file($paths['smb_unassigned'], $share_conf)) {
+		if (! (new MiscUD)->exist_in_file($paths['smb_unassigned'], $share_conf)) {
 			$c		= (is_file($paths['smb_unassigned'])) ? @file($paths['smb_unassigned'], FILE_IGNORE_NEW_LINES) : array();
 			$c[]	= "include = $share_conf";
 
@@ -1651,8 +1711,12 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 				/* Add the recycle bin parameters if plugin is installed */
 				$recycle_script = "plugins/recycle.bin/scripts/configure_recycle_bin";
 				if (is_file($recycle_script)) {
-					$recycle_bin_cfg = @parse_ini_file( "/boot/config/plugins/recycle.bin/recycle.bin.cfg" );
-					if ($recycle_bin_cfg['INCLUDE_UD'] == "yes") {
+					if (file_exists("/boot/config/plugins/recycle.bin/recycle.bin.cfg")) {
+						$recycle_bin_cfg	= @parse_ini_file( "/boot/config/plugins/recycle.bin/recycle.bin.cfg" );
+					} else {
+						$recycle_nin_cfg	= array();
+					}
+					if ((isset($recycle_bin_cfg['INCLUDE_UD'])) && ($recycle_bin_cfg['INCLUDE_UD'] == "yes")) {
 						if (is_file("/var/run/recycle.bin.pid")) {
 							unassigned_log("Enabling the Recycle Bin on share '{$share_name}'.");
 						}
@@ -1682,7 +1746,7 @@ function rm_smb_share($dir) {
 		unassigned_log("Removing SMB share '{$share_name}'");
 		@unlink($share_conf);
 	}
-	if (MiscUD::exist_in_file($paths['smb_unassigned'], $share_conf)) {
+	if ((new MiscUD)->exist_in_file($paths['smb_unassigned'], $share_conf)) {
 		$c = (is_file($paths['smb_unassigned'])) ? @file($paths['smb_unassigned'], FILE_IGNORE_NEW_LINES) : array();
 
 		/* Do some cleanup. */
@@ -1710,7 +1774,7 @@ function add_nfs_share($dir) {
 	if ( ($var['shareNFSEnabled'] == "yes") && (get_config("Config", "nfs_export") == "yes") ) {
 		$reload = false;
 		foreach (array("/etc/exports","/etc/exports-") as $file) {
-			if (! MiscUD::exist_in_file($file, "\"{$dir}\"")) {
+			if (! (new MiscUD)->exist_in_file($file, "\"{$dir}\"")) {
 				$c			= (is_file($file)) ? @file($file, FILE_IGNORE_NEW_LINES) : array();
 				$fsid		= 200 + count(preg_grep("@^\"@", $c));
 				$nfs_sec	= get_config("Config", "nfs_security");
@@ -1742,7 +1806,7 @@ function rm_nfs_share($dir) {
 	/* Remove this disk from the exports file. */
 	$reload = false;
 	foreach (array("/etc/exports","/etc/exports-") as $file) {
-		if ( MiscUD::exist_in_file($file, "\"{$dir}\"") && strlen($dir)) {
+		if ( (new MiscUD)->exist_in_file($file, "\"{$dir}\"") && strlen($dir)) {
 			$c		= (is_file($file)) ? @file($file, FILE_IGNORE_NEW_LINES) : array();
 			$c		= preg_grep("@\"{$dir}\"@i", $c, PREG_GREP_INVERT);
 			$c[]	= "";
@@ -1830,14 +1894,14 @@ function reload_shares() {
 /* Get samba mount configuration parameter. */
 function get_samba_config($source, $variable) {
 	$config_file	= $GLOBALS["paths"]["samba_mount"];
-	$config 		= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
+	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, INI_SCANNER_RAW) : array();
 	return (isset($config[$source][$variable])) ? $config[$source][$variable] : false;
 }
 
 /* Set samba mount configuration parameter. */
 function set_samba_config($source, $variable, $value) {
 	$config_file	= $GLOBALS["paths"]["samba_mount"];
-	$config			= @parse_ini_file($config_file, true);
+	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	$config[$source][$variable] = $value;
 	save_ini_file($config_file, $config);
 	return (isset($config[$source][$variable])) ? $config[$source][$variable] : false;
@@ -1902,12 +1966,13 @@ function get_samba_mounts() {
 
 	$o = array();
 	$config_file	= $paths['samba_mount'];
-	$samba_mounts	= @parse_ini_file($config_file, true);
+	$samba_mounts	= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	if (is_array($samba_mounts)) {
 		ksort($samba_mounts, SORT_NATURAL);
 		foreach ($samba_mounts as $device => $mount) {
-			$mount['device']	= $device;
-			$mount['name']		= $device;
+			$mount['device']		= $device;
+			$mount['name']			= $device;
+			$mount['mountpoint']	= $mount['mountpoint'] ?? "";
 
 			/* Set the mount protocol. */
 			if ($mount['protocol'] == "NFS") {
@@ -1919,7 +1984,7 @@ function get_samba_mounts() {
 				$path = $mount['mountpoint'] ? $mount['mountpoint'] : $root_type.".".$mount['path'];
 			} else {
 				$mount['fstype'] = "cifs";
-				$path = $mount['path'];
+				$path = (isset($mount['path'])) ? $mount['path'] : "";
 			}
 
 			if ($mount['fstype'] != "root") {
@@ -1978,8 +2043,8 @@ function do_mount_samba($info) {
 	global $paths, $var, $version;
 
 	$rc				= false;
-	$config_file	= $paths['config_file'];
-	$config			= @parse_ini_file($config_file, true);
+// dfl	$config_file	= $paths['config_file'];
+// dfl	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 
 	/* Be sure the server online status is current. */
 	$is_alive = is_samba_server_online($info['ip']);
@@ -2146,7 +2211,7 @@ function do_mount_samba($info) {
 /* Toggle samba auto mount on/off. */
 function toggle_samba_automount($source, $status) {
 	$config_file	= $GLOBALS["paths"]["samba_mount"];
-	$config			= @parse_ini_file($config_file, true);
+	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	$config[$source]["automount"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
 	return ($config[$source]["automount"] == "yes") ? true : false;
@@ -2155,7 +2220,7 @@ function toggle_samba_automount($source, $status) {
 /* Toggle samba share on/off. */
 function toggle_samba_share($source, $status) {
 	$config_file	= $GLOBALS["paths"]["samba_mount"];
-	$config			= @parse_ini_file($config_file, true);
+	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	$config[$source]["smb_share"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
 	return ($config[$source]["smb_share"] == "yes") ? true : false;
@@ -2164,7 +2229,7 @@ function toggle_samba_share($source, $status) {
 /* Toggle hide mount on/off. */
 function toggle_samba_disable_mount($device, $status) {
 	$config_file	= $GLOBALS["paths"]["samba_mount"];
-	$config			= @parse_ini_file($config_file, true);
+	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	$config[$device]["disable_mount"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
 	return ($config[$serial]["disable_mount"] == "yes") ? 'true' : 'false';
@@ -2173,14 +2238,16 @@ function toggle_samba_disable_mount($device, $status) {
 /* Remove the samba remote mount configuration. */
 function remove_config_samba($source) {
 	$config_file	= $GLOBALS["paths"]["samba_mount"];
-	$config			= @parse_ini_file($config_file, true);
+	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	if ( isset($config[$source]) ) {
 		unassigned_log("Removing configuration '{$source}'.");
-	}
-	$command		= $config[$source]['command'];
-	if ( isset($command) && is_file($command) ) {
-		@unlink($command);
-		unassigned_log("Removing script '{$command}'.");
+		if (isset($config[$source]['command'])) {
+			$command	= $config[$source]['command'];
+			if ( isset($command) && is_file($command) ) {
+				@unlink($command);
+				unassigned_log("Removing script '{$command}'.");
+			}
+		}
 	}
 	unset($config[$source]);
 	save_ini_file($config_file, $config);
@@ -2194,14 +2261,14 @@ function remove_config_samba($source) {
 /* Get the iso file configuration parameter. */
 function get_iso_config($source, $variable) {
 	$config_file	= $GLOBALS["paths"]["iso_mount"];
-	$config			= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
+	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, INI_SCANNER_RAW) : array();
 	return (isset($config[$source][$variable])) ? $config[$source][$variable] : false;
 }
 
 /* Get an iso file configuration parameter. */
 function set_iso_config($source, $variable, $value) {
 	$config_file	= $GLOBALS["paths"]["iso_mount"];
-	$config			= @parse_ini_file($config_file, true);
+	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	$config[$source][$variable] = $value;
 	save_ini_file($config_file, $config);
 	return (isset($config[$source][$variable])) ? $config[$source][$variable] : false;
@@ -2220,14 +2287,15 @@ function get_iso_mounts() {
 	/* Create an array of iso file mounts and set paramaters. */
 	$rc				= array();
 	$config_file	= $paths['iso_mount'];
-	$iso_mounts		= @parse_ini_file($config_file, true);
+	$iso_mounts		= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	if (is_array($iso_mounts)) {
 		ksort($iso_mounts, SORT_NATURAL);
 		foreach ($iso_mounts as $device => $mount) {
 			$mount['device']		= $device;
 			$mount['fstype']		= "loop";
 			$mount['automount'] 	= is_iso_automount($mount['device']);
-			if (! $mount["mountpoint"]) {
+			$mount['mountpoint']	= $mount['mountpoint'] ?? "";
+			if (! $mount['mountpoint']) {
 				$mount["mountpoint"] = preg_replace("%\s+%", "_", "{$paths['usb_mountpoint']}/{$mount['share']}");
 			}
 			$mount['mounted']		= is_mounted($mount['mountpoint']);
@@ -2287,7 +2355,7 @@ function do_mount_iso($info) {
 /* Toggle iso file automount on/off. */
 function toggle_iso_automount($source, $status) {
 	$config_file	= $GLOBALS["paths"]["iso_mount"];
-	$config			= @parse_ini_file($config_file, true);
+	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	$config[$source]["automount"] = ($status == "true") ? "yes" : "no";
 	save_ini_file($config_file, $config);
 	return ($config[$source]["automount"] == "yes") ? true : false;
@@ -2296,14 +2364,16 @@ function toggle_iso_automount($source, $status) {
 /* Remove ISO configuration. */
 function remove_config_iso($source) {
 	$config_file	= $GLOBALS["paths"]["iso_mount"];
-	$config			= @parse_ini_file($config_file, true);
+	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	if ( isset($config[$source]) ) {
 		unassigned_log("Removing configuration '{$source}'.");
-	}
-	$command = $config[$source]['command'];
-	if ( isset($command) && is_file($command) ) {
-		@unlink($command);
-		unassigned_log("Removing script '{$command}'.");
+		if (isset($config[$source]['command'])) {
+			$command	= $config[$source]['command'];
+			if ( isset($command) && is_file($command) ) {
+				@unlink($command);
+				unassigned_log("Removing script '{$command}'.");
+			}
+		}
 	}
 	unset($config[$source]);
 	save_ini_file($config_file, $config);
@@ -2370,6 +2440,7 @@ function get_all_disks_info() {
 				foreach ($disk['partitions'] as $k => $p) {
 					if ($p) {
 						$disk['partitions'][$k] = get_partition_info($p);
+						$disk['partitions'][$k]['array_disk'] = $disk['partitions'][$k]['array_disk'] ?? false;
 						$disk['array_disk'] = $disk['array_disk'] || $disk['partitions'][$k]['array_disk'];
 					}
 				}
@@ -2383,7 +2454,7 @@ function get_all_disks_info() {
 				$unassigned_dev	= $unassigned_dev ? $unassigned_dev : basename($disk['device']);
 
 				/* If there is already a devX that is the same, use the disk device sdX designation. */
-				if (isset($ud_disks[$unassigned_dev]) && (strpos($unassigned_dev, "dev") !== false)) {
+				if (isset($ud_disks[$unassigned_dev]) && (substr($unassigned_dev, 0, 3) == "dev")) {
 					/* Get the sdX device designation. */
 					$unassigned_dev = basename($disk['device']);
 
@@ -2517,7 +2588,7 @@ function get_disk_info($dev) {
 	}
 
 	/* Get the hostX from the DEVPATH so we can re-attach a disk. */
-	MiscUD::save_device_host($disk['serial'], $attrs['DEVPATH']);
+	(new MiscUD)->save_device_host($disk['serial'], $attrs['DEVPATH']);
 
 	return $disk;
 }
@@ -2532,12 +2603,12 @@ function get_partition_info($dev) {
 		$disk['serial_short']	= isset($attrs['ID_SCSI_SERIAL']) ? $attrs['ID_SCSI_SERIAL'] : $attrs['ID_SERIAL_SHORT'];
 		$disk['device']			= realpath($dev);
 		$disk['serial']			= get_disk_id($disk['device'], trim($attrs['ID_SERIAL']));
-		$disk['uuid']			= $attrs['ID_FS_UUID'];
+		$disk['uuid']			= (isset($attrs['ID_FS_UUID'])) ? $attrs['ID_FS_UUID'] : "";
 
 		/* Get partition number */
 		preg_match_all("#(.*?)(\d+$)#", $disk['device'], $matches);
-		$disk['part']			= $matches[2][0];
-		$disk['disk']			= MiscUD::base_device($matches[1][0]);
+		$disk['part']			= (isset($matches[2][0])) ? $matches[2][0] : "";
+		$disk['disk']			= (isset($matches[1][0])) ? (new MiscUD)->base_device($matches[1][0]) : "";
 
 		/* Get the physical disk label or generate one based on the vendor id and model or serial number. */
 		if (isset($attrs['ID_FS_LABEL'])){
@@ -2550,7 +2621,7 @@ function get_partition_info($dev) {
 				$disk['label']	= safe_name($attrs['ID_SERIAL_SHORT']);
 			}
 			$all_disks			= array_unique(array_map(function($ar){return realpath($ar);}, listDir("/dev/disk/by-id")));
-			$disk['label']		= (count(preg_grep("%".$matches[1][0]."%i", $all_disks)) > 2) ? $disk['label']."-part".$matches[2][0] : $disk['label'];
+			$disk['label']		= (isset($disk['label']) && (isset($matches[1][0])) && (count(preg_grep("%".$matches[1][0]."%i", $all_disks)) > 2)) ? $disk['label']."-part".$matches[2][0] : $disk['label'];
 			$disk['disk_label']	= "";
 		}
 
@@ -2560,7 +2631,7 @@ function get_partition_info($dev) {
 		}
 
 		/* Get the file system type. */
-		$disk['fstype']			= safe_name($attrs['ID_FS_TYPE']);
+		$disk['fstype']			= isset($attrs['ID_FS_TYPE']) ? safe_name($attrs['ID_FS_TYPE']) : "";
 
 		/* Get the mount point from the configuration and if not set create a default mount point. */
 		$disk['mountpoint']		= get_config($disk['serial'], "mountpoint.{$disk['part']}");
@@ -2582,7 +2653,7 @@ function get_partition_info($dev) {
 
 		if ($disk['mounted'] && $disk['fstype'] == "btrfs") {
 			/* Get the members of a pool if this is a pooled disk. */
-			$pool_devs			= MiscUD::get_pool_devices($disk['mountpoint']);
+			$pool_devs			= (new MiscUD)->get_pool_devices($disk['mountpoint']);
 
 			/* First pooled device is the primary member. */
 			unset($pool_devs[0]);
@@ -2703,7 +2774,7 @@ function check_for_duplicate_share($dev, $mountpoint) {
 	$ud_shares		= array();
 
 	/* Get an array of all ud shares. */
-	$share_names	= MiscUD::get_json($paths['share_names']);
+	$share_names	= (new MiscUD)->get_json($paths['share_names']);
 	foreach ($share_names as $device => $name) {
 		if (strpos($device, basename($dev)) === false) {
 			$ud_shares[] = strtoupper($name);
@@ -2867,7 +2938,8 @@ function change_UUID($dev) {
 	$device	= $dev;
 
 	/* nvme disk partitions are 'p1', not '1'. */
-	$device	.=(MiscUD::is_device_nvme($dev)) ? "p1" : "1";
+	$device	.=((new MiscUD)->
+	is_device_nvme($dev)) ? "p1" : "1";
 
 	/* Deal with crypto_LUKS disks. */
 	if ($fs_type == "crypto_LUKS") {
@@ -2941,7 +3013,9 @@ function curl_socket($socket, $url, $postdata = NULL) {
 
 /* Trigger an nchan event. */
 function publish($message = "rescan") {
-	$endpoint = $_COOKIE['ud_reload'];
-	curl_socket("/var/run/nginx.socket", "http://localhost/pub/$endpoint?buffer_length=1", $message);
+	if (isset($_COOKIE['ud_reload'])) {
+		$endpoint = $_COOKIE['ud_reload'];
+		curl_socket("/var/run/nginx.socket", "http://localhost/pub/$endpoint?buffer_length=1", $message);
+	}
 }
 ?>

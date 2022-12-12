@@ -22,6 +22,24 @@ require_once "plugins/$plugin/include/lib.php";
 
 $config_file = $paths['config_file'];
 $cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
+$cfg['Config']['common_cmd']		= $cfg['Config']['common_cmd'] ?? '';
+$cfg['Config']['destructive_mode']	= $cfg['Config']['destructive_mode'] ??'';
+$cfg['Config']['automount_usb']		= $cfg['Config']['automount_usb'] ?? '';
+$cfg['Config']['discard']			= $cfg['Config']['discard'] ?? '';
+$cfg['Config']['symlinks']			= $cfg['Config']['symlinks'] ?? '';
+$cfg['Config']['smb_version']		= $cfg['Config']['smb_version'] ?? '';
+$cfg['Config']['nfs_version']		= $cfg['Config']['nfs_version'] ?? '';
+$cfg['Config']['debug_level']		= $cfg['Config']['debug_level'] ?? '';
+$cfg['Config']['smb_security']		= $cfg['Config']['smb_security'] ?? '';
+$cfg['Config']['case_names']		= $cfg['Config']['case_names'] ?? '';
+$cfg['Config']['force_user']		= $cfg['Config']['force_user'] ?? '';
+$cfg['Config']['nfs_export']		= $cfg['Config']['nfs_export'] ?? '';
+$cfg['Config']['nfs_security']		= $cfg['Config']['nfs_security'] ?? '';
+$cfg['Config']['nfs_rule']			= $cfg['Config']['nfs_rule'] ?? '';
+$cfg['Config']['pswd_serial']		= $cfg['Config']['pswd_serial'] ?? '';
+$cfg['Config']['password']			= $cfg['Config']['password'] ?? '';
+$cfg['Config']['change_uuid']		= $cfg['Config']['change_uuid'] ?? '';
+
 
 /* Get the version of Unraid we are running. */
 $version = parse_ini_file("/etc/unraid-version");
@@ -34,7 +52,7 @@ if ((! $parted) && ($cfg['Config']['destructive_mode'] == "enabled")) {
 
 /* If Unraid is 6.9 or less, set NFS version for v3. */
 if (version_compare($version['version'],"6.9.9", "<")) {
-	$cfg["Config"]["nfs_version"] = "3";
+	$cfg['Config']['nfs_version'] = "3";
 }
 
 /* Get array of devices that can have UUID changed - unmounted, xfs devices. */
@@ -45,31 +63,37 @@ $encrypt_devices = array();
 
 foreach (get_all_disks_info() as $d) {
 	/* If the disk dropped out of the array, skip it. */
-	if ($d['array_disk']) {
+	if (isset($d['array_disk']) && ($d['array_disk'])) {
 		continue;
 	}
 
-	/* Get an array of devices that are candidates for uuid change. */
-	if (($d['partitions'][0]['fstype'] == "xfs" || $d['partitions'][0]['fstype'] == "btrfs" || $d['partitions'][0]['fstype'] == "crypto_LUKS") && (! $d['partitions'][0]['mounted'])) {
-		$a = array();
-		$a['device'] = $d['device'];
-		$a['label'] = $d['serial'];
-		$uuid_devices[] = $a;
+	if (isset($d['partitions'][0]['fstype'])) {
+		/* Get an array of devices that are candidates for uuid change. */
+		if (($d['partitions'][0]['fstype'] == "xfs" || $d['partitions'][0]['fstype'] == "btrfs" || $d['partitions'][0]['fstype'] == "crypto_LUKS") && (! $d['partitions'][0]['mounted'])) {
+			$a = array();
+			$a['device'] = $d['device'];
+			$a['label'] = $d['serial'];
+			$uuid_devices[] = $a;
+		}
+
+		/* Get an array of devices that are encrypted for password setting. */
+		if ($d['partitions'][0]['fstype'] == "crypto_LUKS" && (! $d['partitions'][0]['mounted'])) {
+			$a = array();
+			$a['device'] = $d['device'];
+			$a['label'] = $d['serial'];
+			$encrypt_devices[] = $a;
+		}
 	}
 
-	/* Get an array of devices that are encrypted for password setting. */
-	if ($d['partitions'][0]['fstype'] == "crypto_LUKS" && (! $d['partitions'][0]['mounted'])) {
-		$a = array();
-		$a['device'] = $d['device'];
-		$a['label'] = $d['serial'];
-		$encrypt_devices[] = $a;
-	}
-
-	/* apfs file systems can also use a password. */
-	if ($d['partitions'][1]['fstype'] == "apfs" && (! $d['partitions'][1]['mounted'])) {
-		$a = array();
-		$a['label'] = $d['serial'];
-		$encrypt_devices[] = $a;
+	if (isset($d['partitions'][1]['fstype'])) {
+		/* apfs file systems can also use a password. */
+		if (isset($d['partitions'][1])) {
+			if ($d['partitions'][1]['fstype'] == "apfs" && (! $d['partitions'][1]['mounted'])) {
+				$a = array();
+				$a['label'] = $d['serial'];
+				$encrypt_devices[] = $a;
+			}
+		}
 	}
 }
 ?>
@@ -268,10 +292,10 @@ _(Debug Log Level)_:
 
 _(Enable SMB Security)_?
 : <select name="smb_security" size="1" onchange="prepareSecurity(this);">
-  <?=mk_option($cfg['Config']["smb_security"], "no", "_(No)_");?>
-  <?=mk_option($cfg['Config']["smb_security"], "public", "_(Public)_");?>
-  <?=mk_option($cfg['Config']["smb_security"], "yes", "_(Yes)_");?>
-  <?=mk_option($cfg['Config']["smb_security"], "hidden", "_(Yes (hidden))_");?>
+  <?=mk_option($cfg["Config"]["smb_security"], "no", "_(No)_");?>
+  <?=mk_option($cfg["Config"]["smb_security"], "public", "_(Public)_");?>
+  <?=mk_option($cfg["Config"]["smb_security"], "yes", "_(Yes)_");?>
+  <?=mk_option($cfg["Config"]["smb_security"], "hidden", "_(Yes (hidden))_");?>
   </select>
 
 :ud_settings_smb_security_plug:
@@ -290,9 +314,9 @@ _(Enable SMB Security)_?
 		<dt><?=$user['name'];?></dt>
 		<dd>
 			<select name="smb_<?=$user['name'];?>" size="1">
-			<?=mk_option($cfg["Config"]["smb_{$user['name']}"], "no-access", "_(No Access)_");?>
-			<?=mk_option($cfg["Config"]["smb_{$user['name']}"], "read-write", "_(Read/Write)_");?>
-			<?=mk_option($cfg["Config"]["smb_{$user['name']}"], "read-only", "_(Read-only)_");?>
+			<?=mk_option($cfg["Config"]["smb_{$user['name']}"] ?? '', "no-access", "_(No Access)_");?>
+			<?=mk_option($cfg["Config"]["smb_{$user['name']}"] ?? '', "read-write", "_(Read/Write)_");?>
+			<?=mk_option($cfg["Config"]["smb_{$user['name']}"] ?? '', "read-only", "_(Read-only)_");?>
 			</select>
 		</dd>
 	</dl>
@@ -341,11 +365,11 @@ _(Add)_ 'force user = nobody' _(to SMB share config)_?
 
 _(Enable NFS export)_?
 : <select name="nfs_export" size="1" <?if ($var['shareNFSEnabled']=="no"):?>disabled<?endif;?>>
-  <?=mk_option($cfg['Config']["nfs_export"], "no", "_(No)_");?>
-  <?=mk_option($cfg['Config']["nfs_export"], "yes", "_(Yes)_");?>
+  <?=mk_option($cfg["Config"]["nfs_export"], "no", "_(No)_");?>
+  <?=mk_option($cfg["Config"]["nfs_export"], "yes", "_(Yes)_");?>
   </select><?if ($var['shareNFSEnabled']=="no"):?>&nbsp;_(NFS must be enabled in Settings->NFS to enable NFS Export)_.<?endif;?>
 
-<div id="nfs_security" style="display: <?=($cfg['Config']["nfs_export"] == "no" ? "none" : "block");?>">
+<div id="nfs_security" style="display: <?=($cfg["Config"]["nfs_export"] == "no" ? "none" : "block");?>">
 <dl>
 	<dt>_(NFS Security)_:</dt>
 	<dd>
@@ -356,11 +380,11 @@ _(Enable NFS export)_?
 	</dd>
 </dl>
 
-<div id="nfs_rule" style="display: <?=($cfg['Config']["nfs_security"] == "public" ? "none" : "block");?>">
+<div id="nfs_rule" style="display: <?=($cfg["Config"]["nfs_security"] == "public" ? "none" : "block");?>">
 	<dl>
 		<dt>_(Rule)_:</dt>
 		<dd>
-			<input type="text" name="nfs_rule" class="wide" maxlength="125" value="<?=$cfg['Config']["nfs_rule"];?>" placeholder="See Help">
+			<input type="text" name="nfs_rule" class="wide" maxlength="256" value="<?=$cfg["Config"]["nfs_rule"];?>" placeholder="See Help">
 		</dd>
 	</dl>
 	</div>
@@ -387,12 +411,12 @@ _(Select Disk)_:
 : <select name="set_pass" size="1">
 
   <?foreach ($encrypt_devices as $d) {?>
-  <?=mk_option($cfg['Config']['pswd_serial'], ($d['label']), ($d['label']." (".basename($d['device']).")"))?>
+  <?=mk_option($cfg["Config"]["pswd_serial"], ($d['label']), ($d['label']." (".basename($d['device']).")"))?>
   <?}?>
   </select>
 
 _(Enter Disk Password)_:
-: <input type="password" name="password" class="wide" maxlength="100" value="<?=$cfg['Config']['password'];?>">
+: <input type="password" name="password" class="wide" maxlength="100" value="<?=$cfg["Config"]["password"];?>">
   
 :ud_settings_disk_pass_plug:
 > Select the disk that you want to set a Password. This is the password for this disk only and does not affect the array password/passphrase. Leave password blank to use the array password/passphrase for luks encrypted disks.

@@ -34,6 +34,14 @@ $fstype					= "";
 $volume					= "";
 $id_bus					= "";
 $is_precearing			= false;
+$pass_through			= "";
+$read_only				= "";
+$show_partitions		= "";
+$width					= "";
+$disable_mount			= "";
+$disable_action			= "";
+$share					= "";
+$share_action			= "";
 
 /* Main entry point. */
 if (isset($_GET['s'])) {
@@ -42,9 +50,11 @@ if (isset($_GET['s'])) {
 	$device				= isset($_GET['b']) ? $_GET['b'] : $_GET['l'];
 	$partition			= $_GET['p'];
 	$mount_point		= $_GET['l'];
-	$info				= $_GET['m'];
-	if ($_GET['m']) {
+	$info				= (isset($_GET['m'])) ? $_GET['m'] : "";
+	if (isset($_GET['m'])) {
 		$id_bus			= ($_GET['u'] == "usb") ? " - USB" : " - SATA";
+	} else {
+		$_GET['u']		= null;
 	}
 
 	$file				= get_config($serial, "command.{$partition}");
@@ -62,7 +72,7 @@ if (isset($_GET['s'])) {
 	$disable_mount		= (is_disable_mount($serial)) ? "checked" : "";
 	$read_only			= (is_read_only($serial)) ? "checked" : "";
 	$automount			= (is_automount($serial)) ? "checked" : "";
-	$share				= (config_shared($serial, $partition, strpos($attrs['DEVPATH'],"usb"))) ? "checked" : "";
+	$share				= (config_shared($serial, $partition, $_GET['u'])) ? "checked" : "";
 	$show_partitions	= (get_config($serial, "show_partitions") == "no" ) ? "" : "checked";
 	$width				= "70%";
 	$automount_action	= "automount";
@@ -77,14 +87,14 @@ if (isset($_GET['s'])) {
 		$disk_setting			= false;
 		$show_device_switches	= false;
 	}
-	$fstype				= $_GET['f'];
+	$fstype				= (isset($_GET['f'])) ? $_GET['f'] : "";
 	$volume				= ($fstype == "apfs") ? get_config($ud_device, "volume.{$partition}") : "0";
-	$is_preclearing		= shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg(MiscUD::base_device($device))." | /bin/grep -v 'grep'") != "" ? true : false;
+	$is_preclearing		= shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg((new MiscUD)->base_device($device))." | /bin/grep -v 'grep'") != "" ? true : false;
 } else if (isset($_GET['d'])) {
 	/* Remote shares. */
 	$device				= $_GET['d'];
 	$mount_point		= $_GET['l'];
-	$info				= $_GET['m'];
+	$info				= (isset($_GET['m'])) ? $_GET['m'] : "";
 	$file				= get_samba_config($device, "command");
 	if (($file) && (! file_exists($file))) {
 		set_samba_config($device,"command","");
@@ -261,10 +271,10 @@ _(Disk Serial)_: <?=$serial;?>
 > Select the options for this device/mount point.  These changes are made immediately.  You don't need to click **Save** to save them.
 :end
 
-<?if (($disk_setting) && isset($_GET['s']) && isset($_GET['m']) && (! is_mounted($mount_point)) && (! $is_preclearing) && (! is_pass_through($_GET['s'])) && MiscUD::get_device_host($_GET['s'])):?>
+<?if (($disk_setting) && isset($_GET['s']) && isset($_GET['m']) && (! is_mounted($mount_point)) && (! $is_preclearing) && (! is_pass_through($_GET['s'])) && (new MiscUD)->get_device_host($_GET['s'])):?>
 <button type="button" title='_(Detach This Disk)_.' onclick='detach_disk("<?=$device;?>");'>_(Detach)_</button>
 <?endif;?>
-<?if (isset($_GET['s']) && (! isset($_GET['m'])) && MiscUD::get_device_host($_GET['s'])):?>
+<?if (isset($_GET['s']) && (! isset($_GET['m'])) && (new MiscUD)->get_device_host($_GET['s'])):?>
 <button type="button" title='_(Attach This Disk)_.' onclick='attach_disk("<?=$_GET['s'];?>");'>_(Attach)_</button>
 <?endif;?>
 <button type="button" onclick="done()">_(Done)_</button>
@@ -320,12 +330,12 @@ _(Run Device Script File in the background)_?
 > Set to **Yes** to have the Device Script run as a background task.  This can keep the Unassigned Devices UI from hanging when the script is run from the UI.
 :end
 
-<? if (! $_GET['i']):?>
+<? if (! isset($_GET['i'])):?>
 _(User Script)_:
 : <input type="text" title='_(Enter User Script File Name)_.' name="#user_file" style="width:40%;" onclick="openFileBrowser(this, '/boot/config/plugins/user.scripts/scripts', '', false);" autocomplete="off" placeholder="_(Enter the User Script that will be using this device)_" value="<?=$user_file;?>" <?=$user_disabled;?>>
 <?endif;?>
 
-<? if (! $_GET['i']):?>
+<? if (! isset($_GET['i'])):?>
 :ud_edit_user_script_choose_name_plug:
 > If you have the User Scripts plugin installed, you can have Unassigned Devices show the running status of the User Script that will be using this device.  This field will only be enabled when a Device Script File exists.
 :end
