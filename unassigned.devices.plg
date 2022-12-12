@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.11.12a">
+<!ENTITY version	"2022.12.12">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"c8f4ccbe6768e4e2e9a470e2c4d86004">
+<!ENTITY MD5		"9783b8269e1f275c4310dc861b2abe64">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,16 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Allow "dev" and "sd" in disk names when not in the first position.
+- Fix: Php 8.1 compatibility for Unraid 6.12.
+- Fix: False disk corruption when checking file system on a btrfs disk that is not mounted.
+- Fix: Rare situation where mounted pool devices could cause UD to hang.
+- Fix: Increase NFS rule size to 256 bytes.
+- Fix: Improve 'Clear Disk' function.
+- Add: Delay after network is found to be active when starting up.
+- Add: "space_cache=v2" parameter to btrfs mounts.
+
+###2022.11.12a
 - Fix: Better handling of smb configuration.
 
 ###2022.11.10a
