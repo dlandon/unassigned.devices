@@ -314,7 +314,7 @@ class Disks
 				$device = "/dev/${block['NAME']}";
 				if ($block['TYPE'] == "disk" && file_exists($device)) {
 					$attrs = @parse_ini_string(timed_exec(1, "/sbin/udevadm info --query=property --name ".escapeshellarg($device)." 2>/dev/null")) ?: array();
-					$block['SERIAL'] = isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : $attrs['ID_SERIAL_SHORT'];
+					$block['SERIAL'] = isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : (isset($attrs['ID_SERIAL_SHORT']) ? $attrs['ID_SERIAL_SHORT'] : "");
 
 					$this->all[$block['NAME']] = $block;
 
@@ -341,6 +341,7 @@ class Disks
 			$GLOBALS['reload_force'] = true;
 			$cache = array();
 		} else {
+			$GLOBALS['reload_force'] = false;
 			$cache = Misc::get_json($this->cache);
 		}
 
@@ -393,9 +394,14 @@ class Disks
 
 		/* SMART parser function. */
 		$parse_smart = function($smart, $property) {
-						$value = trim(explode(":", array_values(preg_grep("#$property#", $smart))[0])[1]);
-						return ($value) ? $value : "n/a";
-					};
+			$val		= array_values(preg_grep("#$property#", $smart)) ?? null;
+			if ($val) {
+				$value	= trim(explode(":", array_values(preg_grep("#$property#", $smart))[0])[1]);
+			} else {
+				$value	= "";
+			}
+			return ($value) ? $value : "n/a";
+		};
 
 		/* Get current info. */
 		$current = $this->all[$name];
@@ -420,15 +426,15 @@ class Disks
 			if ($udev['DEVNAME'] == $device) {
 				$disk = array_intersect_key($udev, array_flip($whitelist));
 
-				$disk['SERIAL_SHORT']	= isset($disk["ID_SCSI_SERIAL"]) ? $disk["ID_SCSI_SERIAL"] : $disk['ID_SERIAL_SHORT'];
-				$disk['SERIAL']			= get_disk_id($device, $disk['ID_SERIAL']);
+				$disk['SERIAL_SHORT']	= isset($disk["ID_SCSI_SERIAL"]) ? $disk["ID_SCSI_SERIAL"] : (isset($disk['ID_SERIAL_SHORT']) ? $disk['ID_SERIAL_SHORT'] : "");
+				$disk['SERIAL']			= isset($disk['ID_SERIAL']) ? get_disk_id($device, $disk['ID_SERIAL']) : "";
 
 				/* Get device BUS. */
-				$disk['BUS']			= $udev['ID_BUS'];
+				$disk['BUS']			= isset($udev['ID_BUS']) ? $udev['ID_BUS'] : "";
 				unset($disk["DEVPATH"]);
 
 				/* Get SMART device type from cached info or get it using get_smart_type function. */
-				$disk['SMART']			= $disk['SMART'] ? $disk['SMART'] : $this->get_smart_type($device);
+				$disk['SMART']			= (isset($disk['SMART']) && ($disk['SMART'])) ? $disk['SMART'] : $this->get_smart_type($device);
 
 				/* Probe SMART data. */
 				if ($disk['SMART'] != "none") {
@@ -457,14 +463,14 @@ class Disks
 			}
 
 			/* Refreshing partition info. */ 
-			$disk['PARTS'] = is_array($this->partitions[$name]) ? $this->partitions[$name] : array();
+			$disk['PARTS'] = ((isset($this->partitions[$name])) && (is_array($this->partitions[$name]))) ? $this->partitions[$name] : array();
 
-			$timeout = (time() - $disk["TIMESTAMP"]) > $this->interval;
+			$timeout = (isset($disk["TIMESTAMP"]) && (time() - $disk["TIMESTAMP"])) > $this->interval;
 
 			/* Get the devX for this device. */
 			$disk['NAME']		= get_disk_dev($disk['DEVICE']);
 			if (strpos($disk['NAME'], "dev") !== false) {
-				$disk['NAME_H']		= my_disk(substr($disk['NAME'], 0, 3)." ".substr($disk['NAME'], 3));
+				$disk['NAME_H']		= ucfirst(substr($disk['NAME'], 0, 3)." ".substr($disk['NAME'], 3));
 			} else {
 				$disk['NAME_H']		= $disk['NAME'];
 			}
@@ -491,7 +497,7 @@ class Disks
 			/* Get the devX for this device. */
 			$disk['NAME']		= get_disk_dev($dev);
 			if (strpos($disk['NAME'], "dev") !== false) {
-				$disk['NAME_H']		= my_disk(substr($disk['NAME'], 0, 3)." ".substr($disk['NAME'], 3));
+				$disk['NAME_H']		= ucfirst(substr($disk['NAME'], 0, 3)." ".substr($disk['NAME'], 3));
 			} else {
 				$disk['NAME_H']		= $disk['NAME'];
 			}
@@ -609,7 +615,7 @@ class Disks
 					$cleared = FALSE;
 					break;
 			}
-			if ( $partition_size != $sl ) {
+			if ((isset($partition_size)) && ($partition_size != $sl)) {
 				preclear_log("Failed test 5: disk size doesn't match.", "DEBUG");
 				$cleared = FALSE;
 			}
@@ -622,7 +628,7 @@ class Disks
 	#####	PROGRAM SECTION	######
 	##############################
 	$Disks	= new Disks;
-	$force	= ($argv[1] == "force") ? true : false;
+	$force	= (isset($argv[1]) && ($argv[1] == "force")) ? true : false;
 	
 	$Disks->unassigned_disks_info($force);
 ?>

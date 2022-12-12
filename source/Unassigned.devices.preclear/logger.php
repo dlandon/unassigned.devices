@@ -15,7 +15,7 @@
 set_error_handler("preclear_log_error");
 set_exception_handler( "preclear_log_exception" );
 
-$docroot		= $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+$docroot		= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $relative_path	= str_replace($docroot, '', __FILE__);
 require_once	"$docroot/webGui/include/ColorCoding.php";
 
@@ -136,8 +136,9 @@ function isTimeout(&$counter, $timeout)
 /* MAIN */
 
 $file_position = 0;
-$search = "";
-$done_button = "Done";
+$search			= "";
+$done_button	= "Done";
+$action			= "";
 
 foreach ($_POST as $key => $value) {
 	switch ($key) {
@@ -187,7 +188,7 @@ if (!isset($color_coding) && $file) {
 	$color_coding = true;
 }
 
-if (is_array($argv)) {
+if ((isset($argv)) && (is_array($argv))) {
 	foreach ($argv as $key => $value) {
 		switch ($key) {
 			case 1:

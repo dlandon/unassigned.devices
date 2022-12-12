@@ -11,7 +11,7 @@
  */
 
 /* Load emhttp variables if needed. */
-$docroot = $docroot ?: @$_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+$docroot 		= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 if (!isset($var)) {
 	if (!is_file("$docroot/state/var.ini")) {
 		shell_exec("wget -qO /dev/null localhost:$(lsof -nPc emhttp | grep -Po 'TCP[^\d]*\K\d+')");
@@ -20,7 +20,7 @@ if (!isset($var)) {
 }
 
 $preclear_plugin	= "unassigned.devices.preclear";
-$state_file			= "/var/state/{$prelear_plugin}/state.ini";
+$state_file			= "/var/state/unassigned.devices.preclear/state.ini";
 $log_file	 		= "/var/log/preclear/preclear.log";
 $diskinfo	 		= "/var/local/emhttp/plugins/diskinfo/diskinfo.json";
 $hotplug_event		= "/tmp/unassigned.devices/hotplug_event";
@@ -32,7 +32,7 @@ $unsupported		= "/var/state/[$preclear_plugin)/unsupported";
 
 function preclear_log($msg, $type = "NOTICE")
 {
-	if ( $type == "DEBUG" && ! $GLOBALS['VERBOSE'] ) {
+	if ( ($type == "DEBUG") && (! $GLOBALS['VERBOSE']) ) {
 		return NULL;
 	}
 	$msg = date("M j H:i:s")." ".print_r($msg,true)."\n";
@@ -138,7 +138,7 @@ class Preclear
 	public function diskSerial($disk)
 	{
 		$disk	= Misc::disk_name($disk);
-		return count($this->allDisks) ? $this->allDisks[$disk]["SERIAL_SHORT"] : NULL;
+		return (count($this->allDisks) && (isset($this->allDisks[$disk]["SERIAL_SHORT"]))) ? $this->allDisks[$disk]["SERIAL_SHORT"] : null;
 	}
 	
 	public function serialDisk($serial)
@@ -317,19 +317,23 @@ class Preclear
 
 	public function html()
 	{
+		$cycles	= "";
 		for ($i=1; $i <= 3; $i++) {
 			$cycles .= "<option value='$i'>$i</option>";
 		}
 
+		$size	= "";
 		foreach (range(0,8) as $i) {
 			$x=pow(2,$i);
 			$size .= "<option value='65536 -b ".($x*16)."'>{$x}M</option>";
 		}
 
+		$cycles2	= "";
 		for ($i=1; $i <= 3; $i++) {
 			$cycles2 .= "<option value='$i'>$i</option>";
 		}
 
+		$size2	= "";
 		foreach (range(5,11) as $i) {
 			$x=pow(2,$i);
 			$size2 .= "<option value='".($x*16*65536)."'>{$x}M</option>";
