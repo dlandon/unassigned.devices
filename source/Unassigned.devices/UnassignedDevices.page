@@ -236,9 +236,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	/* Process nchan events. */
 	var ud_Reload = new NchanSubscriber("/sub/"+"<?=$ud_reload?>");
 	ud_Reload.on('message', function(data) {
-		if (data) {
-			usb_disks();
-		}
+		usb_disks();
 	});
 
 	function load_hosts(el, action) {
