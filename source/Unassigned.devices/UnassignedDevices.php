@@ -242,7 +242,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		}
 
 		/* Show disk and partition usage. */
-		$out[] = "<td>".($fstype == "crypto_LUKS" ? luks_fs_type($partition['device']) : $fstype)."</td>";
+		$out[] = "<td>".($fstype == "crypto_LUKS" ? luks_fs_type($partition['device']) : ($fstype == "zfs_member" ? "zfs" : $fstype))."</td>";
 		if ($disk_line) {
 			$out[] = render_used_and_free_disk($disk, $mounted_disk);
 		} else {
@@ -270,7 +270,7 @@ function make_mount_button($device) {
 
 	if (isset($device['partitions'])) {
 		$mounted		= in_array(true, array_map(function($ar){return $ar['mounted'];}, $device['partitions']), true);
-		$disable		= count(array_filter($device['partitions'], function($p){ if (! empty($p['fstype'])) return true;})) ? "" : "disabled";
+		$disable		= count(array_filter($device['partitions'], function($p){ if (! empty($p['fstype']) && ($p['fstype'] != "zfs")) return true;})) ? "" : "disabled";
 		$format			= (! count($device['partitions'])) ? true : false;
 		$context		= "disk";
 		$device['partitions'][0]					= $device['partitions'][0] ?? null;
@@ -282,7 +282,11 @@ function make_mount_button($device) {
 		$pass_through	= $device['partitions'][0]['pass_through'];
 		$disable_mount	= $device['partitions'][0]['disable_mount'];
 		$not_unmounted	= $device['partitions'][0]['not_unmounted'];
-		$dev			= $device['device'];
+		if ((new MiscUD)->is_device_nvme($device['device'])) {
+			$dev		= basename($device['device'])."p1";
+		} else {
+			$dev		= basename($device['device'])."1";
+		}
 	} else {
 		$mounted		= $device['mounted'];
 		$disable		= (! empty($device['fstype']) && $device['fstype'] != "crypto_LUKS") ? "" : "disabled";
@@ -293,11 +297,12 @@ function make_mount_button($device) {
 		$disable_mount	= $device['disable_mount'];
 		$not_unmounted	= false;
 		$dev			= $device['fstype'] == "crypto_LUKS" ? $device['luks'] : $device['device'];
+		$dev			= basename($dev);
 	}
 
-	$is_mounting	= (new MiscUD)->get_mounting_status(basename($dev));
-	$is_unmounting	= (new MiscUD)->get_unmounting_status(basename($dev));
-	$is_formatting	= (new MiscUD)->get_formatting_status(basename($dev));
+	$is_mounting	= (new MiscUD)->get_mounting_status($dev);
+	$is_unmounting	= (new MiscUD)->get_unmounting_status($dev);
+	$is_formatting	= (new MiscUD)->get_formatting_status($dev);
 	$preclearing	= $Preclear ? $Preclear->isRunning(basename($device['device'])) : false;
 	$is_preclearing = shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg($device['device'])." | /bin/grep -v 'grep'") != "" ? true : false;
 	$preclearing	= $preclearing || $is_preclearing;
