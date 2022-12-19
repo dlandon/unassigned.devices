@@ -215,7 +215,7 @@ class MiscUD
 	public function get_mounting_status($device) {
 		global $paths;
 
-		$mounting		= array_values(preg_grep("@/mounting_".$device."@i", listDir(dirname($paths['mounting']))))[0] ?? null;
+		$mounting		= array_values(preg_grep("@/mounting_".$device."@i", listDir(dirname($paths['mounting']))))[0] ?? '';
 		$is_mounting	= (isset($mounting) && (time() - filemtime($mounting) < 300)) ? true : false;
 		return $is_mounting;
 	}
@@ -224,7 +224,7 @@ class MiscUD
 	public function get_unmounting_status($device) {
 		global $paths;
 
-		$unmounting		= array_values(preg_grep("@/unmounting_".$device."@i", listDir(dirname($paths['unmounting']))))[0] ?? null;
+		$unmounting		= array_values(preg_grep("@/unmounting_".$device."@i", listDir(dirname($paths['unmounting']))))[0] ?? '';
 		$is_unmounting	= (isset($unmounting) && (time() - filemtime($unmounting)) < 300) ? true : false;
 		return $is_unmounting;
 	}
@@ -233,7 +233,7 @@ class MiscUD
 	public function get_formatting_status($device) {
 		global $paths;
 
-		$formatting		= array_values(preg_grep("@/formatting_".$device."@i", listDir(dirname($paths['formatting']))))[0] ?? null;
+		$formatting		= array_values(preg_grep("@/formatting_".$device."@i", listDir(dirname($paths['formatting']))))[0] ?? '';
 		$is_formatting	= (isset($formatting) && (time() - filemtime($formatting) < 300)) ? true : false;
 		return $is_formatting;
 	}
@@ -993,7 +993,6 @@ function timed_exec($timeout = 10, $cmd) {
 /* Find the file system type of a luks device. */
 function luks_fs_type($dev) {
 
-
 	$rc = "luks";
 	if ($dev) {
 		$return	= shell_exec("/bin/cat /proc/mounts | /bin/grep -w ".escapeshellarg($dev)." | /bin/awk '{print $3}'");
@@ -1255,6 +1254,10 @@ function get_mount_params($fs, $dev, $ro = false) {
 			$rc = "{$rw},noatime,nodiratime{$discard}";
 			break;
 
+		case 'zfs_member':
+			$rc = "{$rw},noatime,nodiratime";
+			break;
+
 		case 'exfat':
 			$rc = "{$rw},noatime,nodiratime,nodev,nosuid,umask=000";
 			break;
@@ -1365,16 +1368,22 @@ function do_mount_local($info) {
 			if ($fs != "crypto_LUKS") {
 				if ($fs == "apfs") {
 					/* See if there is a disk password. */
-					$password = decrypt_data(get_config($info['serial'], "pass"));
+					$password	= decrypt_data(get_config($info['serial'], "pass"));
 					if ($password) {
 						$recovery = ",pass='".$password."'";
 					}
-					$vol = get_config($info['serial'], "volume.{$info['part']}");
-					$vol = ($vol != 0) ? ",vol=".$vol : "";
-					$cmd = "/usr/bin/apfs-fuse -o uid=99,gid=100,allow_other{$vol}{$recovery} ".escapeshellarg($dev)." ".escapeshellarg($dir);
+					$vol		= get_config($info['serial'], "volume.{$info['part']}");
+					$vol		= ($vol != 0) ? ",vol=".$vol : "";
+					$cmd		= "/usr/bin/apfs-fuse -o uid=99,gid=100,allow_other{$vol}{$recovery} ".escapeshellarg($dev)." ".escapeshellarg($dir);
+				} else if ($fs == "zfs_member") {
+					/* Mount a zfs pool device. */
+					shell_exec("/usr/sbin/zpool import -N -d ".escapeshellarg($dev)." ".escapeshellarg(basename($dir)));
+					shell_exec("/usr/sbin/zfs set mountpoint=".escapeshellarg($dir)." ".escapeshellarg(basename($dir)));
+					$params		= get_mount_params($fs, $dev, $ro);
+					$cmd		= "/usr/sbin/zfs mount -o $params ".escapeshellarg(basename($dir));
 				} else {
-					$params	= get_mount_params($fs, $dev, $ro);
-					$cmd = "/sbin/mount -t ".escapeshellarg($fs)." -o $params ".escapeshellarg($dev)." ".escapeshellarg($dir);
+					$params		= get_mount_params($fs, $dev, $ro);
+					$cmd		= "/sbin/mount -t ".escapeshellarg($fs)." -o $params ".escapeshellarg($dev)." ".escapeshellarg($dir);
 				}
 			} else {
 				/* Physical device being mounted. */
@@ -1386,12 +1395,28 @@ function do_mount_local($info) {
 				$o = shell_exec(escapeshellcmd($command));
 				if (stripos($o, "BTRFS") !== false) {
 					$file_system	= "btrfs";
-				} else {
+				} else if (stripos($o, "XFS") !== false) {
 					$file_system	= "xfs";
+				} else if (stripos($o, "ZFS_MEMBER") !== false) {
+					$file_system	= "zfs_member";
+				} else {
+					$file_system	= "";
 				}
 				
-				$params	= get_mount_params($file_system, $device, $ro);
-				$cmd = "/sbin/mount -t ".escapeshellarg($file_system)." -o $params ".escapeshellarg($dev)." ".escapeshellarg($dir);
+				if ($fs != "zfs_member") {
+					$params	= get_mount_params($file_system, $device, $ro);
+					if ($file_system) {
+						$cmd = "/sbin/mount -t ".escapeshellarg($file_system)." -o $params ".escapeshellarg($dev)." ".escapeshellarg($dir);
+					} else {
+						$cmd = "/sbin/mount -o $params ".escapeshellarg($dev)." ".escapeshellarg($dir);
+					}
+				} else {
+					/* Mount a zfs pool device. */
+					shell_exec("/usr/sbin/zpool import -N -d ".escapeshellarg($dev)." ".escapeshellarg(basename($dir)));
+					shell_exec("/usr/sbin/zfs set mountpoint=".escapeshellarg($dir)." ".escapeshellarg(basename($dir)));
+					$params		= get_mount_params($file_system, $device, $ro);
+					$cmd		= "/usr/sbin/zfs mount -o $params ".escapeshellarg(basename($dir));
+				}
 			}
 			$str = str_replace($recovery, ", pass='*****'", $cmd);
 			unassigned_log("Mount drive command: {$str}");
@@ -1399,6 +1424,8 @@ function do_mount_local($info) {
 			/* apfs file system requires UD+ to be installed. */
 			if (($fs == "apfs") && (! is_file("/usr/bin/apfs-fuse"))) {
 				$o = "Install Unassigned Devices Plus to mount an apfs file system";
+			} else if ((($fs == "zfs_member") || ($file_system == "zfs_member")) && (! is_file("/usr/sbin/zfs"))) {
+				$o = "Unraid 6.12 or later is needed to mount a zfs file system";
 			} else {
 				/* Create mount point and set permissions. */
 				if (! is_dir($dir)) {
@@ -1553,6 +1580,49 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false) {
 		/* Check to see if the device really unmounted. */
 		for ($i=0; $i < 5; $i++) {
 			if ((! is_mounted($dev)) && (! is_mounted($dir))) {
+				if (is_dir($dir)) {
+					exec("/bin/rmdir ".escapeshellarg($dir)." 2>/dev/null");
+					$link = $paths['usb_mountpoint']."/".basename($dir);
+					if (is_link($link)) {
+						@unlink($link);
+					}
+				}
+
+				unassigned_log("Successfully unmounted '".basename($dev)."'");
+				$rc = true;
+				break;
+			} else {
+				sleep(0.5);
+			}
+		}
+		if (! $rc) {
+			unassigned_log("Unmount of '".basename($dev)."' failed: '{$o}'"); 
+		}
+	} else {
+		unassigned_log("Cannot unmount '".basename($dev)."'. UD did not mount the device or it was not properly unmounted.");
+	}
+
+	return $rc;
+}
+
+/* Unmount a zfs device. */
+function do_unmount_zfs($dev, $dir) {
+	global $paths;
+
+	$rc = false;
+	if ( is_mounted(basename($dir)) && is_mounted($dir) ) {
+		unassigned_log("Synching file system on '{$dir}'.");
+		exec("/bin/sync -f ".escapeshellarg($dir));
+
+		$cmd = "/usr/sbin/zfs umount ".escapeshellarg($dir)." 2>&1";
+		unassigned_log("Unmount cmd: {$cmd}");
+
+		$timeout = 90;
+		$o = timed_exec($timeout, $cmd);
+
+		/* Check to see if the device really unmounted. */
+		for ($i=0; $i < 5; $i++) {
+			if ((! is_mounted(basename($dir))) && (! is_mounted($dir))) {
 				if (is_dir($dir)) {
 					exec("/bin/rmdir ".escapeshellarg($dir)." 2>/dev/null");
 					$link = $paths['usb_mountpoint']."/".basename($dir);
@@ -2043,8 +2113,6 @@ function do_mount_samba($info) {
 	global $paths, $var, $version;
 
 	$rc				= false;
-// dfl	$config_file	= $paths['config_file'];
-// dfl	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 
 	/* Be sure the server online status is current. */
 	$is_alive = is_samba_server_online($info['ip']);
@@ -2649,7 +2717,11 @@ function get_partition_info($dev) {
 
 		/* Set up all disk parameters and status. */
 		$disk['mounted']		= is_mounted($disk['mountpoint']);
-		$disk['not_unmounted']	= ($disk['mounted'] && ! is_mounted($disk['device'])) ? true : false;
+		if ($disk['fstype'] != "zfs_member") {
+			$disk['not_unmounted']	= ($disk['mounted'] && ! is_mounted($disk['device'])) ? true : false;
+		} else {
+			$disk['not_unmounted']	= ($disk['mounted'] && ! is_mounted(basename($disk['mountpoint']))) ? true : false;
+		}
 
 		if ($disk['mounted'] && $disk['fstype'] == "btrfs") {
 			/* Get the members of a pool if this is a pooled disk. */
@@ -2668,7 +2740,11 @@ function get_partition_info($dev) {
 		$disk['disable_mount']	= is_disable_mount($disk['serial']);
 
 		/* Target is set to the mount point when the device is mounted. */
-		$disk['target']			= str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep ".escapeshellarg($disk['device'])." | /bin/awk '{print $2}'")));
+		if ($disk['fstype'] != "zfs_member") {
+			$disk['target']			= str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep ".escapeshellarg($disk['device'])." | /bin/awk '{print $2}'")));
+		} else {
+			$disk['target']			= str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep ".escapeshellarg(basename($disk['mountpoint']))." | /bin/awk '{print $2}'")));
+		}
 
 		$stats					= get_device_stats($disk['mountpoint'], $disk['mounted']);
 		$disk['size']			= intval($stats[0])*1024;
