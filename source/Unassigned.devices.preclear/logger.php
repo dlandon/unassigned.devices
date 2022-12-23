@@ -302,7 +302,7 @@ if ( $task == "command_run" ) {
 			}
 			$line .= $char;
 		}
-		$output[] = "${line}";
+		$output[] = "{$line}";
 
 		echo json_encode($output, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 		fclose($socket);
@@ -327,7 +327,7 @@ if ( $task == "command_run" ) {
 			$file_name = $search;
 		}
 	
-		$tmpfile = "/tmp/${file_name}.txt";
+		$tmpfile = "/tmp/{$file_name}.txt";
 		file_put_contents($tmpfile, implode("\r\n", $contents));
 
 		header('Content-Description: File Transfer');
