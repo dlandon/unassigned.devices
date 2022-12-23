@@ -29,7 +29,7 @@ set_exception_handler( "log_exception" );
 
 $debug = FALSE;
 $prog		= pathinfo(__FILE__, PATHINFO_BASENAME);
-$lockfile	= "/var/run/${prog}.pid";
+$lockfile	= "/var/run/{$prog}.pid";
 $log_file	= "/var/log/diskinfo.log";
 $dev_file	= "/usr/local/emhttp/state/devs.ini";
 openlog("$prog", LOG_PID | LOG_PERROR, LOG_LOCAL0);
@@ -249,7 +249,7 @@ class Misc
 
 	public static function disk_device($disk)
 	{
-		$disk = (file_exists($disk)) ? $disk : "/dev/${disk}";
+		$disk = (file_exists($disk)) ? $disk : "/dev/{$disk}";
 		return file_exists($disk) ? $disk : null;
 	}
 
@@ -311,8 +311,8 @@ class Disks
 		if (is_array($blocks)) {
 			foreach ($blocks as $b) {
 				$block	= @parse_ini_string(preg_replace('$"\s(\w+[=])$', '"'.PHP_EOL.'${1}', $b)) ?: array();
-				$device = "/dev/${block['NAME']}";
-				if ($block['TYPE'] == "disk" && file_exists($device)) {
+				$device = (isset($block['NAME'])) ? "/dev/{$block['NAME']}" : "";
+				if (isset($block['TYPE']) && ($block['TYPE'] == "disk") && (file_exists($device))) {
 					$attrs = @parse_ini_string(timed_exec(1, "/sbin/udevadm info --query=property --name ".escapeshellarg($device)." 2>/dev/null")) ?: array();
 					$block['SERIAL'] = isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : (isset($attrs['ID_SERIAL_SHORT']) ? $attrs['ID_SERIAL_SHORT'] : "");
 
@@ -323,7 +323,7 @@ class Disks
 					} else {
 						$this->unassigned[$block['NAME']] = $block;
 					}
-				} elseif ($block['TYPE'] == "part") {
+				} elseif ((isset($block['TYPE'])) && ($block['TYPE'] == "part")) {
 					$disk = (is_bool(strpos($block['NAME'], "nvme"))) ? preg_replace("#\d+$#", "", $block['NAME']) : preg_replace("#p\d+$#", "", $block['NAME']);
 					$this->partitions[$disk][$block['NAME']] = $block;
 				}
@@ -389,7 +389,7 @@ class Disks
 		}
 
 		$name		= Misc::disk_name($device);
-		$smart_file = $this->smartdir . "/${name}";
+		$smart_file = $this->smartdir . "/{$name}";
 		$whitelist	= array("ID_SERIAL", "DEVPATH", "ID_SCSI_SERIAL", "ID_SERIAL_SHORT", "ID_FS_LABEL", "ID_VENDOR");
 
 		/* SMART parser function. */
@@ -409,7 +409,7 @@ class Disks
 		$disk = isset($cache[$name]) ? $cache[$name] : $current;
 
 		/* Trigger reload if current and cached serials mismatch. */
-		if (count($current) && isset($disk["SERIAL_SHORT"])) {
+		if (count($current) && (isset($disk["SERIAL_SHORT"])) && (isset($current["SERIAL"]))) {
 			$reload = ( strpos(trim($current["SERIAL"]), trim($disk["SERIAL_SHORT"])) !== -1 ) ? false : true;
 		} else {
 			$reload = false;
@@ -418,7 +418,7 @@ class Disks
 
 		/* Probe persistent disk data if data isn't cached or reload triggered. */
 		if ((! isset($cache[$name]['NAME']) || $reload)) {
-			preclear_log("Probing disk ${device} info...", "DEBUG");
+			preclear_log("Probing disk {$device} info...", "DEBUG");
 
 			/* Get info using UDEV subsystem. */
 			$udev = trim(timed_exec(1, "/sbin/udevadm info --query=property --name ".escapeshellarg($device)." 2>/dev/null"));
@@ -526,8 +526,8 @@ class Disks
 			foreach (array_merge($types_1, $types_2) as $type) {
 				preclear_log("Trying SMART parameter ($type) for disk [{$device}]...", "DEBUG");
 				$out	= timed_exec(10, "/usr/sbin/smartctl --info --attributes ".$type." ".escapeshellarg($device)." 2>/dev/null");
-				$info = trim(shell_exec("echo -e \"${out}\" | grep -v '\[No Information Found\]' | grep -c -e 'Vendor:' -e 'Product:' -e 'Serial Number:' -e 'Device Model:'"));
-				$attr = trim(shell_exec("echo -e \"${out}\" | grep -c 'ATTRIBUTE_NAME'"));
+				$info = trim(shell_exec("echo -e \"{$out}\" | grep -v '\[No Information Found\]' | grep -c -e 'Vendor:' -e 'Product:' -e 'Serial Number:' -e 'Device Model:'"));
+				$attr = trim(shell_exec("echo -e \"{$out}\" | grep -c 'ATTRIBUTE_NAME'"));
 				/* SMART info and attributes present. */
 				if ( intval($info) > 0 && intval($attr) > 0 ) {
 					$smart = $type;
