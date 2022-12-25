@@ -69,7 +69,7 @@ function unassigned_mount() {
 
 				/* If disk is passed through, skip to the next disk. */
 				if ($info['pass_through']) {
-					unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' is set as passed through.");
+					unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' is set as passed through and will not be mounted.");
 					break;
 				}
 
@@ -299,6 +299,12 @@ function unassigned_umount() {
 				}
 
 				unassigned_log("Partition found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) && (strpos($k, "pass_through") === false)? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
+
+				/* If disk is passed through, skip to the next disk. */
+				if ($info['pass_through']) {
+					unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' is set as passed through and will not be unmounted.");
+					break;
+				}
 
 				/* Cannot unmount disk with 'UNRAID' label. */
 				if ($info['label'] == "UNRAID") {
