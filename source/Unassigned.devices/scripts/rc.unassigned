@@ -74,7 +74,7 @@ function unassigned_mount() {
 				}
 
 				/* If disk is formatting, skip to the next one. */
-				if ((new MiscUD)->get_formatting_status($device)) {
+				if ((new MiscUD)->get_formatting_status(basename($device))) {
 					break;
 				}
 
@@ -325,11 +325,12 @@ function unassigned_umount() {
 							unassigned_log("Unmounting partition '".basename($info['device'])."' at mountpoint '{$info['mountpoint']}'...");
 
 							/* Unmount the device. */
-							if ($info['fstype'] != "zfs_member") {
-								$rc	= do_unmount($info['device'], $info['mountpoint']);
+							if (($info['fstype'] == "zfs") || (($info['fstype'] == "crypto_LUKS") && (luks_fs_type($info['device'], true) == "zfs"))) {
+								$zfs	= true;
 							} else {
-								$rc	= do_unmount_zfs($info['device'], $info['mountpoint']);
+								$zfs	= false;
 							}
+							$rc	= do_unmount($info['device'], $info['mountpoint'], false, false, false, $zfs);
 							if ($rc) {
 								if ($info['fstype'] == "crypto_LUKS" ) {
 									shell_exec("/sbin/cryptsetup luksClose ".basename($info['device']));
@@ -546,7 +547,7 @@ function unassigned_attach() {
 	$host	= (new MiscUD)->get_device_host($DEVNAME);
 
 	if ($host) {
-		@file_put_contents("/sys/class/scsi_host/${host}/scan", "- - -");
+		@file_put_contents("/sys/class/scsi_host/{$host}/scan", "- - -");
 	}
 }
 
@@ -621,5 +622,5 @@ switch ($COMMAND) {
 }
 
 /* Clear all the status files. */
-array_map(function($f){@unlink($f);}, $remove);
+array_map(function($f){exec("/bin/rm -f ".$f." 2>/dev/null");}, $remove);
 ?>
