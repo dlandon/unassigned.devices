@@ -1359,7 +1359,9 @@ function do_mount($info) {
 
 	/* Mount a luks encrypted disk device. */
 	} else if ($info['fstype'] == "crypto_LUKS") {
-		if (! is_mounted($info['device']) && ! is_mounted($info['mountpoint'])) {
+		$pool_name	= (new MiscUD)->zfs_pool_name($info['mountpoint'], true);
+		$mounted	= (($info['fstype'] == "zfs") && ($pool_name)) ? (is_mounted($pool_name) || is_mounted($info['mountpoint'])) : (is_mounted($info['device']) || is_mounted($info['mountpoint']));
+		if (! $mounted) {
 			$luks		= basename($info['device']);
 			$discard	= is_disk_ssd($info['luks']) ? "--allow-discards" : "";
 			$cmd		= "luksOpen $discard ".escapeshellarg($info['luks'])." ".escapeshellarg($luks);
@@ -1412,7 +1414,10 @@ function do_mount_local($info) {
 	$fs				= $info['fstype'];
 	$ro				= ($info['read_only'] == 'yes') ? true : false;
 	$file_system	="";
-	if (! is_mounted($dev) && ! is_mounted($dir)) {
+
+	$pool_name	= ($info['fstype'] == "zfs") ? (new MiscUD)->zfs_pool_name($dir, true) : "";
+	$mounted	= (($info['fstype'] == "zfs") && ($pool_name))? (is_mounted($pool_name) || is_mounted($dir)) : (is_mounted($dev) || is_mounted($dir));
+	if (! $mounted) {
 		if ($fs) {
 			$recovery = "";
 			if ($fs != "crypto_LUKS") {
@@ -1429,6 +1434,8 @@ function do_mount_local($info) {
 					/* Mount a zfs pool device. */
 					$pool_name	= (new MiscUD)->zfs_pool_name($dev);
 					if ($pool_name) {
+						exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
+						sleep(0.5);
 						exec("/usr/sbin/zpool import -N ".escapeshellarg($pool_name)." 2>/dev/null");
 						exec("/usr/sbin/zfs set mountpoint=".escapeshellarg($dir)." ".escapeshellarg($pool_name));
 					}
@@ -1457,6 +1464,8 @@ function do_mount_local($info) {
 					/* Mount a zfs pool device. */
 					$pool_name	= (new MiscUD)->zfs_pool_name($dev);
 					if ($pool_name) {
+						exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
+						sleep(0.5);
 						exec("/usr/sbin/zpool import -N ".escapeshellarg($pool_name)." 2>/dev/null");
 						exec("/usr/sbin/zfs set mountpoint=".escapeshellarg($dir)." ".escapeshellarg($pool_name));
 					}
@@ -1613,20 +1622,20 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 	global $paths;
 
 	$rc = false;
-	$mounted	= ($zfs) ? (is_mounted($dir) && is_mounted((new MiscUD)->zfs_pool_name($dir, true))) : (is_mounted($dev) && is_mounted($dir));
+
+	$pool_name	= ($zfs) ? (new MiscUD)->zfs_pool_name($dir, true) : "";
+	$mounted	= (($zfs) && ($pool_name)) ? (is_mounted($pool_name) || is_mounted($dir)) : (is_mounted($dev) || is_mounted($dir));
 	if ($mounted) {
 		if (! $force) {
 			unassigned_log("Synching file system on '{$dir}'.");
 			exec("/bin/sync -f ".escapeshellarg($dir));
 		}
 
-		$pool_name	= "";
 		if ($zfs) {
-			$pool_name	= (new MiscUD)->zfs_pool_name($dir, true);
 			/* Unmount zfs file system. */
-			$cmd = ("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
+			$cmd = ("/usr/sbin/zfs unmount".($force ? " -f" : "")." ".escapeshellarg($dir)." 2>/dev/null");
 		} else {
-			/* Remove saved pool devices if this is a pooled device. */
+			/* Remove saved pool devices if this is a btrfs pooled device. */
 			(new MiscUD)->get_pool_devices($dir, true);
 
 			$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : ($nfs ? " -l" : ""))." ".escapeshellarg($dev)." 2>&1";
@@ -1643,7 +1652,8 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 
 		/* Check to see if the device really unmounted. */
 		for ($i=0; $i < 5; $i++) {
-			if ((! is_mounted($dev)) && (! is_mounted($dir))) {
+			$mounted	= (($zfs) && ($pool_name)) ? (is_mounted($pool_name) || (is_mounted($dir))) : ((is_mounted($dev)) || (is_mounted($dir)));
+			if (! $mounted) {
 				if (is_dir($dir)) {
 					exec("/bin/rmdir ".escapeshellarg($dir)." 2>/dev/null");
 					$link = $paths['usb_mountpoint']."/".basename($dir);
@@ -1659,6 +1669,10 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 				sleep(0.5);
 			}
 		}
+		if ($zfs) {
+			exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
+		}
+
 		if (! $rc) {
 			unassigned_log("Unmount of '".basename($dev)."' failed: '{$o}'"); 
 		}
