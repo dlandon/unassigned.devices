@@ -365,8 +365,12 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	}
 
 	function swalShowResult(success) {
-		opts = (success) ? {title:"<?=_('Success')?>!", icon:"success"} : {title:"<?=_('Fail')?>!", icon:"error"};
-		swal2({title:opts.title, icon:opts.icon, text:" ", buttons:{confirm:{visible:false}, cancel:{visible:false}}, timer:1800});
+		if (success) {
+			swal2({title:"<?=_('Success')?>!", icon:"success", text:" ", buttons:{confirm:{visible:false}, cancel:{visible:false}}, timer:2000});
+		} else {
+			swal2({title:"<?=_('Fail')?>!", icon:"error", text:"<?=_('Check the syslog for details');?>.", buttons:{confirm:{visible:false}, cancel:{visible:false}}, timer:2000});
+			opts += "";
+		}
 	}
 
 	function doUnassignedDevicesSurvey(surveyName, surveyOption) {
@@ -678,7 +682,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 > + Disk must have all partitions removed.  Unmount disk, click on the <i style='color:black;font-weight:bold;' class='fa fa-plus-square'></i> icon,, and click on all <i style='color:red;font-weight:bold;' class='fa fa-remove hdd'></i> icons to delete partitions.
 > + If the disk has been precelared and shows a grayed 'Format' button, click on the <i style='color:black;font-weight:bold;' class='fa fa-plus-square'></i> icon, then click on the <i style='color:red;font-weight:bold;' class='fa fa-remove hdd'></i> icon to delete the preclear status file.
 >
-> **Note: A disk partitioned in UD is compatible with the array disk partitioning and can be added to the array.  Supported file formats are XFS, XFS encrypted, BTRFS and BTRFS encrypted.**
+> **Note: A disk partitioned in UD is compatible with the array disk partitioning and can be added to the array.  Supported file formats are XFS, XFS encrypted, BTRFS, BTRFS encrypted, ZFS and ZFS encrypted.**
 >
 > **Encrypted Disks:**
 >
@@ -706,7 +710,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 >
 > Note: /dev/sdX where 'X' is the device designator.  The devX is the device name in the UD page.  If the device name is 'Dev 1', then use dev1 as the device to spin down.  Using the name=diskname is useful if you have a User Script needing to perform UD operations on a disk.
 >
-> Be careful using the /dev/sdX or devX designation because they can change after a reboot.  It's best to use the values passes into the US script for sdX (DEVICE) and devX (UD_DEVICE).
+> Be careful using the /dev/sdX or devX designation because they can change after a reboot.  It's best to use the values passed into the UD script for sdX (DEVICE) and devX (UD_DEVICE).
 :end
 
 <script type="text/javascript">
@@ -934,29 +938,45 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 <?if (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled"):?>
 	<div data-question data-question-title="<?=_('Choose File System Format');?>">
 		<div data-question-format>
-			[surveyOption.type,surveyOption.device]
+			[surveyOption.device, surveyOption.type]
 		</div>
 		<div data-question-content>
 			<select name="FS" class="swal-content__input">
 				<option value="xfs">XFS</option>
 				<option value="btrfs">BTRFS</option>
-				<?if (version_compare($version['version'],"6.7.9", ">")):?>
+				<?if (version_compare($version['version'],"6.11.9", ">")):?>
+				<option value="zfs">ZFS</option>
+				<?endif;?>
 				<option value="xfs-encrypted">XFS - encrypted</option>
 				<option value="btrfs-encrypted">BTRFS - encrypted</option>
+				<?if (version_compare($version['version'],"6.11.9", ">")):?>
+				<option value="zfs-encrypted">ZFS - encrypted</option>
 				<?endif;?>
 				<option value="ntfs">NTFS</option>
 				<option value="exfat">exFAT</option>
 				<option value="fat32">FAT32</option>
 			</select>
-			<p><span style="font-weight:bold;"><?=_('Note');?>:</span> <?=_('An XFS or BTRFS disk partitioned in UD is compatible with the array disk partitioning and can be added to the array');?>.</p>
+			<p><span style="font-weight:bold;"><?=_('Note');?>:</span> <?=_('An XFS, BTRFS, or ZFS disk partitioned in UD is compatible with the array disk partitioning and can be added to the array');?>.</p>
 		</div>
 		<div data-question-load></div>
 		<div data-question-done></div>
 	</div>
 
+	<div data-question data-question-title="<?=_('Pool Name');?>">
+		<div data-question-condition>
+			surveyData['FS'] == 'zfs' || surveyData['FS'] == 'zfs-encrypted'
+		</div>
+		<div data-question-content>
+			<div class="swal-content">
+				<input type="text" class="swal-content__input" name="POOL_NAME" required placeholder="<?=_('Pool Name');?>">
+				<p><?=_('Enter the Pool Name for this device');?>. <?=_('This wil also be the mountpoint for the disk');?>.</p>
+			</div>
+		</div>
+	</div>
+
 	<div data-question data-question-title="<?=_('Password');?>">
 		<div data-question-condition>
-			surveyData['FS'] == 'xfs-encrypted' || surveyData['FS'] == 'btrfs-encrypted'
+			surveyData['FS'] == 'xfs-encrypted' || surveyData['FS'] == 'btrfs-encrypted' || surveyData['FS'] == 'zfs-encrypted'
 		</div>
 		<div data-question-content>
 			<div class="swal-content">
@@ -969,7 +989,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 	<div data-question data-question-title="" data-question-button-done=<?=_('Format');?> data-question-icon="warning">
 		<div data-question-format>
-			[surveyOption.type,surveyOption.device]
+			[surveyOption.device, surveyOption.type]
 		</div>
 		<div data-question-content>
 			<div class="swal-title"><?=_('Any data on this disk will be lost');?>!</div>
@@ -981,10 +1001,11 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			(surveyData["confirmation"] == "<?=_('Yes');?>")
 		</div>
 	</div>
+
 	<div data-survey-done data-survey-done-wait="true">
 		$("button[device='"+surveyOption.device+"']").prop('disabled',true);
 		$("button[device='"+surveyOption.device+"']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Formatting');?>");
-		$.post(UDURL, {'action' : 'format_'+surveyOption. type, device:surveyOption.device, fs:surveyData["FS"], pass:surveyData["PASS"]}, function(data)
+		$.post(UDURL, {'action' : 'format_'+surveyOption.type, device:surveyOption.device, fs:surveyData["FS"], pass:surveyData["PASS"], pool_name:surveyData["POOL_NAME"]}, function(data)
 		{
 			$("button[device='"+surveyOption.device+"']").prop('disabled',true);
 			$("button[device='"+surveyOption.device+"']").html( data.status ? "<?=_('Formatted');?>" : "<?=_('Format failed');?>" );
@@ -994,7 +1015,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	<div>
 		<script type="text/javascript">
 			$(function() {
-				window.format_disk = function(bt, type, device){doUnassignedDevicesSurvey("format_disk",{el:bt,type:type, device:device});}
+				window.format_disk = function(bt, type, device){doUnassignedDevicesSurvey("format_disk", {el:bt, type:type, device:device});}
 			});
 		</script>
 	</div>
@@ -1010,7 +1031,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	<div>
 		<script type="text/javascript">
 			$(function() {
-				window.format_disk = function(bt, type, device){doUnassignedDevicesSurvey("format_disk",{el:bt,type:type,device:device});}
+				window.format_disk = function(bt, type, device){doUnassignedDevicesSurvey("format_disk", {el:bt, type:type, device:device});}
 			});
 		</script>
 	</div>
@@ -1019,7 +1040,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 <div style="display:none;" data-survey-name="remove_partiton" data-survey-title="">
 	<div data-question data-question-title="" data-question-button-done="<?=_('Remove');?>" data-question-icon="warning">
 		<div data-question-format>
-			[surveyOption.partition,surveyOption.device,surveyOption.serial]
+			[surveyOption.partition, surveyOption.device, surveyOption.serial]
 		</div>
 		<div data-question-content>
 			<div class="swal-title"><?=_('Data on this disk will be lost');?>!</div>
@@ -1052,7 +1073,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 <div style="display:none;" data-survey-name="clear_disk" data-survey-title="">
 	<div data-question data-question-title="" data-question-button-done="<?=_('Remove');?>" data-question-icon="warning">
 		<div data-question-format>
-			[surveyOption.device,surveyOption.serial]
+			[surveyOption.device, surveyOption.serial]
 		</div>
 		<div data-question-content>
 			<div class="swal-title"><?=_('Data on this disk will be lost');?>!</div>
@@ -1284,7 +1305,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 <div style="display:none;" data-survey-name="change_mountpoint" data-survey-title="">
 	<div data-question data-question-title="<?=_('Change Disk Mount Point');?>" data-question-button-done="<?=_('Change');?>">
 		<div data-question-format>
-			[surveyOption.mountpoint,surveyOption.disklabel]
+			[surveyOption.mountpoint, surveyOption.disklabel]
 		</div>
 		<div data-question-content>
 			<input type="text" class="swal-content__input" name="MOUNTPOINT" value={0} placeholder="<?=_('Mount Point');?>">

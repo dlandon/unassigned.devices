@@ -133,10 +133,10 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$disabled		= $is_mounting || $is_unmounting || is_script_running($cmd) || ! $partition['fstype'] || $disk['array_disk'];
 
 		/* Set up icons for file system check/scrub and script execution. */
-		$fstype = ($partition['fstype'] == "crypto_LUKS") ? luks_fs_type($partition['device']) : $partition['fstype'];
-		if ( (! $disabled && ! $mounted && $fstype != "apfs" && $fstype != "btrfs") || (! $disabled && $mounted && $fstype == "btrfs")) {
-			$file_system_check = $fstype != "btrfs" ? _('File System Check') : _('File System Scrub');
-			$fscheck = "<a class='exec info' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i><span>".$file_system_check."</span></a>";
+		$fstype = ($partition['fstype'] == "crypto_LUKS") ? luks_fs_type($partition['device'], false, true) : $partition['fstype'];
+		if ( (! $disabled && ! $mounted && $fstype != "apfs" && $fstype != "btrfs") || (! $disabled && $mounted && ($fstype == "btrfs" || $fstype = "zfs"))) {
+			$file_system_check = (($fstype != "btrfs") && ($fstype != "zfs")) ? _('File System Check') : _('File System Scrub');
+			$fscheck = "<a class='exec info' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&mountpoint={$partition['mountpoint']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i><span>".$file_system_check."</span></a>";
 		} else {
 			$fscheck = "<i class='fa fa-check partition-hdd'></i></a>";
 		}
@@ -176,12 +176,12 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$mbutton = make_mount_button($partition);
 
 		/* Show disk partitions if partitions enabled. */
-		(! $disk['show_partitions']) || $disk['partitions'][0]['pass_through'] ? $style = "style='display:none;'" : $style = "";
-		$out[] = "<tr class='toggle-parts toggle-".basename($disk['device'])."' name='toggle-".basename($disk['device'])."' $style>";
-		$out[] = "<td></td>";
-		$out[] = "<td>{$mpoint}</td>";
-		$out[] = ((count($disk['partitions']) > 1) && ($mounted)) ? "<td class='mount'>{$mbutton}</td>" : "<td></td>";
-		$fstype = $partition['fstype'];
+		$style	= (($disk['partitions'][0]['pass_through'])) ? "style='display:none;'" : "";
+		$out[]	= "<tr class='toggle-parts toggle-".basename($disk['device'])."' name='toggle-".basename($disk['device'])."' $style>";
+		$out[]	= "<td></td>";
+		$out[]	= "<td>{$mpoint}</td>";
+		$out[]	= ((count($disk['partitions']) > 1) && ($mounted)) ? "<td class='mount'>{$mbutton}</td>" : "<td></td>";
+		$fstype	= $partition['fstype'];
 		if ($disk_line) {
 			foreach ($disk['partitions'] as $part) {
 				if ($part['fstype']) {
@@ -242,7 +242,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		}
 
 		/* Show disk and partition usage. */
-		$out[] = "<td>".($fstype == "crypto_LUKS" ? luks_fs_type($partition['device']) : ($fstype == "zfs_member" ? "zfs" : $fstype))."</td>";
+		$out[] = "<td>".($fstype == "crypto_LUKS" ? luks_fs_type($partition['device'], true) : $fstype)."</td>";
 		if ($disk_line) {
 			$out[] = render_used_and_free_disk($disk, $mounted_disk);
 		} else {
@@ -270,7 +270,7 @@ function make_mount_button($device) {
 
 	if (isset($device['partitions'])) {
 		$mounted		= in_array(true, array_map(function($ar){return $ar['mounted'];}, $device['partitions']), true);
-		$disable		= count(array_filter($device['partitions'], function($p){ if (! empty($p['fstype']) && ($p['fstype'] != "zfs")) return true;})) ? "" : "disabled";
+		$disable		= count(array_filter($device['partitions'], function($p){ if (! empty($p['fstype'])) return true;})) ? "" : "disabled";
 		$format			= (! count($device['partitions'])) ? true : false;
 		$context		= "disk";
 		$device['partitions'][0]					= $device['partitions'][0] ?? null;
@@ -378,10 +378,11 @@ switch ($_POST['action']) {
 			/* Get all updated unassigned disks and update devX designations for newly found unassigned devices. */
 			$all_disks = get_all_disks_info();
 			foreach ($all_disks as $disk) {
-				$unassigned		= get_config($disk['serial'], "unassigned_dev");
+				$unassigned	= get_config($disk['serial'], "unassigned_dev");
 				if ((! $unassigned) && ($disk['device'] != $disk['ud_dev'])) {
 					set_config($disk['serial'], "unassigned_dev", $disk['ud_dev']);					
-				} else if (($unassigned) && ((strpos($unassigned, 0, 3) == "dev" || substr($unassigned, 0, 2) == "sd") && ($unassigned != $disk['ud_dev']))) {
+
+				} else if (($unassigned) && ((substr($unassigned, 0, 3) == "dev" || substr($unassigned, 0, 2) == "sd") && ($unassigned != $disk['ud_dev']))) {
 					set_config($disk['serial'], "unassigned_dev", $disk['ud_dev']);
 				}
 			}
@@ -433,7 +434,7 @@ switch ($_POST['action']) {
 
 				$partition['device']	= $partition['device'] ?? "";
 				$partition['serial']	= $partition['serial'] ?? "";
-				$clear_disk		= ((get_config("Config", "destructive_mode") == "enabled") && ($parted) && ($p) && (! $mounted) && (! $disk['partitions'][0]['pool']) && (! $disk['partitions'][0]['disable_mount']) && (! $is_mounting) && (! $is_formatting) && (! $disk['partitions'][0]['pass_through']) && (! $disk['array_disk']) && (! $preclearing)) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
+				$clear_disk				= ((get_config("Config", "destructive_mode") == "enabled") && ($parted) && ($p) && (! $mounted) && (! $disk['partitions'][0]['pool']) && (! $disk['partitions'][0]['disable_mount']) && (! $is_mounting) && (! $is_formatting) && (! $disk['partitions'][0]['pass_through']) && (! $disk['array_disk']) && (! $preclearing)) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
 
 				$disk_icon = $disk['ssd'] ? "icon-nvme" : "fa fa-hdd-o";
 				if (version_compare($version['version'],"6.9.9", ">")) {
@@ -445,7 +446,7 @@ switch ($_POST['action']) {
 				}
 				if ($p) {
 					$add_toggle = true;
-					if (! $disk['show_partitions']) {
+					if ((! $disk['show_partitions']) && (! $disk['partitions'][0]['pass_through'])) {
 						$hdd_serial .="<span title ='"._("Click to view/hide partitions and mount points")."'class='exec toggle-hdd' hdd='".$disk_device."'><i class='fa fa-plus-square fa-append'></i></span>";
 					} else {
 						$hdd_serial .="<span><i class='fa fa-minus-square fa-append grey-orb'></i></span>";
@@ -494,8 +495,9 @@ switch ($_POST['action']) {
 						$o_disks .= "<i class='fa fa-circle ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>";
 					}
 				}
-				$fs_lock = ((isset($disk['partitions'][0]['fstype']) && ($disk['partitions'][0]['fstype'] == "crypto_LUKS"))) ? "<i class='fa fa-lock orb'></i>" : "";
-				$o_disks .= "<a href='/Main/".$str."=".$disk_dev."'><span>".$fs_lock.$disk_display."</span></a>";
+				$luks_lock = $mounted ? "<i class='fa fa-unlock-alt green-orb orb'></i>" : "<i class='fa fa-lock grey-orb orb'></i>";
+				$o_disks .= ((isset($disk['partitions'][0]['fstype']) && ($disk['partitions'][0]['fstype'] == "crypto_LUKS"))) ? "$luks_lock" : "&nbsp;&nbsp;";
+				$o_disks .= "<a href='/Main/".$str."=".$disk_dev."'>".$disk_display."</a>";
 				$o_disks .= "</td>";
 
 				/* Device serial number. */
@@ -942,11 +944,13 @@ switch ($_POST['action']) {
 
 	case 'format_disk':
 		/* Format a disk. */
-		$device	= urldecode($_POST['device']);
-		$fs		= urldecode($_POST['fs']);
-		$pass	= isset($_POST['pass']) ? urldecode($_POST['pass']) : "";
+		$device		= urldecode($_POST['device']);
+		$fs			= urldecode($_POST['fs']);
+		$pass		= isset($_POST['pass']) ? urldecode($_POST['pass']) : "";
+		$pool_name	= isset($_POST['pool_name']) ? urldecode($_POST['pool_name']) : "";
+
 		@touch(sprintf($paths['formatting'], basename($device)));
-		echo json_encode(array( 'status' => format_disk($device, $fs, $pass)));
+		echo json_encode(array( 'status' => format_disk($device, $fs, $pass, $pool_name)));
 		@unlink(sprintf($paths['formatting'], basename($device)));
 		break;
 

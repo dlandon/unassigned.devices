@@ -203,7 +203,7 @@ class MiscUD
 		/* Get the current hostX status. */
 		$device_hosts	= (new MiscUD)->get_json($paths['device_hosts']);
 
-		if (isset($device_hosts[$serial]) && (is_file("/sys/class/scsi_host/${device_hosts[$serial]}/scan"))) {
+		if (isset($device_hosts[$serial]) && (is_file("/sys/class/scsi_host/{$device_hosts[$serial]}/scan"))) {
 			/* Return the hostX. */
 			$rc	= $device_hosts[$serial];
 		}
@@ -236,6 +236,18 @@ class MiscUD
 		$formatting		= array_values(preg_grep("@/formatting_".$device."@i", listDir(dirname($paths['formatting']))))[0] ?? '';
 		$is_formatting	= (isset($formatting) && (time() - filemtime($formatting) < 300)) ? true : false;
 		return $is_formatting;
+	}
+
+	/* Get the zpool name if this is a zfs disk file system. */
+	public function zfs_pool_name($dev, $mounted = false) {
+		if ($mounted) {
+			$rc	= shell_exec("/usr/bin/cat /proc/mounts | grep ".basename($dev)." | awk '{print $1}'");
+		} else {
+			$rc	= shell_exec("/usr/sbin/zpool import -d ".escapeshellarg($dev)." | grep 'pool:' | /bin/awk '{print $2}'");
+			$rc	= ($rc != "no pools available to import") ? str_replace("\n", "", $rc) : "";
+		}
+		$rc	= trim($rc);
+		return $rc;
 	}
 }
 
@@ -657,20 +669,25 @@ function get_temp($ud_dev, $dev, $running) {
 }
 
 /* Get the format command based on file system to be formatted. */
-function get_format_cmd($dev, $fs) {
+function get_format_cmd($dev, $fs, $pool_name) {
 	switch ($fs) {
 		case 'xfs':
 		case 'xfs-encrypted';
 			$rc = "/sbin/mkfs.xfs -f ".escapeshellarg($dev)." 2>&1";
 			break;
 
-		case 'ntfs':
-			$rc = "/sbin/mkfs.ntfs -Q ".escapeshellarg($dev)." 2>&1";
-			break;
-
 		case 'btrfs':
 		case 'btrfs-encrypted';
 			$rc = "/sbin/mkfs.btrfs -f ".escapeshellarg($dev)." 2>&1";
+			break;
+
+		case 'zfs':
+		case 'zfs-encrypted';
+			$rc = "/usr/sbin/zpool create -o ashift=12 -f ".escapeshellarg($pool_name)." ".escapeshellarg($dev)." 2>&1";
+			break;
+
+		case 'ntfs':
+			$rc = "/sbin/mkfs.ntfs -Q ".escapeshellarg($dev)." 2>&1";
 			break;
 
 		case 'exfat':
@@ -690,11 +707,10 @@ function get_format_cmd($dev, $fs) {
 }
 
 /* Format a disk. */
-function format_disk($dev, $fs, $pass) {
+function format_disk($dev, $fs, $pass, $pool_name) {
 	global $paths;
 
 	unassigned_log("Format device '".$dev."'.");
-
 	$rc	= true;
 
 	/* Make sure it doesn't have any partitions. */
@@ -739,7 +755,7 @@ function format_disk($dev, $fs, $pass) {
 		}
 
 		/* Create partition for xfs, or btrfs. Partitions are Unraid compatible. */
-		if ($fs == "xfs" || $fs == "xfs-encrypted" || $fs == "btrfs" || $fs == "btrfs-encrypted") {
+		if ($fs == "xfs" || $fs == "xfs-encrypted" || $fs == "btrfs" || $fs == "btrfs-encrypted"|| $fs == "zfs" || $fs == "zfs-encrypted") {
 			$is_ssd = is_disk_ssd($dev);
 			if ($disk_schema == "gpt") {
 				unassigned_log("Creating Unraid compatible gpt partition on disk '".$dev."'.");
@@ -821,6 +837,9 @@ function format_disk($dev, $fs, $pass) {
 				/* Use a disk password, or Unraid's. */
 				if (! $pass) {
 					$o = exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
+					if (! file_exists("/dev/mapper/".$mapper)) {
+						$o	= "Error: Passphrase or Key File not found.";
+					}
 				} else {
 					$luks			= basename($dev);
 					$luks_pass_file	= "{$paths['luks_pass']}_".$luks;
@@ -835,16 +854,25 @@ function format_disk($dev, $fs, $pass) {
 				} else {
 					$out	= null;
 					$return	= null;
-					exec(get_format_cmd("/dev/mapper/{$mapper}", $fs),escapeshellarg($out), escapeshellarg($return));
-					sleep(3);
-					shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
+					$cmd	= get_format_cmd("/dev/mapper/{$mapper}", $fs, $pool_name);
+					unassigned_log("Format drive command: ".$cmd);
+					exec($cmd, escapeshellarg($out), escapeshellarg($return));
+					sleep(1);
+					exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
+					sleep(1);
 				}
+				shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
 			}
 		} else {
 			/* Format the disk. */
 			$out	= null;
 			$return	= null;
-			exec(get_format_cmd($device, $fs), escapeshellarg($out), escapeshellarg($return));
+			$cmd	= get_format_cmd($device, $fs, $pool_name);
+			unassigned_log("Format drive command: ".$cmd);
+			exec($cmd, escapeshellarg($out), escapeshellarg($return));
+			sleep(1);
+			exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
+			sleep(1);
 		}
 
 		/* Finish up the format. */
@@ -942,14 +970,10 @@ function remove_all_partitions($dev) {
 		unassigned_log("Removing all partitions from disk '".$device."'.");
 
 		/* Remove all partitions - this clears the disk. */
-		shell_exec("/sbin/wipefs -af ".escapeshellarg($device)." 2>&1");
-		sleep(0.5);
-		shell_exec("/sbin/sgdisk -Z ".escapeshellarg($device)." 2>&1");
-		sleep(0.5);
-		$o	= shell_exec("/usr/sbin/partprobe ".escapeshellarg($device)." 2>&1");
-		if ($o) {
-			unassigned_log("Remove all partitions 'partprobe' result: ".$o);
-		}
+		shell_exec("/sbin/wipefs --all --force ".escapeshellarg($device)." 2>&1");
+
+		/* Let things settle a bit. */
+		sleep(2);
 
 		unassigned_log("Remove all Disk partitions initiated a Hotplug event.", $GLOBALS['UDEV_DEBUG']);
 
@@ -991,14 +1015,33 @@ function timed_exec($timeout = 10, $cmd) {
 }
 
 /* Find the file system type of a luks device. */
-function luks_fs_type($dev) {
+function luks_fs_type($dev, $display = false, $zfs = false) {
 
-	$rc = "luks";
-	if ($dev) {
-		$return	= shell_exec("/bin/cat /proc/mounts | /bin/grep -w ".escapeshellarg($dev)." | /bin/awk '{print $3}'");
-		if ($return) {
-			$return	= explode("\n", $return);
-			$rc		= $return[0];
+	if ($display) {
+		$dev_lookup	= (strpos($dev, "/dev/mapper") !== false) ? basename($dev) : $dev;
+		$rc = "luks";
+		if ($dev_lookup) {
+			$return	= shell_exec("/bin/cat /proc/mounts | /bin/grep -w ".escapeshellarg($dev_lookup)." | /bin/awk '{print $3}'");
+			if ($return) {
+				$return	= explode("\n", $return);
+				$rc		= $return[0];
+			}
+		}
+	} else {
+		$command = get_fsck_commands("crypto_LUKS", $dev)." 2>&1";
+		$o = shell_exec(escapeshellcmd($command));
+		if (stripos($o, "BTRFS") !== false) {
+			$rc	= "btrfs";
+		} else if (stripos($o, "XFS") !== false) {
+			$rc	= "xfs";
+		} else if (stripos($o, "EXT4") !== false) {
+			$rc	= "ext4";
+		} else if (stripos($o, "REISERFS") !== false) {
+			$rc	= "resierfs";
+		} else if ($zfs) {
+			$rc	= "zfs";
+		} else {
+			$rc	= "";
 		}
 	}
 
@@ -1210,10 +1253,11 @@ function is_mounted($dev) {
 
 	$rc = false;
 	if ($dev) {
-		$data	= timed_exec(1, "/usr/bin/cat /proc/mounts | awk '{print $1 \",\" $2}'");
-		$data	= str_replace("\\040", " ", $data);
-		$data	= str_replace("\n", ",", $data);
-		$rc		= (strpos($data, $dev.",") !== false) ? true : false;
+		$dev_lookup	= (strpos($dev, "/dev/mapper") !== false) ? basename($dev) : $dev;
+		$data		= timed_exec(1, "/usr/bin/cat /proc/mounts | awk '{print $1 \",\" $2}'");
+		$data		= str_replace("\\040", " ", $data);
+		$data		= str_replace("\n", ",", $data);
+		$rc			= (strpos($data, $dev_lookup.",") !== false) ? true : false;
 	}
 
 	return $rc;
@@ -1224,9 +1268,10 @@ function is_mounted_read_only($dev) {
 
 	$rc = false;
 	if ($dev) {
-		$data	= timed_exec(1, "/usr/bin/cat /proc/mounts | awk '{print $2 \",\" toupper(substr($4,0,2))}'");
-		$data	= str_replace("\\040", " ", $data);
-		$rc		= (strpos($data, $dev.",RO") !== false) ? true : false;
+		$dev_lookup	= (strpos($dev, "/dev/mapper") !== false) ? basename($dev) : $dev;
+		$data		= timed_exec(1, "/usr/bin/cat /proc/mounts | awk '{print $2 \",\" toupper(substr($4,0,2))}'");
+		$data		= str_replace("\\040", " ", $data);
+		$rc			= (strpos($data, $dev_lookup.",RO") !== false) ? true : false;
 	}
 
 	return $rc;
@@ -1254,7 +1299,7 @@ function get_mount_params($fs, $dev, $ro = false) {
 			$rc = "{$rw},noatime,nodiratime{$discard}";
 			break;
 
-		case 'zfs_member':
+		case 'zfs':
 			$rc = "{$rw},noatime,nodiratime";
 			break;
 
@@ -1326,6 +1371,9 @@ function do_mount($info) {
 				} else {
 					unassigned_log("Using Unraid api to open the 'crypto_LUKS' device.");
 					$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
+					if (! file_exists("/dev/mapper/".$luks)) {
+						$o	= "Error: Passphrase or Key File not found.";
+					}
 				}
 			} else {
 				$luks_pass_file = "{$paths['luks_pass']}_".$luks;
@@ -1339,6 +1387,7 @@ function do_mount($info) {
 				unassigned_log("luksOpen result: {$o}");
 				shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg(basename($info['device'])));
 			} else {
+				/* Mount an encrypted disk. */
 				$rc = do_mount_local($info);
 			}
 		} else {
@@ -1357,11 +1406,12 @@ function do_mount($info) {
 function do_mount_local($info) {
 	global $paths;
 
-	$rc		= false;
-	$dev	= $info['device'];
-	$dir	= $info['mountpoint'];
-	$fs		= $info['fstype'];
-	$ro		= ($info['read_only'] == 'yes') ? true : false;
+	$rc				= false;
+	$dev			= $info['device'];
+	$dir			= $info['mountpoint'];
+	$fs				= $info['fstype'];
+	$ro				= ($info['read_only'] == 'yes') ? true : false;
+	$file_system	="";
 	if (! is_mounted($dev) && ! is_mounted($dir)) {
 		if ($fs) {
 			$recovery = "";
@@ -1375,12 +1425,15 @@ function do_mount_local($info) {
 					$vol		= get_config($info['serial'], "volume.{$info['part']}");
 					$vol		= ($vol != 0) ? ",vol=".$vol : "";
 					$cmd		= "/usr/bin/apfs-fuse -o uid=99,gid=100,allow_other{$vol}{$recovery} ".escapeshellarg($dev)." ".escapeshellarg($dir);
-				} else if ($fs == "zfs_member") {
+				} else if ($fs == "zfs") {
 					/* Mount a zfs pool device. */
-					shell_exec("/usr/sbin/zpool import -N -d ".escapeshellarg($dev)." ".escapeshellarg(basename($dir)));
-					shell_exec("/usr/sbin/zfs set mountpoint=".escapeshellarg($dir)." ".escapeshellarg(basename($dir)));
+					$pool_name	= (new MiscUD)->zfs_pool_name($dev);
+					if ($pool_name) {
+						exec("/usr/sbin/zpool import -N ".escapeshellarg($pool_name)." 2>/dev/null");
+						exec("/usr/sbin/zfs set mountpoint=".escapeshellarg($dir)." ".escapeshellarg($pool_name));
+					}
 					$params		= get_mount_params($fs, $dev, $ro);
-					$cmd		= "/usr/sbin/zfs mount -o $params ".escapeshellarg(basename($dir));
+					$cmd		= "/usr/sbin/zfs mount -o $params ".escapeshellarg($pool_name);
 				} else {
 					$params		= get_mount_params($fs, $dev, $ro);
 					$cmd		= "/sbin/mount -t ".escapeshellarg($fs)." -o $params ".escapeshellarg($dev)." ".escapeshellarg($dir);
@@ -1391,19 +1444,9 @@ function do_mount_local($info) {
 
 				/* Find the file system type on the luks device to use the proper mount options. */
 				$mapper	= "/dev/mapper/".basename($info['device']);
-				$command = get_fsck_commands($fs, $mapper)." 2>&1";
-				$o = shell_exec(escapeshellcmd($command));
-				if (stripos($o, "BTRFS") !== false) {
-					$file_system	= "btrfs";
-				} else if (stripos($o, "XFS") !== false) {
-					$file_system	= "xfs";
-				} else if (stripos($o, "ZFS_MEMBER") !== false) {
-					$file_system	= "zfs_member";
-				} else {
-					$file_system	= "";
-				}
-				
-				if ($fs != "zfs_member") {
+				$file_system	= luks_fs_type($mapper, false, true);
+
+				if ($file_system != "zfs") {
 					$params	= get_mount_params($file_system, $device, $ro);
 					if ($file_system) {
 						$cmd = "/sbin/mount -t ".escapeshellarg($file_system)." -o $params ".escapeshellarg($dev)." ".escapeshellarg($dir);
@@ -1412,19 +1455,22 @@ function do_mount_local($info) {
 					}
 				} else {
 					/* Mount a zfs pool device. */
-					shell_exec("/usr/sbin/zpool import -N -d ".escapeshellarg($dev)." ".escapeshellarg(basename($dir)));
-					shell_exec("/usr/sbin/zfs set mountpoint=".escapeshellarg($dir)." ".escapeshellarg(basename($dir)));
+					$pool_name	= (new MiscUD)->zfs_pool_name($dev);
+					if ($pool_name) {
+						exec("/usr/sbin/zpool import -N ".escapeshellarg($pool_name)." 2>/dev/null");
+						exec("/usr/sbin/zfs set mountpoint=".escapeshellarg($dir)." ".escapeshellarg($pool_name));
+					}
 					$params		= get_mount_params($file_system, $device, $ro);
-					$cmd		= "/usr/sbin/zfs mount -o $params ".escapeshellarg(basename($dir));
+					$cmd		= "/usr/sbin/zfs mount -o $params ".escapeshellarg($pool_name);
 				}
 			}
-			$str = str_replace($recovery, ", pass='*****'", $cmd);
-			unassigned_log("Mount drive command: {$str}");
+			$cmd = str_replace($recovery, ", pass='*****'", $cmd);
+			unassigned_log("Mount drive command: ".$cmd);
 
 			/* apfs file system requires UD+ to be installed. */
 			if (($fs == "apfs") && (! is_file("/usr/bin/apfs-fuse"))) {
 				$o = "Install Unassigned Devices Plus to mount an apfs file system";
-			} else if ((($fs == "zfs_member") || ($file_system == "zfs_member")) && (! is_file("/usr/sbin/zfs"))) {
+			} else if ((($fs == "zfs") || ($file_system == "zfs")) && (! is_file("/usr/sbin/zfs"))) {
 				$o = "Unraid 6.12 or later is needed to mount a zfs file system";
 			} else {
 				/* Create mount point and set permissions. */
@@ -1432,8 +1478,13 @@ function do_mount_local($info) {
 					@mkdir($dir, 0777, true);
 				}
 
-				/* Do the mount command. */
-				$o = shell_exec(escapeshellcmd($cmd)." 2>&1");
+				/* If the pool name cannot be found, we cannot mount the pool. */
+				if ((($fs == "zfs") || ($file_system == "zfs")) && (! $pool_name)) {
+					$o = "Cannot determine Pool Name of '".$device."'";
+				} else {
+					/* Do the mount command. */
+					$o = shell_exec(escapeshellcmd($cmd)." 2>&1");
+				}
 			}
 
 			/* Do some cleanup if we mounted an apfs disk, */
@@ -1558,71 +1609,41 @@ function do_mount_root($info) {
 }
 
 /* Unmount a device. */
-function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false) {
+function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs = false) {
 	global $paths;
 
 	$rc = false;
-	if ( is_mounted($dev) && is_mounted($dir) ) {
+	$mounted	= ($zfs) ? (is_mounted($dir) && is_mounted((new MiscUD)->zfs_pool_name($dir, true))) : (is_mounted($dev) && is_mounted($dir));
+	if ($mounted) {
 		if (! $force) {
 			unassigned_log("Synching file system on '{$dir}'.");
 			exec("/bin/sync -f ".escapeshellarg($dir));
 		}
 
-		/* Remove saved pool devices if this is a pooled device. */
-		(new MiscUD)->get_pool_devices($dir, true);
+		$pool_name	= "";
+		if ($zfs) {
+			$pool_name	= (new MiscUD)->zfs_pool_name($dir, true);
+			/* Unmount zfs file system. */
+			$cmd = ("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
+		} else {
+			/* Remove saved pool devices if this is a pooled device. */
+			(new MiscUD)->get_pool_devices($dir, true);
 
-		$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : ($nfs ? " -l" : ""))." ".escapeshellarg($dev)." 2>&1";
+			$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : ($nfs ? " -l" : ""))." ".escapeshellarg($dev)." 2>&1";
+		}
 		unassigned_log("Unmount cmd: {$cmd}");
 
-		$timeout = ($smb || $nfs) ? ($force ? 30 : 10) : 90;
-		$o = timed_exec($timeout, $cmd);
+		if (($zfs) && (! $pool_name)) {
+			$o = "Cannot determine Pool Name of '".$dev."'";
+		} else {
+			/* Execute the unmount command. */
+			$timeout = ($smb || $nfs) ? ($force ? 30 : 10) : 90;
+			$o = timed_exec($timeout, $cmd);
+		}
 
 		/* Check to see if the device really unmounted. */
 		for ($i=0; $i < 5; $i++) {
 			if ((! is_mounted($dev)) && (! is_mounted($dir))) {
-				if (is_dir($dir)) {
-					exec("/bin/rmdir ".escapeshellarg($dir)." 2>/dev/null");
-					$link = $paths['usb_mountpoint']."/".basename($dir);
-					if (is_link($link)) {
-						@unlink($link);
-					}
-				}
-
-				unassigned_log("Successfully unmounted '".basename($dev)."'");
-				$rc = true;
-				break;
-			} else {
-				sleep(0.5);
-			}
-		}
-		if (! $rc) {
-			unassigned_log("Unmount of '".basename($dev)."' failed: '{$o}'"); 
-		}
-	} else {
-		unassigned_log("Cannot unmount '".basename($dev)."'. UD did not mount the device or it was not properly unmounted.");
-	}
-
-	return $rc;
-}
-
-/* Unmount a zfs device. */
-function do_unmount_zfs($dev, $dir) {
-	global $paths;
-
-	$rc = false;
-	if ( is_mounted(basename($dir)) && is_mounted($dir) ) {
-		unassigned_log("Synching file system on '{$dir}'.");
-		exec("/bin/sync -f ".escapeshellarg($dir));
-
-		$cmd = "/usr/sbin/zfs umount ".escapeshellarg($dir)." 2>&1";
-		unassigned_log("Unmount cmd: {$cmd}");
-
-		$timeout = 90;
-		$o = timed_exec($timeout, $cmd);
-
-		/* Check to see if the device really unmounted. */
-		for ($i=0; $i < 5; $i++) {
-			if ((! is_mounted(basename($dir))) && (! is_mounted($dir))) {
 				if (is_dir($dir)) {
 					exec("/bin/rmdir ".escapeshellarg($dir)." 2>/dev/null");
 					$link = $paths['usb_mountpoint']."/".basename($dir);
@@ -2700,6 +2721,7 @@ function get_partition_info($dev) {
 
 		/* Get the file system type. */
 		$disk['fstype']			= isset($attrs['ID_FS_TYPE']) ? safe_name($attrs['ID_FS_TYPE']) : "";
+		$disk['fstype']			= ($disk['fstype'] == "zfs_member") ? "zfs" : $disk['fstype'];
 
 		/* Get the mount point from the configuration and if not set create a default mount point. */
 		$disk['mountpoint']		= get_config($disk['serial'], "mountpoint.{$disk['part']}");
@@ -2716,12 +2738,10 @@ function get_partition_info($dev) {
 		}
 
 		/* Set up all disk parameters and status. */
-		$disk['mounted']		= is_mounted($disk['mountpoint']);
-		if ($disk['fstype'] != "zfs_member") {
-			$disk['not_unmounted']	= ($disk['mounted'] && ! is_mounted($disk['device'])) ? true : false;
-		} else {
-			$disk['not_unmounted']	= ($disk['mounted'] && ! is_mounted(basename($disk['mountpoint']))) ? true : false;
-		}
+		/* If the partition doesn't have a file system, it can't possibly be mounted. */
+		$disk['pass_through']	= is_pass_through($disk['serial']);
+		$disk['mounted']		= ((! $disk['pass_through']) && ($disk['fstype'])) ? is_mounted($disk['mountpoint']) : false;
+		$disk['not_unmounted']	= ($disk['mounted'] && ! is_mounted($disk['mountpoint'])) ? true : false;
 
 		if ($disk['mounted'] && $disk['fstype'] == "btrfs") {
 			/* Get the members of a pool if this is a pooled disk. */
@@ -2736,14 +2756,17 @@ function get_partition_info($dev) {
 			$disk['pool']		= false;
 		}
 
-		$disk['pass_through']	= (! $disk['mounted']) ? is_pass_through($disk['serial']) : false;
 		$disk['disable_mount']	= is_disable_mount($disk['serial']);
 
 		/* Target is set to the mount point when the device is mounted. */
-		if ($disk['fstype'] != "zfs_member") {
-			$disk['target']			= str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep ".escapeshellarg($disk['device'])." | /bin/awk '{print $2}'")));
+		if ($disk['mounted']) {
+			if (($disk['fstype'] == "zfs") || (($disk['fstype'] == "crypto_LUKS") && (luks_fs_type($disk['mountpoint'], false, true) == "zfs"))) {
+				$disk['target']			= str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep ".escapeshellarg(basename($disk['mountpoint']))." | /bin/awk '{print $2}'")));
+			} else {
+				$disk['target']			= str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep ".escapeshellarg($disk['device'])." | /bin/awk '{print $2}'")));
+			}
 		} else {
-			$disk['target']			= str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep ".escapeshellarg(basename($disk['mountpoint']))." | /bin/awk '{print $2}'")));
+			$disk['target']		= "";
 		}
 
 		$stats					= get_device_stats($disk['mountpoint'], $disk['mounted']);
@@ -2780,6 +2803,10 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 
 		case 'xfs':
 			$cmd = array('ro'=>'/sbin/xfs_repair -n %s', 'rw'=>'/sbin/xfs_repair -e %s', 'log'=>'/sbin/xfs_repair -e -L %s');
+			break;
+
+		case 'zfs':
+			$cmd = array('ro'=>'/usr/sbin/zpool scrub -w %s');
 			break;
 
 		case 'exfat':
@@ -2878,6 +2905,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 	if ($mountpoint) {
 		$rc = check_for_duplicate_share($dev, $mountpoint);
 		if ($rc) {
+			$old_mountpoint	= basename(get_config($serial, "mountpoint.{$partition}"));
 			$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
 			set_config($serial, "mountpoint.{$partition}", $mountpoint);
 			$mountpoint = safe_name(basename($mountpoint));
@@ -2888,6 +2916,9 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 
 				case 'btrfs';
 					timed_exec(20, "/sbin/btrfs filesystem label ".escapeshellarg($dev)." ".escapeshellarg($mountpoint)." 2>/dev/null");
+					break;
+
+				case 'zfs';
 					break;
 
 				case 'ntfs';
@@ -2920,6 +2951,9 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 						} else {
 							unassigned_log("Using Unraid api to open the 'crypto_LUKS' device.");
 							$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
+							if (! file_exists("/dev/mapper/".$mapper)) {
+								$o	= "Error: Passphrase or Key File not found.";
+							}
 						}
 					} else {
 						$luks_pass_file = "{$paths['luks_pass']}_".basename($dev);
@@ -2933,19 +2967,33 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 						unassigned_log("Change disk label luksOpen error: ".$o);
 						$rc = false;
 					} else {
-						/* Try xfs label change. */
-						$mapper_dev = "/dev/mapper/$mapper";
-						timed_exec(20, "/usr/sbin/xfs_admin -L ".escapeshellarg($mountpoint)." ".escapeshellarg($mapper_dev)." 2>/dev/null");
+						switch (luks_fs_type("/dev/mapper/".$mapper, false, true)) {
+							case "btrfs":
+								/* btrfs label change. */
+								timed_exec(20, "/sbin/btrfs filesystem label ".escapeshellarg($mapper_dev)." ".escapeshellarg($mountpoint)." 2>/dev/null");
+								break;
 
-						/* Try btrfs label change. */
-						timed_exec(20, "/sbin/btrfs filesystem label ".escapeshellarg($mapper_dev)." ".escapeshellarg($mountpoint)." 2>/dev/null");
-						shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
+							case "xfs":
+								/* xfs label change. */
+								timed_exec(20, "/usr/sbin/xfs_admin -L ".escapeshellarg($mountpoint)." ".escapeshellarg($mapper_dev)." 2>/dev/null");
+								break;
+
+							case "zfs":
+								/* zfs pool name change */
+								break;
+
+							default:
+								unassigned_log("Warning: Cannot change the disk label on device '".basename($dev)."'.");
+								break;
+						}
 					}
+
+					shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
 					break;
 
-					default;
-						unassigned_log("Warning: Cannot change the disk label on device '".basename($dev)."'.");
-					break;
+				default;
+					unassigned_log("Warning: Cannot change the disk label on device '".basename($dev)."'.");
+				break;
 			}
 		}
 	} else {
@@ -2997,7 +3045,7 @@ function change_iso_mountpoint($dev, $mountpoint) {
 
 /* Change the disk UUID. */
 function change_UUID($dev) {
-	global $plugin;
+	global $plugin, $paths, $var;
 
 	$rc	= "";
 
@@ -3030,6 +3078,9 @@ function change_UUID($dev) {
 			} else {
 				unassigned_log("Using Unraid api to open the 'crypto_LUKS' device.");
 				$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
+				if (! file_exists("/dev/mapper/".$mapper)) {
+					$o	= "Error: Passphrase or Key File not found.";
+				}
 			}
 		} else {
 			$luks_pass_file = "{$paths['luks_pass']}_".basename($luks);
@@ -3046,15 +3097,19 @@ function change_UUID($dev) {
 		} else {
 			/* Get the crypto file system check so we can determine the luks file system. */
 			$mapper_dev = "/dev/mapper/".$mapper;
-			$command = get_fsck_commands($fs_type, $mapper_dev)." 2>&1";
-			$o = shell_exec(escapeshellcmd($command));
-			if (stripos($o, "XFS") !== false) {
-				/* Change the xfs UUID. */
-				$rc = timed_exec(10, "/usr/sbin/xfs_admin -U generate ".escapeshellarg($mapper_dev));
-			} else if (stripos($o, "BTRFS") !== false) {
-				$rc = timed_exec(10, "/sbin/btrfstune -uf ".escapeshellarg($mapper_dev));
-			} else {
-				$rc = "Cannot change UUID.";
+			switch (luks_fs_type($mapper_dev)) {
+				case "xfs":
+					/* Change the xfs UUID. */
+					$rc = timed_exec(10, "/usr/sbin/xfs_admin -U generate ".escapeshellarg($mapper_dev));
+					break;
+
+				case "btrfs":
+					$rc = timed_exec(10, "/sbin/btrfstune -uf ".escapeshellarg($mapper_dev));
+					break;
+
+				default:
+					$rc = "Cannot change UUID.";
+					break;
 			}
 
 			/* Close the luks device. */

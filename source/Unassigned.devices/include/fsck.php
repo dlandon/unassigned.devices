@@ -42,7 +42,8 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 	$check_type	= isset($_GET['check_type']) ? $_GET['check_type'] : 'ro';
 	$luks		= $_GET['luks'];
 	$serial		= $_GET['serial'];
-	$mounted	= is_mounted($device);
+	$mountpoint	= $_GET['mountpoint'];
+	$mounted	= is_mounted($mountpoint);
 	$rc			= true;
 
 	/* Display the file system. */
@@ -62,6 +63,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 				unassigned_log("Using Unraid api to open the 'crypto_LUKS' device.");
 				$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
 			}
+			$luks_pass_file	= "";
 		} else {
 			$luks_pass_file = "{$paths['luks_pass']}_".basename($luks);
 			file_put_contents($luks_pass_file, $pass);
@@ -75,38 +77,35 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 
 		/* Remove the password/passphrase. */
 		unset($pass);
-		exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
+		if (($luks_pass_file) && (file_exists($luks_pass_file))) {
+			exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
+		}
 	}
 
 	/* If there was no error from the luks open command or the disk is not encrypted, go ahead with the file check. */
+	$file_system = ($fs == "crypto_LUKS") ? luks_fs_type($device, false, true) : $fs;
 	if ($rc) {
-		$file_system = $fs;
-		if ($fs == "crypto_LUKS") {
-			/* Get the crypto file system check so we can determine the luks file system. */
-			$command = get_fsck_commands($fs, $device)." 2>&1";
-			$o = shell_exec(escapeshellcmd($command));
-			if (stripos($o, "XFS") !== false) {
-				$file_system = "xfs";
-			} elseif (stripos($o, "REISERFS") !== false) {
-				$file_system = "resierfs";
-			} elseif (stripos($o, "BTRFS") !== false) {
-				$file_system = "btrfs";
-			} else {
-				write_log("Cannot determine file system on an encrypted disk!<br />");
-				$file_system	= "";
-			}
-		}
-
 		if ($file_system) {
 			/* If the file system is btrfs, we will do a scrub. */
-			if ($file_system != "btrfs") {
-				write_log("Executing file system check:&nbsp;");
-			} else {
+			if (($file_system == "btrfs") || ($file_system == "zfs")) {
 				write_log("Executing file system scrub:&nbsp;");
+			} else {
+				write_log("Executing file system check:&nbsp;");
 			}
 
 			/* Get the file system check command based on the file system. */
-			$command = get_fsck_commands($file_system, $device, $check_type)." 2>&1";
+			if ($file_system == "zfs") {
+				if (! $mounted) {
+					$pool_name	= (new MiscUD)->zfs_pool_name($device);
+					exec("/usr/sbin/zpool import -N ".escapeshellarg($pool_name)." 2>/dev/null");
+					sleep(1);
+				} else {
+					$pool_name	= (new MiscUD)->zfs_pool_name($mountpoint, $mounted);
+				}
+				$command = get_fsck_commands($file_system, $pool_name, $check_type)." 2>&1";
+			} else {
+				$command = get_fsck_commands($file_system, $device, $check_type)." 2>&1";
+			}
 			write_log($command."<br />");
 
 			/* Execute the fsck command and pipe it to $proc. */
@@ -115,9 +114,25 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 				write_log(fgets($proc));
 			}
 
+			/* Show the results of the zfs scrub. */
+			if ($file_system == "zfs") {
+				$command = "/usr/sbin/zpool status ".escapeshellarg($pool_name);
+				/* Execute the status command and pipe it to $proc. */
+				$proc = popen($command, 'r');
+				while (! feof($proc)) {
+					write_log(fgets($proc));
+				}
+				if (! $mounted) {
+					exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
+				}
+			}
+
 			/* Close $proc and get the process error code. */
 			$rc_check = pclose($proc);
 		} else {
+			if ($fs == "crypto_LUKS") {
+				write_log("Cannot determine file system on an encrypted disk!<br />");
+			}
 			$rc_check = 0;
 		}
 	}
