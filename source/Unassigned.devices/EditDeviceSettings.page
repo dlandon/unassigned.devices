@@ -373,10 +373,12 @@ _(User Script)_:
 	$('.passthrough-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Passed Through');?>", off_label: "<?=_('Passed Through');?>", checked:"<?=$pass_through;?>" });
 	$('.passthrough-switch').change(function()
 	{
+<? if (! is_mounted($mount_point)):?>
 		$.post(UDURL,{action:"toggle_pass_through",serial:"<?=$ud_device;?>",status:$(this).is(":checked")},function(data)
 		{
 			$(this).prop("checked",data.result);
 		},"json");
+<?endif;?>
 	});
 
 	$('.disable-mount-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Disable Mount Button');?>", off_label: "<?=_('Disable Mount Button');?>", checked:"<?=$disable_mount;?>" });
