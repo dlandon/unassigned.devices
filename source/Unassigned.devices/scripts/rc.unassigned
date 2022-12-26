@@ -144,7 +144,7 @@ function unassigned_mount() {
 							/* Update the partition info. */
 							$info = get_partition_info($partition);
 							export_disk($info, true);
-						} else if (! is_mounted($info['device'])) {
+						} else if (! is_mounted($info['mountpoint'])) {
 							/* There was an error mounting the disk. */
 							unassigned_log("Partition '".basename($info['label'])."' cannot be mounted.");
 
@@ -314,8 +314,9 @@ function unassigned_umount() {
 					execute_script($info, "ERROR_UNMOUNT");
 				} else {
 					/* If the device is mounted, unmount it. */
-					if ( is_mounted($info['device']) || is_mounted($info['mountpoint']) )
-					{
+					$pool_name	= ($info['fstype'] == "zfs") ? (new MiscUD)->zfs_pool_name($info['mountpoint'], true) : "";
+					$mounted	= (($info['fstype'] == "zfs") && ($pool_name)) ? (is_mounted($pool_name) || is_mounted($info['mountpoint'])) : (is_mounted($info['device']) || is_mounted($info['mountpoint']));
+					if ($mounted) {
 						/* Create unmounting status file for this device. */
 						if ($info['fstype'] != "crypto_LUKS") {
 							addFile(sprintf($paths['unmounting'], basename($info['device'])));
@@ -337,6 +338,7 @@ function unassigned_umount() {
 								$zfs	= false;
 							}
 							$rc	= do_unmount($info['device'], $info['mountpoint'], false, false, false, $zfs);
+
 							if ($rc) {
 								if ($info['fstype'] == "crypto_LUKS" ) {
 									shell_exec("/sbin/cryptsetup luksClose ".basename($info['device']));
@@ -628,5 +630,5 @@ switch ($COMMAND) {
 }
 
 /* Clear all the status files. */
-array_map(function($f){exec("/bin/rm -f ".$f." 2>/dev/null");}, $remove);
+array_map(function($f){exec("/bin/rm -f ".escapeshellarg(preg_quote($f))." 2>/dev/null");}, $remove);
 ?>
