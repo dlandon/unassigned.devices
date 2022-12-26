@@ -66,7 +66,7 @@ $DEBUG_LEVEL	= (int) get_config("Config", "debug_level");
 /* Read Unraid variables file. Used to determine disks not assigned to the array and other array parameters. */
 if (! isset($var)){
 	if (! is_file("$docroot/state/var.ini")) {
-		shell_exec("/usr/bin/wget -qO /dev/null localhost:$(ss -napt | /bin/grep emhttp | /bin/grep -Po ':\K\d+') >/dev/null");
+		exec("/usr/bin/wget -qO /dev/null localhost:$(ss -napt | /bin/grep emhttp | /bin/grep -Po ':\K\d+') >/dev/null");
 	}
 	$var = @parse_ini_file("$docroot/state/var.ini");
 }
@@ -126,9 +126,9 @@ class MiscUD
 	/* Spin disk up or down using Unraid api. */
 	public function spin_disk($down, $dev) {
 		if ($down) {
-			shell_exec("/usr/local/sbin/emcmd cmdSpindown=".escapeshellarg($dev));
+			exec("/usr/local/sbin/emcmd cmdSpindown=".escapeshellarg($dev));
 		} else {
-			shell_exec("/usr/local/sbin/emcmd cmdSpinup=".escapeshellarg($dev));
+			exec("/usr/local/sbin/emcmd cmdSpinup=".escapeshellarg($dev));
 		}
 	}
 
@@ -373,7 +373,7 @@ function unassigned_log($m, $debug_level = 0) {
 		$m		= print_r($m,true);
 		$m		= str_replace("\n", " ", $m);
 		$m		= str_replace('"', "'", $m);
-		shell_exec("/usr/bin/logger"." ".escapeshellarg($m)." -t ".escapeshellarg($plugin));
+		exec("/usr/bin/logger"." ".escapeshellarg($m)." -t ".escapeshellarg($plugin));
 	}
 }
 
@@ -425,7 +425,7 @@ function get_device_stats($mountpoint, $mounted, $active = true) {
 		/* Run the stats script to update the state file. */
 		$df_status[$mountpoint]['timestamp']	= $df_status[$mountpoint]['timestamp'] ?? 0;
 		if (($active) && ((time() - $df_status[$mountpoint]['timestamp']) > 90)) {
-			shell_exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." &");
+			exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." &");
 		}
 
 		/* Get the updated device stats. */
@@ -759,7 +759,7 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 			$is_ssd = is_disk_ssd($dev);
 			if ($disk_schema == "gpt") {
 				unassigned_log("Creating Unraid compatible gpt partition on disk '".$dev."'.");
-				shell_exec("/sbin/sgdisk -Z ".escapeshellarg($dev));
+				exec("/sbin/sgdisk -Z ".escapeshellarg($dev));
 
 				/* Alignment is 4Kb for spinners and 1Mb for SSD. */
 				$alignment = $is_ssd ? "" : "-a 8";
@@ -836,7 +836,7 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 
 				/* Use a disk password, or Unraid's. */
 				if (! $pass) {
-					$o = exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
+					$o = shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
 					if (! file_exists("/dev/mapper/".$mapper)) {
 						$o	= "Error: Passphrase or Key File not found.";
 					}
@@ -861,7 +861,7 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 					exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
 					sleep(1);
 				}
-				shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
+				exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
 			}
 		} else {
 			/* Format the disk. */
@@ -970,7 +970,7 @@ function remove_all_partitions($dev) {
 		unassigned_log("Removing all partitions from disk '".$device."'.");
 
 		/* Remove all partitions - this clears the disk. */
-		shell_exec("/sbin/wipefs --all --force ".escapeshellarg($device)." 2>&1");
+		exec("/sbin/wipefs --all --force ".escapeshellarg($device)." 2>&1");
 
 		/* Let things settle a bit. */
 		sleep(2);
@@ -1028,7 +1028,7 @@ function luks_fs_type($dev, $display = false, $zfs = false) {
 			}
 		}
 	} else {
-		$command = get_fsck_commands("crypto_LUKS", $dev)." 2>&1";
+		$command = get_fsck_commands("crypto_LUKS", $dev)." 2>dev/null";
 		$o = shell_exec(escapeshellcmd($command));
 		if (stripos($o, "BTRFS") !== false) {
 			$rc	= "btrfs";
@@ -1387,7 +1387,7 @@ function do_mount($info) {
 			}
 			if ($o && stripos($o, "warning") === false) {
 				unassigned_log("luksOpen result: {$o}");
-				shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg(basename($info['device'])));
+				exec("/sbin/cryptsetup luksClose ".escapeshellarg(basename($info['device'])));
 			} else {
 				/* Mount an encrypted disk. */
 				$rc = do_mount_local($info);
@@ -1525,7 +1525,7 @@ function do_mount_local($info) {
 			/* If the device did not mount, close the luks disk if the FS is luks, and show an error. */
 			if (! $rc) {
 				if ($fs == "crypto_LUKS" ) {
-					shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg(basename($info['device'])));
+					exec("/sbin/cryptsetup luksClose ".escapeshellarg(basename($info['device'])));
 				}
 				unassigned_log("Mount of '".basename($dev)."' failed: '{$o}'");
 				@rmdir($dir);
@@ -1566,7 +1566,7 @@ function do_mount_root($info) {
 		/* If the root server is not online, run the ping update and see if ping status needs to be refreshed. */
 		if (! $is_alive) {
 			/* Update the root share server ping status. */
-			shell_exec("/usr/local/emhttp/plugins/unassigned.devices/scripts/get_ud_stats ping");
+			exec("/usr/local/emhttp/plugins/unassigned.devices/scripts/get_ud_stats ping");
 
 			/* See if the root share server is online now. */
 			$is_alive = is_samba_server_online($info['ip']);
@@ -1655,7 +1655,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 			$mounted	= (($zfs) && ($pool_name)) ? (is_mounted($pool_name) || (is_mounted($dir))) : ((is_mounted($dev)) || (is_mounted($dir)));
 			if (! $mounted) {
 				if (is_dir($dir)) {
-					exec("/bin/rmdir ".escapeshellarg($dir)." 2>/dev/null");
+					exec("/bin/rmdir ".escapeshellarg(preg_quote($dir))." 2>/dev/null");
 					$link = $paths['usb_mountpoint']."/".basename($dir);
 					if (is_link($link)) {
 						@unlink($link);
@@ -1825,7 +1825,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 						if (is_file("/var/run/recycle.bin.pid")) {
 							unassigned_log("Enabling the Recycle Bin on share '{$share_name}'.");
 						}
-						shell_exec(escapeshellcmd("$recycle_script $share_conf"));
+						exec(escapeshellcmd("$recycle_script $share_conf"));
 					}
 				}
 			}
@@ -1897,7 +1897,7 @@ function add_nfs_share($dir) {
 		}
 		if ($reload) {
 			unassigned_log("Adding NFS share '{$dir}'.");
-			shell_exec("/usr/sbin/exportfs -ra 2>/dev/null");
+			exec("/usr/sbin/exportfs -ra 2>/dev/null");
 		}
 	}
 
@@ -1921,7 +1921,7 @@ function rm_nfs_share($dir) {
 	}
 	if ($reload) {
 		unassigned_log("Removing NFS share '{$dir}'.");
-		shell_exec("/usr/sbin/exportfs -ra 2>/dev/null");
+		exec("/usr/sbin/exportfs -ra 2>/dev/null");
 	}
 
 	return true;
@@ -2155,7 +2155,7 @@ function do_mount_samba($info) {
 	/* If the remote server is not online, run the ping update and see if ping status needs to be refreshed. */
 	if (! $is_alive) {
 		/* Update the remote server ping status. */
-		shell_exec("/usr/local/emhttp/plugins/unassigned.devices/scripts/get_ud_stats ping");
+		exec("/usr/local/emhttp/plugins/unassigned.devices/scripts/get_ud_stats ping");
 
 		/* See if the server is online now. */
 		$is_alive = is_samba_server_online($info['ip']);
@@ -2774,7 +2774,7 @@ function get_partition_info($dev) {
 
 		/* Target is set to the mount point when the device is mounted. */
 		if ($disk['mounted']) {
-			if (($disk['fstype'] == "zfs") || (($disk['fstype'] == "crypto_LUKS") && (luks_fs_type($disk['mountpoint'], false, true) == "zfs"))) {
+			if (($disk['fstype'] == "zfs") || (($disk['fstype'] == "crypto_LUKS") && (luks_fs_type($disk['mountpoint'], true) == "zfs"))) {
 				$disk['target']			= str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep ".escapeshellarg(basename($disk['mountpoint']))." | /bin/awk '{print $2}'")));
 			} else {
 				$disk['target']			= str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep ".escapeshellarg($disk['device'])." | /bin/awk '{print $2}'")));
@@ -3002,7 +3002,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 						}
 					}
 
-					shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
+					exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
 					break;
 
 				default;
@@ -3111,7 +3111,7 @@ function change_UUID($dev) {
 		} else {
 			/* Get the crypto file system check so we can determine the luks file system. */
 			$mapper_dev = "/dev/mapper/".$mapper;
-			switch (luks_fs_type($mapper_dev)) {
+			switch (luks_fs_type($mapper_dev, false, true)) {
 				case "xfs":
 					/* Change the xfs UUID. */
 					$rc = timed_exec(10, "/usr/sbin/xfs_admin -U generate ".escapeshellarg($mapper_dev));
@@ -3127,7 +3127,7 @@ function change_UUID($dev) {
 			}
 
 			/* Close the luks device. */
-			shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
+			exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
 		}
 	} else if ($fs_type == "xfs") {
 		/* Change the xfs UUID. */
