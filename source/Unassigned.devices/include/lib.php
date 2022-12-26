@@ -1014,38 +1014,15 @@ function timed_exec($timeout = 10, $cmd) {
 	return $out;
 }
 
-/* Find the file system type of a luks device. */
-function luks_fs_type($dev, $display = false, $zfs = false) {
+/* Find the file system of a luks device. */
+function luks_fs_type($dev) {
 
-	if ($display) {
-		$dev_lookup	= (strpos($dev, "/dev/mapper") !== false) ? basename($dev) : $dev;
-		$rc = "luks";
-		if ($dev_lookup) {
-			$return	= shell_exec("/bin/cat /proc/mounts | /bin/grep -w ".escapeshellarg($dev_lookup)." | /bin/awk '{print $3}'");
-			if ($return) {
-				$return	= explode("\n", $return);
-				$rc		= $return[0];
-			}
-		}
-	} else {
-		$command = get_fsck_commands("crypto_LUKS", $dev)." 2>dev/null";
-		$o = shell_exec(escapeshellcmd($command));
-		if (stripos($o, "BTRFS") !== false) {
-			$rc	= "btrfs";
-		} else if (stripos($o, "XFS") !== false) {
-			$rc	= "xfs";
-		} else if (stripos($o, "EXT4") !== false) {
-			$rc	= "ext4";
-		} else if (stripos($o, "REISERFS") !== false) {
-			$rc	= "resierfs";
-		} else if ($zfs) {
-			$rc	= "zfs";
-		} else {
-			$rc	= "";
-		}
-	}
+	/* Get the file type from lsblk for a crypto_LUKS file system. */
+	$o	= shell_exec("lsblk -f | grep ".basename($dev)." | grep -v 'crypto_LUKS' | /bin/awk '{print $2}' 2>/dev/null");
+	$o	= str_replace("\n", "", $o);
+	$rc	= ($o == "zfs_member") ? "zfs" : $o;
 
-	return $rc;
+	return ($rc) ? $rc : "luks";
 }
 
 #########################################################
@@ -1451,7 +1428,7 @@ function do_mount_local($info) {
 
 				/* Find the file system type on the luks device to use the proper mount options. */
 				$mapper	= "/dev/mapper/".basename($info['device']);
-				$file_system	= luks_fs_type($mapper, false, true);
+				$file_system	= luks_fs_type($mapper);
 
 				if ($file_system != "zfs") {
 					$params	= get_mount_params($file_system, $device, $ro);
@@ -1670,11 +1647,10 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 			}
 		}
 
-		if (($rc) && ($zfs)) {
-			exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
-		}
 		if (! $rc) {
 			unassigned_log("Unmount of '".basename($dev)."' failed: '{$o}'"); 
+		} else if ($zfs) {
+			exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
 		}
 	} else {
 		unassigned_log("Cannot unmount '".basename($dev)."'. UD did not mount the device or it was not properly unmounted.");
@@ -2774,7 +2750,7 @@ function get_partition_info($dev) {
 
 		/* Target is set to the mount point when the device is mounted. */
 		if ($disk['mounted']) {
-			if (($disk['fstype'] == "zfs") || (($disk['fstype'] == "crypto_LUKS") && (luks_fs_type($disk['mountpoint'], true) == "zfs"))) {
+			if (($disk['fstype'] == "zfs") || (($disk['fstype'] == "crypto_LUKS") && (luks_fs_type($disk['mountpoint']) == "zfs"))) {
 				$disk['target']			= str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep ".escapeshellarg(basename($disk['mountpoint']))." | /bin/awk '{print $2}'")));
 			} else {
 				$disk['target']			= str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep ".escapeshellarg($disk['device'])." | /bin/awk '{print $2}'")));
@@ -2837,10 +2813,6 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 
 		case 'reiserfs':
 			$cmd = array('ro'=>'/sbin/reiserfsck --check %s', 'rw'=>'/sbin/reiserfsck --fix-fixable %s');
-			break;
-
-		case 'crypto_LUKS':
-			$cmd = array('ro'=>'/sbin/fsck -Vy %s', 'rw'=>'/sbin/fsck %s');
 			break;
 
 		default:
@@ -2981,7 +2953,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 						unassigned_log("Change disk label luksOpen error: ".$o);
 						$rc = false;
 					} else {
-						switch (luks_fs_type("/dev/mapper/".$mapper, false, true)) {
+						switch (luks_fs_type("/dev/mapper/".$mapper)) {
 							case "btrfs":
 								/* btrfs label change. */
 								timed_exec(20, "/sbin/btrfs filesystem label ".escapeshellarg($mapper_dev)." ".escapeshellarg($mountpoint)." 2>/dev/null");
@@ -3111,7 +3083,7 @@ function change_UUID($dev) {
 		} else {
 			/* Get the crypto file system check so we can determine the luks file system. */
 			$mapper_dev = "/dev/mapper/".$mapper;
-			switch (luks_fs_type($mapper_dev, false, true)) {
+			switch (luks_fs_type($mapper_dev)) {
 				case "xfs":
 					/* Change the xfs UUID. */
 					$rc = timed_exec(10, "/usr/sbin/xfs_admin -U generate ".escapeshellarg($mapper_dev));

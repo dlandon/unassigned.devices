@@ -133,7 +133,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$disabled		= $is_mounting || $is_unmounting || is_script_running($cmd) || ! $partition['fstype'] || $disk['array_disk'];
 
 		/* Set up icons for file system check/scrub and script execution. */
-		$fstype = ($partition['fstype'] == "crypto_LUKS") ? luks_fs_type($partition['device'], false, true) : $partition['fstype'];
+		$fstype = ($partition['fstype'] == "crypto_LUKS") ? luks_fs_type($partition['device']) : $partition['fstype'];
 		if ( (! $disabled && ! $mounted && $fstype != "apfs" && $fstype != "btrfs") || (! $disabled && $mounted && ($fstype == "btrfs" || $fstype = "zfs"))) {
 			$file_system_check = (($fstype != "btrfs") && ($fstype != "zfs")) ? _('File System Check') : _('File System Scrub');
 			$fscheck = "<a class='exec info' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&mountpoint={$partition['mountpoint']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i><span>".$file_system_check."</span></a>";
@@ -242,7 +242,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		}
 
 		/* Show disk and partition usage. */
-		$out[] = "<td>".($fstype == "crypto_LUKS" ? luks_fs_type($partition['device'], true) : $fstype)."</td>";
+		$out[] = "<td>".($fstype == "crypto_LUKS" ? luks_fs_type($partition['device']) : $fstype)."</td>";
 		if ($disk_line) {
 			$out[] = render_used_and_free_disk($disk, $mounted_disk);
 		} else {
