@@ -630,5 +630,5 @@ switch ($COMMAND) {
 }
 
 /* Clear all the status files. */
-array_map(function($f){exec("/bin/rm -f ".escapeshellarg(preg_quote($f))." 2>/dev/null");}, $remove);
+array_map(function($f){exec("/bin/rm -f ".escapeshellarg($f)." 2>/dev/null");}, $remove);
 ?>

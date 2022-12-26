@@ -1655,7 +1655,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 			$mounted	= (($zfs) && ($pool_name)) ? (is_mounted($pool_name) || (is_mounted($dir))) : ((is_mounted($dev)) || (is_mounted($dir)));
 			if (! $mounted) {
 				if (is_dir($dir)) {
-					exec("/bin/rmdir ".escapeshellarg(preg_quote($dir))." 2>/dev/null");
+					exec("/bin/rmdir ".escapeshellarg($dir)." 2>/dev/null");
 					$link = $paths['usb_mountpoint']."/".basename($dir);
 					if (is_link($link)) {
 						@unlink($link);
@@ -1669,10 +1669,10 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 				sleep(0.5);
 			}
 		}
-		if ($zfs) {
+
+		if (($rc) && ($zfs)) {
 			exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
 		}
-
 		if (! $rc) {
 			unassigned_log("Unmount of '".basename($dev)."' failed: '{$o}'"); 
 		}
