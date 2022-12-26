@@ -341,7 +341,7 @@ function unassigned_umount() {
 
 							if ($rc) {
 								if ($info['fstype'] == "crypto_LUKS" ) {
-									shell_exec("/sbin/cryptsetup luksClose ".basename($info['device']));
+									exec("/sbin/cryptsetup luksClose ".basename($info['device']));
 								}
 
 								/* Execute device script with remove action. */
