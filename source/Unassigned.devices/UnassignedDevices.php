@@ -17,7 +17,7 @@ $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $_SERVER['REQUEST_URI'] = 'unassigneddevices';
 require_once "$docroot/webGui/include/Translations.php";
 
-require_once("plugins/{$plugin}/include/lib.php");
+require_once("plugins/".$plugin."/include/lib.php");
 require_once("webGui/include/Helpers.php");
 
 if (isset($_POST['display'])) {
@@ -136,13 +136,13 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$fstype = ($partition['fstype'] == "crypto_LUKS") ? luks_fs_type($partition['device']) : $partition['fstype'];
 		if ( (! $disabled && ! $mounted && $fstype != "apfs" && $fstype != "btrfs") || (! $disabled && $mounted && ($fstype == "btrfs" || $fstype = "zfs"))) {
 			$file_system_check = (($fstype != "btrfs") && ($fstype != "zfs")) ? _('File System Check') : _('File System Scrub');
-			$fscheck = "<a class='exec info' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&mountpoint={$partition['mountpoint']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i><span>".$file_system_check."</span></a>";
+			$fscheck = "<a class='exec info' onclick='openWindow_fsck(\"/plugins/".$plugin."/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&mountpoint={$partition['mountpoint']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i><span>".$file_system_check."</span></a>";
 		} else {
 			$fscheck = "<i class='fa fa-check partition-hdd'></i></a>";
 		}
 		if ($mounted && is_file($cmd)) {
 			if ((! $disabled && ! is_script_running($cmd)) && (! is_script_running($partition['user_command'], true))) {
-				$fscheck .= "<a class='exec info' onclick='openWindow_fsck(\"/plugins/{$plugin}/include/script.php?device={$device}&type="._('Done')."\",\"Execute Script\",600,900);'><i class='fa fa-flash partition-script'></i><span>"._("Execute Script as udev simulating a device being installed")."</span></a>";
+				$fscheck .= "<a class='exec info' onclick='openWindow_fsck(\"/plugins/".$plugin."/include/script.php?device={$device}&type="._('Done')."\",\"Execute Script\",600,900);'><i class='fa fa-flash partition-script'></i><span>"._("Execute Script as udev simulating a device being installed")."</span></a>";
 			} else {
 				$fscheck .= "<i class='fa fa-flash partition-script'></i>";
 			}
@@ -156,31 +156,32 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$is_preclearing = shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg((new MiscUD)->base_device($partition['device']))." | /bin/grep -v 'grep'") != "" ? true : false;
 		$preclearing	= $preclearing || $is_preclearing;
 		$parted			= file_exists("/usr/sbin/parted");
-		$rm_partition	= ((get_config("Config", "destructive_mode") == "enabled") && ($parted) && (! $is_mounting) && (! $is_formatting) && (! $disk['partitions'][0]['pass_through']) && (! $disk['partitions'][0]['disable_mount']) && (! $disk['array_disk']) && (! $preclearing) && ($fstype)) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$partition['serial']}\",\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i><span>"._("Remove Partition")."</span></a>" : "";
-		$mpoint			= "<span>{$fscheck}";
+		$rm_partition	= ((get_config("Config", "destructive_mode") == "enabled") && ($parted) && (! $is_mounting) && (! $is_formatting) && (! $disk['pass_through']) && (! $disk['partitions'][0]['disable_mount']) && (! $disk['array_disk']) && (! $preclearing) && ($fstype)) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$partition['serial']}\",\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i><span>"._("Remove Partition")."</span></a>" : "";
+		$mpoint			= "<span>".$fscheck;
 		$mount_point	= basename($partition['mountpoint']);
 
 		/* Add change mount point or browse disk share icon if disk is mounted. */
 		if ($mounted) {
-			$mpoint .= "<i class='fa fa-external-link partition-hdd'></i><a title='"._("Browse Disk Share")."' href='/Main/Browse?dir={$partition['mountpoint']}'>{$mount_point}</a></span>";
+			$mpoint .= "<i class='fa fa-external-link partition-hdd'></i><a title='"._("Browse Disk Share")."' href='/Main/Browse?dir={$partition['mountpoint']}'>".$mount_point."</a></span>";
 		} else {
 			$mount_point	= basename($partition['mountpoint']);
 			$disk_label		= $partition['disk_label'];
 			if ((! $disk['array_disk']) && (! $preclearing)) {
 				$mpoint			.= "<i class='fa fa-pencil partition-hdd'></i><a title='"._("Change Disk Mount Point")."' class='exec' onclick='chg_mountpoint(\"{$partition['serial']}\",\"{$partition['part']}\",\"{$device}\",\"{$partition['fstype']}\",\"{$mount_point}\",\"{$disk_label}\");'>{$mount_point}</a>";
 			} else {
-				$mpoint			.= "<i class='fa fa-pencil partition-hdd'></i>{$mount_point}";
+				$mpoint			.= "<i class='fa fa-pencil partition-hdd'></i>".$mount_point;
 			}
-			$mpoint			.= "{$rm_partition}</span>";
+			$mpoint			.= $rm_partition."</span>";
 		}
+
 		$mbutton = make_mount_button($partition);
 
 		/* Show disk partitions if partitions enabled. */
-		$style	= (($disk['partitions'][0]['pass_through'])) ? "style='display:none;'" : "";
+		$style	= (($disk['pass_through'])) ? "style='display:none;'" : "";
 		$out[]	= "<tr class='toggle-parts toggle-".basename($disk['device'])."' name='toggle-".basename($disk['device'])."' $style>";
 		$out[]	= "<td></td>";
-		$out[]	= "<td>{$mpoint}</td>";
-		$out[]	= ((count($disk['partitions']) > 1) && ($mounted)) ? "<td class='mount'>{$mbutton}</td>" : "<td></td>";
+		$out[]	= "<td>".$mpoint."</td>";
+		$out[]	= ((count($disk['partitions']) > 1) && ($mounted)) ? "<td class='mount'>".$mbutton."</td>" : "<td></td>";
 		$fstype	= $partition['fstype'];
 		if ($disk_line) {
 			foreach ($disk['partitions'] as $part) {
@@ -270,18 +271,17 @@ function make_mount_button($device) {
 
 	if (isset($device['partitions'])) {
 		$mounted		= in_array(true, array_map(function($ar){return $ar['mounted'];}, $device['partitions']), true);
+		if (isset($device['partitions'][0]['pass_through'])) {
+			$pass_through	= $device['partitions'][0]['pass_through'];
+		} else {
+			$pass_through	= is_pass_through($device['serial']);
+		}
+		$format			= ((! count($device['partitions'])) && (! $pass_through)) ? true : false;
 		$disable		= count(array_filter($device['partitions'], function($p){ if (! empty($p['fstype'])) return true;})) ? "" : "disabled";
-		$format			= (! count($device['partitions'])) ? true : false;
 		$context		= "disk";
-		$device['partitions'][0]					= $device['partitions'][0] ?? null;
-		$device['partitions'][0]['pool']			= $device['partitions'][0]['pool'] ?? false;
-		$device['partitions'][0]['pass_through']	= $device['partitions'][0]['pass_through'] ?? false;
-		$device['partitions'][0]['disable_mount']	= $device['partitions'][0]['disable_mount'] ?? false;
-		$device['partitions'][0]['not_unmounted']	= $device['partitions'][0]['not_unmounted'] ?? false;
-		$pool_disk		= $device['partitions'][0]['pool'];
-		$pass_through	= $device['partitions'][0]['pass_through'];
-		$disable_mount	= $device['partitions'][0]['disable_mount'];
-		$not_unmounted	= $device['partitions'][0]['not_unmounted'];
+		$pool_disk		= isset($device['partitions'][0]['pool']) ? $device['partitions'][0]['pool'] : false;
+		$disable_mount	= isset($device['partitions'][0]['disable_mount']) ? $device['partitions'][0]['disable_mount'] : false;
+		$not_unmounted	= isset($device['partitions'][0]['not_unmounted']) ? $device['partitions'][0]['not_unmounted'] : false;
 		if ((new MiscUD)->is_device_nvme($device['device'])) {
 			$dev		= basename($device['device'])."p1";
 		} else {
@@ -290,11 +290,11 @@ function make_mount_button($device) {
 	} else {
 		$mounted		= $device['mounted'];
 		$disable		= (! empty($device['fstype']) && $device['fstype'] != "crypto_LUKS") ? "" : "disabled";
-		$format			= (empty($device['fstype'])) ? true : false;
-		$context		= "partition";
-		$pool_disk		= false;
 		$pass_through	= $device['pass_through'];
 		$disable_mount	= $device['disable_mount'];
+		$format			= ((empty($device['fstype'])) && (! $pass_through)) ? true : false;
+		$context		= "partition";
+		$pool_disk		= false;
 		$not_unmounted	= false;
 		$dev			= $device['fstype'] == "crypto_LUKS" ? $device['luks'] : $device['device'];
 		$dev			= basename($dev);
@@ -355,7 +355,7 @@ function make_mount_button($device) {
 		if ($pass_through) {
 			$button = sprintf($button, $context, 'mount', $disable, '', _('Passed'));	
 		} else {
-			$button = sprintf($button, $context, 'mount', $disable, $class, _('Mount'));	
+			$button = sprintf($button, $context, 'mount', $disable, $class, _('Mount'));
 		}
 	}
 
@@ -427,14 +427,14 @@ switch ($_POST['action']) {
 				/* Set up the preclear link for preclearing a disk. */
 				$is_mounting	= (new MiscUD)->get_mounting_status(basename($disk['device']));
 				$is_formatting	= (new MiscUD)->get_formatting_status(basename($disk['device']));
-				$preclear_link = (($disk['size'] !== 0) && (! $file_system) && (! $mounted) && (! $is_formatting) && ($Preclear) && (! $preclearing) && (! $disk['array_disk'])) ? "&nbsp;&nbsp;".$Preclear->Link($disk_device, "icon") : "";
+				$preclear_link	= (($disk['size'] !== 0) && (! $file_system) && (! $mounted) && (! $is_formatting) && ($Preclear) && (! $preclearing) && (! $disk['array_disk']) && (! $disk['pass_through'])) ? "&nbsp;&nbsp;".$Preclear->Link($disk_device, "icon") : "";
 
 				/* Add the clear disk icon. */
 				$parted			= file_exists("/usr/sbin/parted");
 
 				$partition['device']	= $partition['device'] ?? "";
 				$partition['serial']	= $partition['serial'] ?? "";
-				$clear_disk				= ((get_config("Config", "destructive_mode") == "enabled") && ($parted) && ($p) && (! $mounted) && (! $disk['partitions'][0]['pool']) && (! $disk['partitions'][0]['disable_mount']) && (! $is_mounting) && (! $is_formatting) && (! $disk['partitions'][0]['pass_through']) && (! $disk['array_disk']) && (! $preclearing)) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
+				$clear_disk				= ((get_config("Config", "destructive_mode") == "enabled") && ($parted) && ($p) && (! $mounted) && (! $disk['partitions'][0]['pool']) && (! $disk['partitions'][0]['disable_mount']) && (! $is_mounting) && (! $is_formatting) && (! $disk['pass_through']) && (! $disk['array_disk']) && (! $preclearing)) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
 
 				$disk_icon = $disk['ssd'] ? "icon-nvme" : "fa fa-hdd-o";
 				if (version_compare($version['version'],"6.9.9", ">")) {
@@ -446,7 +446,7 @@ switch ($_POST['action']) {
 				}
 				if ($p) {
 					$add_toggle = true;
-					if ((! $disk['show_partitions']) && (! $disk['partitions'][0]['pass_through'])) {
+					if ((! $disk['show_partitions']) && (! $disk['pass_through'])) {
 						$hdd_serial .="<span title ='"._("Click to view/hide partitions and mount points")."'class='exec toggle-hdd' hdd='".$disk_device."'><i class='fa fa-plus-square fa-append'></i></span>";
 					} else {
 						$hdd_serial .="<span><i class='fa fa-minus-square fa-append grey-orb'></i></span>";
@@ -767,7 +767,7 @@ switch ($_POST['action']) {
 
 	case 'update_ping':
 		/* Refresh the ping status in the background. */
-		exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats ping &");
+		exec("/usr/local/emhttp/plugins/".$plugin."/scripts/get_ud_stats ping &");
 
 		publish();
 		break;
@@ -906,7 +906,7 @@ switch ($_POST['action']) {
 		$device	= urldecode($_POST['device']);
 		$out	= null;
 		$return	= null;
-		exec("plugins/{$plugin}/scripts/rc.unassigned mount ".escapeshellarg($device)." &>/dev/null", escapeshellarg($out), escapeshellarg($return));
+		exec("plugins/".$plugin."/scripts/rc.unassigned mount ".escapeshellarg($device)." &>/dev/null", escapeshellarg($out), escapeshellarg($return));
 		echo json_encode(["status" => $return ? false : true ]);
 		break;
 
@@ -915,13 +915,13 @@ switch ($_POST['action']) {
 		$device	= urldecode($_POST['device']);
 		$out	= null;
 		$return	= null;
-		exec("plugins/{$plugin}/scripts/rc.unassigned umount ".escapeshellarg($device)." &>/dev/null", escapeshellarg($out), escapeshellarg($return));
+		exec("plugins/".$plugin."/scripts/rc.unassigned umount ".escapeshellarg($device)." &>/dev/null", escapeshellarg($out), escapeshellarg($return));
 		echo json_encode(["status" => $return ? false : true ]);
 		break;
 
 	case 'rescan_disks':
 		/* Refresh all disk partition information, update config files from flash, and clear status files. */
-		exec("plugins/{$plugin}/scripts/copy_config.sh");
+		exec("plugins/".$plugin."/scripts/copy_config.sh");
 
 		$sf		= $paths['dev_state'];
 		if (is_file($sf)) {
@@ -962,7 +962,7 @@ switch ($_POST['action']) {
 		foreach ($network as $iface) {
 			$ip = $iface['ip'];
 			$netmask = $iface['netmask'];
-			exec("plugins/{$plugin}/scripts/port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 445", $hosts);
+			exec("plugins/".$plugin."/scripts/port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 445", $hosts);
 			foreach ($hosts as $host) {
 				/* Look up the server name using nmblookup. */
 				$name		= trim(shell_exec("/usr/bin/nmblookup -A ".escapeshellarg($host)." 2>/dev/null | grep -v 'GROUP' | grep -Po '[^<]*(?=<00>)' | head -n 1"));
@@ -999,7 +999,7 @@ switch ($_POST['action']) {
 		@file_put_contents("{$paths['authentication']}", "domain=".$domain."\n", FILE_APPEND);
 
 		/* Update this server status before listing shares. */
-		exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats is_online $ip");
+		exec("/usr/local/emhttp/plugins/".$plugin."/scripts/get_ud_stats is_online $ip");
 
 		/* Get a list of samba shares on this server. */
 		$list	= shell_exec("/usr/bin/smbclient -t2 -g -L ".escapeshellarg($ip)." --authentication-file=".escapeshellarg($paths['authentication'])." 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}' | sort");
@@ -1017,7 +1017,7 @@ switch ($_POST['action']) {
 		foreach ($network as $iface) {
 			$ip = $iface['ip'];
 			$netmask = $iface['netmask'];
-			exec("/usr/bin/timeout -s 13 5 plugins/{$plugin}/scripts/port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 2049 2>/dev/null | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4", $hosts);
+			exec("/usr/bin/timeout -s 13 5 plugins/".$plugin."/scripts/port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 2049 2>/dev/null | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4", $hosts);
 			foreach ($hosts as $host) {
 				/* Resolve name as a local server. */
 				$name	= shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'");
@@ -1044,7 +1044,7 @@ switch ($_POST['action']) {
 		$ip		= urldecode($_POST['IP']);
 
 		/* Update this server status before listing shares. */
-		exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats is_online $ip");
+		exec("/usr/local/emhttp/plugins/".$plugin."/scripts/get_ud_stats is_online $ip");
 
 		/* List the shares. */
 		$rc		= timed_exec(10, "/usr/sbin/showmount --no-headers -e ".escapeshellarg($ip)." 2>/dev/null | rev | cut -d' ' -f2- | rev | sort");
