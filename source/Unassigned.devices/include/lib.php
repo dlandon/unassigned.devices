@@ -19,30 +19,30 @@ $paths = [	"smb_unassigned"	=> "/etc/samba/smb-unassigned.conf",
 			"remote_mountpoint"	=> "/mnt/remotes",
 			"root_mountpoint"	=> "/mnt/rootshare",
 			"dev_state"			=> "/usr/local/emhttp/state/devs.ini",
-			"device_log"		=> "/tmp/{$plugin}/logs/",
-			"config_file"		=> "/tmp/{$plugin}/config/{$plugin}.cfg",
-			"samba_mount"		=> "/tmp/{$plugin}/config/samba_mount.cfg",
-			"iso_mount"			=> "/tmp/{$plugin}/config/iso_mount.cfg",
-			"scripts"			=> "/tmp/{$plugin}/scripts/",
-			"credentials"		=> "/tmp/{$plugin}/credentials",
-			"authentication"	=> "/tmp/{$plugin}/authentication",
-			"luks_pass"			=> "/tmp/{$plugin}/luks_pass",
-			"script_run"		=> "/tmp/{$plugin}/script_run",
-			"hotplug_event"		=> "/tmp/{$plugin}/hotplug_event",
-			"tmp_file"			=> "/tmp/{$plugin}/".uniqid("move_", true).".tmp",
-			"state"				=> "/var/state/{$plugin}/{$plugin}.ini",
-			"diag_state"		=> "/var/local/emhttp/{$plugin}.ini",
-			"mounted"			=> "/var/state/{$plugin}/{$plugin}.json",
-			"run_status"		=> "/var/state/{$plugin}/run_status.json",
-			"ping_status"		=> "/var/state/{$plugin}/ping_status.json",
-			"df_status"			=> "/var/state/{$plugin}/df_status.json",
-			"disk_names"		=> "/var/state/{$plugin}/disk_names.json",
-			"share_names"		=> "/var/state/{$plugin}/share_names.json",
-			"pool_state"		=> "/var/state/{$plugin}/pool_state.json",
-			"device_hosts"		=> "/var/state/{$plugin}/device_hosts.json",
-			"unmounting"		=> "/var/state/{$plugin}/unmounting_%s.state",
-			"mounting"			=> "/var/state/{$plugin}/mounting_%s.state",
-			"formatting"		=> "/var/state/{$plugin}/formatting_%s.state"
+			"device_log"		=> "/tmp/".$plugin."/logs/",
+			"config_file"		=> "/tmp/".$plugin."/config/".$plugin.".cfg",
+			"samba_mount"		=> "/tmp/".$plugin."/config/samba_mount.cfg",
+			"iso_mount"			=> "/tmp/".$plugin."/config/iso_mount.cfg",
+			"scripts"			=> "/tmp/".$plugin."/scripts/",
+			"credentials"		=> "/tmp/".$plugin."/credentials",
+			"authentication"	=> "/tmp/".$plugin."/authentication",
+			"luks_pass"			=> "/tmp/".$plugin."/luks_pass",
+			"script_run"		=> "/tmp/".$plugin."/script_run",
+			"hotplug_event"		=> "/tmp/".$plugin."/hotplug_event",
+			"tmp_file"			=> "/tmp/".$plugin."/".uniqid("move_", true).".tmp",
+			"state"				=> "/var/state/".$plugin."/".$plugin.".ini",
+			"diag_state"		=> "/var/local/emhttp/".$plugin.".ini",
+			"mounted"			=> "/var/state/".$plugin."/".$plugin.".json",
+			"run_status"		=> "/var/state/".$plugin."/run_status.json",
+			"ping_status"		=> "/var/state/".$plugin."/ping_status.json",
+			"df_status"			=> "/var/state/".$plugin."/df_status.json",
+			"disk_names"		=> "/var/state/".$plugin."/disk_names.json",
+			"share_names"		=> "/var/state/".$plugin."/share_names.json",
+			"pool_state"		=> "/var/state/".$plugin."/pool_state.json",
+			"device_hosts"		=> "/var/state/".$plugin."/device_hosts.json",
+			"unmounting"		=> "/var/state/".$plugin."/unmounting_%s.state",
+			"mounting"			=> "/var/state/".$plugin."/mounting_%s.state",
+			"formatting"		=> "/var/state/".$plugin."/formatting_%s.state"
 		];
 
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
@@ -261,11 +261,11 @@ function save_ini_file($file, $array, $save_config = true) {
 	global $plugin, $paths;
 
 	/* Lock file for concurrent operations unique to each process. */
-	$lock_file	= "/tmp/{$plugin}/".uniqid("ini_", true).".lock";
+	$lock_file	= "/tmp/".$plugin."/".uniqid("ini_", true).".lock";
 
 	/* Check for any lock files for previous processes. */
 	$i = 0;
-	while ((! empty(glob("/tmp/{$plugin}/ini_*.lock"))) && ($i < 100)) {
+	while ((! empty(glob("/tmp/".$plugin."/ini_*.lock"))) && ($i < 100)) {
 		sleep(0.01);
 		$i++;
 	}
@@ -425,7 +425,7 @@ function get_device_stats($mountpoint, $mounted, $active = true) {
 		/* Run the stats script to update the state file. */
 		$df_status[$mountpoint]['timestamp']	= $df_status[$mountpoint]['timestamp'] ?? 0;
 		if (($active) && ((time() - $df_status[$mountpoint]['timestamp']) > 90)) {
-			exec("/usr/local/emhttp/plugins/{$plugin}/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." &");
+			exec("/usr/local/emhttp/plugins/".$plugin."/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." &");
 		}
 
 		/* Get the updated device stats. */
@@ -1033,7 +1033,7 @@ function luks_fs_type($dev) {
 function get_config($serial, $variable) {
 	$config_file	= $GLOBALS["paths"]["config_file"];
 	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
-	return (isset($config[$serial][$variable])) ? html_entity_decode($config[$serial][$variable], ENT_COMPAT) : false;
+	return (isset($config[$serial][$variable])) ? html_entity_decode($config[$serial][$variable], ENT_COMPAT) : "";
 }
 
 /* Set device configuration parameter. */
@@ -1042,7 +1042,7 @@ function set_config($serial, $variable, $value) {
 	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	$config[$serial][$variable] = htmlentities($value, ENT_COMPAT);
 	save_ini_file($config_file, $config);
-	return (isset($config[$serial][$variable])) ? $config[$serial][$variable] : false;
+	return (isset($config[$serial][$variable])) ? $config[$serial][$variable] : "";
 }
 
 /* Is device set to auto mount? */
@@ -1149,7 +1149,6 @@ function execute_script($info, $action, $testing = false) {
 
 	/* If there is a command, execute the script. */
 	$cmd	= $info['command'];
-	$info['command_bg']	= $info['command_bg'] ?? false;
 	$bg		= (($info['command_bg'] != "false") && ($action == "ADD")) ? "&" : "";
 	if (file_exists($cmd)) {
 		$command_script = $paths['scripts'].basename($cmd);
@@ -1605,7 +1604,11 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 	if ($mounted) {
 		if (! $force) {
 			unassigned_log("Synching file system on '{$dir}'.");
-			exec("/bin/sync -f ".escapeshellarg($dir));
+			if ($zfs) {
+				exec("/usr/sbin/zpool sync ".escapeshellarg($pool_name)." 2>/dev/null");
+			} else {
+				exec("/bin/sync -f ".escapeshellarg($dir));
+			}
 		}
 
 		if ($zfs) {
@@ -1976,7 +1979,7 @@ function reload_shares() {
 function get_samba_config($source, $variable) {
 	$config_file	= $GLOBALS["paths"]["samba_mount"];
 	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, INI_SCANNER_RAW) : array();
-	return (isset($config[$source][$variable])) ? $config[$source][$variable] : false;
+	return (isset($config[$source][$variable])) ? $config[$source][$variable] : "";
 }
 
 /* Set samba mount configuration parameter. */
@@ -1985,7 +1988,7 @@ function set_samba_config($source, $variable, $value) {
 	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	$config[$source][$variable] = $value;
 	save_ini_file($config_file, $config);
-	return (isset($config[$source][$variable])) ? $config[$source][$variable] : false;
+	return (isset($config[$source][$variable])) ? $config[$source][$variable] : "";
 }
 
 /* Encrypt passwords. */
@@ -2107,6 +2110,7 @@ function get_samba_mounts() {
 			$mount['target']		= $mount['mounted'] ? $mount['mountpoint'] : "";
 
 			$mount['command']		= get_samba_config($mount['device'],"command");
+			$mount['command_bg']	= get_samba_config($mount['device'],"command_bg");
 			$mount['prog_name']		= basename($mount['command'], ".sh");
 			$mount['user_command']	= get_samba_config($mount['device'],"user_command");
 			$mount['logfile']		= ($mount['prog_name']) ? $paths['device_log'].$mount['prog_name'].".log" : "";
@@ -2341,7 +2345,7 @@ function remove_config_samba($source) {
 function get_iso_config($source, $variable) {
 	$config_file	= $GLOBALS["paths"]["iso_mount"];
 	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, INI_SCANNER_RAW) : array();
-	return (isset($config[$source][$variable])) ? $config[$source][$variable] : false;
+	return (isset($config[$source][$variable])) ? $config[$source][$variable] : "";
 }
 
 /* Get an iso file configuration parameter. */
@@ -2350,7 +2354,7 @@ function set_iso_config($source, $variable, $value) {
 	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	$config[$source][$variable] = $value;
 	save_ini_file($config_file, $config);
-	return (isset($config[$source][$variable])) ? $config[$source][$variable] : false;
+	return (isset($config[$source][$variable])) ? $config[$source][$variable] : "";
 }
 
 /* Is the iso file set to auto mount? */
@@ -2388,6 +2392,7 @@ function get_iso_mounts() {
 			$mount['used']			= intval($stats[1])*1024;
 			$mount['avail']			= intval($stats[2])*1024;
 			$mount['command']		= get_iso_config($mount['device'],"command");
+			$mount['command_bg']	= get_iso_config($mount['device'],"command_bg");
 			$mount['prog_name']		= basename($mount['command'], ".sh");
 			$mount['user_command']	= get_iso_config($mount['device'],"user_command");
 			$mount['logfile']		= ($mount['prog_name']) ? $paths['device_log'].$mount['prog_name'].".log" : "";
@@ -2567,11 +2572,11 @@ function get_udev_info($dev, $udev = null) {
 	$rc		= array();
 
 	/* Lock file for concurrent operations unique to each process. */
-	$lock_file	= "/tmp/{$plugin}/".uniqid("udev_", true).".lock";
+	$lock_file	= "/tmp/".$plugin."/".uniqid("udev_", true).".lock";
 
 	/* Check for any lock files for previous processes. */
 	$i = 0;
-	while ((! empty(glob("/tmp/{$plugin}/udev_*.lock"))) && ($i < 500)) {
+	while ((! empty(glob("/tmp/".$plugin."/udev_*.lock"))) && ($i < 500)) {
 		sleep(0.01);
 		$i++;
 	}
@@ -2656,8 +2661,10 @@ function get_disk_info($dev) {
 	$disk['running']			= is_disk_running($disk['ud_dev'], $disk['device']);
 	$disk['temperature']		= get_temp($disk['ud_dev'], $disk['device'], $disk['running']);
 	$disk['command']			= get_config($disk['serial'], "command.1");
+	$disk['command_bg']			= get_config($disk['serial'], "command_bg.1");
 	$disk['user_command']		= get_config($disk['serial'], "user_command.1");
 	$disk['show_partitions']	= (get_config($disk['serial'], "show_partitions") == "no") ? false : true;
+	$disk['pass_through']		= is_pass_through($disk['serial']);
 	$disk['array_disk']			= false;
 
 	/* If this disk does not have a devX designation, it has dropped out of the array. */
@@ -3053,7 +3060,7 @@ function change_UUID($dev) {
 
 	/* Deal with crypto_LUKS disks. */
 	if ($fs_type == "crypto_LUKS") {
-		timed_exec(20, escapeshellcmd("plugins/{$plugin}/scripts/luks_uuid.sh ".escapeshellarg($device)));
+		timed_exec(20, escapeshellcmd("plugins/".$plugin."/scripts/luks_uuid.sh ".escapeshellarg($device)));
 		$mapper	= basename($luks)."_UUID";
 		$cmd	= "luksOpen ".escapeshellarg($luks)." ".escapeshellarg($mapper);
 		$pass	= decrypt_data(get_config($serial, "pass"));
