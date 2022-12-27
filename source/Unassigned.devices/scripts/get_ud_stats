@@ -18,8 +18,8 @@ $COMMAND	= $argv[1];
 
 $plugin			= "unassigned.devices";
 $docroot		= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-$config_file	= "/tmp/{$plugin}/config/samba_mount.cfg";
-$tc 			= "/var/state/{$plugin}/ping_status.json";
+$config_file	= "/tmp/".$plugin."/config/samba_mount.cfg";
+$tc 			= "/var/state/".$plugin."/ping_status.json";
 $var			= @parse_ini_file("$docroot/state/var.ini");
 
 /* Misc functions. */
