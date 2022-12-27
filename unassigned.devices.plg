@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2022.12.19">
+<!ENTITY version	"2022.12.27">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"1ab2ec04a268810cbcfb0c08bdb42421">
+<!ENTITY MD5		"bc2eb4b245e8f944f09a0e031e7bf75e">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,9 +22,17 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Mounting/Unmounting status on disk devices does not always show correctly.
+- Fix: Some minor UI adjustments related to encrypted disks.
+- Fix: Historical 'devX' name not corrected to actual 'devX' as it should be when the device is re-plugged.
+- Fix: Pass Through not working properly.
+- Fix: Don't try to unmount a passed through disk;
+- Add: Mount/Unmount of zfs file system on UD disks - version 6.12 and later.
+- Add: Support for formatting zfs disks - version 6.12 and later.
+
+###2022.12.19
 - Fix: Mounting status on disk devices does not always show correctly.
 - Fix: Fix reversion where encrypted ext4 disks cannot be mounted.
-- Add: Mount/unmount of zfs file system on UD disks - version 6.12 and later.
 
 ###2022.12.12
 - Fix: Allow "dev" and "sd" in disk names when not in the first position.
