@@ -1017,7 +1017,7 @@ function timed_exec($timeout = 10, $cmd) {
 /* Find the file system of a luks device. */
 function luks_fs_type($dev) {
 
-	/* Get the file type from lsblk for a crypto_LUKS file system. */
+	/* Get the file system type from lsblk for a crypto_LUKS file system. */
 	$o	= shell_exec("lsblk -f | grep ".basename($dev)." | grep -v 'crypto_LUKS' | /bin/awk '{print $2}' 2>/dev/null");
 	$o	= str_replace("\n", "", $o);
 	$rc	= ($o == "zfs_member") ? "zfs" : $o;
