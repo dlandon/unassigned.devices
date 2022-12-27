@@ -12,7 +12,7 @@
 
 $plugin = "unassigned.devices";
 
-require_once("plugins/{$plugin}/include/lib.php");
+require_once("plugins/".$plugin."/include/lib.php");
 
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 
@@ -155,10 +155,10 @@ if (($file_system == "btrfs") && (! $mounted)) {
 	if ($rc_check != 0) {
 		if ((($file_system == "xfs") && ($rc_check == 1)) || ($file_system != "xfs")) {
 			write_log("<br />"._('File system corruption detected')."!<br />");
-			write_log("<center><button type='button' onclick='document.location=\"/plugins/{$plugin}/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=rw&type="._('Done')."\"'>"._('Run with Correct flag')."</button></center>");
+			write_log("<center><button type='button' onclick='document.location=\"/plugins/".$plugin."/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=rw&type="._('Done')."\"'>"._('Run with Correct flag')."</button></center>");
 		} else if (($file_system == "xfs") && ($rc_check == 2)) {
 			write_log("<br />"._('Dirty log detected')."!<br />");
-			write_log("<center><button type='button' onclick='document.location=\"/plugins/{$plugin}/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=log&type="._('Done')."\"'>"._('Force Log Zeroing')."</button></center>");
+			write_log("<center><button type='button' onclick='document.location=\"/plugins/".$plugin."/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=log&type="._('Done')."\"'>"._('Force Log Zeroing')."</button></center>");
 			write_log("<br />"._('Note: While there is some risk, if it is not possible to first mount the filesystem to clear the log, zeroing it is the only option to try and repair the filesystem, and in most cases it results in little or no data loss').".&nbsp;&nbsp;");
 		} else if (($file_system == "xfs") && ($rc_check == 4)){
 			write_log("<br />"._('File system corruption fixed')."!<br />");
