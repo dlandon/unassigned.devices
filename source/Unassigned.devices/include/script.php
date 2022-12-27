@@ -16,7 +16,7 @@ $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $_SERVER['REQUEST_URI'] = 'unassigneddevices';
 require_once "$docroot/webGui/include/Translations.php";
 
-require_once("plugins/{$plugin}/include/lib.php");
+require_once("plugins/".$plugin."/include/lib.php");
 readfile('logging.htm');
 
 function write_log($string) {
