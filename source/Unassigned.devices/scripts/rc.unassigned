@@ -306,6 +306,11 @@ function unassigned_umount() {
 					break;
 				}
 
+				/* If disk is btrfs pool disk it is not independently mounted and can't be unmounted, skip to the next disk. */
+				if ($info['pool']) {
+					break;
+				}
+
 				/* Cannot unmount disk with 'UNRAID' label. */
 				if ($info['label'] == "UNRAID") {
 					unassigned_log("Error: Cannot unmount device '{$info['device']}' with label 'UNRAID'.");
