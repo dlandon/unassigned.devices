@@ -134,7 +134,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 
 		/* Set up icons for file system check/scrub and script execution. */
 		$fstype = ($partition['fstype'] == "crypto_LUKS") ? luks_fs_type($partition['device']) : $partition['fstype'];
-		if ( (! $disabled && ! $mounted && $fstype != "apfs" && $fstype != "btrfs") || (! $disabled && $mounted && ($fstype == "btrfs" || $fstype = "zfs"))) {
+		if (((! $disabled) && (! $mounted) && ($fstype != "apfs") && ($fstype != "btrfs")) || ((! $disabled) && ($mounted) && ($fstype == "btrfs" || $fstype == "zfs"))) {
 			$file_system_check = (($fstype != "btrfs") && ($fstype != "zfs")) ? _('File System Check') : _('File System Scrub');
 			$fscheck = "<a class='exec info' onclick='openWindow_fsck(\"/plugins/".$plugin."/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&mountpoint={$partition['mountpoint']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i><span>".$file_system_check."</span></a>";
 		} else {
@@ -906,7 +906,7 @@ switch ($_POST['action']) {
 		$device	= urldecode($_POST['device']);
 		$out	= null;
 		$return	= null;
-		exec("plugins/".$plugin."/scripts/rc.unassigned mount ".escapeshellarg($device)." &>/dev/null", escapeshellarg($out), escapeshellarg($return));
+		exec("plugins/".$plugin."/scripts/rc.unassigned mount ".escapeshellarg($device)." &>/dev/null", $out, $return);
 		echo json_encode(["status" => $return ? false : true ]);
 		break;
 
@@ -915,7 +915,7 @@ switch ($_POST['action']) {
 		$device	= urldecode($_POST['device']);
 		$out	= null;
 		$return	= null;
-		exec("plugins/".$plugin."/scripts/rc.unassigned umount ".escapeshellarg($device)." &>/dev/null", escapeshellarg($out), escapeshellarg($return));
+		exec("plugins/".$plugin."/scripts/rc.unassigned umount ".escapeshellarg($device)." &>/dev/null", $out, $return);
 		echo json_encode(["status" => $return ? false : true ]);
 		break;
 
