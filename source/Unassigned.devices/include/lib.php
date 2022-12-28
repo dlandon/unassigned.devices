@@ -240,6 +240,9 @@ class MiscUD
 
 	/* Get the zpool name if this is a zfs disk file system. */
 	public function zfs_pool_name($dev, $mounted = false) {
+		/* Load zfs modules if they're not loaded. */
+		exec("/sbin/modprobe zfs");
+
 		if ($mounted) {
 			$rc	= shell_exec("/usr/bin/cat /proc/mounts | grep ".basename($dev)." | awk '{print $1}'");
 		} else {
@@ -756,6 +759,10 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 
 		/* Create partition for xfs, or btrfs. Partitions are Unraid compatible. */
 		if ($fs == "xfs" || $fs == "xfs-encrypted" || $fs == "btrfs" || $fs == "btrfs-encrypted"|| $fs == "zfs" || $fs == "zfs-encrypted") {
+			if ($fs == "zfs" || $fs == "zfs-encrypted") {
+				/* Load zfs modules. */
+				exec("/sbin/modprobe zfs");
+			}
 			$is_ssd = is_disk_ssd($dev);
 			if ($disk_schema == "gpt") {
 				unassigned_log("Creating Unraid compatible gpt partition on disk '".$dev."'.");
@@ -856,7 +863,7 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 					$return	= null;
 					$cmd	= get_format_cmd("/dev/mapper/{$mapper}", $fs, $pool_name);
 					unassigned_log("Format drive command: ".$cmd);
-					exec($cmd, escapeshellarg($out), escapeshellarg($return));
+					exec($cmd, $out, $return);
 					sleep(1);
 					exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
 					sleep(1);
@@ -869,7 +876,7 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 			$return	= null;
 			$cmd	= get_format_cmd($device, $fs, $pool_name);
 			unassigned_log("Format drive command: ".$cmd);
-			exec($cmd, escapeshellarg($out), escapeshellarg($return));
+			exec($cmd, $out, $return);
 			sleep(1);
 			exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
 			sleep(1);
@@ -969,13 +976,27 @@ function remove_all_partitions($dev) {
 
 		unassigned_log("Removing all partitions from disk '".$device."'.");
 
+		/* See if this device is part of a pool. */
+		$pool_name	= trim(shell_exec("/usr/sbin/zpool import -d ".escapeshellarg($device)." | grep 'pool:' | /bin/awk '{print $2}'"));
+
+		if ($pool_name) {
+			unassigned_log("Destroying zpool ".$pool_name." on ".$device);
+			exec("/usr/sbin/zpool import -N ".escapeshellarg($pool_name)." 2>/dev/null");
+			sleep(1);
+			exec("/usr/sbin/zpool destroy -f ".escapeshellarg($pool_name)." 2>/dev/null");
+		}
+
 		/* Remove all partitions - this clears the disk. */
+		sleep(1);
 		exec("/sbin/wipefs --all --force ".escapeshellarg($device)." 2>&1");
 
 		/* Let things settle a bit. */
 		sleep(2);
 
 		unassigned_log("Remove all Disk partitions initiated a Hotplug event.", $GLOBALS['UDEV_DEBUG']);
+
+		/* Refresh partition information. */
+		exec("/usr/sbin/partprobe ".escapeshellarg($dev));
 
 		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
 		sleep(1);
@@ -1018,7 +1039,7 @@ function timed_exec($timeout = 10, $cmd) {
 function luks_fs_type($dev) {
 
 	/* Get the file system type from lsblk for a crypto_LUKS file system. */
-	$o	= shell_exec("lsblk -f | grep ".basename($dev)." | grep -v 'crypto_LUKS' | /bin/awk '{print $2}' 2>/dev/null");
+	$o	= shell_exec("/bin/lsblk -f | grep ".basename($dev)." | grep -v 'crypto_LUKS' | /bin/awk '{print $2}' 2>/dev/null");
 	$o	= str_replace("\n", "", $o);
 	$rc	= ($o == "zfs_member") ? "zfs" : $o;
 
@@ -1141,7 +1162,9 @@ function execute_script($info, $action, $testing = false) {
 		copy($common_cmd, $common_script);
 		@chmod($common_script, 0755);
 		unassigned_log("Running common script: '".basename($common_script)."'");
-		exec($common_script, escapeshellarg($out), escapeshellarg($return));
+		$out	= null;
+		$return	= null;
+		exec($common_script, $out, $return);
 		if ($return) {
 			unassigned_log("Error: common script failed: '{$return}'");
 		}
@@ -1335,8 +1358,9 @@ function do_mount($info) {
 
 	/* Mount a luks encrypted disk device. */
 	} else if ($info['fstype'] == "crypto_LUKS") {
+		$fstype		= luks_fs_type($info['device']);
 		$pool_name	= (new MiscUD)->zfs_pool_name($info['mountpoint'], true);
-		$mounted	= (($info['fstype'] == "zfs") && ($pool_name)) ? (is_mounted($pool_name) || is_mounted($info['mountpoint'])) : (is_mounted($info['device']) || is_mounted($info['mountpoint']));
+		$mounted	= (($fstype == "zfs") && ($pool_name)) ? (is_mounted($pool_name) || is_mounted($info['mountpoint'])) : (is_mounted($info['device']) || is_mounted($info['mountpoint']));
 		if (! $mounted) {
 			$luks		= basename($info['device']);
 			$discard	= is_disk_ssd($info['luks']) ? "--allow-discards" : "";
@@ -1465,7 +1489,7 @@ function do_mount_local($info) {
 
 				/* If the pool name cannot be found, we cannot mount the pool. */
 				if ((($fs == "zfs") || ($file_system == "zfs")) && (! $pool_name)) {
-					$o = "Cannot determine Pool Name of '".$device."'";
+					$o = "Cannot determine Pool Name of '".$dev."'";
 				} else {
 					/* Do the mount command. */
 					$o = shell_exec(escapeshellcmd($cmd)." 2>&1");
@@ -2646,7 +2670,7 @@ function get_disk_info($dev) {
 	/* Get all the disk information for this disk device. */
 	$disk						= array();
 	$attrs						= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
-	$disk['serial_short']		= isset($attrs['ID_SCSI_SERIAL']) ? $attrs['ID_SCSI_SERIAL'] : $attrs['ID_SERIAL_SHORT'];
+	$disk['serial_short']		= isset($attrs['ID_SCSI_SERIAL']) ? $attrs['ID_SCSI_SERIAL'] : (isset($attrs['ID_SERIAL_SHORT']) ? $attrs['ID_SERIAL_SHORT'] : "");
 	$disk['device']				= realpath($dev);
 	$disk['serial']				= get_disk_id($disk['device'], trim($attrs['ID_SERIAL']));
 	$disk['id_bus']				= $attrs['ID_BUS'];
@@ -2686,7 +2710,7 @@ function get_partition_info($dev) {
 	$disk	= array();
 	$attrs	= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
 	if ($attrs['DEVTYPE'] == "partition") {
-		$disk['serial_short']	= isset($attrs['ID_SCSI_SERIAL']) ? $attrs['ID_SCSI_SERIAL'] : $attrs['ID_SERIAL_SHORT'];
+		$disk['serial_short']	= (isset($attrs['ID_SCSI_SERIAL'])) ? $attrs['ID_SCSI_SERIAL'] : (isset($attrs['ID_SERIAL_SHORT']) ? $attrs['ID_SERIAL_SHORT'] : "");
 		$disk['device']			= realpath($dev);
 		$disk['serial']			= get_disk_id($disk['device'], trim($attrs['ID_SERIAL']));
 		$disk['uuid']			= (isset($attrs['ID_FS_UUID'])) ? $attrs['ID_FS_UUID'] : "";
