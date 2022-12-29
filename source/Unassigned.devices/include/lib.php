@@ -241,15 +241,18 @@ class MiscUD
 	/* Get the zpool name if this is a zfs disk file system. */
 	public function zfs_pool_name($dev, $mounted = false) {
 		/* Load zfs modules if they're not loaded. */
-		exec("/sbin/modprobe zfs");
+		if (! is_file("/usr/sbin/zpool")) {
+			exec("/sbin/modprobe zfs");
+		}
 
 		if ($mounted) {
 			$rc	= shell_exec("/usr/bin/cat /proc/mounts | grep ".basename($dev)." | awk '{print $1}'");
 		} else {
-			$rc	= shell_exec("/usr/sbin/zpool import -d ".escapeshellarg($dev)." | grep 'pool:' | /bin/awk '{print $2}'");
-			$rc	= ($rc != "no pools available to import") ? str_replace("\n", "", $rc) : "";
+			$rc	= shell_exec("/usr/sbin/zpool import -d ".escapeshellarg($dev)." 2>/dev/null | grep 'pool:' | /bin/awk '{print $2}'");
+			$rc	= str_replace("\n", "", $rc);
 		}
 		$rc	= trim($rc);
+
 		return $rc;
 	}
 }
@@ -727,7 +730,7 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 	if ($rc) {
 		/* Get the disk blocks and set either gpt or mbr partition schema based on disk size. */
 		$max_mbr_blocks = hexdec("0xFFFFFFFF");
-		$disk_blocks	= intval(trim(shell_exec("/sbin/blockdev --getsz ".escapeshellarg($dev)." | /bin/awk '{ print $1 }' 2>/dev/null")));
+		$disk_blocks	= intval(trim(shell_exec("/sbin/blockdev --getsz ".escapeshellarg($dev)." 2>/dev/null | /bin/awk '{ print $1 }'")));
 		$disk_schema	= ( $disk_blocks >= $max_mbr_blocks ) ? "gpt" : "msdos";
 		$parted_fs		= ($fs == 'exfat') ? "fat32" : $fs;
 
@@ -977,7 +980,7 @@ function remove_all_partitions($dev) {
 		unassigned_log("Removing all partitions from disk '".$device."'.");
 
 		/* See if this device is part of a pool. */
-		$pool_name	= trim(shell_exec("/usr/sbin/zpool import -d ".escapeshellarg($device)." | grep 'pool:' | /bin/awk '{print $2}'"));
+		$pool_name	= zfs_pool_name($device);
 
 		if ($pool_name) {
 			unassigned_log("Destroying zpool ".$pool_name." on ".$device);
@@ -1039,7 +1042,7 @@ function timed_exec($timeout = 10, $cmd) {
 function luks_fs_type($dev) {
 
 	/* Get the file system type from lsblk for a crypto_LUKS file system. */
-	$o	= shell_exec("/bin/lsblk -f | grep ".basename($dev)." | grep -v 'crypto_LUKS' | /bin/awk '{print $2}' 2>/dev/null");
+	$o	= shell_exec("/bin/lsblk -f | grep ".basename($dev)."  2>/dev/null | grep -v 'crypto_LUKS' | /bin/awk '{print $2}'");
 	$o	= str_replace("\n", "", $o);
 	$rc	= ($o == "zfs_member") ? "zfs" : $o;
 
@@ -1437,7 +1440,7 @@ function do_mount_local($info) {
 						exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
 						sleep(0.5);
 						exec("/usr/sbin/zpool import -N ".escapeshellarg($pool_name)." 2>/dev/null");
-						exec("/usr/sbin/zfs set mountpoint=".escapeshellarg($dir)." ".escapeshellarg($pool_name));
+						exec("/usr/sbin/zfs set mountpoint=".escapeshellarg($dir)." ".escapeshellarg($pool_name)." 2>/dev/null");
 					}
 					$params		= get_mount_params($fs, $dev, $ro);
 					$cmd		= "/usr/sbin/zfs mount -o $params ".escapeshellarg($pool_name);
@@ -1467,7 +1470,7 @@ function do_mount_local($info) {
 						exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
 						sleep(0.5);
 						exec("/usr/sbin/zpool import -N ".escapeshellarg($pool_name)." 2>/dev/null");
-						exec("/usr/sbin/zfs set mountpoint=".escapeshellarg($dir)." ".escapeshellarg($pool_name));
+						exec("/usr/sbin/zfs set mountpoint=".escapeshellarg($dir)." ".escapeshellarg($pool_name)." 2>/dev/null");
 					}
 					$params		= get_mount_params($file_system, $device, $ro);
 					$cmd		= "/usr/sbin/zfs mount -o $params ".escapeshellarg($pool_name);
@@ -1637,7 +1640,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 
 		if ($zfs) {
 			/* Unmount zfs file system. */
-			$cmd = ("/usr/sbin/zfs unmount".($force ? " -f" : "")." ".escapeshellarg($dir)." 2>/dev/null");
+			$cmd = ("/usr/sbin/zfs unmount".($force ? " -f" : "")." ".escapeshellarg($dir)." 2>&1");
 		} else {
 			/* Remove saved pool devices if this is a btrfs pooled device. */
 			(new MiscUD)->get_pool_devices($dir, true);
