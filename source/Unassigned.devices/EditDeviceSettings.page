@@ -64,7 +64,7 @@ if (isset($_GET['s'])) {
 	}
 	$user_file			= get_config($serial,"user_command.{$partition}");
 	if ((($user_file) && (! file_exists($user_file))) || (($user_file) && (! $file))) {
-		set_config($serial,"user_command.{$partition}", "");
+		set_config($serial, "user_command.{$partition}", "");
 		$user_file		= "";
 	}
 	$background			= (get_config($serial, "command_bg.{$partition}") != "false" ) ? "yes" : "no";
@@ -276,6 +276,9 @@ _(Disk Serial)_: <?=$serial;?>
 <?endif;?>
 <?if (isset($_GET['s']) && (! isset($_GET['m'])) && (new MiscUD)->get_device_host($_GET['s'])):?>
 <button type="button" title='_(Attach This Disk)_.' onclick='attach_disk("<?=$_GET['s'];?>");'>_(Attach)_</button>
+<?endif;?>
+<?if (is_script_running($file)):?>
+<button type="button" title='_(Abort Device Script)_.' onclick='abort_script("<?=$file;?>");'>_(Abort)_</button>
 <?endif;?>
 <button type="button" onclick="done()">_(Done)_</button>
 
@@ -516,5 +519,9 @@ _(User Script)_:
 
 	function attach_disk(serial) {
 		$.post("/update.php",{"#command":"/plugins/unassigned.devices/scripts/rc.unassigned","#arg[1]":"attach","#arg[2]":serial}).done(function(){location.reload();});
+	}
+
+	function abort_script(script) {
+		$.post("/update.php",{"#command":"/plugins/unassigned.devices/scripts/rc.unassigned","#arg[1]":"abort","#arg[2]":script}).done(function(){location.reload();});
 	}
 </script>
