@@ -980,7 +980,7 @@ function remove_all_partitions($dev) {
 		unassigned_log("Removing all partitions from disk '".$device."'.");
 
 		/* See if this device is part of a pool. */
-		$pool_name	= zfs_pool_name($device);
+		$pool_name	= (new MiscUD)->zfs_pool_name($device);
 
 		if ($pool_name) {
 			unassigned_log("Destroying zpool ".$pool_name." on ".$device);
