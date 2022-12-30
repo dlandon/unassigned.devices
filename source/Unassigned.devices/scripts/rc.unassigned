@@ -69,13 +69,12 @@ function unassigned_mount() {
 
 				/* If disk is passed through, skip to the next disk. */
 				if ($info['pass_through']) {
-					unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' is set as passed through and will not be mounted.");
-					break;
+					continue;
 				}
 
 				/* If disk is formatting, skip to the next one. */
 				if ((new MiscUD)->get_formatting_status(basename($device))) {
-					break;
+					continue;
 				}
 
 				/* If disk is not set to auto mount, skip to the next disk. */
@@ -83,14 +82,13 @@ function unassigned_mount() {
 					if ($info['fstype']) {
 						unassigned_log("Disk with ID '{$info['serial']} (".(new MiscUD)->base_device(basename($device)).")' is not set to auto mount.");
 					}
-
-					break;
+					continue;
 				}
 
 				/* If the device doesn't have a serial number it cannot be mounted. */
 				if (! $info['serial']) {
 					unassigned_log("Disk '".basename($device)."' does not have a serial number and cannot be mounted.");
-					break;
+					continue;
 				}
 
 				/* If partition does not have a file system it cannot be mounted. */
@@ -148,7 +146,7 @@ function unassigned_mount() {
 							/* There was an error mounting the disk. */
 							unassigned_log("Partition '".basename($info['label'])."' cannot be mounted.");
 
-							/* Execute device script with error unmount action. */
+							/* Execute device script with error mount action. */
 							execute_script($info, "ERROR_MOUNT");
 						}
 					}
@@ -303,12 +301,27 @@ function unassigned_umount() {
 				/* If disk is passed through, skip to the next disk. */
 				if ($info['pass_through']) {
 					unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' is set as passed through and will not be unmounted.");
-					break;
+					continue;
 				}
 
 				/* If disk is btrfs pool disk it is not independently mounted and can't be unmounted, skip to the next disk. */
 				if ($info['pool']) {
-					break;
+					continue;
+				}
+
+				/* If forced shutdown, abort device ans user scripts. */
+				if ($force) {
+					/* Abort the device script. */
+					if ($info['command']) {
+						unassigned_abort($info['command']);
+					}
+					/* Abort the user script. */
+					if ($info['user_command']) {
+						unassigned_abort($info['user_command']);
+					}
+				} else if ((is_script_running($info['command'])) || (is_script_running($info['user_command'], true))) {
+					unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' has a device or user script running and cannot be unmounted.");
+					continue;
 				}
 
 				/* Cannot unmount disk with 'UNRAID' label. */
@@ -564,6 +577,14 @@ function unassigned_attach() {
 	}
 }
 
+/* Abort device script. */
+function unassigned_abort($script) {
+	$pid = (int) shell_exec("/usr/bin/ps -ef | /bin/grep ".escapeshellarg(basename($script))." | /bin/grep -v 'grep' | /bin/awk '{print $2}'");
+	if ($pid != 0) {
+		@posix_kill($pid, SIGKILL);
+	}
+}
+
 /* Add status file so mount buttons will show current status of operation. */
 function addFile($file) {
 	global $remove;
@@ -622,6 +643,11 @@ switch ($COMMAND) {
 
 	case 'attach':
 		unassigned_attach();
+		break;
+
+	case 'abort':
+		$script = $argv[2];
+		unassigned_abort($script);
 		break;
 
 	case 'refresh':
