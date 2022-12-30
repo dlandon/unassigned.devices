@@ -177,7 +177,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$mbutton = make_mount_button($partition);
 
 		/* Show disk partitions if partitions enabled. */
-		$style	= (($disk['pass_through'])) ? "style='display:none;'" : "";
+		$style	= ((! $disk['show_partitions']) || ($disk['pass_through'])) ? "style='display:none;'" : "";
 		$out[]	= "<tr class='toggle-parts toggle-".basename($disk['device'])."' name='toggle-".basename($disk['device'])."' $style>";
 		$out[]	= "<td></td>";
 		$out[]	= "<td>".$mpoint."</td>";
@@ -446,7 +446,9 @@ switch ($_POST['action']) {
 				}
 				if ($p) {
 					$add_toggle = true;
-					if ((! $disk['show_partitions']) && (! $disk['pass_through'])) {
+					if ($disk['pass_through']) {
+						$hdd_serial .="<span><i class='fa fa-plus-square fa-append grey-orb'></i></span>";
+					} else if (! $disk['show_partitions']) {
 						$hdd_serial .="<span title ='"._("Click to view/hide partitions and mount points")."'class='exec toggle-hdd' hdd='".$disk_device."'><i class='fa fa-plus-square fa-append'></i></span>";
 					} else {
 						$hdd_serial .="<span><i class='fa fa-minus-square fa-append grey-orb'></i></span>";
