@@ -409,7 +409,7 @@ class Disks
 		$disk = isset($cache[$name]) ? $cache[$name] : $current;
 
 		/* Trigger reload if current and cached serials mismatch. */
-		if (count($current) && (isset($disk["SERIAL_SHORT"])) && (isset($current["SERIAL"]))) {
+		if (count($current) && (isset($disk["SERIAL_SHORT"])) && ($disk["SERIAL_SHORT"]) && (isset($current["SERIAL"]))) {
 			$reload = ( strpos(trim($current["SERIAL"]), trim($disk["SERIAL_SHORT"])) !== -1 ) ? false : true;
 		} else {
 			$reload = false;
