@@ -180,9 +180,13 @@ if (isset($_POST['action'])) {
 					$serial			= trim($disk['SERIAL'])." (".$disk_name.")";
 					$precleared		= $disk['PRECLEAR'] && ! $disk['PRECLEARING'] ? " - <em>Precleared</em>" : "";
 					$temp			= $disk['TEMP'] ? my_temp($disk['TEMP']) : "*";
-					$disk_reports	= array_filter($reports, function ($report) use ($disk) {
-										return preg_match("|".$disk["SERIAL_SHORT"]."|", $report) && ( preg_match("|_report_|", $report) || preg_match("|_rpt_|", $report) );
-										});
+					if ($disk['SERIAL_SHORT']) {
+						$disk_reports	= array_filter($reports, function ($report) use ($disk) {
+											return preg_match("|".$disk["SERIAL_SHORT"]."|", $report) && ( preg_match("|_report_|", $report) || preg_match("|_rpt_|", $report) );
+											});
+					} else {
+						$disk_reports	= array();
+					}
 
 					if (count($disk_reports)) {
 						$title  = "<span title='"._('Click to show reports').".' class='exec toggle-reports' hdd='".$disk_name."'>
