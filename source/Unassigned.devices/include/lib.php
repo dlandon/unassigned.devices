@@ -871,7 +871,7 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 					exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
 					sleep(1);
 				}
-				exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
+				exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper)." 2>/dev/null");
 			}
 		} else {
 			/* Format the disk. */
@@ -1390,7 +1390,7 @@ function do_mount($info) {
 			}
 			if ($o && stripos($o, "warning") === false) {
 				unassigned_log("luksOpen result: {$o}");
-				exec("/sbin/cryptsetup luksClose ".escapeshellarg(basename($info['device'])));
+				exec("/sbin/cryptsetup luksClose ".escapeshellarg(basename($info['device']))." 2>/dev/null");
 			} else {
 				/* Mount an encrypted disk. */
 				$rc = do_mount_local($info);
@@ -1477,6 +1477,7 @@ function do_mount_local($info) {
 				}
 			}
 			$cmd = str_replace($recovery, ", pass='*****'", $cmd);
+
 			unassigned_log("Mount drive command: ".$cmd);
 
 			/* apfs file system requires UD+ to be installed. */
@@ -1528,7 +1529,7 @@ function do_mount_local($info) {
 			/* If the device did not mount, close the luks disk if the FS is luks, and show an error. */
 			if (! $rc) {
 				if ($fs == "crypto_LUKS" ) {
-					exec("/sbin/cryptsetup luksClose ".escapeshellarg(basename($info['device'])));
+					exec("/sbin/cryptsetup luksClose ".escapeshellarg(basename($info['device']))." 2>/dev/null");
 				}
 				unassigned_log("Mount of '".basename($dev)."' failed: '{$o}'");
 				@rmdir($dir);
@@ -1647,6 +1648,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 
 			$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : ($nfs ? " -l" : ""))." ".escapeshellarg($dev)." 2>&1";
 		}
+
 		unassigned_log("Unmount cmd: {$cmd}");
 
 		if (($zfs) && (! $pool_name)) {
@@ -3008,7 +3010,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 						}
 					}
 
-					exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
+					exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper)." 2>/dev/null");
 					break;
 
 				default;
@@ -3133,7 +3135,7 @@ function change_UUID($dev) {
 			}
 
 			/* Close the luks device. */
-			exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
+			exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper)." 2>/dev/null");
 		}
 	} else if ($fs_type == "xfs") {
 		/* Change the xfs UUID. */
