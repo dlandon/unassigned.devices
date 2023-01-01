@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"beta-2022.12.30">
+<!ENTITY version	"beta-2023.01.01">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;-beta.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"cbd56218deaf8a16b7e5df8cb04c3b5d">
+<!ENTITY MD5		"97183edd323d62a24f998441a451b55e">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,8 +23,9 @@
 ##&name;
 ###&version;
 - Fix: Additional zfs cleanup.
+- Fix: Show partitions does not stay collapsed after clicking on the '+' icon.
 - Add: Abort button to device settings to manually abort the device script if it is running.
-- Add: Abort device and user script running on the device when shutting down server.  This insures the UD device will be unmounted.
+- Add: Abort device script running on the device when shutting down server.  This helps insure the UD device can be unmounted.
 
 ###2022.12.28
 - Fix: Check disk always chooses a scrub and not the correct file system check.
@@ -1792,7 +1793,7 @@ Fix: Duplicate UD disk serial number check not working properly.
 </CHANGES>
 
 <!--
-Copyright 2016-2022, Dan Landon
+Copyright 2016-2023, Dan Landon
 This plugin lets you manage disks and remote shares outside of the array.
 -->
 
@@ -1994,7 +1995,7 @@ echo ""
 echo "-----------------------------------------------------------"
 echo " &name; has been installed."
 echo " Copyright 2015, gfjardim"
-echo " Copyright 2016-2022, &author;"
+echo " Copyright 2016-2023, &author;"
 echo " Version: &version;"
 echo ""
 echo " Note:"
