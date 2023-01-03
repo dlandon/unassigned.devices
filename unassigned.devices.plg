@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.01.01">
+<!ENTITY version	"2023.01.03">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"97183edd323d62a24f998441a451b55e">
+<!ENTITY MD5		"e9686b22d89b8a51d3eb96ab487e1dd1">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Unmounting a disk incorrectly indicates the device script is running and the device can't be unmounted.
+
+###2023.01.01
 - Fix: Additional zfs cleanup.
 - Fix: Show partitions does not stay collapsed after clicking on the '+' icon.
 - Add: Abort button to device settings to manually abort the device script if it is running.
