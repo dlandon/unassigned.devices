@@ -1,7 +1,7 @@
 #!/usr/bin/php
 <?php
 /* Copyright 2015, Guilherme Jardim
- * Copyright 2016-2022, Dan Landon
+ * Copyright 2016-2023, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -307,14 +307,6 @@ function unassigned_umount() {
 				/* If disk is btrfs pool disk it is not independently mounted and can't be unmounted, skip to the next disk. */
 				if ($info['pool']) {
 					continue;
-				}
-
-				/* If scripts are running on this device, it cannot be unmounted. */
-				if (! $force) {
-					if ((is_script_running($info['command'])) || (is_script_running($info['user_command'], true))) {
-						unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' has a device or user script running and cannot be unmounted.");
-						continue;
-					}
 				}
 
 				/* Cannot unmount disk with 'UNRAID' label. */
