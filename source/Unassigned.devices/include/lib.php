@@ -265,14 +265,17 @@ function _echo($m) {
 /* Save ini and cfg files to tmp file system and then copy cfg file changes to flash. */
 function save_ini_file($file, $array, $save_config = true) {
 	global $plugin, $paths;
+	static $i;
 
 	/* Lock file for concurrent operations unique to each process. */
 	$lock_file	= "/tmp/".$plugin."/".uniqid("ini_", true).".lock";
 
+	/* Let the previous config file settle. */
+	sleep(0.1);
+
 	/* Check for any lock files for previous processes. */
 	$i = 0;
-	while ((! empty(glob("/tmp/".$plugin."/ini_*.lock"))) && ($i < 100)) {
-		sleep(0.01);
+	while ((sleep(0.01)) && (glob("/tmp/".$plugin."/ini_*.lock")) && ($i < 100)) {
 		$i++;
 	}
 
@@ -307,6 +310,8 @@ function save_ini_file($file, $array, $save_config = true) {
 			@file_put_contents("/boot/config/plugins/".$plugin."/".basename($file), implode(PHP_EOL, $res));
 		}
 	}
+
+	$i	= 0;
 
 	/* Release the lock. */
 	@unlink($lock_file);
@@ -1066,7 +1071,7 @@ function set_config($serial, $variable, $value) {
 	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	$config[$serial][$variable] = htmlentities($value, ENT_COMPAT);
 	save_ini_file($config_file, $config);
-	return (isset($config[$serial][$variable])) ? $config[$serial][$variable] : "";
+	return (isset($config[$serial][$variable])) ? true : false;
 }
 
 /* Is device set to auto mount? */
