@@ -81,7 +81,7 @@ if (isset($_GET['s'])) {
 	$serial 			.= ($device) ? " (".$device.")" : "";
 	$serial				.= $id_bus;
 	$background_action	= "background";
-	$share_action		= "toggle_share";
+	$share_action		= ($info) ? "toggle_share" : "toggle_historical_share";
 	$disable_action		= "toggle_disable_mount";
 	if (! $_GET['t']) {
 		$disk_setting			= false;
@@ -411,6 +411,7 @@ _(User Script)_:
 		},"json");
 	});
 
+<?if ($info):?>
 	$('.share-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Share');?>", off_label: "<?=_('Share');?>", checked:"<?=$share;?>" });
 	$('.share-switch').change(function()
 	{
@@ -419,6 +420,16 @@ _(User Script)_:
 			$(this).prop("checked",data.result);
 		},"json");
 	});
+<?else:?>
+	$('.share-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Share');?>", off_label: "<?=_('Share');?>", checked:"<?=$share;?>" });
+	$('.share-switch').change(function()
+	{
+		$.post(UDURL,{action:"<?=$share_action;?>",serial:"<?=$ud_device;?>",status:$(this).is(":checked")},function(data)
+		{
+			$(this).prop("checked",data.result);
+		},"json");
+	});
+<?endif;?>
 
 	$('.partitions-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Show Partitions');?>", off_label: "<?=_('Show Partitions');?>", checked:"<?=$show_partitions;?>" });
 	$('.partitions-switch').change(function()
