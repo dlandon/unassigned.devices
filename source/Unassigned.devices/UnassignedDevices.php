@@ -869,8 +869,8 @@ switch ($_POST['action']) {
 		/* Toggle the share configuration setting. */
 		$info	= json_decode(html_entity_decode($_POST['info']), true);
 		$status	= urldecode($_POST['status']);
-		$result	= toggle_share($info['serial'], $info['part'],$status);
-		if ($result && $info['target']) {
+		$result	= toggle_share($info['serial'], $info['part'], $status);
+		if (($result) && ($info['target'])) {
 			$fat_fruit	= (($info['fstype'] == "vfat") || ($info['fstype'] == "exfat")) ? true : false;
 			add_smb_share($info['mountpoint'], true, $fat_fruit);
 			add_nfs_share($info['mountpoint']);
@@ -879,6 +879,14 @@ switch ($_POST['action']) {
 			rm_nfs_share($info['mountpoint']);
 		}
 		echo json_encode(array( 'result' => $result));
+		break;
+
+	case 'toggle_historical_share':
+		/* Toggle the historical share configuration setting. */
+		$serial		= urldecode($_POST['serial']);
+		$partition	= urldecode($_POST['partition']);
+		$status		= urldecode($_POST['status']);
+		echo json_encode(array( 'result' => toggle_share($serial, $partition, $status) ));
 		break;
 
 	case 'toggle_read_only':
