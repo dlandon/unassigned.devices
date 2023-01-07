@@ -726,12 +726,12 @@ switch ($_POST['action']) {
 		foreach ($config as $serial => $value) {
 			if ($serial != "Config") {
 				if (! preg_grep("#{$serial}#", $disks_serials)){
-					if (($config[$serial]['unassigned_dev']) && (! in_array($config[$serial]['unassigned_dev'], $disk_names))) {
+					if ((isset($config[$serial]['unassigned_dev'])) && ($config[$serial]['unassigned_dev']) && (! in_array($config[$serial]['unassigned_dev'], $disk_names))) {
 						$disk_names[$serial] = $config[$serial]['unassigned_dev'];
 					}
 					$mntpoint		= isset($config[$serial]['mountpoint.1']) ? basename($config[$serial]['mountpoint.1']) : "";
 					$mountpoint		= ($mntpoint) ? " (".$mntpoint.")" : "";
-					$disk_dev		= $config[$serial]['unassigned_dev'];
+					$disk_dev		= (isset($config[$serial]['unassigned_dev'])) ? $config[$serial]['unassigned_dev'] : "";
 					$disk_display	= _("none");
 					if ($disk_dev) {
 						$disk_display = $disk_dev;
@@ -884,7 +884,7 @@ switch ($_POST['action']) {
 	case 'toggle_historical_share':
 		/* Toggle the historical share configuration setting. */
 		$serial		= urldecode($_POST['serial']);
-		$partition	= urldecode($_POST['partition']);
+		$partition	= urldecode($_POST['part']);
 		$status		= urldecode($_POST['status']);
 		echo json_encode(array( 'result' => toggle_share($serial, $partition, $status) ));
 		break;
