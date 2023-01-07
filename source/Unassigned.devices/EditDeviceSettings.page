@@ -424,7 +424,7 @@ _(User Script)_:
 	$('.share-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Share');?>", off_label: "<?=_('Share');?>", checked:"<?=$share;?>" });
 	$('.share-switch').change(function()
 	{
-		$.post(UDURL,{action:"<?=$share_action;?>",serial:"<?=$ud_device;?>",status:$(this).is(":checked")},function(data)
+		$.post(UDURL,{action:"<?=$share_action;?>",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",status:$(this).is(":checked")},function(data)
 		{
 			$(this).prop("checked",data.result);
 		},"json");
