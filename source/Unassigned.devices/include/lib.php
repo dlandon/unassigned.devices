@@ -33,7 +33,6 @@ $paths = [	"smb_unassigned"	=> "/etc/samba/smb-unassigned.conf",
 			"diag_state"		=> "/var/local/emhttp/".$plugin.".ini",
 			"mounted"			=> "/var/state/".$plugin."/".$plugin.".json",
 			"run_status"		=> "/var/state/".$plugin."/run_status.json",
-			"script_run"		=> "/var/state/".$plugin."/script_run.json",
 			"ping_status"		=> "/var/state/".$plugin."/ping_status.json",
 			"df_status"			=> "/var/state/".$plugin."/df_status.json",
 			"disk_names"		=> "/var/state/".$plugin."/disk_names.json",
@@ -632,17 +631,6 @@ function is_script_running($cmd, $user = false) {
 
 	/* Check for a command file. */
 	if ($cmd) {
-		$script_name	= $cmd;
-		$tc				= $paths['script_run'];
-		$script_run		= (new MiscUD)->get_json($tc);
-
-		/* Check to see if the script was running. */
-		if (isset($script_run[$script_name])) {
-			$was_running = ($script_run[$script_name]['running'] == 'yes') ? true : false;
-		} else {
-			$was_running = false;
-		}
-
 		/* Set up for ps to find the right script. */
 		if ($user) {
 			$path_info	= pathinfo($cmd);
@@ -654,13 +642,6 @@ function is_script_running($cmd, $user = false) {
 
 		/* Check if the script is currently running. */
 		$is_running = shell_exec("/usr/bin/ps -ef | /bin/grep ".escapeshellarg(basename($cmd))." | /bin/grep -v 'grep' | /bin/grep ".escapeshellarg($source)) != "" ? true : false;
-		$script_run[$script_name] = array('running' => $is_running ? 'yes' : 'no','user' => $user ? 'yes' : 'no');
-
-		/* Update the current running state. */
-		(new MiscUD)->save_json($tc, $script_run);
-		if (($was_running) && (! $is_running)) {
-			publish();
-		}
 	}
 
 	return $is_running;
