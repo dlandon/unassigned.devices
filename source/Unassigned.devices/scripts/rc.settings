@@ -44,7 +44,10 @@ function apply() {
 function uuid_change() {
 	global $paths;
 
-	$lock_file	= get_file_lock();
+	/* Get a lock so file changes can be made. */
+	$lock_file	= get_file_lock("cfg");
+
+	/* Make file changes. */
 	$config_file = $paths['config_file'];
 	$cfg		= is_file($config_file) ? @parse_ini_file($config_file, true) : array();
 
@@ -59,14 +62,20 @@ function uuid_change() {
 
 	/* Now clear the setting from the tmp file. */
 	unset($cfg['Config']['change_uuid']);
-	save_ini_file($config_file, $cfg, $lock_file, false);
+	save_ini_file($config_file, $cfg, false);
+
+	/* Release the file lock. */
+	release_file_lock($lock_file);
 }
 
 /* Set an encrypted device password. */
 function set_pass() {
 	global $paths;
 
-	$lock_file	= get_file_lock();
+	/* Get a lock so file changes can be made. */
+	$lock_file	= get_file_lock("cfg");
+
+	/* Make file changes. */
 	$config_file = $paths['config_file'];
 	$cfg		= is_file($config_file) ? @parse_ini_file($config_file, true) : array();
 
@@ -76,7 +85,10 @@ function set_pass() {
 	/* Now clear the settings from the tmp file. */
 	unset($cfg['Config']['set_pass']);
 	unset($cfg['Config']['password']);
-	save_ini_file($config_file, $cfg, $lock_file, false);
+	save_ini_file($config_file, $cfg, false);
+
+	/* Release the file lock. */
+	release_file_lock($lock_file);
 
 	/* Save the new password */
 	set_config($serial, "pass", encrypt_data($password));
