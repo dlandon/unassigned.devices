@@ -120,6 +120,7 @@ if (isset($_GET['s'])) {
 	/* ISO files. */
 	$device				= $_GET['i'];
 	$mount_point		= $_GET['l'];
+	$info				= "";
 	$file				= get_iso_config($device, "command");
 	if (($file) && (! file_exists($file))) {
 		set_iso_config($device,"command","");
@@ -455,15 +456,19 @@ _(User Script)_:
 				$.post(UDURL,{action:"set_volume",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",volume:$("input[name='#volume']").val()},function(data){event.preventDefault()},"json");
 			});
 		<?endif;?>
-	<?endif;?>
-	<?if (isset($_GET['d'])):?>
+	<?else:?>
+		<?if (isset($_GET['d'])):?>
+			$( "form" ).submit(function( event ) {
+				$.post(UDURL,{action:"set_samba_command",device:"<?=$device;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()},function(data){event.preventDefault()},"json");
+			});
+		<?endif;?>
+		<?if (isset($_GET['i'])):?>
+			$( "form" ).submit(function( event ) {
+				$.post(UDURL,{action:"set_iso_command",device:"<?=$device;?>",command:$("input[name='#file']").val()},function(data){event.preventDefault()},"json");
+			});
+		<?endif;?>
 		$( "form" ).submit(function( event ) {
-			$.post(UDURL,{action:"set_samba_command",device:"<?=$device;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()},function(data){event.preventDefault()},"json");
-		});
-	<?endif;?>
-	<?if (isset($_GET['i'])):?>
-		$( "form" ).submit(function( event ) {
-			$.post(UDURL,{action:"set_iso_command",device:"<?=$device;?>",command:$("input[name='#file']").val()},function(data){event.preventDefault()},"json");
+			$.post(UDURL,{action:"<?=$background_action;?>",device:"<?=$ud_device;?>",status:$("select[name='#background']").val()},function(data){event.preventDefault()},"json");
 		});
 	<?endif;?>
 
