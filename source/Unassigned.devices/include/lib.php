@@ -262,16 +262,16 @@ function _echo($m) {
 	echo "<pre>".print_r($m,true)."</pre>";
 }
 
-/* Get file lock. */
-function get_file_lock() {
+/* Get a file lock so changes can be made to the file. */
+function get_file_lock($type = "cfg") {
 	global $plugin;
 
 	/* Lock file for concurrent operations unique to each process. */
-	$lock_file	= "/tmp/".$plugin."/".uniqid("ini_", true).".lock";
+	$lock_file	= "/tmp/".$plugin."/".uniqid($type."_", true).".lock";
 
 	/* Check for any lock files for previous processes. */
 	$i = 0;
-	while ((! empty(glob("/tmp/".$plugin."/ini_*.lock"))) && ($i < 200)) {
+	while ((! empty(glob("/tmp/".$plugin."/".$type."_*.lock"))) && ($i < 200)) {
 		usleep(10000);
 		$i++;
 	}
@@ -287,8 +287,17 @@ function get_file_lock() {
 	return $lock_file;
 }
 
+/* Release the file lock. */
+function release_file_lock($lock_file) {
+
+	/* Release the lock. */
+	if ($lock_file) {
+		@unlink($lock_file);
+	}
+}
+
 /* Save ini and cfg files to tmp file system and then copy cfg file changes to flash. */
-function save_ini_file($file, $array, $lock_file = "", $save_config = true) {
+function save_ini_file($file, $array, $save_config = true) {
 	global $plugin, $paths;
 
 	$res = array();
@@ -303,10 +312,8 @@ function save_ini_file($file, $array, $lock_file = "", $save_config = true) {
 		}
 	}
 
-	/* Write to temp file and then move to destination file. */
-	$tmp_file	= $paths['tmp_file'];
-	@file_put_contents($tmp_file, implode(PHP_EOL, $res));
-	@rename($tmp_file, $file);
+	/* Write changes to the destination file. */
+	@file_put_contents($file, implode(PHP_EOL, $res));
 
 	/* Write cfg file changes back to flash. */
 	if ($save_config) {
@@ -314,11 +321,6 @@ function save_ini_file($file, $array, $lock_file = "", $save_config = true) {
 		if ($file_path['extension'] == "cfg") {
 			@file_put_contents("/boot/config/plugins/".$plugin."/".basename($file), implode(PHP_EOL, $res));
 		}
-	}
-
-	/* Release the lock. */
-	if ($lock_file) {
-		@unlink($lock_file);
 	}
 }
 
@@ -1054,11 +1056,17 @@ function get_config($serial, $variable) {
 
 /* Set device configuration parameter. */
 function set_config($serial, $variable, $value) {
-	$lock_file		= get_file_lock();
+	/* Get a lock so file changes can be made. */
+	$lock_file		= get_file_lock("cfg");
+
+	/* Make file changes. */
 	$config_file	= $GLOBALS["paths"]["config_file"];
 	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	$config[$serial][$variable] = htmlentities($value, ENT_COMPAT);
-	save_ini_file($config_file, $config, $lock_file);
+	save_ini_file($config_file, $config);
+
+	/* Release the file lock. */
+	release_file_lock($lock_file);
 	return (isset($config[$serial][$variable])) ? $config[$serial][$variable] : "";
 }
 
@@ -1089,41 +1097,65 @@ function is_disable_mount($serial) {
 
 /* Toggle auto mount on/off. */
 function toggle_automount($serial, $status) {
-	$lock_file		= get_file_lock();
+	/* Get a lock so file changes can be made. */
+	$lock_file		= get_file_lock("cfg");
+
+	/* Make file changes. */
 	$config_file	= $GLOBALS["paths"]["config_file"];
 	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	$config[$serial]["automount"] = ($status == "true") ? "yes" : "no";
-	save_ini_file($config_file, $config, $lock_file);
+	save_ini_file($config_file, $config);
+
+	/* Release the file lock. */
+	release_file_lock($lock_file);
 	return ($config[$serial]["automount"] == "yes") ? 'true' : 'false';
 }
 
 /* Toggle read only on/off. */
 function toggle_read_only($serial, $status) {
-	$lock_file		= get_file_lock();
+	/* Get a lock so file changes can be made. */
+	$lock_file		= get_file_lock("cfg");
+
+	/* Make file changes. */
 	$config_file	= $GLOBALS["paths"]["config_file"];
 	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	$config[$serial]["read_only"] = ($status == "true") ? "yes" : "no";
-	save_ini_file($config_file, $config, $lock_file);
+	save_ini_file($config_file, $config);
+
+	/* Release the file lock. */
+	release_file_lock($lock_file);
 	return ($config[$serial]["read_only"] == "yes") ? 'true' : 'false';
 }
 
 /* Toggle pass through on/off. */
 function toggle_pass_through($serial, $status) {
-	$lock_file		= get_file_lock();
+	/* Get a lock so file changes can be made. */
+	$lock_file		= get_file_lock("cfg");
+
+	/* Make file changes. */
 	$config_file	= $GLOBALS["paths"]["config_file"];
 	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	$config[$serial]["pass_through"] = ($status == "true") ? "yes" : "no";
-	save_ini_file($config_file, $config, $lock_file);
+	save_ini_file($config_file, $config);
+
+	/* Release the file lock. */
+	release_file_lock($lock_file);
 	return ($config[$serial]["pass_through"] == "yes") ? 'true' : 'false';
 }
 
-/* Toggle hide mount on/off. */
+/* Toggle hide mount button on/off. */
 function toggle_disable_mount($serial, $status) {
-	$lock_file		= get_file_lock();
+	/* Get a lock so file changes can be made. */
+	$lock_file		= get_file_lock("cfg");
+
+	/* Make file changes. */
 	$config_file	= $GLOBALS["paths"]["config_file"];
 	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	$config[$serial]["disable_mount"] = ($status == "true") ? "yes" : "no";
-	save_ini_file($config_file, $config, $lock_file);
+	save_ini_file($config_file, $config);
+
+	/* Release the file lock. */
+	release_file_lock($lock_file);
 	return ($config[$serial]["disable_mount"] == "yes") ? 'true' : 'false';
 }
 
@@ -1212,7 +1244,10 @@ function execute_script($info, $action, $testing = false) {
 function remove_config_disk($serial) {
 
 	/* Get the all disk configurations. */
-	$lock_file		= get_file_lock();
+	/* Get a lock so file changes can be made. */
+	$lock_file		= get_file_lock("cfg");
+
+	/* Make file changes. */
 	$config_file	= $GLOBALS["paths"]["config_file"];
 	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	if ( isset($config[$serial]) ) {
@@ -1223,7 +1258,10 @@ function remove_config_disk($serial) {
 	unset($config[$serial]);
 
 	/* Resave all disk configurations. */
-	save_ini_file($config_file, $config, $lock_file);
+	save_ini_file($config_file, $config);
+
+	/* Release the file lock. */
+	release_file_lock($lock_file);
 	return (! isset($config[$serial])) ? true : false;
 }
 
@@ -2009,12 +2047,18 @@ function get_samba_config($source, $variable) {
 
 /* Set samba mount configuration parameter. */
 function set_samba_config($source, $variable, $value) {
-	$lock_file		= get_file_lock();
+	/* Get a lock so file changes can be made. */
+	$lock_file		= get_file_lock("smb");
+
+	/* Make file changes. */
 	$config_file	= $GLOBALS["paths"]["samba_mount"];
 	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	$config[$source][$variable] = $value;
-	save_ini_file($config_file, $config, $lock_file);
-	return (isset($config[$source][$variable])) ? $config[$source][$variable] : "";
+	save_ini_file($config_file, $config);
+
+	/* Release the file lock. */
+	release_file_lock($lock_file);
+	return (isset($config[$source][$variable])) ? true : false;
 }
 
 /* Encrypt passwords. */
@@ -2319,37 +2363,58 @@ function do_mount_samba($info) {
 
 /* Toggle samba auto mount on/off. */
 function toggle_samba_automount($source, $status) {
-	$lock_file		= get_file_lock();
+	/* Get a lock so file changes can be made. */
+	$lock_file		= get_file_lock("smb");
+
+	/* Make file changes. */
 	$config_file	= $GLOBALS["paths"]["samba_mount"];
 	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	$config[$source]["automount"] = ($status == "true") ? "yes" : "no";
-	save_ini_file($config_file, $config, $lock_file);
+	save_ini_file($config_file, $config);
+
+	/* Release the file lock. */
+	release_file_lock($lock_file);
 	return ($config[$source]["automount"] == "yes") ? true : false;
 }
 
 /* Toggle samba share on/off. */
 function toggle_samba_share($source, $status) {
-	$lock_file		= get_file_lock();
+	/* Get a lock so file changes can be made. */
+	$lock_file		= get_file_lock("smb");
+
+	/* Make file changes. */
 	$config_file	= $GLOBALS["paths"]["samba_mount"];
 	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	$config[$source]["smb_share"] = ($status == "true") ? "yes" : "no";
-	save_ini_file($config_file, $config, $lock_file);
+	save_ini_file($config_file, $config);
+
+	/* Release the file lock. */
+	release_file_lock($lock_file);
 	return ($config[$source]["smb_share"] == "yes") ? true : false;
 }
 
 /* Toggle hide mount on/off. */
 function toggle_samba_disable_mount($device, $status) {
-	$lock_file		= get_file_lock();
+	/* Get a lock so file changes can be made. */
+	$lock_file		= get_file_lock("smb");
+
+	/* Make file changes. */
 	$config_file	= $GLOBALS["paths"]["samba_mount"];
 	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	$config[$device]["disable_mount"] = ($status == "true") ? "yes" : "no";
-	save_ini_file($config_file, $config, $lock_file);
+	save_ini_file($config_file, $config);
+
+	/* Release the file lock. */
+	release_file_lock($lock_file);
 	return ($config[$serial]["disable_mount"] == "yes") ? 'true' : 'false';
 }
 
 /* Remove the samba remote mount configuration. */
 function remove_config_samba($source) {
-	$lock_file		= get_file_lock();
+	/* Get a lock so file changes can be made. */
+	$lock_file		= get_file_lock("smb");
+
+	/* Make file changes. */
 	$config_file	= $GLOBALS["paths"]["samba_mount"];
 	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	if ( isset($config[$source]) ) {
@@ -2363,7 +2428,12 @@ function remove_config_samba($source) {
 		}
 	}
 	unset($config[$source]);
-	save_ini_file($config_file, $config, $lock_file);
+
+	/* Resave the samba config. */
+	save_ini_file($config_file, $config);
+
+	/* Release the file lock. */
+	release_file_lock($lock_file);
 	return (! isset($config[$source])) ? true : false;
 }
 
@@ -2380,12 +2450,18 @@ function get_iso_config($source, $variable) {
 
 /* Get an iso file configuration parameter. */
 function set_iso_config($source, $variable, $value) {
-	$lock_file		= get_file_lock();
+	/* Get a lock so file changes can be made. */
+	$lock_file		= get_file_lock("iso");
+
+	/* Make file changes. */
 	$config_file	= $GLOBALS["paths"]["iso_mount"];
 	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	$config[$source][$variable] = $value;
-	save_ini_file($config_file, $config, $lock_file);
-	return (isset($config[$source][$variable])) ? $config[$source][$variable] : "";
+	save_ini_file($config_file, $config);
+
+	/* Release the file lock. */
+	release_file_lock($lock_file);
+	return (isset($config[$source][$variable])) ? true : false;
 }
 
 /* Is the iso file set to auto mount? */
@@ -2469,17 +2545,26 @@ function do_mount_iso($info) {
 
 /* Toggle iso file automount on/off. */
 function toggle_iso_automount($source, $status) {
-	$lock_file		= get_file_lock();
+	/* Get a lock so file changes can be made. */
+	$lock_file		= get_file_lock("iso");
+
+	/* Make file changes. */
 	$config_file	= $GLOBALS["paths"]["iso_mount"];
 	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	$config[$source]["automount"] = ($status == "true") ? "yes" : "no";
-	save_ini_file($config_file, $config, $lock_file);
+	save_ini_file($config_file, $config);
+
+	/* Release the file lock. */
+	release_file_lock($lock_file);
 	return ($config[$source]["automount"] == "yes") ? true : false;
 }
 
 /* Remove ISO configuration. */
 function remove_config_iso($source) {
-	$lock_file		= get_file_lock();
+	/* Get a lock so file changes can be made. */
+	$lock_file		= get_file_lock("iso");
+
+	/* Make file changes. */
 	$config_file	= $GLOBALS["paths"]["iso_mount"];
 	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	if ( isset($config[$source]) ) {
@@ -2493,7 +2578,12 @@ function remove_config_iso($source) {
 		}
 	}
 	unset($config[$source]);
-	save_ini_file($config_file, $config, $lock_file);
+
+	/* Save new iso config. */
+	save_ini_file($config_file, $config);
+
+	/* Release the file lock. */
+	release_file_lock($lock_file);
 	return (! isset($config[$source])) ? true : false;
 }
 
@@ -2604,24 +2694,10 @@ function get_udev_info($dev, $udev = null) {
 
 	$rc		= array();
 
-	/* Lock file for concurrent operations unique to each process. */
-	$lock_file	= "/tmp/".$plugin."/".uniqid("udev_", true).".lock";
+	/* Get a lock so file changes can be made. */
+	$lock_file	= get_file_lock("udev");
 
-	/* Check for any lock files for previous processes. */
-	$i = 0;
-	while ((! empty(glob("/tmp/".$plugin."/udev_*.lock"))) && ($i < 500)) {
-		usleep(10000);
-		$i++;
-	}
-
-	/* Did we time out waiting for lock release? */
-	if ($i == 500) {
-		unassigned_log("Timed out waiting for udev lock release.", $GLOBALS['UDEV_DEBUG']);
-	}
-
-	/* Create the lock file. */
-	@touch($lock_file);
-
+	/* Make file changes. */
 	$state	= is_file($paths['state']) ? @parse_ini_file($paths['state'], true, INI_SCANNER_RAW) : array();
 	$device	= safe_name($dev);
 	if ($udev) {
@@ -2668,8 +2744,8 @@ function get_udev_info($dev, $udev = null) {
 		}
 	}
 	
-	/* Release lock. */
-	@unlink($lock_file);
+	/* Release the file lock. */
+	release_file_lock($lock_file);
 
 	return $rc;
 }
