@@ -933,6 +933,9 @@ switch ($_POST['action']) {
 		/* Refresh all disk partition information, update config files from flash, and clear status files. */
 		exec("plugins/".$plugin."/scripts/copy_config.sh");
 
+		/* Clear out any residual file locks. */
+		exec("/usr/bin/rm -f /tmp/".$plugin."/*.lock");
+
 		$sf		= $paths['dev_state'];
 		if (is_file($sf)) {
 			$devs = @parse_ini_file($sf, true);
