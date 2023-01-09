@@ -85,6 +85,7 @@ function set_pass() {
 	/* Now clear the settings from the tmp file. */
 	unset($cfg['Config']['set_pass']);
 	unset($cfg['Config']['password']);
+
 	save_ini_file($config_file, $cfg, false);
 
 	/* Release the file lock. */
