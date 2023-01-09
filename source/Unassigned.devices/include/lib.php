@@ -1032,11 +1032,11 @@ function timed_exec($timeout = 10, $cmd) {
 function luks_fs_type($dev) {
 
 	/* Get the file system type from lsblk for a crypto_LUKS file system. */
-	$o	= shell_exec("/bin/lsblk -f | grep ".basename($dev)."  2>/dev/null | grep -v 'crypto_LUKS' | /bin/awk '{print $2}'");
+	$o	= shell_exec("/bin/lsblk -f | grep ".escapeshellarg(basename($dev)." ")."  2>/dev/null | grep -v 'crypto_LUKS' | /bin/awk '{print $2}'");
 	$o	= str_replace("\n", "", $o);
-	$rc	= (strpos($o,"zfs_member") !== false) ? "zfs" : $o;
+	$rc	= ($o == "zfs_member") ? "zfs" : $o;
 
-	return ($rc) ? $rc : "luks";
+	return ($rc ? $rc : "luks");
 }
 
 #########################################################
