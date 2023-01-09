@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2022, Dan Landon
+# Copyright 2023, Dan Landon
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License version 2,
