@@ -43,6 +43,7 @@ $disable_action			= "";
 $share					= "";
 $share_action			= "";
 
+
 /* Main entry point. */
 if (isset($_GET['s'])) {
 	/* Disk devices. */
@@ -441,36 +442,26 @@ _(User Script)_:
 		},"json");
 	});
 
+	$( "form" ).submit(function( event ) {
 	<?if (isset($_GET['s'])):?>
-		$( "form" ).submit(function( event ) {
 			$.post(UDURL,{action:"set_command",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()},function(data){event.preventDefault()},"json");
-		});
-			$( "form" ).submit(function( event ) {
 		<?if ($disk_setting):?>
-				$.post(UDURL,{action:"set_name",serial:"<?=$ud_device;?>",device:"<?=$device;?>",name:$("input[name='#name']").val()},function(data){event.preventDefault()},"json");
+			$.post(UDURL,{action:"set_name",serial:"<?=$ud_device;?>",device:"<?=$device;?>",name:$("input[name='#name']").val()},function(data){event.preventDefault()},"json");
 		<?endif;?>
-				$.post(UDURL,{action:"<?=$background_action;?>",device:"<?=$ud_device;?>",part:"<?=$partition;?>",status:$("select[name='#background']").val()},function(data){event.preventDefault()},"json");
-			});
+			$.post(UDURL,{action:"<?=$background_action;?>",device:"<?=$ud_device;?>",part:"<?=$partition;?>",status:$("select[name='#background']").val()},function(data){event.preventDefault()},"json");
 		<?if ($fstype == "apfs"):?>
-			$( "form" ).submit(function( event ) {
-				$.post(UDURL,{action:"set_volume",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",volume:$("input[name='#volume']").val()},function(data){event.preventDefault()},"json");
-			});
+			$.post(UDURL,{action:"set_volume",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",volume:$("input[name='#volume']").val()},function(data){event.preventDefault()},"json");
 		<?endif;?>
 	<?else:?>
 		<?if (isset($_GET['d'])):?>
-			$( "form" ).submit(function( event ) {
-				$.post(UDURL,{action:"set_samba_command",device:"<?=$device;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()},function(data){event.preventDefault()},"json");
-			});
+			$.post(UDURL,{action:"set_samba_command",device:"<?=$device;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()},function(data){event.preventDefault()},"json");
 		<?endif;?>
 		<?if (isset($_GET['i'])):?>
-			$( "form" ).submit(function( event ) {
-				$.post(UDURL,{action:"set_iso_command",device:"<?=$device;?>",command:$("input[name='#file']").val()},function(data){event.preventDefault()},"json");
-			});
+			$.post(UDURL,{action:"set_iso_command",device:"<?=$device;?>",command:$("input[name='#file']").val()},function(data){event.preventDefault()},"json");
 		<?endif;?>
-		$( "form" ).submit(function( event ) {
 			$.post(UDURL,{action:"<?=$background_action;?>",device:"<?=$ud_device;?>",status:$("select[name='#background']").val()},function(data){event.preventDefault()},"json");
-		});
 	<?endif;?>
+	});
 
 	function setDefault(form) {
 		/* Set the default values. */
