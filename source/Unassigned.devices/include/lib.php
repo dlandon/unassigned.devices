@@ -270,6 +270,13 @@ function get_file_lock($type = "cfg") {
 	$lock_file	= "/tmp/".$plugin."/".uniqid($type."_", true).".lock";
 
 
+	/* Check for any lock files for previous processes. */
+	$i = 0;
+	while ((! empty(glob("/tmp/".$plugin."/".$type."_*.lock"))) && ($i < 200)) {
+		usleep(10000);
+		$i++;
+	}
+
 	/* Did we time out waiting for unlock release? */
 	if ($i == 200) {
 		unassigned_log("Timed out waiting for get file lock.", $GLOBALS['UDEV_DEBUG']);
