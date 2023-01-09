@@ -269,12 +269,6 @@ function get_file_lock($type = "cfg") {
 	/* Lock file for concurrent operations unique to each process. */
 	$lock_file	= "/tmp/".$plugin."/".uniqid($type."_", true).".lock";
 
-	/* Check for any lock files for previous processes. */
-	$i = 0;
-	while ((! empty(glob("/tmp/".$plugin."/".$type."_*.lock"))) && ($i < 200)) {
-		usleep(10000);
-		$i++;
-	}
 
 	/* Did we time out waiting for unlock release? */
 	if ($i == 200) {
@@ -312,8 +306,10 @@ function save_ini_file($file, $array, $save_config = true) {
 		}
 	}
 
-	/* Write changes to the destination file. */
-	@file_put_contents($file, implode(PHP_EOL, $res));
+	/* Write to temp file and then move to destination file. */
+	$tmp_file	= $paths['tmp_file'];
+	@file_put_contents($tmp_file, implode(PHP_EOL, $res));
+	@rename($tmp_file, $file);
 
 	/* Write cfg file changes back to flash. */
 	if ($save_config) {
@@ -1038,7 +1034,7 @@ function luks_fs_type($dev) {
 	/* Get the file system type from lsblk for a crypto_LUKS file system. */
 	$o	= shell_exec("/bin/lsblk -f | grep ".basename($dev)."  2>/dev/null | grep -v 'crypto_LUKS' | /bin/awk '{print $2}'");
 	$o	= str_replace("\n", "", $o);
-	$rc	= ($o == "zfs_member") ? "zfs" : $o;
+	$rc	= (strpos($o,"zfs_member") !== false) ? "zfs" : $o;
 
 	return ($rc) ? $rc : "luks";
 }
@@ -1067,6 +1063,7 @@ function set_config($serial, $variable, $value) {
 
 	/* Release the file lock. */
 	release_file_lock($lock_file);
+
 	return (isset($config[$serial][$variable])) ? $config[$serial][$variable] : "";
 }
 
@@ -1108,6 +1105,7 @@ function toggle_automount($serial, $status) {
 
 	/* Release the file lock. */
 	release_file_lock($lock_file);
+
 	return ($config[$serial]["automount"] == "yes") ? 'true' : 'false';
 }
 
@@ -1124,6 +1122,7 @@ function toggle_read_only($serial, $status) {
 
 	/* Release the file lock. */
 	release_file_lock($lock_file);
+
 	return ($config[$serial]["read_only"] == "yes") ? 'true' : 'false';
 }
 
@@ -1140,6 +1139,7 @@ function toggle_pass_through($serial, $status) {
 
 	/* Release the file lock. */
 	release_file_lock($lock_file);
+
 	return ($config[$serial]["pass_through"] == "yes") ? 'true' : 'false';
 }
 
@@ -1156,6 +1156,7 @@ function toggle_disable_mount($serial, $status) {
 
 	/* Release the file lock. */
 	release_file_lock($lock_file);
+
 	return ($config[$serial]["disable_mount"] == "yes") ? 'true' : 'false';
 }
 
@@ -1262,6 +1263,7 @@ function remove_config_disk($serial) {
 
 	/* Release the file lock. */
 	release_file_lock($lock_file);
+
 	return (! isset($config[$serial])) ? true : false;
 }
 
@@ -1566,7 +1568,7 @@ function do_mount_local($info) {
 					exec("/sbin/cryptsetup luksClose ".escapeshellarg(basename($info['device']))." 2>/dev/null");
 				}
 				unassigned_log("Mount of '".basename($dev)."' failed: '{$o}'");
-				@rmdir($dir);
+				exec("/bin/rmdir ".escapeshellarg($dir)." 2>/dev/null");
 			} else {
 				if ($info['fstype'] == "btrfs") {
 					/* Update the btrfs state file for single scan for pool devices. */
@@ -2058,6 +2060,7 @@ function set_samba_config($source, $variable, $value) {
 
 	/* Release the file lock. */
 	release_file_lock($lock_file);
+
 	return (isset($config[$source][$variable])) ? true : false;
 }
 
@@ -2374,6 +2377,7 @@ function toggle_samba_automount($source, $status) {
 
 	/* Release the file lock. */
 	release_file_lock($lock_file);
+
 	return ($config[$source]["automount"] == "yes") ? true : false;
 }
 
@@ -2390,6 +2394,7 @@ function toggle_samba_share($source, $status) {
 
 	/* Release the file lock. */
 	release_file_lock($lock_file);
+
 	return ($config[$source]["smb_share"] == "yes") ? true : false;
 }
 
@@ -2406,6 +2411,7 @@ function toggle_samba_disable_mount($device, $status) {
 
 	/* Release the file lock. */
 	release_file_lock($lock_file);
+
 	return ($config[$serial]["disable_mount"] == "yes") ? 'true' : 'false';
 }
 
@@ -2434,6 +2440,7 @@ function remove_config_samba($source) {
 
 	/* Release the file lock. */
 	release_file_lock($lock_file);
+
 	return (! isset($config[$source])) ? true : false;
 }
 
@@ -2461,6 +2468,7 @@ function set_iso_config($source, $variable, $value) {
 
 	/* Release the file lock. */
 	release_file_lock($lock_file);
+
 	return (isset($config[$source][$variable])) ? true : false;
 }
 
@@ -2556,6 +2564,7 @@ function toggle_iso_automount($source, $status) {
 
 	/* Release the file lock. */
 	release_file_lock($lock_file);
+
 	return ($config[$source]["automount"] == "yes") ? true : false;
 }
 
@@ -2584,6 +2593,7 @@ function remove_config_iso($source) {
 
 	/* Release the file lock. */
 	release_file_lock($lock_file);
+
 	return (! isset($config[$source])) ? true : false;
 }
 
