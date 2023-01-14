@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"beta-2023.01.10">
+<!ENTITY version	"beta-2023.01.14">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;-beta.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"07b2f14a9b4b8779096604845f373548">
+<!ENTITY MD5		"369eb74e35040d6ecfc5ff9816daaf40">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,7 +22,9 @@
 <CHANGES>
 ##&name;
 ###&version;
-- Fix: Fix refresh of Edit Settings to show changes properly.
+- Fix: Fix refresh of 'Edit Device Settings' to show changes properly.
+- Fix: Don't auto mount/unmount Unassigned Disks marked as 'Array'.
+- Add: Changed array disk detection to be more robust.
 
 ###2023.01.08
 - Fix: Share toggle on Historical Device not working.
