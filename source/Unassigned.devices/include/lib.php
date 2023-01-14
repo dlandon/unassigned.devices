@@ -48,6 +48,14 @@ $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $users		= @parse_ini_file("$docroot/state/users.ini", true);
 $disks		= @parse_ini_file("$docroot/state/disks.ini", true);
 
+/* Get all unraid disk devices (array disks, cache, and pool devices). */
+$unraid_disks	= array();
+foreach ($disks as $d) {
+	if ($d['device']) {
+		$unraid_disks[] = "/dev/".$d['device'];
+	}
+}
+
 /* Get the version of Unraid we are running. */
 $version = @parse_ini_file("/etc/unraid-version");
 
@@ -978,7 +986,6 @@ function remove_all_partitions($dev) {
 
 		/* See if this device is part of a pool. */
 		$pool_name	= (new MiscUD)->zfs_pool_name($device);
-
 		if ($pool_name) {
 			unassigned_log("Destroying zpool ".$pool_name." on ".$device);
 			exec("/usr/sbin/zpool import -N ".escapeshellarg($pool_name)." 2>/dev/null");
@@ -1433,9 +1440,11 @@ function do_mount($info) {
 				exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 				unset($pass);
 			}
+
+
 			if ($o && stripos($o, "warning") === false) {
 				unassigned_log("luksOpen result: {$o}");
-				exec("/sbin/cryptsetup luksClose ".escapeshellarg(basename($info['device']))." 2>/dev/null");
+				exec("/sbin/cryptsetup luksClose ".escapeshellarg($info['device'])." 2>/dev/null");
 			} else {
 				/* Mount an encrypted disk. */
 				$rc = do_mount_local($info);
@@ -2611,9 +2620,9 @@ function remove_config_iso($source) {
 
 /* Get an array of all unassigned disks. */
 function get_unassigned_disks() {
-	global $disks;
+	global $disks, $unraid_disks;
 
-	$ud_disks = $paths = $unraid_disks = array();
+	$ud_disks = $paths = array();
 
 	/* Get all devices by id and eliminate any duplicates. */
 	foreach (array_unique(listDir("/dev/disk/by-id/")) as $p) {
@@ -2624,13 +2633,6 @@ function get_unassigned_disks() {
 		}
 	}
 	ksort($paths, SORT_NATURAL);
-
-	/* Get all unraid disk devices (array disks, cache, and pool devices). */
-	foreach ($disks as $d) {
-		if ($d['device']) {
-			$unraid_disks[] = "/dev/".$d['device'];
-		}
-	}
 
 	/* Create the array of unassigned devices. */
 	foreach ($paths as $path => $d) {
@@ -2769,7 +2771,7 @@ function get_udev_info($dev, $udev = null) {
 
 /* Get information on specific disk device. */
 function get_disk_info($dev) {
-	global $paths;
+	global $paths, $unraid_disks;
 
 	/* Get all the disk information for this disk device. */
 	$disk						= array();
@@ -2793,13 +2795,7 @@ function get_disk_info($dev) {
 	$disk['user_command']		= get_config($disk['serial'], "user_command.1");
 	$disk['show_partitions']	= (get_config($disk['serial'], "show_partitions") == "no") ? false : true;
 	$disk['pass_through']		= is_pass_through($disk['serial']);
-	$disk['array_disk']			= false;
-
-	/* If this disk does not have a devX designation, it has dropped out of the array. */
-	$sf		= $paths['dev_state'];
-	if ((is_file($sf)) && ($disk['id_bus'] != "usb") && (basename($disk['device']) == $disk['ud_dev'])) {
-		$disk['array_disk'] = true;
-	}
+	$disk['array_disk']			= in_array($disk['device'], $unraid_disks);
 
 	/* Get the hostX from the DEVPATH so we can re-attach a disk. */
 	(new MiscUD)->save_device_host($disk['serial'], $attrs['DEVPATH']);
