@@ -63,12 +63,13 @@ function unassigned_mount() {
 		foreach ($disk['partitions'] as $partition)
 		{
 			if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "auto" || $DEVNAME == "autodevices" ) {
+				$disk_info	= get_disk_info($device);
 				$info = get_partition_info($partition);
 
 				unassigned_log("Partition found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) && (strpos($k, "pass_through") === false)? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
 
-				/* If disk is passed through, skip to the next disk. */
-				if ($info['pass_through']) {
+				/* If disk is passed through or is marked as an array disk, skip to the next disk. */
+				if (($disk_info['pass_through']) || ($disk_info['array_disk'])) {
 					continue;
 				}
 
@@ -291,6 +292,7 @@ function unassigned_umount() {
 		$device = $disk['device'];
 		foreach ($disk['partitions'] as $partition) {
 			if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "auto" || $DEVNAME == "all" ) {
+				$disk_info	= get_disk_info($device);
 				$info = get_partition_info($partition);
 				if (! $info['automount'] && $DEVNAME == "auto" ) {
 					continue;
@@ -298,9 +300,8 @@ function unassigned_umount() {
 
 				unassigned_log("Partition found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) && (strpos($k, "pass_through") === false)? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
 
-				/* If disk is passed through, skip to the next disk. */
-				if ($info['pass_through']) {
-					unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' is set as passed through and will not be unmounted.");
+				/* If disk is passed through or is marked as an array disk, skip to the next disk. */
+				if (($disk_info['pass_through']) || ($disk_info['array_disk'])) {
 					continue;
 				}
 
