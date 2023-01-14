@@ -43,6 +43,12 @@ $disable_action			= "";
 $share					= "";
 $share_action			= "";
 
+/* Wait for lock files release to be sure the cfg files are completely updated. */
+$i = 0;
+while ((! empty(glob("/tmp/".$plugin."/cfg_*.lock"))) && ($i < 8)) {
+	usleep(250000);
+	$i++;
+}
 
 /* Main entry point. */
 if (isset($_GET['s'])) {
@@ -382,7 +388,7 @@ _(User Script)_:
 		$.post(UDURL,{action:"toggle_pass_through",serial:"<?=$ud_device;?>",status:$(this).is(":checked")},function(data)
 		{
 			$(this).prop("checked",data.result);
-		},"json");
+		}, 'json');
 <?endif;?>
 	});
 
@@ -392,7 +398,7 @@ _(User Script)_:
 		$.post(UDURL,{action:"<?=$disable_action?>",device:"<?=$ud_device;?>",status:$(this).is(":checked")},function(data)
 		{
 			$(this).prop("checked",data.result);
-		},"json");
+		}, 'json');
 	});
 
 	$('.readonly-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Read Only');?>", off_label: "<?=_('Read Only');?>", checked:"<?=$read_only;?>" });
@@ -401,7 +407,7 @@ _(User Script)_:
 		$.post(UDURL,{action:"toggle_read_only",serial:"<?=$ud_device;?>",status:$(this).is(":checked")},function(data)
 		{
 			$(this).prop("checked",data.result);
-		},"json");
+		}, 'json');
 	});
 
 	$('.automount-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Automount');?>", off_label: "<?=_('Automount');?>", checked:"<?=$automount;?>" });
@@ -410,7 +416,7 @@ _(User Script)_:
 		$.post(UDURL,{action:"<?=$automount_action?>",device:"<?=$ud_device;?>",status:$(this).is(":checked")},function(data)
 		{
 			$(this).prop("checked",data.result);
-		},"json");
+		}, 'json');
 	});
 
 <?if ($info):?>
@@ -420,7 +426,7 @@ _(User Script)_:
 		$.post(UDURL,{action:"<?=$share_action;?>",info:$(this).attr("info"),status:$(this).is(":checked")},function(data)
 		{
 			$(this).prop("checked",data.result);
-		},"json");
+		}, 'json');
 	});
 <?else:?>
 	$('.share-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Share');?>", off_label: "<?=_('Share');?>", checked:"<?=$share;?>" });
@@ -429,7 +435,7 @@ _(User Script)_:
 		$.post(UDURL,{action:"<?=$share_action;?>",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",status:$(this).is(":checked")},function(data)
 		{
 			$(this).prop("checked",data.result);
-		},"json");
+		}, 'json');
 	});
 <?endif;?>
 
@@ -439,27 +445,27 @@ _(User Script)_:
 		$.post(UDURL,{action:"show_partitions",serial:"<?=$ud_device;?>",status:$(this).is(":checked")},function(data)
 		{
 			$(this).prop("checked",data.result);
-		},"json");
+		}, 'json');
 	});
 
 	$( "form" ).submit(function( event ) {
 	<?if (isset($_GET['s'])):?>
-			$.post(UDURL,{action:"set_command",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()},function(data){event.preventDefault()},"json");
+			$.post(UDURL,{action:"set_command",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()}).done(function(){location.reload();});
 		<?if ($disk_setting):?>
-			$.post(UDURL,{action:"set_name",serial:"<?=$ud_device;?>",device:"<?=$device;?>",name:$("input[name='#name']").val()},function(data){event.preventDefault()},"json");
+			$.post(UDURL,{action:"set_name",serial:"<?=$ud_device;?>",device:"<?=$device;?>",name:$("input[name='#name']").val()}).done(function(){location.reload();});
 		<?endif;?>
-			$.post(UDURL,{action:"<?=$background_action;?>",device:"<?=$ud_device;?>",part:"<?=$partition;?>",status:$("select[name='#background']").val()},function(data){event.preventDefault()},"json");
+			$.post(UDURL,{action:"<?=$background_action;?>",device:"<?=$ud_device;?>",part:"<?=$partition;?>",status:$("select[name='#background']").val()}).done(function(){location.reload();});
 		<?if ($fstype == "apfs"):?>
-			$.post(UDURL,{action:"set_volume",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",volume:$("input[name='#volume']").val()},function(data){event.preventDefault()},"json");
+			$.post(UDURL,{action:"set_volume",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",volume:$("input[name='#volume']").val()}).done(function(){location.reload();});
 		<?endif;?>
 	<?else:?>
 		<?if (isset($_GET['d'])):?>
-			$.post(UDURL,{action:"set_samba_command",device:"<?=$device;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()},function(data){event.preventDefault()},"json");
+			$.post(UDURL,{action:"set_samba_command",device:"<?=$device;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()}).done(function(){location.reload();});
 		<?endif;?>
 		<?if (isset($_GET['i'])):?>
-			$.post(UDURL,{action:"set_iso_command",device:"<?=$device;?>",command:$("input[name='#file']").val()},function(data){event.preventDefault()},"json");
+			$.post(UDURL,{action:"set_iso_command",device:"<?=$device;?>",command:$("input[name='#file']").val()}).done(function(){location.reload();});
 		<?endif;?>
-			$.post(UDURL,{action:"<?=$background_action;?>",device:"<?=$ud_device;?>",status:$("select[name='#background']").val()},function(data){event.preventDefault()},"json");
+			$.post(UDURL,{action:"<?=$background_action;?>",device:"<?=$ud_device;?>",status:$("select[name='#background']").val()}).done(function(){location.reload();});
 	<?endif;?>
 	});
 
