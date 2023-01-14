@@ -25,6 +25,12 @@ require_once "plugins/$plugin/include/lib.php";
 /* Get the version of Unraid we are running. */
 $version = parse_ini_file("/etc/unraid-version");
 
+if (version_compare($version['version'], '6.12.0-beta5', '>')) {
+	$title_classid =  "class='title'";
+} else {
+	$title_classid = "id='title'";
+}
+
 /* Set up name for nchan socket. */
 $ud_reload = "UD_reload";
 
@@ -599,7 +605,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 :end
 
 <div class='show-shares'>
-	<div id='title' class='show-disks'>
+	<div <?=$title_classid?> class='show-disks'>
 		<span class='left'>
 			<img src='/plugins/<?=$plugin?>/icons/smbsettings.png' class='icon'><?=_('SMB Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/nfs.png' class='icon'><?=_('NFS Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/iso.png' class='icon' style='width:16px;'><?=_('ISO File Shares')?>
 		</span>
@@ -634,7 +640,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 <div class='show-disks'>
 	<div class='show-historical'>
-		<div id='title'>
+		<div <?=$title_classid?>>
 			<span class='left'><img src='/plugins/<?=$plugin?>/icons/historical.png' class='icon'><?=_('Historical Devices')?></span>
 		</div>
 		<table class='disk_status wide usb_absent'>
