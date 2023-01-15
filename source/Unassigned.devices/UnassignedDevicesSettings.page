@@ -40,14 +40,20 @@ $cfg['Config']['pswd_serial']		= $cfg['Config']['pswd_serial'] ?? '';
 $cfg['Config']['password']			= $cfg['Config']['password'] ?? '';
 $cfg['Config']['change_uuid']		= $cfg['Config']['change_uuid'] ?? '';
 
-
-/* Get the version of Unraid we are running. */
-$version = parse_ini_file("/etc/unraid-version");
-
 /* See if conditions are set for destructive mode to be enabled. */
 $parted = file_exists("/usr/sbin/parted");
 if ((! $parted) && ($cfg['Config']['destructive_mode'] == "enabled")) {
 	$cfg['Config']['destructive_mode'] = "disabled";
+}
+
+/* Get the version of Unraid we are running. */
+$version = parse_ini_file("/etc/unraid-version");
+
+/* Adjustments for 6.12 UI changes. */
+if (version_compare($version['version'], '6.12.0-beta5', '>')) {
+	$title_classid	=  "class='title'";
+} else {
+	$title_classid	= "id='title'";
 }
 
 /* If Unraid is 6.9 or less, set NFS version for v3. */
@@ -160,7 +166,7 @@ foreach (get_all_disks_info() as $d) {
 	}
 </script>
 
-<div id="title" class="nocontrol">_(Common Settings)_</div>
+<div <?=$title_classid;?> class="nocontrol">_(Common Settings)_</div>
 <form markdown="1" name="common_settings" method="POST" action="/update.php" target="progressFrame">
 <input type="hidden" name="#section" value="Config">
 <input type="hidden" name="#file" value="unassigned.devices/unassigned.devices.cfg">
@@ -283,7 +289,7 @@ _(Debug Log Level)_:
 : <input type="submit" value='_(Apply)_'><input type="button" value="_(Done)_" onclick="done()">
 </form>
 
-<div id="title" class="nocontrol">_(SMB Security)_</div>
+<div <?=$title_classid;?> class="nocontrol">_(SMB Security)_</div>
 <form markdown="1" name="smb_settings" method="POST" action="/update.php" target="progressFrame">
 <input type="hidden" name="#section" value="Config">
 <input type="hidden" name="#file" value="unassigned.devices/unassigned.devices.cfg">
@@ -356,7 +362,7 @@ _(Add)_ 'force user = nobody' _(to SMB share config)_?
 : <input type="submit" value='_(Apply)_'><input type="button" value="_(Done)_" onclick="done()">
 </form>
 
-<div id="title" class="nocontrol">_(NFS Settings)_</div>
+<div <?=$title_classid;?> class="nocontrol">_(NFS Settings)_</div>
 <form markdown="1" name="nfs_settings" method="POST" action="/update.php" target="progressFrame">
 <input type="hidden" name="#section" value="Config">
 <input type="hidden" name="#file" value="unassigned.devices/unassigned.devices.cfg">
@@ -400,7 +406,7 @@ _(Enable NFS export)_?
 : <input type="submit" value='_(Apply)_'><input type="button" value="_(Done)_" onclick="done()">
 </form>
 
-<div id="title" class="nocontrol">_(Set Encrypted Disk Password)_</div>
+<div <?=$title_classid;?> class="nocontrol">_(Set Encrypted Disk Password)_</div>
 <form markdown="1" name="set_pass" method="POST" action="/update.php" target="progressFrame">
 <input type="hidden" name="#section" value="Config">
 <input type="hidden" name="#file" value="<?=$paths['config_file']?>">
@@ -426,7 +432,7 @@ _(Enter Disk Password)_:
 : <input type="submit" value='_(Set Password)_' title='_(Set the disk Password)_.' <?=count($encrypt_devices) ? "" : "disabled";?>>
 </form>
 
-<div id="title" class="nocontrol">_(Change Disk UUID)_</div>
+<div <?=$title_classid;?> class="nocontrol">_(Change Disk UUID)_</div>
 <form markdown="1" name="change_uuid" method="POST" action="/update.php" target="progressFrame">
 <input type="hidden" name="#section" value="Config">
 <input type="hidden" name="#file" value="<?=$paths['config_file']?>">

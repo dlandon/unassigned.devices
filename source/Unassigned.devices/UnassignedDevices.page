@@ -25,10 +25,13 @@ require_once "plugins/$plugin/include/lib.php";
 /* Get the version of Unraid we are running. */
 $version = parse_ini_file("/etc/unraid-version");
 
+/* Adjustments for 6.12 UI changes. */
 if (version_compare($version['version'], '6.12.0-beta5', '>')) {
-	$title_classid =  "class='title'";
+	$title_classid	=  "class='title'";
+	$new_model		= true;
 } else {
-	$title_classid = "id='title'";
+	$title_classid	= "id='title'";
+	$new_model		= false;
 }
 
 /* Set up name for nchan socket. */
@@ -171,7 +174,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		}
 	}(jQuery));
 
-	function openWindow_fsck(cmd,title,height,width) {
+	function openWindow_fsck(cmd,title, height, width) {
 		var run		= cmd;
 		var top		= (screen.height-height)/2;
 		var left	= (screen.width-width)/2;
@@ -303,14 +306,17 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 	function get_tab_title_by_name(name) {
 		var tab		= $("input[name$=tabs] + label").filter(function(){return $(this).text() === name;}).prev();
+<?if ($new_model):?>
+		var title	= $("div.title > span.left").filter(function(){return $(this).text() === name;}).parent();
+<?else:?>
 		var title	= $("div#title > span.left").filter(function(){return $(this).text() === name;}).parent();
-
+<?endif;?>
 		if (tab.length) {
-			rc = tab
+			rc = tab;
 		} else if (title.length) {
-			rc = title
+			rc = title;
 		} else {
-			rc = $(document)
+			rc = $(document);
 		}
 
 		return rc;
