@@ -544,13 +544,18 @@ function unassigned_detach($ata) {
 						if (is_dir("/sys/block/{$dev}/")) {
 							exec("echo 'offline' > /sys/block/{$dev}/device/state");
 							exec("echo '1' > /sys/block/{$dev}/device/delete");
-							unassigned_log("Device '{$dev}' has been detached.");
+							$i	= 0;
+							while (is_file("/dev/".$dev) && ($i < 5)) {
+								sleep(1);
+								$i++;
+							}
+							unassigned_log("Device '{$DEVNAME}' has been detached.");
 						}
 					} else {
 						unassigned_log("Device '{$DEVNAME}' is mounted and cannot be detached!");
 					}
 				} else {
-					unassigned_log("Device '{$dev}' is not a USB device and cannot be detached!");
+					unassigned_log("Device '{$DEVNAME}' is not a USB device and cannot be detached!");
 				}
 				break;
 			}
@@ -568,6 +573,15 @@ function unassigned_attach() {
 	if ($host) {
 		@file_put_contents("/sys/class/scsi_host/{$host}/scan", "- - -");
 	}
+
+	$file	= "";
+	$i		= 0;
+	while ((! $file) && ($i < 10)) {
+		sleep(1);
+		$file	= shell_exec("/usr/bin/ls /dev/disk/by-id/*-".$DEVNAME." 2>/dev/null");
+		$i++;
+	}
+	unassigned_log("Device with serial '{$DEVNAME}' has been attached.");
 }
 
 /* Abort device script. */
