@@ -1308,7 +1308,7 @@ switch ($_POST['action']) {
 		$device			= urldecode($_POST['device']);
 		$fstype			= urldecode($_POST['fstype']);
 		$mountpoint		= basename(safe_name(urldecode($_POST['mountpoint']), false));
-		$reault			= change_mountpoint($serial, $partition, $device, $fstype, $mountpoint);
+		$result			= change_mountpoint($serial, $partition, $device, $fstype, $mountpoint);
 		echo json_encode($result);
 		break;
 
