@@ -3087,7 +3087,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 						switch (luks_fs_type("/dev/mapper/".$mapper)) {
 							case "btrfs":
 								/* btrfs label change. */
-								timed_exec(20, "/sbin/btrfs filesystem label ".escapeshellarg($mapper_dev)." ".escapeshellarg($mountpoint)." 2>/dev/null");
+								timed_exec(20, "/sbin/btrfs filesystem label ".escapeshellarg($mapper)." ".escapeshellarg($mountpoint)." 2>/dev/null");
 								break;
 
 							case "xfs":
@@ -3096,7 +3096,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 								break;
 
 							case "zfs":
-								/* zfs pool name change */
+								/* zfs pool name change - nothing to do. */
 								break;
 
 							default:
