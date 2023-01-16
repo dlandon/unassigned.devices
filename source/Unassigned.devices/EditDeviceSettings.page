@@ -97,6 +97,12 @@ if (isset($_GET['s'])) {
 	$fstype				= (isset($_GET['f'])) ? $_GET['f'] : "";
 	$volume				= ($fstype == "apfs") ? get_config($ud_device, "volume.{$partition}") : "0";
 	$is_preclearing		= shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg((new MiscUD)->base_device($device))." | /bin/grep -v 'grep'") != "" ? true : false;
+	$host				= (new MiscUD)->get_device_host($_GET['s']);
+	if ($host) {
+		$attached		= empty(glob("/dev/disk/by-id/*-".$_GET['s'])) ? false : true;
+	} else {
+		$attached		= false;
+	}
 } else if (isset($_GET['d'])) {
 	/* Remote shares. */
 	$device				= $_GET['d'];
@@ -279,13 +285,13 @@ _(Disk Serial)_: <?=$serial;?>
 > Select the options for this device/mount point.  These changes are made immediately.  You don't need to click **Save** to save them.
 :end
 
-<?if (($disk_setting) && isset($_GET['s']) && isset($_GET['m']) && (! is_mounted($mount_point)) && (! $is_preclearing) && (! is_pass_through($_GET['s'])) && (new MiscUD)->get_device_host($_GET['s'])):?>
-<button type="button" title='_(Detach This Disk)_.' onclick='detach_disk("<?=$device;?>");'>_(Detach)_</button>
+<?if (($disk_setting) && (isset($_GET['s'])) && (isset($_GET['m'])) && (! is_mounted($mount_point)) && (! $is_preclearing) && (! is_pass_through($_GET['s'])) && ($host) && ($attached)):?>
+<button type="button" id="detach" title='_(Detach This Disk)_.' onclick='detach_disk("<?=$device;?>");'>_(Detach)_</button>
 <?endif;?>
-<?if (isset($_GET['s']) && (! isset($_GET['m'])) && (new MiscUD)->get_device_host($_GET['s'])):?>
-<button type="button" title='_(Attach This Disk)_.' onclick='attach_disk("<?=$_GET['s'];?>");'>_(Attach)_</button>
+<?if (isset($_GET['s']) && (! isset($_GET['m'])) && ($host) && (! $attached)):?>
+<button type="button" id="attach" title='_(Attach This Disk)_.' onclick='attach_disk("<?=$_GET['s'];?>");'>_(Attach)_</button>
 <?endif;?>
-<?if (is_script_running($file)):?>
+<?if ((is_script_running($file)) && (isset($_GET['m']))):?>
 <button type="button" title='_(Abort Device Script)_.' onclick='abort_script("<?=$file;?>");'>_(Abort)_</button>
 <?endif;?>
 <button type="button" onclick="done()">_(Done)_</button>
@@ -527,10 +533,14 @@ _(User Script)_:
 	}
 
 	function detach_disk(device) {
+		$("button[id='detach']").prop("disabled", "true");
+		$("button[id='detach']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Working');?>");
 		$.post("/update.php",{"#command":"/plugins/unassigned.devices/scripts/rc.unassigned","#arg[1]":"detach","#arg[2]":device, "#arg[3]":"true"}).done(function(){location.reload();});
 	}
 
 	function attach_disk(serial) {
+		$("button[id='attach']").prop("disabled", "true");
+		$("button[id='attach']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Working');?>");
 		$.post("/update.php",{"#command":"/plugins/unassigned.devices/scripts/rc.unassigned","#arg[1]":"attach","#arg[2]":serial}).done(function(){location.reload();});
 	}
 
