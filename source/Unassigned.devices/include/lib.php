@@ -254,7 +254,7 @@ class MiscUD
 		}
 
 		if ($mounted) {
-			$rc	= shell_exec("/usr/bin/cat /proc/mounts | grep ".basename($dev)." | awk '{print $1}'");
+			$rc	= shell_exec("/usr/bin/cat /proc/mounts | grep ".escapeshellarg(basename($dev)." ")." | awk '{print $1}'");
 		} else {
 			$rc	= shell_exec("/usr/sbin/zpool import -d ".escapeshellarg($dev)." 2>/dev/null | grep 'pool:' | /bin/awk '{print $2}'");
 			$rc	= str_replace("\n", "", $rc);
