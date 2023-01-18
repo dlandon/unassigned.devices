@@ -255,7 +255,7 @@ if (isset($_POST['action'])) {
 			break;
 
 		case 'start_preclear':
-			$devices = is_array($_POST['device']) ? $_POST['device'] : array();
+			$devices = (isset($_POST['device']) && is_array($_POST['device'])) ? $_POST['device'] : array();
 			$success = true;
 
 			if (count($devices)) {
