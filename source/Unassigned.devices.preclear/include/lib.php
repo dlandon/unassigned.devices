@@ -127,11 +127,13 @@ class Misc
 class Preclear
 {
 	public $preclear_plugin = "unassigned.devices.preclear";
+	public $allDisks, $log_file;
 
 	function __construct()
 	{
 		global $diskinfo;
-		$this->allDisks = Misc::get_json($diskinfo);
+
+		$this->allDisks = (new Misc)->get_json($diskinfo);
 		$this->log_file = $GLOBALS['log_file'];
 	}
 
