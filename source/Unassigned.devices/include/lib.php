@@ -1028,7 +1028,7 @@ function benchmark() {
 }
 
 /* Run a command and time out if it takes too long. */
-function timed_exec($timeout = 10, $cmd) {
+function timed_exec($timeout, $cmd) {
 	$time		= -microtime(true); 
 	$out		= shell_exec("/usr/bin/timeout ".escapeshellarg($timeout)." ".$cmd);
 	$time		+= microtime(true);

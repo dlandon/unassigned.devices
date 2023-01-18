@@ -12,7 +12,7 @@ Link="nav-user"
 			$.cookie('one',InitTab,{path:'/'});
 		});
 	}
-<?if (is_file("/var/state/${plugin}/reboot_required")):?>
+<?if (is_file("/var/state/".$plugin."/reboot_required")):?>
 	showUpgrade('<b>Reboot required</b> to apply Unassigned Devices update');
 <?endif;?>
 </script>
