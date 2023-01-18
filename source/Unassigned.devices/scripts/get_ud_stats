@@ -11,7 +11,7 @@
  */
 
 /* Set the level for debugging. */
-$DEBUG_LEVEL	= (! $argv[4]) ? 0 : (int) $argv[4];
+$DEBUG_LEVEL	= isset($argv[4]) ? (int) $argv[4] : 0;
 
 /* Get the comand to execute. */
 $COMMAND	= $argv[1];
@@ -61,7 +61,7 @@ function unassigned_log($m, $debug_level = 0) {
 }
 
 /* Run a command and time out if it doesn't complete in the $timeout number of seconds. */
-function timed_exec($timeout = 10, $cmd) {
+function timed_exec($timeout, $cmd) {
 	$time		= -microtime(true); 
 	$out		= shell_exec("/usr/bin/timeout ".escapeshellarg($timeout)." ".$cmd);
 	$time		+= microtime(true);

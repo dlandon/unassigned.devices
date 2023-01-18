@@ -345,6 +345,9 @@ function unassigned_log_error($errno, $errstr, $errfile, $errline)
 	case E_WARNING:
 		$error = "Warning";
 		break;
+	case E_DEPRECATED:
+		$error = "Deprecated";
+		break;
 	case E_PARSE:
 		$error = "Parse Error";
 		break;
@@ -1047,7 +1050,7 @@ function luks_fs_type($dev) {
 
 	/* Get the file system type from lsblk for a crypto_LUKS file system. */
 	$o	= shell_exec("/bin/lsblk -f | grep ".escapeshellarg(basename($dev)." ")."  2>/dev/null | grep -v 'crypto_LUKS' | /bin/awk '{print $2}'");
-	$o	= str_replace("\n", "", $o);
+	$o	= isset($o) ? str_replace("\n", "", $o) : "";
 	$rc	= ($o == "zfs_member") ? "zfs" : $o;
 
 	return ($rc ? $rc : "luks");
@@ -3092,7 +3095,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 
 							case "xfs":
 								/* xfs label change. */
-								timed_exec(20, "/usr/sbin/xfs_admin -L ".escapeshellarg($mountpoint)." ".escapeshellarg($mapper_dev)." 2>/dev/null");
+								timed_exec(20, "/usr/sbin/xfs_admin -L ".escapeshellarg($mountpoint)." ".escapeshellarg($mapper)." 2>/dev/null");
 								break;
 
 							case "zfs":
@@ -3113,6 +3116,9 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 				break;
 			}
 		}
+
+		/* Let things settle. */
+		sleep(1);
 	} else {
 		/* Update the mountpoint. */
 		set_config($serial, "mountpoint.".$partition, $mountpoint);
