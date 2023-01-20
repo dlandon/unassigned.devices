@@ -764,7 +764,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	var diskinfo		= "";
 
 	if (typeof swal2 === "undefined") {
-		$('head').append( $('<link rel="stylesheet" type="text/css" />').attr('href', '<?autov("/plugins/${plugin}/assets/sweetalert2.css");?>') );
+		$('head').append( $('<link rel="stylesheet" type="text/css" />').attr('href', '<?autov("/plugins/".$plugin."/assets/sweetalert2.css");?>') );
 		$.getScript( '/plugins/<?=$plugin;?>/assets/sweetalert2.js');
 	}
 
