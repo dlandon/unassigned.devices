@@ -10,8 +10,11 @@
  * all copies or substantial portions of the Software.
  */
 
+$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+
 set_error_handler("unassigned_log_error");
 set_exception_handler( "unassigned_log_exception" );
+
 $plugin = "unassigned.devices";
 $paths = [	"smb_unassigned"	=> "/etc/samba/smb-unassigned.conf",
 			"smb_usb_shares"	=> "/etc/samba/unassigned-shares",
@@ -44,7 +47,6 @@ $paths = [	"smb_unassigned"	=> "/etc/samba/smb-unassigned.conf",
 			"formatting"		=> "/var/state/".$plugin."/formatting_%s.state"
 		];
 
-$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $users		= @parse_ini_file("$docroot/state/users.ini", true);
 $disks		= @parse_ini_file("$docroot/state/disks.ini", true);
 
@@ -259,7 +261,7 @@ class MiscUD
 			$rc	= shell_exec("/usr/sbin/zpool import -d ".escapeshellarg($dev)." 2>/dev/null | grep 'pool:' | /bin/awk '{print $2}'");
 			$rc	= str_replace("\n", "", $rc);
 		}
-		$rc	= trim($rc);
+		$rc	= isset($rc) ? trim($rc) : "";
 
 		return $rc;
 	}
@@ -1225,8 +1227,12 @@ function execute_script($info, $action, $testing = false) {
 	$bg		= (($info['command_bg'] != "false") && ($action == "ADD")) ? "&" : "";
 	if (file_exists($cmd)) {
 		$command_script = $paths['scripts'].basename($cmd);
-		copy($cmd, $command_script);
-		@chmod($command_script, 0755);
+		if (is_file($command_script)) {
+			copy($cmd, $command_script);
+			@chmod($command_script, 0755);
+		} else {
+			unassigned_log("Script file '".$command_script."' is not a valid file!");
+		}
 		unassigned_log("Running device script: '".basename($cmd)."' with action '{$action}'.");
 
 		$script_running = is_script_running($cmd);
