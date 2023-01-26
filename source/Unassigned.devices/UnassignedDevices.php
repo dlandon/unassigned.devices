@@ -12,13 +12,12 @@
 
 $plugin = "unassigned.devices";
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+require_once("plugins/".$plugin."/include/lib.php");
+require_once("webGui/include/Helpers.php");
 
 /* add translations */
 $_SERVER['REQUEST_URI'] = 'unassigneddevices';
 require_once "$docroot/webGui/include/Translations.php";
-
-require_once("plugins/".$plugin."/include/lib.php");
-require_once("webGui/include/Helpers.php");
 
 if (isset($_POST['display'])) {
 	$display = $_POST['display'];

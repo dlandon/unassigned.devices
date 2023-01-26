@@ -16,11 +16,10 @@ Tag="unlink"
 
 $plugin = "unassigned.devices";
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+require_once "plugins/$plugin/include/lib.php";
 
 /* read translations */
 parse_plugin('UnassignedDevices');
-
-require_once "plugins/$plugin/include/lib.php";
 
 /* Get the version of Unraid we are running. */
 $version = parse_ini_file("/etc/unraid-version");

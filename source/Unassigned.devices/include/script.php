@@ -11,12 +11,12 @@
 
 $plugin = "unassigned.devices";
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+require_once("plugins/".$plugin."/include/lib.php");
 
 /* add translations */
 $_SERVER['REQUEST_URI'] = 'unassigneddevices';
 require_once "$docroot/webGui/include/Translations.php";
 
-require_once("plugins/".$plugin."/include/lib.php");
 readfile('logging.htm');
 
 function write_log($string) {
