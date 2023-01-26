@@ -111,7 +111,7 @@ function is_server_online($server, $log = false) {
 
 	/* Check the last ping status. */
 	$ping_status	= (new MiscUD)->get_json($tc);
-	$was_alive		= ($ping_status[$server]['online'] == 'yes') ? true : false;
+	$was_alive		= (isset($ping_status[$server]['online']) && ($ping_status[$server]['online'] == 'yes')) ? true : false;
 	$is_alive		= (trim(shell_exec("/bin/ping -c 1 -W 1 ".escapeshellarg($server)." >/dev/null 2>&1; echo $?")) == 0 ) ? true : false;
 	$no_pings		= isset($ping_status[$server]['no_pings']) ? $ping_status[$server]['no_pings'] : 0;
 	if (! $is_alive && ! (new MiscUD)->is_ip($server))
