@@ -256,14 +256,12 @@ class MiscUD
 		}
 
 		if ($mounted) {
-			$rc	= shell_exec("/usr/bin/cat /proc/mounts | grep ".escapeshellarg(basename($dev)." ")." | awk '{print $1}'");
+			$rc	= shell_exec("/usr/bin/cat /proc/mounts | grep ".escapeshellarg(basename($dev)." ")." | awk '{print $1}'") ?? "";
 		} else {
-			$rc	= shell_exec("/usr/sbin/zpool import -d ".escapeshellarg($dev)." 2>/dev/null | grep 'pool:' | /bin/awk '{print $2}'");
-			$rc	= str_replace("\n", "", $rc);
+			$rc	= shell_exec("/usr/sbin/zpool import -d ".escapeshellarg($dev)." 2>/dev/null | grep 'pool:' | /bin/awk '{print $2}'") ?? "";
 		}
-		$rc	= isset($rc) ? trim($rc) : "";
 
-		return $rc;
+		return trim($rc);
 	}
 }
 
@@ -988,15 +986,6 @@ function remove_all_partitions($dev) {
 		$device	= (new MiscUD)->base_device($dev);
 
 		unassigned_log("Removing all partitions from disk '".$device."'.");
-
-		/* See if this device is part of a pool. */
-		$pool_name	= (new MiscUD)->zfs_pool_name($device);
-		if ($pool_name) {
-			unassigned_log("Destroying zpool ".$pool_name." on ".$device);
-			exec("/usr/sbin/zpool import -N ".escapeshellarg($pool_name)." 2>/dev/null");
-			sleep(1);
-			exec("/usr/sbin/zpool destroy -f ".escapeshellarg($pool_name)." 2>/dev/null");
-		}
 
 		/* Remove all partitions - this clears the disk. */
 		sleep(1);
