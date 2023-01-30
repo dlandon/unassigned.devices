@@ -255,10 +255,15 @@ class MiscUD
 			exec("/sbin/modprobe zfs");
 		}
 
-		if ($mounted) {
-			$rc	= shell_exec("/usr/bin/cat /proc/mounts | grep ".escapeshellarg(basename($dev)." ")." | awk '{print $1}'") ?? "";
+		/* Only check for pool name if zfs is running. */
+		if (is_file("/usr/sbin/zpool")) {
+			if ($mounted) {
+				$rc	= shell_exec("/usr/bin/cat /proc/mounts | grep ".escapeshellarg(basename($dev)." ")." | awk '{print $1}'") ?? "";
+			} else {
+				$rc	= shell_exec("/usr/sbin/zpool import -d ".escapeshellarg($dev)." 2>/dev/null | grep 'pool:' | /bin/awk '{print $2}'") ?? "";
+			}
 		} else {
-			$rc	= shell_exec("/usr/sbin/zpool import -d ".escapeshellarg($dev)." 2>/dev/null | grep 'pool:' | /bin/awk '{print $2}'") ?? "";
+			$rc	= "";
 		}
 
 		return trim($rc);
@@ -344,9 +349,6 @@ function unassigned_log_error($errno, $errstr, $errfile, $errline)
 		break;
 	case E_WARNING:
 		$error = "Warning";
-		break;
-	case E_DEPRECATED:
-		$error = "Deprecated";
 		break;
 	case E_PARSE:
 		$error = "Parse Error";
@@ -927,6 +929,35 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 		}
 	}
 
+	if ($fs != "zfs") {
+		sleep(1);
+		/* See if there is a zpool signature on the disk. */
+		$old_pool_name	= (new MiscUD)->zfs_pool_name($dev);
+		if ($old_pool_name) {
+			/* Remove zpool label info. */
+			exec("/usr/sbin/zpool labelclear -f ".escapeshellarg($dev));
+			sleep(1);
+			unassigned_log("Format failed, zpool signature found on device '".$dev."'!  Clear the disk and try again.");
+			$rc		= false;
+		}
+
+		/* Get partition designation based on type of device. */
+		if ((new MiscUD)->is_device_nvme($dev)) {
+			$device	= $dev."p1";
+		} else {
+			$device	= $dev."1";
+		}
+
+		$old_pool_name	= (new MiscUD)->zfs_pool_name($device);
+		if ($old_pool_name) {
+			/* Remove zpool label info. */
+			exec("/usr/sbin/zpool labelclear -f ".escapeshellarg($device));
+			sleep(1);
+			unassigned_log("Format failed, zpool signature found on device partition '".$device."'!  Clear the disk and try again.");
+			$rc		= false;
+		}
+	}
+
 	return $rc;
 }
 
@@ -971,7 +1002,8 @@ function remove_all_partitions($dev) {
 	$rc = true;
 
 	/* Be sure there are no mounted partitions. */
-	foreach (get_all_disks_info() as $d) {
+	$disks	= get_all_disks_info();
+	foreach ($disks as $d) {
 		if ($d['device'] == $dev) {
 			foreach ($d['partitions'] as $p) {
 				if ($p['target']) {
@@ -987,8 +1019,38 @@ function remove_all_partitions($dev) {
 
 		unassigned_log("Removing all partitions from disk '".$device."'.");
 
+		$pool_name	= (new MiscUD)->zfs_pool_name($device);
+		if ($pool_name) {
+			/* Remove zpool label info. */
+			exec("/usr/sbin/zpool labelclear -f ".escapeshellarg($device));
+			sleep(1);
+		}
+
 		/* Remove all partitions - this clears the disk. */
-		sleep(1);
+		foreach ($disks as $d) {
+			if ($d['device'] == $dev) {
+				foreach ($d['partitions'] as $p) {
+					/* Get partition designation based on type of device. */
+					if ((new MiscUD)->is_device_nvme($device)) {
+						$zfs_device	= $device."p".$p['part'];
+					} else {
+						$zfs_device	= $device.$p['part'];
+					}
+
+					$pool_name	= (new MiscUD)->zfs_pool_name($zfs_device);
+					if ($pool_name) {
+						/* Remove zpool label info. */
+						exec("/usr/sbin/zpool labelclear -f ".escapeshellarg($zfs_device));
+						sleep(1);
+					}
+
+					/* We have to clear every partition. */
+					exec("/sbin/wipefs --all --force ".escapeshellarg($zfs_device)." 2>&1");
+					sleep(1);
+				}
+			}
+		}
+
 		exec("/sbin/wipefs --all --force ".escapeshellarg($device)." 2>&1");
 
 		/* Let things settle a bit. */
@@ -1216,7 +1278,7 @@ function execute_script($info, $action, $testing = false) {
 	$bg		= (($info['command_bg'] != "false") && ($action == "ADD")) ? "&" : "";
 	if (file_exists($cmd)) {
 		$command_script = $paths['scripts'].basename($cmd);
-		if (is_file($command_script)) {
+		if (is_file($cmd)) {
 			copy($cmd, $command_script);
 			@chmod($command_script, 0755);
 		} else {
