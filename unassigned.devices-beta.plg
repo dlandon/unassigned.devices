@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"beta-2023.01.29">
+<!ENTITY version	"beta-2023.01.30">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;-beta.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"0955c1713c05734a45aee9a6676997bc">
+<!ENTITY MD5		"998b2b7905642b3a171bbc4d7794e477">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,7 @@
 ###&version;
 - Fix: Change mountpoint shows it failed when it did not.
 - Fix: Php error when changing mount point on luks btrfs formatted disk.
+- Fix: Improve clear disk and remove zpool signatures so a disk can be reformatted.
 - Add: Attach and Detach buttons gray out while operation is in progress and then disappear when the operation is completed.
 
 ###2023.01.15
@@ -2005,7 +2006,7 @@ find /boot/config/plugins/&name; -type f -iname "&name;*.md5" ! -iname "*&versio
 udevadm control --reload-rules
 
 # Remove the unused smb-extra.conf entries
-if [[ `/usr/bin/grep '#unassigned_devices' /boot/config/smb-extra.conf` != "" ]]; then
+if [[ `/usr/bin/grep '#unassigned_devices' /boot/config/smb-extra.conf > /dev/null` != "" ]]; then
 	/usr/bin/sed '/#unassigned_devices_start/,/#unassigned_devices_end/d' /boot/config/smb-extra.conf > /tmp/smb.tmp
 	mv /tmp/smb.tmp /boot/config/smb-extra.conf
 fi
