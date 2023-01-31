@@ -540,6 +540,7 @@ function unassigned_detach($ata) {
 							$mounted = false;
 						}
 					}
+
 					if (! $mounted) {
 						if (is_dir("/sys/block/{$dev}/")) {
 							exec("echo 'offline' > /sys/block/{$dev}/device/state");
@@ -567,8 +568,8 @@ function unassigned_detach($ata) {
 function unassigned_attach() {
 	global $DEVNAME;
 
-	/* Get this device's hostX. */
-	$host	= (new MiscUD)->get_device_host($DEVNAME);
+	/* Get this device's hostX and delete the hosts entry in case the device has been removed. */
+	$host	= (new MiscUD)->get_device_host($DEVNAME, true);
 
 	if ($host) {
 		@file_put_contents("/sys/class/scsi_host/{$host}/scan", "- - -");
