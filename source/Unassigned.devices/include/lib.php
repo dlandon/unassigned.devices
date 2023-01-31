@@ -201,11 +201,12 @@ class MiscUD
 		/* Save the hostX. */
 		$device_hosts[$serial] = $host;
 
+		/* Save the new hosts array. */
 		(new MiscUD)->save_json($paths['device_hosts'], $device_hosts);
 	}
 
 	/* Get the device hostX. */
-	public function get_device_host($serial) {
+	public function get_device_host($serial, $delete = false) {
 		global $paths;
 
 		$rc	= "";
@@ -216,6 +217,15 @@ class MiscUD
 		if (isset($device_hosts[$serial]) && (is_file("/sys/class/scsi_host/{$device_hosts[$serial]}/scan"))) {
 			/* Return the hostX. */
 			$rc	= $device_hosts[$serial];
+
+			/* Remove this serial number. */
+			if ($delete) {
+				/* Delete this host entry.  If the device is actually connected, the host entry will be restored when it is recognized. */
+				unset($device_hosts[$serial]);
+
+				/* Save the new hosts array. */
+				(new MiscUD)->save_json($paths['device_hosts'], $device_hosts);
+			}
 		}
 
 		return $rc;
@@ -1157,7 +1167,7 @@ function is_pass_through($serial) {
 	return (get_config($serial, "pass_through") == "yes") ? true : false;
 }
 
-/* Is device set to pass through. */
+/* Is disable mount button set. */
 function is_disable_mount($serial) {
 	return (get_config($serial, "disable_mount") == "yes") ? true : false;
 }
