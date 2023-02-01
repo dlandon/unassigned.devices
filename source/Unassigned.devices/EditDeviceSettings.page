@@ -81,7 +81,8 @@ if (isset($_GET['s'])) {
 	$automount			= (is_automount($serial)) ? "checked" : "";
 	$share				= (config_shared($serial, $partition, $_GET['u'])) ? "checked" : "";
 	$show_partitions	= (get_config($serial, "show_partitions") == "no" ) ? "" : "checked";
-	$width				= "70%";
+	$mounted			= is_mounted($mount_point);
+	$width				= $mounted ? "57%" : "70%";
 	$automount_action	= "automount";
 	$name				= get_config($serial, "unassigned_dev");
 	$ud_device			= $serial;
@@ -122,6 +123,7 @@ if (isset($_GET['s'])) {
 	$disable_mount		= (is_samba_disable_mount($device)) ? "checked" : "";
 	$automount			= (is_samba_automount($device)) ? "checked" : "";
 	$share				= (is_samba_share($device)) ? "checked" : "";
+	$mounted			= is_mounted($mount_point);
 	$width				= "35%";
 	$automount_action	= "samba_automount";
 	$ud_device			= $device;
@@ -141,6 +143,7 @@ if (isset($_GET['s'])) {
 	}
 	$background			= (get_iso_config($device, "command_bg") != "false" ) ? "yes" : "no";
 	$automount			= (is_iso_automount($device)) ? "checked" : "";
+	$mounted			= is_mounted($mount_point);
 	$witdh				= "20%";
 	$automount_action	= "iso_automount";
 	$ud_device			= $device;
@@ -254,7 +257,9 @@ _(Disk Serial)_: <?=$serial;?>
 
 <?if ($show_device_switches):?>
 <?if (isset($_GET['s'])):?>
+<?if (! $mounted):?>
 <td title='_(Mark this Device as passed through to a VM or Docker Container)_.'><input type='checkbox' class='passthrough-switch'></td>
+<?endif;?>
 <td title='_(Disable Mount/Unmount Buttons)_.'><input type='checkbox' class='disable-mount-switch'></td>
 <td title='_(Mount Device Read only)_.'><input type='checkbox' class='readonly-switch'></td>
 <td title='_(Mount Device when Plugged in or Array is Started)_.'><input type='checkbox' class='automount-switch'></td>
@@ -285,7 +290,7 @@ _(Disk Serial)_: <?=$serial;?>
 > Select the options for this device/mount point.  These changes are made immediately.  You don't need to click **Save** to save them.
 :end
 
-<?if (($disk_setting) && (isset($_GET['s'])) && (isset($_GET['m'])) && (! is_mounted($mount_point)) && (! $is_preclearing) && (! is_pass_through($_GET['s'])) && ($host) && ($attached)):?>
+<?if (($disk_setting) && (isset($_GET['s'])) && (isset($_GET['m'])) && (! $mounted) && (! $is_preclearing) && (! is_pass_through($_GET['s'])) && ($host) && ($attached)):?>
 <button type="button" id="detach" title='_(Detach This Disk)_.' onclick='detach_disk("<?=$device;?>");'>_(Detach)_</button>
 <?endif;?>
 <?if (isset($_GET['s']) && (! isset($_GET['m'])) && ($host) && (! $attached)):?>
@@ -387,16 +392,16 @@ _(User Script)_:
 <script>
 	var UDURL		= '/plugins/<?=$plugin;?>/UnassignedDevices.php';
 
+<? if (! $mounted):?>
 	$('.passthrough-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Passed Through');?>", off_label: "<?=_('Passed Through');?>", checked:"<?=$pass_through;?>" });
 	$('.passthrough-switch').change(function()
 	{
-<? if (! is_mounted($mount_point)):?>
 		$.post(UDURL,{action:"toggle_pass_through",serial:"<?=$ud_device;?>",status:$(this).is(":checked")},function(data)
 		{
 			$(this).prop("checked",data.result);
 		}, 'json');
-<?endif;?>
 	});
+<?endif;?>
 
 	$('.disable-mount-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Disable Mount Button');?>", off_label: "<?=_('Disable Mount Button');?>", checked:"<?=$disable_mount;?>" });
 	$('.disable-mount-switch').change(function()
