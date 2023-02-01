@@ -18,6 +18,7 @@ Tag="icon-preclear"
 $preclear_plugin	= "unassigned.devices.preclear";
 $docroot			= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 require_once("$docroot/plugins/{$preclear_plugin}/Preclear.php");
+
 $Preclear			= new Preclear;
 $zipFile			= sprintf("log/%s-%s-%s.zip", str_replace(' ','_',strtoupper($var['NAME'])), $preclear_plugin, date('Ymd-Hi') );
 ?>
