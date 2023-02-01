@@ -248,7 +248,7 @@ _(Disk Serial)_: <?=$serial;?>
 <strong>_(Mount Point)_: </strong><?=$mount_point;?>
 <?endif;?>
 
-<table style='width: <?=$width;?>;' class='usb_disks'><thead><tr><td></td><td></td><td></td><td></td></tr></thead>
+<table style='width: <?=$width;?>;' class='usb_disks'><thead><tr><td></td><td></td><td></td><td></td><td></td><td></td></tr></thead>
 <tr>
 &nbsp;
 
