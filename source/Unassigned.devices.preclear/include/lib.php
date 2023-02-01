@@ -12,6 +12,7 @@
 
 /* Load emhttp variables if needed. */
 $docroot 		= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+
 if (!isset($var)) {
 	if (!is_file("$docroot/state/var.ini")) {
 		shell_exec("wget -qO /dev/null localhost:$(lsof -nPc emhttp | grep -Po 'TCP[^\d]*\K\d+')");
