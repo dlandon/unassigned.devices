@@ -492,7 +492,7 @@ function unassigned_reload() {
 
 /* A hotplug disk event has arrived. */
 function unassigned_hotplug() {
-	global $DEVNAME, $paths;
+	global $paths;
 
 	if ($_ENV['DEVTYPE'] == "disk") {
 
@@ -513,20 +513,18 @@ function unassigned_hotplug() {
 }
 
 /* Spin down a disk using Unraid api. */
-function unassigned_spin_down() {
-	global $DEVNAME;
+function unassigned_spin_down($device) {
 
 	if (! is_file("/tmp/unassigned.devices/shut_down")) {
-		$dev = basename($DEVNAME);
+		$dev = basename($device);
 		(new MiscUD)->spin_disk(true, $dev);
 	}
 }
 
 /* Detach the disk device. */
-function unassigned_detach($ata) {
-	global $DEVNAME;
+function unassigned_detach($device, $ata) {
 
-	$dev = (new MiscUD)->base_device(basename($DEVNAME));
+	$dev = (new MiscUD)->base_device(basename($device));
 
 	if (! is_file("/tmp/unassigned.devices/shut_down")) {
 		/* We only allow removing USB devices. */
@@ -550,13 +548,13 @@ function unassigned_detach($ata) {
 								sleep(1);
 								$i++;
 							}
-							unassigned_log("Device '{$DEVNAME}' has been detached.");
+							unassigned_log("Device '{$device}' has been detached.");
 						}
 					} else {
-						unassigned_log("Device '{$DEVNAME}' is mounted and cannot be detached!");
+						unassigned_log("Device '{$device}' is mounted and cannot be detached!");
 					}
 				} else {
-					unassigned_log("Device '{$DEVNAME}' is not a USB device and cannot be detached!");
+					unassigned_log("Device '{$device}' is not a USB device and cannot be detached!");
 				}
 				break;
 			}
@@ -565,11 +563,10 @@ function unassigned_detach($ata) {
 }
 
 /* Attach a disk device that is detached. */
-function unassigned_attach() {
-	global $DEVNAME;
+function unassigned_attach($device) {
 
 	/* Get this device's hostX and delete the hosts entry in case the device has been removed. */
-	$host	= (new MiscUD)->get_device_host($DEVNAME, true);
+	$host	= (new MiscUD)->get_device_host($device, true);
 
 	if ($host) {
 		@file_put_contents("/sys/class/scsi_host/{$host}/scan", "- - -");
@@ -579,10 +576,10 @@ function unassigned_attach() {
 	$i		= 0;
 	while ((! $file) && ($i < 10)) {
 		sleep(1);
-		$file	= shell_exec("/usr/bin/ls /dev/disk/by-id/*-".$DEVNAME." 2>/dev/null");
+		$file	= shell_exec("/usr/bin/ls /dev/disk/by-id/*-".$device." 2>/dev/null");
 		$i++;
 	}
-	unassigned_log("Device with serial '{$DEVNAME}' has been attached.");
+	unassigned_log("Device with serial '{$device}' has been attached.");
 }
 
 /* Abort device script. */
@@ -646,16 +643,16 @@ switch ($COMMAND) {
 		break;
 
 	case 'spindown':
-		unassigned_spin_down();
+		unassigned_spin_down($DEVNAME);
 		break;
 
 	case 'detach':
 		$ata = ($argv[3] == "true") ? true : false;
-		unassigned_detach($ata);
+		unassigned_detach($DEVNAME, $ata);
 		break;
 
 	case 'attach':
-		unassigned_attach();
+		unassigned_attach($DEVNAME);
 		break;
 
 	case 'abort':
