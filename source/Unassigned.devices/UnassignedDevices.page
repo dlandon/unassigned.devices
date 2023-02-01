@@ -715,7 +715,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 > + '/usr/local/sbin/rc.unassigned spindown /dev/sdX or devX' - spin down disk device.
 > + '/usr/local/sbin/rc.unassigned spindown name=diskname' - spin down a disk by disk name.
 > + '/usr/local/sbin/rc.unassigned detach /dev/sdX or devX' - detach a USB disk device. You can use this command in a UD script to detach the device when the script has completed.
-> + '/usr/local/sbin/rc.unassigned attach serial - attach a disk device. You can use this command in a UD script to attach the device.
+> + '/usr/local/sbin/rc.unassigned attach serial - attach a disk device. You can use this command in a script to attach a device.
 > + '/usr/local/sbin/rc.unassigned mount source' - where source is the SMB/NFS source.
 > + '/usr/local/sbin/rc.unassigned umount source' - where source is the SMB/NFS source.
 >
