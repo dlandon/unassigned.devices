@@ -2849,7 +2849,7 @@ function get_disk_info($dev) {
 	$disk['serial_short']		= isset($attrs['ID_SCSI_SERIAL']) ? $attrs['ID_SCSI_SERIAL'] : (isset($attrs['ID_SERIAL_SHORT']) ? $attrs['ID_SERIAL_SHORT'] : "");
 	$disk['device']				= realpath($dev);
 	$disk['serial']				= get_disk_id($disk['device'], trim($attrs['ID_SERIAL']));
-	$disk['id_bus']				= $attrs['ID_BUS'];
+	$disk['id_bus']				= isset($attrs['ID_BUS']) ? $attrs['ID_BUS'] : "";
 	$disk['ud_dev']				= get_disk_dev($disk['device']);
 	$disk['unassigned_dev']		= get_config($disk['serial'], "unassigned_dev");
 	$disk['ssd']				= is_disk_ssd($disk['device']);
