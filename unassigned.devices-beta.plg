@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"beta-2023.01.30">
+<!ENTITY version	"beta-2023.02.01">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;-beta.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"998b2b7905642b3a171bbc4d7794e477">
+<!ENTITY MD5		"995c0f5b196afb28fe966b0e18755e87">
 ]>
 
 <PLUGIN name="&name;"
@@ -26,6 +26,7 @@
 - Fix: Php error when changing mount point on luks btrfs formatted disk.
 - Fix: Improve clear disk and remove zpool signatures so a disk can be reformatted.
 - Add: Attach and Detach buttons gray out while operation is in progress and then disappear when the operation is completed.
+- Add: Show green orb when Historical Disk is in standby (detached but still connected).
 
 ###2023.01.15
 - Fix: Fix refresh of 'Edit Device Settings' to show changes properly.
