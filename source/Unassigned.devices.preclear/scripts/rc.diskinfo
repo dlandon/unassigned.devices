@@ -223,7 +223,7 @@ function get_temp($ud_dev) {
 }
 
 /* Run a command and time out if it takes too long. */
-function timed_exec($timeout = 10, $cmd) {
+function timed_exec($timeout, $cmd) {
 	$time		= -microtime(true); 
 	$out		= shell_exec("/usr/bin/timeout ".escapeshellarg($timeout)." ".$cmd);
 	$time		+= microtime(true);
@@ -352,7 +352,7 @@ class Disks
 				$cache[$key] = $disk;
 			}
 			$no_file_system	= true;
-			if (is_array($disk['PARTS'])) {
+			if ((isset($disk['PARTS'])) && (is_array($disk['PARTS']))) {
 				foreach ($disk['PARTS'] as $part) {
 					if ($part['FSTYPE']) {
 						$no_file_system	= false;
