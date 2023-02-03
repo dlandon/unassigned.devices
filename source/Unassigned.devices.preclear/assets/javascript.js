@@ -1,5 +1,5 @@
 /* Copyright 2015-2020, Guilherme Jardim
- * Copyright 2023, Dan Landon
+ * Copyright 2022-2023, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -561,68 +561,6 @@ function rmReport(file, el)
 			preclearShowResult(data)
 		}
 	}).fail(preclearShowResult(data));
-}
-
-function get_tab_title_by_name(name) {
-	var tab		= $("input[name$=tabs] + label").filter(function(){return $(this).text() === name;}).prev();
-	var title	= $("div#title > span.left").filter(function(){return $(this).text() === name;}).parent();
-	if (tab.length) {
-		return tab
-	} else if (title.length) {
-		return title
-	} else {
-		return $(document)
-	}
-}
-
-function addButtonTab(Button, Name, autoHide, Append)
-{
-	if (typeof(autoHide) == "undefined") autoHide = true;
-	if (typeof(Append)	 == "undefined") Append	 = true;
-
-	var Target		= get_tab_title_by_name(Name);
-	var elementId = 'event-' + new Date().getTime() * Math.floor(Math.random()*100000);
-	var element	 = $("<span id='"+elementId+"' class='status' style='padding-left:5px;'>"+Button+"</span>");
-	
-	if (element.find("input[type='button']").length ) {
-		element.addClass("vhshift");
-		element.find("input[type='button']").prop("style","padding-top: 5px; padding-bottom: 5px; margin-top:-3px; margin-bottom:0;");
-	}
-
-	if (Target.prop('nodeName') === "DIV") {
-		element.addClass("vhshift");
-		if (Append)
-		{
-			Target.append(element);
-		}
-		else
-		{
-			Target.prepend(element);
-		}
-	} else if (Target.prop('nodeName') === "INPUT") {
-		element.css("display","none");
-
-		if (Append) {
-			$('.tabs').append(element);
-		} else {
-			$('.tabs').prepend(element);
-		}
-
-		Target.bind({click:function(){$('#'+elementId).fadeIn('slow');}});
-
-		if (Target.is(':checked') || ! autoHide) {
-			$('#'+elementId).fadeIn('slow');
-		}
-
-		$("input[name$=tabs]").each(function()
-		{
-			if (! $(this).is(Target) && autoHide ) {
-				$(this).bind({click:function(){$('#'+elementId).fadeOut('slow');}});
-			}
-		});
-	} else {
-		return false;
-	}
 }
 
 function getResumablePreclear(serial)
