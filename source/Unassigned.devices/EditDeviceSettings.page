@@ -324,7 +324,7 @@ _(Disk Name)_:
 :end
 <?endif;?>
 
-<?if ($fstype == "apfs"):?>
+<?if (($fstype == "apfs") && (! $mounted)):?>
 apfs _(Volume)_:
 : <input type="text" name="#volume" class="narrow" style="width:2%" maxlength="1" value="<?=$volume;?>" placeholder="0">
 <?endif;?>
