@@ -26,7 +26,7 @@ $version = parse_ini_file("/etc/unraid-version");
 
 /* Adjustments for 6.12 UI changes. */
 if (version_compare($version['version'], '6.12.0-beta5', '>')) {
-	$title_classid	=  "class='title'";
+	$title_classid	= "class='title'";
 	$new_model		= true;
 } else {
 	$title_classid	= "id='title'";
@@ -610,7 +610,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 :end
 
 <div class='show-shares'>
-	<div <?=$title_classid?> class='show-disks'>
+	<div <?=$title_classid;?> class='show-disks'>
 		<span class='left'>
 			<img src='/plugins/<?=$plugin?>/icons/smbsettings.png' class='icon'><?=_('SMB Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/nfs.png' class='icon'><?=_('NFS Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/iso.png' class='icon' style='width:16px;'><?=_('ISO File Shares')?>
 		</span>
@@ -645,7 +645,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 <div class='show-disks'>
 	<div class='show-historical'>
-		<div <?=$title_classid?>>
+		<div <?=$title_classid;?>>
 			<span class='left'><img src='/plugins/<?=$plugin?>/icons/historical.png' class='icon'><?=_('Historical Devices')?></span>
 		</div>
 		<table class='disk_status wide usb_absent'>
