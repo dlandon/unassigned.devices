@@ -127,7 +127,7 @@ function is_server_online($server, $log = false) {
 	if (! $is_alive) {
 		/* Check for three consecutive negative pings before declaring it is off-line. */
 		$no_pings++;
-		if (($no_pings <= 3) && ($ping_status[$server]['online'] == 'yes')) {
+		if (($no_pings <= 3) && (isset($ping_status[$server]['online'])) && ($ping_status[$server]['online'] == 'yes')) {
 			$is_alive = true;
 		} else if ($no_pings > 3){
 			$no_pings = 0;
