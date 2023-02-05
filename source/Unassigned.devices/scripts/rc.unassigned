@@ -59,11 +59,17 @@ function unassigned_mount() {
 
 	/* Mount local disks. */
 	foreach (get_unassigned_disks() as $name => $disk) {
-		$device = $disk['device'];
+		$device		= $disk['device'];
+		$disk_info	= get_disk_info($device);
+
+		/* If disk is passed through or is marked as an array disk, skip to the next disk. */
+		if (($disk_info['pass_through']) || ($disk_info['array_disk'])) {
+			continue;
+		}
+
 		foreach ($disk['partitions'] as $partition)
 		{
 			if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "auto" || $DEVNAME == "autodevices" ) {
-				$disk_info	= get_disk_info($device);
 				$info = get_partition_info($partition);
 
 				/* If partition info is non-existent, skip this partition. */
@@ -72,11 +78,6 @@ function unassigned_mount() {
 				}
 
 				unassigned_log("Partition found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) && (strpos($k, "pass_through") === false)? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
-
-				/* If disk is passed through or is marked as an array disk, skip to the next disk. */
-				if (($disk_info['pass_through']) || ($disk_info['array_disk'])) {
-					continue;
-				}
 
 				/* If disk is formatting, skip to the next one. */
 				if ((new MiscUD)->get_formatting_status(basename($device))) {
@@ -294,21 +295,22 @@ function unassigned_umount() {
 
 	/* Unmount local disks. */
 	foreach(get_unassigned_disks() as $disk) {
-		$device = $disk['device'];
+		$device		= $disk['device'];
+		$disk_info	= get_disk_info($device);
+
+		/* If disk is passed through or is marked as an array disk, skip to the next disk. */
+		if (($disk_info['pass_through']) || ($disk_info['array_disk'])) {
+			continue;
+		}
+
 		foreach ($disk['partitions'] as $partition) {
 			if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "auto" || $DEVNAME == "all" ) {
-				$disk_info	= get_disk_info($device);
 				$info = get_partition_info($partition);
 				if (! $info['automount'] && $DEVNAME == "auto" ) {
 					continue;
 				}
 
 				unassigned_log("Partition found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) && (strpos($k, "pass_through") === false)? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
-
-				/* If disk is passed through or is marked as an array disk, skip to the next disk. */
-				if (($disk_info['pass_through']) || ($disk_info['array_disk'])) {
-					continue;
-				}
 
 				/* If disk is btrfs pool disk it is not independently mounted and can't be unmounted, skip to the next disk. */
 				if ($info['pool']) {
