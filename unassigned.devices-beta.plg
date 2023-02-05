@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"beta-2023.02.03">
+<!ENTITY version	"beta-2023.02.04">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;-beta.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"2fb6adf521ef4ab025a5f8ab89c380ac">
+<!ENTITY MD5		"4fad30cbb11498bca177eea704a146cd">
 ]>
 
 <PLUGIN name="&name;"
@@ -2009,9 +2009,11 @@ find /boot/config/plugins/&name; -type f -iname "&name;*.md5" ! -iname "*&versio
 udevadm control --reload-rules
 
 # Remove the unused smb-extra.conf entries
-if [[ `/usr/bin/grep '#unassigned_devices' /boot/config/smb-extra.conf > /dev/null` != "" ]]; then
-	/usr/bin/sed '/#unassigned_devices_start/,/#unassigned_devices_end/d' /boot/config/smb-extra.conf > /tmp/smb.tmp
-	mv /tmp/smb.tmp /boot/config/smb-extra.conf
+if [ -f /boot/config/smb-extra.conf ] ; then
+	if [[ `/usr/bin/grep '#unassigned_devices' /boot/config/smb-extra.conf > /dev/null` != "" ]]; then
+		/usr/bin/sed '/#unassigned_devices_start/,/#unassigned_devices_end/d' /boot/config/smb-extra.conf > /tmp/smb.tmp
+		mv /tmp/smb.tmp /boot/config/smb-extra.conf
+	fi
 fi
 
 echo ""
