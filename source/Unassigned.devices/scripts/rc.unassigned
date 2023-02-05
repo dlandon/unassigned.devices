@@ -66,6 +66,11 @@ function unassigned_mount() {
 				$disk_info	= get_disk_info($device);
 				$info = get_partition_info($partition);
 
+				/* If partition info is non-existent, skip this partition. */
+				if (! isset($info)) {
+					continue;
+				}
+
 				unassigned_log("Partition found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) && (strpos($k, "pass_through") === false)? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
 
 				/* If disk is passed through or is marked as an array disk, skip to the next disk. */
