@@ -2965,9 +2965,10 @@ function get_partition_info($dev) {
 		$disk['used']			= intval($stats[1])*1024;
 		$disk['avail']			= intval($stats[2])*1024;
 		$disk['owner']			= (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
-		$disk['automount']		= is_automount($disk['serial'], ($attrs['ID_BUS'] == "usb") ? true : false);
+		$usb					= (isset($attrs['ID_BUS']) && ($attrs['ID_BUS'] == "usb")) ? true : false;
+		$disk['automount']		= is_automount($disk['serial'], $usb);
 		$disk['read_only']		= is_read_only($disk['serial']);
-		$disk['shared']			= config_shared($disk['serial'], $disk['part'], ($attrs['ID_BUS'] == "usb") ? true : false);
+		$disk['shared']			= config_shared($disk['serial'], $disk['part'], $usb);
 		$disk['command']		= get_config($disk['serial'], "command.{$disk['part']}");
 		$disk['user_command']	= get_config($disk['serial'], "user_command.{$disk['part']}");
 		$disk['command_bg']		= get_config($disk['serial'], "command_bg.{$disk['part']}");
