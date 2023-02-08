@@ -2859,6 +2859,8 @@ function get_disk_info($dev) {
 	$disk['read_rate']			= $rw[2];
 	$disk['write_rate']			= $rw[3];
 	$disk['running']			= is_disk_running($disk['ud_dev'], $disk['device']);
+	$usb						= (isset($attrs['ID_BUS']) && ($attrs['ID_BUS'] == "usb")) ? true : false;
+	$disk['automount']			= is_automount($disk['serial'], $usb);
 	$disk['temperature']		= get_temp($disk['ud_dev'], $disk['device'], $disk['running']);
 	$disk['command']			= get_config($disk['serial'], "command.1");
 	$disk['command_bg']			= get_config($disk['serial'], "command_bg.1");
@@ -2965,9 +2967,8 @@ function get_partition_info($dev) {
 		$disk['used']			= intval($stats[1])*1024;
 		$disk['avail']			= intval($stats[2])*1024;
 		$disk['owner']			= (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
-		$usb					= (isset($attrs['ID_BUS']) && ($attrs['ID_BUS'] == "usb")) ? true : false;
-		$disk['automount']		= is_automount($disk['serial'], $usb);
 		$disk['read_only']		= is_read_only($disk['serial']);
+		$usb					= (isset($attrs['ID_BUS']) && ($attrs['ID_BUS'] == "usb")) ? true : false;
 		$disk['shared']			= config_shared($disk['serial'], $disk['part'], $usb);
 		$disk['command']		= get_config($disk['serial'], "command.{$disk['part']}");
 		$disk['user_command']	= get_config($disk['serial'], "user_command.{$disk['part']}");

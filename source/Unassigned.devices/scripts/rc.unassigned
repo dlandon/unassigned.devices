@@ -67,6 +67,28 @@ function unassigned_mount() {
 			continue;
 		}
 
+		/* If the device doesn't have a serial number it cannot be mounted. */
+		if (! $disk_info['serial']) {
+			unassigned_log("Disk '".basename($device)."' does not have a serial number and cannot be mounted.");
+			continue;
+		}
+
+		/* If disk is formatting, skip to the next one. */
+		if ((new MiscUD)->get_formatting_status(basename($device))) {
+			continue;
+		}
+
+		/* If disk is already mounting, skip to the next one. */
+		if ((new MiscUD)->get_mounting_status(basename($device))) {
+			continue;
+		}
+
+		/* If disk is not set to auto mount, skip to the next disk. */
+		if (! $disk_info['automount'] && ( $DEVNAME == "auto" || $DEVNAME == "autodevices" || isset($_ENV['DEVNAME']) )) {
+			unassigned_log("Disk with ID '{$disk_info['serial']} (".(new MiscUD)->base_device(basename($device)).")' is not set to auto mount.");
+			continue;
+		}
+
 		foreach ($disk['partitions'] as $partition)
 		{
 			if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "auto" || $DEVNAME == "autodevices" ) {
@@ -78,25 +100,6 @@ function unassigned_mount() {
 				}
 
 				unassigned_log("Partition found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) && (strpos($k, "pass_through") === false)? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
-
-				/* If disk is formatting, skip to the next one. */
-				if ((new MiscUD)->get_formatting_status(basename($device))) {
-					continue;
-				}
-
-				/* If disk is not set to auto mount, skip to the next disk. */
-				if (! $info['automount'] && ( $DEVNAME == "auto" || $DEVNAME == "autodevices" || isset($_ENV['DEVNAME']) )) {
-					if ($info['fstype']) {
-						unassigned_log("Disk with ID '{$info['serial']} (".(new MiscUD)->base_device(basename($device)).")' is not set to auto mount.");
-					}
-					continue;
-				}
-
-				/* If the device doesn't have a serial number it cannot be mounted. */
-				if (! $info['serial']) {
-					unassigned_log("Disk '".basename($device)."' does not have a serial number and cannot be mounted.");
-					continue;
-				}
 
 				/* If partition does not have a file system it cannot be mounted. */
 				if (! $info['fstype']) {
@@ -303,12 +306,18 @@ function unassigned_umount() {
 			continue;
 		}
 
+		/* If disk is already unmounting, skip to the next one. */
+		if ((new MiscUD)->get_unmounting_status(basename($device))) {
+			continue;
+		}
+
+		if (! $disk_info['automount'] && $DEVNAME == "auto" ) {
+			continue;
+		}
+
 		foreach ($disk['partitions'] as $partition) {
 			if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "auto" || $DEVNAME == "all" ) {
 				$info = get_partition_info($partition);
-				if (! $info['automount'] && $DEVNAME == "auto" ) {
-					continue;
-				}
 
 				unassigned_log("Partition found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) && (strpos($k, "pass_through") === false)? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
 

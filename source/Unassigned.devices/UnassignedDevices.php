@@ -214,7 +214,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 			$title .= "<br />"._("Read Only").": ";
 			$title .= ($partition['read_only'] == 'yes') ? "Yes" : "No";
 			$title .= "<br />"._("Automount").": ";
-			$title .= ($partition['automount'] == 'yes') ? "Yes" : "No";
+			$title .= ($disk['automount'] == 'yes') ? "Yes" : "No";
 		}
 		$title .= "<br />"._("Share").": ";
 		$title .= ($partition['shared'] == 'yes') ? "Yes" : "No";
