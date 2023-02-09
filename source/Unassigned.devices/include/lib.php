@@ -236,7 +236,7 @@ class MiscUD
 		global $paths;
 
 		$mounting		= array_values(preg_grep("@/mounting_".$device."@i", listDir(dirname($paths['mounting']))))[0] ?? '';
-		$is_mounting	= (isset($mounting) && (time() - filemtime($mounting) < 300)) ? true : false;
+		$is_mounting	= (isset($mounting) && (time() - @filemtime($mounting) < 300)) ? true : false;
 		return $is_mounting;
 	}
 
@@ -245,7 +245,7 @@ class MiscUD
 		global $paths;
 
 		$unmounting		= array_values(preg_grep("@/unmounting_".$device."@i", listDir(dirname($paths['unmounting']))))[0] ?? '';
-		$is_unmounting	= (isset($unmounting) && (time() - filemtime($unmounting)) < 300) ? true : false;
+		$is_unmounting	= (isset($unmounting) && (time() - @filemtime($unmounting)) < 300) ? true : false;
 		return $is_unmounting;
 	}
 
@@ -254,7 +254,7 @@ class MiscUD
 		global $paths;
 
 		$formatting		= array_values(preg_grep("@/formatting_".$device."@i", listDir(dirname($paths['formatting']))))[0] ?? '';
-		$is_formatting	= (isset($formatting) && (time() - filemtime($formatting) < 300)) ? true : false;
+		$is_formatting	= (isset($formatting) && (time() - @filemtime($formatting) < 300)) ? true : false;
 		return $is_formatting;
 	}
 
