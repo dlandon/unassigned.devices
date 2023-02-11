@@ -1600,7 +1600,7 @@ function do_mount_local($info) {
 			}
 			$cmd = str_replace($recovery, ", pass='*****'", $cmd);
 
-			unassigned_log("Mount drive command: ".$cmd);
+			unassigned_log("Mount cmd: ".$cmd);
 
 			/* apfs file system requires UD+ to be installed. */
 			if (($fs == "apfs") && (! is_file("/usr/bin/apfs-fuse"))) {
