@@ -745,7 +745,7 @@ switch ($_POST['action']) {
 
 		/* Display the historical devices. */
 		foreach ($historical as $serial => $value) {
-			$is_standby = (new MiscUD)->get_device_host($serial);
+			$is_standby = ((new MiscUD)->get_device_host($serial) && (empty(glob("/dev/disk/by-id/*-".$serial))));
 			$o_historical .= sprintf( "<tr><td><a class='info'><i class='fa fa-minus-circle orb %s'></i><span>"._("Historical Device is")." %s</span></a>".$historical[$serial]['display']."</td>", ( $is_standby ? "green-orb" : "grey-orb" ), ( $is_standby ? _("in standby") : _("offline") ));
 			$o_historical .= "<td>".$serial.$historical[$serial]['mountpoint']."</td>";
 			$o_historical .= "<td></td>";
@@ -959,7 +959,7 @@ switch ($_POST['action']) {
 				$device = "/dev/".$d['device'];
 
 				/* Refresh partition information. */
-				exec("/usr/sbin/partprobe -d ".escapeshellarg($device));
+				exec("/usr/sbin/partprobe ".escapeshellarg($device));
 			}
 		}
 
