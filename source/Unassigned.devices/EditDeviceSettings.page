@@ -100,9 +100,9 @@ if (isset($_GET['s'])) {
 	$is_preclearing		= shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg((new MiscUD)->base_device($device))." | /bin/grep -v 'grep'") != "" ? true : false;
 	$host				= (new MiscUD)->get_device_host($_GET['s']);
 	if ($host) {
-		$attached		= (! empty(glob("/dev/disk/by-id/*-".$_GET['s'])));
+		$connected		= (! empty(glob("/dev/disk/by-id/*-".$_GET['s'])));
 	} else {
-		$attached		= false;
+		$connected		= false;
 	}
 } else if (isset($_GET['d'])) {
 	/* Remote shares. */
@@ -290,10 +290,10 @@ _(Disk Serial)_: <?=$serial;?>
 > Select the options for this device/mount point.  These changes are made immediately.  You don't need to click **Save** to save them.
 :end
 
-<?if (($disk_setting) && (isset($_GET['s'])) && (isset($_GET['m'])) && (! $mounted) && (! $is_preclearing) && (! is_pass_through($_GET['s'])) && ($host) && ($attached)):?>
+<?if (($disk_setting) && (isset($_GET['s'])) && (isset($_GET['m'])) && (! $mounted) && (! $is_preclearing) && (! is_pass_through($_GET['s'])) && ($host) && ($connected)):?>
 <button type="button" id="detach" title='_(Detach This Disk)_.' onclick='detach_disk("<?=$device;?>");'>_(Detach)_</button>
 <?endif;?>
-<?if (isset($_GET['s']) && (! isset($_GET['m'])) && ($host) && (! $attached)):?>
+<?if (isset($_GET['s']) && (! isset($_GET['m'])) && ($host) && (! $connected)):?>
 <button type="button" id="attach" title='_(Attach This Disk)_.' onclick='attach_disk("<?=$_GET['s'];?>");'>_(Attach)_</button>
 <?endif;?>
 <?if ((is_script_running($file)) && (isset($_GET['m']))):?>
