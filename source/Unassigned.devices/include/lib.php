@@ -1841,7 +1841,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 	$config			= (isset($config["Config"])) ? $config["Config"] : array();
 
 	/* Add mountpoint to samba shares. */
-	if ( ($var['shareSMBEnabled'] != "no") && ($config["smb_security"] != "no") ) {
+	if ( ($var['shareSMBEnabled'] != "no") && (isset($config['smb_security'])) && ($config['smb_security'] != "no") ) {
 		/* Remove special characters from share name. */
 		$share_name = str_replace( array("(", ")"), "", basename($dir));
 
@@ -1877,7 +1877,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 			}
 		}
 
-		if (($config["smb_security"] == "yes") || ($config["smb_security"] == "hidden")) {
+		if ((isset($config['smb_security'])) && (($config['smb_security'] == "yes") || ($config['smb_security'] == "hidden"))) {
 			$read_users = $write_users = $valid_users = array();
 			foreach ($users as $key => $user) {
 				if ($user['name'] != "root" ) {
@@ -1907,16 +1907,17 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 				$case_names = "";
 			}
 			if (count($valid_users)) {
-				$valid_users	= "\n\tvalid users = ".implode(', ', $valid_users);
-				$write_users	= count($write_users) ? "\n\twrite list = ".implode(', ', $write_users) : "";
-				$read_users		= count($read_users) ? "\n\tread list = ".implode(', ', $read_users) : "";
+				$valid_users	= "\n\tvalid users = ".implode(' ', $valid_users);
+				$write_users	= count($write_users) ? "\n\twrite list = ".implode(' ', $write_users) : "";
+				$read_users		= count($read_users) ? "\n\tread list = ".implode(' ', $read_users) : "";
 				$share_cont		= "[{$share_name}]\n\tcomment = {$share_name}\n\tpath = {$dir}{$hidden}{$force_user}{$valid_users}{$write_users}{$read_users}{$vfs_objects}{$case_names}";
 			} else {
 				$share_cont 	= "[{$share_name}]\n\tpath = {$dir}{$hidden}\n\tinvalid users = @users";
 				unassigned_log("Error: No valid smb users defined. Share '{$dir}' cannot be accessed.");
 			}
 		} else {
-			$share_cont = "[{$share_name}]\n\tpath = {$dir}\n\tread only = No{$force_user}\n\tguest ok = Yes{$vfs_objects}{$vfs_settings}";
+			$force_user = ( get_config("Config", "force_user") != "no" ) ? "\n\tforce User = nobody" : "";
+			$share_cont = "[{$share_name}]\n\tpath = {$dir}\n\tread only = No\n\tguest ok = Yes{$force_user}{$vfs_objects}";
 		}
 
 		if (! is_dir($paths['smb_usb_shares'])) {
