@@ -12,9 +12,6 @@
 
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 
-set_error_handler("unassigned_log_error");
-set_exception_handler( "unassigned_log_exception" );
-
 $plugin = "unassigned.devices";
 $paths = [	"smb_unassigned"	=> "/etc/samba/smb-unassigned.conf",
 			"smb_usb_shares"	=> "/etc/samba/unassigned-shares",
@@ -296,7 +293,7 @@ function get_file_lock($type = "cfg") {
 	/* Check for any lock files for previous processes. */
 	$i = 0;
 	while ((! empty(glob("/tmp/".$plugin."/".$type."_*.lock"))) && ($i < 200)) {
-		usleep(10000);
+		usleep(10 * 1000);
 		$i++;
 	}
 
@@ -348,65 +345,6 @@ function save_ini_file($file, $array, $save_config = true) {
 			@file_put_contents("/boot/config/plugins/".$plugin."/".basename($file), implode(PHP_EOL, $res));
 		}
 	}
-}
-
-/* Log program error. */
-function unassigned_log_error($errno, $errstr, $errfile, $errline)
-{
-	switch($errno){
-	case E_ERROR:
-		$error = "Error";
-		break;
-	case E_WARNING:
-		$error = "Warning";
-		break;
-	case E_PARSE:
-		$error = "Parse Error";
-		break;
-	case E_NOTICE:
-		$error = "Notice";
-		return;
-		break;
-	case E_CORE_ERROR:
-		$error = "Core Error";
-		break;
-	case E_CORE_WARNING:
-		$error = "Core Warning";
-		break;
-	case E_COMPILE_ERROR:
-		$error = "Compile Error";
-		break;
-	case E_COMPILE_WARNING:
-		$error = "Compile Warning";
-		break;
-	case E_USER_ERROR:
-		$error = "User Error";
-		break;
-	case E_USER_WARNING:
-		$error = "User Warning";
-		break;
-	case E_USER_NOTICE:
-		$error = "User Notice";
-		break;
-	case E_STRICT:
-		$error = "Strict Notice";
-		break;
-	case E_RECOVERABLE_ERROR:
-		$error = "Recoverable Error";
-		break;
-	default:
-		$error = "Unknown error ($errno)";
-		return;
-		break;
-	}
-
-	unassigned_log("PHP {$error}: $errstr in {$errfile} on line {$errline}");
-}
-
-/* Log program exception. */
-function unassigned_log_exception( $e )
-{
-	unassigned_log("PHP Exception: {$e->getMessage()} in {$e->getFile()} on line {$e->getLine()}");
 }
 
 /* Unassigned Devices logging. */
@@ -823,14 +761,14 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 
 			/* All other file system partitions are gpt, except fat32. */
 			unassigned_log("Creating a '{$disk_schema}' partition table on disk '".$dev."'.");
-			$o = trim(shell_exec("/usr/sbin/parted ".escapeshellarg($dev)." --script -- mklabel ".escapeshellarg($disk_schema)." 2>&1"));
-			if ($o) {
+			$o = shell_exec("/usr/sbin/parted ".escapeshellarg($dev)." --script -- mklabel ".escapeshellarg($disk_schema)." 2>&1");
+			if (isset($o)) {
 				unassigned_log("Create '{$disk_schema}' partition table result:\n".$o);
 			}
 
 			/* Create an optimal disk partition. */
-			$o = trim(shell_exec("/usr/sbin/parted -a optimal ".escapeshellarg($dev)." --script -- mkpart primary ".escapeshellarg($parted_fs)." 0% 100% 2>&1"));
-			if ($o) {
+			$o = shell_exec("/usr/sbin/parted -a optimal ".escapeshellarg($dev)." --script -- mkpart primary ".escapeshellarg($parted_fs)." 0% 100% 2>&1");
+			if (isset($o)) {
 				unassigned_log("Create primary partition result:\n".$o);
 			}
 		}
@@ -997,6 +935,9 @@ function remove_partition($dev, $part) {
 			unassigned_log("Remove partition failed: '{$out}'.");
 			$rc = false;
 		} else {
+			/* Reload the partition. */
+			exec("hdparm -z ".escapeshellarg($dev)." >/dev/null 2>&1 &");
+
 			/* Refresh partition information. */
 			exec("/usr/sbin/partprobe ".escapeshellarg($dev));
 		}
@@ -1644,7 +1585,7 @@ function do_mount_local($info) {
 					$rc = true;
 					break;
 				} else {
-					usleep(500000);
+					usleep(500 * 1000);
 				}
 			}
 
@@ -1797,7 +1738,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 				$rc = true;
 				break;
 			} else {
-				usleep(500000);
+				usleep(500 * 1000);
 			}
 		}
 
