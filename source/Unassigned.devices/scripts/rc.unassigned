@@ -483,9 +483,9 @@ function unassigned_reload() {
 	if ($_ENV['DEVTYPE'] == "disk" || $_ENV['DEVTYPE'] == "partition") {
 
 		if ($_ENV['DEVTYPE'] == "disk") {
-			$str = "remove disk";
+			$str	= $_ENV['ACTION']." disk";
 		} else {
-			$str = "change partition";
+			$str	= $_ENV['ACTION']." partition";
 		}
 
 		unassigned_log("Reload: A udev '".$str."' initiated a reload of udev info.", $GLOBALS['UDEV_DEBUG']);
