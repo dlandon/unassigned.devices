@@ -2896,9 +2896,11 @@ function get_partition_info($dev) {
 		/* Target is set to the mount point when the device is mounted. */
 		if ($disk['mounted']) {
 			if (($disk['fstype'] == "zfs") || (($disk['fstype'] == "crypto_LUKS") && (luks_fs_type($disk['mountpoint']) == "zfs"))) {
-				$disk['target']			= str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep ".escapeshellarg(basename($disk['mountpoint']))." | /bin/awk '{print $2}'")));
+				$mount			= shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep ".escapeshellarg(basename($disk['mountpoint']))." | /bin/awk '{print $2}'");
+				$disk['target']	= isset($mount) ? str_replace("\\040", " ", trim($mount)) : "";
 			} else {
-				$disk['target']			= str_replace("\\040", " ", trim(shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep ".escapeshellarg($disk['device'])." | /bin/awk '{print $2}'")));
+				$mount			= shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep ".escapeshellarg($disk['device'])." | /bin/awk '{print $2}'");
+				$disk['target']	= isset($mount) ? str_replace("\\040", " ", trim($mount)) : "";
 			}
 		} else {
 			$disk['target']		= "";
