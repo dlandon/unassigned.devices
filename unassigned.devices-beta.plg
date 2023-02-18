@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"beta-2023.02.17">
+<!ENTITY version	"beta-2023.02.18">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;-beta.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"1645d9ed13515c3a414be1e706014dbe">
+<!ENTITY MD5		"5c5eec891ac7b8589f12a8c7256d59f9">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,7 @@
 ###&version;
 - Fix: Php warnings.
 - Fix: Historical Device 'Remove Device Configuration' sometimes disabled incorrectly.
+- Fix: Clear udev info for a partition that has been removed.
 
 ###2023.02.08
 - Fix: Php warnings.
