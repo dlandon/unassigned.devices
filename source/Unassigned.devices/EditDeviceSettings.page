@@ -46,7 +46,7 @@ $share_action			= "";
 /* Wait for lock files release to be sure the cfg files are completely updated. */
 $i = 0;
 while ((! empty(glob("/tmp/".$plugin."/cfg_*.lock"))) && ($i < 8)) {
-	usleep(250000);
+	usleep(250 * 1000);
 	$i++;
 }
 
