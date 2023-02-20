@@ -142,6 +142,8 @@ function unassigned_mount() {
 								$fat_fruit	= (($info['fstype'] == "vfat") || ($info['fstype'] == "exfat")) ? true : false;
 								add_smb_share($info['mountpoint'], true, $fat_fruit);
 								add_nfs_share($info['mountpoint']);
+							} else {
+								unassigned_log("Device '".$info['device']."' is not set to be shared.");
 							}
 
 							/* Execute device script with add action. */
@@ -595,11 +597,11 @@ function unassigned_abort($script) {
 
 	$cmd	= "/usr/bin/pgrep ".escapeshellarg(basename($script));
 	$pid	= shell_exec($cmd);
-	$pid	= str_replace("\n", "", $pid);
+	$pid	= isset($pid) ? str_replace("\n", "", $pid) : "";
 	while ($pid) {
 		exec("/bin/kill ".$pid." 2>/dev/null");
 		$pid = shell_exec($cmd);
-		$pid = str_replace("\n", "", $pid);
+		$pid = isset($pid) ? str_replace("\n", "", $pid) : "";
 	}
 }
 
