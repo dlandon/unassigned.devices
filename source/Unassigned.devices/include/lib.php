@@ -1908,7 +1908,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 
 		timed_exec(2, "/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
 	} else {
-		unassigned_log("Unassigned Devices are not set to be shared.");
+		unassigned_log("Unassigned Devices are not set to be shared with SMB.");
 	}
 
 	return true;
@@ -1973,6 +1973,8 @@ function add_nfs_share($dir) {
 			unassigned_log("Adding NFS share '{$dir}'.");
 			exec("/usr/sbin/exportfs -ra 2>/dev/null");
 		}
+	} else {
+		unassigned_log("Unassigned Devices are not set to be shared with NFS.");
 	}
 
 	return true;
@@ -2828,7 +2830,7 @@ function get_partition_info($dev) {
 	if ($attrs['DEVTYPE'] == "partition") {
 		$disk['serial_short']	= (isset($attrs['ID_SCSI_SERIAL'])) ? $attrs['ID_SCSI_SERIAL'] : (isset($attrs['ID_SERIAL_SHORT']) ? $attrs['ID_SERIAL_SHORT'] : "");
 		$disk['device']			= realpath($dev);
-		$disk['serial']			= get_disk_id($disk['device'], trim($attrs['ID_SERIAL']));
+		$disk['serial']			= isset($attrs['ID_SERIAL']) ? get_disk_id($disk['device'], trim($attrs['ID_SERIAL'])) : "";
 		$disk['uuid']			= (isset($attrs['ID_FS_UUID'])) ? $attrs['ID_FS_UUID'] : "";
 
 		/* Get partition number */
