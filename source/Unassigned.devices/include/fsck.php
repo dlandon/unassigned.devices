@@ -41,7 +41,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 	$check_type	= isset($_GET['check_type']) ? $_GET['check_type'] : 'ro';
 	$luks		= $_GET['luks'];
 	$serial		= $_GET['serial'];
-	$mountpoint	= $_GET['mountpoint'];
+	$mountpoint	= isset($_GET['mountpoint']) ? $_GET['mountpoint'] : "";
 	$mounted	= is_mounted($mountpoint);
 	$rc			= true;
 
@@ -152,7 +152,7 @@ if (($file_system == "btrfs") && (! $mounted)) {
 } else {
 	/* Check the fsck return code and process the return code. */
 	if ($rc_check != 0) {
-		if ((($file_system == "xfs") && ($rc_check == 1)) || ($file_system != "xfs")) {
+		if ((($file_system == "xfs") && ($rc_check == 1)) || (($file_system != "xfs") && ($file_system != "zfs"))) {
 			write_log("<br />"._('File system corruption detected')."!<br />");
 			write_log("<center><button type='button' onclick='document.location=\"/plugins/".$plugin."/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=rw&type="._('Done')."\"'>"._('Run with Correct flag')."</button></center>");
 		} else if (($file_system == "xfs") && ($rc_check == 2)) {
