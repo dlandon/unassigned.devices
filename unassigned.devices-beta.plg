@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"beta-2023.02.21">
+<!ENTITY version	"beta-2023.02.24">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;-beta.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"da47b2cbe65ffc75e272158b15b0c51d">
+<!ENTITY MD5		"2ec5b41de8eb85afd2f638c86b643291">
 ]>
 
 <PLUGIN name="&name;"
@@ -23,6 +23,7 @@
 ##&name;
 ###&version;
 - Fix: Php warnings.
+- Fix: Sort Historical Devices.
 
 ###2023.02.20
 - Fix: Php warnings.
