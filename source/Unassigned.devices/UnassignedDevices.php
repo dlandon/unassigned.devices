@@ -735,26 +735,26 @@ switch ($_POST['action']) {
 					if ($disk_dev) {
 						$disk_display = $disk_dev;
 					}
-					$historical[$serial]['display']			= $disk_display;
-					$historical[$serial]['mntpoint']		= $mntpoint;
-					$historical[$serial]['mountpoint']		= $mountpoint;
+					$historical[$disk_display]['serial']		= $serial;
+					$historical[$disk_display]['mntpoint']		= $mntpoint;
+					$historical[$disk_display]['mountpoint']	= $mountpoint;
 				}
 			}
 		}
 		ksort($historical, SORT_NATURAL);
 
 		/* Display the historical devices. */
-		foreach ($historical as $serial => $value) {
-			$is_standby	= ((new MiscUD)->get_device_host($serial) && (empty(glob("/dev/disk/by-id/*-".$serial))));
-			$o_historical .= sprintf( "<tr><td><a class='info'><i class='fa fa-minus-circle orb %s'></i><span>"._("Historical Device is")." %s</span></a>".$historical[$serial]['display']."</td>", ( $is_standby ? "green-orb" : "grey-orb" ), ( $is_standby ? _("in standby") : _("offline") ));
-			$o_historical .= "<td>".$serial.$historical[$serial]['mountpoint']."</td>";
+		foreach ($historical as $disk_display => $value) {
+			$is_standby	= ((new MiscUD)->get_device_host($historical[$disk_display]['serial']) && (empty(glob("/dev/disk/by-id/*-".$historical[$disk_display]['serial']))));
+			$o_historical .= sprintf( "<tr><td><a class='info'><i class='fa fa-minus-circle orb %s'></i><span>"._("Historical Device is")." %s</span></a>".$disk_display."</td>", ( $is_standby ? "green-orb" : "grey-orb" ), ( $is_standby ? _("in standby") : _("offline") ));
+			$o_historical .= "<td>".$historical[$disk_display]['serial'].$historical[$disk_display]['mountpoint']."</td>";
 			$o_historical .= "<td></td>";
 			if (! $is_standby) {
-				$o_historical .= "<td><a style='color:#CC0000;font-weight:bold;cursor:pointer;' class='exec info' onclick='remove_disk_config(\"{$serial}\")'><i class='fa fa-remove hdd' disabled></i><span>"._("Remove Device Configuration")."</span></a></td>";
+				$o_historical .= "<td><a style='color:#CC0000;font-weight:bold;cursor:pointer;' class='exec info' onclick='remove_disk_config(\"{$historical[$disk_display]['serial']}\")'><i class='fa fa-remove hdd' disabled></i><span>"._("Remove Device Configuration")."</span></a></td>";
 			} else {
 				$o_historical .= "<td><i class='fa fa-remove hdd' disabled></i></td>";
 			}
-			$o_historical .= "<td><a class='info' href='/Main/EditDeviceSettings?s=".$serial."&l=".$historical[$serial]['mntpoint']."&p="."1"."&t=true'><i class='fa fa-gears'></i><span>"._("Edit Historical Device Settings and Script")."</span></a></td>";
+			$o_historical .= "<td><a class='info' href='/Main/EditDeviceSettings?s=".$historical[$disk_display]['serial']."&l=".$historical[$disk_display]['mntpoint']."&p="."1"."&t=true'><i class='fa fa-gears'></i><span>"._("Edit Historical Device Settings and Script")."</span></a></td>";
 			$o_historical .= "<td></td><td></td><td></td><td></td><td></td></tr>";
 		}
 
