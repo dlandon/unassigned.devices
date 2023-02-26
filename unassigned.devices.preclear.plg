@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.01.08">
+<!ENTITY version	"2023.02.26">
 <!ENTITY launch		"Tools/Preclear">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/unassigned.devices/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"94198645d0224fc0c7325ed8930ef996">
+<!ENTITY MD5		"60d7279593f9a31d635b40c93f741155">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
@@ -20,6 +20,13 @@
 
 <CHANGES>
 ##&name;
+- Fix: Php 8.2 deprecated warnings.
+- Fix: Compatibility changes for 6.12.
+
+###2023.01.08
+- Fix: Php error when starting a preclear.
+
+###2022.12.31
 - Fix: Php error in rc.diskinfo.
 - Fix: Situation where all preclear reports appear for a device.
 
@@ -241,7 +248,7 @@ echo ""
 echo "-----------------------------------------------------------"
 echo " &name; has been installed."
 echo " Copyright 2015-2020, gfjardim"
-echo " Copyright 2023, &author;"
+echo " Copyright 2022-2023, &author;"
 echo " Version: &version;"
 echo "-----------------------------------------------------------"
 echo ""
