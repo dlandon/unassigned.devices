@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.02.20">
+<!ENTITY version	"2023.02.26">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"528cef177a43410ecb22368c834abbe6">
+<!ENTITY MD5		"ddcb2f6866262b40c4ae6fa7bb5c93c0">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,12 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Php warnings.
+- Fix: Sort Historical Devices in device order.
+- Add: Don't fail luks file system check if device is busy when opening the luks device.
+- Add: Log message showing the Gateway used to ping remote shares.
+
+###2023.02.20
 - Fix: Php warnings.
 - Add: Additional logging to SMB sharing.
 
