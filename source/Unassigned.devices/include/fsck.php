@@ -43,6 +43,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 	$serial		= $_GET['serial'];
 	$mountpoint	= isset($_GET['mountpoint']) ? $_GET['mountpoint'] : "";
 	$mounted	= is_mounted($mountpoint);
+	$rc_check	= 0;
 	$rc			= true;
 
 	/* Display the file system. */
@@ -71,7 +72,9 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 		}
 		if ($o) {
 			write_log("luksOpen error: ".$o."<br />");
-			$rc = false;
+			if (strpos($o, "Device or resource busy") === false) {
+				$rc = false;
+			}
 		}
 
 		/* Remove the password/passphrase. */
