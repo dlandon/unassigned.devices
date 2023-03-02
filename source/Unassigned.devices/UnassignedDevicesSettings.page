@@ -354,7 +354,7 @@ _(Add)_ 'force user = nobody' _(to SMB share config)_?
 :ud_settings_force_user_plug:
 > There are times when permissions on SMB shares aren't handled as expected. Turning this feature on can help with those permissions.
 > This applies to all devices mounted with Unassigned Devices.
-> The down side is that it overrides Linux group permissions. If you are unsure about whether or not this is necessary, leave it enabled.
+> The down side is that it overrides Linux group permissions. If you are unsure about whether or not this is necessary, leave it disabled.
 :end
 
 &nbsp;
