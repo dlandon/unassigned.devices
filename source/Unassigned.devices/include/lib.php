@@ -839,8 +839,10 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 			unassigned_log("Format drive command: ".$cmd);
 			exec($cmd, $out, $return);
 			sleep(1);
-			exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
-			sleep(1);
+			if (($fs = "zfs") && ($pool_name)) {
+				exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
+				sleep(1);
+			}
 		}
 
 		/* Finish up the format. */
