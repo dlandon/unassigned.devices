@@ -303,7 +303,7 @@ function get_file_lock($type = "cfg") {
 	}
 
 	/* Create the lock. */
-	touch($lock_file);
+	@touch($lock_file);
 
 	return $lock_file;
 }
@@ -2731,9 +2731,6 @@ function get_udev_info($dev, $udev = null) {
 
 	$rc		= array();
 
-	/* Get a lock so file changes can be made. */
-	$lock_file	= get_file_lock("udev");
-
 	/* Make file changes. */
 	$state	= is_file($paths['state']) ? @parse_ini_file($paths['state'], true, INI_SCANNER_RAW) : array();
 	$device	= safe_name($dev);
@@ -2752,12 +2749,18 @@ function get_udev_info($dev, $udev = null) {
 				}
 			}
 		}
+		/* Get a lock so file changes can be made. */
+		$lock_file	= get_file_lock("udev");
+
 		save_ini_file($paths['state'], $state);
 
 		/* Write to temp file and then move to destination file. */
 		$tmp_file	= $paths['tmp_file'];
 		@copy($paths['state'], $tmp_file);
 		@rename($tmp_file, $paths['diag_state']);
+
+		/* Release the file lock. */
+		release_file_lock($lock_file);
 
 		$rc	= $udev;
 	} else if (array_key_exists($device, $state)) {
@@ -2768,6 +2771,10 @@ function get_udev_info($dev, $udev = null) {
 		$dev_state = @parse_ini_string(timed_exec(5, "/sbin/udevadm info --query=property --path $(/sbin/udevadm info -q path -n ".escapeshellarg($device)." 2>/dev/null) 2>/dev/null"), INI_SCANNER_RAW);
 		if (is_array($dev_state)) {
 			$state[$device] = $dev_state;
+
+			/* Get a lock so file changes can be made. */
+			$lock_file	= get_file_lock("udev");
+
 			save_ini_file($paths['state'], $state);
 
 			/* Write to temp file and then move to destination file. */
@@ -2775,14 +2782,15 @@ function get_udev_info($dev, $udev = null) {
 			@copy($paths['state'], $tmp_file);
 			@rename($tmp_file, $paths['diag_state']);
 
+			/* Release the file lock. */
+			release_file_lock($lock_file);
+
 			$rc	= $state[$device];
 		} else {
 			$rc = array();
 		}
 	}
 	
-	/* Release the file lock. */
-	release_file_lock($lock_file);
 
 	return $rc;
 }
