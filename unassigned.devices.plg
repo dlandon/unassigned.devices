@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.02.26">
+<!ENTITY version	"2023.03.03">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"ddcb2f6866262b40c4ae6fa7bb5c93c0">
+<!ENTITY MD5		"7cb7a9ad77e761c7ecd360b90be2c79d">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Udev file locking to only lock the file when writing.
+- Add: New mount folder '/mnt/addons/' where users can mount devices without causing issues with Unraid.  FCP will not flag this as an inappropriate mount.  Mount things like ZFS plugin devices and rclone here instead of at /mnt/disks/ or /mnt/remotes.  This will keep your add on devices clear of UD and will prevent any potential clashes.
+
+###2023.02.26
 - Fix: Php warnings.
 - Fix: Sort Historical Devices in device order.
 - Add: Don't fail luks file system check if device is busy when opening the luks device.
@@ -1955,7 +1959,7 @@ ln -sf /usr/local/emhttp/plugins/&name;/scripts/rc.unassigned /usr/local/sbin
 ln -sf /usr/local/emhttp/plugins/&name;/scripts/mkmbr.sh /usr/local/sbin
 
 # Create state folder and mount points
-mkdir -p /mnt/disks /mnt/remotes /mnt/rootshare/ /var/state/&name;
+mkdir -p /mnt/disks /mnt/remotes /mnt/addons /mnt/rootshare/ /var/state/&name;
 
 # Create a tmpfs mountpoint at /mnt/disks
 # to make sure that writting to an unmounted device doesn't fill all rootfs
@@ -1992,6 +1996,24 @@ if ! mountpoint -q /mnt/remotes 2>/dev/null; then
   fi
 fi
 chown nobody:users /mnt/remotes
+
+# Create a tmpfs mountpoint at /mnt/addons
+# to make sure that writting to an unmounted device doesn't fill all rootfs
+# ps: tmpfs mountpoint will only be created if no disks are mounted yet
+mounted_disks="n"
+if ! mountpoint -q /mnt/addons 2>/dev/null; then
+  for dir in /mnt/addons/*; do 
+    if mountpoint -q "$dir" 2>/dev/null; then 
+      mounted_disks="y" 
+    fi
+  done
+  if [ $mounted_disks == "n" ]; then
+    mount -t tmpfs -o size=1M tmpfs /mnt/addons
+  else
+    touch /var/state/&name;/reboot_required
+  fi
+fi
+chown nobody:users /mnt/addons
 
 # Create a tmpfs mountpoint at /mnt/rootshare
 # to make sure that a CIFS connection dropout doesn't fill all rootfs
@@ -2073,6 +2095,11 @@ if mountpoint -q "/mnt/remotes"; then
   umount "/mnt/remotes"
 fi
 rmdir /mnt/remotes 2>/dev/null
+
+if mountpoint -q "/mnt/addons"; then
+  umount "/mnt/addons"
+fi
+rmdir /mnt/addons 2>/dev/null
 
 if mountpoint -q "/mnt/rootshare"; then
   umount "/mnt/rootshare"
