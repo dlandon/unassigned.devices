@@ -155,9 +155,15 @@ if (isset($_POST['action'])) {
 
 					$disk_log_title	= _('Disk Log Information');
 					$output = "<tr device='{$disk_name}'>
-								<td>{$disk_orb}<a href='/Tools/Preclear/Device?name=$disk_dev'> $disk_display</a></td>
-								<td><a href=\"#\" title=\"$disk_log_title.\" onclick=\"openBox('/webGui/scripts/disk_log&amp;arg1=$disk_name','".$disk_log_title."',600,900,false);return false\"><i class=\"fa {$disk_icon} icon\"></i></a>
-								{$title}{$report_files}</td>
+								<td>{$disk_orb}<a href='/Tools/Preclear/Device?name=$disk_dev'> $disk_display</a></td>";
+								if (version_compare($version['version'],"6.9.9", ">")) {
+									/* Disk log in 6.10 and later. */
+									$output .= "<td><a class='info' href=\"#\" onclick=\"openTerminal('disklog', '{$disk_name}')\"><i class='".$disk_icon." icon'></i><span>"._("Disk Log Information")."</span></a>";
+								} else {
+									/* Disk log in 6.9. */
+									$output .= "<td><a class='info' href=\"#\" onclick=\"openBox('/webGui/scripts/disk_log&amp;arg1={$disk_device}','Disk Log Information',600,900,false);return false\"><i class='".$disk_icon." icon'></i><span>"._("Disk Log Information")."</span></a>";
+								}
+								$output .= "{$title}{$report_files}</td>
 								<td>{$temp}</td>
 								<td><span>{$disk['SIZE_H']}</span></td>
 								<td>{$status}</td>

@@ -28,8 +28,10 @@ $hotplug_event		= "/tmp/unassigned.devices/hotplug_event";
 $preclear_status	= "/tmp/preclear/preclear_stat_";
 $tmp_preclear		= "/tmp/.preclear/";
 $preclear_reports	= "/boot/preclear_reports/";
-
 $unsupported		= "/var/state/[$preclear_plugin)/unsupported";
+
+/* Get the version of Unraid we are running. */
+$version = @parse_ini_file("/etc/unraid-version");
 
 function preclear_log($msg, $type = "NOTICE")
 {
