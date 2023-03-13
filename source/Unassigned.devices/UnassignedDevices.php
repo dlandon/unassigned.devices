@@ -48,9 +48,6 @@ function netmasks($netmask, $rev = false)
 	return $rev ? array_flip($netmasks)[$netmask] : $netmasks[$netmask];
 }
 
-/* Get the version of Unraid we are running. */
-$version = @parse_ini_file("/etc/unraid-version");
-
 /* Get the diskio scale based on the current setting. */
 function my_diskio($data) {
 	return my_scale($data, $unit, 1)." $unit/s";
