@@ -1910,7 +1910,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 
 		timed_exec(2, "/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
 	} else {
-		unassigned_log("Unassigned Devices are not set to be shared with SMB.");
+		unassigned_log("Warning: Unassigned Devices are not set to be shared with SMB.");
 	}
 
 	return true;
@@ -1976,7 +1976,7 @@ function add_nfs_share($dir) {
 			exec("/usr/sbin/exportfs -ra 2>/dev/null");
 		}
 	} else {
-		unassigned_log("Unassigned Devices are not set to be shared with NFS.");
+		unassigned_log("Warning: Unassigned Devices are not set to be shared with NFS.");
 	}
 
 	return true;
