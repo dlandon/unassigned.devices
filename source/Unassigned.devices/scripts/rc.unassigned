@@ -84,7 +84,7 @@ function unassigned_mount() {
 		}
 
 		/* If disk is not set to auto mount, skip to the next disk. */
-		if (! $disk_info['automount'] && ( $DEVNAME == "auto" || $DEVNAME == "autodevices" || isset($_ENV['DEVNAME']) )) {
+		if ((count($disk['partitions'])) && (! $disk_info['automount'] && ( $DEVNAME == "auto" || $DEVNAME == "autodevices" || isset($_ENV['DEVNAME'])))) {
 			unassigned_log("Disk with ID '{$disk_info['serial']} (".(new MiscUD)->base_device(basename($device)).")' is not set to auto mount.");
 			continue;
 		}
