@@ -81,7 +81,7 @@ function is_server_online($server, $log = false) {
 
 	/* See if we need to add this server to the hosts file. This seems to be an issue with Windows computers. */
 	if (! (new MiscUD)->is_ip($server)) {
-		$ip_arp		= timed_exec(10, "/sbin/arp -a ".escapeshellarg($server)." 2>&1");
+		$ip_arp		= timed_exec(10, "/sbin/arp -an ".escapeshellarg($server)." 2>&1");
 		$ip_array	= explode(" ", $ip_arp);
 		$ip			= str_replace(array("(", ")"), "", $ip_array[1]);
 		$ip			= (($ip_array[0] == $server) && ((new MiscUD)->is_ip($ip))) ? $ip : "";
@@ -90,7 +90,7 @@ function is_server_online($server, $log = false) {
 		if (strpos($ip_arp, "no match found") === false) {
 			$local_tld	= $var['LOCAL_TLD'];
 			$srvr		= $server.".".($local_tld ? $local_tld : "local");
-			$ip_local	= timed_exec(10, "/sbin/arp -a ".escapeshellarg($srvr)." 2>&1");
+			$ip_local	= timed_exec(10, "/sbin/arp -an ".escapeshellarg($srvr)." 2>&1");
 			$ip_array	= explode(" ", $ip_local);
 			$ip_local	= str_replace(array("(", ")"), "", $ip_array[1]);
 			$ip_local	= (new MiscUD)->is_ip($ip_local) ? $ip_local : "";
