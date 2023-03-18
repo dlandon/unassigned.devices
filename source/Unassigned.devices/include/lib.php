@@ -1048,7 +1048,7 @@ function timed_exec($timeout, $cmd) {
 		unassigned_log("Timed Exec: shell_exec(".$cmd.") took ".sprintf('%f', $time)."s!", $GLOBALS['CMD_DEBUG']);
 	}
 
-	return $out;
+	return $out ?? "";
 }
 
 /* Find the file system of a luks device. */
