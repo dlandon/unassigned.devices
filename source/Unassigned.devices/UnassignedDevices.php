@@ -974,6 +974,7 @@ switch ($_POST['action']) {
 		$fs			= urldecode($_POST['fs']);
 		$pass		= isset($_POST['pass']) ? urldecode($_POST['pass']) : "";
 		$pool_name	= isset($_POST['pool_name']) ? urldecode($_POST['pool_name']) : "";
+		$pool_name	= str_replace(" ", "_", $pool_name);
 
 		@touch(sprintf($paths['formatting'], basename($device)));
 		$result		= format_disk($device, $fs, $pass, $pool_name);
