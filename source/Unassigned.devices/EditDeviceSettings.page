@@ -399,6 +399,7 @@ _(User Script)_:
 		$.post(UDURL,{action:"toggle_pass_through",serial:"<?=$ud_device;?>",status:$(this).is(":checked")},function(data)
 		{
 			$(this).prop("checked",data.result);
+			location.reload();
 		}, 'json');
 	});
 <?endif;?>
