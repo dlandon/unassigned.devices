@@ -81,7 +81,7 @@ function is_server_online($server, $log = false) {
 
 	/* See if we need to add this server to the hosts file. This seems to be an issue with Windows computers. */
 	if (! (new MiscUD)->is_ip($server)) {
-		$ip_arp		= timed_exec(10, "/sbin/arp -a ".escapeshellarg($server)." 2>&1");
+		$ip_arp		= timed_exec(15, "/sbin/arp -a ".escapeshellarg($server)." 2>&1");
 		$ip_array	= explode(" ", $ip_arp);
 		$ip			= str_replace(array("(", ")"), "", $ip_array[1]);
 		$ip			= (($ip_array[0] == $server) && ((new MiscUD)->is_ip($ip))) ? $ip : "";
@@ -163,13 +163,13 @@ function ping_servers() {
 		/* Ceate an array of unique server names/ip addresses. */
 		$srvr	= array();
 		foreach ($samba_mounts as $device => $mount) {
-			/* This updates the ping_status file with the current state of the remote server. */
 			$srvr[]	= $mount['ip'];
 		}
 		$srvr	= array_unique($srvr);
 
 		/* Now ping every server to check for it being on-line. */
 		foreach ($srvr as $device => $server) {
+			/* This updates the ping_status file with the current state of the remote server. */
 			$changed		= is_server_online($server);
 
 			/* Update server ping status if it has changed. */
