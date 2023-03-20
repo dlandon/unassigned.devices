@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.03.03">
+<!ENTITY version	"2023.03.19">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"7cb7a9ad77e761c7ecd360b90be2c79d">
+<!ENTITY MD5		"4fc8f74970ac91f4633e688272fada34">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,12 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Don't check for a disk to auto mount if there are no partitions on the disk.
+- Fix: Refresh disk device settings when 'Passed Through' switch is changed to refresh 'Attach' and 'Detach' buttons status.
+- Fix: Changes to ping script to improve performance when checking if remote servers are on-line.
+- Fix: Ata disks show 'Share' switch 'On' when 'Auto Mount USB Devices' is on in UD settings.
+
+###2023.03.03
 - Fix: Udev file locking to only lock the file when writing.
 - Add: New mount folder '/mnt/addons/' where users can mount devices without causing issues with Unraid.  FCP will not flag this as an inappropriate mount.  Mount things like ZFS plugin devices and rclone here instead of at /mnt/disks/ or /mnt/remotes.  This will keep your add on devices clear of UD and will prevent any potential clashes.
 
