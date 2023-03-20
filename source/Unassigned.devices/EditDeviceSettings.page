@@ -79,7 +79,8 @@ if (isset($_GET['s'])) {
 	$disable_mount		= (is_disable_mount($serial)) ? "checked" : "";
 	$read_only			= (is_read_only($serial)) ? "checked" : "";
 	$automount			= (is_automount($serial)) ? "checked" : "";
-	$share				= (config_shared($serial, $partition, $_GET['u'])) ? "checked" : "";
+	$usb				= ($_GET['u'] == "usb") ? true : false;
+	$share				= config_shared($serial, $partition, $usb) ? "checked" : "";
 	$show_partitions	= (get_config($serial, "show_partitions") == "no" ) ? "" : "checked";
 	$mounted			= is_mounted($mount_point);
 	$width				= $mounted ? "57%" : "70%";
