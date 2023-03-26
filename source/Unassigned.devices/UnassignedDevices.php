@@ -474,8 +474,9 @@ switch ($_POST['action']) {
 					$str = "New?name";
 					$o_disks .= "<i class='fa fa-circle ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>";
 				} else {
-					$str = "Device?name";
-					if (! $preclearing ) {
+					$str	= "Device?name";
+					$cookie	= "test_".addslashes(htmlspecialchars($disk_device));
+					if ((! $preclearing) && (! isset($_COOKIE[$cookie]))) {
 						if (! is_disk_spin($disk['ud_dev'], $disk['running'])) {
 							if ($disk['running']) {
 								$o_disks .= "<a style='cursor:pointer' class='exec info' onclick='spin_down_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle green-orb'></i><span>"._("Click to spin down device")."</span></a>";

@@ -190,6 +190,7 @@ function df_status($tc, $mountpoint) {
 	$df_status	= (new MiscUD)->get_json($tc);
 	$rc			= trim(timed_exec(10, "/bin/df ".escapeshellarg($mountpoint)." --output=size,used,avail | /bin/grep -v '1K-blocks' 2>/dev/null"));
 	$df_status[$mountpoint] = array('timestamp' => time(), 'stats' => $rc);
+
 	(new MiscUD)->save_json($tc, $df_status);
 }
 
