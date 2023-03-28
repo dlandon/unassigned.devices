@@ -2348,20 +2348,18 @@ function do_mount_samba($info) {
 				/* If the remote share didn't mount, try SMB 1.0 if netbios is enabled. */
 				if ((! is_mounted($dev)) && (strpos($o, "Permission denied") === false) && (strpos($o, "Network is unreachable") === false)) {
 					unassigned_log("SMB 2.0 mount failed: '{$o}'.");
-					if ($var['USE_NETBIOS'] == "yes") {
-						/* If the mount failed, try to mount with samba vers=1.0. */
-						$ver	= ",vers=1.0";
-						$params	= sprintf(get_mount_params($fs, $dev), $ver);
-						$cmd	= "/sbin/mount -t ".escapeshellarg($fs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
+					/* If the mount failed, try to mount with samba vers=1.0. */
+					$ver	= ",vers=1.0";
+					$params	= sprintf(get_mount_params($fs, $dev), $ver);
+					$cmd	= "/sbin/mount -t ".escapeshellarg($fs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 
-						unassigned_log("Mount SMB share '{$dev}' using SMB 1.0 protocol.");
-						unassigned_log("Mount SMB command: {$cmd}");
+					unassigned_log("Mount SMB share '{$dev}' using SMB 1.0 protocol.");
+					unassigned_log("Mount SMB command: {$cmd}");
 
-						/* Mount the remote share. */
-						$o		= timed_exec(10, $cmd." 2>&1");
-						if ($o) {
-							unassigned_log("SMB 1.0 mount failed: '{$o}'.");
-						}
+					/* Mount the remote share. */
+					$o		= timed_exec(10, $cmd." 2>&1");
+					if ($o) {
+						unassigned_log("SMB 1.0 mount failed: '{$o}'.");
 					}
 				}
 				exec("/bin/shred -u ".escapeshellarg($credentials_file));
