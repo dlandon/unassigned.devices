@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.03.19">
+<!ENTITY version	"2023.03.30">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"4fc8f74970ac91f4633e688272fada34">
+<!ENTITY MD5		"ff8dc8350f785900f0084329e6a32e4b">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,10 +22,15 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Disable spin down when a SMART test is running.
+- Fix: Remove requirement that NetBIOS is enabled to mount a remote SMB v1.0 share.
+- Fix: Compress long serial nunbers/device names on remove remote shares and historical devices on Swal dialogs so they don't over run the dialog box.
+
+###2023.03.19
 - Fix: Don't check for a disk to auto mount if there are no partitions on the disk.
 - Fix: Refresh disk device settings when 'Passed Through' switch is changed to refresh 'Attach' and 'Detach' buttons status.
 - Fix: Changes to ping script to improve performance when checking if remote servers are on-line.
-- Fix: Ata disks show 'Share' switch 'On' when 'Auto Mount USB Devices' is on in UD settings.
+- Fix: Ata disks show 'Share' switch 'On' in Device Settings when 'Auto Mount USB Devices' is on in UD settings.
 
 ###2023.03.03
 - Fix: Udev file locking to only lock the file when writing.
