@@ -629,8 +629,9 @@ switch ($_POST['action']) {
 						$o_remotes .= "<td>".($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\" {$disabled}><i class='$class'></i>"._('Unmount')."</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='$class'></i>"._('Mount')."</button>")."</td>";
 					}
 				}
-				$compressed_serial	= (new MiscUD)->compress_string($mount['name']);
-				$o_remotes .= $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec info' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$compressed_serial}\");'><i class='fa fa-remove hdd'></i><span>"._("Remove Remote SMB")."/"._("NFS Share")."</span></a></td>";
+				$compressed_name	= (new MiscUD)->compress_string($mount['name']);
+				$remove_type		= strtoupper($protocol);
+				$o_remotes .= $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec info' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount['name']}\", \"{$compressed_name}\", \"{$remove_type}\");'><i class='fa fa-remove hdd'></i><span>"._("Remove Remote SMB")."/"._("NFS Share")."</span></a></td>";
 
 				$title = _("Edit Remote SMB")."/".("NFS Settings and Script");
 				$title .= "<br />"._("Disable Mount Button").": ";
@@ -688,8 +689,8 @@ switch ($_POST['action']) {
 						$o_remotes .= "<td>".($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>"._('Unmount')."</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>"._('Mount')."</button>")."</td>";
 					}
 				}
-				$compressed_serial	= (new MiscUD)->compress_string($mount['device']);
-				$o_remotes .= $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec info' style='color:#CC0000;font-weight:bold;' onclick='remove_iso_config(\"{$compressed_serial}\");'> <i class='fa fa-remove hdd'></i><span>"._("Remove ISO File Share")."</span></a></td>";
+				$compressed_device	= (new MiscUD)->compress_string($mount['device']);
+				$o_remotes .= $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec info' style='color:#CC0000;font-weight:bold;' onclick='remove_iso_config(\"{$mount['device']}\", \"{$compressed_device}\");'> <i class='fa fa-remove hdd'></i><span>"._("Remove ISO File Share")."</span></a></td>";
 
 				$title = _("Edit ISO File Settings and Script");
 				$title .= "<br />"._("Automount").": ";
@@ -751,7 +752,7 @@ switch ($_POST['action']) {
 			$o_historical .= "<td></td>";
 			if (! $is_standby) {
 				$compressed_serial	= (new MiscUD)->compress_string($historical[$disk_display]['serial']);
-				$o_historical .= "<td><a style='color:#CC0000;font-weight:bold;cursor:pointer;' class='exec info' onclick='remove_disk_config(\"{$compressed_serial}\")'><i class='fa fa-remove hdd' disabled></i><span>"._("Remove Device Configuration")."</span></a></td>";
+				$o_historical .= "<td><a style='color:#CC0000;font-weight:bold;cursor:pointer;' class='exec info' onclick='remove_disk_config(\"{$historical[$disk_display]['serial']}\", \"{$compressed_serial}\")'><i class='fa fa-remove hdd' disabled></i><span>"._("Remove Device Configuration")."</span></a></td>";
 			} else {
 				$o_historical .= "<td><i class='fa fa-remove hdd' disabled></i></td>";
 			}

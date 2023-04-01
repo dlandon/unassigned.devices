@@ -1120,12 +1120,12 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 <div style="display:none;" data-survey-name="remove_iso_share" data-survey-title="<?=_('Remove ISO File mount');?>">
 	<div data-question data-question-title="" data-question-button-done="<?=_('Remove');?>" data-question-icon="warning">
 		<div data-question-format>
-			[surveyOption]
+			[surveyOption.device, surveyOption.compressed]
 		</div>
 		<div data-question-content>
 			<div class="swal-title" style="font-size: 20px;"><?=_('This will remove the ISO file share for');?>:</div>
 			<div style="margin-bottom: 15px;margin-top: 15px;">
-				<span style="font-weight: bold;">{0}</span>
+				<span style="font-weight: bold;">{1}</span>
 			</div>
 			<div class="swal-title" style="font-size: 20px;">
 				<span class="red" style="font-weight: bold;"><?=_('Are you sure');?>?</span>
@@ -1135,7 +1135,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		<div data-question-done></div>
 	</div>
 	<div data-survey-done>
-		$.post(UDURL, {'action' : 'remove_iso_config', device:surveyOption}).done(function(data)
+		$.post(UDURL, {'action' : 'remove_iso_config', device:surveyOption.device}).done(function(data)
 		{
 			swalShowResult((data == "true") ? true : false);
 		},'json').fail(function(){swalShowResult(false);});
@@ -1143,7 +1143,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	<div>
 		<script type="text/javascript">
 			$(function() {
-				window.remove_iso_config = function(i){doUnassignedDevicesSurvey("remove_iso_share",i);}
+				window.remove_iso_config = function(device, compressed){doUnassignedDevicesSurvey("remove_iso_share", {device:device, compressed:compressed});}
 		});
 	</script>
 	</div>
@@ -1152,12 +1152,12 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 <div style="display:none;" data-survey-name="remove_disk_config" data-survey-title="<?=_('Remove Disk Config');?>">
 	<div data-question data-question-title="" data-question-button-done="<?=_('Remove');?>" data-question-icon="warning">
 		<div data-question-format>
-			[surveyOption]
+			[surveyOption.serial, surveyOption.compressed]
 		</div>
 		<div data-question-content>
 			<div class="swal-title" style="font-size: 20px;"><?=_('This will remove the saved configuration of');?>:</div>
 			<div style="margin-bottom: 15px;margin-top: 15px;">
-				<span style="font-weight: bold;">{0}</span>
+				<span style="font-weight: bold;">{1}</span>
 			</div>
 			<div class="swal-title" style="font-size: 20px;">
 				<span class="red" style="font-weight: bold;"><?=_('Are you sure');?>?</span>
@@ -1167,7 +1167,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		<div data-question-done></div>
 	</div>
 	<div data-survey-done>
-		$.post(UDURL, {'action' : 'remove_config', serial:surveyOption}).done(function(data)
+		$.post(UDURL, {'action' : 'remove_config', serial:surveyOption.serial}).done(function(data)
 		{
 			swalShowResult((data == "true") ? true : false);
 		},'json').fail(function(){swalShowResult(false);});
@@ -1175,7 +1175,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	<div>
 		<script type="text/javascript">
 			$(function(){
-				window.remove_disk_config = function(i){doUnassignedDevicesSurvey("remove_disk_config",i);}
+				window.remove_disk_config = function(serial, compressed){doUnassignedDevicesSurvey("remove_disk_config",{serial:serial, compressed:compressed});}
 			});
 		</script>
 	</div>
@@ -1184,12 +1184,12 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 <div style="display:none;" data-survey-name="remove_remote_share" data-survey-title="<?=_('Remove SMB/NFS mount');?>?">
 	<div data-question data-question-title="" data-question-button-done="<?=_('Remove');?>" data-question-icon="warning">
 		<div data-question-format>
-			[surveyOption, (surveyOption.startsWith("//") ? "SMB" : "NFS")]
+			[surveyOption.device, surveyOption.compressed, surveyOption.type]
 		</div>
 		<div data-question-content>
-			<div class="swal-title" style="font-size: 20px;"><?=_('This will remove the remote');?> <span style="font-weight: bold;">{1}</span> <?=_('share for');?>:</div>
+			<div class="swal-title" style="font-size: 20px;"><?=_('This will remove the remote');?> <span style="font-weight: bold;">{2}</span> <?=_('share for');?>:</div>
 			<div style="margin-bottom: 15px;margin-top: 15px;">
-				<span style="font-weight: bold;">{0}</span>
+				<span style="font-weight: bold;">{1}</span>
 			</div>
 			<div class="swal-title" style="font-size: 20px;">
 				<span class="red" style="font-weight: bold;"><?=_('Are you sure');?>?</span>
@@ -1199,7 +1199,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		<div data-question-done></div>
 	</div>
 	<div data-survey-done>
-		$.post(UDURL, {'action' : 'remove_samba_config', device:surveyOption}).done(function(data)
+		$.post(UDURL, {'action' : 'remove_samba_config', device:surveyOption.device}).done(function(data)
 		{
 			swalShowResult((data == "true") ? true : false);
 		},'json').fail(function(){swalShowResult(false);});
@@ -1207,7 +1207,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	<div>
 		<script type="text/javascript">
 			$(function(){
-				window.remove_samba_config = function(i){doUnassignedDevicesSurvey("remove_remote_share",i);}
+				window.remove_samba_config = function(device, compressed, type){doUnassignedDevicesSurvey("remove_remote_share",{device:device, compressed:compressed, type:type});}
 			});
 		</script>
 	</div>
