@@ -17,8 +17,8 @@ require_once("$docroot/plugins/".$plugin."/include/lib.php");
 
 $COMMAND = $argv[1];
 $DEVNAME = (isset($_ENV['DEVNAME'])) ? $_ENV['DEVNAME'] : ( isset($argv[2]) ? $argv[2] : NULL );
-$DEVNAME = (file_exists($DEVNAME)) ? realpath($DEVNAME) : $DEVNAME;
-$dev_pos = strpos($DEVNAME, 'name=');
+$DEVNAME = ((isset($DEVNAME)) && (file_exists($DEVNAME))) ? realpath($DEVNAME) : $DEVNAME;
+$dev_pos = (isset($DEVNAME)) ? strpos($DEVNAME, 'name=') : false;
 if ($dev_pos !== false) {
 	$dev_name		= substr($DEVNAME, $dev_pos+5);
 	foreach (get_all_disks_info() as $disk) {
@@ -33,7 +33,7 @@ if ($dev_pos !== false) {
 	}
 } elseif ($COMMAND != 'spindown') {
 	$sf = $paths['dev_state'];
-	if (is_file($sf) && (strpos(basename($DEVNAME), 'dev') !== false)) {
+	if (is_file($sf) && (isset($DEVNAME)) && (strpos(basename($DEVNAME), 'dev') !== false)) {
 		$devs = @parse_ini_file($sf, true);
 		$DEVNAME = isset($devs[$DEVNAME]) ? $devs[$DEVNAME]['device'] : $DEVNAME;
 	}
@@ -84,7 +84,7 @@ function unassigned_mount() {
 		}
 
 		/* If disk is not set to auto mount, skip to the next disk. */
-		if ((count($disk['partitions'])) && (! $disk_info['automount'] && ( $DEVNAME == "auto" || $DEVNAME == "autodevices" || isset($_ENV['DEVNAME'])))) {
+		if ((count($disk['partitions'])) && (! $disk_info['automount'] && ( $DEVNAME == "auto" || $DEVNAME == "autodevices"))) {
 			unassigned_log("Disk with ID '{$disk_info['serial']} (".(new MiscUD)->base_device(basename($device)).")' is not set to auto mount.");
 			continue;
 		}
