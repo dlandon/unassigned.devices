@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.03.31">
+<!ENTITY version	"2023.04.04">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"99d9d9063cfb75a4324f910dab3d483f">
+<!ENTITY MD5		"8db576897736788a8edb2bfaf720a97d">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Typo in formatting a disk routine causing format issues.
+- Fix: False auto mount messages when formatting a disk.
+
+###2023.03.31
 - Fix: Disable spin down when a SMART test is running.
 - Fix: Remove requirement that NetBIOS is enabled to mount a remote SMB v1.0 share.
 - Fix: Compress long serial nunbers/device names on remove remote shares and historical devices on Swal dialogs so they don't over run the dialog box.
