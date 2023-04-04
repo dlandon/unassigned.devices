@@ -973,7 +973,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		<div data-question-done></div>
 	</div>
 
-	<div data-question data-question-title="<?=_('Pool Name');?>">
+	<div data-question data-question-title="<?=_('ZFS Pool Name');?>">
 		<div data-question-condition>
 			surveyData['FS'] == 'zfs' || surveyData['FS'] == 'zfs-encrypted'
 		</div>
@@ -1082,7 +1082,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 </div>
 
 <div style="display:none;" data-survey-name="clear_disk" data-survey-title="">
-	<div data-question data-question-title="" data-question-button-done="<?=_('Remove');?>" data-question-icon="warning">
+	<div data-question data-question-title="" data-question-button-done="<?=_('Clear');?>" data-question-icon="warning">
 		<div data-question-format>
 			[surveyOption.device, surveyOption.serial]
 		</div>
