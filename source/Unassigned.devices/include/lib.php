@@ -64,6 +64,9 @@ $version = @parse_ini_file("/etc/unraid-version");
 /* 1 - udev and disk discovery logging, */
 $UDEV_DEBUG	= 1;
 
+/* 2 - refresh and update logging, */
+$UPDATE_DEBUG	= 2;
+
 /* 8 - command time outs. */
 $CMD_DEBUG	= 8;
 
@@ -173,7 +176,7 @@ class MiscUD
 				(new MiscUD)->save_json($paths['pool_state'], $pool_state);
 			} else if (is_array($pool_state[$mountpoint]) && (! count($pool_state[$mountpoint]))) {
 				/* Get the pool parameters if they are not already defined. */
-				unassigned_log("Get Disk Pool members on mountpoint '".$mountpoint."'.", $GLOBALS['UDEV_DEBUG']);
+				unassigned_log("Debug: Get Disk Pool members on mountpoint '".$mountpoint."'.", $GLOBALS['UDEV_DEBUG']);
 
 				/* Get the brfs pool status from the mountpoint. */
 				$s	= shell_exec("/sbin/btrfs fi show ".escapeshellarg($mountpoint)." | /bin/grep 'path' | /bin/awk '{print $8}'");
@@ -312,7 +315,7 @@ function get_file_lock($type = "cfg") {
 
 	/* Did we time out waiting for unlock release? */
 	if ($i == 200) {
-		unassigned_log("Timed out waiting for get file lock.", $GLOBALS['UDEV_DEBUG']);
+		unassigned_log("Debug: Timed out waiting for get file lock.", $GLOBALS['UPDATE_DEBUG']);
 	}
 
 	/* Create the lock. */
@@ -1022,7 +1025,7 @@ function remove_all_partitions($dev) {
 		/* Let things settle a bit. */
 		sleep(2);
 
-		unassigned_log("Remove all Disk partitions initiated a Hotplug event.", $GLOBALS['UDEV_DEBUG']);
+		unassigned_log("Debug: Remove all Disk partitions initiated a Hotplug event.", $GLOBALS['UDEV_DEBUG']);
 
 		/* Refresh partition information. */
 		exec("/usr/sbin/partprobe ".escapeshellarg($dev));
