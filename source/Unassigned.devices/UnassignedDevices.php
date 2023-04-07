@@ -362,11 +362,13 @@ switch ($_POST['action']) {
 	case 'get_content':
 		/* Update the UD webpage content. */
 
+		unassigned_log("Debug: Begin - Refreshing content...", $UPDATE_DEBUG);
+
 		/* Check for a recent hot plug event. */
 		if (file_exists($paths['hotplug_event'])) {
 			exec("rm -f ".$paths['hotplug_event']);
 
-			unassigned_log("Processing Hotplug event...", $UDEV_DEBUG);
+			unassigned_log("Debug: Processing Hotplug event...", $UDEV_DEBUG);
 
 			/* Tell Unraid to update list of unassigned devices in devs.ini. */
 			exec("/usr/local/sbin/emcmd 'cmdHotplug=apply'");
@@ -400,6 +402,8 @@ switch ($_POST['action']) {
 
 		/* Disk devices. */
 		$o_disks	= "";
+
+		unassigned_log("Debug: Update disk devices...", $UPDATE_DEBUG);
 
 		/* Get updated disks info in case devices have been hot plugged. */
 		if ( count($all_disks) ) {
@@ -588,6 +592,8 @@ switch ($_POST['action']) {
 			$o_disks .= "<tr><td colspan='12' style='text-align:center;'>"._('No Unassigned Disks available').".</td></tr>";
 		}
 
+		unassigned_log("Debug: Update Remote Mounts...", $UPDATE_DEBUG);
+
 		/* SAMBA Mounts. */
 		$o_remotes = "";
 		$ds1 = -microtime(true);
@@ -654,6 +660,8 @@ switch ($_POST['action']) {
 			}
 		}
 
+		unassigned_log("Debug: Update ISO mounts...", $UPDATE_DEBUG);
+
 		/* ISO file Mounts. */
 		$iso_mounts = get_iso_mounts();
 		if (count($iso_mounts)) {
@@ -711,6 +719,8 @@ switch ($_POST['action']) {
 			$o_remotes .= "<tr><td colspan='13' style='text-align:center;'>"._('No Remote SMB')."/"._('NFS or ISO File Shares configured').".</td></tr>";
 		}
 
+		unassigned_log("Debug: Update Historical Devices...", $UPDATE_DEBUG);
+
 		/* Historical devices. */
 		$o_historical = "";
 		$config_file	= $paths["config_file"];
@@ -759,6 +769,8 @@ switch ($_POST['action']) {
 			$o_historical .= "<td><a class='info' href='/Main/EditDeviceSettings?s=".$historical[$disk_display]['serial']."&l=".$historical[$disk_display]['mntpoint']."&p="."1"."&t=true'><i class='fa fa-gears'></i><span>"._("Edit Historical Device Settings and Script")."</span></a></td>";
 			$o_historical .= "<td></td><td></td><td></td><td></td><td></td></tr>";
 		}
+
+		unassigned_log("Debug: End - Update status files...", $UPDATE_DEBUG);
 
 		/* Save the current disk names for a duplicate check. */
 		(new MiscUD)->save_json($paths['disk_names'], $disk_names);
@@ -966,7 +978,7 @@ switch ($_POST['action']) {
 		}
 
 		unassigned_log("Refreshed Disks and Configuration.");
-		unassigned_log("Rescan Disks: initiated a Hotplug event.", $UDEV_DEBUG);
+		unassigned_log("Debug: Rescan Disks: initiated a Hotplug event.", $UDEV_DEBUG);
 
 		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
 		sleep(1);
