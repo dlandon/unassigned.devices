@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.04.04">
+<!ENTITY version	"2023.04.07">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"8db576897736788a8edb2bfaf720a97d">
+<!ENTITY MD5		"5e61f4b17ff4e4867a17bddc95795868">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Debugging to help find UD hangs.
+
+###2023.04.04
 - Fix: Typo in formatting a disk routine causing format issues.
 - Fix: False auto mount messages when formatting a disk.
 
