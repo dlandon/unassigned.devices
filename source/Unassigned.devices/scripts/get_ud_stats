@@ -101,8 +101,8 @@ function is_server_online($server, $log = false) {
 		/* If the ip address does not match the .local ip address, add/update entry in hosts file. */
 		if ($ip_local) {
 			if (($ip != $ip_local) && ((new MiscUD)->is_ip($ip_local))) {
-				shell_exec("/bin/sed -i '/".escapeshellarg($server)."/d' /etc/hosts");
-				shell_exec("/bin/echo -e '".escapeshellarg($ip_local)."''\t''".escapeshellarg($server)."' >> /etc/hosts" );
+				timed_exec(5, "/bin/sed -i '/".escapeshellarg($server)."/d' /etc/hosts");
+				timed_exec(5, "/bin/echo -e '".escapeshellarg($ip_local)."''\t''".escapeshellarg($server)."' >> /etc/hosts" );
 			}
 		} else if ((strpos($ip_arp, "no match found") === false) && ($log)) {
 			unassigned_log("Remote server '".$server."' cannot be found on the LAN.");
