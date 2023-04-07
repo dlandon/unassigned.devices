@@ -22,7 +22,7 @@ require_once "plugins/$plugin/include/lib.php";
 $config_file = $paths['config_file'];
 $cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
 $cfg['Config']['common_cmd']		= $cfg['Config']['common_cmd'] ?? '';
-$cfg['Config']['destructive_mode']	= $cfg['Config']['destructive_mode'] ??'';
+$cfg['Config']['destructive_mode']	= $cfg['Config']['destructive_mode'] ?? '';
 $cfg['Config']['automount_usb']		= $cfg['Config']['automount_usb'] ?? '';
 $cfg['Config']['discard']			= $cfg['Config']['discard'] ?? '';
 $cfg['Config']['symlinks']			= $cfg['Config']['symlinks'] ?? '';
@@ -267,6 +267,7 @@ _(Debug Log Level)_:
 : <select name="debug_level" size="1">
   <?=mk_option($cfg["Config"]["debug_level"], "0", "_(None)_");?>
   <?=mk_option($cfg["Config"]["debug_level"], "1", "Udev and Hotplug");?>
+  <?=mk_option($cfg["Config"]["debug_level"], "2", "Refresh and Update");?>
   <?=mk_option($cfg["Config"]["debug_level"], "8", "Command times");?>
   </select>&nbsp;_(Use only when directed for support)_.
 
@@ -276,6 +277,8 @@ _(Debug Log Level)_:
 > Set to **None** to turn off debug logging.
 >
 > **Udev and Hotplug** udev, disk discovery and hotplug debug.
+>
+> **Refresh and Update** to find issues where UD hangs.
 >
 > **Command times** command execution times. **Warning:** very chatty.
 >
