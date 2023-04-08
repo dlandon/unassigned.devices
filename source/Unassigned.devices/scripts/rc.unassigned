@@ -83,8 +83,6 @@ function unassigned_mount() {
 			continue;
 		}
 
-
-
 		/* Now mount the partitions. */
 		foreach ($disk['partitions'] as $partition)
 		{
@@ -665,7 +663,7 @@ switch ($COMMAND) {
 		break;
 
 	case 'detach':
-		$ata = ($argv[3] == "true") ? true : false;
+		$ata = (isset($argv[3])) ? ($argv[3] == "true" ? true : false) : false;
 		unassigned_detach($DEVNAME, $ata);
 		break;
 
@@ -674,7 +672,7 @@ switch ($COMMAND) {
 		break;
 
 	case 'abort':
-		$script = $argv[2];
+		$script = (isset($argv[2])) ? $argv[2] : "";
 		unassigned_abort($script);
 		break;
 
