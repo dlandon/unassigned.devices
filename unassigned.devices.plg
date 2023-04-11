@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.04.07">
+<!ENTITY version	"2023.04.11">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"5e61f4b17ff4e4867a17bddc95795868">
+<!ENTITY MD5		"a3dc8a427b1c5d80beedae85b18a5c5a">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Java Script error.
+- Fix: Php warnings.
+
+###2023.04.07
 - Add: Debugging to help find UD hangs.
 
 ###2023.04.04
@@ -103,7 +107,7 @@
 - Fix: Some minor UI adjustments related to encrypted disks.
 - Fix: Historical 'devX' name not corrected to actual 'devX' as it should be when the device is re-plugged.
 - Fix: Pass Through not working properly.
-- Fix: Don't try to unmount a passed through disk;
+- Fix: Don't try to unmount a passed through disk.
 - Add: Mount/Unmount of zfs file system on UD disks - version 6.12 and later.
 - Add: Support for formatting zfs disks - version 6.12 and later.
 
@@ -875,7 +879,7 @@ Fix: Duplicate UD disk serial number check not working properly.
 - Fix: Multi-language support.
 
 ###2020.06.11a
-- Add: iocharset=utf8 to vfat mount; nls=utf8 to ntfs mount.
+- Add: iocharset=utf8 to vfat mount, nls=utf8 to ntfs mount.
 - Add: Don't show preclear icon if disk has a file system.
 - Add: Don't show preclear icon if destructive mode is disabled.
 - Fix: Style change to prevent UD from interfering with notification summary.
@@ -1709,16 +1713,16 @@ Fix: Duplicate UD disk serial number check not working properly.
 - Fix: not working on non-tabbed mode
 
 ###2015.09.17b
-- Fix: UDEV killing long run scripts;
+- Fix: UDEV killing long run scripts.
 
 ###2015.09.17a
-- Add: Settings Page;
-- Add: SMB security;
-- Add: NFS export;
-- Add: common script that will be executed prior to disk script;
-- Add: format empty disk;
-- Add: log view and upload when Help is on;
-- Fix: "Add SMB mount" not working with hidden shares;
+- Add: Settings Page.
+- Add: SMB security.
+- Add: NFS export.
+- Add: common script that will be executed prior to disk script.
+- Add: format empty disk.
+- Add: log view and upload when Help is on.
+- Fix: "Add SMB mount" not working with hidden shares.
 - Fix: webGui hanging while mounting/unmounting.
 
 ###2015.09.07a
@@ -1730,7 +1734,7 @@ Fix: Duplicate UD disk serial number check not working properly.
 
 ###2015.09.04
 - Fix: 6.1 compatibility.
-- Add: Move unassigned.devices scripts from /usr/local/sbin to usr/local/emhttp/plugins/&name;/scripts.
+- Add: Move unassigned.devices scripts from /usr/local/sbin to usr/local/emhttp/plugins/unassigned.devices/scripts.
 - Add: Create symlinks to /usr/local/sbin for backwards compatibility.
 - Fix: Fixed package removal issues.
 
