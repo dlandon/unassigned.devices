@@ -251,7 +251,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		var target	= $(el).parents("div").find("*[name='IP']");
 		var old		= $(el).html();
 		$(el).html("<i class='fa fa-spinner fa-spin'></i> <?=_('Searching');?>");
-		$.post(UDURL, {'action': action, 'var': vars, 'network': network, 'workgroup': workgroup}).done(function(data) {
+		$.post(UDURL, {'action': action, 'network': network, 'workgroup': workgroup}).done(function(data) {
 			$(el).html(old);
 			if (data) {
 				var hosts = data.split('\n');
@@ -728,7 +728,6 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	var maxWidth	= [];
 	var tableWidths = [];
 	var display		= <?=json_encode($display);?>;
-	var vars		= <?=json_encode($var);?>;
 	var network		= [];
 	var workgroup	= "";
 
