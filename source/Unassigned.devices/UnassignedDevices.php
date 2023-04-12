@@ -22,9 +22,6 @@ require_once "$docroot/webGui/include/Translations.php";
 if (isset($_POST['display'])) {
 	$display = $_POST['display'];
 }
-if (isset($_POST['var'])) {
-	$var = $_POST['var'];
-}
 
 function netmasks($netmask, $rev = false)
 {
