@@ -39,7 +39,7 @@ $Preclear = new Preclear;
 			{
 				span = $(this);
 				id = span.attr('id').replace(/preclear_/g, '');
-				if (id in PreclearData.status) {
+				if ((PreclearData.status != null) && (id in PreclearData.status)) {
 					span.html("<i style='margin-left: -10px;' class='icon-preclear'></i><span style='margin-left: 4px;'></span>"+PreclearData.status[id].status);
 				}
 			});

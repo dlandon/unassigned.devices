@@ -287,7 +287,7 @@ function startPreclear(serial, multiple = "no")
 				preclearShowResult(data);
 			},'json').always(function(data)	{
 				preclearUpdateContent();
-			},'json').fail(preclearShowResult(data));
+			},'json').fail(function() {preclearShowResult(false);});
 		}
 	});
 
@@ -305,7 +305,7 @@ function stopPreclear(serial, ask, multiple = 'no')
 		$.post(PreclearURL,{action:"stop_preclear",'serial':serial}, function(data){
 			preclearShowResult(data);
 			preclearUpdateContent();
-		},'json').fail(preclearShowResult(data));
+		},'json').fail(function() {preclearShowResult(false);});
 
 		return true;
 	}
@@ -381,7 +381,7 @@ function stopPreclear(serial, ask, multiple = 'no')
 				{
 					preclearShowResult(data);
 					preclearUpdateContent();
-				},'json').fail(preclearShowResult(data));
+				},'json').fail(function() {preclearShowResult(false);});
 			}
 		}
 	});
@@ -405,7 +405,7 @@ function preclearClear()
 			{
 				preclearShowResult(data);
 				getPreclearContent();
-			},'json').fail(preclearShowResult(data));
+			},'json').fail(function() {preclearShowResult(false);});
 		}
 	});
 }
@@ -560,7 +560,7 @@ function rmReport(file, el)
 			$(el).parent().remove();
 			preclearShowResult(data)
 		}
-	}).fail(preclearShowResult(data));
+	}).fail(function() {preclearShowResult(false);});
 }
 
 function getResumablePreclear(serial)
@@ -592,7 +592,7 @@ function getResumablePreclear(serial)
 					$.post(PreclearURL, opts).done(function(data) {
 						preclearShowResult(data);
 						preclearUpdateContent();
-					}).fail(preclearShowResult(data));
+					}).fail(function() {preclearShowResult(false);});
 				} else if (answer == 2) {
 					swal2.stopLoading();
 					startPreclear(serial);
@@ -601,7 +601,7 @@ function getResumablePreclear(serial)
 		} else {
 			startPreclear(serial);
 		}
-	}, "json").fail(preclearShowResult(false));
+	},'json').fail(function() {preclearShowResult(false);});
 }
 
 function setPreclearQueue()
@@ -648,7 +648,7 @@ function resumePreclear(disk)
   {
 	preclearShowResult(data)
     getPreclearContent();
-  }).fail(preclearShowResult(data));
+}).fail(function() {preclearShowResult(false);});
 }
 
 
@@ -668,7 +668,7 @@ function preclearPauseAll()
 			{
 				preclearShowResult(data);
 				getPreclearContent();
-			}, 'json').fail(preclearShowResult(data));
+			},'json').fail(function() {preclearShowResult(false);});
 		}
 	});
 }
@@ -690,7 +690,7 @@ function preclearResumeAll()
 			{
 				preclearShowResult(data);
 				getPreclearContent();
-			}, 'json').fail(preclearShowResult(data));
+			},'json').fail(function() {preclearShowResult(false);});
 		}
 	});
 }
@@ -711,7 +711,7 @@ function preclearStopAll()
 			{
 				preclearShowResult(data);
 				getPreclearContent();
-			}, 'json').fail(preclearShowResult(data));
+			},'json').fail(function() {preclearShowResult(false);});
 		}
 	});
 }
