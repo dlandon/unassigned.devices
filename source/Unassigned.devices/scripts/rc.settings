@@ -114,7 +114,7 @@ switch ($argv[1]) {
 		break;
 
 	default:
-		unassigned_log("Error: 'rc.settings {$argv[1]} {$argv[2]}' not understood");
+		unassigned_log("Error: 'rc.settings {$argv[1]}' not understood");
 		unassigned_log("rc.settings usage: 'save', 'apply', 'uuid_change', 'set_pass'");
 		exit(0);
 		break;
