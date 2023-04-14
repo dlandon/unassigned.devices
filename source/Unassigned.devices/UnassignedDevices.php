@@ -113,7 +113,7 @@ function render_used_and_free_disk($disk, $mounted) {
 
 /* Get the partition information and render for html. */
 function render_partition($disk, $partition, $disk_line = false) {
-	global $paths, $plugin, $Preclear;
+	global $paths, $plugin, $Preclear, $shares_enabled;
 
 	$out = array();
 	if (isset($partition['device'])) {
@@ -211,7 +211,8 @@ function render_partition($disk, $partition, $disk_line = false) {
 			$title .= ($disk['automount'] == 'yes') ? "Yes" : "No";
 		}
 		$title .= "<br />"._("Share").": ";
-		$title .= ($partition['shared'] == 'yes') ? "Yes" : "No";
+
+		$title .= $shares_enabled ? (($partition['shared'] == 'yes') ? "Yes" : "No") : "Not Available";
 		if ($disk_line) {
 			$title .= "<br />"._("Show Partitions").": ";
 			$title .= ($disk['show_partitions'] == 'yes') ? "Yes" : "No";
@@ -642,7 +643,7 @@ switch ($_POST['action']) {
 				$title .= "<br />"._("Automount").": ";
 				$title .= ($mount['automount'] == 'yes') ? "Yes" : "No";
 				$title .= "<br />"._("Share").": ";
-				$title .= ($mount['smb_share'] == 'yes') ? "Yes" : "No";
+				$title .= $shares_enabled ? (($mount['smb_share'] == 'yes') ? "Yes" : "No") : "Not Available";
 
 				$o_remotes .= "<td><a class='info' href='/Main/EditDeviceSettings?d=".$mount['device']."&l=".$mount_point."&m=".json_encode($mount)."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 				$o_remotes .= "<td></td><td></td><td></td>";
