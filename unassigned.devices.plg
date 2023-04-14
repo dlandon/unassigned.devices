@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.04.11">
+<!ENTITY version	"2023.04.14">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"a3dc8a427b1c5d80beedae85b18a5c5a">
+<!ENTITY MD5		"fc9aba531af40cae380d0f5910825d4e">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,13 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: NAN number issue.
+- Fix: Edit settings not detecting mounted status correstly for 'Detach' and 'Attach' of disks.
+- Fix: Minor changes to 'Edit Device Settings' page.
+- Add: Update share settings when UD is updated/installed so any UD changes will take effect immediately.
+- Add: Message on 'Edit Device Settings' page when neither SMB or NFS shares are enabled.
+
+###2023.04.11
 - Fix: Java Script error.
 - Fix: Php warnings.
 
@@ -1897,8 +1904,8 @@ Unassigned devices background start script.
 <FILE Name="/tmp/start_unassigned_devices" Mode="0770">
 <INLINE>
 #!/bin/bash
-# Copy configuration files to tmp file system.
-/usr/local/emhttp/plugins/&name;/scripts/copy_config.sh 2>/dev/null
+# Apply settings to update share settings and copy configuration files to tmp file system.
+/usr/local/emhttp/plugins/&name;/scripts/rc.settings apply 2>/dev/null
 
 # Remove the background start script.
 rm -f /tmp/start_unassigned_devices 2>/dev/null
