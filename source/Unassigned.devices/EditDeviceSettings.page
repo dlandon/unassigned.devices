@@ -58,13 +58,10 @@ if (isset($_GET['s'])) {
 	$partition			= $_GET['p'];
 	$mount_point		= $_GET['l'];
 	$info				= (isset($_GET['m'])) ? $_GET['m'] : "";
-	if (isset($_GET['m'])) {
-		$id_bus			= ($_GET['u'] == "usb") ? " - USB" : " - SATA";
-	} else {
-		$_GET['u']		= null;
-	}
-
+	$disk_info			= json_decode($info, true);
 	$file				= get_config($serial, "command.{$partition}");
+
+	/* Do some configuration file work */
 	if (($file) && (! file_exists($file))) {
 		set_config($serial,"command.{$partition}", "");
 		$file			= "";
@@ -74,15 +71,17 @@ if (isset($_GET['s'])) {
 		set_config($serial, "user_command.{$partition}", "");
 		$user_file		= "";
 	}
-	$background			= (get_config($serial, "command_bg.{$partition}") != "false" ) ? "yes" : "no";
+	$background			= (get_config($serial, "command_bg.{$partition}") != "false") ? "yes" : "no";
+
 	$pass_through		= (is_pass_through($serial)) ? "checked" : "";
 	$disable_mount		= (is_disable_mount($serial)) ? "checked" : "";
 	$read_only			= (is_read_only($serial)) ? "checked" : "";
 	$automount			= (is_automount($serial)) ? "checked" : "";
 	$usb				= ($_GET['u'] == "usb") ? true : false;
+	$id_bus				= ($usb == "usb") ? " - USB" : " - SATA";
 	$share				= config_shared($serial, $partition, $usb) ? "checked" : "";
 	$show_partitions	= (get_config($serial, "show_partitions") == "no" ) ? "" : "checked";
-	$mounted			= is_mounted($mount_point);
+	$mounted			= $disk_info['mounted'];
 	$width				= $mounted ? "57%" : "70%";
 	$automount_action	= "automount";
 	$name				= get_config($serial, "unassigned_dev");
@@ -274,9 +273,7 @@ _(Disk Serial)_: <?=$serial;?>
 
 <?if (isset($_GET['i'])):?>
 <td title='_(Mount ISO File when Array is Started)_.'><input type='checkbox' class='automount-switch'></td>
-<?endif;?>
-
-<?if (! isset($_GET['i'])):?>
+<?else:?>
 <td title='_(Share Device with SMB and NFS)_.'><input type='checkbox' class='share-switch' info='<?=$info?>'></td>
 <?endif;?>
 
@@ -286,6 +283,10 @@ _(Disk Serial)_: <?=$serial;?>
 
 </tr>
 </table>
+
+<?if ((! $shares_enabled) && (! isset($_GET['i']))):?>
+<p style='font-weight:bold'>_(Note: Enable SMB or NFS sharing in Unassigned Devices Settings to share this device.)_</p>
+<?endif;?>
 
 :ud_edit_script_device_settings_plug:
 > Select the options for this device/mount point.  These changes are made immediately.  You don't need to click **Save** to save them.
