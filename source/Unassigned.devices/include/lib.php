@@ -91,6 +91,9 @@ if ( is_file( "plugins/preclear.disk/assets/lib.php" ) ) {
 	$Preclear = null;
 }
 
+/* See if the UD settings are set for either SMB or NFS sharing. */
+$shares_enabled		= ((get_config("Config", "smb_security") && (get_config("Config", "smb_security") != "no")) || (get_config("Config", "nfs_export") == "yes")) ? true : false;
+
 /* Misc functions. */
 class MiscUD
 {
