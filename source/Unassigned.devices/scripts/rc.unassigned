@@ -533,7 +533,7 @@ function unassigned_spin_down($device) {
 }
 
 /* Detach the disk device. */
-function unassigned_detach($device, $ata) {
+function unassigned_detach($device, $ata = false) {
 
 	$dev = (new MiscUD)->base_device(basename($device));
 
@@ -564,13 +564,13 @@ function unassigned_detach($device, $ata) {
 
 							sleep(2);
 
-							unassigned_log("Device '{$device}' has been detached.");
+							unassigned_log("Device '{$dev}' has been detached.");
 						}
 					} else {
-						unassigned_log("Device '{$device}' is mounted and cannot be detached!");
+						unassigned_log("Device '{$dev}' is mounted and cannot be detached!");
 					}
 				} else {
-					unassigned_log("Device '{$device}' is not a USB device and cannot be detached!");
+					unassigned_log("Device '{$dev}' is not a USB device and cannot be detached!");
 				}
 				break;
 			}
