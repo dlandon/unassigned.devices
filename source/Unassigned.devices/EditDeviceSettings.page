@@ -58,6 +58,11 @@ if (isset($_GET['s'])) {
 	$partition			= $_GET['p'];
 	$mount_point		= $_GET['l'];
 	$info				= (isset($_GET['m'])) ? $_GET['m'] : "";
+	if (isset($_GET['m'])) {
+		$id_bus			= ($_GET['u'] == "usb") ? " - USB" : " - SATA";
+	} else {
+		$_GET['u']		= null;
+	}
 	$disk_info			= json_decode($info, true);
 	$file				= get_config($serial, "command.{$partition}");
 
@@ -78,7 +83,6 @@ if (isset($_GET['s'])) {
 	$read_only			= (is_read_only($serial)) ? "checked" : "";
 	$automount			= (is_automount($serial)) ? "checked" : "";
 	$usb				= ($_GET['u'] == "usb") ? true : false;
-	$id_bus				= ($usb == "usb") ? " - USB" : " - SATA";
 	$share				= config_shared($serial, $partition, $usb) ? "checked" : "";
 	$show_partitions	= (get_config($serial, "show_partitions") == "no" ) ? "" : "checked";
 	$mounted			= $disk_info['mounted'];
