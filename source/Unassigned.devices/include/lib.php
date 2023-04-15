@@ -207,13 +207,6 @@ class MiscUD
 		$end	= strpos($devpath, "/", $begin);
 		$host	= substr($devpath, $begin, $end-$begin);
 
-		/* Prevent duplicate hostX elements. */
-		$check = array_flip($device_hosts);
-		if ((isset($check[$host])) && ($check[$host] != $serial)) {
-			unset($check[$host]);
-		}
-		$device_hosts	= array_flip($check);
-
 		/* Save the hostX. */
 		$device_hosts[$serial] = $host;
 
