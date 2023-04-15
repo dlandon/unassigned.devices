@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.04.14b">
+<!ENTITY version	"2023.04.15">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"def4504156a9eab40d6d2b93b32518b4">
+<!ENTITY MD5		"2d443fe8d6a16b9030979e83b2b077d1">
 ]>
 
 <PLUGIN name="&name;"
@@ -25,8 +25,10 @@
 - Fix: NAN number issue.
 - Fix: Edit settings not detecting mounted status correstly for 'Detach' and 'Attach' of disks.
 - Fix: Minor changes to 'Edit Device Settings' page.
+- Fix: Remove duplicate hosts check.  It's not necessary and sometimes caused a detached device to not be 'attachable'.
 - Add: Update share settings when UD is updated/installed so any UD changes will take effect immediately.
 - Add: Message on 'Edit Device Settings' page when neither SMB or NFS shares are enabled.
+- Add: Tool tip for edit device settings shows 'Not Available' for 'Share' status when shares not enabled in UD settings.
 
 ###2023.04.11
 - Fix: Java Script error.
@@ -2139,8 +2141,7 @@ rmdir /mnt/rootshare 2>/dev/null
 find "/boot/config/plugins/&name;/" -type f -iname "*.txz" -delete
 
 # Remove possible leftovers
-rm -rf /usr/local/emhttp/plugins/&name; \
-       /var/state/&name;
+rm -rf /usr/local/emhttp/plugins/&name;
 
 rm -f /tmp/plugins/&name;.plg \
       /usr/local/sbin/rc.unassigned \
