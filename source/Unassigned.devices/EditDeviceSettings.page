@@ -82,10 +82,10 @@ if (isset($_GET['s'])) {
 	$disable_mount		= (is_disable_mount($serial)) ? "checked" : "";
 	$read_only			= (is_read_only($serial)) ? "checked" : "";
 	$automount			= (is_automount($serial)) ? "checked" : "";
-	$usb				= ($_GET['u'] == "usb") ? true : false;
+	$usb				= ((isset($_GET['u'])) && ($_GET['u'] == "usb")) ? true : false;
 	$share				= config_shared($serial, $partition, $usb) ? "checked" : "";
 	$show_partitions	= (get_config($serial, "show_partitions") == "no" ) ? "" : "checked";
-	$mounted			= $disk_info['mounted'];
+	$mounted			= isset($disk_info['mounted']) ? $disk_info['mounted'] : false;
 	$width				= $mounted ? "57%" : "70%";
 	$automount_action	= "automount";
 	$name				= get_config($serial, "unassigned_dev");
