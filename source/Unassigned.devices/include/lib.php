@@ -112,10 +112,6 @@ class MiscUD
 		return file_exists($file) ? @json_decode(file_get_contents($file), true) : array();
 	}
 
-	public function disk_device($disk) {
-		return (file_exists($disk)) ? $disk : "/dev/{$disk}";
-	}
-
 	/* Check for a valid IP address. */
 	public function is_ip($str) {
 		return filter_var($str, FILTER_VALIDATE_IP);
