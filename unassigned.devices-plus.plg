@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices-plus">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2022.11.06">
+<!ENTITY version   "2024.04.15">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/unassigned.devices/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
@@ -22,6 +22,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Update libbsd to 0.11.7.
+- Add: Update parted to 3.6.
+
+###2022.11.06
 - Add: Parted 3.5 for Unraid 6.11.
 
 ###2022.08.19
@@ -97,11 +101,11 @@ parted-3.3-x86_64-1.txz
 
 
 <!--
-parted-3.5-x86_64-1.txz
+parted-3.6-x86_64-1.txz
 -->
-<FILE Min='6.11.0' Name="&packages;/parted-3.5-x86_64-1.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/parted-3.5-x86_64-1.txz"</URL>
-<MD5>c91efdc64b48eb0218aae4a155b887d1</MD5>
+<FILE Min='6.11.0' Name="&packages;/parted-3.6-x86_64-1.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/parted-3.6-x86_64-1.txz"</URL>
+<MD5>a0d226c87c2bbfda2100030f30bd38ef</MD5>
 </FILE>
 
 <!--
@@ -129,11 +133,11 @@ hfsprogs-332.25-x86_64-2sl.txz
 </FILE>
 
 <!--
-libbsd-0.10.0-x86_64-2_slonly.txz
+libbsd-0.11.7-x86_64-1cf.txz
 -->
-<FILE Name="&packages;/libbsd-0.10.0-x86_64-2_slonly.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/libbsd-0.10.0-x86_64-2_slonly.txz"</URL>
-<MD5>1b8dbaa180721964bf9d864e50dae1ac</MD5>
+<FILE Name="&packages;/libbsd-0.11.7-x86_64-1cf.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/libbsd-0.11.7-x86_64-1cf.txz"</URL>
+<MD5>19ee0ef149d3706474132c24c8a666a3</MD5>
 </FILE>
 
 <!--
@@ -182,11 +186,11 @@ echo "Removing packages..."
 
 # Remove all installed packages.
 removepkg parted-3.3-x86_64-1 >/dev/null
-removepkg parted-3.5-x86_64-1 >/dev/null
+removepkg parted-3.6-x86_64-1 >/dev/null
 removepkg exfat-utils-1.3.0-x86_64-1_slonly >/dev/null
 removepkg fuse-exfat-1.3.0-x86_64-1_slonly.txz >/dev/null
 removepkg hfsprogs-332.25-x86_64-2sl >/dev/null
-removepkg libbsd-0.10.0-x86_64-2_slonly >/dev/null
+removepkg libbsd-0.11.7-x86_64-1cf.txz >/dev/null
 removepkg apfsfuse-v20200708-x86_64-1.txz >/dev/null
 
 # Remove possible leftovers
