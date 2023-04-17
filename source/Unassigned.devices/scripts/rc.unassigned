@@ -15,8 +15,8 @@ $plugin = "unassigned.devices";
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 require_once("$docroot/plugins/".$plugin."/include/lib.php");
 
-$COMMAND = $argv[1];
-$DEVNAME = (isset($_ENV['DEVNAME'])) ? $_ENV['DEVNAME'] : ( isset($argv[2]) ? $argv[2] : NULL );
+$COMMAND = isset($argv[1]) ? $argv[1] : "";
+$DEVNAME = (isset($_ENV['DEVNAME'])) ? $_ENV['DEVNAME'] : ( isset($argv[2]) ? $argv[2] : "" );
 $DEVNAME = ((isset($DEVNAME)) && (file_exists($DEVNAME))) ? realpath($DEVNAME) : $DEVNAME;
 $dev_pos = (isset($DEVNAME)) ? strpos($DEVNAME, 'name=') : false;
 if ($dev_pos !== false) {
