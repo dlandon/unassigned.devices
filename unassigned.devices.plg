@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.04.15">
+<!ENTITY version	"2023.04.17">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"2d443fe8d6a16b9030979e83b2b077d1">
+<!ENTITY MD5		"03e7528d97ac246ea0f87f3d68e42ff9">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Default share setting for remote shares should be to not share, rather than sharing without user intervention.
+
+###2023.04.15
 - Fix: NAN number issue.
 - Fix: Edit settings not detecting mounted status correstly for 'Detach' and 'Attach' of disks.
 - Fix: Minor changes to 'Edit Device Settings' page.
