@@ -2144,16 +2144,16 @@ function decrypt_data($data) {
 /* Is the samba mount set for auto mount? */
 function is_samba_automount($serial) {
 	$auto	= get_samba_config($serial, "automount");
-	return ( ($auto) ? ( ($auto == "yes") ? true : false ) : false);
+	return ( ($auto == "yes") ? true : false );
 }
 
 /* Is the samba mount set to share? */
 function is_samba_share($serial) {
 	$smb_share	= get_samba_config($serial, "smb_share");
-	return ( ($smb_share) ? ( ($smb_share == "yes") ? true : false ) : true);
+	return ( ($smb_share == "yes") ? true : false );
 }
 
-/* Is device set to pass through. */
+/* Is disable mount enabled. */
 function is_samba_disable_mount($serial) {
 	$disable_mount	= get_samba_config($serial, "disable_mount");
 	return ($disable_mount == "yes") ? true : false;
