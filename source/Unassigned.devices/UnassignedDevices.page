@@ -886,7 +886,10 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 				<option value="/mnt/user0/"><?=_('User Shares');?></option>
 				<option value="/mnt/user/"><?=_('User and Pool Shares');?></option>
 			</select>
-			<p><?=_('Select the Mount Point to Root Share');?>.</p>
+			<p><?=_('Select the Root Share');?>.</p>
+			<p><?=_('User Shares will allow access to User Shares, but the Root Share will not include Cache and Pool Device files');?>.</p>
+			<p><?=_('Files on the Cache and Pool Devices will not show in the User Shares in the Root Share');?>.</p>
+			<p><?=_('User and Pool Shares will include all files in User Shares, Cache and Pool Devices');?>.</p>
 		</div>
 	</div>
 
