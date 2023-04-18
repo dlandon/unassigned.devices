@@ -202,20 +202,20 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$title = _("Edit Device Settings and Script");
 		if ($disk_line) {
 			$title .= "<br />"._("Passed Through").": ";
-			$title .= ($partition['pass_through'] == 'yes') ? "Yes" : "No";
+			$title .= $partition['pass_through'] ? "Yes" : "No";
 			$title .= "<br />"._("Disable Mount Button").": ";
-			$title .= ($partition['disable_mount'] == 'yes') ? "Yes" : "No";
+			$title .= $partition['disable_mount'] ? "Yes" : "No";
 			$title .= "<br />"._("Read Only").": ";
-			$title .= ($partition['read_only'] == 'yes') ? "Yes" : "No";
+			$title .= $partition['read_only'] ? "Yes" : "No";
 			$title .= "<br />"._("Automount").": ";
-			$title .= ($disk['automount'] == 'yes') ? "Yes" : "No";
+			$title .= $disk['automount'] ? "Yes" : "No";
 		}
 		$title .= "<br />"._("Share").": ";
 
 		$title .= $shares_enabled ? (($partition['shared']) ? "Yes" : "No") : "Not Available";
 		if ($disk_line) {
 			$title .= "<br />"._("Show Partitions").": ";
-			$title .= ($disk['show_partitions'] == 'yes') ? "Yes" : "No";
+			$title .= $disk['show_partitions'] ? "Yes" : "No";
 		}
 
 		$device		= (new MiscUD)->base_device(basename($device)) ;
@@ -616,11 +616,11 @@ switch ($_POST['action']) {
 				}
 
 				$disabled	= (($mount['fstype'] == "root") && ($var['shareDisk'] == "yes" || $var['mdState'] != "STARTED")) ? "disabled" : ($is_alive ? "enabled" : "disabled");
-				$disabled	= (isset($mount['disable_mount']) && ($mount['disable_mount'] == 'yes')) ? "disabled" : $disabled;
+				$disabled	= ( isset($mount['disable_mount']) && ($mount['disable_mount']) ) ? "disabled" : $disabled;
 				if ($mount['mounted'] && (is_script_running($mount['command']) || is_script_running($mount['user_command'], true))) {
 					$o_remotes .= "<td><button class='mount' disabled> <i class='fa fa-spinner fa-spin'></i>"." "._("Running")."</button></td>";
 				} else {
-					$class	= (isset($mount['disable_mount']) && ($mount['disable_mount'] == "yes")) ? "fa fa-ban" : "";
+					$class	= ( isset($mount['disable_mount']) && ($mount['disable_mount']) ) ? "fa fa-ban" : "";
 					/* Remove special characters. */
 					$mount_device	= safe_name(basename($mount['device'])."_".$mount['fstype']);
 					$is_mounting	= (new MiscUD)->get_mounting_status($mount_device);
@@ -639,9 +639,9 @@ switch ($_POST['action']) {
 
 				$title = _("Edit Remote SMB")."/".("NFS Settings and Script");
 				$title .= "<br />"._("Disable Mount Button").": ";
-				$title .= (isset($mount['disable_mount']) && ($mount['disable_mount'] == 'yes')) ? "Yes" : "No";
+				$title .= ( isset($mount['disable_mount']) && ($mount['disable_mount']) ) ? "Yes" : "No";
 				$title .= "<br />"._("Automount").": ";
-				$title .= ($mount['automount'] == 'yes') ? "Yes" : "No";
+				$title .= $mount['automount'] ? "Yes" : "No";
 				$title .= "<br />"._("Share").": ";
 				$title .= $shares_enabled ? (($mount['smb_share']) ? "Yes" : "No") : "Not Available";
 
@@ -700,7 +700,7 @@ switch ($_POST['action']) {
 
 				$title = _("Edit ISO File Settings and Script");
 				$title .= "<br />"._("Automount").": ";
-				$title .= ($mount['automount'] == 'yes') ? "Yes" : "No";
+				$title .= $mount['automount'] ? "Yes" : "No";
 
 				$o_remotes .= "<td><a class='info' href='/Main/EditDeviceSettings?i=".$mount['device']."&l=".$mount_point."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 				$o_remotes .= "<td></td><td></td><td></td>";
@@ -1294,9 +1294,9 @@ switch ($_POST['action']) {
 		/* Set the spinning_down state. */
 		$tc			= $paths['run_status'];
 		$run_status	= file_exists($tc) ? json_decode(file_get_contents($tc), true) : array();
-		if ($run_status[$device]['running'] == 'yes') {
+		if ($run_status[$device]['running'] == "yes") {
 			$run_status[$device]['spin_time'] = time();
-			$run_status[$device]['spin'] = 'down';
+			$run_status[$device]['spin'] = "down";
 			@file_put_contents($tc, json_encode($run_status));
 			$result	= (new MiscUD)->spin_disk(true, $device);
 			echo json_encode($result);
