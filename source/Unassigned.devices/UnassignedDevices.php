@@ -212,7 +212,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		}
 		$title .= "<br />"._("Share").": ";
 
-		$title .= $shares_enabled ? (($partition['shared']) ? "Yes" : "No") : "Not Available";
+		$title .= $shares_enabled ? (($partition['shared']) ? "Yes" : "No") : "Not Enabled";
 		if ($disk_line) {
 			$title .= "<br />"._("Show Partitions").": ";
 			$title .= $disk['show_partitions'] ? "Yes" : "No";
@@ -643,7 +643,7 @@ switch ($_POST['action']) {
 				$title .= "<br />"._("Automount").": ";
 				$title .= $mount['automount'] ? "Yes" : "No";
 				$title .= "<br />"._("Share").": ";
-				$title .= $shares_enabled ? (($mount['smb_share']) ? "Yes" : "No") : "Not Available";
+				$title .= $shares_enabled ? (($mount['smb_share']) ? "Yes" : "No") : "Not Enabled";
 
 				$o_remotes .= "<td><a class='info' href='/Main/EditDeviceSettings?d=".$mount['device']."&l=".$mount_point."&m=".json_encode($mount)."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 				$o_remotes .= "<td></td><td></td><td></td>";
