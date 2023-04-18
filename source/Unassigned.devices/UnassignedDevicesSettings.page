@@ -289,28 +289,28 @@ _(Debug Log Level)_:
 : <input type="submit" value='_(Apply)_'><input type="button" value="_(Done)_" onclick="done()">
 </form>
 
-<div <?=$title_classid;?> class="nocontrol">_(SMB Security)_</div>
+<div <?=$title_classid;?> class="nocontrol">_(SMB Settings)_</div>
 <form markdown="1" name="smb_settings" method="POST" action="/update.php" target="progressFrame">
 <input type="hidden" name="#section" value="Config">
 <input type="hidden" name="#file" value="unassigned.devices/unassigned.devices.cfg">
 <input type="hidden" name="#command" value="/plugins/unassigned.devices/scripts/rc.settings">
 <input type="hidden" name="#arg[1]" value="apply">
 
-_(Enable SMB Security)_?
+_(SMB Sharing)_?
 : <select name="smb_security" size="1" onchange="prepareSecurity(this);">
-  <?=mk_option($cfg["Config"]["smb_security"], "no", "_(No)_");?>
+  <?=mk_option($cfg["Config"]["smb_security"], "no", "_(Disabled)_");?>
   <?=mk_option($cfg["Config"]["smb_security"], "public", "_(Public)_");?>
-  <?=mk_option($cfg["Config"]["smb_security"], "yes", "_(Yes)_");?>
-  <?=mk_option($cfg["Config"]["smb_security"], "hidden", "_(Yes (hidden))_");?>
+  <?=mk_option($cfg["Config"]["smb_security"], "yes", "_(Private)_");?>
+  <?=mk_option($cfg["Config"]["smb_security"], "hidden", "_(Private Hidden)_");?>
   </select>
 
 :ud_settings_smb_security_plug:
-> Set the user level of SMB Security.
+> Set the user level of SMB Sharing.
 >
-> + Set to **No** to disable SMB sharing.
+> + Set to **Disabled** to disable SMB sharing.
 > + Set to **Public** will share devices, Remote SMB/NFS shares, and iso Mounts Public with read and write access.
-> + Set to **Yes** to enable SMB Security on SMB shares. Set access by user to allow access and whether or not the user can write to the share.
-> + Set to **Hidden** to enable SMB Security on SMB shares that will not be visible. Set access by user to allow access and whether or not the user can write to the share.
+> + Set to **Private** to enable SMB Security on SMB shares. Set access by user to allow access and whether or not the user can write to the share.
+> + Set to **Private Hidden** to enable SMB Security on SMB shares that will not be visible. Set access by user to allow access and whether or not the user can write to the share.
 :end
 
 <div id="smb_security" style="display: <?=($cfg['Config']["smb_security"] == "no" || $cfg['Config']["smb_security"] == "public" || (! $cfg['Config']["smb_security"]) ? "none" : "block");?>">
