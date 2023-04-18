@@ -521,7 +521,7 @@ function is_disk_running($ud_dev, $dev) {
 	if (is_file($sf)) {
 		$devs	= @parse_ini_file($sf, true);
 		if (isset($devs[$ud_dev])) {
-			$rc			= ($devs[$ud_dev]['spundown'] == '0') ? true : false;
+			$rc			= ($devs[$ud_dev]['spundown'] == "0") ? true : false;
 			$device		= $ud_dev;
 			$timestamp	= time();
 		}
@@ -591,7 +591,7 @@ function is_samba_server_online($ip) {
 	/* Get the updated ping status. */
 	$ping_status	= (new MiscUD)->get_json($tc);
 	if (isset($ping_status[$server])) {
-		$is_alive = ($ping_status[$server]['online'] == 'yes') ? true : false;
+		$is_alive = ($ping_status[$server]['online'] == "yes") ? true : false;
 	}
 
 	return $is_alive;
@@ -698,7 +698,7 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 		$max_mbr_blocks = hexdec("0xFFFFFFFF");
 		$disk_blocks	= intval(trim(shell_exec("/sbin/blockdev --getsz ".escapeshellarg($dev)." 2>/dev/null | /bin/awk '{ print $1 }'")));
 		$disk_schema	= ( $disk_blocks >= $max_mbr_blocks ) ? "gpt" : "msdos";
-		$parted_fs		= ($fs == 'exfat') ? "fat32" : $fs;
+		$parted_fs		= ($fs == "exfat") ? "fat32" : $fs;
 
 		unassigned_log("Device '".$dev."' block size: ".$disk_blocks.".");
 
@@ -1779,7 +1779,7 @@ function config_shared($serial, $part, $usb = false) {
 function toggle_share($serial, $part, $status) {
 	$new 		= ($status == "true") ? "yes" : "no";
 	set_config($serial, "share.{$part}", $new);
-	return ($new == 'yes') ? true : false;
+	return ($new == "yes") ? true : false;
 }
 
 /* Add mountpoint to samba shares. */

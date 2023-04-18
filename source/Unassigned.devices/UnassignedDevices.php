@@ -16,7 +16,7 @@ require_once("plugins/".$plugin."/include/lib.php");
 require_once("webGui/include/Helpers.php");
 
 /* add translations */
-$_SERVER['REQUEST_URI'] = 'unassigneddevices';
+$_SERVER['REQUEST_URI'] = "unassigneddevices";
 require_once "$docroot/webGui/include/Translations.php";
 
 if (isset($_POST['display'])) {
@@ -1310,9 +1310,9 @@ switch ($_POST['action']) {
 		/* Set the spinning_up state. */
 		$tc			= $paths['run_status'];
 		$run_status	= file_exists($tc) ? json_decode(file_get_contents($tc), true) : array();
-		if ($run_status[$device]['running'] == 'no') {
+		if ($run_status[$device]['running'] == "no") {
 			$run_status[$device]['spin_time'] = time();
-			$run_status[$device]['spin'] = 'up';
+			$run_status[$device]['spin'] = "up";
 			@file_put_contents($tc, json_encode($run_status));
 			$result	= (new MiscUD)->spin_disk(false, $device);
 			echo json_encode($result);

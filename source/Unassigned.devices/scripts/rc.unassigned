@@ -23,7 +23,7 @@ if ($dev_pos !== false) {
 	$dev_name		= substr($DEVNAME, $dev_pos+5);
 	foreach (get_all_disks_info() as $disk) {
 		if ($disk['unassigned_dev'] == $dev_name) {
-			if ($COMMAND != 'spindown') {
+			if ($COMMAND != "spindown") {
 				$DEVNAME = basename($disk['device']);
 			} else {
 				$DEVNAME = basename($disk['ud_dev']);
@@ -31,7 +31,7 @@ if ($dev_pos !== false) {
 			break;
 		}
 	}
-} elseif ($COMMAND != 'spindown') {
+} elseif ($COMMAND != "spindown") {
 	$sf = $paths['dev_state'];
 	if (is_file($sf) && (isset($DEVNAME)) && (strpos(basename($DEVNAME), 'dev') !== false)) {
 		$devs = @parse_ini_file($sf, true);
