@@ -289,7 +289,7 @@ _(Disk Serial)_: <?=$serial;?>
 </table>
 
 <?if ((! $shares_enabled) && (! isset($_GET['i']))):?>
-<p style='font-weight:bold'>_(Note: Enable SMB or NFS sharing in Unassigned Devices Settings to share this device.)_</p>
+<p style='font-weight:bold'>_(Note: Enable SMB Sharing or NFS Export in Unassigned Devices Settings to share this device)_.</p>
 <?endif;?>
 
 :ud_edit_script_device_settings_plug:
