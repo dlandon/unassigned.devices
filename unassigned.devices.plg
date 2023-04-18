@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.04.17">
+<!ENTITY version	"2023.04.18">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"03e7528d97ac246ea0f87f3d68e42ff9">
+<!ENTITY MD5		"b18645ad820501d47f9004a502317779">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,12 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Remote shares being shared when 'Share' switch is off when plugin is installed or updated.
+- Fix: Disable Mount button status not working right on remote shares.
+- Fix: Logic cleanup on device Tool Tips.
+- Fix: Redo SMB Settings in UD Settings to be clearer about sharing.
+
+2-23.04.17
 - Fix: Default share setting for remote shares should be to not share, rather than sharing without user intervention.
 
 ###2023.04.15
@@ -31,7 +37,7 @@
 - Fix: Remove duplicate hosts check.  It's not necessary and sometimes caused a detached device to not be 'attachable'.
 - Add: Update share settings when UD is updated/installed so any UD changes will take effect immediately.
 - Add: Message on 'Edit Device Settings' page when neither SMB or NFS shares are enabled.
-- Add: Tool tip for edit device settings shows 'Not Available' for 'Share' status when shares not enabled in UD settings.
+- Add: Tool tip for edit device settings shows 'Not Available' for 'Share' status when neither SMB nor NFS is enabled in UD settings.
 
 ###2023.04.11
 - Fix: Java Script error.
@@ -1909,6 +1915,9 @@ Unassigned devices background start script.
 <FILE Name="/tmp/start_unassigned_devices" Mode="0770">
 <INLINE>
 #!/bin/bash
+# Copy config files to the tmp file system to be sure we have current settings.
+/usr/bin/cp /boot/config/plugins/&name;/*.cfg /tmp/&name;/config/ 2>/dev/null
+
 # Apply settings to update share settings and copy configuration files to tmp file system.
 /usr/local/emhttp/plugins/&name;/scripts/rc.settings apply 2>/dev/null
 
