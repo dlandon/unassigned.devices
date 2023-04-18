@@ -1490,7 +1490,7 @@ function do_mount_local($info) {
 	$dev			= $info['device'];
 	$dir			= $info['mountpoint'];
 	$fs				= $info['fstype'];
-	$ro				= ($info['read_only'] == 'yes') ? true : false;
+	$ro				= $info['read_only'] ? true : false;
 	$file_system	="";
 
 	$pool_name	= ($info['fstype'] == "zfs") ? (new MiscUD)->zfs_pool_name($dir, true) : "";
@@ -2188,6 +2188,7 @@ function get_samba_mounts() {
 			$mount['is_alive']		= is_samba_server_online($mount['ip']);
 			$mount['automount']		= is_samba_automount($mount['name']);
 			$mount['smb_share']		= is_samba_share($mount['name']);
+			$mount['disable_mount']	= is_samba_disable_mount($mount['name']);
 			if (! $mount['mountpoint']) {
 				$mount['mountpoint'] = "{$paths['usb_mountpoint']}/{$mount['ip']}_{$path}";
 				if (! $mount['mounted'] || ! is_mounted($mount['mountpoint']) || is_link($mount['mountpoint'])) {
@@ -2446,7 +2447,7 @@ function toggle_samba_disable_mount($device, $status) {
 	/* Release the file lock. */
 	release_file_lock($lock_file);
 
-	return ($config[$serial]["disable_mount"] == "yes") ? 'true' : 'false';
+	return ($config[$device]["disable_mount"] == "yes") ? 'true' : 'false';
 }
 
 /* Remove the samba remote mount configuration. */
