@@ -2019,19 +2019,16 @@ function remove_shares() {
 	foreach (get_unassigned_disks() as $name => $disk) {
 		foreach ($disk['partitions'] as $p) {
 			$info = get_partition_info($p);
-			if ( $info['mounted'] ) {
-				$device = $disk['device'];
-				if ($info['shared']) {
-					rm_smb_share($info['target']);
-					rm_nfs_share($info['target']);
-				}
+			if ( ($info['mounted']) && ($info['shared']) ) {
+				rm_smb_share($info['target']);
+				rm_nfs_share($info['target']);
 			}
 		}
 	}
 
 	/* SMB Mounts */
 	foreach (get_samba_mounts() as $name => $info) {
-		if ( $info['mounted'] ) {
+		if ( ($info['mounted']) && ($info['smb_share']) ) {
 			rm_smb_share($info['mountpoint']);
 		}
 	}
@@ -2045,26 +2042,23 @@ function remove_shares() {
 	}
 }
 
-/* Reload disk samba and NFS shares. */
+/* Reload disk, samba and NFS shares. */
 function reload_shares() {
 	/* Disk mounts */
 	foreach (get_unassigned_disks() as $name => $disk) {
 		foreach ($disk['partitions'] as $p) {
 			$info = get_partition_info($p);
-			if ( $info['mounted'] ) {
-				$device = $disk['device'];
-				if ($info['shared']) {
-					$fat_fruit = (($info['fstype'] == "vfat") || ($info['fstype'] == "exfat")) ? true : false;
-					add_smb_share($info['mountpoint'], true, $fat_fruit);
-					add_nfs_share($info['mountpoint']);
-				}
+			if ( $info['mounted'] && $info['shared'] ) {
+				$fat_fruit = (($info['fstype'] == "vfat") || ($info['fstype'] == "exfat")) ? true : false;
+				add_smb_share($info['mountpoint'], true, $fat_fruit);
+				add_nfs_share($info['mountpoint']);
 			}
 		}
 	}
 
 	/* SMB Mounts */
 	foreach (get_samba_mounts() as $name => $info) {
-		if ( $info['mounted'] ) {
+		if ( ($info['mounted']) && ($info['smb_share']) ) {
 			add_smb_share($info['mountpoint'], $info['fstype'] == "root" ? true : false);
 		}
 	}
