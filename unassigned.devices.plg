@@ -27,7 +27,7 @@
 - Fix: Logic cleanup on device Tool Tips.
 - Fix: Redo SMB Settings in UD Settings to be clearer about sharing.
 
-2-23.04.17
+###2023.04.17
 - Fix: Default share setting for remote shares should be to not share, rather than sharing without user intervention.
 
 ###2023.04.15
