@@ -599,13 +599,14 @@ switch ($_POST['action']) {
 		if (count($samba_mounts)) {
 			foreach ($samba_mounts as $mount)
 			{
-				$is_alive = $mount['is_alive'];
-				$mounted = $mount['mounted'];
-				$o_remotes .= "<tr>";
-				$protocol = $mount['protocol'] == "NFS" ? "nfs" : "smb";
-				$o_remotes .= sprintf( "<td><a class='info'><i class='fa fa-circle orb %s'></i><span>"._("Remote Share is")." %s</span></a>%s</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ), $protocol);
-				$o_remotes .= "<td>{$mount['name']}";
-				$mount_point = basename($mount['mountpoint']);
+				$is_alive		= $mount['is_alive'];
+				$mounted		= $mount['mounted'];
+				$o_remotes		.= "<tr>";
+				$protocol		= $mount['protocol'] == "NFS" ? "nfs" : "smb";
+				$o_remotes		.= sprintf( "<td><a class='info'><i class='fa fa-circle orb %s'></i><span>"._("Remote Share is")." %s</span></a>%s</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ), $protocol);
+				$o_remotes		.= "<td>{$mount['name']}";
+				$mount_point	= basename($mount['mountpoint']);
+				$o_remotes		.= "<td></td>";
 				if ($mounted) {
 					$o_remotes .= "<td><i class='fa fa-external-link mount-share'></i><a title='"._("Browse Remote SMB")."/"._("NFS Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
 				} else {
@@ -614,6 +615,7 @@ switch ($_POST['action']) {
 						<a title='"._("Change Remote SMB")."/"._("NFS Mount Point")."' class='exec' onclick='chg_samba_mountpoint(\"{$mount['name']}\",\"{$mount_point}\");'>{$mount_point}</a>
 						</td>";
 				}
+				$o_remotes		.= "<td></td>";
 
 				$disabled	= (($mount['fstype'] == "root") && ($var['shareDisk'] == "yes" || $var['mdState'] != "STARTED")) ? "disabled" : ($is_alive ? "enabled" : "disabled");
 				$disabled	= ( isset($mount['disable_mount']) && ($mount['disable_mount']) ) ? "disabled" : $disabled;
@@ -640,6 +642,8 @@ switch ($_POST['action']) {
 				$title = _("Edit Remote SMB")."/".("NFS Settings and Script");
 				$title .= "<br />"._("Disable Mount Button").": ";
 				$title .= ( isset($mount['disable_mount']) && ($mount['disable_mount']) ) ? "Yes" : "No";
+				$title .= "<br />"._("Read Only").": ";
+				$title .= $mount['read_only'] ? "Yes" : "No";
 				$title .= "<br />"._("Automount").": ";
 				$title .= $mount['automount'] ? "Yes" : "No";
 				$title .= "<br />"._("Share").": ";
@@ -664,13 +668,13 @@ switch ($_POST['action']) {
 		$iso_mounts = get_iso_mounts();
 		if (count($iso_mounts)) {
 			foreach ($iso_mounts as $mount) {
-				$mounted = $mount['mounted'];
-				$is_alive = is_file($mount['file']);
-				$o_remotes .= "<tr>";
-				$o_remotes .= sprintf( "<td><a class='info'><i class='fa fa-circle orb %s'></i><span>"._("ISO File is")." %s</span></a>iso</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ));
-				$devname = basename($mount['device']);
-				$o_remotes .= "<td>{$mount['device']}</td>";
-				$mount_point = basename($mount['mountpoint']);
+				$mounted		= $mount['mounted'];
+				$is_alive		= is_file($mount['file']);
+				$o_remotes		.= "<tr>";
+				$o_remotes		.= sprintf( "<td><a class='info'><i class='fa fa-circle orb %s'></i><span>"._("ISO File is")." %s</span></a>iso</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ));
+				$devname		= basename($mount['device']);
+				$o_remotes		.= "<td>{$mount['device']}</td><td></td>";
+				$mount_point	= basename($mount['mountpoint']);
 				if ($mounted) {
 					$o_remotes .= "<td><i class='fa fa-external-link mount-share'></i><a title='"._("Browse ISO File Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
 				} else {
@@ -679,6 +683,8 @@ switch ($_POST['action']) {
 						<a title='"._("Change ISO File Mount Point")."' class='exec' onclick='chg_iso_mountpoint(\"{$mount['device']}\",\"{$mount_point}\");'>{$mount_point}</a>
 						</td>";
 				}
+				$o_remotes		.= "<td></td>";
+
 				$disabled = $is_alive ? "enabled":"disabled";
 				if ($mount['mounted'] && (is_script_running($mount['command']) || is_script_running($mount['user_command'], true))) {
 					$o_remotes .= "<td><button class='mount' disabled> <i class='fa fa-spinner fa-spin'></i> "._('Running')."</button></td>";
@@ -1153,6 +1159,14 @@ switch ($_POST['action']) {
 			rm_smb_share($info['mountpoint']);
 			rm_nfs_share($info['mountpoint']);
 		}
+		echo json_encode(array( 'result' => $result ));
+		break;
+
+	case 'toggle_samba_readonly':
+		/* Toggle the disable mount button setting. */
+		$serial	= urldecode($_POST['serial']);
+		$status	= urldecode($_POST['status']);
+		$result	= toggle_samba_readonly($serial, $status);
 		echo json_encode(array( 'result' => $result ));
 		break;
 
