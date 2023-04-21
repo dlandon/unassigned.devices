@@ -296,7 +296,7 @@ _(Debug Log Level)_:
 <input type="hidden" name="#command" value="/plugins/unassigned.devices/scripts/rc.settings">
 <input type="hidden" name="#arg[1]" value="apply">
 
-_(SMB Sharing)_?
+_(SMB Sharing)_:
 : <select name="smb_security" size="1" onchange="prepareSecurity(this);">
   <?=mk_option($cfg["Config"]["smb_security"], "no", "_(Disabled)_");?>
   <?=mk_option($cfg["Config"]["smb_security"], "public", "_(Public)_");?>
