@@ -40,6 +40,7 @@ $show_partitions		= "";
 $width					= "";
 $disable_mount			= "";
 $disable_action			= "";
+$readonly_action		= "";
 $share					= "";
 $share_action			= "";
 
@@ -95,6 +96,7 @@ if (isset($_GET['s'])) {
 	$background_action	= "background";
 	$share_action		= ($info) ? "toggle_share" : "toggle_historical_share";
 	$disable_action		= "toggle_disable_mount";
+	$readonly_action	= "toggle_read_only";
 	if (! $_GET['t']) {
 		$disk_setting			= false;
 		$show_device_switches	= false;
@@ -127,13 +129,15 @@ if (isset($_GET['s'])) {
 	$disable_mount		= (is_samba_disable_mount($device)) ? "checked" : "";
 	$automount			= (is_samba_automount($device)) ? "checked" : "";
 	$share				= (is_samba_share($device)) ? "checked" : "";
+	$read_only			= (is_samba_read_only($device)) ? "checked" : "";
 	$mounted			= is_mounted($mount_point);
-	$width				= "35%";
+	$width				= "45%";
 	$automount_action	= "samba_automount";
 	$ud_device			= $device;
 	$background_action	= "samba_background";
 	$share_action		= "toggle_samba_share";
 	$disable_action		= "toggle_samba_disable_mount";
+	$readonly_action	= "toggle_samba_readonly";
 	$disk_setting		= false;
 } else if (isset($_GET['i'])) {
 	/* ISO files. */
@@ -272,6 +276,7 @@ _(Disk Serial)_: <?=$serial;?>
 
 <?if (isset($_GET['d'])):?>
 <td title='_(Disable Mount/Unmount Buttons)_.'><input type='checkbox' class='disable-mount-switch'></td>
+<td title='_(Mount Remote Share Read only)_.'><input type='checkbox' class='readonly-switch'></td>
 <td title='_(Mount Remote SMB or NFS Share when Array is Started)_.'><input type='checkbox' class='automount-switch'></td>
 <?endif;?>
 
@@ -422,7 +427,7 @@ _(User Script)_:
 	$('.readonly-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Read Only');?>", off_label: "<?=_('Read Only');?>", checked:"<?=$read_only;?>" });
 	$('.readonly-switch').change(function()
 	{
-		$.post(UDURL,{action:"toggle_read_only",serial:"<?=$ud_device;?>",status:$(this).is(":checked")},function(data)
+		$.post(UDURL,{action:"<?=$readonly_action?>",serial:"<?=$ud_device;?>",status:$(this).is(":checked")},function(data)
 		{
 			$(this).prop("checked",data.result);
 		}, 'json');

@@ -1396,15 +1396,15 @@ function get_mount_params($fs, $dev, $ro = false) {
 
 		case 'cifs':
 			$credentials_file = "{$paths['credentials']}_".basename($dev);
-			$rc = "rw,noserverino,nounix,iocharset=utf8,file_mode=0777,dir_mode=0777,uid=99,gid=100%s,credentials=".escapeshellarg($credentials_file);
+			$rc = "{$rw},noserverino,nounix,iocharset=utf8,file_mode=0777,dir_mode=0777,uid=99,gid=100%s,credentials=".escapeshellarg($credentials_file);
 			break;
 
 		case 'nfs':
-			$rc = "rw,noacl";
+			$rc = "{$rw},noacl";
 			break;
 
 		case 'root':
-			$rc = "rw --bind";
+			$rc = "{$rw} --bind";
 			break;
 
 		default:
@@ -1653,12 +1653,13 @@ function do_mount_root($info) {
 		if ($is_alive) {
 			$dir		= $info['mountpoint'];
 			$fs			= $info['fstype'];
+			$ro			= $info['read_only'] ? true : false;
 			$dev		= str_replace("//".$info['ip'], "", $info['device']);
 			if (! is_mounted($dir)) {
 				/* Create the mount point and set permissions. */
 				@mkdir($dir, 0777, true);
 
-				$params	= get_mount_params($fs, $dev);
+				$params	= get_mount_params($fs, $dev, $ro);
 				$cmd	= "/sbin/mount -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 
 				unassigned_log("Mount ROOT command: {$cmd}");
@@ -2153,6 +2154,12 @@ function is_samba_disable_mount($serial) {
 	return ($disable_mount == "yes") ? true : false;
 }
 
+/* Is the samba mount set to read only? */
+function is_samba_read_only($serial) {
+	$smb_readonly	= get_samba_config($serial, "read_only");
+	return ( ($smb_readonly == "yes") ? true : false );
+}
+
 /* Get all defined samba and NFS remote shares. */
 function get_samba_mounts() {
 	global $paths;
@@ -2186,6 +2193,7 @@ function get_samba_mounts() {
 				$mount['mounted']		= is_mounted($paths['root_mountpoint']."/".$path);
 			}
 			$mount['is_alive']		= is_samba_server_online($mount['ip']);
+			$mount['read_only']		= is_samba_read_only($mount['name']);
 			$mount['automount']		= is_samba_automount($mount['name']);
 			$mount['smb_share']		= is_samba_share($mount['name']);
 			$mount['disable_mount']	= is_samba_disable_mount($mount['name']);
@@ -2254,6 +2262,7 @@ function do_mount_samba($info) {
 	if ($is_alive) {
 		$dir		= $info['mountpoint'];
 		$fs			= $info['fstype'];
+		$ro			= $info['read_only'] ? true : false;
 		$dev		= ($fs == "cifs") ? "//".$info['ip']."/".$info['path'] : $info['device'];
 		if (! is_mounted($dev) && ! is_mounted($dir)) {
 			/* Create the mount point and set permissions. */
@@ -2263,7 +2272,7 @@ function do_mount_samba($info) {
 
 			if ($fs == "nfs") {
 				if ($var['shareNFSEnabled'] == "yes") {
-					$params	= get_mount_params($fs, $dev);
+					$params	= get_mount_params($fs, $dev, $ro);
 					if (version_compare($version['version'],"6.9.9", ">")) {
 						$nfs	= (get_config("Config", "nfs_version") == "4") ? "nfs4" : "nfs";
 					} else {
@@ -2292,7 +2301,7 @@ function do_mount_samba($info) {
 				$smb_version = (get_config("Config", "smb_version") == "yes") ? true : false;
 				if (! $smb_version) {
 					$ver	= "";
-					$params	= sprintf(get_mount_params($fs, $dev), $ver);
+					$params	= sprintf(get_mount_params($fs, $dev, $ro), $ver);
 					$cmd	= "/sbin/mount -t ".escapeshellarg($fs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 
 					unassigned_log("Mount SMB share '{$dev}' using SMB default protocol.");
@@ -2308,7 +2317,7 @@ function do_mount_samba($info) {
 						unassigned_log("SMB default protocol mount failed: '{$o}'.");
 					}
 					$ver	= ",vers=3.1.1";
-					$params	= sprintf(get_mount_params($fs, $dev), $ver);
+					$params	= sprintf(get_mount_params($fs, $dev, $ro), $ver);
 					$cmd	= "/sbin/mount -t $fs -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 
 					unassigned_log("Mount SMB share '{$dev}' using SMB 3.1.1 protocol.");
@@ -2323,7 +2332,7 @@ function do_mount_samba($info) {
 					unassigned_log("SMB 3.1.1 mount failed: '{$o}'.");
 					/* If the mount failed, try to mount with samba vers=3.0. */
 					$ver	= ",vers=3.0";
-					$params	= sprintf(get_mount_params($fs, $dev), $ver);
+					$params	= sprintf(get_mount_params($fs, $dev, $ro), $ver);
 					$cmd	= "/sbin/mount -t $fs -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 
 					unassigned_log("Mount SMB share '{$dev}' using SMB 3.0 protocol.");
@@ -2338,7 +2347,7 @@ function do_mount_samba($info) {
 					unassigned_log("SMB 3.0 mount failed: '{$o}'.");
 					/* If the mount failed, try to mount with samba vers=2.0. */
 					$ver	= ",vers=2.0";
-					$params	= sprintf(get_mount_params($fs, $dev), $ver);
+					$params	= sprintf(get_mount_params($fs, $dev, $ro), $ver);
 					$cmd	= "/sbin/mount -t ".escapeshellarg($fs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 
 					unassigned_log("Mount SMB share '{$dev}' using SMB 2.0 protocol.");
@@ -2353,7 +2362,7 @@ function do_mount_samba($info) {
 					unassigned_log("SMB 2.0 mount failed: '{$o}'.");
 					/* If the mount failed, try to mount with samba vers=1.0. */
 					$ver	= ",vers=1.0";
-					$params	= sprintf(get_mount_params($fs, $dev), $ver);
+					$params	= sprintf(get_mount_params($fs, $dev, $ro), $ver);
 					$cmd	= "/sbin/mount -t ".escapeshellarg($fs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 
 					unassigned_log("Mount SMB share '{$dev}' using SMB 1.0 protocol.");
@@ -2448,6 +2457,23 @@ function toggle_samba_disable_mount($device, $status) {
 	release_file_lock($lock_file);
 
 	return ($config[$device]["disable_mount"] == "yes") ? 'true' : 'false';
+}
+
+/* Toggle samba read only on/off. */
+function toggle_samba_readonly($source, $status) {
+	/* Get a lock so file changes can be made. */
+	$lock_file		= get_file_lock("smb");
+
+	/* Make file changes. */
+	$config_file	= $GLOBALS["paths"]["samba_mount"];
+	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
+	$config[$source]['read_only'] = ($status == "true") ? "yes" : "no";
+	save_ini_file($config_file, $config);
+
+	/* Release the file lock. */
+	release_file_lock($lock_file);
+
+	return ($config[$source]["read_only"] == "yes") ? true : false;
 }
 
 /* Remove the samba remote mount configuration. */
