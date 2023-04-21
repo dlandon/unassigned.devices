@@ -65,10 +65,11 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 	table.samba_mounts {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
 	table.samba_mounts thead tr>td{text-align:left;width:8%;}
-	table.samba_mounts tr>td+td{text-align:left;}
-	table.samba_mounts tr>td+td+td+td{text-align:center;}
-	table.samba_mounts tr>td+td+td+td+td+td+td{text-align:right;}
-	table.samba_mounts tr>td+td+td+td+td+td+td+td+td+td+td+td+td{text-align:center}
+	table.samba_mounts tr>td+td+td{text-align:left;}
+	table.samba_mounts tr>td+td+td+td{text-align:left;}
+	table.samba_mounts tr>td+td+td+td+td+td{text-align:center;}
+	table.samba_mounts tr>td+td+td+td+td+td+td+td+td{text-align:right;}
+	table.samba_mounts tr>td+td+td+td+td+td+td+td+td+td+td+td+td+td+td{text-align:center}
 
 	button.mount {padding:2px 4px 3px 6px;margin:1px 0px 1px 0px;}
 	i.partition-hdd{margin:5px; 5px; 0px; 0px;}
@@ -620,8 +621,9 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		<tr>
 			<td><?=_('Share Type')?></td>
 			<td><?=_('Source')?></td>
-			<td><?=_('Mount Point')?></td>
 			<td></td>
+			<td><?=_('Mount Point')?></td>
+			<td></td><td></td>
 			<td><?=_('Remove')?></td>
 			<td><?=_('Settings')?></td>
 			<td></td>
