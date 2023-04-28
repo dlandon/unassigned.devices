@@ -38,6 +38,7 @@ $cfg['Config']['nfs_rule']			= $cfg['Config']['nfs_rule'] ?? '';
 $cfg['Config']['pswd_serial']		= $cfg['Config']['pswd_serial'] ?? '';
 $cfg['Config']['password']			= $cfg['Config']['password'] ?? '';
 $cfg['Config']['change_uuid']		= $cfg['Config']['change_uuid'] ?? '';
+$text								= str_replace(";", "\n", $cfg['Config']['nfs_rule']);
 
 /* See if conditions are set for destructive mode to be enabled. */
 $parted = file_exists("/usr/sbin/parted");
@@ -365,9 +366,9 @@ _(Add)_ 'force user = nobody' _(to SMB share config)_?
 <div <?=$title_classid;?> class="nocontrol">_(NFS Settings)_</div>
 <form markdown="1" name="nfs_settings" method="POST" action="/update.php" target="progressFrame">
 <input type="hidden" name="#section" value="Config">
-<input type="hidden" name="#file" value="unassigned.devices/unassigned.devices.cfg">
+<input type="hidden" name="#file" value="<?=$paths['config_file']?>">
 <input type="hidden" name="#command" value="/plugins/unassigned.devices/scripts/rc.settings">
-<input type="hidden" name="#arg[1]" value="apply">
+<input type="hidden" name="#arg[1]" value="nfs_settings">
 
 _(Enable NFS export)_?
 : <select name="nfs_export" size="1" <?if ($var['shareNFSEnabled']=="no"):?>disabled<?endif;?>>
@@ -388,9 +389,9 @@ _(Enable NFS export)_?
 
 <div id="nfs_rule" style="display: <?=($cfg["Config"]["nfs_security"] == "public" ? "none" : "block");?>">
 	<dl>
-		<dt>_(Rule)_:</dt>
+		<dt>_(Rules)_:</dt>
 		<dd>
-			<input type="text" name="nfs_rule" class="wide" maxlength="256" value="<?=$cfg["Config"]["nfs_rule"];?>" placeholder="See Help">
+			<textarea spellcheck="false" cols="40" rows="5" name="new_nfs_rule" title='_(Enter NFS Rules)_.' style="width:45%"><?=$text;?></textarea>
 		</dd>
 	</dl>
 	</div>

@@ -426,8 +426,14 @@ function get_device_stats($mountpoint, $mounted, $active = true) {
 	}
 
 	$stats		= preg_split('/\s+/', $rc);
-	$stats[1]	= $stats[1] ?? 0;
-	$stats[2]	= $stats[2] ?? 0;
+	$stats[0]	= (! empty($stats[0])) ? $stats[0] : '0';
+	$stats[1]	= (! empty($stats[1])) ? $stats[1] : '0';
+	$stats[2]	= (! empty($stats[2])) ? $stats[2] : '0';
+
+	/* Be sure all are numbers. */
+	$stats[0]	= (! is_nan($stats[0])) ? $stats[0] : 0;
+	$stats[1]	= (! is_nan($stats[1])) ? $stats[1] : 0;
+	$stats[2]	= (! is_nan($stats[2])) ? $stats[2] : 0;
 
 	return $stats;
 }
@@ -504,6 +510,12 @@ function get_disk_reads_writes($ud_dev, $dev) {
 
 	/* Write rate. */
 	$rc[3] 		= ($data[1] > 0.0) ? $data[1] : 0.0;
+
+	/* Be sure all values are numbers. */
+	$rc[0]		= (! is_nan($rc[0])) ? $rc[0] : 0;
+	$rc[1]		= (! is_nan($rc[1])) ? $rc[1] : 0;
+	$rc[2]		= (! is_nan($rc[2])) ? $rc[2] : 0.0;
+	$rc[3]		= (! is_nan($rc[3])) ? $rc[3] : 0.0;
 
 	return $rc;
 }
@@ -1968,13 +1980,16 @@ function add_nfs_share($dir) {
 				$c			= (is_file($file)) ? @file($file, FILE_IGNORE_NEW_LINES) : array();
 				$fsid		= 200 + count(preg_grep("@^\"@", $c));
 				$nfs_sec	= get_config("Config", "nfs_security");
-				$sec		= "";
 				if ( $nfs_sec == "private" ) {
-					$sec	= get_config("Config", "nfs_rule");
+					$sec	= explode(";", get_config("Config", "nfs_rule"));
 				} else {
-					$sec	= "*(sec=sys,rw,insecure,anongid=100,anonuid=99,all_squash)";
+					$sec[]	= "*(sec=sys,rw,insecure,anongid=100,anonuid=99,all_squash)";
 				}
-				$c[]		= "\"{$dir}\" -async,no_subtree_check,fsid={$fsid} {$sec}";
+				foreach ($sec as $security) {
+					if ($security) {
+						$c[]		= "\"{$dir}\" -fsid={$fsid},async,no_subtree_check {$security}";
+					}
+				}
 				$c[]		= "";
 				@file_put_contents($file, implode(PHP_EOL, $c));
 				$reload		= true;

@@ -86,6 +86,7 @@ function set_pass() {
 	unset($cfg['Config']['set_pass']);
 	unset($cfg['Config']['password']);
 
+	/* Save the new configuration. */
 	save_ini_file($config_file, $cfg, false);
 
 	/* Release the file lock. */
@@ -93,6 +94,40 @@ function set_pass() {
 
 	/* Save the new password */
 	set_config($serial, "pass", encrypt_data($password));
+}
+
+/* Update the NFS rule. */
+function nfs_settings() {
+	global $paths;
+
+	/* Make file changes. */
+	$config_file = $paths['config_file'];
+	$cfg		= is_file($config_file) ? @parse_ini_file($config_file, true) : array();
+
+	if (isset($cfg['Config']['new_nfs_rule'])) {
+		/* Get a lock so file changes can be made. */
+		$lock_file	= get_file_lock("cfg");
+
+		/* Remove cr and leave new line. */
+		$o		= str_replace("\r", "", $cfg['Config']['new_nfs_rule']);
+
+		/* CHange new line to semicolon to store as a single line in the config file. */
+		$o		= str_replace("\n", ";", $o);
+
+		/* Now clear the settings from the tmp file. */
+		unset($cfg['Config']['new_nfs_rule']);
+
+		/* Save the new configuration. */
+		save_ini_file($config_file, $cfg, false);
+
+		/* Release the file lock. */
+		release_file_lock($lock_file);
+
+		set_config("Config", "nfs_rule", "$o");
+
+		/* Apply the changes. */
+		apply();
+	}
 }
 
 /* Main entry point, */
@@ -113,9 +148,13 @@ switch ($argv[1]) {
 		set_pass();
 		break;
 
+	case 'nfs_settings':
+		nfs_settings();
+		break;
+
 	default:
 		unassigned_log("Error: 'rc.settings {$argv[1]}' not understood");
-		unassigned_log("rc.settings usage: 'save', 'apply', 'uuid_change', 'set_pass'");
+		unassigned_log("rc.settings usage: 'save', 'apply', 'uuid_change', 'set_pass', 'nfs_settings'");
 		exit(0);
 		break;
 }
