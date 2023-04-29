@@ -600,7 +600,12 @@ function unassigned_attach($device) {
 		$file	= shell_exec("/usr/bin/ls /dev/disk/by-id/*-".$device." 2>/dev/null");
 		$i++;
 	}
-	unassigned_log("Device with serial '{$device}' has been attached.");
+
+	if ($i < 10) {
+		unassigned_log("Device with serial '{$device}' has been attached.");
+	} else {
+		unassigned_log("Device with serial '{$device}' could not be attached.");
+	}
 }
 
 /* Abort device script. */
