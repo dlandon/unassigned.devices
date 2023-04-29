@@ -746,11 +746,14 @@ switch ($_POST['action']) {
 					$mntpoint		= isset($config[$serial]['mountpoint.1']) ? basename($config[$serial]['mountpoint.1']) : "";
 					$mountpoint		= ($mntpoint) ? " (".$mntpoint.")" : "";
 					$disk_dev		= (isset($config[$serial]['unassigned_dev'])) ? $config[$serial]['unassigned_dev'] : "";
-					$disk_display	= _("none");
-					if ($disk_dev) {
-						$disk_display = $disk_dev;
-					}
+					$disk_dev		= ($disk_dev) ? $disk_dev : _("none");
+
+					/* Create a unique disk_display string to be sure each device is unique. */
+					$disk_display = $disk_dev."_".$serial;
+
+					/* Save this devices info. */
 					$historical[$disk_display]['serial']		= $serial;
+					$historical[$disk_display]['device']		= $disk_dev;
 					$historical[$disk_display]['mntpoint']		= $mntpoint;
 					$historical[$disk_display]['mountpoint']	= $mountpoint;
 				}
@@ -760,8 +763,11 @@ switch ($_POST['action']) {
 
 		/* Display the historical devices. */
 		foreach ($historical as $disk_display => $value) {
-			$is_standby	= ((new MiscUD)->get_device_host($historical[$disk_display]['serial']) && (empty(glob("/dev/disk/by-id/*-".$historical[$disk_display]['serial']))));
-			$o_historical .= sprintf( "<tr><td><a class='info'><i class='fa fa-minus-circle orb %s'></i><span>"._("Historical Device is")." %s</span></a>".$disk_display."</td>", ( $is_standby ? "green-orb" : "grey-orb" ), ( $is_standby ? _("in standby") : _("offline") ));
+			/* See if the disk is in standby and can be attached. */
+			$is_standby		= ((new MiscUD)->get_device_host($historical[$disk_display]['serial']) && (empty(glob("/dev/disk/by-id/*-".$historical[$disk_display]['serial']))));
+	
+			/* Add to the historical devices. */
+			$o_historical .= sprintf( "<tr><td><a class='info'><i class='fa fa-minus-circle orb %s'></i><span>"._("Historical Device is")." %s</span></a>".$historical[$disk_display]['device']."</td>", ( $is_standby ? "green-orb" : "grey-orb" ), ( $is_standby ? _("in standby") : _("offline") ));
 			$o_historical .= "<td>".$historical[$disk_display]['serial'].$historical[$disk_display]['mountpoint']."</td>";
 			$o_historical .= "<td></td>";
 			if (! $is_standby) {
