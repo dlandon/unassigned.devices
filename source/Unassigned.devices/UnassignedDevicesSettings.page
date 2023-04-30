@@ -349,8 +349,8 @@ _(Case-sensitive names)_:
 
 _(Add)_ 'force user = nobody' _(to SMB share config)_?
 : <select name="force_user" size="1">
-  <?=mk_option($cfg["Config"]["force_user"], "yes", "_(Yes)_");?>
   <?=mk_option($cfg["Config"]["force_user"], "no", "_(No)_");?>
+  <?=mk_option($cfg["Config"]["force_user"], "yes", "_(Yes)_");?>
   </select>
 
 :ud_settings_force_user_plug:
