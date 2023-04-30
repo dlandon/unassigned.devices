@@ -284,7 +284,7 @@ _(Disk Serial)_: <?=$serial;?>
 <?if (isset($_GET['i'])):?>
 <td title='_(Mount ISO File when Array is Started)_.'><a><input type='checkbox' class='automount-switch'></a></td>
 <?else:?>
-<td title='_(Share Device with SMB and NFS)_.'><a><input type='checkbox' class='share-switch'></a></td>
+<td title='_(Share Device with SMB and NFS)_.'><a><input type='checkbox' class='share-switch' info='<?=$info?>'></a></td>
 <?endif;?>
 
 <?if ((isset($_GET['s'])) && ($show_device_switches)):?>
