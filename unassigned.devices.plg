@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.04.18">
+<!ENTITY version	"2023.04.30">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"b18645ad820501d47f9004a502317779">
+<!ENTITY MD5		"2012dd66a0b6ad381c7384abec8d0ab3">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,20 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Alignment of Remote Shares table on UD page.
+- Fix: Php NAN warnings.
+- Fix: A situation where two Historical Devices don't have an alias name and have the same default devX.  Only one shows in Historical Devices.  It's not a problem with two devices with the same default name becuase when a device is re-installed, the devX assignment will be updated by Unraid.
+- Fix: Situation where the 'Detach' button shows in device settings when the disk is being mounted.
+- Fix: Switch text color in Edit Device Settings.  Off was black text instead of being blue.
+- Fix: Code cleanup on switches.
+- Fix: Default force user nobody to 'No' on SMB shares.
+- Fix: Don't show bogus config file entries on UD page.
+- Fix: Special characters in ISO file names cause UD to hang with the Unraid Wave never going away.
+- Add: 'Read Only' switch on remote shares so they can be mounted read only.
+- Add: Text box for NFS rules so multiple rules can be applied to each share.
+- Add: Protection against bogus (blank) serial number or device entries being saved in configuration files.
+
+###2023.04.18
 - Fix: Remote shares being shared when 'Share' switch is off when plugin is installed or updated.
 - Fix: Disable Mount button status not working right on remote shares.
 - Fix: Logic cleanup on device Tool Tips.
@@ -37,7 +51,7 @@
 - Fix: Remove duplicate hosts check.  It's not necessary and sometimes caused a detached device to not be 'attachable'.
 - Add: Update share settings when UD is updated/installed so any UD changes will take effect immediately.
 - Add: Message on 'Edit Device Settings' page when neither SMB or NFS shares are enabled.
-- Add: Tool tip for edit device settings shows 'Not Available' for 'Share' status when neither SMB nor NFS is enabled in UD settings.
+- Add: Tool tip for edit device settings shows 'Not Enabled' for 'Share' status when neither SMB nor NFS is enabled in UD settings.
 
 ###2023.04.11
 - Fix: Java Script error.
