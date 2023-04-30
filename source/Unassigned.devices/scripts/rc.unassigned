@@ -86,7 +86,9 @@ function unassigned_mount() {
 		/* Now mount the partitions. */
 		foreach ($disk['partitions'] as $partition)
 		{
-			if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "auto" || $DEVNAME == "autodevices" ) {
+
+			$real_path	= realpath($partition);
+			if ( (($DEVNAME == (new MiscUD)->base_device($real_path)) && (preg_match("#".$DEVNAME."#i", $real_path))) || $DEVNAME == "auto" || $DEVNAME == "autodevices" ) {
 				$info = get_partition_info($partition);
 
 				/* If partition info is non-existent, skip this partition. */
@@ -253,7 +255,7 @@ function unassigned_mount() {
 				$mount_device = basename($info['device']);
 
 				/* Create mounting status file. */
-				addFile(sprintf($paths['mounting'], $mount_device));
+				addFile(sprintf($paths['mounting'], $info['mountpoint']));
 
 				unassigned_log("Mounting ISO File '{$info['device']}'...");
 
@@ -317,7 +319,8 @@ function unassigned_umount() {
 		}
 
 		foreach ($disk['partitions'] as $partition) {
-			if ( preg_match("#".$DEVNAME."#i", realpath($partition)) || $DEVNAME == "auto" || $DEVNAME == "all" ) {
+			$real_path	= realpath($partition);
+			if ( (($DEVNAME == (new MiscUD)->base_device($real_path)) && (preg_match("#".$DEVNAME."#i", realpath($partition)))) || $DEVNAME == "auto" || $DEVNAME == "all" ) {
 				$info = get_partition_info($partition);
 
 				unassigned_log("Partition found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) && (strpos($k, "pass_through") === false)? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
@@ -455,7 +458,7 @@ function unassigned_umount() {
 				/* If iso file is mounted, unmlount it. */
 				if ( is_mounted($info['mountpoint']) ) {
 					/* Create mounting status file. */
-					addFile(sprintf($paths['unmounting'], basename($info['device'])));
+					addFile(sprintf($paths['unmounting'], $info['mountpoint']));
 
 					unassigned_log("Removing ISO File share '{$info['device']}'...");
 
