@@ -64,7 +64,6 @@ if (isset($_GET['s'])) {
 	} else {
 		$_GET['u']		= null;
 	}
-	$disk_info			= json_decode($info, true);
 	$file				= get_config($serial, "command.{$partition}");
 
 	/* Do some configuration file work */
@@ -86,7 +85,9 @@ if (isset($_GET['s'])) {
 	$usb				= ((isset($_GET['u'])) && ($_GET['u'] == "usb")) ? true : false;
 	$share				= config_shared($serial, $partition, $usb) ? "checked" : "";
 	$show_partitions	= (get_config($serial, "show_partitions") == "no" ) ? "" : "checked";
-	$mounted			= isset($disk_info['mounted']) ? $disk_info['mounted'] : false;
+	$is_mounting		= (new MiscUD)->get_mounting_status(basename($device));
+	$mounted			= is_mounted($mount_point);
+	$mounted			= $mounted || $is_mounting;
 	$width				= $mounted ? "57%" : "70%";
 	$automount_action	= "automount";
 	$name				= get_config($serial, "unassigned_dev");
@@ -266,28 +267,28 @@ _(Disk Serial)_: <?=$serial;?>
 <?if ($show_device_switches):?>
 <?if (isset($_GET['s'])):?>
 <?if (! $mounted):?>
-<td title='_(Mark this Device as passed through to a VM or Docker Container)_.'><input type='checkbox' class='passthrough-switch'></td>
+<td title='_(Mark this Device as passed through to a VM or Docker Container)_.'><a><input type='checkbox' class='passthrough-switch'></a></td>
 <?endif;?>
-<td title='_(Disable Mount/Unmount Buttons)_.'><input type='checkbox' class='disable-mount-switch'></td>
-<td title='_(Mount Device Read only)_.'><input type='checkbox' class='readonly-switch'></td>
-<td title='_(Mount Device when Plugged in or Array is Started)_.'><input type='checkbox' class='automount-switch'></td>
+<td title='_(Disable Mount/Unmount Buttons)_.'><a><input type='checkbox' class='disable-mount-switch'></a></td>
+<td title='_(Mount Device Read only)_.'><a><input type='checkbox' class='readonly-switch'></a></td>
+<td title='_(Mount Device when Plugged in or Array is Started)_.'><a><input type='checkbox' class='automount-switch'></a></td>
 <?endif;?>
 <?endif;?>
 
 <?if (isset($_GET['d'])):?>
-<td title='_(Disable Mount/Unmount Buttons)_.'><input type='checkbox' class='disable-mount-switch'></td>
-<td title='_(Mount Remote Share Read only)_.'><input type='checkbox' class='readonly-switch'></td>
-<td title='_(Mount Remote SMB or NFS Share when Array is Started)_.'><input type='checkbox' class='automount-switch'></td>
+<td title='_(Disable Mount/Unmount Buttons)_.'><a><input type='checkbox' class='disable-mount-switch'></a></td>
+<td title='_(Mount Remote Share Read only)_.'><a><input type='checkbox' class='readonly-switch'></a></td>
+<td title='_(Mount Remote SMB or NFS Share when Array is Started)_.'><a><input type='checkbox' class='automount-switch'></a></td>
 <?endif;?>
 
 <?if (isset($_GET['i'])):?>
-<td title='_(Mount ISO File when Array is Started)_.'><input type='checkbox' class='automount-switch'></td>
+<td title='_(Mount ISO File when Array is Started)_.'><a><input type='checkbox' class='automount-switch'></a></td>
 <?else:?>
-<td title='_(Share Device with SMB and NFS)_.'><input type='checkbox' class='share-switch' info='<?=$info?>'></td>
+<td title='_(Share Device with SMB and NFS)_.'><a><input type='checkbox' class='share-switch'></a></td>
 <?endif;?>
 
 <?if ((isset($_GET['s'])) && ($show_device_switches)):?>
-<td title='_(Show all partitions on this device by default)_.'><input type='checkbox' class='partitions-switch'></td>
+<td title='_(Show all partitions on this device by default)_.'><a><input type='checkbox' class='partitions-switch'></a></td>
 <?endif;?>
 
 </tr>
