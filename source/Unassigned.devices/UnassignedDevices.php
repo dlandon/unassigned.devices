@@ -668,6 +668,7 @@ switch ($_POST['action']) {
 		$iso_mounts = get_iso_mounts();
 		if (count($iso_mounts)) {
 			foreach ($iso_mounts as $mount) {
+				$device			= str_replace("#", "||", $mount['device']);
 				$mounted		= $mount['mounted'];
 				$is_alive		= is_file($mount['file']);
 				$o_remotes		.= "<tr>";
@@ -691,8 +692,8 @@ switch ($_POST['action']) {
 				} else {
 					/* Remove special characters. */
 					$mount_device	= safe_name(basename($mount['device']));
-					$is_mounting	= (new MiscUD)->get_mounting_status($mount_device);
-					$is_unmounting	= (new MiscUD)->get_unmounting_status($mount_device);
+					$is_mounting	= (new MiscUD)->get_mounting_status($mount_point);
+					$is_unmounting	= (new MiscUD)->get_unmounting_status($mount_point);
 					if ($is_mounting) {
 						$o_remotes .= "<td><button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Mounting')."</button></td>";
 					} else if ($is_unmounting) {
@@ -708,7 +709,7 @@ switch ($_POST['action']) {
 				$title .= "<br />"._("Automount").": ";
 				$title .= $mount['automount'] ? "Yes" : "No";
 
-				$o_remotes .= "<td><a class='info' href='/Main/EditDeviceSettings?i=".$mount['device']."&l=".$mount_point."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+				$o_remotes .= "<td><a class='info' href='/Main/EditDeviceSettings?i=".$device."&l=".$mount_point."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 				$o_remotes .= "<td></td><td></td><td></td>";
 				$o_remotes .= "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				$o_remotes .= render_used_and_free($mount);
@@ -1211,6 +1212,11 @@ switch ($_POST['action']) {
 		if (is_file($file)) {
 			$info = pathinfo($file);
 			$share	= $info['filename'];
+		/* Printable characters only. */
+		$share		= preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $share);
+
+		/* Remove special characters from share name. */
+		$share		= str_replace("@", "_", safe_name($share));
 			set_iso_config("{$file}", "file", $file);
 			set_iso_config("{$file}", "share", $share);
 		} else {
