@@ -142,7 +142,7 @@ if (isset($_GET['s'])) {
 	$disk_setting		= false;
 } else if (isset($_GET['i'])) {
 	/* ISO files. */
-	$device				= $_GET['i'];
+	$device				= str_replace("||", "#", $_GET['i']);
 	$mount_point		= $_GET['l'];
 	$info				= "";
 	$file				= get_iso_config($device, "command");
