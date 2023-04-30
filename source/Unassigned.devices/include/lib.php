@@ -1901,7 +1901,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 			} else {
 				$hidden = "\n\tbrowseable = yes";
 			}
-			$force_user = ( get_config("Config", "force_user") != "no" ) ? "\n\tforce User = nobody" : "";
+			$force_user = ( get_config("Config", "force_user") == "yes" ) ? "\n\tforce User = nobody" : "";
 			if (($config["case_names"]) || ($config["case_names"] == "auto")) {
 				$case_names = "\n\tcase sensitive = auto\n\tpreserve case = yes\n\tshort preserve case = yes";
 			} else if ($config["case_names"] == "yes") {
@@ -1921,7 +1921,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 				unassigned_log("Error: No valid smb users defined. Share '{$dir}' cannot be accessed.");
 			}
 		} else {
-			$force_user = ( get_config("Config", "force_user") != "no" ) ? "\n\tforce User = nobody" : "";
+			$force_user = ( get_config("Config", "force_user") == "yes" ) ? "\n\tforce User = nobody" : "";
 			$share_cont = "[{$share_name}]\n\tpath = {$dir}\n\tread only = No\n\tguest ok = Yes{$force_user}{$vfs_objects}";
 		}
 
@@ -2235,70 +2235,72 @@ function get_samba_mounts() {
 		ksort($samba_mounts, SORT_NATURAL);
 		foreach ($samba_mounts as $device => $mount) {
 			$mount['device']		= $device;
-			$mount['name']			= $device;
-			$mount['mountpoint']	= $mount['mountpoint'] ?? "";
-			$mount['ip']			= $mount['ip'] ?? "";
-			$mount['protocol']		= $mount['protocol'] ?? "";
+			if ($device) {
+				$mount['name']			= $device;
+				$mount['mountpoint']	= $mount['mountpoint'] ?? "";
+				$mount['ip']			= $mount['ip'] ?? "";
+				$mount['protocol']		= $mount['protocol'] ?? "";
 
-			/* Set the mount protocol. */
-			if ($mount['protocol'] == "NFS") {
-				$mount['fstype'] = "nfs";
-				$path = basename($mount['path']);
-			} else if ($mount['protocol'] == "ROOT") {
-				$mount['fstype'] = "root";
-				$root_type = basename($mount['device']) == "user" ? "user-pool" : "user";
-				$path = $mount['mountpoint'] ? $mount['mountpoint'] : $root_type.".".$mount['path'];
-			} else {
-				$mount['fstype'] = "cifs";
-				$path = (isset($mount['path'])) ? $mount['path'] : "";
-			}
+				/* Set the mount protocol. */
+				if ($mount['protocol'] == "NFS") {
+					$mount['fstype'] = "nfs";
+					$path = basename($mount['path']);
+				} else if ($mount['protocol'] == "ROOT") {
+					$mount['fstype'] = "root";
+					$root_type = basename($mount['device']) == "user" ? "user-pool" : "user";
+					$path = $mount['mountpoint'] ? $mount['mountpoint'] : $root_type.".".$mount['path'];
+				} else {
+					$mount['fstype'] = "cifs";
+					$path = (isset($mount['path'])) ? $mount['path'] : "";
+				}
 
-			if ($mount['fstype'] != "root") {
-				$mount['mounted']		= is_mounted(($mount['fstype'] == "cifs") ? "//".$mount['ip']."/".$path : $mount['device']);
-			} else {
-				$mount['mounted']		= is_mounted($paths['root_mountpoint']."/".$path);
-			}
-			$mount['is_alive']		= is_samba_server_online($mount['ip']);
-			$mount['read_only']		= is_samba_read_only($mount['name']);
-			$mount['automount']		= is_samba_automount($mount['name']);
-			$mount['smb_share']		= is_samba_share($mount['name']);
-			$mount['disable_mount']	= is_samba_disable_mount($mount['name']);
-			if (! $mount['mountpoint']) {
-				$mount['mountpoint'] = "{$paths['usb_mountpoint']}/{$mount['ip']}_{$path}";
-				if (! $mount['mounted'] || ! is_mounted($mount['mountpoint']) || is_link($mount['mountpoint'])) {
-					if ($mount['fstype'] != "root") {
-						$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$mount['ip']}_{$path}";
-					} else {
-						$mount['mountpoint'] = "{$paths['root_mountpoint']}/{$path}";
+				if ($mount['fstype'] != "root") {
+					$mount['mounted']		= is_mounted(($mount['fstype'] == "cifs") ? "//".$mount['ip']."/".$path : $mount['device']);
+				} else {
+					$mount['mounted']		= is_mounted($paths['root_mountpoint']."/".$path);
+				}
+				$mount['is_alive']		= is_samba_server_online($mount['ip']);
+				$mount['read_only']		= is_samba_read_only($mount['name']);
+				$mount['automount']		= is_samba_automount($mount['name']);
+				$mount['smb_share']		= is_samba_share($mount['name']);
+				$mount['disable_mount']	= is_samba_disable_mount($mount['name']);
+				if (! $mount['mountpoint']) {
+					$mount['mountpoint'] = "{$paths['usb_mountpoint']}/{$mount['ip']}_{$path}";
+					if (! $mount['mounted'] || ! is_mounted($mount['mountpoint']) || is_link($mount['mountpoint'])) {
+						if ($mount['fstype'] != "root") {
+							$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$mount['ip']}_{$path}";
+						} else {
+							$mount['mountpoint'] = "{$paths['root_mountpoint']}/{$path}";
+						}
+					}
+				} else {
+					$path = basename($mount['mountpoint']);
+					$mount['mountpoint'] = "{$paths['usb_mountpoint']}/{$path}";
+					if (! $mount['mounted'] || ! is_mounted($mount['mountpoint']) || is_link($mount['mountpoint'])) {
+						if ($mount['fstype'] != "root") {
+							$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$path}";
+						} else {
+							$mount['mountpoint'] = "{$paths['root_mountpoint']}/{$path}";
+						}
 					}
 				}
-			} else {
-				$path = basename($mount['mountpoint']);
-				$mount['mountpoint'] = "{$paths['usb_mountpoint']}/{$path}";
-				if (! $mount['mounted'] || ! is_mounted($mount['mountpoint']) || is_link($mount['mountpoint'])) {
-					if ($mount['fstype'] != "root") {
-						$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$path}";
-					} else {
-						$mount['mountpoint'] = "{$paths['root_mountpoint']}/{$path}";
-					}
-				}
+
+				/* Get the disk size, used, and free stats. */
+				$stats					= get_device_stats($mount['mountpoint'], $mount['mounted'], $mount['is_alive']);
+				$mount['size']			= intval($stats[0])*1024;
+				$mount['used']			= intval($stats[1])*1024;
+				$mount['avail']			= intval($stats[2])*1024;
+
+				/* Target is set to the mount point when the device is mounted. */
+				$mount['target']		= $mount['mounted'] ? $mount['mountpoint'] : "";
+
+				$mount['command']		= get_samba_config($mount['device'],"command");
+				$mount['command_bg']	= get_samba_config($mount['device'],"command_bg");
+				$mount['prog_name']		= basename($mount['command'], ".sh");
+				$mount['user_command']	= get_samba_config($mount['device'],"user_command");
+				$mount['logfile']		= ($mount['prog_name']) ? $paths['device_log'].$mount['prog_name'].".log" : "";
+				$o[] = $mount;
 			}
-
-			/* Get the disk size, used, and free stats. */
-			$stats					= get_device_stats($mount['mountpoint'], $mount['mounted'], $mount['is_alive']);
-			$mount['size']			= intval($stats[0])*1024;
-			$mount['used']			= intval($stats[1])*1024;
-			$mount['avail']			= intval($stats[2])*1024;
-
-			/* Target is set to the mount point when the device is mounted. */
-			$mount['target']		= $mount['mounted'] ? $mount['mountpoint'] : "";
-
-			$mount['command']		= get_samba_config($mount['device'],"command");
-			$mount['command_bg']	= get_samba_config($mount['device'],"command_bg");
-			$mount['prog_name']		= basename($mount['command'], ".sh");
-			$mount['user_command']	= get_samba_config($mount['device'],"user_command");
-			$mount['logfile']		= ($mount['prog_name']) ? $paths['device_log'].$mount['prog_name'].".log" : "";
-			$o[] = $mount;
 		}
 	} else {
 		unassigned_log("Error: unable to get the samba mounts.");
@@ -2618,7 +2620,7 @@ function get_iso_config($source, $variable) {
 function set_iso_config($source, $variable, $value) {
 
 	/* Verify we have a serial number. */
-	if ($sourc) {
+	if ($source) {
 		/* Get a lock so file changes can be made. */
 		$lock_file		= get_file_lock("iso");
 
@@ -2656,29 +2658,34 @@ function get_iso_mounts() {
 	if (is_array($iso_mounts)) {
 		ksort($iso_mounts, SORT_NATURAL);
 		foreach ($iso_mounts as $device => $mount) {
-			$mount['device']		= $device;
-			$mount['fstype']		= "loop";
-			$mount['automount'] 	= is_iso_automount($mount['device']);
-			$mount['mountpoint']	= $mount['mountpoint'] ?? "";
-			if (! $mount['mountpoint']) {
-				$mount["mountpoint"] = preg_replace("%\s+%", "_", "{$paths['usb_mountpoint']}/{$mount['share']}");
+			$mount['device']			= $device;
+			if ($mount['device']) {
+				$mount['fstype']		= "loop";
+				$mount['automount'] 	= is_iso_automount($mount['device']);
+				$mount['mountpoint']	= $mount['mountpoint'] ?? "";
+				$mount['share']			= $mount['share'] ?? "";
+				$mount['file']			= $mount['file'] ?? "";
+
+				if (! $mount['mountpoint']) {
+					$mount["mountpoint"] = preg_replace("%\s+%", "_", "{$paths['usb_mountpoint']}/{$mount['share']}");
+				}
+				$mount['mounted']		= is_mounted($mount['mountpoint']);
+
+				/* Target is set to the mount point when the device is mounted. */
+				$mount['target']		= $mount['mounted'] ? $mount['mountpoint'] : "";
+
+				$is_alive				= is_file($mount['file']);
+				$stats					= get_device_stats($mount['mountpoint'], $mount['mounted']);
+				$mount['size']			= intval($stats[0])*1024;
+				$mount['used']			= intval($stats[1])*1024;
+				$mount['avail']			= intval($stats[2])*1024;
+				$mount['command']		= get_iso_config($mount['device'],"command");
+				$mount['command_bg']	= get_iso_config($mount['device'],"command_bg");
+				$mount['prog_name']		= basename($mount['command'], ".sh");
+				$mount['user_command']	= get_iso_config($mount['device'],"user_command");
+				$mount['logfile']		= ($mount['prog_name']) ? $paths['device_log'].$mount['prog_name'].".log" : "";
+				$rc[] = $mount;
 			}
-			$mount['mounted']		= is_mounted($mount['mountpoint']);
-
-			/* Target is set to the mount point when the device is mounted. */
-			$mount['target']		= $mount['mounted'] ? $mount['mountpoint'] : "";
-
-			$is_alive				= is_file($mount['file']);
-			$stats					= get_device_stats($mount['mountpoint'], $mount['mounted']);
-			$mount['size']			= intval($stats[0])*1024;
-			$mount['used']			= intval($stats[1])*1024;
-			$mount['avail']			= intval($stats[2])*1024;
-			$mount['command']		= get_iso_config($mount['device'],"command");
-			$mount['command_bg']	= get_iso_config($mount['device'],"command_bg");
-			$mount['prog_name']		= basename($mount['command'], ".sh");
-			$mount['user_command']	= get_iso_config($mount['device'],"user_command");
-			$mount['logfile']		= ($mount['prog_name']) ? $paths['device_log'].$mount['prog_name'].".log" : "";
-			$rc[] = $mount;
 		}
 	} else {
 		unassigned_log("Error: unable to get the ISO mounts.");
