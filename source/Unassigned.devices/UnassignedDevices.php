@@ -673,9 +673,9 @@ switch ($_POST['action']) {
 				$is_alive		= is_file($mount['file']);
 				$o_remotes		.= "<tr>";
 				$o_remotes		.= sprintf( "<td><a class='info'><i class='fa fa-circle orb %s'></i><span>"._("ISO File is")." %s</span></a>iso</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ));
-				$devname		= basename($mount['device']);
+				$devname		= $mount['device'];
 				$o_remotes		.= "<td>{$mount['device']}</td><td></td>";
-				$mount_point	= basename($mount['mountpoint']);
+				$mount_point	= $mount['mountpoint'];
 				if ($mounted) {
 					$o_remotes .= "<td><i class='fa fa-external-link mount-share'></i><a title='"._("Browse ISO File Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
 				} else {
@@ -692,8 +692,8 @@ switch ($_POST['action']) {
 				} else {
 					/* Remove special characters. */
 					$mount_device	= safe_name(basename($mount['device']));
-					$is_mounting	= (new MiscUD)->get_mounting_status($mount_point);
-					$is_unmounting	= (new MiscUD)->get_unmounting_status($mount_point);
+					$is_mounting	= (new MiscUD)->get_mounting_status(safe_name($mount_point, true, true));
+					$is_unmounting	= (new MiscUD)->get_unmounting_status(safe_name($mount_point, true, true));
 					if ($is_mounting) {
 						$o_remotes .= "<td><button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Mounting')."</button></td>";
 					} else if ($is_unmounting) {
@@ -1207,18 +1207,19 @@ switch ($_POST['action']) {
 		/* Add iso file share. */
 		$rc			= true;
 		$file		= isset($_POST['ISO_FILE']) ? urldecode($_POST['ISO_FILE']) : "";
-		$file 		= implode("",explode("\\", $file));
+		$file 		= implode("", explode("\\", $file));
 		$file		= stripslashes(trim($file));
 		if (is_file($file)) {
 			$info = pathinfo($file);
-			$share	= $info['filename'];
-		/* Printable characters only. */
-		$share		= preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $share);
 
-		/* Remove special characters from share name. */
-		$share		= str_replace("@", "_", safe_name($share));
-			set_iso_config("{$file}", "file", $file);
-			set_iso_config("{$file}", "share", $share);
+			/* Clean up the file name for the share so php won't be upset. */
+			$share	= safe_name($info['filename'], true, true);
+
+			/* Printable characters only. */
+			$device		= preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $file);
+
+			set_iso_config("{$device}", "file", $file);
+			set_iso_config("{$device}", "share", $share);
 		} else {
 			unassigned_log("ISO File '{$file}' not found.");
 			$rc		= false;

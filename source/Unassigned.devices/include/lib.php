@@ -384,11 +384,19 @@ function listDir($root) {
 	return $paths;
 }
 
-/* Remove characters that will cause issues in names. */
-function safe_name($string, $convert_spaces = true) {
+/* Remove characters that will cause issues with php in names. */
+function safe_name($string, $convert_spaces = true, $iso_file = false) {
 
 	$string = stripcslashes($string);
 
+	if ($iso_file) {
+		/* ISO file names can have a lot of strange characters and the name in this case has to be cleaned up. */
+		/* Printable characters only. */
+		$string		= preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $string);
+
+		/* Remove special characters from iso share name. */
+		$string		= str_replace("@", "_", safe_name($string));
+	}
 	/* Convert reserved php characters and invalid file name characters to underscore. */
 	$string = str_replace( array("'", '"', "?", "#", "&", "!", "<", ">", "|"), "_", $string);
 
@@ -2654,23 +2662,33 @@ function get_iso_mounts() {
 	/* Create an array of iso file mounts and set paramaters. */
 	$rc				= array();
 	$config_file	= $paths['iso_mount'];
-	$iso_mounts		= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
+	$iso_mounts		= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
 	if (is_array($iso_mounts)) {
 		ksort($iso_mounts, SORT_NATURAL);
 		foreach ($iso_mounts as $device => $mount) {
-			$mount['device']			= $device;
+			/* Printable characters only. */
+			$string		= preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $device);
+
+			$mount['device']			= $string;
 			if ($mount['device']) {
 				$mount['fstype']		= "loop";
 				$mount['automount'] 	= is_iso_automount($mount['device']);
 				$mount['mountpoint']	= $mount['mountpoint'] ?? "";
 				$mount['share']			= $mount['share'] ?? "";
+				$mount['share']			= safe_name($mount['share'], true, true);
 				$mount['file']			= $mount['file'] ?? "";
 
 				if (! $mount['mountpoint']) {
-					$mount["mountpoint"] = preg_replace("%\s+%", "_", "{$paths['usb_mountpoint']}/{$mount['share']}");
+					$mount["mountpoint"] = $mount['share'];
 				}
+
 				$mount['mounted']		= is_mounted($mount['mountpoint']);
 
+				/* If this is a legacy iso mount indicate that it should be removed. */
+				if ($string != $device) {
+					$mount['mountpoint'] = "-- Invalid ISO File Share - Remove and Re-add--";
+				}
+	
 				/* Target is set to the mount point when the device is mounted. */
 				$mount['target']		= $mount['mounted'] ? $mount['mountpoint'] : "";
 
@@ -2699,27 +2717,27 @@ function do_mount_iso($info) {
 	global $paths;
 
 	$rc = false;
-	$dev = $info['device'];
-	$dir = $info['mountpoint'];
-	if (is_file($info['file'])) {
+	$file	= $info['file'];
+	$dir	= $info['mountpoint'];
+	if (is_file($file)) {
 		if (! is_mounted($dir)) {
 			@mkdir($dir, 0777, true);
-			$cmd = "/sbin/mount -ro loop ".escapeshellarg($dev)." ".escapeshellarg($dir);
-			unassigned_log("Mount iso command: mount -ro loop '{$dev}' '{$dir}'");
+			$cmd = "/sbin/mount -ro loop ".escapeshellarg($file)." ".escapeshellarg($dir);
+			unassigned_log("Mount iso command: mount -ro loop '{$file}' '{$dir}'");
 			$o = timed_exec(15, $cmd." 2>&1");
 			if (is_mounted($dir)) {
-				unassigned_log("Successfully mounted '{$dev}' on '{$dir}'.");
+				unassigned_log("Successfully mounted '{$file}' on '{$dir}'.");
 
 				$rc = true;
 			} else {
 				@rmdir($dir);
-				unassigned_log("Mount of '{$dev}' failed: '{$o}'");
+				unassigned_log("Mount of '{$file}' failed: '{$o}'");
 			}
 		} else {
-			unassigned_log("ISO file '{$dev}' is already mounted.");
+			unassigned_log("ISO file '{$file}' is already mounted.");
 		}
 	} else {
-		unassigned_log("Error: ISO file '{$info[file]}' is missing and cannot be mounted.");
+		unassigned_log("Error: ISO file '{$file}' is missing and cannot be mounted.");
 	}
 
 	return $rc;
