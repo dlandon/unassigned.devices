@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.04.30">
+<!ENTITY version	"2023.05.01">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"2012dd66a0b6ad381c7384abec8d0ab3">
+<!ENTITY MD5		"9ef16b4bde81bc352e79560907043174">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Reversion when hot plugging disks - they don't auto mount.
+- Fix: Rework ISO shares again to prevent the endless Unraid wave.  If an ISO share shows as invalid, remove it manually.  See forun for details.
+
+###2023.04.30
 - Fix: Alignment of Remote Shares table on UD page.
 - Fix: Php NAN warnings.
 - Fix: A situation where two Historical Devices don't have an alias name and have the same default devX.  Only one shows in Historical Devices.  It's not a problem with two devices with the same default name becuase when a device is re-installed, the devX assignment will be updated by Unraid.
