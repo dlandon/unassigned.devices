@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.05.01">
+<!ENTITY version	"2023.05.02">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"9ef16b4bde81bc352e79560907043174">
+<!ENTITY MD5		"868e2f598e9fd22c70de70bc3a00ebf0">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: More improvements in iso file mounts.  Be sure the device is clear of special characters.
+- Fix: Rewrite of ISO file mounts to deal with special characters in the device name that causes the endless Unraid wave.
+- Add: Display Source when editing SMB or NFS or ISO mounts.
+
+###2023.05.01
 - Fix: Reversion when hot plugging disks - they don't auto mount.
 - Fix: Rework ISO shares again to prevent the endless Unraid wave.  If an ISO share shows as invalid, remove it manually.  See forun for details.
 
