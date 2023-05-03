@@ -649,7 +649,7 @@ switch ($_POST['action']) {
 				$title .= "<br />"._("Share").": ";
 				$title .= $shares_enabled ? (($mount['smb_share']) ? "Yes" : "No") : "Not Enabled";
 
-				$o_remotes .= "<td><a class='info' href='/Main/EditDeviceSettings?d=".$mount['device']."&l=".$mount_point."&m=".json_encode($mount)."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+				$o_remotes .= "<td><a class='info' href='/Main/EditDeviceSettings?d=".$mount['device']."&l=".$mount_point."&j=".$mount['name']."&m=".json_encode($mount)."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 				$o_remotes .= "<td></td><td></td><td></td>";
 				$o_remotes .= "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				$o_remotes .= render_used_and_free($mount);
@@ -668,13 +668,12 @@ switch ($_POST['action']) {
 		$iso_mounts = get_iso_mounts();
 		if (count($iso_mounts)) {
 			foreach ($iso_mounts as $mount) {
-				$device			= str_replace("#", "||", $mount['device']);
+				$device			= $mount['device'];
 				$mounted		= $mount['mounted'];
 				$is_alive		= is_file($mount['file']);
 				$o_remotes		.= "<tr>";
 				$o_remotes		.= sprintf( "<td><a class='info'><i class='fa fa-circle orb %s'></i><span>"._("ISO File is")." %s</span></a>iso</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ));
-				$devname		= $mount['device'];
-				$o_remotes		.= "<td>{$mount['device']}</td><td></td>";
+				$o_remotes		.= "<td>{$mount['file']}</td><td></td>";
 				$mount_point	= $mount['mountpoint'];
 				if ($mounted) {
 					$o_remotes .= "<td><i class='fa fa-external-link mount-share'></i><a title='"._("Browse ISO File Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
@@ -692,8 +691,8 @@ switch ($_POST['action']) {
 				} else {
 					/* Remove special characters. */
 					$mount_device	= safe_name(basename($mount['device']));
-					$is_mounting	= (new MiscUD)->get_mounting_status(safe_name($mount_point, true, true));
-					$is_unmounting	= (new MiscUD)->get_unmounting_status(safe_name($mount_point, true, true));
+					$is_mounting	= (new MiscUD)->get_mounting_status($device);
+					$is_unmounting	= (new MiscUD)->get_unmounting_status($device);
 					if ($is_mounting) {
 						$o_remotes .= "<td><button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Mounting')."</button></td>";
 					} else if ($is_unmounting) {
@@ -709,7 +708,11 @@ switch ($_POST['action']) {
 				$title .= "<br />"._("Automount").": ";
 				$title .= $mount['automount'] ? "Yes" : "No";
 
-				$o_remotes .= "<td><a class='info' href='/Main/EditDeviceSettings?i=".$device."&l=".$mount_point."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+				if (! $mount['invalid']) {
+					$o_remotes .= "<td><a class='info' href='/Main/EditDeviceSettings?i=".$device."&l=".$mount_point."&j=".$mount['file']."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+				} else {
+					$o_remotes .= "<td><i class='fa fa-gears grey-orb'></i><span style='text-align:left'></span></td>";
+				}
 				$o_remotes .= "<td></td><td></td><td></td>";
 				$o_remotes .= "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				$o_remotes .= render_used_and_free($mount);
@@ -1215,8 +1218,8 @@ switch ($_POST['action']) {
 			/* Clean up the file name for the share so php won't be upset. */
 			$share	= safe_name($info['filename'], true, true);
 
-			/* Printable characters only. */
-			$device		= preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $file);
+			/* Clean up the file name to use as the device. */
+			$device		= safe_name($info['basename'], true, true);
 
 			set_iso_config("{$device}", "file", $file);
 			set_iso_config("{$device}", "share", $share);

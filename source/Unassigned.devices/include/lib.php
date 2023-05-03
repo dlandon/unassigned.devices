@@ -2663,11 +2663,14 @@ function get_iso_mounts() {
 	$rc				= array();
 	$config_file	= $paths['iso_mount'];
 	$iso_mounts		= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
+
+	/* Sort the iso mounts. */
+	ksort($iso_mounts, SORT_NATURAL);
+
 	if (is_array($iso_mounts)) {
-		ksort($iso_mounts, SORT_NATURAL);
 		foreach ($iso_mounts as $device => $mount) {
-			/* Printable characters only. */
-			$string		= preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $device);
+			/* Convert the device to a safe name iso device. */
+			$string		= safe_name($device, true, true);
 
 			$mount['device']			= $string;
 			if ($mount['device']) {
@@ -2685,8 +2688,10 @@ function get_iso_mounts() {
 				$mount['mounted']		= is_mounted($mount['mountpoint']);
 
 				/* If this is a legacy iso mount indicate that it should be removed. */
+				$mount['invalid']		= false;
 				if ($string != $device) {
 					$mount['mountpoint'] = "-- Invalid ISO File Share - Remove and Re-add--";
+					$mount['invalid']	= true;
 				}
 	
 				/* Target is set to the mount point when the device is mounted. */
@@ -2704,6 +2709,7 @@ function get_iso_mounts() {
 				$mount['logfile']		= ($mount['prog_name']) ? $paths['device_log'].$mount['prog_name'].".log" : "";
 				$rc[] = $mount;
 			}
+
 		}
 	} else {
 		unassigned_log("Error: unable to get the ISO mounts.");
@@ -2785,16 +2791,25 @@ function remove_config_iso($source) {
 				unassigned_log("Removing script '{$command}'.");
 			}
 		}
-	}
-	unset($config[$source]);
 
-	/* Save new iso config. */
-	save_ini_file($config_file, $config);
+		unset($config[$source]);
+
+		/* Save new iso config. */
+		save_ini_file($config_file, $config);
+
+		$rc	= (! isset($config[$source])) ? true : false;
+	} else {
+		$rc	= false;
+	}
+
+	if ($rc) {
+		unassigned_log("Error: Could not remove configuration '{$source}'.");
+	}
 
 	/* Release the file lock. */
 	release_file_lock($lock_file);
 
-	return (! isset($config[$source])) ? true : false;
+	return $rc;
 }
 
 
@@ -3202,7 +3217,7 @@ function check_for_duplicate_share($dev, $mountpoint) {
 
 	/* See if the share name is already being used. */
 	if (is_array($shares) && in_array(strtoupper($mountpoint), $shares, true)) {
-		unassigned_log("Error: Device '".$dev."' mount point '".$mountpoint."' - name is reserved, used in the array or by an unassigned device.");
+		unassigned_log("Error: Device '".$dev."' mount point '".$mountpoint."' - name is reserved, used in the array or a pool, or by an unassigned device.");
 		$rc = false;
 	}
 

@@ -43,6 +43,7 @@ $disable_action			= "";
 $readonly_action		= "";
 $share					= "";
 $share_action			= "";
+$source					= "";
 
 /* Wait for lock files release to be sure the cfg files are completely updated. */
 $i = 0;
@@ -115,6 +116,7 @@ if (isset($_GET['s'])) {
 	/* Remote shares. */
 	$device				= $_GET['d'];
 	$mount_point		= $_GET['l'];
+	$source				= $_GET['j'];
 	$info				= (isset($_GET['m'])) ? $_GET['m'] : "";
 	$file				= get_samba_config($device, "command");
 	if (($file) && (! file_exists($file))) {
@@ -142,8 +144,9 @@ if (isset($_GET['s'])) {
 	$disk_setting		= false;
 } else if (isset($_GET['i'])) {
 	/* ISO files. */
-	$device				= str_replace("||", "#", $_GET['i']);
+	$device				= $_GET['i'];
 	$mount_point		= $_GET['l'];
+	$source				= $_GET['j'];
 	$info				= "";
 	$file				= get_iso_config($device, "command");
 	if (($file) && (! file_exists($file))) {
@@ -255,9 +258,10 @@ EOT;
 <input type="hidden" name="#include" value="/webGui/include/update.file.php">
 
 <?if ($disk_setting):?>
-_(Disk Serial)_: <?=$serial;?>
+<p><strong>_(Disk Serial)_: </strong><?=$serial;?></p>
 <?else:?>
-<strong>_(Mount Point)_: </strong><?=$mount_point;?>
+<p><strong>_(Source)_: </strong><?=$source;?></p>
+<p><strong>_(Mount Point)_: </strong><?=$mount_point;?></p>
 <?endif;?>
 
 <table style='width: <?=$width;?>;' class='usb_disks'><thead><tr><td></td><td></td><td></td><td></td><td></td><td></td></tr></thead>
