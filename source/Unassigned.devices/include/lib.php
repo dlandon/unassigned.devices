@@ -2802,7 +2802,7 @@ function remove_config_iso($source) {
 		$rc	= false;
 	}
 
-	if ($rc) {
+	if (! $rc) {
 		unassigned_log("Error: Could not remove configuration '{$source}'.");
 	}
 
