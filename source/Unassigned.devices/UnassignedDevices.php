@@ -674,7 +674,7 @@ switch ($_POST['action']) {
 				$o_remotes		.= "<tr>";
 				$o_remotes		.= sprintf( "<td><a class='info'><i class='fa fa-circle orb %s'></i><span>"._("ISO File is")." %s</span></a>iso</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ));
 				$o_remotes		.= "<td>{$mount['file']}</td><td></td>";
-				$mount_point	= $mount['mountpoint'];
+				$mount_point	= basename($mount['mountpoint']);
 				if ($mounted) {
 					$o_remotes .= "<td><i class='fa fa-external-link mount-share'></i><a title='"._("Browse ISO File Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
 				} else {
@@ -1373,7 +1373,7 @@ switch ($_POST['action']) {
 	case 'chg_iso_mountpoint':
 		/* Change an iso file mount point. */
 		$device			= urldecode($_POST['device']);
-		$mountpoint		= basename(safe_name(basename(urldecode($_POST['mountpoint'])), false));
+		$mountpoint		= safe_name(basename(urldecode($_POST['mountpoint'])), false);
 		$result			= change_iso_mountpoint($device, $mountpoint);
 		echo json_encode($result);
 		break;
