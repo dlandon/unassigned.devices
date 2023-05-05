@@ -2689,8 +2689,8 @@ function get_iso_mounts() {
 
 				/* If this is a legacy iso mount indicate that it should be removed. */
 				$mount['invalid']		= false;
-				if ($string != $device) {
-					$mount['mountpoint'] = "-- Invalid ISO File Share - Remove and Re-add--";
+				if (basename($string) != $device) {
+					$mount['mountpoint'] = "-- Invalid Configuration - Remove and Re-add --";
 					$mount['invalid']	= true;
 				}
 	
@@ -2783,7 +2783,7 @@ function remove_config_iso($source) {
 	$config_file	= $GLOBALS["paths"]["iso_mount"];
 	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
 	if ( isset($config[$source]) ) {
-		unassigned_log("Removing configuration '{$source}'.");
+		unassigned_log("Removing ISO configuration '{$source}'.");
 		if (isset($config[$source]['command'])) {
 			$command	= $config[$source]['command'];
 			if ( isset($command) && is_file($command) ) {
@@ -2803,7 +2803,7 @@ function remove_config_iso($source) {
 	}
 
 	if (! $rc) {
-		unassigned_log("Error: Could not remove configuration '{$source}'.");
+		unassigned_log("Error: Could not remove ISO configuration '{$source}'.");
 	}
 
 	/* Release the file lock. */
