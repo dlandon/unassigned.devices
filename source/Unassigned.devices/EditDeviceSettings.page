@@ -384,14 +384,12 @@ _(User Script)_:
 
 <textarea spellcheck="false" cols="80" rows="22" name="text" title='_(Enter and Edit the Device Script that runs when a udev or operator event occurs)_.' style="width:80%"><?=$text;?></textarea>
 
-<?if (! $mounted):?>
 <button type="button" title='_(Load the default Device Script)_.' onclick="setDefault(this.form)">_(Default)_</button>
 <?if (is_file($file)):?>
 <button type="button" title='_(Delete Device Script File)_.' onclick='rmfile("<?=$file;?>");'>_(Delete)_</button>
 <?endif;?>
 <input type="reset" title='_(Undo your changes since last Save)_.' value='_(Reset)_'/>
 <input type="submit" title='_(Save your Device Script File changes)_.' value='_(Save)_'/>
-<?endif;?>
 <button type="button" onclick="done()">_(Done)_</button>
 
 :ud_edit_script_buttons_plug:
