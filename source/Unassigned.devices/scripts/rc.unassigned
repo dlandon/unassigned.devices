@@ -121,16 +121,17 @@ function unassigned_mount() {
 				if ($info['device']) {
 					/* Create the mounting status file for this device. */
 					if ($info['fstype'] != "crypto_LUKS") {
-						addFile(sprintf($paths['mounting'], basename($info['device'])));
+						$device	= $info['device'];
 					} else {
-						addFile(sprintf($paths['mounting'], basename($info['luks'])));
+						$device	= $info['luks'];
 					}
+					addFile(sprintf($paths['mounting'], basename($device)));
 
-					unassigned_log("Mounting partition '".basename($info['device'])."' at mountpoint '{$info['mountpoint']}'...");
+					unassigned_log("Mounting partition '".basename($device)."' at mountpoint '{$info['mountpoint']}'...");
 
 					/* Cannot mount disk with 'UNRAID' label. */
 					if ($info['label'] == "UNRAID") {
-						unassigned_log("Error: Cannot mount device '{$info['device']}' with label 'UNRAID'.");
+						unassigned_log("Error: Cannot mount device '".$device."' with label 'UNRAID'.");
 
 						/* Execute device script with error mount action. */
 						execute_script($info, "ERROR_MOUNT");
@@ -144,7 +145,7 @@ function unassigned_mount() {
 								add_smb_share($info['mountpoint'], true, $fat_fruit);
 								add_nfs_share($info['mountpoint']);
 							} else {
-								unassigned_log("Device '".$info['device']."' is not set to be shared.");
+								unassigned_log("Device '".$device."' is not set to be shared.");
 							}
 
 							/* Execute device script with add action. */
