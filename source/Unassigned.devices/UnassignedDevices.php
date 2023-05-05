@@ -707,6 +707,7 @@ switch ($_POST['action']) {
 				$title = _("Edit ISO File Settings and Script");
 				$title .= "<br />"._("Automount").": ";
 				$title .= $mount['automount'] ? "Yes" : "No";
+				$title .= "<br />"._("Share").": Yes";
 
 				if (! $mount['invalid']) {
 					$o_remotes .= "<td><a class='info' href='/Main/EditDeviceSettings?i=".$device."&l=".$mount_point."&j=".$mount['file']."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
