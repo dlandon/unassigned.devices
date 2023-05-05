@@ -2682,7 +2682,7 @@ function get_iso_mounts() {
 				$mount['file']			= $mount['file'] ?? "";
 
 				if (! $mount['mountpoint']) {
-					$mount["mountpoint"] = $mount['share'];
+					$mount["mountpoint"] = $paths['usb_mountpoint']."/".$mount['share'];
 				}
 
 				$mount['mounted']		= is_mounted($mount['mountpoint']);
