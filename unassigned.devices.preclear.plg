@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.04.12">
+<!ENTITY version	"2023.05.06">
 <!ENTITY launch		"Tools/Preclear">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/unassigned.devices/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"d4603e07935e9d6f1d4e1a5a2b0211b6">
+<!ENTITY MD5		"aa6694e9e8e924518066fb32396874fe">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
@@ -20,6 +20,12 @@
 
 <CHANGES>
 ##&name;
+- Fix: Preclear removes a directory it shouldn't when uninstalling that breaks connect.
+
+2023.04.12
+- Fix: Php NAN warnings.
+
+###2023.04.12
 - Fix: Java script errors.
 
 ###2023.04.04
@@ -285,7 +291,6 @@ rm -rf	/usr/local/bin/preclear \
 
 # Remove plugin related directories
 rm -rf	/var/state/&name; \
-		/usr/local/bin/ \
 		/tmp/preclear/ \
 		/tmp/.preclear/
 
