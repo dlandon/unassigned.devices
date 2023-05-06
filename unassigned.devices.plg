@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.05.02">
+<!ENTITY version	"2023.05.06">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"868e2f598e9fd22c70de70bc3a00ebf0">
+<!ENTITY MD5		"c17d07cb74627052132ba886c5d9ea11">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,7 +22,14 @@
 <CHANGES>
 ##&name;
 ###&version;
-- Fix: More improvements in iso file mounts.  Be sure the device is clear of special characters.
+- Fix: IOS files mounting to the wrong mount point.
+- Fix: Change ISO mount point not showing the correct mount point after changing.
+- Fix: Change some log text when mounting a disk device.
+- Fix: Additional check for an incorrect ISO configuration requiring removal and re-add.
+- Add: Don't permit script file 'Delete' operation in Edit Device Settings when a device is mounted.
+
+###2023.05.02
+- Fix: More improvements in iso file mounts.  Be sure the ISO device is only printable characters and has no special characters.
 - Fix: Rewrite of ISO file mounts to deal with special characters in the device name that causes the endless Unraid wave.
 - Add: Display Source when editing SMB or NFS or ISO mounts.
 
