@@ -20,6 +20,7 @@
 
 <CHANGES>
 ###&name;
+###&version
 - Fix: Preclear removes a directory it shouldn't when uninstalling that breaks connect.
 
 ###2023.04.12
