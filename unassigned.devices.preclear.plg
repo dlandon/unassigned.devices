@@ -19,7 +19,7 @@
 		min="6.9.0">
 
 <CHANGES>
-##&name;
+###&name;
 - Fix: Preclear removes a directory it shouldn't when uninstalling that breaks connect.
 
 ###2023.04.12
