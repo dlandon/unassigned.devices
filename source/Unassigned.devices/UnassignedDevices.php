@@ -727,7 +727,7 @@ switch ($_POST['action']) {
 
 		/* If there are no remote or ISO mounts, show message. */
 		if (! count($samba_mounts) && ! count($iso_mounts)) {
-			$o_remotes .= "<tr><td colspan='14' style='text-align:center;'>"._('No Remote SMB')."/"._('NFS or ISO File Shares configured').".</td></tr>";
+			$o_remotes .= "<tr><td colspan='15' style='text-align:center;'>"._('No Remote SMB')."/"._('NFS or ISO File Shares configured').".</td></tr>";
 		}
 
 		unassigned_log("Debug: Update Historical Devices...", $UPDATE_DEBUG);
@@ -771,7 +771,7 @@ switch ($_POST['action']) {
 		/* Display the historical devices. */
 		foreach ($historical as $disk_display => $value) {
 			/* See if the disk is in standby and can be attached. */
-			$is_standby		= ((new MiscUD)->get_device_host($historical[$disk_display]['serial']) && (empty(glob("/dev/disk/by-id/*-".$historical[$disk_display]['serial']))));
+			$is_standby		= ((new MiscUD)->get_device_host($historical[$disk_display]['serial']) && (empty(glob("/dev/disk/by-id/*-".$historical[$disk_display]['serial']."*"))));
 	
 			/* Add to the historical devices. */
 			$o_historical .= sprintf( "<tr><td><a class='info'><i class='fa fa-minus-circle orb %s'></i><span>"._("Historical Device is")." %s</span></a>".$historical[$disk_display]['device']."</td>", ( $is_standby ? "green-orb" : "grey-orb" ), ( $is_standby ? _("in standby") : _("offline") ));

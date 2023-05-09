@@ -108,7 +108,7 @@ if (isset($_GET['s'])) {
 	$is_preclearing		= shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg((new MiscUD)->base_device($device))." | /bin/grep -v 'grep'") != "" ? true : false;
 	$host				= (new MiscUD)->get_device_host($_GET['s']);
 	if ($host) {
-		$connected		= (! empty(glob("/dev/disk/by-id/*-".$_GET['s'])));
+		$connected		= (! empty(glob("/dev/disk/by-id/*-".$_GET['s']."*")));
 	} else {
 		$connected		= false;
 	}
