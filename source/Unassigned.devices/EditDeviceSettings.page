@@ -100,7 +100,6 @@ if (isset($_GET['s'])) {
 	$disable_action		= "toggle_disable_mount";
 	$readonly_action	= "toggle_read_only";
 	if (! $_GET['t']) {
-		$disk_setting			= false;
 		$show_device_switches	= false;
 	}
 	$fstype				= (isset($_GET['f'])) ? $_GET['f'] : "";
@@ -261,8 +260,8 @@ EOT;
 <p><strong>_(Disk Serial)_: </strong><?=$serial;?></p>
 <?else:?>
 <p><strong>_(Source)_: </strong><?=$source;?></p>
-<p><strong>_(Mount Point)_: </strong><?=$mount_point;?></p>
 <?endif;?>
+<p><strong>_(Mount Point)_: </strong><?=$mount_point;?></p>
 
 <table style='width: <?=$width;?>;' class='usb_disks'><thead><tr><td></td><td></td><td></td><td></td><td></td><td></td></tr></thead>
 <tr>
