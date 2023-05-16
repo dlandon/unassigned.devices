@@ -360,7 +360,7 @@ class Disks
 					}
 				}
 			}
-			if ((count($disk['PARTS']) == 0) || ($disk['PRECLEAR']) || ($no_file_system)) {
+			if (((isset($disk['PARTS'])) && (count($disk['PARTS']) == 0)) || ($disk['PRECLEAR']) || ($no_file_system)) {
 				$disks[$key] = $disk;
 			}
 		}
