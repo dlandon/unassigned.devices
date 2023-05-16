@@ -203,6 +203,13 @@ class MiscUD
 		$end	= strpos($devpath, "/", $begin);
 		$host	= substr($devpath, $begin, $end-$begin);
 
+		/* Prevent duplicate hostX elements - remove previous entry. */
+		$check = array_flip($device_hosts);
+		if ((isset($check[$host])) && ($check[$host] != $serial)) {
+			unset($check[$host]);
+		}
+		$device_hosts	= array_flip($check);
+
 		/* Save the hostX. */
 		$device_hosts[$serial] = $host;
 
@@ -219,12 +226,13 @@ class MiscUD
 		/* Get the current hostX status. */
 		$device_hosts	= (new MiscUD)->get_json($paths['device_hosts']);
 
-		if (isset($device_hosts[$serial]) && (is_file("/sys/class/scsi_host/{$device_hosts[$serial]}/scan"))) {
-			/* Return the hostX. */
-			$rc	= $device_hosts[$serial];
+		if (isset($device_hosts[$serial])) {
+			if (is_file("/sys/class/scsi_host/".$device_hosts[$serial]."/scan")) {
+				/* Return the hostX. */
+				$rc	= $device_hosts[$serial];
+			}
 
-			/* Remove this serial number. */
-			if ($delete) {
+			if ((! $rc) || ($delete)) {
 				/* Delete this host entry.  If the device is actually connected, the host entry will be restored when it is recognized. */
 				unset($device_hosts[$serial]);
 
@@ -1135,20 +1143,27 @@ function is_automount($serial, $usb = false) {
 }
 
 /* Is device set to mount read only? */
-function is_read_only($serial) {
-	$read_only		= get_config($serial, "read_only");
+function is_read_only($serial, $default = false, $part = "") {
+	$read_only		= "read_only";
+	$read_only		= ($part) ? $read_only.".".$part : $read_only;
+	$read_only		= get_config($serial, $read_only);
 	$pass_through	= get_config($serial, "pass_through");
-	return ( $pass_through != "yes" && $read_only == "yes" ) ? true : false;
+	return ( $pass_through != "yes" && $read_only == "yes" ) ? true : (($read_only == "no") ? false : $default);
 }
 
 /* Is device set to pass through. */
-function is_pass_through($serial) {
-	return (get_config($serial, "pass_through") == "yes") ? true : false;
+function is_pass_through($serial, $default = false, $part = "") {
+	$pass_through	= "pass_through";
+	$pass_through	= ($part) ? $pass_through.".".$part : $pass_through;
+	$passed_through	= get_config($serial, $pass_through);
+	return ($passed_through == "yes") ? true : (($passed_through == "no") ? false : $default);
 }
 
 /* Is disable mount button set. */
-function is_disable_mount($serial) {
-	return (get_config($serial, "disable_mount") == "yes") ? true : false;
+function is_disable_mount($serial, $part = "") {
+	$disable_mount	= "disable_mount";
+	$disable_mount	= ($part) ? $disable_mount.".".$part : $disable_mount;
+	return (get_config($serial, $disable_mount) == "yes") ? true : false;
 }
 
 /* Toggle auto mount on/off. */
@@ -1177,7 +1192,7 @@ function toggle_automount($serial, $status) {
 }
 
 /* Toggle read only on/off. */
-function toggle_read_only($serial, $status) {
+function toggle_read_only($serial, $status, $part = "") {
 
 	/* Verify we have a serial number. */
 	if ($serial) {
@@ -1187,13 +1202,15 @@ function toggle_read_only($serial, $status) {
 		/* Make file changes. */
 		$config_file	= $GLOBALS["paths"]["config_file"];
 		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
-		$config[$serial]["read_only"] = ($status == "true") ? "yes" : "no";
+		$read_only		= "read_only";
+		$read_only		= ($part) ? $read_only.".".$part : $read_only;
+		$config[$serial][$read_only] = ($status == "true") ? "yes" : "no";
 		save_ini_file($config_file, $config);
 
 		/* Release the file lock. */
 		release_file_lock($lock_file);
 
-		$rc = ($config[$serial]["read_only"] == "yes") ? 'true' : 'false';
+		$rc = ($config[$serial][$read_only] == "yes") ? 'true' : 'false';
 	} else {
 		$rc = false;
 	}
@@ -1202,7 +1219,7 @@ function toggle_read_only($serial, $status) {
 }
 
 /* Toggle pass through on/off. */
-function toggle_pass_through($serial, $status) {
+function toggle_pass_through($serial, $status, $part = "") {
 
 	/* Verify we have a serial number. */
 	if ($serial) {
@@ -1212,13 +1229,15 @@ function toggle_pass_through($serial, $status) {
 		/* Make file changes. */
 		$config_file	= $GLOBALS["paths"]["config_file"];
 		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
-		$config[$serial]["pass_through"] = ($status == "true") ? "yes" : "no";
+		$pass_through	= "pass_through";
+		$pass_through	= ($part) ? $pass_through.".".$part : $pass_through;
+		$config[$serial][$pass_through] = ($status == "true") ? "yes" : "no";
 		save_ini_file($config_file, $config);
 
 		/* Release the file lock. */
 		release_file_lock($lock_file);
 
-		$rc = ($config[$serial]["pass_through"] == "yes") ? 'true' : 'false';
+		$rc = ($config[$serial][$pass_through] == "yes") ? 'true' : 'false';
 	} else {
 		$rc = false;
 	}
@@ -1227,7 +1246,7 @@ function toggle_pass_through($serial, $status) {
 }
 
 /* Toggle hide mount button on/off. */
-function toggle_disable_mount($serial, $status) {
+function toggle_disable_mount($serial, $status, $part = "") {
 
 	/* Verify we have a serial number. */
 	if ($serial) {
@@ -1237,13 +1256,15 @@ function toggle_disable_mount($serial, $status) {
 		/* Make file changes. */
 		$config_file	= $GLOBALS["paths"]["config_file"];
 		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
-		$config[$serial]["disable_mount"] = ($status == "true") ? "yes" : "no";
+		$disable_mount	= "disable_mount";
+		$disable_mount	= ($part) ? $disable_mount.".".$part : $disable_mount;
+		$config[$serial][$disable_mount] = ($status == "true") ? "yes" : "no";
 		save_ini_file($config_file, $config);
 
 		/* Release the file lock. */
 		release_file_lock($lock_file);
 
-		$rc = ($config[$serial]["disable_mount"] == "yes") ? 'true' : 'false';
+		$rc = ($config[$serial][$disable_mount] == "yes") ? 'true' : 'false';
 	} else {
 		$rc = false;
 	}
@@ -1578,6 +1599,9 @@ function do_mount_local($info) {
 					}
 					$params		= get_mount_params($fs, $dev, $ro);
 					$cmd		= "/usr/sbin/zfs mount -o $params ".escapeshellarg($pool_name);
+				} else if ($fs == "zvol") {
+					$params		= get_mount_params($fs, $dev, $ro);
+					$cmd		= "/sbin/mount -o $params ".escapeshellarg($dev)." ".escapeshellarg($dir);
 				} else {
 					$params		= get_mount_params($fs, $dev, $ro);
 					$cmd		= "/sbin/mount -t ".escapeshellarg($fs)." -o $params ".escapeshellarg($dev)." ".escapeshellarg($dir);
@@ -2862,12 +2886,16 @@ function get_all_disks_info() {
 			if ($disk['size'] != 0) {
 				/* Get all the disk partitions. */
 				$disk			= array_merge($disk, get_disk_info($key));
+				$disk['zvol']	= array();
 				foreach ($disk['partitions'] as $k => $p) {
 					if ($p) {
 						$disk['partitions'][$k] = get_partition_info($p);
 						$disk['partitions'][$k]['array_disk'] = $disk['partitions'][$k]['array_disk'] ?? false;
 						$disk['array_disk'] = $disk['array_disk'] || $disk['partitions'][$k]['array_disk'];
 					}
+
+					/* Get any zfs volumes. */
+					$disk['zvol']	= array_merge($disk['zvol'], get_zvol_info($disk['partitions'][$k]));
 				}
 
 				/* Remove the original UD entry and add the new UD reference. */
@@ -3091,7 +3119,7 @@ function get_partition_info($dev) {
 		/* Target is set to the mount point when the device is mounted. */
 		if ($disk['mounted']) {
 			if (($disk['fstype'] == "zfs") || (($disk['fstype'] == "crypto_LUKS") && (luks_fs_type($disk['mountpoint']) == "zfs"))) {
-				$mount			= shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep ".escapeshellarg(basename($disk['mountpoint']))." | /bin/awk '{print $2}'");
+				$mount			= shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep '".escapeshellarg(basename($disk['mountpoint']))." ' | /bin/awk '{print $2}'");
 				$disk['target']	= isset($mount) ? str_replace("\\040", " ", trim($mount)) : "";
 			} else {
 				$mount			= shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep ".escapeshellarg($disk['device'])." | /bin/awk '{print $2}'");
@@ -3114,9 +3142,45 @@ function get_partition_info($dev) {
 		$disk['command_bg']		= get_config($disk['serial'], "command_bg.{$disk['part']}");
 		$disk['prog_name']		= basename($disk['command'], ".sh");
 		$disk['logfile']		= ($disk['prog_name']) ? $paths['device_log'].$disk['prog_name'].".log" : "";
+
 		return $disk;
 	}
 }
+
+/* Get zfs volume info if the partition has any zvols. */
+function get_zvol_info($disk) {
+
+	/* Get any zfs volumes. */
+	$zvol		= array();
+	if (($disk['fstype'] == "zfs") && ($disk['mounted'])) {
+		$serial		= $disk['serial'];
+		$zpool_name	= (new MiscUD)->zfs_pool_name($disk['mountpoint'], true);
+		foreach (glob("/dev/zvol/".$zpool_name."/*") as $n => $q) {
+			$vol							= basename($q);
+			$volume							= $zpool_name.".".basename($q);
+			$zvol[$vol]['volume']			= $volume;
+			$zvol[$vol]['device']			= realpath($q);
+			$zvol[$vol]['fstype']			= "zvol";
+			$zvol[$vol]['mountpoint']		= $disk['mountpoint'].".".basename($q);
+			$zvol[$vol]['mounted']			= is_mounted($zvol[$vol]['mountpoint']);
+			$stats							= get_device_stats($zvol[$vol]['mountpoint'], $zvol[$vol]['mounted']);
+			$zvol[$vol]['size']				= intval($stats[0])*1024;
+			$zvol[$vol]['used']				= intval($stats[1])*1024;
+			$zvol[$vol]['avail']			= intval($stats[2])*1024;
+			$zvol[$vol]['read_only']		= is_read_only($serial, true, $vol);
+			$zvol[$vol]['target']			= $zvol[$vol]['mounted'] ? $zvol[$vol]['mountpoint'] : "";
+			$zvol[$vol]['pass_through']		= is_pass_through($serial, true, $vol);
+			$zvol[$vol]['disable_mount']	= is_disable_mount($serial, $vol);
+			$zvol[$vol]['array_disk']		= false;
+			$zvol[$vol]['command']			= "";
+			$zvol[$vol]['user_command']		= "";
+
+		}
+	}
+
+	return $zvol;
+}
+
 
 /* Get the check file system command based on disk file system. */
 function get_fsck_commands($fs, $dev, $type = "ro") {

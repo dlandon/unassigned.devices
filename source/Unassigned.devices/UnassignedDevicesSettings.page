@@ -26,6 +26,7 @@ $cfg['Config']['destructive_mode']	= $cfg['Config']['destructive_mode'] ?? '';
 $cfg['Config']['automount_usb']		= $cfg['Config']['automount_usb'] ?? '';
 $cfg['Config']['discard']			= $cfg['Config']['discard'] ?? '';
 $cfg['Config']['symlinks']			= $cfg['Config']['symlinks'] ?? '';
+$cfg['Config']['zvols']				= $cfg['Config']['zvols'] ?? '';
 $cfg['Config']['smb_version']		= $cfg['Config']['smb_version'] ?? '';
 $cfg['Config']['nfs_version']		= $cfg['Config']['nfs_version'] ?? '';
 $cfg['Config']['debug_level']		= $cfg['Config']['debug_level'] ?? '';
@@ -230,6 +231,16 @@ _(Legacy Mount Point Compatibility)_?
 > You are encouraged to change your mappings to the /mnt/remotes/ mount point.
 >
 > If you do not need the backwards compatibility, leave it set to **No**.
+:end
+
+_(Show ZFS Volumes on Disks)_?
+: <select name="zvols" size="1">
+  <?=mk_option($cfg["Config"]["zvols"], "no", "_(No)_");?>
+  <?=mk_option($cfg["Config"]["zvols"], "yes", "_(Yes)_");?>
+  </select>
+
+:ud_settings_zvols_plug:
+> Enable to show the ZFS Volumes found on mounted disks. You can control mounting the ZFS Volumes in the Device Settings.
 :end
 
 _(Specify SMB Version when Mounting Remote Shares)_?

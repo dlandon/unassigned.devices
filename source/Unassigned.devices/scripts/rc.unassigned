@@ -169,6 +169,23 @@ function unassigned_mount() {
 		}
 	}
 
+	/* Mount a zfs volume. */
+	foreach(get_unassigned_disks() as $disk) {
+		foreach ($disk['partitions'] as $partition) {
+			$info = get_partition_info($partition);
+			foreach (get_zvol_info($info) as $k => $zvol) {
+				if ( (preg_match("#".$DEVNAME."#i", $zvol['device']))) {
+					addFile(sprintf($paths['mounting'], basename($zvol['device'])));
+
+					$rc = do_mount($zvol);
+					if (! $rc) {
+						unassigned_log("ZFS Volume '".$k."' cannot be mounted.");
+					}
+				}
+			}
+		}
+	}
+
 	/* Mount Remote mounts. */
 	if (strpos($DEVNAME, "//") === 0 || strpos($DEVNAME, ":/") || $DEVNAME == "auto" || $DEVNAME == "autoshares") {
 		foreach (get_samba_mounts() as $info) {
@@ -348,6 +365,7 @@ function unassigned_umount() {
 								unassigned_abort($info['command']);
 							}
 						}
+
 						/* Create unmounting status file for this device. */
 						if ($info['fstype'] != "crypto_LUKS") {
 							addFile(sprintf($paths['unmounting'], basename($info['device'])));
@@ -358,21 +376,37 @@ function unassigned_umount() {
 						unassigned_log("Unmounting partition '".basename($info['device'])."' at mountpoint '{$info['mountpoint']}'...");
 
 						/* Remove smb and nfs shares for this device. */
-						if ( $info['shared'] ) {
-							rm_smb_share($info['target']);
-							rm_nfs_share($info['target']);
-						}
+						rm_smb_share($info['target']);
+						rm_nfs_share($info['target']);
 
 						/* Execute device script with unmount action. */
 						execute_script($info, "UNMOUNT");
 
-						/* Unmount the device. */
-						if (($info['fstype'] == "zfs") || (($info['fstype'] == "crypto_LUKS") && (luks_fs_type($info['device'], true) == "zfs"))) {
-							$zfs	= true;
-						} else {
-							$zfs	= false;
+						/* Unmount any zfs volumes that are mounted. */
+						$rc		= true;
+						if ($info['fstype'] == "zfs") {
+							foreach (get_zvol_info($info) as $k => $zvol) {
+								if ($zvol['mounted']) {
+									$rc = do_unmount($zvol['device'], $zvol['mountpoint'], $force, false, false, false);
+									if (! $rc) {
+										unassigned_log("ZFS Volume '".$k."' cannot be unmounted.");
+
+										$rc	= false;
+									}
+								}
+							}
 						}
-						$rc	= do_unmount($info['device'], $info['mountpoint'], $force, false, false, $zfs);
+
+						/* Unmount the device. */
+						if ($rc) {
+							if (($info['fstype'] == "zfs") || (($info['fstype'] == "crypto_LUKS") && (luks_fs_type($info['device'], true) == "zfs"))) {
+								$zfs	= true;
+							} else {
+								$zfs	= false;
+							}
+
+							$rc	= do_unmount($info['device'], $info['mountpoint'], $force, false, false, $zfs);
+						}
 
 						if ($rc) {
 							if ($info['fstype'] == "crypto_LUKS" ) {
@@ -387,6 +421,25 @@ function unassigned_umount() {
 
 							/* Execute device script with error unmount action. */
 							execute_script($info, "ERROR_UNMOUNT");
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/* Unmount a zfs volume. */
+	foreach(get_unassigned_disks() as $disk) {
+		foreach ($disk['partitions'] as $partition) {
+			$info = get_partition_info($partition);
+			foreach (get_zvol_info($info) as $k => $zvol) {
+				if ( (preg_match("#".$DEVNAME."#i", $zvol['device']))) {
+					if ($zvol['mounted']) {
+						addFile(sprintf($paths['unmounting'], basename($zvol['device'])));
+
+						$rc = do_unmount($zvol['device'], $zvol['mountpoint'], $force, false, false, false);
+						if (! $rc) {
+							unassigned_log("ZFS Volume '".$k."' cannot be unmounted.");
 						}
 					}
 				}
@@ -427,9 +480,7 @@ function unassigned_umount() {
 
 					/* Unmount the remote share. */
 					if ( do_unmount(($info['fstype'] == "cifs") ? "//".$info['ip']."/".$info['path'] : $dev, $info['mountpoint'], $force_unmount, $smb, $nfs) ) {
-						if ( $info['smb_share'] ) {
-							rm_smb_share($info['mountpoint']);
-						}
+						rm_smb_share($info['mountpoint']);
 
 						/* Execute remote mount script with remove action. */
 						execute_script($info, "REMOVE");

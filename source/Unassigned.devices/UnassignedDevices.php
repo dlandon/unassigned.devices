@@ -160,9 +160,9 @@ function render_partition($disk, $partition, $disk_line = false) {
 			$mount_point	= basename($partition['mountpoint']);
 			$disk_label		= $partition['disk_label'];
 			if ((! $disk['array_disk']) && (! $preclearing)) {
-				$mpoint			.= "<i class='fa fa-pencil partition-hdd'></i><a title='"._("Change Disk Mount Point")."' class='exec' onclick='chg_mountpoint(\"{$partition['serial']}\",\"{$partition['part']}\",\"{$device}\",\"{$partition['fstype']}\",\"{$mount_point}\",\"{$disk_label}\");'>{$mount_point}</a>";
+				$mpoint		.= "<i class='fa fa-pencil partition-hdd'></i><a title='"._("Change Disk Mount Point")."' class='exec' onclick='chg_mountpoint(\"{$partition['serial']}\",\"{$partition['part']}\",\"{$device}\",\"{$partition['fstype']}\",\"{$mount_point}\",\"{$disk_label}\");'>{$mount_point}</a>";
 			} else {
-				$mpoint			.= "<i class='fa fa-pencil partition-hdd'></i>".$mount_point;
+				$mpoint		.= "<i class='fa fa-pencil partition-hdd'></i>".$mount_point;
 			}
 			$mpoint			.= $rm_partition."</span>";
 		}
@@ -175,6 +175,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$out[]	= "<td></td>";
 		$out[]	= "<td>".$mpoint."</td>";
 		$out[]	= ((count($disk['partitions']) > 1) && ($mounted)) ? "<td class='mount'>".$mbutton."</td>" : "<td></td>";
+
 		$fstype	= $partition['fstype'];
 		if ($disk_line) {
 			foreach ($disk['partitions'] as $part) {
@@ -251,6 +252,45 @@ function render_partition($disk, $partition, $disk_line = false) {
 		} else {
 			$out[] = "<td></td>";
 		}
+
+		/* Show zvol devices. */
+		if (count($disk['zvol'])) {
+			foreach ($disk['zvol'] as $k => $z) {
+				if ((get_config("Config", "zvols") == "yes") || ($z['mounted'])) { 
+					$mbutton = make_mount_button($z);
+
+					$out[]	= "<tr><td></td><td><span>ZFS Volume:</span>";
+					if ($z['mounted']) {
+						$out[]	= "<span><i class='fa fa-external-link partition-hdd'></i><a title='"._("Browse ZFS Volume")."' href='/Main/Browse?dir={$z['mountpoint']}'>".$k."</a></span>";
+					} else {
+						$out[]	= "<span>".$k."</span>";
+					}
+					$out[]	= "<td class='mount'>".$mbutton."</td>";
+					$out[]	= "<td></td><td></td><td></td>";
+
+					/* Set up the device settings and script settings tooltip. */
+					$title = _("Edit ZFS Volume Settings");
+					$title .= "<br />"._("Passed Through").": ";
+					$title .= $z['pass_through'] ? "Yes" : "No";
+					$title .= "<br />"._("Disable Mount Button").": ";
+					$title .= $z['disable_mount'] ? "Yes" : "No";
+					$title .= "<br />"._("Read Only").": ";
+					$title .= $z['read_only'] ? "Yes" : "No";
+
+					$device	= basename($z['device']) ;
+					$serial	= $disk['serial'];
+					$volume	= $k;
+					$id_bus	= "";
+					$out[]	= "<td><a class='info' href='/Main/EditDeviceSettings?s=".$serial."&b=".$volume."&f=".$z['fstype']."&l=".basename($z['mountpoint'])."&p=".$volume."&m=".json_encode($z)."&t=false&u=".$id_bus."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+
+					$out[]	= "<td>".$z['fstype']."</td>";
+					$out[]	= "<td>".my_scale($z['size'], $unit)." $unit</td>";
+					$out[]	= render_used_and_free($z);
+					$out[]	= "<td></td>";
+				}
+			}
+		}
+
 		$out[] = "</tr>";
 	}
 
@@ -306,7 +346,7 @@ function make_mount_button($device) {
 
 	if ($pool_disk) {
 		$button = sprintf($button, $context, 'mount', 'disabled', '', _('Pool'));
-	} else if ($device['size'] == 0) {
+	} else if (($device['size'] == 0) && ($device['fstype'] != "zvol")) {
 		$button = sprintf($button, $context, 'mount', 'disabled', '', _('Mount'));
 	} else if ($device['array_disk']) {
 		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-ban', _('Array'));
@@ -579,8 +619,11 @@ switch ($_POST['action']) {
 							$share_names					= array_flip($share_names);
 							if (isset($share_names[$mountpoint])) {
 								$share_names[$mountpoint]	.= "-";
+							} else {
+								$share_names[$mountpoint]	= "";
 							}
 							$share_names[$mountpoint]		.= $dev;
+
 							$share_names					= array_flip($share_names);
 						}
 					}
@@ -936,24 +979,27 @@ switch ($_POST['action']) {
 	case 'toggle_read_only':
 		/* Toggle the disk read only configuration setting. */
 		$serial	= urldecode($_POST['serial']);
+		$part	= urldecode($_POST['part']);
 		$status	= urldecode($_POST['status']);
-		$result	= toggle_read_only($serial, $status);
+		$result	= toggle_read_only($serial, $status, $part);
 		echo json_encode(array( 'result' => $result ));
 		break;
 
 	case 'toggle_pass_through':
 		/* Toggle the disk pass through configuration setting. */
 		$serial	= urldecode($_POST['serial']);
+		$part	= urldecode($_POST['part']);
 		$status	= urldecode($_POST['status']);
-		$result	= toggle_pass_through($serial, $status);
+		$result	= toggle_pass_through($serial, $status, $part);
 		echo json_encode(array( 'result' => $result ));
 		break;
 
 	case 'toggle_disable_mount':
 		/* Toggle the disable mount button setting. */
 		$serial	= urldecode($_POST['device']);
+		$part	= urldecode($_POST['part']);
 		$status	= urldecode($_POST['status']);
-		$result	= toggle_disable_mount($serial, $status);
+		$result	= toggle_disable_mount($serial, $status, $part);
 		echo json_encode(array( 'result' => $result ));
 		break;
 

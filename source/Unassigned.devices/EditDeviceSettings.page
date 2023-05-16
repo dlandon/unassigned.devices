@@ -66,6 +66,7 @@ if (isset($_GET['s'])) {
 		$_GET['u']		= null;
 	}
 	$file				= get_config($serial, "command.{$partition}");
+	$fstype				= (isset($_GET['f'])) ? $_GET['f'] : "";
 
 	/* Do some configuration file work */
 	if (($file) && (! file_exists($file))) {
@@ -79,9 +80,17 @@ if (isset($_GET['s'])) {
 	}
 	$background			= (get_config($serial, "command_bg.{$partition}") != "false") ? "yes" : "no";
 
-	$pass_through		= (is_pass_through($serial)) ? "checked" : "";
-	$disable_mount		= (is_disable_mount($serial)) ? "checked" : "";
-	$read_only			= (is_read_only($serial)) ? "checked" : "";
+	if ($fstype == "zvol") {
+		$pass_through	= (is_pass_through($serial, true, $partition)) ? "checked" : "";
+		$read_only		= (is_read_only($serial, true, $partition)) ? "checked" : "";
+		$disable_mount	= (is_disable_mount($serial, $partition)) ? "checked" : "";
+		$zvol			= $partition;
+	} else {
+		$read_only		= (is_read_only($serial)) ? "checked" : "";
+		$pass_through	= (is_pass_through($serial)) ? "checked" : "";
+		$disable_mount	= (is_disable_mount($serial)) ? "checked" : "";
+		$zvol			= "";
+	}
 	$automount			= (is_automount($serial)) ? "checked" : "";
 	$usb				= ((isset($_GET['u'])) && ($_GET['u'] == "usb")) ? true : false;
 	$share				= config_shared($serial, $partition, $usb) ? "checked" : "";
@@ -102,7 +111,7 @@ if (isset($_GET['s'])) {
 	if (! $_GET['t']) {
 		$show_device_switches	= false;
 	}
-	$fstype				= (isset($_GET['f'])) ? $_GET['f'] : "";
+	$width				= ($fstype == "zvol") ? ($mounted ? "27%" : "40%") : ($mounted ? "57%" : "70%");
 	$volume				= ($fstype == "apfs") ? get_config($ud_device, "volume.{$partition}") : "0";
 	$is_preclearing		= shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg((new MiscUD)->base_device($device))." | /bin/grep -v 'grep'") != "" ? true : false;
 	$host				= (new MiscUD)->get_device_host($_GET['s']);
@@ -261,7 +270,11 @@ EOT;
 <?else:?>
 <p><strong>_(Source)_: </strong><?=$source;?></p>
 <?endif;?>
+<?if (($disk_setting) && ($fstype == "zvol")):?>
+<p><strong>_(ZFS Volume)_: </strong><?=$ud_device;?></p>
+<?else:?>
 <p><strong>_(Mount Point)_: </strong><?=$mount_point;?></p>
+<?endif;?>
 
 <table style='width: <?=$width;?>;' class='usb_disks'><thead><tr><td></td><td></td><td></td><td></td><td></td><td></td></tr></thead>
 <tr>
@@ -274,7 +287,9 @@ EOT;
 <?endif;?>
 <td title='_(Disable Mount/Unmount Buttons)_.'><a><input type='checkbox' class='disable-mount-switch'></a></td>
 <td title='_(Mount Device Read only)_.'><a><input type='checkbox' class='readonly-switch'></a></td>
+<?if ($fstype != "zvol"):?>
 <td title='_(Mount Device when Plugged in or Array is Started)_.'><a><input type='checkbox' class='automount-switch'></a></td>
+<?endif;?>
 <?endif;?>
 <?endif;?>
 
@@ -286,18 +301,18 @@ EOT;
 
 <?if (isset($_GET['i'])):?>
 <td title='_(Mount ISO File when Array is Started)_.'><a><input type='checkbox' class='automount-switch'></a></td>
-<?else:?>
+<?elseif ($fstype != "zvol"):?>
 <td title='_(Share Device with SMB and NFS)_.'><a><input type='checkbox' class='share-switch' info='<?=$info?>'></a></td>
 <?endif;?>
 
-<?if ((isset($_GET['s'])) && ($show_device_switches)):?>
+<?if ((isset($_GET['s'])) && ($show_device_switches) && ($fstype != "zvol")):?>
 <td title='_(Show all partitions on this device by default)_.'><a><input type='checkbox' class='partitions-switch'></a></td>
 <?endif;?>
 
 </tr>
 </table>
 
-<?if ((! $shares_enabled) && (! isset($_GET['i']))):?>
+<?if ((! $shares_enabled) && (! isset($_GET['i'])) && ($zfstype != "zvol")):?>
 <p style='font-weight:bold'>_(Note: Enable SMB Sharing or NFS Export in Unassigned Devices Settings to share this device)_.</p>
 <?endif;?>
 
@@ -305,7 +320,7 @@ EOT;
 > Select the options for this device/mount point.  These changes are made immediately.  You don't need to click **Save** to save them.
 :end
 
-<?if (($disk_setting) && (isset($_GET['s'])) && (isset($_GET['m'])) && (! $mounted) && (! $is_preclearing) && (! is_pass_through($_GET['s'])) && ($host) && ($connected)):?>
+<?if (($disk_setting) && ($fstype != "zvol") && (isset($_GET['s'])) && (isset($_GET['m'])) && (! $mounted) && (! $is_preclearing) && (! is_pass_through($_GET['s'])) && ($host) && ($connected)):?>
 <button type="button" id="detach" title='_(Detach This Disk)_.' onclick='detach_disk("<?=$device;?>");'>_(Detach)_</button>
 <?endif;?>
 <?if (isset($_GET['s']) && (! isset($_GET['m'])) && ($host) && (! $connected)):?>
@@ -324,7 +339,7 @@ EOT;
 > Click **Done** to exit this page.
 :end
 
-<?if ($disk_setting):?>
+<?if (($disk_setting) && ($fstype != "zvol")):?>
 _(Disk Name)_:
 : <input type="text" name="#name" class="narrow" style="width:8%" maxlength="8" value="<?=$name;?>">
 <?endif;?>
@@ -350,6 +365,7 @@ apfs _(Volume)_:
 :end
 <?endif;?>
 
+<?if ($fstype != "zvol"):?>
 _(Device Script)_:
 : <input type="text" title='_(Enter Device Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this, '/boot/config/plugins/<?=$plugin;?>', 'sh');" autocomplete="off" value="<?=$file;?>" placeholder="_(Click the 'Default' button to select the default Device Script File)_">
 
@@ -402,6 +418,7 @@ _(User Script)_:
 >
 > Click **Done** to exit this page.
 :end
+<?endif;?>
 </form>
 
 <script>
@@ -411,7 +428,7 @@ _(User Script)_:
 	$('.passthrough-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Passed Through');?>", off_label: "<?=_('Passed Through');?>", checked:"<?=$pass_through;?>" });
 	$('.passthrough-switch').change(function()
 	{
-		$.post(UDURL,{action:"toggle_pass_through",serial:"<?=$ud_device;?>",status:$(this).is(":checked")},function(data)
+		$.post(UDURL,{action:"toggle_pass_through",serial:"<?=$ud_device;?>",part:"<?=$zvol;?>",status:$(this).is(":checked")},function(data)
 		{
 			$(this).prop("checked",data.result);
 			location.reload();
@@ -422,7 +439,7 @@ _(User Script)_:
 	$('.disable-mount-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Disable Mount Button');?>", off_label: "<?=_('Disable Mount Button');?>", checked:"<?=$disable_mount;?>" });
 	$('.disable-mount-switch').change(function()
 	{
-		$.post(UDURL,{action:"<?=$disable_action?>",device:"<?=$ud_device;?>",status:$(this).is(":checked")},function(data)
+		$.post(UDURL,{action:"<?=$disable_action?>",device:"<?=$ud_device;?>",part:"<?=$zvol;?>",status:$(this).is(":checked")},function(data)
 		{
 			$(this).prop("checked",data.result);
 		}, 'json');
@@ -431,7 +448,7 @@ _(User Script)_:
 	$('.readonly-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Read Only');?>", off_label: "<?=_('Read Only');?>", checked:"<?=$read_only;?>" });
 	$('.readonly-switch').change(function()
 	{
-		$.post(UDURL,{action:"<?=$readonly_action?>",serial:"<?=$ud_device;?>",status:$(this).is(":checked")},function(data)
+		$.post(UDURL,{action:"<?=$readonly_action?>",serial:"<?=$ud_device;?>",part:"<?=$zvol;?>",status:$(this).is(":checked")},function(data)
 		{
 			$(this).prop("checked",data.result);
 		}, 'json');
