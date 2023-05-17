@@ -17,7 +17,7 @@ export LC_CTYPE
 ionice -c3 -p$BASHPID
 
 # Version
-version="1.0.26"
+version="1.0.27"
 #
 # Change Log
 # 1.0.23
@@ -38,6 +38,10 @@ version="1.0.26"
 #
 # 1.0.26
 # Remove SMART assessment in SMART report.
+#
+#
+# 1.0.27
+# Prevent divide by zero when chacking root free space.
 #
 ######################################################
 ##													##
@@ -566,7 +570,11 @@ is_numeric() {
 root_free_space() {
 	local size=$(df --output=size / | tail -n +2 )
 	local avail=$(df --output=avail / | tail -n +2 )
-	local pfree=$(( $avail * 100 / $size ))
+	if [ "$size" -gt "0" ]; then
+		local pfree=$(( $avail * 100 / $size ))
+	else
+		local pfree="0"
+	fi
 	if [ "$pfree" -gt "15" ]; then
 		return 0
 	else
