@@ -84,11 +84,15 @@ if (isset($_GET['s'])) {
 		$pass_through	= (is_pass_through($serial, true, $partition)) ? "checked" : "";
 		$read_only		= (is_read_only($serial, true, $partition)) ? "checked" : "";
 		$disable_mount	= (is_disable_mount($serial, $partition)) ? "checked" : "";
+		$zfs_volume		= $device;
 		$zvol			= $partition;
 	} else {
 		$read_only		= (is_read_only($serial)) ? "checked" : "";
 		$pass_through	= (is_pass_through($serial)) ? "checked" : "";
 		$disable_mount	= (is_disable_mount($serial)) ? "checked" : "";
+		$zfs_volume		= "";
+		$serial 		.= ($device) ? " (".$device.")" : "";
+		$serial			.= $id_bus;
 		$zvol			= "";
 	}
 	$automount			= (is_automount($serial)) ? "checked" : "";
@@ -102,8 +106,6 @@ if (isset($_GET['s'])) {
 	$automount_action	= "automount";
 	$name				= get_config($serial, "unassigned_dev");
 	$ud_device			= $serial;
-	$serial 			.= ($device) ? " (".$device.")" : "";
-	$serial				.= $id_bus;
 	$background_action	= "background";
 	$share_action		= ($info) ? "toggle_share" : "toggle_historical_share";
 	$disable_action		= "toggle_disable_mount";
@@ -271,7 +273,7 @@ EOT;
 <p><strong>_(Source)_: </strong><?=$source;?></p>
 <?endif;?>
 <?if (($disk_setting) && ($fstype == "zvol")):?>
-<p><strong>_(ZFS Volume)_: </strong><?=$ud_device;?></p>
+<p><strong>_(ZFS Volume)_: </strong><?=$zfs_volume;?></p>
 <?else:?>
 <p><strong>_(Mount Point)_: </strong><?=$mount_point;?></p>
 <?endif;?>
