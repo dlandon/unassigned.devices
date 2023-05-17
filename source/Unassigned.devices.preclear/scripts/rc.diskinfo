@@ -351,6 +351,8 @@ class Disks
 			if ($GLOBALS['reload_force']) {
 				$cache[$key] = $disk;
 			}
+
+			/* To be a candidate for preclear the disk must not have partitions. */
 			$no_file_system	= true;
 			if ((isset($disk['PARTS'])) && (is_array($disk['PARTS']))) {
 				foreach ($disk['PARTS'] as $part) {
@@ -360,8 +362,12 @@ class Disks
 					}
 				}
 			}
-			if (((isset($disk['PARTS'])) && (count($disk['PARTS']) == 0)) || ($disk['PRECLEAR']) || ($no_file_system)) {
-				$disks[$key] = $disk;
+
+			/* If the disk has a serial number and no partitions, it can be a candidate for preclear. */
+			if ($disk['SERIAL']) {
+				if (((isset($disk['PARTS'])) && (count($disk['PARTS']) == 0)) || ($disk['PRECLEAR']) || ($no_file_system)) {
+					$disks[$key] = $disk;
+				}
 			}
 		}
 
