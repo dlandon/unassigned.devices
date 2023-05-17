@@ -257,13 +257,20 @@ function render_partition($disk, $partition, $disk_line = false) {
 		if (count($disk['zvol'])) {
 			foreach ($disk['zvol'] as $k => $z) {
 				if ((get_config("Config", "zvols") == "yes") || ($z['mounted'])) { 
-					$mbutton = make_mount_button($z);
+					$mbutton = $z['active'] ? make_mount_button($z) : "";
 
-					$out[]	= "<tr><td></td><td><span>ZFS Volume:</span>";
-					if ($z['mounted']) {
-						$out[]	= "<span><i class='fa fa-external-link partition-hdd'></i><a title='"._("Browse ZFS Volume")."' href='/Main/Browse?dir={$z['mountpoint']}'>".$k."</a></span>";
+					$out[]	= "<tr><td></td><td><span>";
+					if (strpos($z['volume'], "-part") === false) {
+						$out[]	= "ZFS Volume:";
 					} else {
-						$out[]	= "<span>".$k."</span>";
+						$out[]	= "ZFS Volume Partition:";
+					}
+					$out[]		= "</span>";
+
+					if ($z['mounted']) {
+						$out[]	= "<span><i class='fa fa-external-link partition-hdd'></i><a title='"._("Browse ZFS Volume")."' href='/Main/Browse?dir=".$z['mountpoint']."'>".basename($z['mountpoint'])."</a></span>";
+					} else {
+						$out[]	= "<span>".basename($z['mountpoint'])."</span>";
 					}
 					$out[]	= "<td class='mount'>".$mbutton."</td>";
 					$out[]	= "<td></td><td></td><td></td>";
@@ -281,10 +288,14 @@ function render_partition($disk, $partition, $disk_line = false) {
 					$serial	= $disk['serial'];
 					$volume	= $k;
 					$id_bus	= "";
-					$out[]	= "<td><a class='info' href='/Main/EditDeviceSettings?s=".$serial."&b=".$volume."&f=".$z['fstype']."&l=".basename($z['mountpoint'])."&p=".$volume."&m=".json_encode($z)."&t=false&u=".$id_bus."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+					$out[]	= $z['active'] ? "<td><a class='info' href='/Main/EditDeviceSettings?s=".$serial."&b=".$volume."&f=".$z['fstype']."&l=".basename($z['mountpoint'])."&p=".$volume."&m=".json_encode($z)."&t=false&u=".$id_bus."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>" : "<td></td>";
 
-					$out[]	= "<td>".$z['fstype']."</td>";
-					$out[]	= "<td>".my_scale($z['size'], $unit)." $unit</td>";
+					if ($z['active']) {
+						$out[]	= "<td>".$z['fstype']."</td>";
+						$out[]	= "<td>".my_scale($z['size'], $unit)." $unit</td>";
+					} else {
+						$out[]	= "<td></td><td></td>";
+					}
 					$out[]	= render_used_and_free($z);
 					$out[]	= "<td></td>";
 				}

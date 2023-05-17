@@ -3160,6 +3160,13 @@ function get_zvol_info($disk) {
 			$volume							= $zpool_name.".".basename($q);
 			$zvol[$vol]['volume']			= $volume;
 			$zvol[$vol]['device']			= realpath($q);
+
+			if (strpos($q, "-part") !== false) {
+				$zvol[$vol]['active']		= true;
+			} else {
+				$zvol[$vol]['active']		= empty(glob($q."-part*"));
+			}
+
 			$zvol[$vol]['fstype']			= "zvol";
 			$zvol[$vol]['mountpoint']		= $disk['mountpoint'].".".basename($q);
 			$zvol[$vol]['mounted']			= is_mounted($zvol[$vol]['mountpoint']);
