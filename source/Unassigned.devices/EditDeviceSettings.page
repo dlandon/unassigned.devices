@@ -67,45 +67,45 @@ if (isset($_GET['s'])) {
 	}
 	$file				= get_config($serial, "command.{$partition}");
 	$fstype				= (isset($_GET['f'])) ? $_GET['f'] : "";
+	$ud_device			= $serial;
 
 	/* Do some configuration file work */
 	if (($file) && (! file_exists($file))) {
-		set_config($serial,"command.{$partition}", "");
+		set_config($ud_device,"command.{$partition}", "");
 		$file			= "";
 	}
-	$user_file			= get_config($serial,"user_command.{$partition}");
+	$user_file			= get_config($ud_device,"user_command.{$partition}");
 	if ((($user_file) && (! file_exists($user_file))) || (($user_file) && (! $file))) {
-		set_config($serial, "user_command.{$partition}", "");
+		set_config($ud_device, "user_command.{$partition}", "");
 		$user_file		= "";
 	}
-	$background			= (get_config($serial, "command_bg.{$partition}") != "false") ? "yes" : "no";
+	$background			= (get_config($ud_device, "command_bg.{$partition}") != "false") ? "yes" : "no";
 
 	if ($fstype == "zvol") {
-		$pass_through	= (is_pass_through($serial, true, $partition)) ? "checked" : "";
-		$read_only		= (is_read_only($serial, true, $partition)) ? "checked" : "";
-		$disable_mount	= (is_disable_mount($serial, $partition)) ? "checked" : "";
+		$pass_through	= (is_pass_through($ud_device, $partition)) ? "checked" : "";
+		$read_only		= (is_read_only($ud_device, true, $partition)) ? "checked" : "";
+		$disable_mount	= (is_disable_mount($ud_device, $partition)) ? "checked" : "";
 		$zfs_volume		= $device;
 		$zvol			= $partition;
 	} else {
-		$read_only		= (is_read_only($serial)) ? "checked" : "";
-		$pass_through	= (is_pass_through($serial)) ? "checked" : "";
-		$disable_mount	= (is_disable_mount($serial)) ? "checked" : "";
+		$read_only		= (is_read_only($ud_device)) ? "checked" : "";
+		$pass_through	= (is_pass_through($ud_device)) ? "checked" : "";
+		$disable_mount	= (is_disable_mount($ud_device)) ? "checked" : "";
 		$zfs_volume		= "";
 		$serial 		.= ($device) ? " (".$device.")" : "";
 		$serial			.= $id_bus;
 		$zvol			= "";
 	}
-	$automount			= (is_automount($serial)) ? "checked" : "";
+	$automount			= (is_automount($ud_device)) ? "checked" : "";
 	$usb				= ((isset($_GET['u'])) && ($_GET['u'] == "usb")) ? true : false;
-	$share				= config_shared($serial, $partition, $usb) ? "checked" : "";
-	$show_partitions	= (get_config($serial, "show_partitions") == "no" ) ? "" : "checked";
+	$share				= config_shared($ud_device, $partition, $usb) ? "checked" : "";
+	$show_partitions	= (get_config($ud_device, "show_partitions") == "no" ) ? "" : "checked";
 	$is_mounting		= (new MiscUD)->get_mounting_status(basename($device));
 	$mounted			= is_mounted($mount_point);
 	$mounted			= $mounted || $is_mounting;
 	$width				= $mounted ? "57%" : "70%";
 	$automount_action	= "automount";
-	$name				= get_config($serial, "unassigned_dev");
-	$ud_device			= $serial;
+	$name				= get_config($ud_device, "unassigned_dev");
 	$background_action	= "background";
 	$share_action		= ($info) ? "toggle_share" : "toggle_historical_share";
 	$disable_action		= "toggle_disable_mount";
