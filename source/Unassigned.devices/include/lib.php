@@ -1091,11 +1091,24 @@ function timed_exec($timeout, $cmd) {
 function luks_fs_type($dev) {
 
 	/* Get the file system type from lsblk for a crypto_LUKS file system. */
-	$o	= shell_exec("/bin/lsblk -f | grep ".escapeshellarg(basename($dev)." ")."  2>/dev/null | grep -v 'crypto_LUKS' | /bin/awk '{print $2}'");
+	$o	= shell_exec("/bin/lsblk -f | grep ".escapeshellarg(basename($dev)." ")." 2>/dev/null | grep -v 'crypto_LUKS' | /bin/awk '{print $2}'");
 	$o	= isset($o) ? str_replace("\n", "", $o) : "";
 	$rc	= ($o == "zfs_member") ? "zfs" : $o;
 
 	return ($rc ? $rc : "luks");
+}
+
+/* Find the file system of a zvol device. */
+function zvol_fs_type($dev) {
+
+	/* Get the file system type from blkid for a zfs volume. */
+	$o	= shell_exec("/sbin/blkid ".escapeshellarg($dev)." 2>/dev/null");
+	$o	= isset($o) ? trim($o) : "";
+	$l	= strpos($o, 'TYPE="') + 6;
+	$n	= strpos(substr($o, $l), '"');
+	$rc	= substr($o, $l, $n);
+
+	return ($rc ? $rc : "zvol");
 }
 
 #########################################################
@@ -1152,11 +1165,11 @@ function is_read_only($serial, $default = false, $part = "") {
 }
 
 /* Is device set to pass through. */
-function is_pass_through($serial, $default = false, $part = "") {
+function is_pass_through($serial, $part = "") {
 	$pass_through	= "pass_through";
 	$pass_through	= ($part) ? $pass_through.".".$part : $pass_through;
 	$passed_through	= get_config($serial, $pass_through);
-	return ($passed_through == "yes") ? true : (($passed_through == "no") ? false : $default);
+	return ($passed_through == "yes") ? true : (($passed_through == "no") ? false : false);
 }
 
 /* Is disable mount button set. */
@@ -3176,7 +3189,7 @@ function get_zvol_info($disk) {
 			$zvol[$vol]['avail']			= intval($stats[2])*1024;
 			$zvol[$vol]['read_only']		= is_read_only($serial, true, $vol);
 			$zvol[$vol]['target']			= $zvol[$vol]['mounted'] ? $zvol[$vol]['mountpoint'] : "";
-			$zvol[$vol]['pass_through']		= is_pass_through($serial, true, $vol);
+			$zvol[$vol]['pass_through']		= is_pass_through($serial, $vol);
 			$zvol[$vol]['disable_mount']	= is_disable_mount($serial, $vol);
 			$zvol[$vol]['array_disk']		= false;
 			$zvol[$vol]['command']			= "";

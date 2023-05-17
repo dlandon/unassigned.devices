@@ -257,18 +257,22 @@ function render_partition($disk, $partition, $disk_line = false) {
 		if (count($disk['zvol'])) {
 			foreach ($disk['zvol'] as $k => $z) {
 				if ((get_config("Config", "zvols") == "yes") || ($z['mounted'])) { 
-					$mbutton = $z['active'] ? make_mount_button($z) : "";
+					$mbutton	= $z['active'] ? make_mount_button($z) : "";
+					$fstype		= zvol_fs_type($z['device']);
+					$out[]	= "<tr><td></td><td><span>"._("ZFS Volume").":</span>";
 
-					$out[]	= "<tr><td></td><td><span>";
-					if (strpos($z['volume'], "-part") === false) {
-						$out[]	= "ZFS Volume:";
+					/* Put together the file system check icon. */
+					if (((! $z['mounted']) && ($fstype != "btrfs")) || (($z['mounted']) && ($fstype == "btrfs" || $fstype == "zfs"))) {
+						$file_system_check = (($fstype != "btrfs") && ($fstype != "zfs")) ? _('File System Check') : _('File System Scrub');
+						$fscheck = "<a class='exec info' onclick='openWindow_fsck(\"/plugins/".$plugin."/include/fsck.php?device={$z['device']}&fs={$fstype}&luks={$z['device']}&serial={$z['volume']}&mountpoint={$z['mountpoint']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i><span>".$file_system_check."</span></a>";
 					} else {
-						$out[]	= "ZFS Volume Partition:";
+						$fscheck = "<i class='fa fa-check partition-hdd'></i></a>";
 					}
-					$out[]		= "</span>";
 
 					if ($z['mounted']) {
-						$out[]	= "<span><i class='fa fa-external-link partition-hdd'></i><a title='"._("Browse ZFS Volume")."' href='/Main/Browse?dir=".$z['mountpoint']."'>".basename($z['mountpoint'])."</a></span>";
+						$out[]	= "<span>".$fscheck."<i class='fa fa-external-link partition-hdd'></i><a title='"._("Browse ZFS Volume")."' href='/Main/Browse?dir=".$z['mountpoint']."'>".basename($z['mountpoint'])."</a></span>";
+					} elseif ($z['active']) {
+						$out[]	= "<span>".$fscheck.basename($z['mountpoint'])."</span>";
 					} else {
 						$out[]	= "<span>".basename($z['mountpoint'])."</span>";
 					}
@@ -291,7 +295,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 					$out[]	= $z['active'] ? "<td><a class='info' href='/Main/EditDeviceSettings?s=".$serial."&b=".$volume."&f=".$z['fstype']."&l=".basename($z['mountpoint'])."&p=".$volume."&m=".json_encode($z)."&t=false&u=".$id_bus."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>" : "<td></td>";
 
 					if ($z['active']) {
-						$out[]	= "<td>".$z['fstype']."</td>";
+						$out[]	= "<td>".$fstype."</td>";
 						$out[]	= "<td>".my_scale($z['size'], $unit)." $unit</td>";
 					} else {
 						$out[]	= "<td></td><td></td>";
