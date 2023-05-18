@@ -1613,8 +1613,9 @@ function do_mount_local($info) {
 					$params		= get_mount_params($fs, $dev, $ro);
 					$cmd		= "/usr/sbin/zfs mount -o $params ".escapeshellarg($pool_name);
 				} else if ($fs == "zvol") {
-					$params		= get_mount_params($fs, $dev, $ro);
-					$cmd		= "/sbin/mount -o $params ".escapeshellarg($dev)." ".escapeshellarg($dir);
+					$z_fstype	= zvol_fs_type($dev);
+					$params		= get_mount_params($z_fstype, $dev, $ro);
+					$cmd		= "/sbin/mount -t ".escapeshellarg($z_fstype)." -o $params ".escapeshellarg($dev)." ".escapeshellarg($dir);
 				} else {
 					$params		= get_mount_params($fs, $dev, $ro);
 					$cmd		= "/sbin/mount -t ".escapeshellarg($fs)." -o $params ".escapeshellarg($dev)." ".escapeshellarg($dir);
