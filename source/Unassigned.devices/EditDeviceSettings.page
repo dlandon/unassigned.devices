@@ -44,6 +44,7 @@ $readonly_action		= "";
 $share					= "";
 $share_action			= "";
 $source					= "";
+$zvol					= "";
 
 /* Wait for lock files release to be sure the cfg files are completely updated. */
 $i = 0;
@@ -314,7 +315,7 @@ EOT;
 </tr>
 </table>
 
-<?if ((! $shares_enabled) && (! isset($_GET['i'])) && ($zfstype != "zvol")):?>
+<?if ((! $shares_enabled) && (! isset($_GET['i'])) && ($fstype != "zvol")):?>
 <p style='font-weight:bold'>_(Note: Enable SMB Sharing or NFS Export in Unassigned Devices Settings to share this device)_.</p>
 <?endif;?>
 
