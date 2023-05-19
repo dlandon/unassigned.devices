@@ -1101,14 +1101,18 @@ function luks_fs_type($dev) {
 /* Find the file system of a zvol device. */
 function zvol_fs_type($dev) {
 
+	$rc	= "";
+
 	/* Get the file system type from blkid for a zfs volume. */
 	$o	= shell_exec("/sbin/blkid ".escapeshellarg($dev)." 2>/dev/null");
 	$o	= isset($o) ? trim($o) : "";
 	$l	= strpos($o, 'TYPE="') + 6;
-	$n	= strpos(substr($o, $l), '"');
-	$rc	= substr($o, $l, $n);
+	if ($l !== false) {
+		$n	= strpos(substr($o, $l), '"');
+		$rc	= substr($o, $l, $n);
+	}
 
-	return ($rc ? $rc : "zvol");
+	return $rc;
 }
 
 #########################################################
@@ -3013,7 +3017,6 @@ function get_udev_info($dev, $udev = null) {
 			$rc = array();
 		}
 	}
-	
 
 	return $rc;
 }
@@ -3182,6 +3185,7 @@ function get_zvol_info($disk) {
 			}
 
 			$zvol[$vol]['fstype']			= "zvol";
+			$zvol[$vol]['file_system']		= zvol_fs_type($zvol[$vol]['device']);
 			$zvol[$vol]['mountpoint']		= $disk['mountpoint'].".".basename($q);
 			$zvol[$vol]['mounted']			= is_mounted($zvol[$vol]['mountpoint']);
 			$stats							= get_device_stats($zvol[$vol]['mountpoint'], $zvol[$vol]['mounted']);
