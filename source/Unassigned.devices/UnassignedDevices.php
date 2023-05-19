@@ -258,11 +258,11 @@ function render_partition($disk, $partition, $disk_line = false) {
 			foreach ($disk['zvol'] as $k => $z) {
 				if ((get_config("Config", "zvols") == "yes") || ($z['mounted'])) { 
 					$mbutton	= $z['active'] ? make_mount_button($z) : "";
-					$fstype		= zvol_fs_type($z['device']);
+					$fstype		= $z['file_system'];
 					$out[]	= "<tr><td></td><td><span>"._("ZFS Volume").":</span>";
 
 					/* Put together the file system check icon. */
-					if (((! $z['mounted']) && ($fstype != "btrfs")) || (($z['mounted']) && ($fstype == "btrfs" || $fstype == "zfs"))) {
+					if (((! $z['mounted']) && ($fstype) && ($fstype != "btrfs")) || (($z['mounted']) && ($fstype == "btrfs" || $fstype == "zfs"))) {
 						$file_system_check = (($fstype != "btrfs") && ($fstype != "zfs")) ? _('File System Check') : _('File System Scrub');
 						$fscheck = "<a class='exec info' onclick='openWindow_fsck(\"/plugins/".$plugin."/include/fsck.php?device={$z['device']}&fs={$fstype}&luks={$z['device']}&serial={$z['volume']}&mountpoint={$z['mountpoint']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i><span>".$file_system_check."</span></a>";
 					} else {
@@ -292,9 +292,9 @@ function render_partition($disk, $partition, $disk_line = false) {
 					$serial	= $disk['serial'];
 					$volume	= $k;
 					$id_bus	= "";
-					$out[]	= $z['active'] ? "<td><a class='info' href='/Main/EditDeviceSettings?s=".$serial."&b=".$volume."&f=".$z['fstype']."&l=".basename($z['mountpoint'])."&p=".$volume."&m=".json_encode($z)."&t=false&u=".$id_bus."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>" : "<td></td>";
 
-					if ($z['active']) {
+					if (($z['active']) && ($fstype)) {
+						$out[]	= "<td><a class='info' href='/Main/EditDeviceSettings?s=".$serial."&b=".$volume."&f=".$z['fstype']."&l=".basename($z['mountpoint'])."&p=".$volume."&m=".json_encode($z)."&t=false&u=".$id_bus."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 						$out[]	= "<td>".$fstype."</td>";
 						$out[]	= "<td>".my_scale($z['size'], $unit)." $unit</td>";
 					} else {
@@ -336,6 +336,7 @@ function make_mount_button($device) {
 		} else {
 			$dev		= basename($device['device'])."1";
 		}
+		$zvol_device	= false;
 	} else {
 		$mounted		= $device['mounted'];
 		$disable		= (! empty($device['fstype']) && $device['fstype'] != "crypto_LUKS") ? "" : "disabled";
@@ -347,6 +348,7 @@ function make_mount_button($device) {
 		$not_unmounted	= false;
 		$dev			= $device['fstype'] == "crypto_LUKS" ? $device['luks'] : $device['device'];
 		$dev			= basename($dev);
+		$zvol_device	= (isset($device['file_system']) && $device['file_system']) ? true : false;
 	}
 
 	$is_mounting	= (new MiscUD)->get_mounting_status($dev);
@@ -361,7 +363,7 @@ function make_mount_button($device) {
 
 	if ($pool_disk) {
 		$button = sprintf($button, $context, 'mount', 'disabled', '', _('Pool'));
-	} else if (($device['size'] == 0) && ($device['fstype'] != "zvol")) {
+	} else if (($device['size'] == 0) && (! $zvol_device)) {
 		$button = sprintf($button, $context, 'mount', 'disabled', '', _('Mount'));
 	} else if ($device['array_disk']) {
 		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-ban', _('Array'));
