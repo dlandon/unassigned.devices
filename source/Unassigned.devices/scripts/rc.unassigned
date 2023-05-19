@@ -471,7 +471,7 @@ function unassigned_umount() {
 
 				/* Unmount the remote share if it is mounted. */
 				$dev	= $info['fstype'] == "root" ? $info['mountpoint'] : $info['device'];
-				if ( is_mounted(($info['fstype'] == "cifs") ? "//".$info['ip']."/".$info['path'] : $dev) ) {
+				if ( is_mounted($info['mountpoint']) ) {
 					/* Remove special characters. */
 					$mount_device = basename($dev)."_".$info['fstype'];
 
@@ -489,7 +489,7 @@ function unassigned_umount() {
 					$nfs = $info['fstype'] == "nfs" ? true : false;
 
 					/* Unmount the remote share. */
-					if ( do_unmount(($info['fstype'] == "cifs") ? "//".$info['ip']."/".$info['path'] : $dev, $info['mountpoint'], $force_unmount, $smb, $nfs) ) {
+					if ( do_unmount(($info['fstype'] == "cifs") ? "//".$info['ip']."/".$info['path'] : $info['ip'].":".$info['path'], $info['mountpoint'], $force_unmount, $smb, $nfs) ) {
 						rm_smb_share($info['mountpoint']);
 
 						/* Execute remote mount script with remove action. */

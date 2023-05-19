@@ -1802,7 +1802,6 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 	global $paths;
 
 	$rc = false;
-
 	$pool_name	= ($zfs) ? (new MiscUD)->zfs_pool_name($dir, true) : "";
 	$mounted	= (($zfs) && ($pool_name)) ? (is_mounted($pool_name) || is_mounted($dir)) : (is_mounted($dev) || is_mounted($dir));
 	if ($mounted) {
@@ -1822,7 +1821,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 			/* Remove saved pool devices if this is a btrfs pooled device. */
 			(new MiscUD)->get_pool_devices($dir, true);
 
-			$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : ($nfs ? " -l" : ""))." ".escapeshellarg($dev)." 2>&1";
+			$cmd = "/sbin/umount".($smb ? " -t cifs" : "").($force ? " -fl" : ($nfs ? " -l" : ""))." ".escapeshellarg($dir)." 2>&1";
 		}
 
 		unassigned_log("Unmount cmd: {$cmd}");
@@ -2304,19 +2303,16 @@ function get_samba_mounts() {
 					$path = (isset($mount['path'])) ? $mount['path'] : "";
 				}
 
-				if ($mount['fstype'] != "root") {
-					$mount['mounted']		= is_mounted(($mount['fstype'] == "cifs") ? "//".$mount['ip']."/".$path : $mount['device']);
-				} else {
-					$mount['mounted']		= is_mounted($paths['root_mountpoint']."/".$path);
-				}
 				$mount['is_alive']		= is_samba_server_online($mount['ip']);
 				$mount['read_only']		= is_samba_read_only($mount['name']);
 				$mount['automount']		= is_samba_automount($mount['name']);
 				$mount['smb_share']		= is_samba_share($mount['name']);
 				$mount['disable_mount']	= is_samba_disable_mount($mount['name']);
+
+				/* Determine the mountpoint for this remote share. */
 				if (! $mount['mountpoint']) {
 					$mount['mountpoint'] = "{$paths['usb_mountpoint']}/{$mount['ip']}_{$path}";
-					if (! $mount['mounted'] || ! is_mounted($mount['mountpoint']) || is_link($mount['mountpoint'])) {
+					if (! is_mounted($mount['mountpoint']) || is_link($mount['mountpoint'])) {
 						if ($mount['fstype'] != "root") {
 							$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$mount['ip']}_{$path}";
 						} else {
@@ -2326,7 +2322,7 @@ function get_samba_mounts() {
 				} else {
 					$path = basename($mount['mountpoint']);
 					$mount['mountpoint'] = "{$paths['usb_mountpoint']}/{$path}";
-					if (! $mount['mounted'] || ! is_mounted($mount['mountpoint']) || is_link($mount['mountpoint'])) {
+					if (! is_mounted($mount['mountpoint']) || is_link($mount['mountpoint'])) {
 						if ($mount['fstype'] != "root") {
 							$mount['mountpoint'] = "{$paths['remote_mountpoint']}/{$path}";
 						} else {
@@ -2334,6 +2330,9 @@ function get_samba_mounts() {
 						}
 					}
 				}
+
+				/* Is remote share mounted? */
+				$mount['mounted']		= is_mounted($mount['mountpoint']);
 
 				/* Get the disk size, used, and free stats. */
 				$stats					= get_device_stats($mount['mountpoint'], $mount['mounted'], $mount['is_alive']);
@@ -2381,7 +2380,7 @@ function do_mount_samba($info) {
 		$dir		= $info['mountpoint'];
 		$fs			= $info['fstype'];
 		$ro			= $info['read_only'] ? true : false;
-		$dev		= ($fs == "cifs") ? "//".$info['ip']."/".$info['path'] : $info['device'];
+		$dev		= ($fs == "cifs") ? "//".$info['ip']."/".$info['path'] : $info['ip'].":".$info['path'];
 		if (! is_mounted($dev) && ! is_mounted($dir)) {
 			/* Create the mount point and set permissions. */
 			if (! is_dir($dir)) {
@@ -3258,6 +3257,7 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 function check_for_duplicate_share($dev, $mountpoint) {
 	global $var, $paths;
 
+unassigned_log("*** dev ".$dev." mountpoint ".$mountpoint);
 	$rc = true;
 
 	/* Parse the shares state file. */
@@ -3296,14 +3296,13 @@ function check_for_duplicate_share($dev, $mountpoint) {
 	/* Get an array of all ud shares. */
 	$share_names	= (new MiscUD)->get_json($paths['share_names']);
 	foreach ($share_names as $device => $name) {
-		if (strpos($device, basename($dev)) === false) {
+		if ($device != $dev) {
 			$ud_shares[] = strtoupper($name);
 		}
 	}
 
 	/* Merge samba shares, reserved names, and ud shares. */
 	$shares = array_merge($smb_shares, $ud_shares, $disk_names);
-
 	/* See if the share name is already being used. */
 	if (is_array($shares) && in_array(strtoupper($mountpoint), $shares, true)) {
 		unassigned_log("Error: Device '".$dev."' mount point '".$mountpoint."' - name is reserved, used in the array or a pool, or by an unassigned device.");
