@@ -1193,17 +1193,17 @@ switch ($_POST['action']) {
 		$path		= safe_name(stripslashes(trim($path)), false);
 		$share		= basename($path);
 		if ($share) {
-			$device	= ($protocol == "NFS") ? "{$ip}:{$path}" : "//".strtoupper($ip)."/{$share}";
+			$device	= ($protocol == "NFS") ? $ip.":".$path : "//".strtoupper($ip)."/".$share;
 			$device	= str_replace("$", "", $device);
-			set_samba_config("{$device}", "protocol", $protocol);
-			set_samba_config("{$device}", "ip", ((new MiscUD)->is_ip($ip) ? $ip : strtoupper($ip)));
-			set_samba_config("{$device}", "path", $path);
+			set_samba_config($device, "protocol", $protocol);
+			set_samba_config($device, "ip", ((new MiscUD)->is_ip($ip) ? $ip : strtoupper($ip)));
+			set_samba_config($device, "path", $path."/");
 			if ($protocol == "SMB") {
-				set_samba_config("{$device}", "user", $user);
-				set_samba_config("{$device}", "domain", $domain);
-				set_samba_config("{$device}", "pass", encrypt_data($pass));
+				set_samba_config($device, "user", $user);
+				set_samba_config($device, "domain", $domain);
+				set_samba_config($device, "pass", encrypt_data($pass));
 			}
-			set_samba_config("{$device}", "share", safe_name($share, false));
+			set_samba_config($device, "share", safe_name($share, false));
 		}
 		echo json_encode($rc);
 		break;
