@@ -1106,8 +1106,9 @@ function zvol_fs_type($dev) {
 	/* Get the file system type from blkid for a zfs volume. */
 	$o	= shell_exec("/sbin/blkid ".escapeshellarg($dev)." 2>/dev/null");
 	$o	= isset($o) ? trim($o) : "";
-	$l	= strpos($o, 'TYPE="') + 6;
+	$l	= strpos($o, 'TYPE="');
 	if ($l !== false) {
+		$l	= $l+6;
 		$n	= strpos(substr($o, $l), '"');
 		$rc	= substr($o, $l, $n);
 	}
@@ -2513,6 +2514,8 @@ function do_mount_samba($info) {
 
 				$rc = true;
 			} else {
+				unassigned_log("Share '{$dev}' failed to mount.");
+
 				@rmdir($dir);
 			}
 		} else {
@@ -3257,7 +3260,6 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 function check_for_duplicate_share($dev, $mountpoint) {
 	global $var, $paths;
 
-unassigned_log("*** dev ".$dev." mountpoint ".$mountpoint);
 	$rc = true;
 
 	/* Parse the shares state file. */
