@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.05.06">
+<!ENTITY version	"2023.05.20">
 <!ENTITY launch		"Tools/Preclear">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/unassigned.devices/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"aa6694e9e8e924518066fb32396874fe">
+<!ENTITY MD5		"9db8513085ae1aedb37e948a7e1ab4e1">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
@@ -21,6 +21,10 @@
 <CHANGES>
 ###&name;
 ###&version;
+- Fix: Divide by zero when checking for available rootfs free space.
+- Add: Ignore zvol devices managed in UD.  They are not candidates for preclearing.
+
+###2023.05.06
 - Fix: Preclear removes a directory it shouldn't when uninstalling that breaks connect.
 
 ###2023.04.12
