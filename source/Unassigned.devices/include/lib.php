@@ -403,8 +403,9 @@ function safe_name($string, $convert_spaces = true, $iso_file = false) {
 		$string		= preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $string);
 
 		/* Remove special characters from iso share name. */
-		$string		= str_replace("@", "_", safe_name($string));
+		$string		= str_replace("@", "_", $string);
 	}
+
 	/* Convert reserved php characters and invalid file name characters to underscore. */
 	$string = str_replace( array("'", '"', "?", "#", "&", "!", "<", ">", "|"), "_", $string);
 
@@ -412,6 +413,7 @@ function safe_name($string, $convert_spaces = true, $iso_file = false) {
 	if ($convert_spaces) {
 		$string = str_replace(" " , "_", $string);
 	}
+
 	$string = htmlentities($string, ENT_QUOTES, 'UTF-8');
 	$string = html_entity_decode($string, ENT_QUOTES, 'UTF-8');
 
@@ -2280,28 +2282,32 @@ function get_samba_mounts() {
 
 	$o = array();
 	$config_file	= $paths['samba_mount'];
-	$samba_mounts	= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
+	$samba_mounts	= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
 	if (is_array($samba_mounts)) {
 		ksort($samba_mounts, SORT_NATURAL);
 		foreach ($samba_mounts as $device => $mount) {
-			$mount['device']		= $device;
+			/* Convert the device to a safe name samba device. */
+			$string		= safe_name($device, false, true);
+
+			$mount['device']			= $string;
 			if ($device) {
 				$mount['name']			= $device;
 				$mount['mountpoint']	= $mount['mountpoint'] ?? "";
 				$mount['ip']			= $mount['ip'] ?? "";
 				$mount['protocol']		= $mount['protocol'] ?? "";
+				$mount['path']			= $mount['path'] ?? "";
 
 				/* Set the mount protocol. */
 				if ($mount['protocol'] == "NFS") {
 					$mount['fstype'] = "nfs";
-					$path = basename($mount['path']);
+					$path = basename($mount['share']);
 				} else if ($mount['protocol'] == "ROOT") {
 					$mount['fstype'] = "root";
 					$root_type = basename($mount['device']) == "user" ? "user-pool" : "user";
-					$path = $mount['mountpoint'] ? $mount['mountpoint'] : $root_type.".".$mount['path'];
+					$path = $mount['mountpoint'] ? $mount['mountpoint'] : $root_type.".".$mount['share'];
 				} else {
 					$mount['fstype'] = "cifs";
-					$path = (isset($mount['path'])) ? $mount['path'] : "";
+					$path = (isset($mount['share'])) ? $mount['share'] : "";
 				}
 
 				$mount['is_alive']		= is_samba_server_online($mount['ip']);
@@ -2334,6 +2340,13 @@ function get_samba_mounts() {
 
 				/* Is remote share mounted? */
 				$mount['mounted']		= is_mounted($mount['mountpoint']);
+
+				/* If this is a legacy samba mount indicate that it should be removed. */
+				$mount['invalid']		= false;
+				if ($string != $device) {
+					$mount['mountpoint'] = "-- Invalid Configuration - Remove and Re-add --";
+					$mount['invalid']	= true;
+				}
 
 				/* Get the disk size, used, and free stats. */
 				$stats					= get_device_stats($mount['mountpoint'], $mount['mounted'], $mount['is_alive']);

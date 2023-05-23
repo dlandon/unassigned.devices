@@ -253,13 +253,14 @@ function render_partition($disk, $partition, $disk_line = false) {
 			$out[] = "<td></td>";
 		}
 
-		/* Show zvol devices. */
+		/* Show any zvol devices. */
 		if (count($disk['zvol'])) {
 			foreach ($disk['zvol'] as $k => $z) {
 				if ((get_config("Config", "zvols") == "yes") || ($z['mounted'])) { 
 					$mbutton	= $z['active'] ? make_mount_button($z) : "";
 					$fstype		= $z['file_system'];
-					$out[]	= "<tr><td></td><td><span>"._("ZFS Volume").":</span>";
+					$out[]		= "<tr class='toggle-parts toggle-".basename($disk['device'])."' name='toggle-".basename($disk['device'])."' $style>";
+					$out[]		= "<td></td><td><span>"._("ZFS Volume").":</span>";
 
 					/* Put together the file system check icon. */
 					if (((! $z['mounted']) && ($fstype) && ($fstype != "btrfs")) || (($z['mounted']) && ($fstype == "btrfs" || $fstype == "zfs"))) {
@@ -709,7 +710,11 @@ switch ($_POST['action']) {
 				$title .= "<br />"._("Share").": ";
 				$title .= $shares_enabled ? (($mount['smb_share']) ? "Yes" : "No") : "Not Enabled";
 
-				$o_remotes .= "<td><a class='info' href='/Main/EditDeviceSettings?d=".$mount['device']."&l=".$mount_point."&j=".$mount['name']."&m=".json_encode($mount)."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+				if (! $mount['invalid']) {
+					$o_remotes .= "<td><a class='info' href='/Main/EditDeviceSettings?d=".$mount['device']."&l=".$mount_point."&j=".$mount['name']."&m=".json_encode($mount)."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+				} else {
+					$o_remotes .= "<td><i class='fa fa-gears grey-orb'></i><span style='text-align:left'></span></td>";
+				}
 				$o_remotes .= "<td></td><td></td><td></td>";
 				$o_remotes .= "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				$o_remotes .= render_used_and_free($mount);
@@ -1193,7 +1198,7 @@ switch ($_POST['action']) {
 		$path		= safe_name(stripslashes(trim($path)), false);
 		$share		= basename($path);
 		if ($share) {
-			$device	= ($protocol == "NFS") ? $ip.":".$path : "//".strtoupper($ip)."/".$share;
+			$device	= ($protocol == "NFS") ? $ip.":".safe_name($path, false, true) : "//".strtoupper($ip)."/".safe_name($share, false, true);
 			$device	= str_replace("$", "", $device);
 			set_samba_config($device, "protocol", $protocol);
 			set_samba_config($device, "ip", ((new MiscUD)->is_ip($ip) ? $ip : strtoupper($ip)));
@@ -1203,7 +1208,7 @@ switch ($_POST['action']) {
 				set_samba_config($device, "domain", $domain);
 				set_samba_config($device, "pass", encrypt_data($pass));
 			}
-			set_samba_config($device, "share", safe_name($share, false));
+			set_samba_config($device, "share", safe_name($share, false, true));
 		}
 		echo json_encode($rc);
 		break;
