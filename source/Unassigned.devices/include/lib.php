@@ -393,16 +393,16 @@ function listDir($root) {
 }
 
 /* Remove characters that will cause issues with php in names. */
-function safe_name($string, $convert_spaces = true, $iso_file = false) {
+function safe_name($string, $convert_spaces = true, $share_name = false) {
 
 	$string = stripcslashes($string);
 
-	if ($iso_file) {
+	if ($share_name) {
 		/* ISO file names can have a lot of strange characters and the name in this case has to be cleaned up. */
 		/* Printable characters only. */
 		$string		= preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $string);
 
-		/* Remove special characters from iso share name. */
+		/* Remove special characters from iso or remote share name. */
 		$string		= str_replace("@", "_", $string);
 	}
 
@@ -1759,7 +1759,7 @@ function do_mount_root($info) {
 			$dir		= $info['mountpoint'];
 			$fs			= $info['fstype'];
 			$ro			= $info['read_only'] ? true : false;
-			$dev		= str_replace("//".$info['ip'], "", $info['device']);
+			$dev		= str_replace("//".$info['ip'], "", $info['path']);
 			if (! is_mounted($dir)) {
 				/* Create the mount point and set permissions. */
 				@mkdir($dir, 0777, true);
@@ -2296,6 +2296,7 @@ function get_samba_mounts() {
 				$mount['ip']			= $mount['ip'] ?? "";
 				$mount['protocol']		= $mount['protocol'] ?? "";
 				$mount['path']			= $mount['path'] ?? "";
+				$mount['share']			= safe_name($mount['share'], false, true) ?? "";
 
 				/* Set the mount protocol. */
 				if ($mount['protocol'] == "NFS") {
@@ -2303,7 +2304,7 @@ function get_samba_mounts() {
 					$path = basename($mount['share']);
 				} else if ($mount['protocol'] == "ROOT") {
 					$mount['fstype'] = "root";
-					$root_type = basename($mount['device']) == "user" ? "user-pool" : "user";
+					$root_type = basename($mount['path']) == "user" ? "user-pool" : "user";
 					$path = $mount['mountpoint'] ? $mount['mountpoint'] : $root_type.".".$mount['share'];
 				} else {
 					$mount['fstype'] = "cifs";
@@ -2734,8 +2735,7 @@ function get_iso_mounts() {
 				$mount['fstype']		= "loop";
 				$mount['automount'] 	= is_iso_automount($mount['device']);
 				$mount['mountpoint']	= $mount['mountpoint'] ?? "";
-				$mount['share']			= $mount['share'] ?? "";
-				$mount['share']			= safe_name($mount['share'], true, true);
+				$mount['share']			= safe_name($mount['share'], true, true) ?? "";
 				$mount['file']			= $mount['file'] ?? "";
 
 				if (! $mount['mountpoint']) {
