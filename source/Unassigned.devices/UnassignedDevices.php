@@ -1196,19 +1196,21 @@ switch ($_POST['action']) {
 		$path		= isset($_POST['SHARE']) ? urldecode($_POST['SHARE']) : "";
 		$path		= implode("",explode("\\", $path));
 		$path		= safe_name(stripslashes(trim($path)), false);
-		$share		= basename($path);
+		$share		= safe_name(basename($path), false, true);
 		if ($share) {
-			$device	= ($protocol == "NFS") ? $ip.":".safe_name($path, false, true) : "//".strtoupper($ip)."/".safe_name($share, false, true);
+			$device	= ($protocol == "NFS") ? $ip.":".safe_name($path, false, true) : "//".strtoupper($ip)."/".$share;
 			$device	= str_replace("$", "", $device);
 			set_samba_config($device, "protocol", $protocol);
 			set_samba_config($device, "ip", ((new MiscUD)->is_ip($ip) ? $ip : strtoupper($ip)));
 			set_samba_config($device, "path", $path);
+
 			if ($protocol == "SMB") {
 				set_samba_config($device, "user", $user);
 				set_samba_config($device, "domain", $domain);
 				set_samba_config($device, "pass", encrypt_data($pass));
 			}
-			set_samba_config($device, "share", safe_name($share, false, true));
+
+			set_samba_config($device, "share", $share);
 		}
 		echo json_encode($rc);
 		break;
@@ -1336,19 +1338,19 @@ switch ($_POST['action']) {
 	case 'add_root_share':
 		/* Add root file share. */
 		$share		= urldecode($_POST['share']);
-		$mountpoint	= urldecode($_POST['mountpoint']);
+		$path		= urldecode($_POST['path']);
 		$ip			= strtoupper($var['NAME']);
-		$device		= "//".$ip.$mountpoint;
+		$device		= "//".$ip.$path;
 
 		if (! get_samba_config("{$device}", "protocol")) {
 			set_samba_config("{$device}", "protocol", "ROOT");
 			set_samba_config("{$device}", "ip", $ip);
-			set_samba_config("{$device}", "path", $share);
+			set_samba_config("{$device}", "path", $path);
 			set_samba_config("{$device}", "share", safe_name($share, false));
 
 			echo json_encode(true);
 		} else {
-			unassigned_log("Error: Root Share already assigned to '".$mountpoint."'!");
+			unassigned_log("Error: Root Share already assigned to '".$path."'!");
 			echo json_encode(false);
 		}
 		break;
