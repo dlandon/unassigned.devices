@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.05.23">
+<!ENTITY version	"2023.05.24">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"6ad41b5977c269ec057e49d6f7da9f44">
+<!ENTITY MD5		"62fa9727b99637eb3856502ed0b3d233">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Change root share configuration settings to be more consistent with SMB sares.  You'll need to remove your root shares and add them back in again.
+- Fix: Duplicate share name check on pool devices falsely saying the mount point is a duplicate.
+
+###2023.05.23
 - Fix: Cleanup attach/detach to remove hosts entry if disk is no longer connected.
 - Fix: Share name duplicate check failed under certain circumstances.
 - Fix: Rework Remote shares to prevent the endless Unraid wave.  If a Remote share shows as invalid, remove it manually.  See forun for details.
