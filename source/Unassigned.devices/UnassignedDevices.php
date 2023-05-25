@@ -636,7 +636,7 @@ switch ($_POST['action']) {
 							/* Disk is a pooled device. */
 							$share_names					= array_flip($share_names);
 							if (isset($share_names[$mountpoint])) {
-								$share_names[$mountpoint]	.= "-";
+								$share_names[$mountpoint]	.= ",";
 							} else {
 								$share_names[$mountpoint]	= "";
 							}
