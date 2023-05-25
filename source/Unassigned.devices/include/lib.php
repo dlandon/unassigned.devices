@@ -3565,7 +3565,7 @@ function change_UUID($dev) {
 		$rc		= timed_exec(60, "/usr/sbin/xfs_admin -U generate ".escapeshellarg($device));
 	} else if ($fs_type == "btrfs") {
 		/* Change the btrfs UUID. */
-		$rc		= timed_exec(20, "/sbin/btrfstune -uf ".escapeshellarg($device));
+		$rc		= timed_exec(60, "/sbin/btrfstune -uf ".escapeshellarg($device));
 	}
 
 	/* Show the result of the UUID change operation. */
