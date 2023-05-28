@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.05.24">
+<!ENTITY version	"2023.05.28">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"62fa9727b99637eb3856502ed0b3d233">
+<!ENTITY MD5		"339039aeac09757a3060329558256632">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Rework the .plg file to fix legacy smb-extra.conf entries not being removed, and issues with the protection mounts not setting reboot needed properly.
+- Add: UD Setting for time to delay when starting the array before mounting Remote Shares.  This is useful when the network is ready but the remote server may not be on-line yet.
+
+###2023.05.24
 - Fix: Change root share configuration settings to be more consistent with SMB sares.  You'll need to remove your root shares and add them back in again.
 - Fix: Duplicate share name check on pool devices falsely saying the mount point is a duplicate.
 
@@ -1951,23 +1955,6 @@ rm -f /tmp/&name;/add-smb
 </INLINE>
 </FILE>
 
-<!--
-Unassigned devices background start script.
--->
-<FILE Name="/tmp/start_unassigned_devices" Mode="0770">
-<INLINE>
-#!/bin/bash
-# Copy config files to the tmp file system to be sure we have current settings.
-/usr/bin/cp /boot/config/plugins/&name;/*.cfg /tmp/&name;/config/ 2>/dev/null
-
-# Apply settings to update share settings and copy configuration files to tmp file system.
-/usr/local/emhttp/plugins/&name;/scripts/rc.settings apply 2>/dev/null
-
-# Remove the background start script.
-rm -f /tmp/start_unassigned_devices 2>/dev/null
-</INLINE>
-</FILE>
-
 <FILE Name="/boot/config/plugins/&name;/&name;.cfg">
 <INLINE>
 <![CDATA[
@@ -1996,6 +1983,14 @@ Add smb parameters for UD.
 <INLINE>
 <![CDATA[
 #!/bin/bash
+# Remove the unused legacy smb-extra.conf entries
+if [ -f /boot/config/smb-extra.conf ] ; then
+	if [[ `/usr/bin/grep '#unassigned_devices' /boot/config/smb-extra.conf 2> /dev/null` != "" ]]; then
+		/usr/bin/sed '/#unassigned_devices_start/,/#unassigned_devices_end/d' /boot/config/smb-extra.conf > /tmp/smb.tmp
+		mv /tmp/smb.tmp /boot/config/smb-extra.conf
+	fi
+fi
+
 # Add entry to /etc/samba/smb.conf
 if [[ `grep '# hook for unassigned devices shares' /etc/samba/smb.conf` = "" ]]; then
 	sed -i "/# auto-configured shares/i \[global]\n	# hook for unassigned devices shares\n	include = /etc/samba/smb-unassigned.conf\n" /etc/samba/smb.conf
@@ -2044,7 +2039,7 @@ ln -sf /usr/local/emhttp/plugins/&name;/scripts/rc.unassigned /usr/local/sbin
 ln -sf /usr/local/emhttp/plugins/&name;/scripts/mkmbr.sh /usr/local/sbin
 
 # Create state folder and mount points
-mkdir -p /mnt/disks /mnt/remotes /mnt/addons /mnt/rootshare/ /var/state/&name;
+mkdir -p /mnt/disks/ /mnt/remotes/ /mnt/addons/ /mnt/rootshare/ /var/state/&name;/
 
 # Create a tmpfs mountpoint at /mnt/disks
 # to make sure that writting to an unmounted device doesn't fill all rootfs
@@ -2084,15 +2079,15 @@ chown nobody:users /mnt/remotes
 
 # Create a tmpfs mountpoint at /mnt/addons
 # to make sure that writting to an unmounted device doesn't fill all rootfs
-# ps: tmpfs mountpoint will only be created if no disks are mounted yet
-mounted_disks="n"
+# ps: tmpfs mountpoint will only be created if no addons are mounted yet
+mounted_addons="n"
 if ! mountpoint -q /mnt/addons 2>/dev/null; then
   for dir in /mnt/addons/*; do 
     if mountpoint -q "$dir" 2>/dev/null; then 
-      mounted_disks="y" 
+      mounted_addons="y" 
     fi
   done
-  if [ $mounted_disks == "n" ]; then
+  if [ $mounted_addons == "n" ]; then
     mount -t tmpfs -o size=1M tmpfs /mnt/addons
   else
     touch /var/state/&name;/reboot_required
@@ -2102,15 +2097,15 @@ chown nobody:users /mnt/addons
 
 # Create a tmpfs mountpoint at /mnt/rootshare
 # to make sure that a CIFS connection dropout doesn't fill all rootfs
-# ps: tmpfs mountpoint will only be created if no remote mounts are mounted yet
-mounted_remotes="n"
+# ps: tmpfs mountpoint will only be created if no rootshare mounts are mounted yet
+mounted_rootshare="n"
 if ! mountpoint -q /mnt/rootshare 2>/dev/null; then
   for dir in /mnt/rootshare/*; do 
     if mountpoint -q "$dir" 2>/dev/null; then 
-      mounted_remotes="y" 
+      mounted_rootshare="y" 
     fi
   done
-  if [ $mounted_remotes == "n" ]; then
+  if [ $mounted_rootshare == "n" ]; then
     mount -t tmpfs -o size=1M tmpfs /mnt/rootshare
   else
     touch /var/state/&name;/reboot_required
@@ -2121,8 +2116,8 @@ chown nobody:users /mnt/rootshare
 # Add unassigned_devices to smb.conf.
 at -M -f /tmp/&name;/add-smb now 2>/dev/null
 
-# Copy configuration to tmpfs
-at -M -f /tmp/start_unassigned_devices now 2>/dev/null
+# Apply settings to update share settings and copy configuration files to tmp file system.
+/usr/local/emhttp/plugins/&name;/scripts/rc.settings apply 2>/dev/null
 
 # Rename original Dynamix page
 if [[ -e /usr/local/emhttp/plugins/dynamix/OpenDevices.page ]]; then
@@ -2136,14 +2131,6 @@ find /boot/config/plugins/&name; -type f -iname "&name;*.md5" ! -iname "*&versio
 # reload udev rules
 udevadm control --reload-rules
 
-# Remove the unused smb-extra.conf entries
-if [ -f /boot/config/smb-extra.conf ] ; then
-	if [[ `/usr/bin/grep '#unassigned_devices' /boot/config/smb-extra.conf > /dev/null` != "" ]]; then
-		/usr/bin/sed '/#unassigned_devices_start/,/#unassigned_devices_end/d' /boot/config/smb-extra.conf > /tmp/smb.tmp
-		mv /tmp/smb.tmp /boot/config/smb-extra.conf
-	fi
-fi
-
 echo ""
 echo "-----------------------------------------------------------"
 echo " &name; has been installed."
@@ -2154,7 +2141,7 @@ echo ""
 echo " Note:"
 echo " Install the Unassigned Devices Plus plugin if you need to"
 echo " mount exFAT, HFS+, apfs file formats or format disks."
-if [ $mounted_disks == "y" ] || [ $mounted_remotes == "y" ]; then
+if [ -f /var/state/&name;/reboot_required ]; then
   echo ""
   echo " PLEASE REBOOT YOUR SERVER "
   echo ""
@@ -2171,6 +2158,7 @@ The 'remove' script.
 <INLINE>
 # umount disks and smb mounts
 /usr/local/emhttp/plugins/&name;/scripts/rc.unassigned umount all 2>/dev/null
+
 if mountpoint -q "/mnt/disks"; then
   umount "/mnt/disks"
 fi
@@ -2191,12 +2179,6 @@ if mountpoint -q "/mnt/rootshare"; then
 fi
 rmdir /mnt/rootshare 2>/dev/null
 
-# Remove installed packages
-find "/boot/config/plugins/&name;/" -type f -iname "*.txz" -delete
-
-# Remove possible leftovers
-rm -rf /usr/local/emhttp/plugins/&name;
-
 rm -f /tmp/plugins/&name;.plg \
       /usr/local/sbin/rc.unassigned \
 	  /usr/local/sbin/mkmbr.sh \
@@ -2210,9 +2192,6 @@ mv -f /usr/local/emhttp/plugins/dynamix/OpenDevices.page- /usr/local/emhttp/plug
 
 # Remove all plugin files from emhttp.
 rm -rf /usr/local/emhttp/plugins/&name; 2>/dev/null
-
-# Remove unassigned_devices from smb-extra.conf.
-at -M -f /tmp/&name;/remove-smb now 2>/dev/null
 
 # Remove the tmp directory.
 rm -r /tmp/&name; 2>/dev/null
