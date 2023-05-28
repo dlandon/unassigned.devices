@@ -1412,7 +1412,7 @@ function is_disk_ssd($dev) {
 	$device	= (new MiscUD)->base_device(basename($dev));
 	if (! (new MiscUD)->is_device_nvme($device)) {
 		$file = "/sys/block/".basename($device)."/queue/rotational";
-		$rc = (exec("/bin/cat ".$file." 2>/dev/null") == 0) ? true : false;
+		$rc = (exec("/bin/cat ".escapeshellarg($file)." 2>/dev/null") == 0) ? true : false;
 	} else {
 		$rc = true;
 	}
@@ -1458,9 +1458,11 @@ function get_mount_params($fs, $dev, $ro = false) {
 	global $paths;
 
 	$rc				= "";
-	$config_file	= $paths['config_file'];
-	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
-	$discard 		= ((isset($config['Config']['discard'])) && ($config['Config']['discard'] == "yes") && is_disk_ssd($dev)) ? ",discard" : "";
+	if (($fs != "cifs") && ($fs != "nfs") && ($fs != "root")) {
+		$config_file	= $paths['config_file'];
+		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
+		$discard 	= ((isset($config['Config']['discard'])) && ($config['Config']['discard'] == "yes") && is_disk_ssd($dev)) ? ",discard" : "";
+	}
 	$rw				= $ro ? "ro" : "rw";
 	switch ($fs) {
 		case 'hfsplus':
@@ -3272,7 +3274,6 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 /* Check for a duplicate share name when changing the mount point and mounting disks. */
 function check_for_duplicate_share($dev, $mountpoint) {
 	global $var, $paths;
-unassigned_log("*** dev ".$dev." mountpoint ".$mountpoint);
 
 	$rc = true;
 
