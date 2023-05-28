@@ -27,6 +27,7 @@ $cfg['Config']['automount_usb']		= $cfg['Config']['automount_usb'] ?? '';
 $cfg['Config']['discard']			= $cfg['Config']['discard'] ?? '';
 $cfg['Config']['symlinks']			= $cfg['Config']['symlinks'] ?? '';
 $cfg['Config']['zvols']				= $cfg['Config']['zvols'] ?? '';
+$cfg['Config']['remote_share_wait']	= $cfg['Config']['remote_share_wait'] ?? '';
 $cfg['Config']['smb_version']		= $cfg['Config']['smb_version'] ?? '';
 $cfg['Config']['nfs_version']		= $cfg['Config']['nfs_version'] ?? '';
 $cfg['Config']['debug_level']		= $cfg['Config']['debug_level'] ?? '';
@@ -241,6 +242,14 @@ _(Show ZFS Volumes on Disks)_?
 
 :ud_settings_zvols_plug:
 > Enable to show the ZFS Volumes found on mounted disks. You can control mounting the ZFS Volumes in the Device Settings.
+:end
+
+_(Remote Share Mount Wait Time)_ :
+: <input type="text" name="remote_share_wait" class="narrow" maxlength="4" value="<?=$cfg['Config']['remote_share_wait'];?>" placeholder="5">
+
+:ud_settings_remote_share_wait_plug:
+> This is the time in seconds to wait before mounting remote shares when the array is first started.
+>
 :end
 
 _(Specify SMB Version when Mounting Remote Shares)_?

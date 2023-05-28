@@ -11,8 +11,6 @@ SECONDS=0
 while [ $SECONDS -le 120 ]; do
 	gateway=$(route -n | awk '/^0.0.0.0/ {print $2; exit}')
 	if [ -n "$gateway" ] && [ $(ping -q -n -c 1 -W 1 $gateway | awk -F, '/received/ {print $2}' | awk '{print $1}') -eq 1 ]; then
-		# Give network some time to settle
-		sleep 5.0
 		break
 	fi
 	sleep 1.0
@@ -21,7 +19,6 @@ done
 # If network check did not time out, mount remote shares
 if [ $SECONDS -le 120 ]; then
 	logger "Using Gateway '${gateway}' to Ping Remote Shares." -t"unassigned.devices"
-	${DOCROOT}/plugins/unassigned.devices/scripts/get_ud_stats ping;
 	${DOCROOT}/plugins/unassigned.devices/scripts/rc.unassigned mount autoshares &
 else
 	logger "Cannot 'Auto Mount' Remote Shares.  Network not available!" -t"unassigned.devices"

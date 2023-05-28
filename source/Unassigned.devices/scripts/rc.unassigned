@@ -193,6 +193,18 @@ function unassigned_mount() {
 
 	/* Mount Remote mounts. */
 	if (strpos($DEVNAME, "//") === 0 || strpos($DEVNAME, ":/") || $DEVNAME == "auto" || $DEVNAME == "autoshares") {
+		/* If remote shares are being mounted from initial array start, delay mounting by the user set time or default. */
+		if ($DEVNAME == "autoshares") {
+			$remote_share_wait	= (int) get_config("Config", "remote_share_wait");
+			$remote_share_wait	= ($remote_share_wait > 5) ? $remote_share_wait : 5;
+
+			unassigned_log("Waiting ".$remote_share_wait." secs before mounting Remote Shares...");
+			sleep($remote_share_wait);
+
+			/* Refresh the ping status before trying to mount remote devices. */
+			exec("/usr/local/emhttp/plugins/unassigned.devices/scripts/get_ud_stats ping");
+		}
+
 		foreach (get_samba_mounts() as $info) {
 			$device = $info['device'];
 			if ( $DEVNAME == $device || $DEVNAME == "auto" || $DEVNAME == "autoshares" ) {
