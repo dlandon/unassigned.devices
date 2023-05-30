@@ -41,7 +41,7 @@ version="1.0.27"
 #
 #
 # 1.0.27
-# Prevent divide by zero when chacking root free space.
+# Prevent divide by zero when checking root free space.
 #
 ######################################################
 ##													##
