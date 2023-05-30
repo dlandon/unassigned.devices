@@ -1323,16 +1323,20 @@ function execute_script($info, $action, $testing = false) {
 	putenv("UD_DEVICE=".$ud_dev);
 
 	/* Execute the common script if it is defined. */
-	if ($common_cmd = escapeshellcmd(get_config("Config", "common_cmd"))) {
-		$common_script = $paths['scripts'].basename($common_cmd);
-		copy($common_cmd, $common_script);
-		@chmod($common_script, 0755);
-		unassigned_log("Running common script: '".basename($common_script)."'");
-		$out	= null;
-		$return	= null;
-		exec($common_script, $out, $return);
-		if ($return) {
-			unassigned_log("Error: common script failed: '".$return."'");
+	if ($common_cmd		= escapeshellcmd(get_config("Config", "common_cmd"))) {
+		if (is_file($common_cmd)) {
+			$common_script	= $paths['scripts'].basename($common_cmd);
+			copy($common_cmd, $common_script);
+			@chmod($common_script, 0755);
+			unassigned_log("Running common script: '".basename($common_script)."'");
+			$out	= null;
+			$return	= null;
+			exec($common_script, $out, $return);
+			if ($return) {
+				unassigned_log("Error: common script failed: '".$return."'");
+			}
+		} else {
+			unassigned_log("Common Script file '".$common_script."' is not a valid file!");
 		}
 	}
 
@@ -1344,34 +1348,35 @@ function execute_script($info, $action, $testing = false) {
 		if (is_file($cmd)) {
 			copy($cmd, $command_script);
 			@chmod($command_script, 0755);
-		} else {
-			unassigned_log("Script file '".$command_script."' is not a valid file!");
-		}
-		unassigned_log("Running device script: '".basename($cmd)."' with action '".$action."'.");
 
-		$script_running = is_script_running($cmd);
-		if ((! $script_running) || (($script_running) && ($action != "ADD"))) {
-			if (! $testing) {
-				if (($action == "REMOVE") || ($action == "ERROR_MOUNT") || ($action == "ERROR_UNMOUNT")) {
-					sleep(1);
-				}
-				$clear_log	= ($action == "ADD") ? " > " : " >> ";
+			unassigned_log("Running device script: '".basename($cmd)."' with action '".$action."'.");
 
-				/* Apply escapeshellarg() to the command and logfile of the command. */
-				$cmd		= escapeshellarg($command_script).$clear_log.escapeshellarg($info['logfile'])." 2>&1 $bg";
+			$script_running = is_script_running($cmd);
+			if ((! $script_running) || (($script_running) && ($action != "ADD"))) {
+				if (! $testing) {
+					if (($action == "REMOVE") || ($action == "ERROR_MOUNT") || ($action == "ERROR_UNMOUNT")) {
+						sleep(1);
+					}
+					$clear_log	= ($action == "ADD") ? " > " : " >> ";
 
-				/* Run the script. */
-				$out		= null;
-				$return		= null;
-				exec($cmd, $out, $return);
-				if ($return) {
-					unassigned_log("Error: device script failed: '".$return."'");
+					/* Apply escapeshellarg() to the command and logfile of the command. */
+					$cmd		= escapeshellarg($command_script).$clear_log.escapeshellarg($info['logfile'])." 2>&1 $bg";
+
+					/* Run the script. */
+					$out		= null;
+					$return		= null;
+					exec($cmd, $out, $return);
+					if ($return) {
+						unassigned_log("Error: device script failed: '".$return."'");
+					}
+				} else {
+					$rc			= $command_script;
 				}
 			} else {
-				$rc			= $command_script;
+				unassigned_log("Device script '".basename($cmd)."' aleady running!");
 			}
 		} else {
-			unassigned_log("Device script '".basename($cmd)."' aleady running!");
+			unassigned_log("Script file '".$command_script."' is not a valid file!");
 		}
 	}
 
