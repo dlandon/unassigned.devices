@@ -17,7 +17,7 @@ require_once("webGui/include/Helpers.php");
 
 /* add translations */
 $_SERVER['REQUEST_URI'] = "unassigneddevices";
-require_once "$docroot/webGui/include/Translations.php";
+require_once $docroot."/webGui/include/Translations.php";
 
 if (isset($_POST['display'])) {
 	$display = $_POST['display'];
@@ -427,7 +427,7 @@ switch ($_POST['action']) {
 			unassigned_log("Debug: Processing Hotplug event...", $UDEV_DEBUG);
 
 			/* Tell Unraid to update list of unassigned devices in devs.ini. */
-			exec("/usr/local/sbin/emcmd 'cmdHotplug=apply'");
+			exec("/usr/local/sbin/emcmd cmdHotplug='apply'");
 
 			/* Get all updated unassigned disks and update devX designations for newly found unassigned devices. */
 			$all_disks = get_all_disks_info();
@@ -870,7 +870,7 @@ switch ($_POST['action']) {
 
 	case 'update_ping':
 		/* Refresh the ping status in the background. */
-		exec("/usr/local/emhttp/plugins/".$plugin."/scripts/get_ud_stats ping &");
+		exec("plugins/".$plugin."/scripts/get_ud_stats ping &");
 
 		publish();
 		break;
@@ -1129,7 +1129,7 @@ switch ($_POST['action']) {
 		@file_put_contents("{$paths['authentication']}", "domain=".$domain."\n", FILE_APPEND);
 
 		/* Update this server status before listing shares. */
-		exec("/usr/local/emhttp/plugins/".$plugin."/scripts/get_ud_stats is_online $ip");
+		exec("plugins/".$plugin."/scripts/get_ud_stats is_online $ip");
 
 		/* Get a list of samba shares on this server. */
 		$list	= shell_exec("/usr/bin/smbclient -t2 -g -L ".escapeshellarg($ip)." --authentication-file=".escapeshellarg($paths['authentication'])." 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}' | sort");
@@ -1174,7 +1174,7 @@ switch ($_POST['action']) {
 		$ip		= urldecode($_POST['IP']);
 
 		/* Update this server status before listing shares. */
-		exec("/usr/local/emhttp/plugins/".$plugin."/scripts/get_ud_stats is_online $ip");
+		exec("plugins/".$plugin."/scripts/get_ud_stats is_online $ip");
 
 		/* List the shares. */
 		$rc		= timed_exec(10, "/usr/sbin/showmount --no-headers -e ".escapeshellarg($ip)." 2>/dev/null | rev | cut -d' ' -f2- | rev | sort");

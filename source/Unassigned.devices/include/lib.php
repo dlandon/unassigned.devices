@@ -44,10 +44,11 @@ $paths = [	"smb_unassigned"	=> "/etc/samba/smb-unassigned.conf",
 			"formatting"		=> "/var/state/".$plugin."/formatting_%s.state"
 		];
 
-$users		= @parse_ini_file("$docroot/state/users.ini", true);
-$disks		= @parse_ini_file("$docroot/state/disks.ini", true);
+/* Get the Unraid users. */
+$users			= @parse_ini_file($docroot."/state/users.ini", true);
 
-/* Get all unraid disk devices (array disks, cache, and pool devices). */
+/* Get all Unraid disk devices (array disks, cache, and pool devices). */
+$disks			= @parse_ini_file($docroot."/state/disks.ini", true, INI_SCANNER_RAW) ?? array();
 $unraid_disks	= array();
 foreach ($disks as $d) {
 	if ($d['device']) {
@@ -74,10 +75,10 @@ $DEBUG_LEVEL	= (int) get_config("Config", "debug_level");
 
 /* Read Unraid variables file. Used to determine disks not assigned to the array and other array parameters. */
 if (! isset($var)){
-	if (! is_file("$docroot/state/var.ini")) {
+	if (! is_file($docroot."/state/var.ini")) {
 		exec("/usr/bin/wget -qO /dev/null localhost:$(ss -napt | /bin/grep emhttp | /bin/grep -Po ':\K\d+') >/dev/null");
 	}
-	$var = @parse_ini_file("$docroot/state/var.ini");
+	$var = @parse_ini_file($docroot."/state/var.ini");
 }
 
 /* See if the preclear plugin is installed. */
@@ -433,7 +434,7 @@ function get_device_stats($mountpoint, $mounted, $active = true) {
 		/* Run the stats script to update the state file. */
 		$df_status[$mountpoint]['timestamp']	= $df_status[$mountpoint]['timestamp'] ?? 0;
 		if (($active) && ((time() - $df_status[$mountpoint]['timestamp']) > 90)) {
-			exec("/usr/local/emhttp/plugins/".$plugin."/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." &");
+			exec("plugins/".$plugin."/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." &");
 		}
 
 		/* Get the updated device stats. */
@@ -444,9 +445,9 @@ function get_device_stats($mountpoint, $mounted, $active = true) {
 	}
 
 	$stats		= preg_split('/\s+/', $rc);
-	$stats[0]	= (! empty($stats[0])) ? $stats[0] : '0';
-	$stats[1]	= (! empty($stats[1])) ? $stats[1] : '0';
-	$stats[2]	= (! empty($stats[2])) ? $stats[2] : '0';
+	$stats[0]	= (! empty($stats[0])) ? $stats[0] : 0;
+	$stats[1]	= (! empty($stats[1])) ? $stats[1] : 0;
+	$stats[2]	= (! empty($stats[2])) ? $stats[2] : 0;
 
 	/* Be sure all are numbers. */
 	$stats[0]	= (! is_nan($stats[0])) ? $stats[0] : 0;
@@ -524,16 +525,16 @@ function get_disk_reads_writes($ud_dev, $dev) {
 	$data		= explode(' ', $disk_io[$dev] ?? '0 0 0 0');
 
 	/* Read rate. */
-	$rc[2] 		= ($data[0] > 0.0) ? $data[0] : 0.0;
+	$rc[2] 		= ($data[0] > 0.0) ? $data[0] : 0;
 
 	/* Write rate. */
-	$rc[3] 		= ($data[1] > 0.0) ? $data[1] : 0.0;
+	$rc[3] 		= ($data[1] > 0.0) ? $data[1] : 0;
 
 	/* Be sure all values are numbers. */
 	$rc[0]		= (! is_nan($rc[0])) ? $rc[0] : 0;
 	$rc[1]		= (! is_nan($rc[1])) ? $rc[1] : 0;
-	$rc[2]		= (! is_nan($rc[2])) ? $rc[2] : 0.0;
-	$rc[3]		= (! is_nan($rc[3])) ? $rc[3] : 0.0;
+	$rc[2]		= (! is_nan($rc[2])) ? $rc[2] : 0;
+	$rc[3]		= (! is_nan($rc[3])) ? $rc[3] : 0;
 
 	return $rc;
 }
@@ -824,7 +825,7 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 
 			/* Use a disk password, or Unraid's. */
 			if (! $pass) {
-				$o				= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
+				$o				= shell_exec("/usr/local/sbin/emcmd cmdCryptsetup=".escapeshellarg($cmd)." 2>&1");
 			} else {
 				$luks			= basename($dev);
 				$luks_pass_file	= $paths['luks_pass']."_".$luks;
@@ -842,7 +843,7 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 
 				/* Use a disk password, or Unraid's. */
 				if (! $pass) {
-					$o = shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
+					$o = shell_exec("/usr/local/sbin/emcmd cmdCryptsetup=".escapeshellarg($cmd)." 2>&1");
 					if (! file_exists("/dev/mapper/".$mapper)) {
 						$o	= "Error: Passphrase or Key File not found.";
 					}
@@ -1125,7 +1126,7 @@ function zvol_fs_type($dev) {
 /* Get device configuration parameter. */
 function get_config($serial, $variable) {
 	$config_file	= $GLOBALS["paths"]["config_file"];
-	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
+	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
 	return (isset($config[$serial][$variable])) ? html_entity_decode($config[$serial][$variable], ENT_COMPAT) : "";
 }
 
@@ -1139,7 +1140,7 @@ function set_config($serial, $variable, $value) {
 
 		/* Make file changes. */
 		$config_file	= $GLOBALS["paths"]["config_file"];
-		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
+		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
 		$config[$serial][$variable] = htmlentities($value, ENT_COMPAT);
 		save_ini_file($config_file, $config);
 
@@ -1196,7 +1197,7 @@ function toggle_automount($serial, $status) {
 
 		/* Make file changes. */
 		$config_file	= $GLOBALS["paths"]["config_file"];
-		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
+		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
 		$config[$serial]["automount"] = ($status == "true") ? "yes" : "no";
 		save_ini_file($config_file, $config);
 
@@ -1221,7 +1222,7 @@ function toggle_read_only($serial, $status, $part = "") {
 
 		/* Make file changes. */
 		$config_file	= $GLOBALS["paths"]["config_file"];
-		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
+		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
 		$read_only		= "read_only";
 		$read_only		= ($part) ? $read_only.".".$part : $read_only;
 		$config[$serial][$read_only] = ($status == "true") ? "yes" : "no";
@@ -1248,7 +1249,7 @@ function toggle_pass_through($serial, $status, $part = "") {
 
 		/* Make file changes. */
 		$config_file	= $GLOBALS["paths"]["config_file"];
-		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
+		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
 		$pass_through	= "pass_through";
 		$pass_through	= ($part) ? $pass_through.".".$part : $pass_through;
 		$config[$serial][$pass_through] = ($status == "true") ? "yes" : "no";
@@ -1275,7 +1276,7 @@ function toggle_disable_mount($serial, $status, $part = "") {
 
 		/* Make file changes. */
 		$config_file	= $GLOBALS["paths"]["config_file"];
-		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
+		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
 		$disable_mount	= "disable_mount";
 		$disable_mount	= ($part) ? $disable_mount.".".$part : $disable_mount;
 		$config[$serial][$disable_mount] = ($status == "true") ? "yes" : "no";
@@ -1386,7 +1387,7 @@ function remove_config_disk($serial) {
 
 	/* Make file changes. */
 	$config_file	= $GLOBALS["paths"]["config_file"];
-	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
+	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
 	if ( isset($config[$serial]) ) {
 		unassigned_log("Removing configuration '".$serial."'.");
 	}
@@ -1460,7 +1461,7 @@ function get_mount_params($fs, $dev, $ro = false) {
 	$rc				= "";
 	if (($fs != "cifs") && ($fs != "nfs") && ($fs != "root")) {
 		$config_file	= $paths['config_file'];
-		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
+		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
 		$discard 	= ((isset($config['Config']['discard'])) && ($config['Config']['discard'] == "yes") && is_disk_ssd($dev)) ? ",discard" : "";
 	}
 	$rw				= $ro ? "ro" : "rw";
@@ -1551,7 +1552,7 @@ function do_mount($info) {
 					$o		= shell_exec("/sbin/cryptsetup ".escapeshellcmd($cmd)." -d ".escapeshellarg($var['luksKeyfile'])." 2>&1");
 				} else {
 					unassigned_log("Using Unraid api to open the 'crypto_LUKS' device.");
-					$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
+					$o		= shell_exec("/usr/local/sbin/emcmd cmdCryptsetup=".escapeshellarg($cmd)." 2>&1");
 					if (! file_exists("/dev/mapper/".$luks)) {
 						$o	= "Error: Passphrase or Key File not found.";
 					}
@@ -1750,7 +1751,7 @@ function do_mount_root($info) {
 		/* If the root server is not online, run the ping update and see if ping status needs to be refreshed. */
 		if (! $is_alive) {
 			/* Update the root share server ping status. */
-			exec("/usr/local/emhttp/plugins/unassigned.devices/scripts/get_ud_stats ping");
+			exec("plugins/unassigned.devices/scripts/get_ud_stats ping");
 
 			/* See if the root share server is online now. */
 			$is_alive = is_samba_server_online($info['ip']);
@@ -1896,7 +1897,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 
 	/* Get the current UD configuration. */
 	$config_file	= $paths['config_file'];
-	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
+	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
 	$config			= (isset($config["Config"])) ? $config["Config"] : array();
 
 	/* Add mountpoint to samba shares. */
@@ -2190,7 +2191,7 @@ function reload_shares() {
 /* Get samba mount configuration parameter. */
 function get_samba_config($source, $variable) {
 	$config_file	= $GLOBALS["paths"]["samba_mount"];
-	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, INI_SCANNER_RAW) : array();
+	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
 	return (isset($config[$source][$variable])) ? $config[$source][$variable] : "";
 }
 
@@ -2204,7 +2205,7 @@ function set_samba_config($source, $variable, $value) {
 
 		/* Make file changes. */
 		$config_file	= $GLOBALS["paths"]["samba_mount"];
-		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
+		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
 		$config[$source][$variable] = $value;
 		save_ini_file($config_file, $config);
 
@@ -2387,7 +2388,7 @@ function do_mount_samba($info) {
 	/* If the remote server is not online, run the ping update and see if ping status needs to be refreshed. */
 	if (! $is_alive) {
 		/* Update the remote server ping status. */
-		exec("/usr/local/emhttp/plugins/unassigned.devices/scripts/get_ud_stats ping");
+		exec("plugins/unassigned.devices/scripts/get_ud_stats ping");
 
 		/* See if the server is online now. */
 		$is_alive = is_samba_server_online($info['ip']);
@@ -2554,7 +2555,7 @@ function toggle_samba_automount($source, $status) {
 
 		/* Make file changes. */
 		$config_file	= $GLOBALS["paths"]["samba_mount"];
-		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
+		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
 		$config[$source]["automount"] = ($status == "true") ? "yes" : "no";
 		save_ini_file($config_file, $config);
 
@@ -2579,7 +2580,7 @@ function toggle_samba_share($source, $status) {
 
 		/* Make file changes. */
 		$config_file	= $GLOBALS["paths"]["samba_mount"];
-		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
+		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
 		$config[$source]["smb_share"] = ($status == "true") ? "yes" : "no";
 		save_ini_file($config_file, $config);
 
@@ -2604,7 +2605,7 @@ function toggle_samba_disable_mount($source, $status) {
 
 		/* Make file changes. */
 		$config_file	= $GLOBALS["paths"]["samba_mount"];
-		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
+		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
 		$config[$source]["disable_mount"] = ($status == "true") ? "yes" : "no";
 		save_ini_file($config_file, $config);
 
@@ -2629,7 +2630,7 @@ function toggle_samba_readonly($source, $status) {
 
 		/* Make file changes. */
 		$config_file	= $GLOBALS["paths"]["samba_mount"];
-		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
+		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
 		$config[$source]['read_only'] = ($status == "true") ? "yes" : "no";
 		save_ini_file($config_file, $config);
 
@@ -2651,7 +2652,7 @@ function remove_config_samba($source) {
 
 	/* Make file changes. */
 	$config_file	= $GLOBALS["paths"]["samba_mount"];
-	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
+	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
 	if ( isset($config[$source]) ) {
 		unassigned_log("Removing configuration '".$source."'.");
 		if (isset($config[$source]['command'])) {
@@ -2680,7 +2681,7 @@ function remove_config_samba($source) {
 /* Get the iso file configuration parameter. */
 function get_iso_config($source, $variable) {
 	$config_file	= $GLOBALS["paths"]["iso_mount"];
-	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, INI_SCANNER_RAW) : array();
+	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
 	return (isset($config[$source][$variable])) ? $config[$source][$variable] : "";
 }
 
@@ -2694,7 +2695,7 @@ function set_iso_config($source, $variable, $value) {
 
 		/* Make file changes. */
 		$config_file	= $GLOBALS["paths"]["iso_mount"];
-		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
+		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
 		$config[$source][$variable] = $value;
 		save_ini_file($config_file, $config);
 
@@ -2818,7 +2819,7 @@ function toggle_iso_automount($source, $status) {
 
 		/* Make file changes. */
 		$config_file	= $GLOBALS["paths"]["iso_mount"];
-		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
+		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
 		$config[$source]["automount"] = ($status == "true") ? "yes" : "no";
 		save_ini_file($config_file, $config);
 
@@ -2840,7 +2841,7 @@ function remove_config_iso($source) {
 
 	/* Make file changes. */
 	$config_file	= $GLOBALS["paths"]["iso_mount"];
-	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true) : array();
+	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
 	if ( isset($config[$source]) ) {
 		unassigned_log("Removing ISO configuration '".$source."'.");
 		if (isset($config[$source]['command'])) {
@@ -2915,7 +2916,8 @@ function get_all_disks_info() {
 	if (is_array($ud_disks)) {
 		foreach ($ud_disks as $key => $disk) {
 			/* Get the device size. */
-			$disk['size']	= intval(trim(timed_exec(5, "/bin/lsblk -nb -o size ".escapeshellarg(realpath($key))." 2>/dev/null")));
+			$size			= intval(trim(timed_exec(5, "/bin/lsblk -nb -o size ".escapeshellarg(realpath($key))." 2>/dev/null")));
+			$disk['size']	= (! is_nan($size)) ? $size : 0;
 
 			/* If the device size is not zero, then add as a UD device. */
 			if ($disk['size'] != 0) {
@@ -2971,7 +2973,7 @@ function get_all_disks_info() {
 
 /* Get the udev disk information. */
 function get_udev_info($dev, $udev = null) {
-	global $plugin, $paths;
+	global $paths;
 
 	$rc		= array();
 
@@ -3393,7 +3395,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 							$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($var['luksKeyfile'])." 2>&1");
 						} else {
 							unassigned_log("Using Unraid api to open the 'crypto_LUKS' device.");
-							$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
+							$o		= shell_exec("/usr/local/sbin/emcmd cmdCryptsetup=".escapeshellarg($cmd)." 2>&1");
 							if (! file_exists("/dev/mapper/".$mapper)) {
 								$o	= "Error: Passphrase or Key File not found.";
 							}
@@ -3523,7 +3525,7 @@ function change_UUID($dev) {
 				$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($var['luksKeyfile'])." 2>&1");
 			} else {
 				unassigned_log("Using Unraid api to open the 'crypto_LUKS' device.");
-				$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
+				$o		= shell_exec("/usr/local/sbin/emcmd cmdCryptsetup=".escapeshellarg($cmd)." 2>&1");
 				if (! file_exists("/dev/mapper/".$mapper)) {
 					$o	= "Error: Passphrase or Key File not found.";
 				}
