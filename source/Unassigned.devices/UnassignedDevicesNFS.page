@@ -1,0 +1,73 @@
+Menu="UnassignedDevicesSettings:3"
+Title="NFS Settings"
+---
+<?php
+/* Copyright 2015, Guilherme Jardim
+ * Copyright 2016-2023, Dan Landon
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+
+$plugin			= "unassigned.devices";
+$docroot		= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+require_once "plugins/$plugin/include/lib.php";
+
+$config_file = $paths['config_file'];
+$cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
+$cfg['Config']['nfs_export']		= $cfg['Config']['nfs_export'] ?? '';
+$cfg['Config']['nfs_security']		= $cfg['Config']['nfs_security'] ?? '';
+$cfg['Config']['nfs_rule']			= $cfg['Config']['nfs_rule'] ?? '';
+$text								= str_replace(";", "\n", $cfg['Config']['nfs_rule']);
+?>
+
+<table class="tablesorter shift ups">
+<thead><tr><th>_(NFS Settings)_</th></tr></thead>
+</table>
+
+<form markdown="1" name="nfs_settings" method="POST" action="/update.php" target="progressFrame">
+<input type="hidden" name="#section" value="Config">
+<input type="hidden" name="#file" value="<?=$paths['config_file']?>">
+<input type="hidden" name="#command" value="/plugins/unassigned.devices/scripts/rc.settings">
+<input type="hidden" name="#arg[1]" value="nfs_settings">
+
+_(Enable NFS export)_?
+: <select name="nfs_export" size="1" <?if ($var['shareNFSEnabled']=="no"):?>disabled<?endif;?>>
+  <?=mk_option($cfg["Config"]["nfs_export"], "no", "_(No)_");?>
+  <?=mk_option($cfg["Config"]["nfs_export"], "yes", "_(Yes)_");?>
+  </select><?if ($var['shareNFSEnabled']=="no"):?>&nbsp;_(NFS must be enabled in Settings->NFS to enable NFS Export)_.<?endif;?>
+
+<div id="nfs_security" style="display: <?=($cfg["Config"]["nfs_export"] == "no" ? "none" : "block");?>">
+<dl>
+	<dt>_(NFS Security)_:</dt>
+	<dd>
+		<select name="nfs_security" size="1" <?if ($var['shareNFSEnabled']=="no"):?>disabled<?endif;?>>
+		<?=mk_option($cfg["Config"]["nfs_security"], "public", "_(Public)_");?>
+		<?=mk_option($cfg["Config"]["nfs_security"], "private", "_(Private)_");?>
+		</select>
+	</dd>
+</dl>
+
+<div id="nfs_rule" style="display: <?=($cfg["Config"]["nfs_security"] == "public" ? "none" : "block");?>">
+	<dl>
+		<dt>_(Rules)_:</dt>
+		<dd>
+			<textarea spellcheck="false" cols="40" rows="5" name="new_nfs_rule" title='_(Enter NFS Rules)_.' style="width:45%"><?=$text;?></textarea>
+		</dd>
+	</dl>
+	</div>
+</div>
+
+:ud_settings_nfs_shares_plug:
+> Set to **Yes** to export NFS shares. Shares are exported Public with read and write access or Private with the rule you set. Access is controlled with permission settings on files and folders.
+>
+> **Note:** The normal rule used by UD is '*(sec=sys,rw,insecure,anongid=100,anonuid=99,all_squash)'.
+:end
+
+&nbsp;
+: <input type="submit" value='_(Apply)_'><input type="button" value="_(Done)_" onclick="done()">
+</form>
