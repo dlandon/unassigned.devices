@@ -1184,7 +1184,7 @@ switch ($_POST['action']) {
 	/* SMB SHARES */
 	case 'add_samba_share':
 		/* Add a samba share configuration. */
-		$rc		= true;
+		$rc			= true;
 
 		$ip			= urldecode($_POST['IP']);
 		$ip			= implode("",explode("\\", $ip));
@@ -1197,7 +1197,16 @@ switch ($_POST['action']) {
 		$path		= implode("",explode("\\", $path));
 		$path		= stripslashes(trim($path));
 		$share		= safe_name(basename($path), false, true);
-		if ($share) {
+
+		/* See if there is another mount with a different protocol. */
+		foreach (get_samba_mounts() as $mount) {
+			if (($mount['ip'] == $ip) && (basename($mount['path']) == basename($path)) && ($mount['protocol'] != $protocol)) {
+				$same_protocol	= $mount['protocol'];
+				$rc	= false;
+			}
+		}
+
+		if ($rc) {
 			$device	= ($protocol == "NFS") ? $ip.":".safe_name($path, false, true) : "//".strtoupper($ip)."/".$share;
 			$device	= str_replace("$", "", $device);
 			set_samba_config($device, "protocol", $protocol);
@@ -1211,6 +1220,8 @@ switch ($_POST['action']) {
 			}
 
 			set_samba_config($device, "share", $share);
+		} else {
+			unassigned_log("Warning: '".$share."' is already added as a '".$same_protocol."' share.");
 		}
 		echo json_encode($rc);
 		break;
