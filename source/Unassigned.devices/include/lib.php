@@ -46,13 +46,16 @@ $paths = [	"smb_unassigned"	=> "/etc/samba/smb-unassigned.conf",
 
 /* Get the Unraid users. */
 $users			= @parse_ini_file($docroot."/state/users.ini", true);
+$users			= (is_array($users)) ? $users : array();
 
 /* Get all Unraid disk devices (array disks, cache, and pool devices). */
-$disks			= @parse_ini_file($docroot."/state/disks.ini", true, INI_SCANNER_RAW) ?? array();
+$array_disks	= @parse_ini_file($docroot."/state/disks.ini", true);
 $unraid_disks	= array();
-foreach ($disks as $d) {
-	if ($d['device']) {
-		$unraid_disks[] = "/dev/".$d['device'];
+if (is_array($array_disks)) {
+	foreach ($array_disks as $d) {
+		if ($d['device']) {
+			$unraid_disks[] = "/dev/".$d['device'];
+		}
 	}
 }
 
@@ -450,9 +453,9 @@ function get_device_stats($mountpoint, $mounted, $active = true) {
 	$stats[2]	= (! empty($stats[2])) ? $stats[2] : 0;
 
 	/* Be sure all are numbers. */
-	$stats[0]	= (! is_nan($stats[0])) ? $stats[0] : 0;
-	$stats[1]	= (! is_nan($stats[1])) ? $stats[1] : 0;
-	$stats[2]	= (! is_nan($stats[2])) ? $stats[2] : 0;
+	$stats[0]	= ((is_numeric($stats[0])) && (! is_nan($stats[0]))) ? $stats[0] : 0;
+	$stats[1]	= ((is_numeric($stats[1])) && (! is_nan($stats[1]))) ? $stats[1] : 0;
+	$stats[2]	= ((is_numeric($stats[2])) && (! is_nan($stats[2]))) ? $stats[2] : 0;
 
 	return $stats;
 }
@@ -531,10 +534,10 @@ function get_disk_reads_writes($ud_dev, $dev) {
 	$rc[3] 		= ($data[1] > 0.0) ? $data[1] : 0;
 
 	/* Be sure all values are numbers. */
-	$rc[0]		= (! is_nan($rc[0])) ? $rc[0] : 0;
-	$rc[1]		= (! is_nan($rc[1])) ? $rc[1] : 0;
-	$rc[2]		= (! is_nan($rc[2])) ? $rc[2] : 0;
-	$rc[3]		= (! is_nan($rc[3])) ? $rc[3] : 0;
+	$rc[0]		= ((is_numeric($rc[0])) && (! is_nan($rc[0]))) ? $rc[0] : 0;
+	$rc[1]		= ((is_numeric($rc[1])) && (! is_nan($rc[1]))) ? $rc[1] : 0;
+	$rc[2]		= ((is_numeric($rc[2])) && (! is_nan($rc[2]))) ? $rc[2] : 0;
+	$rc[3]		= ((is_numeric($rc[3])) && (! is_nan($rc[3]))) ? $rc[3] : 0;
 
 	return $rc;
 }
@@ -2884,7 +2887,7 @@ function remove_config_iso($source) {
 
 /* Get an array of all unassigned disks. */
 function get_unassigned_disks() {
-	global $disks, $unraid_disks;
+	global $unraid_disks;
 
 	$ud_disks = $paths = array();
 
@@ -2922,7 +2925,7 @@ function get_all_disks_info() {
 		foreach ($ud_disks as $key => $disk) {
 			/* Get the device size. */
 			$size			= intval(trim(timed_exec(5, "/bin/lsblk -nb -o size ".escapeshellarg(realpath($key))." 2>/dev/null")));
-			$disk['size']	= (! is_nan($size)) ? $size : 0;
+			$disk['size']	= ((is_numeric($size)) && (! is_nan($size))) ? (int) $size : 0;
 
 			/* If the device size is not zero, then add as a UD device. */
 			if ($disk['size'] != 0) {
