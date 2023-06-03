@@ -402,9 +402,11 @@ _(User Script)_:
 
 <textarea spellcheck="false" cols="80" rows="22" name="text" title='_(Enter and Edit the Device Script that runs when a udev or operator event occurs)_.' style="width:80%"><?=$text;?></textarea>
 
-<?if ((is_file($file)) && (! $mounted)):?>
+<?if (! $mounted):?>
 <button type="button" title='_(Load the default Device Script)_.' onclick="setDefault(this.form)">_(Default)_</button>
+<?if (is_file($file)):?>
 <button type="button" title='_(Delete Device Script File)_.' onclick='rmfile("<?=$file;?>");'>_(Delete)_</button>
+<?endif;?>
 <?endif;?>
 <input type="reset" title='_(Undo your changes since last Save)_.' value='_(Reset)_'/>
 <input type="submit" title='_(Save your Device Script File changes)_.' value='_(Save)_'/>
