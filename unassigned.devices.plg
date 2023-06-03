@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.05.28a">
+<!ENTITY version	"2023.06.02">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"339039aeac09757a3060329558256632">
+<!ENTITY MD5		"c6248995bae2e3fb1745cb292ecd001a">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Php wanings.
+- Add: Change Unassigned Devices Settings to tabbed.
+- Add: Don't allow a remote share to be added as NFS and SMB shares at the same time.
+
+###2023.05.28a
 - Fix: Rework the .plg file to fix legacy smb-extra.conf entries not being removed, and issues with the protection mounts not setting reboot needed properly.
 - Add: UD Setting for time to delay when starting the array before mounting Remote Shares.  This is useful when the network is ready but the remote server may not be on-line yet.
 
@@ -394,7 +399,7 @@
 - Fix: Some devices installed in UD show up as Historical devices.
 - Fix: Revert back to a single nchan channel for page refresh instead of per session.
 
-###202.01.24a
+###2022.01.24a
 - Fix: Default mount point not always consistent.
 - Fix: Disk name would change to default devX when editing settings on any partition.  Disk Name only applies to the disk, not a partition.
 - Fix: Don't show bus type on historical devices.
