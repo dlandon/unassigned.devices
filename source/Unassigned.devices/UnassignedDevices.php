@@ -55,7 +55,7 @@ function render_used_and_free($partition) {
 	global $display;
 
 	/* Only show used and free when disk is mounted. */
-	if ($partition['target']) {
+	if ($partition['mounted']) {
 		$free_pct = $partition['size'] ? round(100*$partition['avail']/$partition['size']) : 0;
 		$used_pct = 100-$free_pct;
 
