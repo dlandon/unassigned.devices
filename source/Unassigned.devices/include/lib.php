@@ -448,14 +448,9 @@ function get_device_stats($mountpoint, $mounted, $active = true) {
 	}
 
 	$stats		= preg_split('/\s+/', $rc);
-	$stats[0]	= (! empty($stats[0])) ? $stats[0] : 0;
-	$stats[1]	= (! empty($stats[1])) ? $stats[1] : 0;
-	$stats[2]	= (! empty($stats[2])) ? $stats[2] : 0;
-
-	/* Be sure all are numbers. */
-	$stats[0]	= ((is_numeric($stats[0])) && (! is_nan($stats[0]))) ? $stats[0] : 0;
-	$stats[1]	= ((is_numeric($stats[1])) && (! is_nan($stats[1]))) ? $stats[1] : 0;
-	$stats[2]	= ((is_numeric($stats[2])) && (! is_nan($stats[2]))) ? $stats[2] : 0;
+	$stats[0]	= (isset($stats[0])) ? intval($stats[0]) : 0;
+	$stats[1]	= (isset($stats[1])) ? intval($stats[1]) : 0;
+	$stats[2]	= (isset($stats[2])) ? intval($stats[2]) : 0;
 
 	return $stats;
 }
@@ -515,8 +510,8 @@ function get_disk_reads_writes($ud_dev, $dev) {
 	if (is_file($sf)) {
 		$devs	= @parse_ini_file($sf, true);
 		if (isset($devs[$ud_dev])) {
-			$rc[0] = $devs[$ud_dev]['numReads'];
-			$rc[1] = $devs[$ud_dev]['numWrites'];
+			$rc[0] = intval($devs[$ud_dev]['numReads']);
+			$rc[1] = intval($devs[$ud_dev]['numWrites']);
 		}
 	}
 
@@ -528,16 +523,10 @@ function get_disk_reads_writes($ud_dev, $dev) {
 	$data		= explode(' ', $disk_io[$dev] ?? '0 0 0 0');
 
 	/* Read rate. */
-	$rc[2] 		= ($data[0] > 0.0) ? $data[0] : 0;
+	$rc[2] 		= ($data[0] > 0) ? intval($data[0]) : 0;
 
 	/* Write rate. */
-	$rc[3] 		= ($data[1] > 0.0) ? $data[1] : 0;
-
-	/* Be sure all values are numbers. */
-	$rc[0]		= ((is_numeric($rc[0])) && (! is_nan($rc[0]))) ? $rc[0] : 0;
-	$rc[1]		= ((is_numeric($rc[1])) && (! is_nan($rc[1]))) ? $rc[1] : 0;
-	$rc[2]		= ((is_numeric($rc[2])) && (! is_nan($rc[2]))) ? $rc[2] : 0;
-	$rc[3]		= ((is_numeric($rc[3])) && (! is_nan($rc[3]))) ? $rc[3] : 0;
+	$rc[3] 		= ($data[1] > 0) ? intval($data[1]) : 0;
 
 	return $rc;
 }
@@ -2356,15 +2345,15 @@ function get_samba_mounts() {
 				/* If this is a legacy samba mount indicate that it should be removed. */
 				$mount['invalid']		= false;
 				if ($string != $device) {
-					$mount['mountpoint'] = "-- Invalid Configuration - Remove and Re-add --";
+					$mount['mountpoint'] = "-- "._("Invalid Configuration - Remove and Re-add")." --";
 					$mount['invalid']	= true;
 				}
 
 				/* Get the disk size, used, and free stats. */
 				$stats					= get_device_stats($mount['mountpoint'], $mount['mounted'], $mount['is_alive']);
-				$mount['size']			= intval($stats[0])*1024;
-				$mount['used']			= intval($stats[1])*1024;
-				$mount['avail']			= intval($stats[2])*1024;
+				$mount['size']			= $stats[0]*1024;
+				$mount['used']			= $stats[1]*1024;
+				$mount['avail']			= $stats[2]*1024;
 
 				/* Target is set to the mount point when the device is mounted. */
 				$mount['target']		= $mount['mounted'] ? $mount['mountpoint'] : "";
@@ -2767,9 +2756,9 @@ function get_iso_mounts() {
 
 				$is_alive				= is_file($mount['file']);
 				$stats					= get_device_stats($mount['mountpoint'], $mount['mounted']);
-				$mount['size']			= intval($stats[0])*1024;
-				$mount['used']			= intval($stats[1])*1024;
-				$mount['avail']			= intval($stats[2])*1024;
+				$mount['size']			= $stats[0]*1024;
+				$mount['used']			= $stats[1]*1024;
+				$mount['avail']			= $stats[2]*1024;
 				$mount['command']		= get_iso_config($mount['device'],"command");
 				$mount['command_bg']	= get_iso_config($mount['device'],"command_bg");
 				$mount['prog_name']		= basename($mount['command'], ".sh");
@@ -2924,11 +2913,10 @@ function get_all_disks_info() {
 	if (is_array($ud_disks)) {
 		foreach ($ud_disks as $key => $disk) {
 			/* Get the device size. */
-			$size			= intval(trim(timed_exec(5, "/bin/lsblk -nb -o size ".escapeshellarg(realpath($key))." 2>/dev/null")));
-			$disk['size']	= ((is_numeric($size)) && (! is_nan($size))) ? (int) $size : 0;
+			$disk['size']	= intval(trim(timed_exec(5, "/bin/lsblk -nb -o size ".escapeshellarg(realpath($key))." 2>/dev/null")));
 
 			/* If the device size is not zero, then add as a UD device. */
-			if ($disk['size'] != 0) {
+			if ($disk['size'] > 0) {
 				/* Get all the disk partitions. */
 				$disk			= array_merge($disk, get_disk_info($key));
 				$disk['zvol']	= array();
@@ -3174,9 +3162,9 @@ function get_partition_info($dev) {
 		}
 
 		$stats					= get_device_stats($disk['mountpoint'], $disk['mounted']);
-		$disk['size']			= intval($stats[0])*1024;
-		$disk['used']			= intval($stats[1])*1024;
-		$disk['avail']			= intval($stats[2])*1024;
+		$disk['size']			= $stats[0]*1024;
+		$disk['used']			= $stats[1]*1024;
+		$disk['avail']			= $stats[2]*1024;
 		$disk['owner']			= (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
 		$disk['read_only']		= is_read_only($disk['serial']);
 		$usb					= (isset($attrs['ID_BUS']) && ($attrs['ID_BUS'] == "usb")) ? true : false;
@@ -3216,9 +3204,9 @@ function get_zvol_info($disk) {
 			$zvol[$vol]['mountpoint']		= $disk['mountpoint'].".".basename($q);
 			$zvol[$vol]['mounted']			= is_mounted($zvol[$vol]['mountpoint']);
 			$stats							= get_device_stats($zvol[$vol]['mountpoint'], $zvol[$vol]['mounted']);
-			$zvol[$vol]['size']				= intval($stats[0])*1024;
-			$zvol[$vol]['used']				= intval($stats[1])*1024;
-			$zvol[$vol]['avail']			= intval($stats[2])*1024;
+			$zvol[$vol]['size']				= $stats[0]*1024;
+			$zvol[$vol]['used']				= $stats[1]*1024;
+			$zvol[$vol]['avail']			= $stats[2]*1024;
 			$zvol[$vol]['read_only']		= is_read_only($serial, true, $vol);
 			$zvol[$vol]['target']			= $zvol[$vol]['mounted'] ? $zvol[$vol]['mountpoint'] : "";
 			$zvol[$vol]['pass_through']		= is_pass_through($serial, $vol);
