@@ -460,7 +460,7 @@ class Disks
 				}
 
 				$disk['FIRMWARE']	= $parse_smart($smartInfo, "Firmware Version");
-				$disk['SIZE']		= (! is_nan($current['SIZE'])) ? $current['SIZE'] : 0;
+				$disk['SIZE']		= intval($current['SIZE']);
 				$disk['SIZE_H']		= my_scale($disk['SIZE'], $unit, -1, -1)." {$unit}";
 				$disk["DEVICE"]		= $device;
 
