@@ -562,7 +562,7 @@ is_numeric() {
 	if [ ! -z "${_num##*[!0-9]*}" ]; then
 		eval "$1=$_num"
 	else
-		echo "$_var value [$_num] is not a number. Please verify your commad arguments.";
+		echo "$_var value [$_num] is not a number. Please verify your command arguments.";
 		exit 2
 	fi
 }
