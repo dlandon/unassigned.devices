@@ -193,11 +193,24 @@ function ping_servers() {
 /* Get the size, used, and free space on device. */
 function df_status($tc, $mountpoint) {
 
+	/* Get the status of the mounted device. */
 	$df_status	= (new MiscUD)->get_json($tc);
-	$rc			= trim(timed_exec(10, "/bin/df ".escapeshellarg($mountpoint)." --output=size,used,avail | /bin/grep -v '1K-blocks' 2>/dev/null"));
-	$df_status[$mountpoint] = array('timestamp' => time(), 'stats' => $rc);
 
+	/* Get the current stats if previously set. */
+	$rc	= (isset($df_status[$mountpoint])) ? $df_status[$mountpoint]['stats'] : "";
+
+	/* Save new time so the status will not be requested again in case it takes a while for df to work. */
+	$df_status[$mountpoint] = array('timestamp' => time(), 'stats' => $rc);
 	(new MiscUD)->save_json($tc, $df_status);
+
+	/* Get the new stats from df. */
+	$rc			= trim(timed_exec(10, "/bin/df ".escapeshellarg($mountpoint)." --output=size,used,avail | /bin/grep -v '1K-blocks' 2>/dev/null"));
+
+	/* Save the new stats if df doesn't time out. */
+	if ($rc) {
+		$df_status[$mountpoint] = array('timestamp' => time(), 'stats' => $rc);
+		(new MiscUD)->save_json($tc, $df_status);
+	}
 }
 
 switch ($COMMAND) {
