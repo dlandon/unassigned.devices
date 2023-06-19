@@ -436,11 +436,13 @@ function get_device_stats($mountpoint, $mounted, $active = true) {
 		$df_status	= (new MiscUD)->get_json($tc);
 		/* Run the stats script to update the state file. */
 		$df_status[$mountpoint]['timestamp']	= $df_status[$mountpoint]['timestamp'] ?? 0;
+
+		/* Update the size, used, and free status every 90 seconds on each device. */
 		if (($active) && ((time() - $df_status[$mountpoint]['timestamp']) > 90)) {
 			exec("plugins/".$plugin."/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." &");
 		}
 
-		/* Get the updated device stats. */
+		/* Get the device stats. */
 		$df_status	= (new MiscUD)->get_json($tc);
 		if (isset($df_status[$mountpoint])) {
 			$rc = $df_status[$mountpoint]['stats'];
@@ -2489,7 +2491,7 @@ function do_mount_samba($info) {
 					$o		= timed_exec(10, $cmd." 2>&1");
 				}
 
-				/* If the remote share didn't mount, try SMB 1.0 if netbios is enabled. */
+				/* If the remote share didn't mount, try SMB 1.0. */
 				if ((! is_mounted($dev)) && (strpos($o, "Permission denied") === false) && (strpos($o, "Network is unreachable") === false)) {
 					unassigned_log("SMB 2.0 mount failed: '".$o."'.");
 					/* If the mount failed, try to mount with samba vers=1.0. */
