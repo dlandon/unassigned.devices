@@ -96,7 +96,7 @@ function is_server_online($server, $log = false) {
 			$ip				= ((($ip_array[0] == $server) || ($srvr == $server)) && ((new MiscUD)->is_ip($ip))) ? $ip : "";
 
 			/* If arp did not return a valid IP address, look up the IP address using Local TLD. */
-			if (strpos($ip_arp, "no match found") === false) {
+			if ((! $ip) && (strpos($ip_arp, "no match found") === false)) {
 				$srvr		= $server.".".($local_tld ? $local_tld : "local");
 				$ip_local	= timed_exec(10, "/sbin/arp -an ".escapeshellarg($srvr)." 2>&1");
 				$ip_array	= explode(" ", $ip_local);
