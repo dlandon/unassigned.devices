@@ -227,7 +227,7 @@ function unassigned_mount() {
 				unassigned_log("Remote Share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = ((strpos($k, "pass") !== false) || ((strpos($k, "user") !== false) && (strpos($k, "user_command") === false))) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
 
 				/* Remove any special characters. */
-				$mount_device = basename($info['device'])."_".$info['fstype'];
+				$mount_device = safe_name($info['ip']."_".$info['path']);
 
 				/* Create mounting status file. */
 				addFile(sprintf($paths['mounting'], $mount_device));
@@ -287,10 +287,10 @@ function unassigned_mount() {
 				unassigned_log("ISO File share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
 
 				/* Remove any special characters. */
-				$mount_device = basename($info['device']);
+				$mount_device = safe_name(basename($info['device']));
 
 				/* Create mounting status file. */
-				addFile(sprintf($paths['mounting'], $info['device']));
+				addFile(sprintf($paths['mounting'], $mount_device));
 
 				unassigned_log("Mounting ISO File '{$info['device']}'...");
 

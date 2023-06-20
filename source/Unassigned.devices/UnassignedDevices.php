@@ -685,7 +685,7 @@ switch ($_POST['action']) {
 				} else {
 					$class	= ( isset($mount['disable_mount']) && ($mount['disable_mount']) ) ? "fa fa-ban" : "";
 					/* Remove special characters. */
-					$mount_device	= safe_name(basename($mount['device'])."_".$mount['fstype']);
+					$mount_device	= safe_name(basename($mount['ip'])."_".$mount['path']);
 					$is_mounting	= (new MiscUD)->get_mounting_status($mount_device);
 					$is_unmounting	= (new MiscUD)->get_unmounting_status($mount_device);
 					if ($is_mounting) {
@@ -756,8 +756,8 @@ switch ($_POST['action']) {
 				} else {
 					/* Remove special characters. */
 					$mount_device	= safe_name(basename($mount['device']));
-					$is_mounting	= (new MiscUD)->get_mounting_status($device);
-					$is_unmounting	= (new MiscUD)->get_unmounting_status($device);
+					$is_mounting	= (new MiscUD)->get_mounting_status($mount_device);
+					$is_unmounting	= (new MiscUD)->get_unmounting_status($mount_device);
 					if ($is_mounting) {
 						$o_remotes .= "<td><button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Mounting')."</button></td>";
 					} else if ($is_unmounting) {
