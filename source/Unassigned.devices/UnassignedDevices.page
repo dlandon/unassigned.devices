@@ -562,11 +562,14 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		$('div.spinner').html(unraid_logo);
 	});
 
+	/* Check for updated version and show banner if there is an update and user has not set for periodic update checks. */
+<?if (! $notify['version']):?>
 	$(function() {
 		if ( typeof caPluginUpdateCheck === "function" ) {
 			caPluginUpdateCheck("unassigned.devices.plg");
 		}
 	});
+<?endif;?>
 </script>
 
 <?=$Preclear ? $Preclear->html() : "";?>
