@@ -28,6 +28,7 @@ $background				= "yes";
 $partition				= "";
 $disk_setting			= true;
 $show_device_switches	= true;
+$script_disabled		= "";
 $user_disabled			= "";
 $default_file			= safe_filename("/boot/config/plugins/{$plugin}/".($_GET['l'] ? $_GET['l'].".sh" : ""));
 $fstype					= "";
@@ -172,6 +173,11 @@ if (isset($_GET['s'])) {
 	$ud_device			= $device;
 	$background_action	= "iso_background";
 	$disk_setting		= false;
+}
+
+/* If there is no device or user script file, then disable the user script field. */
+if ($mounted) {
+	$script_disabled = "disabled";
 }
 
 /* If there is no device or user script file, then disable the user script field. */
@@ -362,18 +368,25 @@ apfs _(Volume)_:
 : <input type="text" name="#volume" class="narrow" style="width:2%" maxlength="1" value="<?=$volume;?>" placeholder="0">
 <?endif;?>
 
-<?if ($fstype == "apfs"):?>
 :ud_apfs_volume_plug:
-> Enter the volume to mount on this apfs partition. Click **Save** to commit this setting.
+> Enter the volume to mount on this apfs partition.
 :end
+
+<?if (($disk_setting) && ($fstype != "zvol")):?>
+<input type="submit" value="_(Apply)_">
+<input type="button" value="_(Done)_" onclick="done()">
 <?endif;?>
+</form>
+
+<form markdown="1" name="edit_settings" method="POST" action="/update.php" target="progressFrame">
+<input type="hidden" name="#include" value="/webGui/include/update.file.php">
 
 <?if ($fstype != "zvol"):?>
 _(Device Script)_:
-: <input type="text" title='_(Enter Device Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this, '/boot/config/plugins/<?=$plugin;?>', 'sh');" autocomplete="off" value="<?=$file;?>" placeholder="_(Click the 'Default' button to select the default Device Script File)_">
+: <input type="text" title='_(Enter Device Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this, '/boot/config/plugins/<?=$plugin;?>', 'sh');" autocomplete="off" value="<?=$file;?>" placeholder="_(Click the 'Default' button to select the default Device Script File)_"  <?=$script_disabled;?>>
 
 :ud_edit_script_choose_name_plug:
-> This is the Script File that runs when the device is mounted. Choose your Script File name from the file selection dropdown, or enter your desired script.
+> This is the Script File that runs when the device is mounted. Choose your Script File name from the file selection dropdown, or enter your desired script.  This cannot be changed if the device is mounted.
 :end
 
 _(Run Device Script File in the background)_?
@@ -403,8 +416,9 @@ _(User Script)_:
 <textarea spellcheck="false" cols="80" rows="22" name="text" title='_(Enter and Edit the Device Script that runs when a udev or operator event occurs)_.' style="width:80%"><?=$text;?></textarea>
 
 <?if (! $mounted):?>
+<?if (! is_file($file)):?>
 <button type="button" title='_(Load the default Device Script)_.' onclick="setDefault(this.form)">_(Default)_</button>
-<?if (is_file($file)):?>
+<?else:?>
 <button type="button" title='_(Delete Device Script File)_.' onclick='rmfile("<?=$file;?>");'>_(Delete)_</button>
 <?endif;?>
 <?endif;?>
@@ -520,8 +534,8 @@ _(User Script)_:
 
 	function setDefault(form) {
 		/* Set the default values. */
-		form.elements['text'].value = <?=json_encode($default_text);?>;
-		form.elements['#file'].value = <?=json_encode($default_file);?>;
+		form.elements['text'].value		= <?=json_encode($default_text);?>;
+		form.elements['#file'].value	= <?=json_encode($default_file);?>;
 
 		/* Create a new 'change' event. */
 		var event = new Event('change');
