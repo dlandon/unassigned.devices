@@ -39,6 +39,8 @@ $ud_reload = "UD_reload";
 $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "no")) ? "disabled" : "";
 ?>
 
+<div class='pluginUpdate'></div>
+
 <script type="text/javascript" src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.ui.css')?>">
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.switchbutton.css')?>">
@@ -562,14 +564,12 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		$('div.spinner').html(unraid_logo);
 	});
 
-	/* Check for updated version and show banner if there is an update and user has not set for periodic update checks. */
-<?if ((! isset($notify['version'])) || (! $notify['version'])):?>
 	$(function() {
 		if ( typeof caPluginUpdateCheck === "function" ) {
-			caPluginUpdateCheck("unassigned.devices.plg");
+			caPluginUpdateCheck("unassigned.devices.plg",{element:".pluginUpdate"});
 		}
 	});
-<?endif;?>
+
 </script>
 
 <?=$Preclear ? $Preclear->html() : "";?>
