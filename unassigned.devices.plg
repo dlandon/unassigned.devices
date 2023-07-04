@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.06.21">
+<!ENTITY version	"2023.07.04">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"aef6455f6378a6737d4d26cfb9f4c11a">
+<!ENTITY MD5		"23d0f831cf6749ccd405d1e44f233bd6">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Changes to device settings to make it more consistent with normal Unraid GUI.
+- Fix: Show update notification in the UD page and not on the top when in 'Main'.
+
+###2023.06.21
 - Fix: Php warnings from my_scale().
 - Fix: 'get_ud_status' so 'df' commands used to get size, used, and free from devices won't stack up when the 'df' commands hang.
 - Fix: Using FQDN for remote shares not working properly to resolve the remote server IP address.
