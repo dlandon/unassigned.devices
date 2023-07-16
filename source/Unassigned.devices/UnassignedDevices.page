@@ -894,7 +894,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			<p><?=_('Select the Root Share');?>.</p>
 			<p><?=_('User Shares will allow access to User Shares, but the Root Share will not include Cache and Pool Device files');?>.</p>
 			<p><?=_('User and Pool Shares will include all files in User Shares, Cache and Pool Devices');?>.</p>
-			<p><?=_('Note: With User Shares, files on the Cache and Pool Devices will not show in the Root Share');?>.</p>
+			<p><?=_('Note');?>:&nbsp;<?= _('Exclusive Share files will not be accessible in a Root Share');?>.</p>
 		</div>
 	</div>
 
