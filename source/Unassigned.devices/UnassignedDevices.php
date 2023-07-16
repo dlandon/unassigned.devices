@@ -954,8 +954,13 @@ switch ($_POST['action']) {
 				}
 				$ser		= $serial;
 				$ser		.= $dev ?  " (".$dev.")" : "";	
-				unassigned_log("Set Disk Name on '".$ser."' to '".$name."'");
-				$result		= set_config($serial, "unassigned_dev", $name);
+				$old_name	= get_config($serial, "unassigned_dev");
+				if (($old_name) != ($name)) {
+					unassigned_log("Set Disk Name on '".$ser."' to '".$name."'");
+					$result	= set_config($serial, "unassigned_dev", $name);
+				} else {
+					$result	=true;
+				}
 				echo json_encode(array( 'result' => $result ));
 			} else {
 				echo json_encode(array( 'result' => false ));
