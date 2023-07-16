@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.07.04">
+<!ENTITY version	"2023.07.16">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"23d0f831cf6749ccd405d1e44f233bd6">
+<!ENTITY MD5		"65bf27a5e89516646d5117a64a88f9ec">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,15 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Device in password setting on apfs file system not showing on drop down.
+- Fix: Add note about Exclusive Share files not accessible in a root share.
+- Fix: Form issue in Device Settings where a switch activates the 'Apply' button under the Disk Name.
+- Fix: Remove redundant 'Done' button in Device Settings.
+- Fix: Help text in Device Settings doesn't display correctly.
+- Fix: Delete of the script file could sometimes be the wrong file if a file is selected from the drop down.
+- Fix: Some rewrite of the Device Settings to be more intuitive.
+
+###2023.07.04
 - Fix: Changes to device settings to make it more consistent with normal Unraid GUI.
 - Fix: Show update notification in the UD page and not on the top when in 'Main'.
 
@@ -53,7 +62,7 @@
 - Add: Don't permit script file 'Default' operation in Edit Device Settings when a device is mounted.
 
 ###2023.05.06
-- Fix: IOS files mounting to the wrong mount point.
+- Fix: ISO files mounting to the wrong mount point.
 - Fix: Change ISO mount point not showing the correct mount point after changing.
 - Fix: Change some log text when mounting a disk device.
 - Fix: Additional check for an incorrect ISO configuration requiring removal and re-add.
