@@ -175,7 +175,12 @@ if (isset($_GET['s'])) {
 	$disk_setting		= false;
 }
 
-/* If there is no device or user script file, then disable the user script field. */
+/* If there is not file, then set the default file. */
+if (! $file) {
+	$file	= $default_file;
+}
+
+/* If the disk is mounted, disable the device script file field. */
 if ($mounted) {
 	$script_disabled = "disabled";
 }
@@ -271,7 +276,7 @@ EOT;
 	}
 </style>
 
-<form markdown="1" name="edit_settings" method="POST" action="/update.php" target="progressFrame">
+<form markdown="1" name="switch_settings" method="POST" action="/update.php" target="progressFrame">
 <input type="hidden" name="#include" value="/webGui/include/update.file.php">
 
 <?if ($disk_setting):?>
@@ -326,34 +331,42 @@ EOT;
 <?endif;?>
 
 :ud_edit_script_device_settings_plug:
-> Select the options for this device/mount point.  These changes are made immediately.  You don't need to click **Save** to save them.
+> Select the options for this device/mount point.
 :end
 
 <?if (($disk_setting) && ($fstype != "zvol") && (isset($_GET['s'])) && (isset($_GET['m'])) && (! $mounted) && (! $is_preclearing) && (! is_pass_through($_GET['s'])) && ($host) && ($connected)):?>
 <button type="button" id="detach" title='_(Detach This Disk)_.' onclick='detach_disk("<?=$device;?>");'>_(Detach)_</button>
+
+:ud_edit_script_detach_plug:
+> Click **Detach** to detach the device.  The device will then show in Historical Devices and can be Attached from the device settings there.
+:end
 <?endif;?>
 <?if (isset($_GET['s']) && (! isset($_GET['m'])) && ($host) && (! $connected)):?>
 <button type="button" id="attach" title='_(Attach This Disk)_.' onclick='attach_disk("<?=$_GET['s'];?>");'>_(Attach)_</button>
+
+:ud_edit_script_attach_plug:
+> Click **Attach** to attach a device that has been detached.  This will act like the device was just installed and will auto mount if 'Auto Mount' is on.  It will take a while for the device to show up in UD.
+:end
 <?endif;?>
 <?if ((is_script_running($file)) && (isset($_GET['m']))):?>
 <button type="button" title='_(Abort Device Script)_.' onclick='abort_script("<?=$file;?>");'>_(Abort)_</button>
-<?endif;?>
-<button type="button" onclick="done()">_(Done)_</button>
 
-:ud_edit_script_attach_detach_plug:
-> Click **Detach** to detach the device.  The device will then show in Historical Devices and can be Attached from the device settings there.
->
-> Click **Attach** to attach a device that has been detached.  This will act like the device was just installed and will auto mount if 'Auto Mount' is on.  It will take a while for the device to show up in UD.
->
-> Click **Done** to exit this page.
+:ud_edit_script_abort_plug:
+> Click **Abort** to abort the device script.
 :end
+<?endif;?>
+
+</form>
+
+<form markdown="1" name="device_settings" method="POST" action="/update.php" target="progressFrame">
+<input type="hidden" name="#include" value="/webGui/include/update.file.php">
 
 <?if (($disk_setting) && ($fstype != "zvol")):?>
 _(Disk Name)_:
 : <input type="text" name="#name" class="narrow" style="width:8%" maxlength="8" value="<?=$name;?>">
 <?endif;?>
 
-<?if ($disk_setting):?>
+<?if (($disk_setting) && ($fstype != "zvol")):?>
 :ud_disk_name_plug:
 > Enter the alias name for this device.  This is the name you want to use to refer to this drive.  Leave the name blank and the 'devX' will be assigned.
 >
@@ -364,33 +377,29 @@ _(Disk Name)_:
 <?endif;?>
 
 <?if (($fstype == "apfs") && (! $mounted)):?>
-apfs _(Volume)_:
-: <input type="text" name="#volume" class="narrow" style="width:2%" maxlength="1" value="<?=$volume;?>" placeholder="0">
+_(Volume)_:
+: <input type="text" name="#volume" class="narrow" style="width:2%" maxlength="1" value="<?=$volume;?>" placeholder="0">_(Enter the volume to mount on this apfs partition)_.
 <?endif;?>
-
-:ud_apfs_volume_plug:
-> Enter the volume to mount on this apfs partition.
-:end
 
 <?if (($disk_setting) && ($fstype != "zvol")):?>
 <input type="submit" value="_(Apply)_">
-<input type="button" value="_(Done)_" onclick="done()">
 <?endif;?>
+<input type="button" value="_(Done)_" onclick="done()">
 </form>
 
-<form markdown="1" name="edit_settings" method="POST" action="/update.php" target="progressFrame">
+<form markdown="1" name="edit_script" method="POST" action="/update.php" target="progressFrame">
 <input type="hidden" name="#include" value="/webGui/include/update.file.php">
 
 <?if ($fstype != "zvol"):?>
 _(Device Script)_:
-: <input type="text" title='_(Enter Device Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this, '/boot/config/plugins/<?=$plugin;?>', 'sh');" autocomplete="off" value="<?=$file;?>" placeholder="_(Click the 'Default' button to select the default Device Script File)_"  <?=$script_disabled;?>>
+: <input type="text" title='_(Enter Device Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this, '/boot/config/plugins/<?=$plugin;?>', 'sh');" autocomplete="off" value="<?=$file;?>" placeholder="_(Click to select file or click 'Default' button for the Device Script File)_" <?=$script_disabled;?>>
 
 :ud_edit_script_choose_name_plug:
 > This is the Script File that runs when the device is mounted. Choose your Script File name from the file selection dropdown, or enter your desired script.  This cannot be changed if the device is mounted.
 :end
 
 _(Run Device Script File in the background)_?
-: <select name="#background" size="1">
+: <select name="#background" size="1" <?=$script_disabled;?>>
   <?=mk_option($background, "yes", "_(Yes)_");?>
   <?=mk_option($background, "no", "_(No)_");?>
   </select>
@@ -418,22 +427,25 @@ _(User Script)_:
 <?if (! $mounted):?>
 <?if (! is_file($file)):?>
 <button type="button" title='_(Load the default Device Script)_.' onclick="setDefault(this.form)">_(Default)_</button>
-<?else:?>
-<button type="button" title='_(Delete Device Script File)_.' onclick='rmfile("<?=$file;?>");'>_(Delete)_</button>
-<?endif;?>
-<?endif;?>
 <input type="reset" title='_(Undo your changes since last Save)_.' value='_(Reset)_'/>
 <input type="submit" title='_(Save your Device Script File changes)_.' value='_(Save)_'/>
-<button type="button" onclick="done()">_(Done)_</button>
+<?else:?>
+<button type="button" title='_(Delete Device Script File)_.' onclick='rmfile();'>_(Delete)_</button>
+<?endif;?>
+<?endif;?>
+<input type="submit" title='_(Save your Device Script File)_.' value='_(Apply)_'/>
+<input type="button" value="_(Done)_" onclick="done()">
 
 :ud_edit_script_buttons_plug:
 > Click **Default** to initialize the edit box with a default Device Script. You still need to click **Save** in order to commit the change.
+>
+> Click **Save** to save your Device Script file.
 >
 > Click **Delete** to delete the Device Script file.
 >
 > Click **Reset** to undo any changes you make (before Saving).
 >
-> Click **Save** to commit the current edits.
+> Click **Apply** to commit the current edits.
 >
 > Click **Done** to exit this page.
 :end
@@ -585,8 +597,8 @@ _(User Script)_:
 		}
 	}
 
-	function rmfile(file) {
-		$.post("/update.php",{"#command":"/plugins/unassigned.devices/scripts/rm","#arg[1]":file}).done(function(){location.reload();});
+	function rmfile() {
+		$.post("/update.php",{"#command":"/plugins/unassigned.devices/scripts/rm","#arg[1]":$("input[name='#file']").val()}).done(function(){location.reload();});
 	}
 
 	function detach_disk(device) {
