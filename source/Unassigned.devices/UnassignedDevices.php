@@ -959,17 +959,18 @@ switch ($_POST['action']) {
 					unassigned_log("Set Disk Name on '".$ser."' to '".$name."'");
 					$result	= set_config($serial, "unassigned_dev", $name);
 				} else {
-					$result	=true;
+					$result	= true;
 				}
-				echo json_encode(array( 'result' => $result ));
 			} else {
 				unassigned_log("Warning: Disk Name cannot be a device designation.");
-				echo json_encode(array( 'result' => false ));
+				$result		= false;
 			}
 		} else {
 			unassigned_log("Error: Disk Name '".$name."' is already being used on another device.");
-			echo json_encode(array( 'result' => false ));
+			$result		= false;
 		}
+
+		echo json_encode(array( 'result' => $result ));
 		break;
 
 	case 'remove_config':
@@ -1446,7 +1447,12 @@ switch ($_POST['action']) {
 		$device			= urldecode($_POST['device']);
 		$fstype			= urldecode($_POST['fstype']);
 		$mountpoint		= basename(safe_name(urldecode($_POST['mountpoint']), false));
-		$result			= change_mountpoint($serial, $partition, $device, $fstype, $mountpoint);
+		if ((strtoupper(substr($mountpoint, 0, 3)) != "DEV") && (strtoupper(substr($mountpoint, 0, 2)) != "SD")) {
+			$result		= change_mountpoint($serial, $partition, $device, $fstype, $mountpoint);
+		} else {
+			unassigned_log("Warning: Mount Point cannot be a device designation.");
+			$result		= false;
+		}
 		echo json_encode($result);
 		break;
 
