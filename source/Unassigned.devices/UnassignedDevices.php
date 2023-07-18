@@ -947,27 +947,29 @@ switch ($_POST['action']) {
 		unset($disk_names[$serial]);
 
 		/* Is the name already being used? */
-		if (! in_array($name, $disk_names)) {
+		$dev_name	= get_disk_dev($dev);
+		$result		= true;
+		if ($name != $dev_name) {
 			if ((! $name) || (strtoupper(substr($name, 0, 3)) != "DEV") && (strtoupper(substr($name, 0, 2)) != "SD")) {
-				if (! $name) {
-					$name	= get_disk_dev($dev);
-				}
-				$ser		= $serial;
-				$ser		.= $dev ?  " (".$dev.")" : "";	
-				$old_name	= get_config($serial, "unassigned_dev");
-				if (($old_name) != ($name)) {
-					unassigned_log("Set Disk Name on '".$ser."' to '".$name."'");
-					$result	= set_config($serial, "unassigned_dev", $name);
+				if (! in_array($name, $disk_names)) {
+					if (! $name) {
+						$name	= $dev_name;
+					}
+					$ser		= $serial;
+					$ser		.= $dev ?  " (".$dev.")" : "";	
+					$old_name	= get_config($serial, "unassigned_dev");
+					if (($old_name) != ($name)) {
+						unassigned_log("Set Disk Name on '".$ser."' to '".$name."'");
+						$result	= set_config($serial, "unassigned_dev", $name);
+					}
 				} else {
-					$result	= true;
+					unassigned_log("Error: Disk Name '".$name."' is already being used on another device.");
+					$result		= false;
 				}
 			} else {
-				unassigned_log("Warning: Disk Name cannot be a device designation.");
+				unassigned_log("Warning: Disk Name cannot be a another device designation.");
 				$result		= false;
 			}
-		} else {
-			unassigned_log("Error: Disk Name '".$name."' is already being used on another device.");
-			$result		= false;
 		}
 
 		echo json_encode(array( 'result' => $result ));
