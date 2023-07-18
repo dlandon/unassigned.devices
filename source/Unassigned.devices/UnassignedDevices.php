@@ -948,7 +948,7 @@ switch ($_POST['action']) {
 
 		/* Is the name already being used? */
 		if (! in_array($name, $disk_names)) {
-			if ((! $name) || (substr($name, 0, 3) != "dev") && (substr($name, 0, 2) != "sd")) {
+			if ((! $name) || (strtoupper(substr($name, 0, 3)) != "DEV") && (strtoupper(substr($name, 0, 2)) != "SD")) {
 				if (! $name) {
 					$name	= get_disk_dev($dev);
 				}
@@ -963,6 +963,7 @@ switch ($_POST['action']) {
 				}
 				echo json_encode(array( 'result' => $result ));
 			} else {
+				unassigned_log("Warning: Disk Name cannot be a device designation.");
 				echo json_encode(array( 'result' => false ));
 			}
 		} else {
