@@ -190,6 +190,11 @@ if ((! file_exists($file)) || (! is_dir("/boot/config/plugins/user.scripts/scrip
 	$user_disabled = "disabled";
 }
 
+/* Show that the device is currently mounted. */
+if ($mounted) {
+	$mount_point	.= " <strong>(mounted)</strong>";
+}
+
 $text			= (file_exists($file)) ? @file_get_contents($file) : "";
 
 $default_text	= <<<EOT
@@ -286,9 +291,8 @@ EOT;
 <?endif;?>
 <?if (($disk_setting) && ($fstype == "zvol")):?>
 <p><strong>_(ZFS Volume)_: </strong><?=$zfs_volume;?></p>
-<?else:?>
-<p><strong>_(Mount Point)_: </strong><?=$mount_point;?></p>
 <?endif;?>
+<p><strong>_(Mount Point)_: </strong><?=$mount_point;?></p>
 
 <table style='width: <?=$width;?>;' class='usb_disks'><thead><tr><td></td><td></td><td></td><td></td><td></td><td></td></tr></thead>
 <tr>
