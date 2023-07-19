@@ -191,6 +191,7 @@ if ((! file_exists($file)) || (! is_dir("/boot/config/plugins/user.scripts/scrip
 }
 
 /* Show that the device is currently mounted. */
+$mount_point		= basename($mount_point);
 if ($mounted) {
 	$mount_point	.= " <strong>(mounted)</strong>";
 }

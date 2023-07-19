@@ -223,7 +223,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$serial		= $partition['serial'];
 		$id_bus		= $disk['id_bus'];
 		if (! $disk['array_disk']) {
-			$out[]		= "<td><a class='info' href='/Main/EditDeviceSettings?s=".$serial."&b=".$device."&f=".$fstype."&l=".basename($partition['mountpoint'])."&p=".$partition['part']."&m=".json_encode($partition)."&t=".$disk_line."&u=".$id_bus."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+			$out[]		= "<td><a class='info' href='/Main/EditDeviceSettings?s=".$serial."&b=".$device."&f=".$fstype."&l=".$partition['mountpoint']."&p=".$partition['part']."&m=".json_encode($partition)."&t=".$disk_line."&u=".$id_bus."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 		} else {
 			$out[]		= "<td><i class='fa fa-gears' disabled></i></td>";
 		}
@@ -295,7 +295,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 					$id_bus	= "";
 
 					if (($z['active']) && ($fstype)) {
-						$out[]	= "<td><a class='info' href='/Main/EditDeviceSettings?s=".$serial."&b=".$volume."&f=".$z['fstype']."&l=".basename($z['mountpoint'])."&p=".$volume."&m=".json_encode($z)."&t=false&u=".$id_bus."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+						$out[]	= "<td><a class='info' href='/Main/EditDeviceSettings?s=".$serial."&b=".$volume."&f=".$z['fstype']."&l=".$z['mountpoint']."&p=".$volume."&m=".json_encode($z)."&t=false&u=".$id_bus."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 						$out[]	= "<td>".$fstype."</td>";
 						$out[]	= "<td>".my_scale($z['size'], $unit)." $unit</td>";
 					} else {
