@@ -1216,19 +1216,25 @@ switch ($_POST['action']) {
 		}
 
 		if ($rc) {
-			$device	= ($protocol == "NFS") ? $ip.":".safe_name($path, false, true) : "//".strtoupper($ip)."/".$share;
-			$device	= str_replace("$", "", $device);
-			set_samba_config($device, "protocol", $protocol);
-			set_samba_config($device, "ip", ((new MiscUD)->is_ip($ip) ? $ip : strtoupper($ip)));
-			set_samba_config($device, "path", $path);
+			/* Don't save any information if the share is blank. */
+			if (! empty($share)) {
+				$device	= ($protocol == "NFS") ? $ip.":".safe_name($path, false, true) : "//".strtoupper($ip)."/".$share;
+				$device	= str_replace("$", "", $device);
+				set_samba_config($device, "protocol", $protocol);
+				set_samba_config($device, "ip", ((new MiscUD)->is_ip($ip) ? $ip : strtoupper($ip)));
+				set_samba_config($device, "path", $path);
 
-			if ($protocol == "SMB") {
-				set_samba_config($device, "user", $user);
-				set_samba_config($device, "domain", $domain);
-				set_samba_config($device, "pass", encrypt_data($pass));
+				if ($protocol == "SMB") {
+					set_samba_config($device, "user", $user);
+					set_samba_config($device, "domain", $domain);
+					set_samba_config($device, "pass", encrypt_data($pass));
+				}
+
+				set_samba_config($device, "share", $share);
+			} else {
+				unassigned_log("Warning: share cannot be blank.");
+				$rc	= false;
 			}
-
-			set_samba_config($device, "share", $share);
 		} else {
 			unassigned_log("Warning: '".$share."' is already added as a '".$same_protocol."' share.");
 		}
