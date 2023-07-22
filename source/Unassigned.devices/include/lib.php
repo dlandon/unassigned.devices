@@ -2298,7 +2298,8 @@ function get_samba_mounts() {
 				$mount['ip']			= $mount['ip'] ?? "";
 				$mount['protocol']		= $mount['protocol'] ?? "";
 				$mount['path']			= $mount['path'] ?? "";
-				$mount['share']			= safe_name($mount['share'], false, true) ?? "";
+				$mount['share']			= $mount['share'] ?? "";
+				$mount['share']			= safe_name($mount['share'], false, true);
 
 				/* Set the mount protocol. */
 				if ($mount['protocol'] == "NFS") {
