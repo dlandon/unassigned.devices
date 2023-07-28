@@ -1810,7 +1810,9 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 	$pool_name	= ($zfs) ? (new MiscUD)->zfs_pool_name($dir, true) : "";
 	$mounted	= (($zfs) && ($pool_name)) ? (is_mounted($pool_name) || is_mounted($dir)) : (is_mounted($dev) || is_mounted($dir));
 	if ($mounted) {
-		if (! $force) {
+
+		/* Sync file system to be sure all devices are up to date. */
+		if ((! $force) || (($force) && (! $smb) && (! $nfs))) {
 			unassigned_log("Synching file system on '".$dir."'.");
 			if ($zfs) {
 				exec("/usr/sbin/zpool sync ".escapeshellarg($pool_name)." 2>/dev/null");
