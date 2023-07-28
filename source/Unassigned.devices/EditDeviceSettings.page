@@ -304,7 +304,7 @@ EOT;
 <?if (! $mounted):?>
 <td title='_(Mark this Device as passed through to a VM or Docker Container)_.'><a><input type='checkbox' class='passthrough-switch'></a></td>
 <?endif;?>
-<td title='_(Disable Mount/Unmount Buttons)_.'><a><input type='checkbox' class='disable-mount-switch'></a></td>
+<td title='_(Disable Mount and Unmount Button)_.'><a><input type='checkbox' class='disable-mount-switch'></a></td>
 <td title='_(Mount Device Read only)_.'><a><input type='checkbox' class='readonly-switch'></a></td>
 <?if ($fstype != "zvol"):?>
 <td title='_(Mount Device when Plugged in or Array is Started)_.'><a><input type='checkbox' class='automount-switch'></a></td>
@@ -313,7 +313,7 @@ EOT;
 <?endif;?>
 
 <?if (isset($_GET['d'])):?>
-<td title='_(Disable Mount/Unmount Buttons)_.'><a><input type='checkbox' class='disable-mount-switch'></a></td>
+<td title='_(Disable Mount and Unmount Button)_.'><a><input type='checkbox' class='disable-mount-switch'></a></td>
 <td title='_(Mount Remote Share Read only)_.'><a><input type='checkbox' class='readonly-switch'></a></td>
 <td title='_(Mount Remote SMB or NFS Share when Array is Started)_.'><a><input type='checkbox' class='automount-switch'></a></td>
 <?endif;?>
@@ -336,7 +336,7 @@ EOT;
 <?endif;?>
 
 :ud_edit_script_device_settings_plug:
-> Select the options for this device/mount point.
+> Select the options for this device and mount point.
 :end
 
 <?if (($disk_setting) && ($fstype != "zvol") && (isset($_GET['s'])) && (isset($_GET['m'])) && (! $mounted) && (! $is_preclearing) && (! is_pass_through($_GET['s'])) && ($host) && ($connected)):?>
@@ -415,7 +415,7 @@ _(Run Device Script File in the background)_?
 
 <? if (! isset($_GET['i'])):?>
 _(User Script)_:
-: <input type="text" title='_(Enter User Script File Name)_.' name="#user_file" style="width:40%;" onclick="openFileBrowser(this, '/boot/config/plugins/user.scripts/scripts', '', false);" autocomplete="off" placeholder="_(Enter the User Script that will be using this device)_" value="<?=$user_file;?>" <?=$user_disabled;?>>
+: <input type="text" title='_(Enter the User Script File Name)_.' name="#user_file" style="width:40%;" onclick="openFileBrowser(this, '/boot/config/plugins/user.scripts/scripts', '', false);" autocomplete="off" placeholder="_(Enter the User Script that will be using this device)_" value="<?=$user_file;?>" <?=$user_disabled;?>>
 <?endif;?>
 
 <? if (! isset($_GET['i'])):?>
@@ -433,12 +433,12 @@ _(User Script)_:
 <?if (! is_file($file)):?>
 <button type="button" title='_(Load the default Device Script)_.' onclick="setDefault(this.form)">_(Default)_</button>
 <input type="reset" title='_(Undo your changes since last Save)_.' value='_(Reset)_'/>
-<input type="submit" title='_(Save your Device Script File changes)_.' value='_(Save)_'/>
+<input type="submit" title='_(Save your Device Script File)_.' value='_(Save)_'/>
 <?else:?>
 <button type="button" title='_(Delete Device Script File)_.' onclick='rmfile();'>_(Delete)_</button>
 <?endif;?>
 <?endif;?>
-<input type="submit" title='_(Save your Device Script File)_.' value='_(Apply)_'/>
+<input type="submit" title='_(Save your Device Script File changes)_.' value='_(Apply)_'/>
 <input type="button" value="_(Done)_" onclick="done()">
 
 :ud_edit_script_buttons_plug:
