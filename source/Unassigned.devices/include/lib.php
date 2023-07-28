@@ -1430,7 +1430,7 @@ function is_mounted($dev) {
 	$rc = false;
 	if ($dev) {
 		$dev_lookup	= (strpos($dev, "/dev/mapper") !== false) ? basename($dev) : $dev;
-		$data		= timed_exec(1, "/usr/bin/cat /proc/mounts | awk '{print $1 \",\" $2}'");
+		$data		= timed_exec(2, "/usr/bin/cat /proc/mounts | awk '{print $1 \",\" $2}'");
 		$data		= str_replace("\\040", " ", $data);
 		$data		= str_replace("\n", ",", $data);
 		$rc			= (strpos($data, $dev_lookup.",") !== false) ? true : false;
@@ -1445,7 +1445,7 @@ function is_mounted_read_only($dev) {
 	$rc = false;
 	if ($dev) {
 		$dev_lookup	= (strpos($dev, "/dev/mapper") !== false) ? basename($dev) : $dev;
-		$data		= timed_exec(1, "/usr/bin/cat /proc/mounts | awk '{print $2 \",\" toupper(substr($4,0,2))}'");
+		$data		= timed_exec(2, "/usr/bin/cat /proc/mounts | awk '{print $2 \",\" toupper(substr($4,0,2))}'");
 		$data		= str_replace("\\040", " ", $data);
 		$rc			= (strpos($data, $dev_lookup.",RO") !== false) ? true : false;
 	}
