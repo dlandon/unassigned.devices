@@ -471,6 +471,10 @@ function unassigned_umount() {
 
 	/* Unmount Remote SMB/NFS mounts. */
 	if (strpos($DEVNAME, "//") === 0 || strpos($DEVNAME, ":/") || $DEVNAME == "auto" || $DEVNAME == "all") {
+		/* Update all share servers ping status. */
+		exec("plugins/unassigned.devices/scripts/get_ud_stats ping");
+
+		/* Unmount every samba mount. */
 		foreach (get_samba_mounts() as $info) {
 			$device = $info['device'];
 			if ( $DEVNAME == $device || $DEVNAME == "auto" || $DEVNAME == "all" ) {
@@ -479,7 +483,10 @@ function unassigned_umount() {
 				}
 				unassigned_log("Remote SMB/NFS share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
 
-				$force_unmount = $info['fstype'] == "root" ? false : ($info['is_alive'] ? $force : true);
+				/* See if the root share server is online now. */
+				$is_alive = is_samba_server_online($info['ip']);
+
+				$force_unmount = $info['fstype'] == "root" ? false : ($is_alive ? $force : true);
 
 				/* Unmount the remote share if it is mounted. */
 				$dev	= $info['fstype'] == "root" ? $info['mountpoint'] : $info['device'];
