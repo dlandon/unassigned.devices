@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.07.16">
+<!ENTITY version	"2023.07.28">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"65bf27a5e89516646d5117a64a88f9ec">
+<!ENTITY MD5		"d205805bababced47d2b83159a13a50f">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,16 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Ignore case when checking for device designators in Disk Name.
+- Fix: Issue where shutting down the array and restarting then causes issues with spin down on disks and detaching disks.
+- Fix: Sync disk file systems was not working when the server is rebooted.
+- Fix: Clean up handling of shut down semaphore file.
+- Fix: Increase timeout when checking mounts file for mounted status.
+- Add: Warning when adding a remote share if the share is blank.
+- Add: Add warning about using device designators in Mount Point.
+- Add: Warning about using another device's 'dev' designation in the Disk Name.
+
+###2023.07.16
 - Fix: Device in password setting on apfs file system not showing on drop down.
 - Fix: Add note about Exclusive Share files not accessible in a root share.
 - Fix: Form issue in Device Settings where a switch activates the 'Apply' button under the Disk Name.
