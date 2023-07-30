@@ -329,7 +329,7 @@ function make_mount_button($device) {
 		$format			= ((! count($device['partitions'])) && (! $pass_through)) ? true : false;
 		$disable		= count(array_filter($device['partitions'], function($p){ if (! empty($p['fstype'])) return true;})) ? "" : "disabled";
 		$context		= "disk";
-		$pool_disk		= isset($device['partitions'][0]['pool']) ? $device['partitions'][0]['pool'] : false;
+		$pool_disk		= isset($device['partitions'][0]['pool']) ? $device['partitions'][0]['pool'] : ((isset($device['fstype']) && ($device['fstype'])) ? true : false);
 		$disable_mount	= isset($device['partitions'][0]['disable_mount']) ? $device['partitions'][0]['disable_mount'] : false;
 		$not_unmounted	= isset($device['partitions'][0]['not_unmounted']) ? $device['partitions'][0]['not_unmounted'] : false;
 		if ((new MiscUD)->is_device_nvme($device['device'])) {
@@ -483,7 +483,7 @@ switch ($_POST['action']) {
 				/* Set up the preclear link for preclearing a disk. */
 				$is_mounting	= (new MiscUD)->get_mounting_status(basename($disk['device']));
 				$is_formatting	= (new MiscUD)->get_formatting_status(basename($disk['device']));
-				$preclear_link	= (($disk['size'] !== 0) && (! $file_system) && (! $mounted) && (! $is_formatting) && ($Preclear) && (! $preclearing) && (! $disk['array_disk']) && (! $disk['pass_through'])) ? "&nbsp;&nbsp;".$Preclear->Link($disk_device, "icon") : "";
+				$preclear_link	= (($disk['size'] !== 0) && (! $file_system) && (! $mounted) && (! $is_formatting) && ($Preclear) && (! $preclearing) && (! $disk['array_disk']) && (! $disk['pass_through']) && (! $disk['fstype'])) ? "&nbsp;&nbsp;".$Preclear->Link($disk_device, "icon") : "";
 
 				/* Add the clear disk icon. */
 				$parted			= file_exists("/usr/sbin/parted");

@@ -3052,6 +3052,7 @@ function get_disk_info($dev) {
 	$disk['device']				= realpath($dev);
 	$disk['serial']				= get_disk_id($disk['device'], trim($attrs['ID_SERIAL']));
 	$disk['id_bus']				= isset($attrs['ID_BUS']) ? $attrs['ID_BUS'] : "";
+	$disk['fstype']				= isset($attrs['ID_FS_TYPE']) ? $attrs['ID_FS_TYPE'] : "";
 	$disk['ud_dev']				= get_disk_dev($disk['device']);
 	$disk['unassigned_dev']		= get_config($disk['serial'], "unassigned_dev");
 	$disk['ssd']				= is_disk_ssd($disk['device']);
