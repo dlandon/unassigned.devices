@@ -141,6 +141,7 @@ if (version_compare($version['version'], '6.12.0-beta5', '>')) {
 		}
 	}
 
+	/* Check for updated version and show banner if there is an update. */
 	$(function() {
 		if ( typeof caPluginUpdateCheck === "function" ) {
 			caPluginUpdateCheck("unassigned.devices.preclear.plg");
