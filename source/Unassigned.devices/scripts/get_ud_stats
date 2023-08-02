@@ -187,10 +187,10 @@ function ping_servers() {
 
 			/* Update server ping status if it has changed. */
 			if ($changed) {
-				$ping_status	= (new MiscUD)->get_json($tc);
-				$no_pings		= $ping_status[$server]['no_pings'];
-				$online			= $ping_status[$server]['online'];
-				$ping_status[$server] = array('no_pings' => $no_pings, 'online' => $online, 'changed' => 'no');
+				$ping_status			= (new MiscUD)->get_json($tc);
+				$no_pings				= $ping_status[$server]['no_pings'];
+				$online					= $ping_status[$server]['online'];
+				$ping_status[$server]	= array('no_pings' => $no_pings, 'online' => $online, 'changed' => 'no');
 				(new MiscUD)->save_json($tc, $ping_status);
 			}
 		}
