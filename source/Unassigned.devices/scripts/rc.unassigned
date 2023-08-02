@@ -392,10 +392,6 @@ function unassigned_umount() {
 
 						unassigned_log("Unmounting partition '".basename($info['device'])."' at mountpoint '{$info['mountpoint']}'...");
 
-						/* Remove smb and nfs shares for this device. */
-						rm_smb_share($info['target']);
-						rm_nfs_share($info['target']);
-
 						/* Execute device script with unmount action. */
 						execute_script($info, "UNMOUNT");
 
@@ -429,6 +425,10 @@ function unassigned_umount() {
 							if ($info['fstype'] == "crypto_LUKS" ) {
 								exec("/sbin/cryptsetup luksClose ".basename($info['device'])." 2>/dev/null");
 							}
+
+							/* Remove smb and nfs shares for this device. */
+							rm_smb_share($info['target']);
+							rm_nfs_share($info['target']);
 
 							/* Execute device script with remove action. */
 							execute_script($info, "REMOVE");
@@ -550,11 +550,12 @@ function unassigned_umount() {
 					/* Unmount the iso file. */
 					if ( do_unmount($info['mountpoint'], $info['mountpoint'], $force) ) {
 						/* Remove the smb and nfs shares. */
-						if ( rm_smb_share($info['mountpoint']) && rm_nfs_share($info['mountpoint']) ) {
-							/* Execute the iso file script with the remove action. */
-							execute_script($info, "REMOVE");
-							export_disk($info, false);
-						}
+						rm_smb_share($info['mountpoint']);
+						rm_nfs_share($info['mountpoint']);
+
+						/* Execute the iso file script with the remove action. */
+						execute_script($info, "REMOVE");
+						export_disk($info, false);
 					} else {
 						/* Execute the iso script with the error unmount action. */
 						execute_script($info, "ERROR_UNMOUNT");
