@@ -1503,7 +1503,7 @@ function get_mount_params($fs, $dev, $ro = false) {
 			break;
 
 		case 'nfs':
-			$rc = "{$rw},noacl";
+			$rc = "{$rw},noac,noatime,nodiratime,retrans=4,timeo=300";
 			break;
 
 		case 'root':
@@ -1809,6 +1809,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 	$rc = false;
 	$pool_name	= ($zfs) ? (new MiscUD)->zfs_pool_name($dir, true) : "";
 	$mounted	= (($zfs) && ($pool_name)) ? (is_mounted($pool_name) || is_mounted($dir)) : (is_mounted($dev) || is_mounted($dir));
+	$timeout	= ($smb || $nfs) ? ($force ? 30 : 10) : 90;
 	if ($mounted) {
 
 		/* Sync file system to be sure all devices are up to date. */
@@ -1817,7 +1818,8 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 			if ($zfs) {
 				exec("/usr/sbin/zpool sync ".escapeshellarg($pool_name)." 2>/dev/null");
 			} else {
-				exec("/bin/sync -f ".escapeshellarg($dir));
+				/* Time out so sync command doesn't get stuck. */
+				timed_exec($timeout, "/bin/sync -f ".escapeshellarg($dir));
 			}
 		}
 
@@ -1837,13 +1839,13 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 			$o = "Cannot determine Pool Name of '".$dev."'";
 		} else {
 			/* Execute the unmount command. */
-			$timeout = ($smb || $nfs) ? ($force ? 30 : 10) : 90;
 			$o = timed_exec($timeout, $cmd);
 		}
 
 		/* Check to see if the device really unmounted. */
 		for ($i=0; $i < 5; $i++) {
 			$mounted	= (($zfs) && ($pool_name)) ? (is_mounted($pool_name) || (is_mounted($dir))) : ((is_mounted($dev)) || (is_mounted($dir)));
+sleep(15);
 			if (! $mounted) {
 				if (is_dir($dir)) {
 					exec("/bin/rmdir ".escapeshellarg($dir)." 2>/dev/null");
