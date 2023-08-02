@@ -252,7 +252,7 @@ class MiscUD
 	public function get_mounting_status($device) {
 		global $paths;
 
-		$mounting		= array_values(preg_grep("@/mounting_".$device."@i", listDir(dirname($paths['mounting']))))[0] ?? '';
+		$mounting		= array_values(preg_grep("@/mounting_".safe_name($device)."@i", listDir(dirname($paths['mounting']))))[0] ?? '';
 		$is_mounting	= (isset($mounting) && (time() - @filemtime($mounting) < 300)) ? true : false;
 		return $is_mounting;
 	}
@@ -261,7 +261,7 @@ class MiscUD
 	public function get_unmounting_status($device) {
 		global $paths;
 
-		$unmounting		= array_values(preg_grep("@/unmounting_".$device."@i", listDir(dirname($paths['unmounting']))))[0] ?? '';
+		$unmounting		= array_values(preg_grep("@/unmounting_".safe_name($device)."@i", listDir(dirname($paths['unmounting']))))[0] ?? '';
 		$is_unmounting	= (isset($unmounting) && (time() - @filemtime($unmounting)) < 300) ? true : false;
 		return $is_unmounting;
 	}
@@ -1845,7 +1845,6 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 		/* Check to see if the device really unmounted. */
 		for ($i=0; $i < 5; $i++) {
 			$mounted	= (($zfs) && ($pool_name)) ? (is_mounted($pool_name) || (is_mounted($dir))) : ((is_mounted($dev)) || (is_mounted($dir)));
-sleep(15);
 			if (! $mounted) {
 				if (is_dir($dir)) {
 					exec("/bin/rmdir ".escapeshellarg($dir)." 2>/dev/null");
