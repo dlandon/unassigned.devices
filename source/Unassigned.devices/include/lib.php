@@ -2350,8 +2350,7 @@ function get_samba_mounts() {
 				}
 
 				/* Is remote share mounted? */
-				$mount['mounted']		= is_mounted($mount['mountpoint']) && is_mounted($device);
-		
+				$mount['mounted']	= is_mounted($mount['mountpoint']) && ($mount['fstype'] != "root" ? is_mounted($device) : true);
 
 				/* If this is a legacy samba mount indicate that it should be removed. */
 				$mount['invalid']		= false;
