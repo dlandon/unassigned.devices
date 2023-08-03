@@ -538,7 +538,7 @@ function unassigned_umount() {
 				/* If iso file is mounted, unmlount it. */
 				if ( is_mounted($info['mountpoint']) ) {
 					/* Create mounting status file. */
-					addFile(sprintf($paths['unmounting'], $info['device']));
+					addFile(sprintf($paths['unmounting'], basename($info['device'])));
 
 					unassigned_log("Removing ISO File share '{$info['device']}'...");
 
@@ -711,7 +711,6 @@ function addFile($file) {
 
 	$file = safe_name($file);
 	@touch($file);
-unassigned_log("*** addfile ".$file);
 	$remove[] = $file;
 }
 
