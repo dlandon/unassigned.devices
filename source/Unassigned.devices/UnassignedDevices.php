@@ -159,7 +159,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		} else {
 			$mount_point	= basename($partition['mountpoint']);
 			$disk_label		= $partition['disk_label'];
-			if ((! $disk['array_disk']) && (! $preclearing)) {
+			if ((! $disk['array_disk']) && (! $preclearing)  && (! $is_mounting)) {
 				$mpoint		.= "<i class='fa fa-pencil partition-hdd'></i><a title='"._("Change Disk Mount Point")."' class='exec' onclick='chg_mountpoint(\"{$partition['serial']}\",\"{$partition['part']}\",\"{$device}\",\"{$partition['fstype']}\",\"{$mount_point}\",\"{$disk_label}\");'>{$mount_point}</a>";
 			} else {
 				$mpoint		.= "<i class='fa fa-pencil partition-hdd'></i>".$mount_point;
@@ -662,6 +662,12 @@ switch ($_POST['action']) {
 			{
 				$is_alive		= $mount['is_alive'];
 				$mounted		= $mount['mounted'];
+
+				/* Remove special characters. */
+				$mount_device	= basename($mount['ip'])."_".basename($mount['path']);
+				$is_mounting	= (new MiscUD)->get_mounting_status($mount_device);
+				$is_unmounting	= (new MiscUD)->get_unmounting_status($mount_device);
+
 				$o_remotes		.= "<tr>";
 				$protocol		= $mount['protocol'] == "NFS" ? "nfs" : "smb";
 				$o_remotes		.= sprintf( "<td><a class='info'><i class='fa fa-circle orb %s'></i><span>"._("Remote Share is")." %s</span></a>%s</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ), $protocol);
@@ -669,12 +675,15 @@ switch ($_POST['action']) {
 				$mount_point	= basename($mount['mountpoint']);
 				$o_remotes		.= "<td></td>";
 				if ($mounted) {
-					$o_remotes .= "<td><i class='fa fa-external-link mount-share'></i><a title='"._("Browse Remote SMB")."/"._("NFS Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
+					$o_remotes	.= "<td><i class='fa fa-external-link mount-share'></i><a title='"._("Browse Remote SMB")."/"._("NFS Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
 				} else {
-					$o_remotes .= "<td>
-						<i class='fa fa-pencil mount-share'></i>
-						<a title='"._("Change Remote SMB")."/"._("NFS Mount Point")."' class='exec' onclick='chg_samba_mountpoint(\"{$mount['name']}\",\"{$mount_point}\");'>{$mount_point}</a>
-						</td>";
+					$o_remotes	.= "<td><i class='fa fa-pencil mount-share'></i>";
+					if (! $is_mounting) {
+						$o_remotes	.= "<a title='"._("1 Change Remote SMB")."/"._("NFS Mount Point")."' class='exec' onclick='chg_samba_mountpoint(\"{$mount['name']}\",\"{$mount_point}\");'>{$mount_point}</a>";
+					} else {
+						$o_remotes	.= $mount_point;
+					}
+					$o_remotes .= "</td>";
 				}
 				$o_remotes		.= "<td></td>";
 
@@ -684,10 +693,6 @@ switch ($_POST['action']) {
 					$o_remotes .= "<td><button class='mount' disabled> <i class='fa fa-spinner fa-spin'></i>"." "._("Running")."</button></td>";
 				} else {
 					$class	= ( isset($mount['disable_mount']) && ($mount['disable_mount']) ) ? "fa fa-ban" : "";
-					/* Remove special characters. */
-					$mount_device	= basename($mount['ip'])."_".basename($mount['path']);
-					$is_mounting	= (new MiscUD)->get_mounting_status($mount_device);
-					$is_unmounting	= (new MiscUD)->get_unmounting_status($mount_device);
 					if ($is_mounting) {
 						$o_remotes .= "<td><button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Mounting')."</button></td>";
 					} else if ($is_unmounting) {
@@ -735,6 +740,12 @@ switch ($_POST['action']) {
 			foreach ($iso_mounts as $mount) {
 				$device			= $mount['device'];
 				$mounted		= $mount['mounted'];
+
+				/* Remove special characters. */
+				$mount_device	= safe_name(basename($mount['device']));
+				$is_mounting	= (new MiscUD)->get_mounting_status($mount_device);
+				$is_unmounting	= (new MiscUD)->get_unmounting_status($mount_device);
+
 				$is_alive		= is_file($mount['file']);
 				$o_remotes		.= "<tr>";
 				$o_remotes		.= sprintf( "<td><a class='info'><i class='fa fa-circle orb %s'></i><span>"._("ISO File is")." %s</span></a>iso</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ));
@@ -743,21 +754,21 @@ switch ($_POST['action']) {
 				if ($mounted) {
 					$o_remotes .= "<td><i class='fa fa-external-link mount-share'></i><a title='"._("Browse ISO File Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
 				} else {
-					$o_remotes .= "<td>
-						<i class='fa fa-pencil mount-share'></i>
-						<a title='"._("Change ISO File Mount Point")."' class='exec' onclick='chg_iso_mountpoint(\"{$mount['device']}\",\"{$mount_point}\");'>{$mount_point}</a>
-						</td>";
+					$o_remotes	.= "<td>";
+					$o_remotes	.= "<i class='fa fa-pencil mount-share'></i>";
+					if (! $is_mounting) {
+						$o_remotes	.= "<a title='"._("Change ISO File Mount Point")."' class='exec' onclick='chg_iso_mountpoint(\"{$mount['device']}\",\"{$mount_point}\");'>{$mount_point}</a>";
+					} else {
+						$o_remotes	.= $mount_point;
+					}
+					$o_remotes	.= "</td>";
 				}
 				$o_remotes		.= "<td></td>";
 
-				$disabled = $is_alive ? "enabled":"disabled";
+				$disabled = $is_alive ? "enabled" : "disabled";
 				if ($mount['mounted'] && (is_script_running($mount['command']) || is_script_running($mount['user_command'], true))) {
 					$o_remotes .= "<td><button class='mount' disabled> <i class='fa fa-spinner fa-spin'></i> "._('Running')."</button></td>";
 				} else {
-					/* Remove special characters. */
-					$mount_device	= safe_name(basename($mount['device']));
-					$is_mounting	= (new MiscUD)->get_mounting_status($mount_device);
-					$is_unmounting	= (new MiscUD)->get_unmounting_status($mount_device);
 					if ($is_mounting) {
 						$o_remotes .= "<td><button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Mounting')."</button></td>";
 					} else if ($is_unmounting) {
