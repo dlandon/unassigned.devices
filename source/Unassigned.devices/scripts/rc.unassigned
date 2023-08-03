@@ -471,9 +471,6 @@ function unassigned_umount() {
 
 	/* Unmount Remote SMB/NFS mounts. */
 	if (strpos($DEVNAME, "//") === 0 || strpos($DEVNAME, ":/") || $DEVNAME == "auto" || $DEVNAME == "all") {
-		/* Update all share servers ping status. */
-		exec("plugins/unassigned.devices/scripts/get_ud_stats ping");
-
 		/* Unmount every samba mount. */
 		foreach (get_samba_mounts() as $info) {
 			$device = $info['device'];
@@ -483,16 +480,9 @@ function unassigned_umount() {
 				}
 				unassigned_log("Remote SMB/NFS share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
 
-				/* See if the remote share server is online now. */
-				$is_alive = is_samba_server_online($info['ip']);
-
-				$force_unmount = $info['fstype'] == "root" ? false : ($is_alive ? $force : true);
-
 				/* Unmount the remote share if it is mounted. */
 				$dev	= $info['fstype'] == "root" ? $info['mountpoint'] : $info['device'];
 				if ( is_mounted($info['mountpoint']) ) {
-					unassigned_log("Removing Remote SMB/NFS share '{$info['device']}'...");
-
 					/* Execute the remote mount script file with unmount action. */
 					execute_script($info, "UNMOUNT");
 
@@ -504,6 +494,13 @@ function unassigned_umount() {
 					/* Create unmounting status file. */
 					addFile(sprintf($paths['unmounting'], $mount_device));
 
+					/* See if the remote share server is online now. */
+					$is_alive = is_samba_server_online($info['ip']);
+
+					/* See if we are force unmounting this device. */
+					$force_unmount = $info['fstype'] == "root" ? false : ($is_alive ? $force : true);
+
+					/* Determine if this is a remote mount and what kink. */
 					$smb = $info['fstype'] == "cifs" ? true : false;
 					$nfs = $info['fstype'] == "nfs" ? true : false;
 
