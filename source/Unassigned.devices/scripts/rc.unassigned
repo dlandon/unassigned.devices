@@ -497,6 +497,15 @@ function unassigned_umount() {
 					/* See if the remote share server is online now. */
 					$is_alive = is_samba_server_online($info['ip']);
 
+					/* If the remote server is not online, run the ping update and see if ping status needs to be refreshed. */
+					if (! $is_alive) {
+						/* Update the remote server ping status. */
+						exec("plugins/unassigned.devices/scripts/get_ud_stats ping");
+
+						/* See if the server is online now. */
+						$is_alive = is_samba_server_online($info['ip']);
+					}
+
 					/* See if we are force unmounting this device. */
 					$force_unmount = $info['fstype'] == "root" ? false : ($is_alive ? $force : true);
 
