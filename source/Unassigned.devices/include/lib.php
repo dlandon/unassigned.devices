@@ -1830,7 +1830,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 			/* Remove saved pool devices if this is a btrfs pooled device. */
 			(new MiscUD)->get_pool_devices($dir, true);
 
-			$cmd = "/sbin/umount".($smb ? " -t cifs" : " -t nfs").($force ? " -fl" : ($nfs ? " -l" : ""))." ".escapeshellarg($dir)." 2>&1";
+			$cmd = "/sbin/umount".($smb ? " -t cifs" : ($nfs ? " -t nfs" : "")).($force ? " -fl" : ($nfs ? " -l" : ""))." ".escapeshellarg($dir)." 2>&1";
 		}
 
 		unassigned_log("Unmount cmd: ".$cmd);
