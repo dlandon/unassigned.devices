@@ -1430,10 +1430,11 @@ function is_mounted($dev) {
 	$rc = false;
 	if ($dev) {
 		$dev_lookup	= (strpos($dev, "/dev/mapper") !== false) ? basename($dev) : $dev;
-		$data		= timed_exec(2, "/usr/bin/cat /proc/mounts | awk '{print $1 \",\" $2}'");
-		$data		= str_replace("\\040", " ", $data);
-		$data		= str_replace("\n", ",", $data);
-		$rc			= (strpos($data, $dev_lookup.",") !== false) ? true : false;
+		$mount		= timed_exec(2, "/usr/bin/cat /proc/mounts | awk '{print $1 \",\" $2}'");
+		$mount		= str_replace("\\040", " ", $mount);
+		$mount		= str_replace("\n", ",", $mount);
+		$data		= explode(",", $mount);
+		$rc			= in_array($dev_lookup, $data);
 	}
 
 	return $rc;
@@ -1840,25 +1841,28 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 		} else {
 			/* Execute the unmount command. */
 			$o = timed_exec($timeout, $cmd);
-		}
 
-		/* Check to see if the device really unmounted. */
-		for ($i=0; $i < 5; $i++) {
-			$mounted	= (($zfs) && ($pool_name)) ? (is_mounted($pool_name) || (is_mounted($dir))) : ((is_mounted($dev)) || (is_mounted($dir)));
-			if (! $mounted) {
-				if (is_dir($dir)) {
-					exec("/bin/rmdir ".escapeshellarg($dir)." 2>/dev/null");
-					$link = $paths['usb_mountpoint']."/".basename($dir);
-					if (is_link($link)) {
-						@unlink($link);
+			/* Check to see if the device really unmounted. */
+			for ($i=0; $i < 5; $i++) {
+				$mounted	= (($zfs) && ($pool_name)) ? (is_mounted($pool_name) || (is_mounted($dir))) : ((is_mounted($dev)) || (is_mounted($dir)));
+				if (! $mounted) {
+					if (is_dir($dir)) {
+						/* Remove the mount point. */
+						exec("/bin/rmdir ".escapeshellarg($dir)." 2>/dev/null");
+
+						/* Remove the legacy symlink on /mnt/disks/. */
+						$link = $paths['usb_mountpoint']."/".basename($dir);
+						if (is_link($link)) {
+							@unlink($link);
+						}
 					}
-				}
 
-				unassigned_log("Successfully unmounted '".basename($dev)."'");
-				$rc = true;
-				break;
-			} else {
-				usleep(500 * 1000);
+					unassigned_log("Successfully unmounted '".basename($dev)."'");
+					$rc = true;
+					break;
+				} else {
+					usleep(500 * 1000);
+				}
 			}
 		}
 
@@ -2346,7 +2350,8 @@ function get_samba_mounts() {
 				}
 
 				/* Is remote share mounted? */
-				$mount['mounted']		= is_mounted($mount['mountpoint']);
+				$mount['mounted']		= is_mounted($mount['mountpoint']) && is_mounted($device);
+		
 
 				/* If this is a legacy samba mount indicate that it should be removed. */
 				$mount['invalid']		= false;
