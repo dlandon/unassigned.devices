@@ -227,7 +227,7 @@ function unassigned_mount() {
 				unassigned_log("Remote Share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = ((strpos($k, "pass") !== false) || ((strpos($k, "user") !== false) && (strpos($k, "user_command") === false))) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
 
 				/* Remove any special characters. */
-				$mount_device = basename($info['ip'])."_".$info['path'];
+				$mount_device = basename($info['ip'])."_".basename($info['path']);
 
 				/* Create mounting status file. */
 				addFile(sprintf($paths['mounting'], $mount_device));
@@ -499,7 +499,7 @@ function unassigned_umount() {
 					unassigned_log("Unmounting Remote SMB/NFS Share '{$info['device']}'...");
 
 					/* Remove special characters. */
-					$mount_device = basename($info['ip'])."_".$info['path'];
+					$mount_device = basename($info['ip'])."_".basename($info['path']);
 
 					/* Create unmounting status file. */
 					addFile(sprintf($paths['unmounting'], $mount_device));
@@ -711,6 +711,7 @@ function addFile($file) {
 
 	$file = safe_name($file);
 	@touch($file);
+unassigned_log("*** addfile ".$file);
 	$remove[] = $file;
 }
 

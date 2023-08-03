@@ -685,7 +685,7 @@ switch ($_POST['action']) {
 				} else {
 					$class	= ( isset($mount['disable_mount']) && ($mount['disable_mount']) ) ? "fa fa-ban" : "";
 					/* Remove special characters. */
-					$mount_device	= safe_name(basename($mount['ip'])."_".$mount['path']);
+					$mount_device	= basename($mount['ip'])."_".basename($mount['path']);
 					$is_mounting	= (new MiscUD)->get_mounting_status($mount_device);
 					$is_unmounting	= (new MiscUD)->get_unmounting_status($mount_device);
 					if ($is_mounting) {
