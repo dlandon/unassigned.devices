@@ -1,0 +1,122 @@
+.swal-content{
+  color:#1c1b1b;
+}
+.swal-content select{
+  color:#1c1b1b;
+}
+input[type=text].swal-content__input, input[type=password].swal-content__input, select.swal-content__input, .swal-content__textarea {
+    -webkit-appearance: none;
+    background-color: #fff;
+    color:#1c1b1b;
+    border: none;
+    font-size: 14px;
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    border: 1px solid rgba(0,0,0,.14);
+    padding: 10px 13px;
+    border-radius: 2px;
+    transition: border-color .2s;
+    position: center;
+    max-width: unset;
+}
+.swal-button, .swal-button--cancel, .swal-button--danger{
+  font-family:clear-sans;
+  font-size:1.2rem;
+  font-weight:bold;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  min-width:86px;
+  margin:20px 12px 10px 0;
+  padding:8px;
+  text-align:center;
+  text-decoration:none;
+  white-space:nowrap;
+  cursor:pointer;
+  outline:none;
+  border-radius:4px;
+  border:0;
+  color:#ff8c2f;
+  background:-webkit-gradient(linear,left top,right top,from(#e22828),to(#ff8c2f)) 0 0 no-repeat,-webkit-gradient(linear,left top,right top,from(#e22828),to(#ff8c2f)) 0 100% no-repeat,-webkit-gradient(linear,left bottom,left top,from(#e22828),to(#e22828)) 0 100% no-repeat,-webkit-gradient(linear,left bottom,left top,from(#ff8c2f),to(#ff8c2f)) 100% 100% no-repeat;
+  background:linear-gradient(90deg,#e22828 0,#ff8c2f) 0 0 no-repeat,linear-gradient(90deg,#e22828 0,#ff8c2f) 0 100% no-repeat,linear-gradient(0deg,#e22828 0,#e22828) 0 100% no-repeat,linear-gradient(0deg,#ff8c2f 0,#ff8c2f) 100% 100% no-repeat;
+  background-size:100% 2px,100% 2px,2px 100%,2px 100%
+}
+.swal-button:hover, .swal-button--cancel:hover, .swal-button--danger:hover{
+  color:#f2f2f2;
+  background:-webkit-gradient(linear,left top,right top,from(#e22828),to(#ff8c2f));
+  background:linear-gradient(90deg,#e22828 0,#ff8c2f)
+}
+.swal-button:active, .swal-button--cancel:hover, .swal-button--danger:active{
+  color:#f2f2f2;
+  background:-webkit-gradient(linear,left top,right top,from(#e22828),to(#ff8c2f));
+  background:linear-gradient(90deg,#e22828 0,#ff8c2f)
+}
+.swal-button:focus, .swal-button--cancel:focus, .swal-button--danger:focus{
+  box-shadow:rgba(197, 205, 211, 0.8) 0px 0px 2px, rgba(0, 0, 0, 0.0470588) 0px 0px 0px 1px inset !important
+}
+.swal-button[disabled], .swal-button--cancel[disabled], .swal-button--danger[disabled]{
+  cursor:default;
+  color:#404040;
+  background:-webkit-gradient(linear,left top,right top,from(#404040),to(#808080)) 0 0 no-repeat,-webkit-gradient(linear,left top,right top,from(#404040),to(#808080)) 0 100% no-repeat,-webkit-gradient(linear,left bottom,left top,from(#404040),to(#404040)) 0 100% no-repeat,-webkit-gradient(linear,left bottom,left top,from(#808080),to(#808080)) 100% 100% no-repeat;
+  background:linear-gradient(90deg,#404040 0,#808080) 0 0 no-repeat,linear-gradient(90deg,#404040 0,#808080) 0 100% no-repeat,linear-gradient(0deg,#404040 0,#404040) 0 100% no-repeat,linear-gradient(0deg,#808080 0,#808080) 100% 100% no-repeat;
+  background-size:100% 2px,100% 2px,2px 100%,2px 100%
+}
+.swal-button--loading{
+  color:transparent;
+  background:-webkit-gradient(linear,left top,right top,from(#e22828),to(#ff8c2f));
+  background:linear-gradient(90deg,#e22828 0,#ff8c2f)
+}
+.swal-button--loading:not([disabled]):hover{
+  color:transparent; 
+}
+.swal-button--loading~.swal-button__loader{
+  opacity:1
+}
+.swal-button__loader{
+  position:absolute;
+  height:auto;
+  width:43px;
+  z-index:2;
+  left:45%;
+  top:60%;
+  -webkit-transform:translateX(-50%) translateY(-50%);
+  transform:translateX(-50%) translateY(-50%);
+  text-align:center;
+  pointer-events:none;
+  opacity:0;
+
+}
+.swal-button__loader div{
+  display:inline-block;
+  float:none;
+  vertical-align:baseline;
+  width:9px;
+  height:9px;
+  padding:0;
+  border:none;
+  margin:2px;
+  opacity:.4;
+  border-radius:7px;
+  background-color:#f6f6f6;
+  transition:background .2s;
+  -webkit-animation:swal-loading-anim 1s infinite;
+  animation:swal-loading-anim 1s infinite
+}
+.swal-button__loader div:hover{
+  background-color:hsl(17, 86%, 56%);
+}
+.swal-button__loader div:nth-child(3n+2){
+  -webkit-animation-delay:.15s;
+  animation-delay:.15s
+}
+.swal-button__loader div:nth-child(3n+3){
+  -webkit-animation-delay:.3s;
+  animation-delay:.3s}@-webkit-keyframes swal-loading-anim{0%{opacity:.4}20%{opacity:.4}50%{opacity:1}to{opacity:.4}
+}
+@keyframes swal-loading-anim{
+  0%{opacity:.4}20%{opacity:.4}50%{opacity:1}to{opacity:.4}
+}
+.swal-button-left{
+  position: inherit;
+  left: -100px;
+}

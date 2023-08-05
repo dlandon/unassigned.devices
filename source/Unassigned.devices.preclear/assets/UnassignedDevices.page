@@ -1,0 +1,1404 @@
+Menu="Main:4"
+Title="Unassigned Devices"
+Tag="unlink"
+---
+<?php
+/* Copyright 2015, Guilherme Jardim
+ * Copyright 2016-2023, Dan Landon
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+
+$plugin = "unassigned.devices";
+$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+require_once "plugins/$plugin/include/lib.php";
+
+/* read translations */
+parse_plugin('UnassignedDevices');
+
+/* Get the version of Unraid we are running. */
+$version = parse_ini_file("/etc/unraid-version");
+
+/* Adjustments for 6.12 UI changes. */
+if (version_compare($version['version'], '6.12.0-beta5', '>')) {
+	$title_classid	= "class='title'";
+	$new_model		= true;
+} else {
+	$title_classid	= "id='title'";
+	$new_model		= false;
+}
+
+/* Set up name for nchan socket. */
+$ud_reload = "UD_reload";
+
+$disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "no")) ? "disabled" : "";
+?>
+
+<div class='pluginUpdate'></div>
+
+<script type="text/javascript" src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
+<link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.ui.css')?>">
+<link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.switchbutton.css')?>">
+
+<link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.filetree.css')?>">
+<script src="<?autov('/webGui/javascript/jquery.filetree.js')?>"></script>
+
+<script type="text/javascript" src="<?autov('/plugins/'.$plugin.'/assets/arrive.min.js')?>"></script>
+
+<style>
+	table.disk_mounts {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
+	table.disk_mounts thead tr>td{text-align:left;width:8%;}
+	table.disk_mounts tr>td+td{text-align:left;}
+	table.disk_mounts tr>td+td+td{text-align:center;}
+	table.disk_mounts tr>td+td+td+td{text-align:right;}
+	table.disk_mounts tr>td+td+td+td+td+td+td{text-align:center;}
+	table.disk_mounts tr>td+td+td+td+td+td+td+td{text-align:right;}
+	table.disk_mounts tr>td+td+td+td+td+td+td+td+td+td+td+td{text-align:center;}
+
+	table.usb_absent {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
+	table.usb_absent thead tr>td{text-align:left;width:8%;}
+	table.usb_absent tr>td+td{text-align:left;}
+	table.usb_absent tr>td+td+td+td{text-align:center;}
+
+	table.samba_mounts {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
+	table.samba_mounts thead tr>td{text-align:left;width:8%;}
+	table.samba_mounts tr>td+td+td{text-align:left;}
+	table.samba_mounts tr>td+td+td+td{text-align:left;}
+	table.samba_mounts tr>td+td+td+td+td+td{text-align:center;}
+	table.samba_mounts tr>td+td+td+td+td+td+td+td+td{text-align:right;}
+	table.samba_mounts tr>td+td+td+td+td+td+td+td+td+td+td+td+td+td+td{text-align:center}
+
+	button.mount {padding:2px 4px 3px 6px;margin:1px 0px 1px 0px;}
+	i.partition-hdd{margin:5px; 5px; 0px; 0px;}
+	i.hdd{margin:5px; 5px; 0px; 0px;}
+	i.share{margin:5px 5px 0px 0px;}
+	i.mount-share{margin:5px 5px 0px 0px;}
+	i.partition-script{margin-left: 10px; margin-right: 6px;}
+	.exec{cursor: pointer;}
+	i.fa-append{margin:0px;font-size: 0.8em;position: relative; left:-0.3em;top:0.7em;}
+	i.fa-switch{margin:5px; 5px; 0px; 0px;}
+	.underline{text-decoration: underline;}
+
+	form.inline{display:inline;margin: 0px; padding: 0px;}
+
+	.fileTree {
+		width: 305px;
+		max-height: 150px;
+		overflow: scroll;
+		position: absolute;
+		z-index: 100;
+		display: none;
+		color:initial;
+	}
+
+	.image-radio input{margin:0;padding:0;-webkit-appearance:none;-moz-appearance:none;appearance:none;}
+	.image-radio input:active +.image-radio-label{opacity: .9;}
+	.image-radio input:checked +.image-radio-label{ -webkit-filter: none;-moz-filter: none;filter: none;}
+	.image-radio-label{cursor:pointer; background-size:contain; background-repeat:no-repeat;display:inline-block; width:100px;height:70px; -webkit-transition: all 100ms ease-in;-moz-transition: all 100ms ease-in;transition: all 100ms ease-in;-webkit-filter: brightness(1.8) grayscale(1) opacity(.7);-moz-filter: brightness(1.8) grayscale(1) opacity(.7);filter: brightness(1.8) grayscale(1) opacity(.7);}
+	.image-radio-label:hover{-webkit-filter: brightness(1.2) grayscale(.5) opacity(.9);-moz-filter: brightness(1.2) grayscale(.5) opacity(.9);filter: brightness(1.2) grayscale(.5) opacity(.9);}
+	.image-radio-linux{background-image: url(/plugins/unassigned.devices/icons/nfs-radio.png)}
+	.image-radio-windows{background-image: url(/plugins/unassigned.devices/icons/smb-radio.png)}
+</style>
+
+<script type="text/javascript">
+
+	function spin_down_disk(dev) {
+		document.getElementById('disk_orb-'+dev).className = "fa fa-refresh fa-spin green-orb";
+		$.post(UDURL, {'action' : 'spin_down_disk', device:dev});
+	}
+
+	function spin_up_disk(dev) {
+		document.getElementById('disk_orb-'+dev).className = "fa fa-refresh fa-spin grey-orb";
+		$.post(UDURL, {'action' : 'spin_up_disk', device:dev});
+	}
+
+	if (typeof " ".formatUnicorn !== "function") {
+		String.prototype.formatUnicorn = String.prototype.formatUnicorn ||
+		function () {
+			"use strict";
+
+			var str = this.toString();
+			if (arguments.length) {
+				var t = typeof arguments[0];
+				var key;
+				var args = ("string" === t || "number" === t) ? Array.prototype.slice.call(arguments) : arguments[0];
+
+				for (key in args) {
+					str = str.replace(new RegExp("\\{" + key + "\\}", "gi"), args[key]);
+				}
+			}
+
+			return str;
+		};
+	}
+
+	(function ($) {
+		$.fn.getHiddenDimensions = function (includeMargin)
+		{
+			var $item		= this,
+			props			= { position: 'absolute', visibility: 'hidden', display: 'block' },
+			dim				= { width: 0, height: 0, innerWidth: 0, innerHeight: 0, outerWidth: 0, outerHeight: 0 },
+			$hiddenParents	= $item.parents().andSelf().not(':visible'),
+			includeMargin	= (includeMargin == null) ? false : includeMargin;
+
+			var oldProps	= [];
+			$hiddenParents.each(function () {
+				var old = {};
+
+				for (var name in props) {
+					old[name] = this.style[name];
+					this.style[name] = props[name];
+				}
+
+				oldProps.push(old);
+			});
+
+			dim.width		= $item.width();
+			dim.outerWidth	= $item.outerWidth(includeMargin);
+			dim.innerWidth	= $item.innerWidth();
+			dim.height		= $item.height();
+			dim.innerHeight	= $item.innerHeight();
+			dim.outerHeight	= $item.outerHeight(includeMargin);
+
+			$hiddenParents.each(function (i) {
+				var old		= oldProps[i];
+				for (var name in props) {
+					this.style[name] = old[name];
+				}
+			});
+
+			return dim;
+		}
+	}(jQuery));
+
+	function openWindow_fsck(cmd,title, height, width) {
+		var run		= cmd;
+		var top		= (screen.height-height)/2;
+		var left	= (screen.width-width)/2;
+		var options	= 'resizeable=yes,scrollbars=yes,height='+height+',width='+width+',top='+top+',left='+left;
+		window.open(run, 'log', options);
+	}
+
+	function disk_op(el, op, device) {
+		/* Add spinning and disable button. */
+		$("button[device='"+device+"']").html("<i class='fa fa-spinner fa-spin'></i> "+(op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
+		$("button[device='"+device+"']").prop("disabled", "true");
+		$.post(UDURL, {'action' : op, 'device' : device});
+	}
+
+	function usb_disks() {
+		/* Save table widths. */
+		if (! diskinfo) {
+			tableWidths = $("#usb_devices_list > table > thead > tr").children("td").map(function(i,v){return $(this).getHiddenDimensions().outerWidth;});
+
+			$("#usb_devices_list > table > thead > tr").children("td").each(function(i,v) {
+				if (i in tableWidths) {
+					$(this).css("width", tableWidths[i]);
+				}
+			});
+		}
+
+		/* Get the UD devices and render web page. */
+		$.post(UDURL, {'action' : 'get_content', display:display}, function(data) {
+			maxWidth	= [];
+			var toggled	= $("tr.toggle-parts").filter(":visible").map(function(){return $(this).attr("name");}).get();
+			if (data) {
+				$('#disk-table-body').html(data.disks);
+				$('#remotes-table-body').html(data.remotes);
+				$('#historical-table-body').html(data.historical);
+			}
+
+			/* Show toggled disk partitions. */
+			$.each(toggled, function(k,v) {
+				if (v.length) {
+					$("tr[name='"+v+"']").css("display", "table-row");
+				}
+			});
+		},'json');
+	}
+
+	/* Detect a change in the diskio cookie and refresh the page to update diskio if it changes. */
+	var checkCookie = function() {
+		var lastCookie = $.cookie('diskio');
+		return function() {
+			var currentCookie = $.cookie('diskio');
+			if (currentCookie != lastCookie) {
+				lastCookie = currentCookie;
+				refreshPage();
+			}
+		};
+	}();
+
+	/* Poll remote servers and update ping status. */
+	function pingPoll() {
+		$.post(UDURL, {'action' : 'update_ping'});
+	}
+
+	/* Refresh UD page showing any updated information. */
+	function refreshPage() {
+		$.post(UDURL, {'action' : 'refresh_page'});
+	}
+
+	/* Process nchan events. */
+	var ud_Reload = new NchanSubscriber("/sub/"+"<?=$ud_reload?>");
+	ud_Reload.on('message', function(data) {
+		usb_disks();
+	});
+
+	function load_hosts(el, action) {
+		var target	= $(el).parents("div").find("*[name='IP']");
+		var old		= $(el).html();
+		$(el).html("<i class='fa fa-spinner fa-spin'></i> <?=_('Searching');?>");
+		$.post(UDURL, {'action': action, 'network': network, 'workgroup': workgroup}).done(function(data) {
+			$(el).html(old);
+			if (data) {
+				var hosts = data.split('\n');
+				if (hosts.length) {
+					var add = "<select name='IP' class='swal-content__input' required>";
+					for (var i = 0;i < hosts.length;i++) {
+						if (hosts[i].length) {
+							add += "<option value='"+hosts[i].trim()+"'>"+hosts[i].trim()+"</option>";
+						}
+					}
+					target.replaceWith(add+"</select>")
+				} else {
+					target.replaceWith("<input type='text' name='IP' class='swal-content__input' autocomplete='off'>");
+				}
+			}
+		});
+	}
+
+	function load_shares(el, ip, user, pass, action) {
+		var old			= $(el).html();
+		var target		= $(el).parents("div").find("*[name='SHARE']");
+
+		$(el).html("<i class='fa fa-spinner fa-spin'></i> <?=_('Loading');?>");
+
+		var opts		= new Object();
+		opts["action"]	= action;
+		opts["IP"]		= ip;
+		opts["USER"]	= user;
+		opts["PASS"]	= pass;
+
+		$.post(UDURL, opts).done(function(data) {
+			$(el).html(old);
+			if (data) {
+				var shares = data.split('\n');
+				if (shares.length) {
+					var add = "<select name='SHARE' class='swal-content__input' required>";
+					for (var i = 0;i < shares.length;i++) {
+						if (shares[i].length) {
+							add += "<option value='"+shares[i]+"'>"+shares[i]+"</option>";
+						}
+					}
+					target.replaceWith(add+"</select>");
+				} else {
+					target.replaceWith("<input type='text' name='SHARE' class='swal-content__input' autocomplete='off' required>");
+				}
+			} else {
+				target.replaceWith("<input type='text' name='SHARE' class='swal-content__input' autocomplete='off' required>");
+			}
+		});
+	}
+
+	function get_tab_title_by_name(name) {
+		var tab		= $("input[name$=tabs] + label").filter(function(){return $(this).text() === name;}).prev();
+<?if ($new_model):?>
+		var title	= $("div.title > span.left").filter(function(){return $(this).text() === name;}).parent();
+<?else:?>
+		var title	= $("div#title > span.left").filter(function(){return $(this).text() === name;}).parent();
+<?endif;?>
+		if (tab.length) {
+			rc = tab;
+		} else if (title.length) {
+			rc = title;
+		} else {
+			rc = $(document);
+		}
+
+		return rc;
+	}
+
+	function addButtonTab(Button, Name, autoHide = true, Append = true) {
+		var Target		= get_tab_title_by_name(Name);
+		var elementId 	= 'event-' + new Date().getTime() * Math.floor(Math.random()*100000);
+		var element		= $("<span id='"+elementId+"' class='status'>"+Button+"</span>");
+
+		rc = true;
+		if (element.find("input[type='button']").length) {
+			element.addClass("vhshift");
+			element.find("input[type='button']").prop("style","padding-top: 5px; padding-bottom: 5px; margin-top:-3px; margin-bottom:0;");
+		}
+
+		if (Target.prop('nodeName') === "DIV") {
+			element.addClass("vhshift");
+			if (Append) {
+				Target.append(element);
+			} else {
+				Target.prepend(element);
+			}
+		} else if (Target.prop('nodeName') === "INPUT") {
+			element.css("display","none");
+
+			if (Append) {
+				$('.tabs').append(element);
+			} else {
+				$('.tabs').prepend(element);
+			}
+
+			Target.bind({click:function() {
+				$('#'+elementId).fadeIn('slow');}
+			});
+
+			if (Target.is(':checked') || (! autoHide)) {
+				$('#'+elementId).fadeIn('slow');
+			}
+
+			$("input[name$=tabs]").each(function() {
+				if (! $(this).is(Target) && autoHide ) {
+					$(this).bind({click:function() {
+						$('#'+elementId).fadeOut('slow');}
+					});
+				}
+			});
+		} else {
+			rc = false;
+		}
+
+		return rc;
+	}
+
+	function rescan_disks() {
+		$.post(UDURL, {'action' : 'rescan_disks'});
+		swalShowResult(true);
+	}
+
+	function swalShowResult(success) {
+		if (success) {
+			swal2({title:"<?=_('Success')?>!", icon:"success", text:" ", buttons:{confirm:{visible:false}, cancel:{visible:false}}, timer:2000});
+		} else {
+			swal2({title:"<?=_('Fail')?>!", icon:"error", text:"<?=_('Check the syslog for details');?>.", buttons:{confirm:{visible:false}, cancel:{visible:false}}, timer:2000});
+			opts += "";
+		}
+	}
+
+	function doUnassignedDevicesSurvey(surveyName, surveyOption) {
+		var survey			= $("div[data-survey-name="+ surveyName +"]");
+		var numQuestions	= survey.find("div[data-question]").length;
+		var surveyData		= new Array
+		var index			= 0;
+		var evalCondition	= function(obj, selector){
+
+		rc = null;
+		if (obj.find(selector).length) {
+			evaled = $.trim(obj.find(selector).eq(0).text())
+				if (evaled.length ) {
+					rc = eval(evaled);
+				}
+			}
+
+			return rc;
+		}
+
+		var getAttr = function(obj, name, defaultValue) {
+			return (typeof obj.attr(name) !== "undefined") ? obj.attr(name) : defaultValue;
+		}
+
+		function showSwal(direction = "=") {
+			switch(direction) {
+				case '>':
+					index++;
+					break;
+
+				case '<':
+					index--;
+					break;
+			}
+
+			if (index >= numQuestions) {
+				return false;
+			}
+
+			question	= survey.find("div[data-question]").eq(index);
+			condition	= question.find("div[data-question-condition]").eq(0);
+
+			if (condition.length && ! eval($.trim(condition.text())) ) {
+				showSwal(direction);
+			}
+
+			content = question.find("div[data-question-content]").html();
+			format = question.find("div[data-question-format]");
+
+			if (format.length) { 
+				eval("formatOpts = " + $.trim(format.text()));
+				content = content.formatUnicorn(formatOpts);
+			}
+
+			has_checked = ["checkbox","radio","option"];
+			restore_content = $("<div></div>").html(content);
+			restore_content.find(":input").each(function(i,v) {
+				name = $(this).prop("name");
+				if (name in surveyData) {
+					if ($.inArray($(this).prop("type"), has_checked) != -1 ) {
+						if ($(this).val() == surveyData[name]) { 
+							$(this).attr("checked", true);
+						}
+					} else {
+						if ($(this).prop("type") == "select-one") {
+							$(this).find("option[value="+ surveyData[name] +"]").attr("selected",true);
+						} else { 
+							$(this).attr("value",surveyData[name]);
+						}
+					}
+				}
+			});
+
+			content = restore_content[0].outerHTML;
+			button = {back:getAttr(question, "data-question-button-back", "<?=_('Back')?>"), cancel:getAttr(question, "data-question-button-cancel", "<?=_('Cancel')?>"),
+					  done:getAttr(question, "data-question-button-done", "<?=_('Done')?>"), next:getAttr(question, "data-question-button-next", "<?=_('Next')?>")};
+
+			swalOpts					= new Object;
+			swalOpts.title				= question.attr("data-question-title");
+			swalOpts.content			= {element:"div", attributes:{innerHTML:content}};
+			swalOpts.icon				= getAttr(question, "data-question-icon", "info");
+			swalOpts.closeOnClickOutside = false;
+			swalOpts.buttons			= new Object;
+			swalOpts.buttons.confirm	= (index > 0) ? {text: button.cancel, value: null, visible: true, className: "", closeModal: true} :
+														{text: "", value: null, visible: false, className: "", closeModal: true};
+			swalOpts.buttons.cancel		= (index > 0) ? {text: button.back,  value: false, visible: true, className: "", closeModal: false} :
+														{text: button.cancel, value: null, visible: true, className: "", closeModal: true};
+			swalOpts.buttons.next		= (index == numQuestions - 1 ) ? {text:button.done, value: true, visible: true, className: "", closeModal: false} : {text:button.next, value: true, visible: true, className: "", closeModal: false};
+			swal2(swalOpts).then( (response) => {
+				emptyInputs = $.grep($(".swal-modal").find(":input"), function (e,v){ e = $(e);
+					switch (e.prop('type')) {
+						case 'radio':
+							if (e.is(":checked")) {
+								surveyData[e.prop("name")] = e.val();
+							}
+							n = $(":input[name="+e.prop("name")+"]");
+							return (n.is("[required]") && ! n.is(":checked"));
+							break;
+
+						case 'option':
+						case 'checkbox':
+							if (e.is(":checked")) {
+								surveyData[e.prop("name")] = e.val()
+							}
+							return (e.is("[required]") && ! e.is(":checked"));
+							break;
+
+						case 'select-one':
+							if (e.has(":checked")) {
+								surveyData[e.prop("name")] = e.find(":checked").val();
+							}
+							n = $(":input[name="+e.prop("name")+"]");
+							return (n.is("[required]") && ! n.has(":checked"));
+							break;
+
+						default:
+							if (e.val() || e.prop("name")) {
+								surveyData[e.prop("name")] = e.val()
+							}
+							return (e.is("[required]") && ! e.val());
+							break;
+					}
+				});
+
+				if (response) {
+					if (emptyInputs.length) {
+						return "=";
+					} else if (! emptyInputs.length && index <= numQuestions - 1) {
+						evaled = evalCondition(question, "div[data-question-done]");
+						if (index < numQuestions - 1) {
+							if (evaled !== null && evaled === true) {
+								return ">";
+							}
+
+							if (evaled !== null && evaled === false) {
+								return "<";
+							} else {
+								return ">";
+							}
+						} else if(index == numQuestions - 1) {
+							if (evaled !== null && evaled === false) {
+								return "=";
+							} else {
+								$(".swal-button--cancel").prop("disabled",true);
+								$(".swal-button--confirm").prop("disabled",true);
+								evalCondition(survey,"div[data-survey-done]");
+								if (getAttr(survey.find("div[data-survey-done]").eq(0),"data-survey-done-wait", "true") == "false" ) {
+									setTimeout(() => { swal2({buttons:{confirm:{visible:false},cancel:{visible:false}},timer:100}) }, 1500)
+								}
+
+								return true;
+							}
+						}
+					} else {
+						return "=";
+					}
+				} else if ( response === false && index <= numQuestions ) {
+					return "<";
+				} else if  (response === null) { 
+					return true;
+				}
+
+				return "=";
+			}).then( (response2) => {
+				if (typeof response2 !== "boolean") {
+					return showSwal(response2);
+				} else {
+					return false;
+				}
+			});
+		}
+
+		showSwal();
+	}
+
+	$(function() {
+		$('div.spinner').html(unraid_logo);
+	});
+
+	$(function() {
+		if ( typeof caPluginUpdateCheck === "function" ) {
+			caPluginUpdateCheck("unassigned.devices.plg",{element:".pluginUpdate"});
+		}
+	});
+
+</script>
+
+<?=$Preclear ? $Preclear->html() : "";?>
+
+<table id ='usb_devices_list' class='disk_status wide disk_mounts show-disks'>
+	<thead>
+		<tr>
+			<td><?=('Device')?></td>
+			<td><?=('Identification')?></td>
+			<td></td>
+			<td><?=_('Temp')?>.</td>
+			<td><?=_('Reads')?></td>
+			<td><?=_('Writes')?></td>
+			<td><?=_('Settings')?></td>
+			<td><?=_('FS')?></td>
+			<td><?=_('Size')?></td>
+			<td><?=_('Used')?></td>
+			<td><?=_('Free')?></td>
+			<td><?=_('Log')?></td>
+		</tr>
+	</thead>
+	<tbody id="disk-table-body">
+		<tr>
+			<td colspan='12'><div class='spinner'></div>
+			</td>
+		</tr>
+	</tbody>
+</table>
+
+:unassgned_devices_switches_plug:
+> Turn on the **Disks** switch to change the web page to show disk devices. Turn off the **Disks** switch to change the web page to hide disk devices.
+>
+> Turn on the **Shares** switch to change the web page to show shares. Turn off the **Shares** switch to change the web page to hide shares.
+>
+> Turn on the **Historical** switch to show Historical disk devices. Turn off **Historical** switch to switch back to not show Historical disk devices.
+>
+> Click on the <i style='color:black;font-weight:bold;' class="fa fa-refresh"></i> icon to refresh disks and configuration.
+>
+> Click on the <i style='color:black;font-weight:bold;' class="fa fa-gear"></i> icon to go to the UD Settings.
+>
+> You can spin a disk up or down by clicking on the disk ball <i class='fa fa-circle orb green-orb'></i>or <i class='fa fa-circle orb grey-orb'></i>indicator.  Applies to version 6.9 RC2 and later only.
+:end
+
+<div class='show-shares'>
+	<div <?=$title_classid;?> class='show-disks'>
+		<span class='left'>
+			<img src='/plugins/<?=$plugin?>/icons/smbsettings.png' class='icon'><?=_('SMB Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/nfssettings.png' class='icon'><?=_('NFS Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/iso.png' class='icon' style='width:16px;'><?=_('ISO File Shares')?>
+		</span>
+	</div>
+	<table class='disk_status wide samba_mounts'>
+		<thead>
+		<tr>
+			<td><?=_('Share Type')?></td>
+			<td><?=_('Source')?></td>
+			<td></td>
+			<td><?=_('Mount Point')?></td>
+			<td></td><td></td>
+			<td><?=_('Remove')?></td>
+			<td><?=_('Settings')?></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td><?=_('Size')?></td>
+			<td><?=_('Used')?></td>
+			<td><?=_('Free')?></td>
+			<td><?=_('Log')?></td>
+		</tr>
+		</thead>
+		<tbody id="remotes-table-body">
+		</tbody>
+	</table>
+	<div id='remotes-buttons'>
+		<button onclick='add_samba_share()' <?=$disabled?>><?=_('Add Remote SMB')?>/<?=_('NFS Share')?></button>
+		<button onclick='add_iso_share()'><?=_('Add ISO File Share')?></button>
+		<button onclick='add_root_share()'><?=_('Add Root Share')?></button>
+	</div>
+</div>
+
+<div class='show-disks'>
+	<div class='show-historical'>
+		<div <?=$title_classid;?>>
+			<span class='left'><img src='/plugins/<?=$plugin?>/icons/historical.png' class='icon'><?=_('Historical Devices')?></span>
+		</div>
+		<table class='disk_status wide usb_absent'>
+			<thead>
+			<tr>
+				<td><?=_('Device')?></td>
+				<td><?=_('Serial Number (Mount Point)')?></td>
+				<td></td>
+				<td><?=_('Remove')?></td>
+				<td><?=_('Settings')?></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td></td>
+			</tr>
+			</thead>
+			<tbody id="historical-table-body">
+			</tbody>
+		</table>
+	</div>
+</div>
+
+:unassigned_devices_general_help_plug:
+> **Unassigned Devices is called UD for short.**
+>
+> Hover your mouse over an any active area on the UD page and a tool tip will show you what clicking that area does.
+> You can mount USB devices, sata drives, Remote SMB/NFS shares, and ISO Files with UD.  Any devices with the auto mount switch on will be mounted when the array is started.  All drives and SMB/NFS Mounts are unmounted when the array is stopped on the 'stopping_svcs' event.
+> If you want to share your drive, you can turn on the Share switch.  The default for Remote SMB shares is Public read/write access.  Enable SMB Security by user in the Unassigned Devices Settings.  NFS shares are exported and access is read/write.  The export of NFS devices is enabled in the Unassigned Devices settings. You can also enable a common script that will be executed on every disk mount.  In order to share any UD device, sharing needs to be enabled in the UD Settings and the switch turned on to share the particular device.  SMB/NFS remove shares and ISO mounts are always shared.
+> After entering a mount point, press &lt;Enter&gt; to save the change.
+>
+> Additional options are available when you click on the <i style='color:black;font-weight:bold;' class="fa fa-plus-square"></i> icon by device identification.  When the disk is unmounted, the mount point of the device can be changed.  The disk label will also be changed.  A disk can be formatted and an fsck run to check the disk.
+>
+> The 'Settings->Unassigned Devices' security settings for SMB and NFS must be set correctly for SMB and NFS sharing to work properly.
+>
+> If the mount button is grayed out for a SMB/NFS remote share, the remote server is not responding to a ping.  The remote share server must respond to a ping or UD will consider it off-line.
+>
+> The 'Add Root Share' button is disabled when 'Enable disk shares' is enabled and any Root Shares previously added will not mount.
+>
+> UD has a destructive mode that allows deleting disk partitions and formatting disks.	If Destructive Mode is not turned on in the UD Settings, you WILL NOT be able to format a disk or remove partitions.  Go the the 'Settings->Unassigned Devices' to set the destructive mode.
+>
+> **To format a disk:**
+>
+> + Destructive mode must be enabled.
+> + Disk must have all partitions removed.  Unmount disk, click on the <i style='color:black;font-weight:bold;' class='fa fa-plus-square'></i> icon,, and click on all <i style='color:red;font-weight:bold;' class='fa fa-remove hdd'></i> icons to delete partitions.
+> + If the disk has been precelared and shows a grayed 'Format' button, click on the <i style='color:black;font-weight:bold;' class='fa fa-plus-square'></i> icon, then click on the <i style='color:red;font-weight:bold;' class='fa fa-remove hdd'></i> icon to delete the preclear status file.
+>
+> **Note: A disk partitioned in UD is compatible with the array disk partitioning and can be added to the array.  Supported file formats are XFS, XFS encrypted, BTRFS, BTRFS encrypted, ZFS and ZFS encrypted.**
+>
+> **Encrypted Disks:**
+>
+> + Any disk formatted in UD that is encrypted will use the array password/passphrase and can be incorporated into the array.  Or you can set a unique password when it is formatted.  If you set a password on the disk when it is formatted, you will need to enter a disk password in Unassignd Devices->Settings for that disk.
+> + Any disk that was not encrypted with the Array password/passphrase can be mounted by setting a per disk passord set in Unassigned Devices->Settings.
+>
+> **Unassigned devices script:**
+>
+> UD includes a script that is used for mounting and unmounting devices and SMB/NFS mounts. These scripts can be used from the command line or in your scripts as necessary.
+>
+> + '/usr/local/sbin/rc.unassigned mount autodevices' - all devices set to auto mount will be mounted.
+> + '/usr/local/sbin/rc.unassigned mount autoshares' - all SMB/NFS mounts set to auto mount will be mounted.
+> + '/usr/local/sbin/rc.unassigned umount auto' - all devices and SMB/NFS mounts set to auto mount will be unmounted.
+> + '/usr/local/sbin/rc.unassigned umount all' - all devices and SMB/NFS mounts are unmounted in preparation for shutting down the array.
+> + '/usr/local/sbin/rc.unassigned mount /dev/sdX or devX' - mount disk device.
+> + '/usr/local/sbin/rc.unassigned mount name=diskname' - mount disk device by disk name.
+> + '/usr/local/sbin/rc.unassigned umount /dev/sdX or devX' - unmount disk device. You can use this command in a UD script to unmount the device when the script has completed.
+> + '/usr/local/sbin/rc.unassigned umount name=diskname' - unmount device by disk name.
+> + '/usr/local/sbin/rc.unassigned spindown /dev/sdX or devX' - spin down disk device.
+> + '/usr/local/sbin/rc.unassigned spindown name=diskname' - spin down a disk by disk name.
+> + '/usr/local/sbin/rc.unassigned detach /dev/sdX or devX' - detach a USB disk device. You can use this command in a UD script to detach the device when the script has completed.
+> + '/usr/local/sbin/rc.unassigned attach serial - attach a disk device. You can use this command in a script to attach a device.
+> + '/usr/local/sbin/rc.unassigned mount source' - where source is the SMB/NFS source.
+> + '/usr/local/sbin/rc.unassigned umount source' - where source is the SMB/NFS source.
+>
+> Note: /dev/sdX where 'X' is the device designator.  The devX is the device name in the UD page.  If the device name is 'Dev 1', then use dev1 as the device to spin down.  Using the name=diskname is useful if you have a User Script needing to perform UD operations on a disk.
+>
+> Be careful using the /dev/sdX or devX designation because they can change after a reboot.  It's best to use the values passed into the UD script for sdX (DEVICE) and devX (UD_DEVICE).
+:end
+
+<script type="text/javascript">
+	var maxWidth	= [];
+	var tableWidths = [];
+	var display		= <?=json_encode($display);?>;
+	var network		= [];
+	var workgroup	= "";
+
+	/* Reload page if browser back button was used. */
+	window.addEventListener( "pageshow", function ( event )
+	{
+		var historyTraversal = event.persisted || ( typeof window.performance != "undefined" && window.performance.navigation.type === 2 );
+		if ( historyTraversal ) {
+			/* Handle page restore. */
+			window.location.reload();
+		}
+	});
+
+	<?
+	if (isset($var['WORKGROUP'])) echo "var workgroup = '{$var['WORKGROUP']}';\n";
+	for ($i=0; $i < 11; $i++) { 
+		$_var = "eth{$i}";
+		if (isset($$_var) ) {
+			$iface		= $$_var;
+			$gateway	= array_values(array_flip(preg_grep("/GATEWAY:/", array_flip($iface))));
+			$ipaddr		= array_values(array_flip(preg_grep("/IPADDR:/",	array_flip($iface))));
+			$netmask	= array_values(array_flip(preg_grep("/NETMASK/",	array_flip($iface))));
+			for ($z=0; $z < count($ipaddr); $z++) { 
+				echo "network.push({gateway:'{$ipaddr[$z]}', ip:'{$ipaddr[$z]}', netmask:'{$netmask[$z]}'});\n";
+			}
+		}
+	}
+	?>
+
+	var tab_usbdisks	= $('input[name$="tabs"]').length;
+	var UDURL			= '/plugins/<?=$plugin;?>/UnassignedDevices.php';
+	var diskinfo		= "";
+
+	if (typeof swal2 === "undefined") {
+		$('head').append( $('<link rel="stylesheet" type="text/css" />').attr('href', '<?autov("/plugins/".$plugin."/assets/sweetalert2.css");?>') );
+		$.getScript( '/plugins/<?=$plugin;?>/assets/sweetalert2.js');
+	}
+
+	/* Bind Arrive events. */
+	$("#usb_devices_list").arrive("tr",{onceOnly:false},function() {
+		tr = $(this);
+
+		tr.find("span.toggle-hdd").click(function(e) {
+			$(this).disableSelection();disk = $(this).attr("hdd");el = $(this);
+			$(".toggle-"+disk).slideToggle(0);
+		});
+
+		tr.find( "button[role$=mount]" ).on( "click", function() {
+			disk_op(this, $(this).attr("role"), $(this).attr("device"));
+		});
+
+		tr.find("button[role$=format]").on( "click", function() {
+			format_disk(this, $(this).attr("context"), $(this).attr("device"));
+		});
+	});
+
+	$(function() {
+		/* Set page refresh interval every 3 seconds. */
+		window.setInterval(refreshPage, 3000);
+
+		/* Set ping poll interval every 15 seconds. */
+		window.setInterval(pingPoll, 15000);
+
+		/* Check for diskio cookie change every 100ms. */
+		window.setInterval(checkCookie, 100);
+
+		/* Add icons to Tab/Title bar. */
+		$('#tab4').bind({click:function() {$('i.toggle').show('slow');}});
+		if ($.cookie('diskio') === undefined) {
+			$('i.toggle').removeClass('fa-tachometer').addClass('fa-list');
+		} else {
+			$('i.toggle').removeClass('fa-list').addClass('fa-tachometer');
+		}
+
+		/* Update the show-disks status. */
+		if ($.cookie('unassigned-disks-view') == 'false') {
+			$('.show-disks').slideToggle('slow');
+		}
+
+		/* Update the show-shares status. */
+		if ($.cookie('unassigned-shares-view') == 'false') {
+			$('.show-shares').slideToggle('slow');
+		}
+
+		/* Update the show-historical status. */
+		if ($.cookie('unassigned-historical-view') == 'false') {
+			$('.show-historical').slideToggle('slow');
+		}
+
+		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Unassigned Devices Settings");?>" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear fa-switch"></i></a>',
+								"<?=_('Unassigned Devices');?>");
+		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Refresh Disks and Configuration");?>" onclick="rescan_disks()"><i class="fa fa-refresh fa-switch"></i></a>',
+								"<?=_('Unassigned Devices');?>");
+		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Show Historical Devices");?>"><input type="checkbox" class="historical-switch"></a>',
+								"<?=_('Unassigned Devices');?>");
+		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Show SMB/NFS/ISO Shares");?>"><input type="checkbox" class="shares-switch"></a>',
+								"<?=_('Unassigned Devices');?>");
+		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Show Disk Devices");?>"><input type="checkbox" class="disks-switch"></a>',
+								"<?=_('Unassigned Devices');?>");
+
+		$('.tooltip').tooltipster({delay:100, trigger:'custom', triggerOpen:{mouseenter:true}, triggerClose:{click:false, scroll:true, mouseleave:true}});
+
+		/* Add switchButton to Tab/Title bar. */
+		$('.disks-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Disks');?>", off_label: "<?=_('Disks');?>", checked: $.cookie('unassigned-disks-view') != 'false'});
+		$('.disks-switch').change(function() {
+			$('.show-disks').slideToggle('slow');
+			$.cookie('unassigned-disks-view', $('.disks-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path:'/' });
+		});
+
+		$('.shares-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Shares');?>", off_label: "<?=_('Shares');?>", checked: $.cookie('unassigned-shares-view') != 'false'});
+		$('.shares-switch').change(function() {
+			$('.show-shares').slideToggle('slow');
+			$.cookie('unassigned-shares-view', $('.shares-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path:'/' });
+		});
+
+		$('.historical-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Historical');?>", off_label: "<?=_('Historical');?>", checked: $.cookie('unassigned-historical-view') != 'false'});
+		$('.historical-switch').change(function() {
+			$('.show-historical').slideToggle('slow');
+			$.cookie('unassigned-historical-view', $('.historical-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path:'/' });
+		});
+
+		/* Load contents if tab is checked. */
+		if ($('#tab'+tab_usbdisks).is(':checked')) {
+			$('#tab'+tab_usbdisks).trigger("click");
+			$.removeCookie('one',{path:'/'});
+		}
+
+		/* Create cookie for the nchan socket. */
+		$.cookie("ud_reload", "<?=$ud_reload?>", { setMaxAge:0, path:"/;SameSite=Lax" });
+
+		pingPoll();
+		refreshPage();
+		ud_Reload.start();
+	});
+</script>
+
+<div style="display:none;" data-survey-name="add_root_share" data-survey-title="<?=_('Add Root Share');?>">
+	<div data-question data-question-title="<?=_('Root Share')?>" data-question-button-done="<?=_('Add');?>">
+		<div data-question-content>
+			<input type="text" class="swal-content__input" name="SHARE" autocomplete="off" required placeholder="<?=_('Enter Root Share Name');?>" <?=($var['shareDisk']=="yes") ? "disabled" : "";?>>
+			<p><?=_('This is a way to gather Unraid shares into one Root Share');?>.</p>
+			<?if ($var['shareDisk'] != "yes"):?>
+			<p><span style="font-weight:bold;"><?=_('Note');?>:</span> <?=_('Use caution when gathering shares into one Root Share');?>. <?=_('Do not put files or folders into the /mnt/rootshare/ folder');?>.
+			<p><?=_('When you copy files between shares in the Root Share, the files may not end up on the expected disks');?>.</p>
+			<p><?=_('You can also subject yourself to security issues like ransomware by exposing all your shares in one Root Share');?>.</p>
+			<?else:?>
+			<p><span style="font-weight:bold;"><?=_('Note');?>:</span> <?=_('Disk Sharing must be disabled to add a Root Share')?>.</p>
+			<p><?=_('Go to Settings->Global Share Settings and set Enable Disk Shares to Auto or Off');?>.</p>
+			<?endif;?>
+		</div>
+	</div>
+
+	<div data-question data-question-title="<?=_('Root Share')?>" data-question-button-done="<?=_('Add');?>">
+		<div data-question-content>
+			<select name="PATH" class="swal-content__input">
+				<option value="/mnt/user0"><?=_('User Shares');?></option>
+				<option value="/mnt/user"><?=_('User and Pool Shares');?></option>
+			</select>
+			<p><?=_('Select the Root Share');?>.</p>
+			<p><?=_('User Shares will allow access to User Shares, but the Root Share will not include Cache and Pool Device files');?>.</p>
+			<p><?=_('User and Pool Shares will include all files in User Shares, Cache and Pool Devices');?>.</p>
+			<p><?=_('Note');?>:&nbsp;<?= _('Exclusive Share files will not be accessible in a Root Share');?>.</p>
+		</div>
+	</div>
+
+	<div data-survey-done>
+		$.post(UDURL, {'action' : 'add_root_share', share:surveyData['SHARE'], path:surveyData['PATH']}).done(function(data)
+		{
+			swalShowResult((data == "true") ? true : false);
+		},'json').fail(function(){swalShowResult(false);});
+	</div>
+
+	<div>
+		<script type="text/javascript">
+			$(function() {
+				window.add_root_share = function(){doUnassignedDevicesSurvey("add_root_share")}
+			})
+		</script>
+	</div>
+</div>
+
+<div style="display:none;" data-survey-name="add_iso_share" data-survey-title="<?=_('Add ISO File Share');?>">
+	<div data-question data-question-title="<?=_('Choose ISO File')?>" data-question-button-done="<?=_('Add');?>">
+		<div data-question-format>
+			["data-pickroot","ISO_FILE"]
+		</div>
+		<div data-question-content>
+			<input type='text' name='{1}' placeholder="<?=_('Click to select ISO file');?>" data-pickcloseonfile='true' data-pickfilter='iso' {0}='/mnt/user/isos/' data-pickfolders='true' required class='swal-content__input' autocomplete="off" >
+		</div>
+		<div data-question-load></div>
+		<div data-question-done>
+			(surveyData["ISO_FILE"].toLowerCase().indexOf(".iso") !== -1)
+		</div>
+	</div>
+	<div data-survey-done>
+		var opts = {action:"add_iso_share",ISO_FILE:surveyData["ISO_FILE"]};
+		if (opts.ISO_FILE) {
+			$.post(UDURL, opts).done(function(data)
+			{
+				swalShowResult((data == "true") ? true : false);
+			},'json').fail(function(){swalShowResult(false);});
+		}
+	</div>
+	<div>
+		<script type="text/javascript">
+			$(document).on("click","input[name=ISO_FILE]",function() {
+				if (! $(this).siblings("div.fileTree").length) {
+					$(this).fileTreeAttach();
+					$(this).trigger("click");
+				}
+				$(this).next("div.fileTree").css("text-align","left").css("z-index","10001").css("left","20px").css("width",$(this).width()+13)
+			});
+			$(function() {
+				window.add_iso_share = function(){doUnassignedDevicesSurvey("add_iso_share")}
+			})
+		</script>
+	</div>
+</div>
+
+<div style="display:none;" data-survey-name="format_disk" data-survey-title="<?=_('Partition and Format Disk');?>">
+<?if (file_exists("/usr/sbin/parted") && get_config("Config", "destructive_mode") == "enabled"):?>
+	<div data-question data-question-title="<?=_('Choose File System Format');?>">
+		<div data-question-format>
+			[surveyOption.device, surveyOption.type]
+		</div>
+		<div data-question-content>
+			<select name="FS" class="swal-content__input">
+				<option value="xfs">XFS</option>
+				<option value="btrfs">BTRFS</option>
+				<?if (version_compare($version['version'],"6.11.9", ">")):?>
+				<option value="zfs">ZFS</option>
+				<?endif;?>
+				<option value="xfs-encrypted">XFS - encrypted</option>
+				<option value="btrfs-encrypted">BTRFS - encrypted</option>
+				<?if (version_compare($version['version'],"6.11.9", ">")):?>
+				<option value="zfs-encrypted">ZFS - encrypted</option>
+				<?endif;?>
+				<option value="ntfs">NTFS</option>
+				<option value="exfat">exFAT</option>
+				<option value="fat32">FAT32</option>
+			</select>
+			<p><span style="font-weight:bold;"><?=_('Note');?>:</span> <?=_('An XFS, BTRFS, or ZFS disk partitioned in UD is compatible with the array disk partitioning and can be added to the array');?>.</p>
+		</div>
+		<div data-question-load></div>
+		<div data-question-done></div>
+	</div>
+
+	<div data-question data-question-title="<?=_('ZFS Pool Name');?>">
+		<div data-question-condition>
+			surveyData['FS'] == 'zfs' || surveyData['FS'] == 'zfs-encrypted'
+		</div>
+		<div data-question-content>
+			<div class="swal-content">
+				<input type="text" class="swal-content__input" name="POOL_NAME" required placeholder="<?=_('Pool Name');?>">
+				<p><?=_('Enter the Pool Name for this device');?>. <?=_('This wil also be the mountpoint for the disk');?>.</p>
+			</div>
+		</div>
+	</div>
+
+	<div data-question data-question-title="<?=_('Password');?>">
+		<div data-question-condition>
+			surveyData['FS'] == 'xfs-encrypted' || surveyData['FS'] == 'btrfs-encrypted' || surveyData['FS'] == 'zfs-encrypted'
+		</div>
+		<div data-question-content>
+			<div class="swal-content">
+				<input type="password" class="swal-content__input" name="PASS" autocomplete="off" placeholder="<?=_('Password');?>">
+				<p><?=_('Enter the password to use for this disk');?>. <?=_('Leave blank to use the array password/passphrase');?>. <?=_('If using a disk password, be sure to enter the password for this disk in UD Settings so it can be mounted');?>.</p>
+				<p><span style="font-weight:bold;"><?=_('Note');?>:</span> <?=_('Remember your password');?>. <?=_('It cannot be recovered');?>!</p>
+			</div>
+		</div>
+	</div>
+
+	<div data-question data-question-title="" data-question-button-done=<?=_('Format');?> data-question-icon="warning">
+		<div data-question-format>
+			[surveyOption.device, surveyOption.type]
+		</div>
+		<div data-question-content>
+			<div class="swal-title"><?=_('Any data on this disk will be lost');?>!</div>
+			<div style="margin-bottom: 25px;font-size: 20px;"><?=_('Type');?> <span class="red">'<?=_('Yes');?>'</span> <?=_('to format');?>:</div>
+			<input type="text" name="confirmation" class="swal-content__input" autocomplete="off" required >
+		</div>
+		<div data-question-load></div>
+		<div data-question-done>
+			(surveyData["confirmation"] == "<?=_('Yes');?>")
+		</div>
+	</div>
+
+	<div data-survey-done data-survey-done-wait="true">
+		$("button[device='"+surveyOption.device+"']").prop('disabled',true);
+		$("button[device='"+surveyOption.device+"']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Formatting');?>");
+		$.post(UDURL, {'action' : 'format_'+surveyOption.type, device:surveyOption.device, fs:surveyData["FS"], pass:surveyData["PASS"], pool_name:surveyData["POOL_NAME"]}, function(data)
+		{
+			$("button[device='"+surveyOption.device+"']").prop('disabled',true);
+			$("button[device='"+surveyOption.device+"']").html( data.status ? "<?=_('Formatted');?>" : "<?=_('Format failed');?>" );
+			swalShowResult(data.status);
+		},'json').fail(function(){swalShowResult(false);});
+	</div>
+	<div>
+		<script type="text/javascript">
+			$(function() {
+				window.format_disk = function(bt, type, device){doUnassignedDevicesSurvey("format_disk", {el:bt, type:type, device:device});}
+			});
+		</script>
+	</div>
+	<?else:?>
+	<div data-question data-question-title="<?=_('Partition and Format Disk');?>">
+		<div data-question-content>
+			<p><?=_('You must enable the Destructive Mode in UD Settings before you can Format this disk');?>.</p>
+		</div>
+	</div>
+	<div data-survey-done data-survey-done-wait="false">
+	</div>
+	<?endif;?>
+	<div>
+		<script type="text/javascript">
+			$(function() {
+				window.format_disk = function(bt, type, device){doUnassignedDevicesSurvey("format_disk", {el:bt, type:type, device:device});}
+			});
+		</script>
+	</div>
+</div>
+
+<div style="display:none;" data-survey-name="remove_partiton" data-survey-title="">
+	<div data-question data-question-title="" data-question-button-done="<?=_('Remove');?>" data-question-icon="warning">
+		<div data-question-format>
+			[surveyOption.partition, surveyOption.device, surveyOption.serial]
+		</div>
+		<div data-question-content>
+			<div class="swal-title"><?=_('Data on this disk will be lost');?>!</div>
+			<div class="swal-title" style="font-size: 20px;"><?=_('Remove partition');?> <span class="red">{0}</span> <?=_('from disk');?> <span class="red">{1}?</span></div>
+			<div style="margin-bottom: 25px;font-size: 20px;"><?=_('Type');?> <span class="red">'<?=_('Yes');?>'</span> <?=_('to delete this partition');?>:</div>
+			<input type="text" name="confirmation" class="swal-content__input" autocomplete="off" required >
+		</div>
+		<div data-question-load></div>
+		<div data-question-done>
+			(surveyData["confirmation"] == "<?=_('Yes');?>")
+		</div>
+	</div>
+	<div data-survey-done>
+		$("span[device='"+surveyOption.device+surveyOption.partition+"']").prop('disabled',true);
+		$("span[device='"+surveyOption.device+surveyOption.partition+"']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Removing');?>");
+		$.post(UDURL, {'action' : 'rm_partition', serial:surveyOption.serial, device:surveyOption.device, partition:surveyOption.partition}).done(function(data)
+		{
+			swalShowResult((data == "true") ? true : false);
+		},'json').fail(function(){swalShowResult(false);});
+	</div>
+	<div>
+		<script type="text/javascript">
+			$(function() {
+				window.rm_partition = function(bt, serial, device, partition){doUnassignedDevicesSurvey("remove_partiton", {el:bt, serial:serial, device:device, partition:partition});}
+			});
+		</script>
+	</div>
+</div>
+
+<div style="display:none;" data-survey-name="clear_disk" data-survey-title="">
+	<div data-question data-question-title="" data-question-button-done="<?=_('Clear');?>" data-question-icon="warning">
+		<div data-question-format>
+			[surveyOption.device, surveyOption.serial]
+		</div>
+		<div data-question-content>
+			<div class="swal-title"><?=_('Data on this disk will be lost');?>!</div>
+			<div class="swal-title" style="font-size: 20px;"><?=_('Clear Disk');?> <span class="red">{0}?</span></div>
+			<div style="margin-bottom: 25px;font-size: 20px;"><?=_('Type');?> <span class="red">'<?=_('Yes');?>'</span> <?=_('to clear this disk of all partitions');?>:</div>
+			<input type="text" name="confirmation" class="swal-content__input" autocomplete="off" required >
+			<?if ($Preclear):?>
+			<p><?=_('If this disk was pre-cleared, you will remove the pre-clear signature.  If you add the disk to the array and the pre-clear signature is removed, Unraid will go through the lengthy process of clearing the disk again')?>.</p>
+			<?endif;?>
+		</div>
+		<div data-question-load></div>
+		<div data-question-done>
+			(surveyData["confirmation"] == "<?=_('Yes');?>")
+		</div>
+	</div>
+	<div data-survey-done>
+		$("span[device='"+surveyOption.device+surveyOption.partition+"']").prop('disabled',true);
+		$("span[device='"+surveyOption.device+surveyOption.partition+"']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Removing');?>");
+		$.post(UDURL, {'action' : 'clr_disk', serial:surveyOption.serial, device:surveyOption.device}).done(function(data)
+		{
+			swalShowResult((data == "true") ? true : false);
+		},'json').fail(function(){swalShowResult(false);});
+	</div>
+	<div>
+		<script type="text/javascript">
+			$(function() {
+				window.clr_disk = function(bt, serial, device){doUnassignedDevicesSurvey("clear_disk", {el:bt, serial:serial, device:device});}
+			});
+		</script>
+	</div>
+</div>
+
+<div style="display:none;" data-survey-name="remove_iso_share" data-survey-title="<?=_('Remove ISO File mount');?>">
+	<div data-question data-question-title="" data-question-button-done="<?=_('Remove');?>" data-question-icon="warning">
+		<div data-question-format>
+			[surveyOption.device, surveyOption.compressed]
+		</div>
+		<div data-question-content>
+			<div class="swal-title" style="font-size: 20px;"><?=_('This will remove the ISO file share for');?>:</div>
+			<div style="margin-bottom: 15px;margin-top: 15px;">
+				<span style="font-weight: bold;">{1}</span>
+			</div>
+			<div class="swal-title" style="font-size: 20px;">
+				<span class="red" style="font-weight: bold;"><?=_('Are you sure');?>?</span>
+			</div>
+		</div>
+		<div data-question-load></div>
+		<div data-question-done></div>
+	</div>
+	<div data-survey-done>
+		$.post(UDURL, {'action' : 'remove_iso_config', device:surveyOption.device}).done(function(data)
+		{
+			swalShowResult((data == "true") ? true : false);
+		},'json').fail(function(){swalShowResult(false);});
+	</div>
+	<div>
+		<script type="text/javascript">
+			$(function() {
+				window.remove_iso_config = function(device, compressed){doUnassignedDevicesSurvey("remove_iso_share", {device:device, compressed:compressed});}
+		});
+	</script>
+	</div>
+</div>
+
+<div style="display:none;" data-survey-name="remove_disk_config" data-survey-title="<?=_('Remove Disk Config');?>">
+	<div data-question data-question-title="" data-question-button-done="<?=_('Remove');?>" data-question-icon="warning">
+		<div data-question-format>
+			[surveyOption.serial, surveyOption.compressed]
+		</div>
+		<div data-question-content>
+			<div class="swal-title" style="font-size: 20px;"><?=_('This will remove the saved configuration of');?>:</div>
+			<div style="margin-bottom: 15px;margin-top: 15px;">
+				<span style="font-weight: bold;">{1}</span>
+			</div>
+			<div class="swal-title" style="font-size: 20px;">
+				<span class="red" style="font-weight: bold;"><?=_('Are you sure');?>?</span>
+			</div>
+		</div>
+		<div data-question-load></div>
+		<div data-question-done></div>
+	</div>
+	<div data-survey-done>
+		$.post(UDURL, {'action' : 'remove_config', serial:surveyOption.serial}).done(function(data)
+		{
+			swalShowResult((data == "true") ? true : false);
+		},'json').fail(function(){swalShowResult(false);});
+	</div>
+	<div>
+		<script type="text/javascript">
+			$(function(){
+				window.remove_disk_config = function(serial, compressed){doUnassignedDevicesSurvey("remove_disk_config",{serial:serial, compressed:compressed});}
+			});
+		</script>
+	</div>
+</div>
+
+<div style="display:none;" data-survey-name="remove_remote_share" data-survey-title="<?=_('Remove SMB/NFS mount');?>?">
+	<div data-question data-question-title="" data-question-button-done="<?=_('Remove');?>" data-question-icon="warning">
+		<div data-question-format>
+			[surveyOption.device, surveyOption.compressed, surveyOption.type]
+		</div>
+		<div data-question-content>
+			<div class="swal-title" style="font-size: 20px;"><?=_('This will remove the remote');?> <span style="font-weight: bold;">{2}</span> <?=_('share for');?>:</div>
+			<div style="margin-bottom: 15px;margin-top: 15px;">
+				<span style="font-weight: bold;">{1}</span>
+			</div>
+			<div class="swal-title" style="font-size: 20px;">
+				<span class="red" style="font-weight: bold;"><?=_('Are you sure');?>?</span>
+			</div>
+		</div>
+		<div data-question-load></div>
+		<div data-question-done></div>
+	</div>
+	<div data-survey-done>
+		$.post(UDURL, {'action' : 'remove_samba_config', device:surveyOption.device}).done(function(data)
+		{
+			swalShowResult((data == "true") ? true : false);
+		},'json').fail(function(){swalShowResult(false);});
+	</div>
+	<div>
+		<script type="text/javascript">
+			$(function(){
+				window.remove_samba_config = function(device, compressed, type){doUnassignedDevicesSurvey("remove_remote_share",{device:device, compressed:compressed, type:type});}
+			});
+		</script>
+	</div>
+</div>
+
+<div style="display:none;" data-survey-name="add_remote_share" data-survey-title="<?=_('Add Remote Share');?>">
+	<div data-question data-question-title="<?=_('Click on Icon to Choose Protocol');?>">
+		<div data-question-format>
+			["nfs_radio","smb_radio"]
+		</div>
+		<div data-question-content>
+			<div class="image-radio">
+				<input type="radio" id="{0}" name="PROTOCOL" value="NFS" required="" <?=($var['shareNFSEnabled']=="no") ? "disabled" : "";?>>
+				<label class="image-radio-label image-radio-linux" for="{0}"></label>
+				<input type="radio" id="{1}" name="PROTOCOL" value="SMB" required="" <?=($var['shareSMBEnabled']=="no") ? "disabled" : "";?>>
+				<label class="image-radio-label image-radio-windows" for="{1}"></label>
+				<p><?=_('WARNING').": "._('Use caution when using a remote share local mount in a Docker Container or VM for critical data');?>.  <?=_('Media mapped to apps like Plex should not be a problem');?>.  <?=_('Remote share mounts are dependent on a solid and reliable network connection and that can difficult to achieve');?>. <?=_('If the remote share goes offline, you may have problems');?>!</p>
+				<?if ($var['shareNFSEnabled']=="no"):?><p><?=_('Note').": "._('You must enable NFS in Settings->NFS to mount NFS shares').".";?></p><?endif;?>
+				<?if ($var['shareSMBEnabled']=="no"):?><p><?=_('Note').": "._('You must enable SMB in Settings->SMB to mount SMB shares').".";?></p><?endif;?>
+			</div>
+		</div>
+	</div>
+	<div data-question data-question-title="<?=_('Choose Server');?>">
+		<div data-question-format>
+			[surveyData["PROTOCOL"] == "SMB" ? "list_samba_hosts" : "list_nfs_hosts"]
+		</div>
+		<div data-question-content>
+			<input type="text" class="swal-content__input" name="IP" autocomplete="off" required placeholder="<?=_('Enter or Select Server');?>"><br/>
+			<button class="swal-button" onclick='load_hosts(this,"{0}")'><?=_('Search For Servers');?></button>
+			<p><?=_('Search for Servers, or enter the Server name/IP address manually');?>.</p>
+		</div>
+	</div>
+	<div data-question data-question-title="<?=_('Username');?>">
+		<div data-question-condition>
+			surveyData['PROTOCOL'] == 'SMB';
+		</div>
+		<div data-question-content>
+			<div class="swal-content">
+				<input type="text" class="swal-content__input" name="USER" autocomplete="off" placeholder="<?=_('Username');?>">
+				<p><?=_('Enter the Username if the share is password protected');?>.</p>
+				<p><?=_('You will need to enter credentials to list the shares');?>.</p>
+			</div>
+		</div>
+	</div>
+	<div data-question data-question-title="<?=_('Password');?>">
+		<div data-question-condition>
+			surveyData['PROTOCOL'] == 'SMB'
+		</div>
+		<div data-question-content>
+			<div class="swal-content">
+				<input type="password" class="swal-content__input" name="PASS" autocomplete="new-password" placeholder="<?=_('Password');?>">
+				<p><?=_('Enter the Password if the share is password protected');?>.</p>
+				<p><?=_('You will need to enter credentials to list the shares');?>.</p>
+			</div>
+		</div>
+	</div>
+	<div data-question data-question-title="<?=_('Domain');?>">
+		<div data-question-condition>
+			surveyData['PROTOCOL'] == 'SMB'
+		</div>
+		<div data-question-content>
+			<div class="swal-content">
+				<input type="text" class="swal-content__input" name="DOMAIN" autocomplete="off" placeholder="<?=_('Domain');?>">
+				<p><?=_('Enter the Domain for the share if on a Domain');?>.</p>
+			</div>
+		</div>
+	</div>
+	<div data-question data-question-title="<?=_('Choose Share');?>">
+		<div data-question-format>
+			[surveyData['PROTOCOL'], surveyData['IP'], surveyData['USER'], surveyData['PASS'], surveyData['DOMAIN'], (surveyData['PROTOCOL'] == 'SMB' ? 'list_samba_shares' : 'list_nfs_shares')]
+		</div>
+		<div data-question-content>
+			<input type='text' class="swal-content__input" autocomplete="off" name='SHARE' required placeholder="<?=_('Enter or Select Share');?>"><br />
+			<button class="swal-button" onclick='load_shares(this, "{1}", "{2}", "{3}", "{5}")'><?=_('Load Shares');?></button>
+			<p><?=_('Search for Shares or enter the Share name manually');?>.</p>
+		</div>
+		<div data-question-done>
+			(surveyData["SHARE"].length)
+		</div>
+	</div>
+	<div data-survey-done>
+		var opts			= new Object();
+		opts["action"]		= "add_samba_share";
+		opts["PROTOCOL"]	= surveyData['PROTOCOL'];
+		opts["IP"]			= surveyData['IP'];
+		opts["USER"]		= surveyData['USER'];
+		opts["DOMAIN"]		= surveyData['DOMAIN'];
+		opts["PASS"]		= surveyData['PASS'];
+		opts["SHARE"]		= surveyData['SHARE'];
+		if (opts.SHARE && opts.IP) {
+			$.post(UDURL, opts).done(function(data)
+			{
+				swalShowResult((data == "true") ? true : false);
+			},'json').fail(function(){swalShowResult(false);});
+		}
+	</div>
+	<div>
+		<script type="text/javascript">
+			$(function(){
+				window.add_samba_share = function(i){doUnassignedDevicesSurvey("add_remote_share",i);}
+			});
+		</script>
+	</div>
+</div>
+
+<div style="display:none;" data-survey-name="change_mountpoint" data-survey-title="">
+	<div data-question data-question-title="<?=_('Change Disk Mount Point');?>" data-question-button-done="<?=_('Change');?>">
+		<div data-question-format>
+			[surveyOption.mountpoint, surveyOption.disklabel]
+		</div>
+		<div data-question-content>
+			<input type="text" class="swal-content__input" name="MOUNTPOINT" value={0} placeholder="<?=_('Mount Point');?>">
+			<p><?=_('Disk Label');?>:&nbsp;{1}</p>
+			<p><?=_('Changing the Mount Point will also change the disk label');?>.</p>
+		</div>
+		<div data-question-load></div>
+	</div>
+	<div data-survey-done data-survey-done-wait="true">
+		$.post(UDURL, {'action' : 'chg_mountpoint', serial:surveyOption.serial, partition:surveyOption.partition, device:surveyOption.device, fstype:surveyOption.fstype, mountpoint:surveyData['MOUNTPOINT']}).done(function(data)
+		{
+			swalShowResult((data == "true") ? true : false);
+		},'json').fail(function(){swalShowResult(false);});
+	</div>
+	<div>
+		<script type="text/javascript">
+			$(function() {
+				window.chg_mountpoint = function(serial, partition, device, fstype, mountpoint, disklabel){doUnassignedDevicesSurvey("change_mountpoint",{serial:serial,partition:partition,device:device,fstype:fstype,mountpoint:mountpoint,disklabel:disklabel});}
+			});
+		</script>
+	</div>
+</div>
+
+<div style="display:none;" data-survey-name="change_samba_mountpoint" data-survey-title="">
+	<div data-question data-question-title="<?=_('Change SMB/NFS Mount Point');?>" data-question-button-done="<?=_('Change');?>">
+		<div data-question-format>
+			[surveyOption.mountpoint]
+		</div>
+		<div data-question-content>
+			<input type="text" class="swal-content__input" name="MOUNTPOINT" value={0} placeholder="<?=_('Mount Point');?>" required>
+		</div>
+		<div data-question-load></div>
+		<div data-question-done>
+			(surveyData["MOUNTPOINT"].length)
+		</div>
+	</div>
+	<div data-survey-done data-survey-done-wait="true">
+		$.post(UDURL, {'action' : 'chg_samba_mountpoint', device:surveyOption.device,mountpoint:surveyData['MOUNTPOINT']}).done(function(data)
+		{
+			swalShowResult((data == "true") ? true : false);
+		},'json').fail(function(){swalShowResult(false);});
+	</div>
+	<div>
+		<script type="text/javascript">
+			$(function() {
+				window.chg_samba_mountpoint = function(device, mountpoint){doUnassignedDevicesSurvey("change_samba_mountpoint",{device:device,mountpoint:mountpoint});}
+			});
+		</script>
+	</div>
+</div>
+
+<div style="display:none;" data-survey-name="change_iso_mountpoint" data-survey-title="">
+	<div data-question data-question-title="<?=_('Change ISO File Mount Point');?>" data-question-button-done="<?=_('Change');?>">
+		<div data-question-format>
+			[surveyOption.mountpoint]
+		</div>
+		<div data-question-content>
+			<input type="text" class="swal-content__input" name="MOUNTPOINT" value={0} placeholder="<?=_('Mount Point');?>" required>
+		</div>
+		<div data-question-load></div>
+		<div data-question-done>
+			(surveyData["MOUNTPOINT"].length)
+		</div>
+	</div>
+	<div data-survey-done data-survey-done-wait="true">
+		$.post(UDURL, {'action' : 'chg_iso_mountpoint', device:surveyOption.device,mountpoint:surveyData['MOUNTPOINT']}).done(function(data)
+		{
+			swalShowResult((data == "true") ? true : false);
+		},'json').fail(function(){swalShowResult(false);});
+	</div>
+	<div>
+		<script type="text/javascript">
+			$(function() {
+				window.chg_iso_mountpoint = function(device, mountpoint){doUnassignedDevicesSurvey("change_iso_mountpoint",{device:device,mountpoint:mountpoint});}
+			});
+		</script>
+	</div>
+</div>
