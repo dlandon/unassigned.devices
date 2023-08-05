@@ -397,7 +397,11 @@ _(Volume)_:
 
 <?if ($fstype != "zvol"):?>
 _(Device Script)_:
-: <input type="text" title='_(Enter Device Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this, '/boot/config/plugins/<?=$plugin;?>', 'sh');" autocomplete="off" value="<?=$file;?>" placeholder="_(Click to select file or click 'Default' button for the Device Script File)_" <?=$script_disabled;?>>
+<?if (! $script_disabled):?>
+: <input type="text" title='_(Enter Device Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this, '/boot/config/plugins/<?=$plugin;?>', 'sh');" autocomplete="off" value="<?=$file;?>" placeholder="_(Click to select file or click 'Default' button for the Device Script File)_">
+<?else:?>
+: <input type="text" title='_(Enter Device Script File Name)_.' name="#file" style="width:40%;" value="<?=$file;?>" readonly>
+<?endif;?>
 
 :ud_edit_script_choose_name_plug:
 > This is the Script File that runs when the device is mounted. Choose your Script File name from the file selection dropdown, or enter your desired script.  This cannot be changed if the device is mounted.
@@ -415,7 +419,11 @@ _(Run Device Script File in the background)_?
 
 <? if (! isset($_GET['i'])):?>
 _(User Script)_:
-: <input type="text" title='_(Enter the User Script File Name)_.' name="#user_file" style="width:40%;" onclick="openFileBrowser(this, '/boot/config/plugins/user.scripts/scripts', '', false);" autocomplete="off" placeholder="_(Enter the User Script that will be using this device)_" value="<?=$user_file;?>" <?=$user_disabled;?>>
+<?if (! $script_disabled):?>
+: <input type="text" title='_(Enter the User Script File Name)_.' name="#user_file" style="width:40%;" onclick="openFileBrowser(this, '/boot/config/plugins/user.scripts/scripts', '', false);" autocomplete="off" placeholder="_(Enter the User Script that will be using this device)_" value="<?=$user_file;?>">
+<?else:?>
+: <input type="text" title='_(Enter the User Script File Name)_.' name="#user_file" style="width:40%;" value="<?=$user_file;?>" readonly>
+<?endif;?>
 <?endif;?>
 
 <? if (! isset($_GET['i'])):?>
@@ -438,7 +446,7 @@ _(User Script)_:
 <button type="button" title='_(Delete Device Script File)_.' onclick='rmfile();'>_(Delete)_</button>
 <?endif;?>
 <?endif;?>
-<input type="submit" title='_(Save your Device Script File changes)_.' value='_(Apply)_'/>
+<input type="submit" title='_(Save your Device Script File changes)_.' value='_(Apply)_'>
 <input type="button" value="_(Done)_" onclick="done()">
 
 :ud_edit_script_buttons_plug:
