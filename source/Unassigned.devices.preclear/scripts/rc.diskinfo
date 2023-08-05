@@ -368,7 +368,7 @@ class Disks
 			}
 
 			/* If the disk has a serial number and no partitions, it can be a candidate for preclear. */
-			if ($disk['SERIAL']) {
+			if ((isset($disk['SERIAL'])) && ($disk['SERIAL'])) {
 				if (($disk['PRECLEAR']) || ($no_file_system)) {
 					$disks[$key] = $disk;
 				}
