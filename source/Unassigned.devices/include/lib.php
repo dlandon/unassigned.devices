@@ -1504,11 +1504,11 @@ function get_mount_params($fs, $dev, $ro = false) {
 			break;
 
 		case 'nfs':
-			$rc = "{$rw},noac,noatime,nodiratime,retrans=4,timeo=300";
+			$rc = "{$rw},soft,noac,noatime,nodiratime,retrans=4,timeo=300";
 			break;
 
 		case 'root':
-			$rc = "{$rw} --bind";
+			$rc = "{$rw},noatime,nodiratime";
 			break;
 
 		default:
@@ -1768,7 +1768,7 @@ function do_mount_root($info) {
 				@mkdir($dir, 0777, true);
 
 				$params	= get_mount_params($fs, $dev, $ro);
-				$cmd	= "/sbin/mount -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
+				$cmd	= "/sbin/mount --bind -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 
 				unassigned_log("Mount ROOT command: ".$cmd);
 
@@ -2178,6 +2178,7 @@ function reload_shares() {
 	foreach (get_samba_mounts() as $name => $info) {
 		if ( ($info['mounted']) && ($info['smb_share']) ) {
 			add_smb_share($info['mountpoint'], $info['fstype'] == "root" ? true : false);
+			add_nfs_share($info['mountpoint']);
 		}
 	}
 
