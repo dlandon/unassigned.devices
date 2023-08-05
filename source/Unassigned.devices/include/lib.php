@@ -2148,6 +2148,7 @@ function remove_shares() {
 	foreach (get_samba_mounts() as $name => $info) {
 		if ( ($info['mounted']) && ($info['smb_share']) ) {
 			rm_smb_share($info['mountpoint']);
+			rm_nfs_share($info['mountpoint']);
 		}
 	}
 
