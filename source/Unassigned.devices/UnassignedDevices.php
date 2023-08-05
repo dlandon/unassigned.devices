@@ -1273,7 +1273,7 @@ switch ($_POST['action']) {
 		$status		= urldecode($_POST['status']);
 		$result		= toggle_samba_share($info['device'], $status);
 		if ($result && $info['target']) {
-			add_smb_share($info['mountpoint']);
+			add_smb_share($info['mountpoint'], $info['fstype'] == "root" ? true : false);
 			add_nfs_share($info['mountpoint']);
 		} else if ($info['mounted']) {
 			rm_smb_share($info['mountpoint']);
