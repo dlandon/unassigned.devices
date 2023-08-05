@@ -159,7 +159,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		} else {
 			$mount_point	= basename($partition['mountpoint']);
 			$disk_label		= $partition['disk_label'];
-			if ((! $disk['array_disk']) && (! $preclearing)  && (! $is_mounting)) {
+			if ((! $disk['array_disk']) && (! $preclearing) && (! $is_mounting)) {
 				$mpoint		.= "<i class='fa fa-pencil partition-hdd'></i><a title='"._("Change Disk Mount Point")."' class='exec' onclick='chg_mountpoint(\"{$partition['serial']}\",\"{$partition['part']}\",\"{$device}\",\"{$partition['fstype']}\",\"{$mount_point}\",\"{$disk_label}\");'>{$mount_point}</a>";
 			} else {
 				$mpoint		.= "<i class='fa fa-pencil partition-hdd'></i>".$mount_point;
@@ -679,7 +679,7 @@ switch ($_POST['action']) {
 				} else {
 					$o_remotes	.= "<td><i class='fa fa-pencil mount-share'></i>";
 					if (! $is_mounting) {
-						$o_remotes	.= "<a title='"._("1 Change Remote SMB")."/"._("NFS Mount Point")."' class='exec' onclick='chg_samba_mountpoint(\"{$mount['name']}\",\"{$mount_point}\");'>{$mount_point}</a>";
+						$o_remotes	.= "<a title='"._("Change Remote SMB")."/"._("NFS Mount Point")."' class='exec' onclick='chg_samba_mountpoint(\"{$mount['name']}\",\"{$mount_point}\");'>{$mount_point}</a>";
 					} else {
 						$o_remotes	.= $mount_point;
 					}
