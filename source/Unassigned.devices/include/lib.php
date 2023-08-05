@@ -1446,9 +1446,10 @@ function is_mounted_read_only($dev) {
 	$rc = false;
 	if ($dev) {
 		$dev_lookup	= (strpos($dev, "/dev/mapper") !== false) ? basename($dev) : $dev;
-		$data		= timed_exec(2, "/usr/bin/cat /proc/mounts | awk '{print $2 \",\" toupper(substr($4,0,2))}'");
-		$data		= str_replace("\\040", " ", $data);
-		$rc			= (strpos($data, $dev_lookup.",RO") !== false) ? true : false;
+		$mount		= timed_exec(2, "/usr/bin/cat /proc/mounts | awk '{print $2 \"-\" toupper(substr($4,0,2))}'");
+		$mount		= str_replace("\\040", " ", $mount);
+		$data		= explode("\n", $mount);
+		$rc			= (in_array($dev_lookup."-RO", $data) !== false) ? true : false;
 	}
 
 	return $rc;
@@ -1508,7 +1509,7 @@ function get_mount_params($fs, $dev, $ro = false) {
 			break;
 
 		case 'root':
-			$rc = "{$rw},noatime,nodiratime";
+			$rc = "{$rw},bind,noatime,nodiratime";
 			break;
 
 		default:
@@ -1768,7 +1769,7 @@ function do_mount_root($info) {
 				@mkdir($dir, 0777, true);
 
 				$params	= get_mount_params($fs, $dev, $ro);
-				$cmd	= "/sbin/mount --bind -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
+				$cmd	= "/sbin/mount -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 
 				unassigned_log("Mount ROOT command: ".$cmd);
 
