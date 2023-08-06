@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.07.28">
+<!ENTITY version	"2023.08.06">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"d205805bababced47d2b83159a13a50f">
+<!ENTITY MD5		"765e320d5600416b4cfbadc9d6379278">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,9 +22,21 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Mark disks with a file system and no partition as a 'Pool' device so UD does not allow operations on the device.  For example a Linux LVM file system.
+- Fix: Changes to help with UD hanging when remote NFS goes off-line.
+- Fix: Sharing on remote shares not enabling NFS sharing of the remote share on the local server.
+- Fix: Issues with share switch on root share setting up SMB sharing with the Recycle Bin.
+- Fix: Edit Device Settings did not allow changing device script file when device is mounted.
+- Fix: Mounted status on Edit Device Settings on remote shares when device is mounted.
+- Add: Add 'Auto' and remove 'NFSv3' options from NFS Version setting in UD Settings.  The 'Auto' setting tells UD to auto negotiate the NFS version when mounting a remote share to use on the remote server.
+- Add: Add 'noatime', 'nodiratime', and 'soft' options to NFS mounts.  Change 'retrans' and 'timeo' to help with remote server off-line recovery.
+- Add: Sync timeout so 'sync' will not hang indefinitely when devices are being unmounted when the array is being stopped.
+- Add: Add 'noatime' and 'nodiratime' options to root share mounts.  This stops writes on root share when accessing files and directories.
+
+###2023.07.28
 - Fix: Ignore case when checking for device designators in Disk Name.
 - Fix: Issue where shutting down the array and restarting then causes issues with spin down on disks and detaching disks.
-- Fix: Sync disk file systems was not working when the server is rebooted.
+- Fix: Sync disk file systems was not working when the server is shut down.
 - Fix: Clean up handling of shut down semaphore file.
 - Fix: Increase timeout when checking mounts file for mounted status.
 - Add: Warning when adding a remote share if the share is blank.
