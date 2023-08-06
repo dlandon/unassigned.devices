@@ -211,7 +211,7 @@ _(NFS Version to use when Mounting Remote Shares)_:
 :ud_settings_specify_nfs_vers_plug:
 > Set to **Auto** to mount all NFS Remote Shares auto negotiating the NFS version to use.
 >
-> If the **Auto** setting doesn't work, you need to use **NFSv4** because your version of Unraid will not auto negotiate the NFS version.
+> If the **Auto** setting doesn't work or only mounts NFSv3, you need to use the **NFSv4** setting because your version of Unraid will not auto negotiate NFSv4.
 :end
 
 _(Debug Log Level)_:
