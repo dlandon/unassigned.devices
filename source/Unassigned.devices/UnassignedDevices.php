@@ -716,7 +716,7 @@ switch ($_POST['action']) {
 				$title .= $shares_enabled ? (($mount['smb_share']) ? "Yes" : "No") : "Not Enabled";
 
 				if (! $mount['invalid']) {
-					$o_remotes .= "<td><a class='info' href='/Main/EditDeviceSettings?d=".$mount['device']."&l=".$mount_point."&j=".$mount['name']."&m=".json_encode($mount)."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+					$o_remotes .= "<td><a class='info' href='/Main/EditDeviceSettings?d=".$mount['device']."&l=".$mount['mountpoint']."&j=".$mount['name']."&m=".json_encode($mount)."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 				} else {
 					$o_remotes .= "<td><i class='fa fa-gears grey-orb'></i><span style='text-align:left'></span></td>";
 				}
@@ -786,7 +786,7 @@ switch ($_POST['action']) {
 				$title .= "<br />"._("Share").": Yes";
 
 				if (! $mount['invalid']) {
-					$o_remotes .= "<td><a class='info' href='/Main/EditDeviceSettings?i=".$device."&l=".$mount_point."&j=".$mount['file']."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+					$o_remotes .= "<td><a class='info' href='/Main/EditDeviceSettings?i=".$device."&l=".$mount['mountpoint']."&j=".$mount['file']."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 				} else {
 					$o_remotes .= "<td><i class='fa fa-gears grey-orb'></i><span style='text-align:left'></span></td>";
 				}
