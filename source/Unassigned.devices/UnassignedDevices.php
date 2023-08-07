@@ -1216,7 +1216,7 @@ switch ($_POST['action']) {
 		$path		= isset($_POST['SHARE']) ? urldecode($_POST['SHARE']) : "";
 		$path		= implode("",explode("\\", $path));
 		$path		= stripslashes(trim($path));
-		$share		= safe_name(basename($path), false, true);
+		$share		= basename($path);
 
 		/* See if there is another mount with a different protocol. */
 		foreach (get_samba_mounts() as $mount) {
