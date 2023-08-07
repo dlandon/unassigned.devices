@@ -1229,7 +1229,7 @@ switch ($_POST['action']) {
 		if ($rc) {
 			/* Don't save any information if the share is blank. */
 			if (! empty($share)) {
-				$device	= ($protocol == "NFS") ? $ip.":".safe_name($path, false, true) : "//".strtoupper($ip)."/".safe_name($share);
+				$device	= ($protocol == "NFS") ? $ip.":".safe_name($path, false, true) : "//".strtoupper($ip)."/".safe_name($share, false, true);
 				$device	= str_replace("$", "", $device);
 				set_samba_config($device, "protocol", $protocol);
 				set_samba_config($device, "ip", ((new MiscUD)->is_ip($ip) ? $ip : strtoupper($ip)));
