@@ -1699,7 +1699,7 @@ function do_mount_local($info) {
 						exec("/bin/chgrp 100 ".escapeshellarg($dir)." 2>/dev/null");
 					}
 
-					unassigned_log("Successfully mounted '".basename($dev)."' on '".$dir."'.");
+					unassigned_log("Successfully mounted '".$dev."' on '".$dir."'.");
 
 					$rc = true;
 					break;
@@ -1858,7 +1858,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 						}
 					}
 
-					unassigned_log("Successfully unmounted '".basename($dev)."'");
+					unassigned_log("Successfully unmounted '".$dev."'");
 					$rc = true;
 					break;
 				} else {
@@ -1868,12 +1868,12 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 		}
 
 		if (! $rc) {
-			unassigned_log("Unmount of '".basename($dev)."' failed: '".$o."'"); 
+			unassigned_log("Unmount of '".$dev."' failed: '".$o."'"); 
 		} else if ($zfs) {
 			exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
 		}
 	} else {
-		unassigned_log("Cannot unmount '".basename($dev)."'. UD did not mount the device or it was not properly unmounted.");
+		unassigned_log("Cannot unmount '".$dev."'. UD did not mount the device or it was not properly unmounted.");
 	}
 
 	return $rc;
@@ -2541,12 +2541,12 @@ function do_mount_samba($info) {
 
 				$rc = true;
 			} else {
-				unassigned_log("Share '".basename($dev)."' failed to mount.");
+				unassigned_log("Remote Share '".$dev."' failed to mount.");
 
 				@rmdir($dir);
 			}
 		} else {
-			unassigned_log("Share '".basename($dev)."' is already mounted.");
+			unassigned_log("Remote Share '".$dev."' is already mounted.");
 		}
 	} else {
 		unassigned_log("Remote Server '".$info['ip']."' is offline and share '".$info['device']."' cannot be mounted."); 

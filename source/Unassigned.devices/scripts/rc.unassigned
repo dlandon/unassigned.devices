@@ -69,7 +69,7 @@ function unassigned_mount() {
 
 		/* If the device doesn't have a serial number it cannot be mounted. */
 		if (! $disk_info['serial']) {
-			unassigned_log("Disk '".basename($device)."' does not have a serial number and cannot be mounted.");
+			unassigned_log("Disk '".$device."' does not have a serial number and cannot be mounted.");
 			continue;
 		}
 
@@ -104,7 +104,7 @@ function unassigned_mount() {
 
 				/* If partition does not have a file system it cannot be mounted. */
 				if (! $info['fstype']) {
-					unassigned_log("Partition '".basename($info['device'])."' does not have a file system and cannot be mounted.");
+					unassigned_log("Partition '".$info['device']."' does not have a file system and cannot be mounted.");
 					continue;
 				}
 
@@ -155,7 +155,7 @@ function unassigned_mount() {
 							export_disk($info, true);
 						} else if (! is_mounted($info['mountpoint'])) {
 							/* There was an error mounting the disk. */
-							unassigned_log("Partition '".basename($info['label'])."' cannot be mounted.");
+							unassigned_log("Partition '".$info['label']."' cannot be mounted.");
 
 							/* Execute device script with error mount action. */
 							execute_script($info, "ERROR_MOUNT");
@@ -391,7 +391,7 @@ function unassigned_umount() {
 							addFile(sprintf($paths['unmounting'], basename($info['luks'])));
 						}
 
-						unassigned_log("Unmounting partition '".basename($info['device'])."' at mountpoint '{$info['mountpoint']}'...");
+						unassigned_log("Unmounting partition '".$info['device']."' at mountpoint '{$info['mountpoint']}'...");
 
 						/* Execute device script with unmount action. */
 						execute_script($info, "UNMOUNT");
@@ -435,7 +435,7 @@ function unassigned_umount() {
 							execute_script($info, "REMOVE");
 							export_disk($info, false);
 						} else {
-							unassigned_log("Partition '".basename($info['label'])."' cannot be unmounted.");
+							unassigned_log("Partition '".$info['label']."' cannot be unmounted.");
 
 							/* Execute device script with error unmount action. */
 							execute_script($info, "ERROR_UNMOUNT");
@@ -649,13 +649,13 @@ function unassigned_detach($device, $ata = false) {
 
 							sleep(2);
 
-							unassigned_log("Device '{$dev}' has been detached.");
+							unassigned_log("Device '/dev/".$dev."' has been detached.");
 						}
 					} else {
-						unassigned_log("Device '{$dev}' is mounted and cannot be detached!");
+						unassigned_log("Device '/dev/".$dev."' is mounted and cannot be detached!");
 					}
 				} else {
-					unassigned_log("Device '{$dev}' is not a USB device and cannot be detached!");
+					unassigned_log("Device '/dev/".$dev."' is not a USB device and cannot be detached!");
 				}
 				break;
 			}
@@ -682,9 +682,9 @@ function unassigned_attach($device) {
 	}
 
 	if ($i < 10) {
-		unassigned_log("Device with serial '{$device}' has been attached.");
+		unassigned_log("Device with serial '".$device."' has been attached.");
 	} else {
-		unassigned_log("Device with serial '{$device}' could not be attached.");
+		unassigned_log("Device with serial '".$device."' could not be attached.");
 	}
 }
 
