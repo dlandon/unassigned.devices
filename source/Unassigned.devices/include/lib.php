@@ -2299,9 +2299,9 @@ function get_samba_mounts() {
 		ksort($samba_mounts, SORT_NATURAL);
 		foreach ($samba_mounts as $device => $mount) {
 			/* Convert the device to a safe name samba device. */
-			$string		= safe_name($device, false, true);
+			$safe_device		= safe_name($device, false, true);
 
-			$mount['device']			= $string;
+			$mount['device']			= $safe_device;
 			if ($device) {
 				$mount['name']			= $device;
 				$mount['mountpoint']	= $mount['mountpoint'] ?? "";
@@ -2357,7 +2357,7 @@ function get_samba_mounts() {
 
 				/* If this is a legacy samba mount indicate that it should be removed. */
 				$mount['invalid']		= false;
-				if ($string != $device) {
+				if ($safe_device != $device) {
 					$mount['mountpoint'] = "-- "._("Invalid Configuration - Remove and Re-add")." --";
 					$mount['invalid']	= true;
 				}
@@ -2408,7 +2408,7 @@ function do_mount_samba($info) {
 		$dir		= $info['mountpoint'];
 		$fs			= $info['fstype'];
 		$ro			= $info['read_only'] ? true : false;
-		$dev		= ($fs == "cifs") ? "//".$info['ip']."/".$info['path'] : $info['ip'].":".$info['path'];
+		$dev		= $info['device'];
 		if ((! is_mounted($dev)) && (! is_mounted($dir))) {
 			/* Create the mount point and set permissions. */
 			if (! is_dir($dir)) {
@@ -2741,9 +2741,9 @@ function get_iso_mounts() {
 	if (is_array($iso_mounts)) {
 		foreach ($iso_mounts as $device => $mount) {
 			/* Convert the device to a safe name iso device. */
-			$string		= safe_name($device, true, true);
+			$safe_device		= safe_name($device, true, true);
 
-			$mount['device']			= $string;
+			$mount['device']			= $safe_device;
 			if ($mount['device']) {
 				$mount['fstype']		= "loop";
 				$mount['automount'] 	= is_iso_automount($mount['device']);
@@ -2759,7 +2759,7 @@ function get_iso_mounts() {
 
 				/* If this is a legacy iso mount indicate that it should be removed. */
 				$mount['invalid']		= false;
-				if (basename($string) != $device) {
+				if (basename($safe_device) != $device) {
 					$mount['mountpoint'] = "-- Invalid Configuration - Remove and Re-add --";
 					$mount['invalid']	= true;
 				}
