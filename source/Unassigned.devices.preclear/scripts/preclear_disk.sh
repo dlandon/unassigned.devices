@@ -17,7 +17,7 @@ export LC_CTYPE
 ionice -c3 -p$BASHPID
 
 # Version
-version="1.0.27"
+version="1.0.28"
 #
 # Change Log
 # 1.0.23
@@ -42,6 +42,9 @@ version="1.0.27"
 #
 # 1.0.27
 # Prevent divide by zero when checking root free space.
+#
+# 1.0.28
+# Double dd_hang timeout when writing to disk.
 #
 ######################################################
 ##													##
@@ -974,7 +977,7 @@ write_the_disk(){
 		#
 		# Kill dd if hung
 		#
-		if [ "$dd_hang" -gt 120 ]; then
+		if [ "$dd_hang" -gt 240 ]; then
 			eval "$initial_bytes='$bytes_written';"
 			eval "$initial_timer='$current_elapsed';"
 			while read l; do debug "${write_type_s}: dd output: ${l}"; done < <(cat "${dd_output}_complete")
