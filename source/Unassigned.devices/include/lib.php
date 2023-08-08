@@ -2408,7 +2408,7 @@ function do_mount_samba($info) {
 		$dir		= $info['mountpoint'];
 		$fs			= $info['fstype'];
 		$ro			= $info['read_only'] ? true : false;
-		$dev		= $info['device'];
+		$dev		= ($fs == "cifs") ? "//".$info['ip']."/".$info['path'] : $info['ip'].":".$info['path'];
 		if ((! is_mounted($dev)) && (! is_mounted($dir))) {
 			/* Create the mount point and set permissions. */
 			if (! is_dir($dir)) {
