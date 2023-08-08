@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.08.06a">
+<!ENTITY version	"2023.08.07">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"74a2a8342720af72785a1c4425af073e">
+<!ENTITY MD5		"ba063ea79a83be3b9c7a62aa72d7c356">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,12 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Remote mounts were not safe naming the share part of the device when a remote share was added.
+- Fix: Adjust some log messages relating to mounting and unmounting devices.
+- Fix: Mount of hidden Windows remote shares.
+- Fix: Reversion causing issues with default device script file name.
+
+#2023.08.06a
 - Fix: Mark disks with a file system and no partition as a 'Pool' device so UD does not allow operations on the device.  For example a Linux LVM file system.
 - Fix: Changes to help with UD hanging when remote NFS goes off-line.
 - Fix: Sharing on remote shares not enabling NFS sharing of the remote share on the local server.
