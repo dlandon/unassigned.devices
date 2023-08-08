@@ -253,7 +253,7 @@ class Preclear
 		$status		= "";
 
 		$file		= $GLOBALS['preclear_status'].$disk;
-		$serial		= $this->diskSerial($disk);
+		$serial		= $this->diskSerial($disk) ?? "";
 		$session 	= TMUX::hasSession("preclear_disk_{$serial}");
 
 		/* Pick up the docker stat file. */
