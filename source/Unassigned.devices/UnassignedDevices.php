@@ -118,6 +118,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 	$out = array();
 	if (isset($partition['device'])) {
 		$mounted		= $partition['mounted'];
+		$not_unmounted	= $partition['not_unmounted'];
 		$cmd			= $partition['command'];
 		$device			= $partition['fstype'] == "crypto_LUKS" ? $partition['luks'] : $partition['device'];
 		$is_mounting	= (new MiscUD)->get_mounting_status(basename($device));
@@ -154,7 +155,10 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$mount_point	= basename($partition['mountpoint']);
 
 		/* Add change mount point or browse disk share icon if disk is mounted. */
-		if ($mounted) {
+
+		if ($not_unmounted) {
+			$mpoint .= "<i class='fa partition-hdd'></i>".$mount_point."</span>";
+		} else if ($mounted) {
 			$mpoint .= "<i class='fa fa-external-link partition-hdd'></i><a title='"._("Browse Disk Share")."' href='/Main/Browse?dir={$partition['mountpoint']}'>".$mount_point."</a></span>";
 		} else {
 			$mount_point	= basename($partition['mountpoint']);
@@ -331,8 +335,12 @@ function make_mount_button($device) {
 		$context		= "disk";
 
 		/* A pool disk can be part of a disk pool or a disk with a file system and no partition. */
-		$pool_disk		= isset($device['partitions'][0]['pool']) ? $device['partitions'][0]['pool'] : false;
+		$pool_disk		= isset($device['partitions'][0]['pool']) ? $device['partitions'][0]['pool'] : ($device['fstype'] ? true : false);
+
+		/* Find conditions to disable the 'Mount' button. */
 		$disable_mount	= isset($device['partitions'][0]['disable_mount']) ? $device['partitions'][0]['disable_mount'] : false;
+
+		/* Is the disk not unmounted? */
 		$not_unmounted	= isset($device['partitions'][0]['not_unmounted']) ? $device['partitions'][0]['not_unmounted'] : false;
 		if ((new MiscUD)->is_device_nvme($device['device'])) {
 			$dev		= basename($device['device'])."p1";

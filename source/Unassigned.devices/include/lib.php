@@ -3144,8 +3144,19 @@ function get_partition_info($dev) {
 		/* Set up all disk parameters and status. */
 		/* If the partition doesn't have a file system, it can't possibly be mounted. */
 		$disk['pass_through']	= is_pass_through($disk['serial']);
+
+		/* Is the disk mount point mounted? */
 		$disk['mounted']		= ((! $disk['pass_through']) && ($disk['fstype'])) ? is_mounted($disk['mountpoint']) : false;
-		$disk['not_unmounted']	= ($disk['mounted'] && ! is_mounted($disk['mountpoint'])) ? true : false;
+
+		/* Not unmounted is a check that the disk is mounted by mount point but not by device.
+		   The idea is to catch the situation where a disk is removed before being unmounted. */
+		if ($disk['fstype'] == "zfs") {
+			$pool_name			= (new MiscUD)->zfs_pool_name($disk['mountpoint'], true);
+			$dev_mounted		= is_mounted($pool_name);
+		} else {
+			$dev_mounted		= is_mounted($disk['device']);
+		}
+		$disk['not_unmounted']	= (($disk['mounted']) && (! $dev_mounted)) ? true : false;
 
 		if ($disk['mounted'] && $disk['fstype'] == "btrfs") {
 			/* Get the members of a pool if this is a pooled disk. */
