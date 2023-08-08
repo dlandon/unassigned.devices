@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.08.08">
+<!ENTITY version	"2023.05.20">
 <!ENTITY launch		"Tools/Preclear">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/unassigned.devices/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"8f2f8d10622c494c8931ac845dc050eb">
+<!ENTITY MD5		"9db8513085ae1aedb37e948a7e1ab4e1">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
@@ -21,11 +21,6 @@
 <CHANGES>
 ###&name;
 ###&version;
-- Fix: Disks that have a file system on a disk with no partition are not candidates for preclear.
-- Fix: Update utempter to 1.2.1.
-- Add: Double the dd_hang time when writing to the disk to try to prevent dd write timeouts at the end of large disks.
-
-###2023.05.20
 - Fix: Divide by zero when checking for available rootfs free space.
 - Add: Ignore zvol devices managed in UD.  They are not candidates for preclearing.
 
@@ -178,11 +173,11 @@ tmux-3.3a-x86_64-1.txz
 </FILE>
 
 <!--
-utempter-1.2.1-x86_64-1.txz
+utempter-1.2.0-x86_64-3.txz
 -->
-<FILE Name="/boot/config/plugins/&name;/utempter-1.2.1-x86_64-1.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/utempter-1.2.1-x86_64-1.txz"</URL>
-<MD5>8843badd5e5cb333334a069fcafb233b</MD5>
+<FILE Name="/boot/config/plugins/&name;/utempter-1.2.0-x86_64-3.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/utempter-1.2.0-x86_64-3.txz"</URL>
+<MD5>4cdaf07c99e2264e8b354b23c84b0431</MD5>
 </FILE>
 
 <!--
