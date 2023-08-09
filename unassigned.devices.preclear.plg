@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.08.08a">
+<!ENTITY version	"2023.08.09">
 <!ENTITY launch		"Tools/Preclear">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/unassigned.devices/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"43e40b173fad4957886d5ce7e65589ec">
+<!ENTITY MD5		"018bd31157e3e8456ee47b059e4083e7">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
@@ -21,6 +21,9 @@
 <CHANGES>
 ###&name;
 ###&version;
+- Add: Double the dd_hang time when reading to the disk to try to prevent dd read timeouts at the end of large disks.
+
+###2023.08.08a
 - Fix: Disks that have a file system on a disk with no partition are not candidates for preclear.
 - Fix: Update utempter to 1.2.1.
 - Add: Double the dd_hang time when writing to the disk to try to prevent dd write timeouts at the end of large disks.
