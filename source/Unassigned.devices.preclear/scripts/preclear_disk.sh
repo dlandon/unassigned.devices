@@ -44,7 +44,7 @@ version="1.0.28"
 # Prevent divide by zero when checking root free space.
 #
 # 1.0.28
-# Double dd_hang timeout when writing to disk.
+# Double dd_hang timeout when reading and writing to disk.
 #
 ######################################################
 ##													##
@@ -1513,7 +1513,7 @@ read_the_disk() {
 		#
 		# Kill dd if hung
 		#
-		if [ "$dd_hang" -gt 120 ]; then
+		if [ "$dd_hang" -gt 240 ]; then
 			eval "$initial_bytes='"$bytes_read"';"
 			eval "$initial_timer='$(time_elapsed $read_type export)';"
 			while read l; do debug "${read_type_s}: dd output: ${l}"; done < <(cat "${dd_output}_complete")
