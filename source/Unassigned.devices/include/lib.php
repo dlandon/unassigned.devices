@@ -1980,7 +1980,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 				$share_cont		= "[{$share_name}]\n\tcomment = {$share_name}\n\tpath = {$dir}{$hidden}{$force_user}{$valid_users}{$write_users}{$read_users}{$vfs_objects}{$case_names}";
 			} else {
 				$share_cont 	= "[{$share_name}]\n\tpath = {$dir}{$hidden}\n\tinvalid users = @users";
-				unassigned_log("Error: No valid smb users defined. Share '{$dir}' cannot be accessed.");
+				unassigned_log("Warning: No valid smb users defined. Share '{$dir}' cannot be accessed.");
 			}
 		} else {
 			$force_user = ( get_config("Config", "force_user") == "yes" ) ? "\n\tforce User = nobody" : "";
@@ -2359,11 +2359,8 @@ function get_samba_mounts() {
 				$dev				= ($mount['fstype'] == "nfs") ? $mount['ip'].":".$mount['path'] : "//".$mount['ip'].($mount['fstype'] == "cifs" ? "/" : "").$mount['path'];
 				$check_device		= safe_name($dev, false, true);
 
-				/* If this is a legacy samba mount indicate that it should be removed. */
-				$mount['invalid']		= false;
-				if (($safe_device != $device) || ($safe_device != $check_device)) {
-					$mount['invalid']	= true;
-				}
+				/* If this is a legacy samba mount or is misconfigured  indicate that it should be removed and added back. */
+				$mount['invalid']		= (($safe_device != $device) || ($safe_device != $check_device)) ? false : false;
 
 				/* Get the disk size, used, and free stats. */
 				$stats					= get_device_stats($mount['mountpoint'], $mount['mounted'], $mount['is_alive']);

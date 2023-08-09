@@ -984,11 +984,11 @@ switch ($_POST['action']) {
 						$result	= set_config($serial, "unassigned_dev", $name);
 					}
 				} else {
-					unassigned_log("Error: Disk Name '".$name."' is already being used on another device.");
+					unassigned_log("Warning: Disk Name '".$name."' is already being used on another device.");
 					$result		= false;
 				}
 			} else {
-				unassigned_log("Warning: Disk Name cannot be a another device designation.");
+				unassigned_log("Warning: Disk Name cannot be another device designation.");
 				$result		= false;
 			}
 		}
@@ -1397,7 +1397,7 @@ switch ($_POST['action']) {
 
 			echo json_encode(true);
 		} else {
-			unassigned_log("Error: Root Share already assigned to '".$path."'!");
+			unassigned_log("Warning: Root Share already assigned to '".$path."'!");
 			echo json_encode(false);
 		}
 		break;
