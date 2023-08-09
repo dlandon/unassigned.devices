@@ -2355,10 +2355,13 @@ function get_samba_mounts() {
 				/* Is remote share mounted? */
 				$mount['mounted']	= is_mounted($mount['mountpoint']) && ($mount['fstype'] != "root" ? is_mounted($device) : true);
 
+				/* Check that the device built from the ip and path is consistent. */
+				$dev				= ($mount['fstype'] == "nfs") ? $mount['ip'].":".$mount['path'] : "//".$mount['ip'].($mount['fstype'] == "cifs" ? "/" : "").$mount['path'];
+				$check_device		= safe_name($dev, false, true);
+
 				/* If this is a legacy samba mount indicate that it should be removed. */
 				$mount['invalid']		= false;
-				if ($safe_device != $device) {
-					$mount['mountpoint'] = "-- "._("Invalid Configuration - Remove and Re-add")." --";
+				if (($safe_device != $device) || ($safe_device != $check_device)) {
 					$mount['invalid']	= true;
 				}
 
