@@ -682,13 +682,13 @@ switch ($_POST['action']) {
 				$protocol		= $mount['protocol'] == "NFS" ? "nfs" : "smb";
 				$o_remotes		.= sprintf( "<td><a class='info'><i class='fa fa-circle orb %s'></i><span>"._("Remote Share is")." %s</span></a>%s</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ), $protocol);
 				$o_remotes		.= "<td>{$mount['name']}";
-				$mount_point	= basename($mount['mountpoint']);
+				$mount_point	= (! $mount['invalid']) ? basename($mount['mountpoint']) : "-- "._("Invalid Configuration - Remove and Re-add")." --";
 				$o_remotes		.= "<td></td>";
 				if ($mounted) {
 					$o_remotes	.= "<td><i class='fa fa-external-link mount-share'></i><a title='"._("Browse Remote SMB")."/"._("NFS Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
 				} else {
 					$o_remotes	.= "<td><i class='fa fa-pencil mount-share'></i>";
-					if (! $is_mounting) {
+					if ((! $is_mounting) && (! $mount['invalid'])) {
 						$o_remotes	.= "<a title='"._("Change Remote SMB")."/"._("NFS Mount Point")."' class='exec' onclick='chg_samba_mountpoint(\"{$mount['name']}\",\"{$mount_point}\");'>{$mount_point}</a>";
 					} else {
 						$o_remotes	.= $mount_point;
@@ -698,7 +698,7 @@ switch ($_POST['action']) {
 				$o_remotes		.= "<td></td>";
 
 				$disabled	= (($mount['fstype'] == "root") && ($var['shareDisk'] == "yes" || $var['mdState'] != "STARTED")) ? "disabled" : ($is_alive ? "enabled" : "disabled");
-				$disabled	= ( isset($mount['disable_mount']) && ($mount['disable_mount']) ) ? "disabled" : $disabled;
+				$disabled	= ((isset($mount['disable_mount']) && ($mount['disable_mount'])) || ($mount['invalid'])) ? "disabled" : $disabled;
 				if ($mount['mounted'] && (is_script_running($mount['command']) || is_script_running($mount['user_command'], true))) {
 					$o_remotes .= "<td><button class='mount' disabled> <i class='fa fa-spinner fa-spin'></i>"." "._("Running")."</button></td>";
 				} else {
@@ -1239,7 +1239,7 @@ switch ($_POST['action']) {
 		if ($rc) {
 			/* Don't save any information if the share is blank. */
 			if (! empty($share)) {
-				$device	= ($protocol == "NFS") ? $ip.":".safe_name($path, false, true) : "//".strtoupper($ip)."/".safe_name($share, false, true);
+				$device	= ($protocol == "NFS") ? $ip.":".safe_name($path, false, true) : "//".strtoupper($ip)."/".safe_name($path, false, true);
 				$device	= str_replace("$", "", $device);
 				set_samba_config($device, "protocol", $protocol);
 				set_samba_config($device, "ip", ((new MiscUD)->is_ip($ip) ? $ip : strtoupper($ip)));
