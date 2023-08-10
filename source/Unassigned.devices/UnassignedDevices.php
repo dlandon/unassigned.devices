@@ -1108,9 +1108,13 @@ switch ($_POST['action']) {
 		$pool_name	= isset($_POST['pool_name']) ? urldecode($_POST['pool_name']) : "";
 		$pool_name	= str_replace(" ", "_", $pool_name);
 
+		/* Create the state file. */
 		@touch(sprintf($paths['formatting'], basename($device)));
+
 		$result		= format_disk($device, $fs, $pass, $pool_name);
 		echo json_encode(array( 'status' => $result ));
+
+		/* Erase the state file. */
 		@unlink(sprintf($paths['formatting'], basename($device)));
 		break;
 
