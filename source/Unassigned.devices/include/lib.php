@@ -2297,7 +2297,7 @@ function get_samba_mounts() {
 		ksort($samba_mounts, SORT_NATURAL);
 		foreach ($samba_mounts as $device => $mount) {
 			/* Convert the device to a safe name samba device. */
-			$safe_device		= safe_name($device, false, true);
+			$safe_device				= safe_name($device, false, true);
 
 			$mount['device']			= $safe_device;
 			if ($device) {
@@ -2350,6 +2350,11 @@ function get_samba_mounts() {
 					}
 				}
 
+				/* Remove special characters. */
+				$mount_device			= basename($mount['ip'])."_".basename($mount['path']);
+				$mount['is_mounting']	= (new MiscUD)->get_mounting_status($mount_device);
+				$mount['is_unmounting']	= (new MiscUD)->get_unmounting_status($mount_device);
+
 				/* Is remote share mounted? */
 				$mount['mounted']	= is_mounted($mount['mountpoint']) && ($mount['fstype'] != "root" ? is_mounted($device) : true);
 
@@ -2357,8 +2362,8 @@ function get_samba_mounts() {
 				$dev				= ($mount['fstype'] == "nfs") ? $mount['ip'].":".$mount['path'] : "//".$mount['ip'].($mount['fstype'] == "cifs" ? "/" : "").$mount['path'];
 				$check_device		= safe_name($dev, false, true);
 
-				/* If this is a legacy samba mount or is misconfigured  indicate that it should be removed and added back. */
-				$mount['invalid']		= (($safe_device != $device) || ($safe_device != $check_device)) ? false : false;
+				/* If this is a legacy samba mount or is misconfigured.  Indicate that it should be removed and added back. */
+				$mount['invalid']		= (($safe_device != $device) || ($safe_device != $check_device)) ? true : false;
 
 				/* Get the disk size, used, and free stats. */
 				$stats					= get_device_stats($mount['mountpoint'], $mount['mounted'], $mount['is_alive']);
@@ -2753,6 +2758,12 @@ function get_iso_mounts() {
 					$mount["mountpoint"] = $paths['usb_mountpoint']."/".$mount['share'];
 				}
 
+				/* Remove special characters. */
+				$mount_device			= safe_name(basename($mount['device']));
+				$mount['is_mounting']	= (new MiscUD)->get_mounting_status($mount_device);
+				$mount['is_unmounting']	= (new MiscUD)->get_unmounting_status($mount_device);
+
+				/* Is the ios file mounted? */
 				$mount['mounted']		= is_mounted($mount['mountpoint']);
 
 				/* If this is a legacy iso mount indicate that it should be removed. */
@@ -2765,7 +2776,7 @@ function get_iso_mounts() {
 				/* Target is set to the mount point when the device is mounted. */
 				$mount['target']		= $mount['mounted'] ? $mount['mountpoint'] : "";
 
-				$is_alive				= is_file($mount['file']);
+				$mount['is_alive']		= is_file($mount['file']);
 				$stats					= get_device_stats($mount['mountpoint'], $mount['mounted']);
 				$mount['size']			= $stats[0]*1024;
 				$mount['used']			= $stats[1]*1024;
@@ -3135,9 +3146,16 @@ function get_partition_info($dev) {
 		if ($disk['fstype'] == "crypto_LUKS") {
 			$disk['luks']		= safe_name($disk['device']);
 			$disk['device']		= "/dev/mapper/".safe_name(basename($disk['mountpoint']));
+			$dev				= $disk['luks'];
 		} else {
 			$disk['luks']		= "";
+			$dev				= $disk['device'];
 		}
+
+		/* Get the prtition mounting, unmounting, and formatting status. */
+		$disk['is_mounting']	= (new MiscUD)->get_mounting_status(basename($dev));
+		$disk['is_unmounting']	= (new MiscUD)->get_unmounting_status(basename($dev));
+		$disk['is_formatting']	= (new MiscUD)->get_formatting_status(basename($dev));
 
 		/* Set up all disk parameters and status. */
 		/* If the partition doesn't have a file system, it can't possibly be mounted. */
