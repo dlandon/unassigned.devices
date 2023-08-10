@@ -270,7 +270,7 @@ class MiscUD
 	public function get_formatting_status($device) {
 		global $paths;
 
-		$formatting		= array_values(preg_grep("@/formatting_".$device."@i", listDir(dirname($paths['formatting']))))[0] ?? '';
+		$formatting		= array_values(preg_grep("@/formatting_".(new MiscUD)->base_device($device)."@i", listDir(dirname($paths['formatting']))))[0] ?? '';
 		$is_formatting	= (isset($formatting) && (time() - @filemtime($formatting) < 300)) ? true : false;
 		return $is_formatting;
 	}
@@ -1429,12 +1429,11 @@ function is_mounted($dev) {
 
 	$rc = false;
 	if ($dev) {
-		$dev_lookup	= (strpos($dev, "/dev/mapper") !== false) ? basename($dev) : $dev;
 		$mount		= timed_exec(2, "/usr/bin/cat /proc/mounts | awk '{print $1 \",\" $2}'");
 		$mount		= str_replace("\\040", " ", $mount);
 		$mount		= str_replace("\n", ",", $mount);
 		$data		= explode(",", $mount);
-		$rc			= in_array($dev_lookup, $data);
+		$rc			= in_array($dev, $data);
 	}
 
 	return $rc;
@@ -1445,11 +1444,10 @@ function is_mounted_read_only($dev) {
 
 	$rc = false;
 	if ($dev) {
-		$dev_lookup	= (strpos($dev, "/dev/mapper") !== false) ? basename($dev) : $dev;
 		$mount		= timed_exec(2, "/usr/bin/cat /proc/mounts | awk '{print $2 \"-\" toupper(substr($4,0,2))}'");
 		$mount		= str_replace("\\040", " ", $mount);
 		$data		= explode("\n", $mount);
-		$rc			= (in_array($dev_lookup."-RO", $data) !== false) ? true : false;
+		$rc			= (in_array($dev."-RO", $data) !== false) ? true : false;
 	}
 
 	return $rc;
@@ -3156,6 +3154,7 @@ function get_partition_info($dev) {
 		} else {
 			$dev_mounted		= is_mounted($disk['device']);
 		}
+
 		$disk['not_unmounted']	= (($disk['mounted']) && (! $dev_mounted)) ? true : false;
 
 		if ($disk['mounted'] && $disk['fstype'] == "btrfs") {
