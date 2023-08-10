@@ -121,9 +121,9 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$not_unmounted	= $partition['not_unmounted'];
 		$cmd			= $partition['command'];
 		$device			= $partition['fstype'] == "crypto_LUKS" ? $partition['luks'] : $partition['device'];
-		$is_mounting	= (new MiscUD)->get_mounting_status(basename($device));
-		$is_unmounting	= (new MiscUD)->get_unmounting_status(basename($device));
-		$is_formatting	= (new MiscUD)->get_formatting_status(basename($disk['device']));
+		$is_mounting	= $partition['is_mounting'];
+		$is_unmounting	= $partition['is_unmounting'];
+		$is_formatting	= $partition['is_formatting'];
 		$disabled		= $is_mounting || $is_unmounting || is_script_running($cmd) || ! $partition['fstype'] || $disk['array_disk'];
 
 		/* Set up icons for file system check/scrub and script execution. */
@@ -171,6 +171,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 			$mpoint			.= $rm_partition."</span>";
 		}
 
+		/* Make the mount button. */
 		$mbutton = make_mount_button($partition);
 
 		/* Show disk partitions if partitions enabled. */
@@ -342,12 +343,12 @@ function make_mount_button($device) {
 
 		/* Is the disk not unmounted? */
 		$not_unmounted	= isset($device['partitions'][0]['not_unmounted']) ? $device['partitions'][0]['not_unmounted'] : false;
-		if ((new MiscUD)->is_device_nvme($device['device'])) {
-			$dev		= basename($device['device'])."p1";
-		} else {
-			$dev		= basename($device['device'])."1";
-		}
 		$zvol_device	= false;
+
+		/* Check the state of mounting, unmounting, and formatting. */
+		$is_mounting	= ($device['is_mounting'] ?? false) || ($device['partitions'][0]['is_mounting'] ?? false);
+		$is_unmounting	= ($device['is_unmounting'] ?? false) || ($device['partitions'][0]['is_unmounting'] ?? false);
+		$is_formatting	= ($device['is_formatting'] ?? false) || ($device['partitions'][0]['is_formatting'] ?? false);
 	} else {
 		$mounted		= $device['mounted'];
 		$disable		= (! empty($device['fstype']) && $device['fstype'] != "crypto_LUKS") ? "" : "disabled";
@@ -358,13 +359,14 @@ function make_mount_button($device) {
 		$pool_disk		= false;
 		$not_unmounted	= false;
 		$dev			= $device['fstype'] == "crypto_LUKS" ? $device['luks'] : $device['device'];
-		$dev			= basename($dev);
+
+		/* Check the state of mounting, unmounting, and formatting. */
+		$is_mounting	= $device['is_mounting'] ?? false;
+		$is_unmounting	= $device['is_unmounting'] ?? false;
+		$is_formatting	= $device['is_formatting'] ?? false;
 		$zvol_device	= (isset($device['file_system']) && $device['file_system']) ? true : false;
 	}
 
-	$is_mounting	= (new MiscUD)->get_mounting_status($dev);
-	$is_unmounting	= (new MiscUD)->get_unmounting_status($dev);
-	$is_formatting	= (new MiscUD)->get_formatting_status($dev);
 	$preclearing	= $Preclear ? $Preclear->isRunning(basename($device['device'])) : false;
 	$is_preclearing = shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg($device['device'])." | /bin/grep -v 'grep'") != "" ? true : false;
 	$preclearing	= $preclearing || $is_preclearing;
@@ -475,32 +477,35 @@ switch ($_POST['action']) {
 		if ( count($all_disks) ) {
 			foreach ($all_disks as $disk) {
 				/* See if any partitions are mounted. */
-				$mounted		= in_array(true, array_map(function($ar){return is_mounted($ar['mountpoint']);}, $disk['partitions']), true);
+				$mounted				= in_array(true, array_map(function($ar){return is_mounted($ar['mountpoint']);}, $disk['partitions']), true);
 
 				/* See if any partitions have a file system. */
-				$file_system	= in_array(true, array_map(function($ar){return ! empty($ar['fstype']);}, $disk['partitions']), true);
+				$file_system			= in_array(true, array_map(function($ar){return ! empty($ar['fstype']);}, $disk['partitions']), true);
 
-				$disk_device	= basename($disk['device']);
-				$disk_dev		= $disk['ud_dev'];
-				$disk_name		= $disk['unassigned_dev'] ? $disk['unassigned_dev'] : $disk['ud_dev'];
-				$p				= (count($disk['partitions']) > 0) ? render_partition($disk, $disk['partitions'][0], true) : false;
-				$preclearing	= $Preclear ? $Preclear->isRunning($disk_device) : false;
-				$temp			= my_temp($disk['temperature']);
+				$disk_device			= basename($disk['device']);
+				$disk_dev				= $disk['ud_dev'];
+				$disk_name				= $disk['unassigned_dev'] ? $disk['unassigned_dev'] : $disk['ud_dev'];
+				$p						= (count($disk['partitions']) > 0) ? render_partition($disk, $disk['partitions'][0], true) : false;
+				$preclearing			= $Preclear ? $Preclear->isRunning($disk_device) : false;
+				$temp					= my_temp($disk['temperature']);
+
+				/* Get the mounting, unmounting, and formatting state. */
+				$disk['is_mounting']	= (new MiscUD)->get_mounting_status(basename($disk['device']));
+				$disk['is_unmounting']	= (new MiscUD)->get_unmounting_status(basename($disk['device']));
+				$disk['is_formatting']	= (new MiscUD)->get_formatting_status(basename($disk['device']));
 
 				/* Create the mount button. */
 				$mbutton		= make_mount_button($disk);
 
 				/* Set up the preclear link for preclearing a disk. */
-				$is_mounting	= (new MiscUD)->get_mounting_status(basename($disk['device']));
-				$is_formatting	= (new MiscUD)->get_formatting_status(basename($disk['device']));
-				$preclear_link	= (($disk['size'] !== 0) && (! $file_system) && (! $mounted) && (! $is_formatting) && ($Preclear) && (! $preclearing) && (! $disk['array_disk']) && (! $disk['pass_through']) && (! $disk['fstype'])) ? "&nbsp;&nbsp;".$Preclear->Link($disk_device, "icon") : "";
+				$preclear_link	= (($disk['size'] !== 0) && (! $file_system) && (! $mounted) && (! $disk['is_formatting']) && ($Preclear) && (! $preclearing) && (! $disk['array_disk']) && (! $disk['pass_through']) && (! $disk['fstype'])) ? "&nbsp;&nbsp;".$Preclear->Link($disk_device, "icon") : "";
 
 				/* Add the clear disk icon. */
 				$parted			= file_exists("/usr/sbin/parted");
 
 				$partition['device']	= $partition['device'] ?? "";
 				$partition['serial']	= $partition['serial'] ?? "";
-				$clear_disk				= ((get_config("Config", "destructive_mode") == "enabled") && ($parted) && (! $mounted) && (! $is_mounting) && (! $is_formatting) && (! $disk['pass_through']) && (! $disk['array_disk']) && (! $preclearing) && (($p) && (! $disk['partitions'][0]['pool']) && (! $disk['partitions'][0]['disable_mount'])) ) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
+				$clear_disk				= ((get_config("Config", "destructive_mode") == "enabled") && ($parted) && (! $mounted) && (! $disk['is_mounting']) && (! $disk['is_formatting']) && (! $disk['pass_through']) && (! $disk['array_disk']) && (! $preclearing) && (($p) && (! $disk['partitions'][0]['pool']) && (! $disk['partitions'][0]['disable_mount'])) ) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
 
 				$disk_icon = $disk['ssd'] ? "icon-nvme" : "fa fa-hdd-o";
 				if (version_compare($version['version'],"6.9.9", ">")) {
@@ -673,10 +678,9 @@ switch ($_POST['action']) {
 				$is_alive		= $mount['is_alive'];
 				$mounted		= $mount['mounted'];
 
-				/* Remove special characters. */
-				$mount_device	= basename($mount['ip'])."_".basename($mount['path']);
-				$is_mounting	= (new MiscUD)->get_mounting_status($mount_device);
-				$is_unmounting	= (new MiscUD)->get_unmounting_status($mount_device);
+				/* Is the device mounting or unmounting. */
+				$is_mounting	= $mount['is_mounting'];
+				$is_unmounting	= $mount['is_unmounting'];
 
 				$o_remotes		.= "<tr>";
 				$protocol		= $mount['protocol'] == "NFS" ? "nfs" : "smb";
@@ -751,12 +755,11 @@ switch ($_POST['action']) {
 				$device			= $mount['device'];
 				$mounted		= $mount['mounted'];
 
-				/* Remove special characters. */
-				$mount_device	= safe_name(basename($mount['device']));
-				$is_mounting	= (new MiscUD)->get_mounting_status($mount_device);
-				$is_unmounting	= (new MiscUD)->get_unmounting_status($mount_device);
+				/* Is the device mounting or unmounting. */
+				$is_mounting	= $mount['is_mounting'];
+				$is_unmounting	= $mount['is_unmounting'];
 
-				$is_alive		= is_file($mount['file']);
+				$is_alive		= $mount['is_alive'];
 				$o_remotes		.= "<tr>";
 				$o_remotes		.= sprintf( "<td><a class='info'><i class='fa fa-circle orb %s'></i><span>"._("ISO File is")." %s</span></a>iso</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ));
 				$o_remotes		.= "<td>{$mount['file']}</td><td></td>";
