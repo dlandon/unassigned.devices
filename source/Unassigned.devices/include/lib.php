@@ -3152,7 +3152,7 @@ function get_partition_info($dev) {
 			$dev				= $disk['device'];
 		}
 
-		/* Get the prtition mounting, unmounting, and formatting status. */
+		/* Get the patition mounting, unmounting, and formatting status. */
 		$disk['is_mounting']	= (new MiscUD)->get_mounting_status(basename($dev));
 		$disk['is_unmounting']	= (new MiscUD)->get_unmounting_status(basename($dev));
 		$disk['is_formatting']	= (new MiscUD)->get_formatting_status(basename($dev));
@@ -3164,15 +3164,11 @@ function get_partition_info($dev) {
 		/* Is the disk mount point mounted? */
 		$disk['mounted']		= ((! $disk['pass_through']) && ($disk['fstype'])) ? is_mounted($disk['mountpoint']) : false;
 
+		/* The device is /dev/mapper/... for all luks devices, but base of device is zfs zpool on luks. */
+		$dev_mounted		= is_mounted($disk['device'] || is_mounted(basename($disk['device'])));
+
 		/* Not unmounted is a check that the disk is mounted by mount point but not by device.
 		   The idea is to catch the situation where a disk is removed before being unmounted. */
-		if ($disk['fstype'] == "zfs") {
-			$pool_name			= (new MiscUD)->zfs_pool_name($disk['mountpoint'], true);
-			$dev_mounted		= is_mounted($pool_name);
-		} else {
-			$dev_mounted		= is_mounted($disk['device']);
-		}
-
 		$disk['not_unmounted']	= (($disk['mounted']) && (! $dev_mounted)) ? true : false;
 
 		if ($disk['mounted'] && $disk['fstype'] == "btrfs") {
