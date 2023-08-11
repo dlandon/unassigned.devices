@@ -245,9 +245,21 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	}
 
 	/* Process nchan events. */
-	var ud_Reload = new NchanSubscriber("/sub/"+"<?=$ud_reload?>");
+	var ud_Reload		= new NchanSubscriber("/sub/"+"<?=$ud_reload?>");
+	var messageQueue	= [];
+
+	/* Handle incomming nchan messages. */
 	ud_Reload.on('message', function(data) {
-		usb_disks();
+		if (messageQueue.length === 0) {
+			/* Add the new message to the queue. */
+			messageQueue.push(data);
+
+			/* Update UD content and refresh page. */
+			usb_disks();
+
+			/* Clear out the message queue. */
+			messageQueue.length = 0;
+		}
 	});
 
 	function load_hosts(el, action) {
