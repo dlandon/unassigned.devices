@@ -679,8 +679,8 @@ switch ($_POST['action']) {
 				$mounted		= $mount['mounted'];
 
 				/* Is the device mounting or unmounting. */
-				$is_mounting	= $mount['is_mounting'];
-				$is_unmounting	= $mount['is_unmounting'];
+				$is_mounting	= $mount['is_mounting'] ?? false;
+				$is_unmounting	= $mount['is_unmounting'] ?? false;
 
 				$o_remotes		.= "<tr>";
 				$protocol		= $mount['protocol'] == "NFS" ? "nfs" : "smb";
