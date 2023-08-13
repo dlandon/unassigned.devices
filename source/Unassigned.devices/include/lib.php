@@ -1817,6 +1817,9 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 			unassigned_log("Synching file system on '".$dir."'.");
 			if ($zfs) {
 				exec("/usr/sbin/zpool sync ".escapeshellarg($pool_name)." 2>/dev/null");
+			} else if (! $force) {
+				/* Sync the file system and wait for it to be done. */
+				exec("/bin/sync -f ".escapeshellarg($dir));
 			} else {
 				/* Time out so sync command doesn't get stuck. */
 				timed_exec($timeout, "/bin/sync -f ".escapeshellarg($dir));
