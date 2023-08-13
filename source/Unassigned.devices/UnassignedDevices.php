@@ -1062,19 +1062,15 @@ switch ($_POST['action']) {
 	case 'mount':
 		/* Mount a disk device. */
 		$device	= urldecode($_POST['device']);
-		$out	= null;
-		$return	= null;
-		exec("plugins/".$plugin."/scripts/rc.unassigned mount ".escapeshellarg($device)." &>/dev/null", $out, $return);
-		echo json_encode(['status' => $return ? false : true ]);
+		$return = shell_exec("plugins/".$plugin."/scripts/rc.unassigned mount ".escapeshellarg($device));
+		echo json_encode($return == "true" ? true : false);
 		break;
 
 	case 'umount':
 		/* Unmount a disk device. */
 		$device	= urldecode($_POST['device']);
-		$out	= null;
-		$return	= null;
-		exec("plugins/".$plugin."/scripts/rc.unassigned umount ".escapeshellarg($device)." &>/dev/null", $out, $return);
-		echo json_encode(['status' => $return ? false : true ]);
+		$return = shell_exec("plugins/".$plugin."/scripts/rc.unassigned umount ".escapeshellarg($device));
+		echo json_encode($return == "true" ? true : false);
 		break;
 
 	case 'rescan_disks':
