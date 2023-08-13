@@ -52,10 +52,11 @@ if (! $DEVNAME) {
 
 /* Create array for mount button status files. */
 $remove = array();
+$result	= "true";
 
 /* Mount devices. */
 function unassigned_mount() {
-	global $DEVNAME, $paths;
+	global $DEVNAME, $paths, $result;
 
 	/* Mount local disks. */
 	foreach (get_unassigned_disks() as $name => $disk) {
@@ -114,6 +115,8 @@ function unassigned_mount() {
 
 					/* Execute device script with error mounting action. */
 					execute_script($info, "ERROR_MOUNT");
+
+					$result	= "false";
 					continue;
 				}
 
@@ -134,6 +137,8 @@ function unassigned_mount() {
 
 						/* Execute device script with error mount action. */
 						execute_script($info, "ERROR_MOUNT");
+
+						$result	= "false";
 					} else {
 						/* Mount the disk. */
 						if (do_mount($info)) 
@@ -159,6 +164,8 @@ function unassigned_mount() {
 
 							/* Execute device script with error mount action. */
 							execute_script($info, "ERROR_MOUNT");
+
+							$result	= "false";
 						}
 					}
 				} else {
@@ -221,6 +228,8 @@ function unassigned_mount() {
 
 					/* Execute device script with error mounting action. */
 					execute_script($info, "ERROR_MOUNT");
+
+					$result	= "false";
 					continue;
 				}
 
@@ -261,6 +270,8 @@ function unassigned_mount() {
 				} else {
 					/* Execute remote mount script with error mount action. */
 					execute_script($info, "ERROR_MOUNT");
+
+					$result	= "false";
 				}
 			}
 		}
@@ -285,6 +296,8 @@ function unassigned_mount() {
 
 					/* Execute device script with error mounting action. */
 					execute_script($info, "ERROR_MOUNT");
+
+					$result	= "false";
 					continue;
 				}
 
@@ -318,6 +331,8 @@ function unassigned_mount() {
 				} else {
 					/* Execute ios file script with error mount action. */
 					execute_script($info, "ERROR_MOUNT");
+
+					$result	= "false";
 				}
 			}
 		}
@@ -334,7 +349,7 @@ function unassigned_mount() {
 
 /* Unmount devices. */
 function unassigned_umount() {
-	global $DEVNAME, $paths;
+	global $DEVNAME, $paths, $result;
 
 	$force = ($DEVNAME == "all") ? true : false;
 
@@ -442,6 +457,8 @@ function unassigned_umount() {
 
 							/* Execute device script with error unmount action. */
 							execute_script($info, "ERROR_UNMOUNT");
+
+							$result	= "false";
 						}
 					}
 				}
@@ -781,4 +798,6 @@ switch ($COMMAND) {
 
 /* Clear all the state files. */
 array_map(function($f){exec("/bin/rm -f ".escapeshellarg($f)." 2>/dev/null");}, $remove);
+
+echo($result);
 ?>
