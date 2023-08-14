@@ -419,7 +419,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		swal2({
 			title: "<?=_('Fail')?>!",
 			icon: "error",
-			text: "<?=_('Device');?> '"+device+"' <?=('failed to ');?>'"+op+"'. <?=_('Check the syslog for details');?>.",
+			text: "<?=_('Device');?> '"+device+"' <?=('failed to');?> "+op+". <?=_('Check the syslog for details');?>.",
 			buttons: {
 				confirm: { visible: false },
 				cancel: { visible: false }

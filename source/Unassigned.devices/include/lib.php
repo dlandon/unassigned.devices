@@ -1921,133 +1921,135 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 	$config			= (isset($config["Config"])) ? $config["Config"] : array();
 
 	/* Add mountpoint to samba shares. */
-	if ( ($var['shareSMBEnabled'] != "no") && (isset($config['smb_security'])) && ($config['smb_security'] != "no") ) {
-		/* Remove special characters from share name. */
-		$share_name = str_replace( array("(", ")"), "", basename($dir));
+	if ($var['shareSMBEnabled'] == "yes") {
+		if ( (isset($config['smb_security'])) && ($config['smb_security'] != "no") ) {
+			/* Remove special characters from share name. */
+			$share_name = str_replace( array("(", ")"), "", basename($dir));
 
-		$vfs_objects = "";
-		$enable_fruit = ($var['enableFruit'] == "yes");
-		if (($recycle_bin) || ($enable_fruit)) {
-			if ($enable_fruit) {
-				if (! $fat_fruit) {
-					/* See if the smb-fruit.conf from the /boot/config/ folder. */
-					$fruit_file = "/boot/config/smb-fruit.conf";
-					if (file_exists($fruit_file)) {
-						$fruit_file_settings = explode("\n", file_get_contents($fruit_file));
-					} else {
-						/* Use the smb-fruit.conf from the /etc/samba/ folder. */
-						$fruit_file = "/etc/samba/smb-fruit.conf";
+			$vfs_objects = "";
+			$enable_fruit = ($var['enableFruit'] == "yes");
+			if (($recycle_bin) || ($enable_fruit)) {
+				if ($enable_fruit) {
+					if (! $fat_fruit) {
+						/* See if the smb-fruit.conf from the /boot/config/ folder. */
+						$fruit_file = "/boot/config/smb-fruit.conf";
 						if (file_exists($fruit_file)) {
 							$fruit_file_settings = explode("\n", file_get_contents($fruit_file));
 						} else {
-							$fruit_file_settings = array( "vfs objects = catia fruit streams_xattr" );
+							/* Use the smb-fruit.conf from the /etc/samba/ folder. */
+							$fruit_file = "/etc/samba/smb-fruit.conf";
+							if (file_exists($fruit_file)) {
+								$fruit_file_settings = explode("\n", file_get_contents($fruit_file));
+							} else {
+								$fruit_file_settings = array( "vfs objects = catia fruit streams_xattr" );
+							}
 						}
-					}
-				} else {
-					/* For fat and exfat file systems. */
-					$fruit_file_settings = array( "vfs objects = catia fruit streams_xattr", "fruit:resource = file", "fruit:metadata = netatalk", "fruit:encoding = native" );
-				}
-				/* Apply the fruit settings. */
-				foreach ($fruit_file_settings as $f) {
-					/* Remove comment lines. */
-					if (($f) && (strpos($f, "#") === false)) {
-						$vfs_objects .= "\n\t".$f;
-					}
-				}
-			}
-		}
-
-		if ((isset($config['smb_security'])) && (($config['smb_security'] == "yes") || ($config['smb_security'] == "hidden"))) {
-			$read_users = $write_users = $valid_users = array();
-			foreach ($users as $key => $user) {
-				if ($user['name'] != "root" ) {
-					$valid_users[] = $user['name'];
-				}
-			}
-
-			$invalid_users = array_filter($valid_users, function($v) use($config, &$read_users, &$write_users) { 
-				if ($config["smb_{$v}"] == "read-only") {$read_users[] = $v;}
-				else if ($config["smb_{$v}"] == "read-write") {$write_users[] = $v;}
-				else {return $v;}
-			});
-			$valid_users = array_diff($valid_users, $invalid_users);
-			if ($config["smb_security"] == "hidden") {
-				$hidden = "\n\tbrowseable = no";
-			} else {
-				$hidden = "\n\tbrowseable = yes";
-			}
-			$force_user = ( get_config("Config", "force_user") == "yes" ) ? "\n\tforce User = nobody" : "";
-			if (($config["case_names"]) || ($config["case_names"] == "auto")) {
-				$case_names = "\n\tcase sensitive = auto\n\tpreserve case = yes\n\tshort preserve case = yes";
-			} else if ($config["case_names"] == "yes") {
-				$case_names = "\n\tcase sensitive = yes\n\tpreserve case = yes\n\tshort preserve case = yes";
-			} else if ($config["case_names"] == "force") {
-				$case_names = "\n\tcase sensitive = yes\n\tpreserve case = no\n\tshort preserve case = no";
-			} else {
-				$case_names = "";
-			}
-			if (count($valid_users)) {
-				$valid_users	= "\n\tvalid users = ".implode(' ', $valid_users);
-				$write_users	= count($write_users) ? "\n\twrite list = ".implode(' ', $write_users) : "";
-				$read_users		= count($read_users) ? "\n\tread list = ".implode(' ', $read_users) : "";
-				$share_cont		= "[{$share_name}]\n\tcomment = {$share_name}\n\tpath = {$dir}{$hidden}{$force_user}{$valid_users}{$write_users}{$read_users}{$vfs_objects}{$case_names}";
-			} else {
-				$share_cont 	= "[{$share_name}]\n\tpath = {$dir}{$hidden}\n\tinvalid users = @users";
-				unassigned_log("Warning: No valid smb users defined. Share '{$dir}' cannot be accessed.");
-			}
-		} else {
-			$force_user = ( get_config("Config", "force_user") == "yes" ) ? "\n\tforce User = nobody" : "";
-			$share_cont = "[{$share_name}]\n\tpath = {$dir}\n\tread only = No\n\tguest ok = Yes{$force_user}{$vfs_objects}";
-		}
-
-		if (! is_dir($paths['smb_usb_shares'])) {
-			@mkdir($paths['smb_usb_shares'], 0755, true);
-		}
-		$share_conf = preg_replace("#\s+#", "_", realpath($paths['smb_usb_shares'])."/".$share_name.".conf");
-
-		unassigned_log("Adding SMB share '{$share_name}'.");
-		@file_put_contents($share_conf, $share_cont);
-		if (! (new MiscUD)->exist_in_file($paths['smb_unassigned'], $share_conf)) {
-			$c		= (is_file($paths['smb_unassigned'])) ? @file($paths['smb_unassigned'], FILE_IGNORE_NEW_LINES) : array();
-			$c[]	= "include = $share_conf";
-
-			/* Do some cleanup. */
-			$smb_unassigned_includes = array_unique(preg_grep("/include/i", $c));
-			foreach($smb_unassigned_includes as $key => $inc) {
-				if (! is_file(parse_ini_string($inc)['include'])) {
-					unset($smb_unassigned_includes[$key]);
-				}
-			} 
-			$c		= array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_unassigned_includes);
-			$c		= preg_replace('/\n\s*\n\s*\n/s', PHP_EOL.PHP_EOL, implode(PHP_EOL, $c));
-			@file_put_contents($paths['smb_unassigned'], $c);
-
-			/* If the recycle bin plugin is installed, add the recycle bin to the share. */
-			if ($recycle_bin) {
-				/* Add the recycle bin parameters if plugin is installed */
-				$recycle_script = "plugins/recycle.bin/scripts/configure_recycle_bin";
-				if (is_file($recycle_script)) {
-					if (file_exists("/boot/config/plugins/recycle.bin/recycle.bin.cfg")) {
-						$recycle_bin_cfg	= @parse_ini_file( "/boot/config/plugins/recycle.bin/recycle.bin.cfg" );
 					} else {
-						$recycle_nin_cfg	= array();
+						/* For fat and exfat file systems. */
+						$fruit_file_settings = array( "vfs objects = catia fruit streams_xattr", "fruit:resource = file", "fruit:metadata = netatalk", "fruit:encoding = native" );
 					}
-					if ((isset($recycle_bin_cfg['INCLUDE_UD'])) && ($recycle_bin_cfg['INCLUDE_UD'] == "yes")) {
-						if (is_file("/var/run/recycle.bin.pid")) {
-							unassigned_log("Enabling the Recycle Bin on share '{$share_name}'.");
+					/* Apply the fruit settings. */
+					foreach ($fruit_file_settings as $f) {
+						/* Remove comment lines. */
+						if (($f) && (strpos($f, "#") === false)) {
+							$vfs_objects .= "\n\t".$f;
 						}
-						exec(escapeshellcmd("$recycle_script $share_conf"));
 					}
 				}
 			}
+
+			if ((isset($config['smb_security'])) && (($config['smb_security'] == "yes") || ($config['smb_security'] == "hidden"))) {
+				$read_users = $write_users = $valid_users = array();
+				foreach ($users as $key => $user) {
+					if ($user['name'] != "root" ) {
+						$valid_users[] = $user['name'];
+					}
+				}
+
+				$invalid_users = array_filter($valid_users, function($v) use($config, &$read_users, &$write_users) { 
+					if ($config["smb_{$v}"] == "read-only") {$read_users[] = $v;}
+					else if ($config["smb_{$v}"] == "read-write") {$write_users[] = $v;}
+					else {return $v;}
+				});
+				$valid_users = array_diff($valid_users, $invalid_users);
+				if ($config["smb_security"] == "hidden") {
+					$hidden = "\n\tbrowseable = no";
+				} else {
+					$hidden = "\n\tbrowseable = yes";
+				}
+				$force_user = ( get_config("Config", "force_user") == "yes" ) ? "\n\tforce User = nobody" : "";
+				if (($config["case_names"]) || ($config["case_names"] == "auto")) {
+					$case_names = "\n\tcase sensitive = auto\n\tpreserve case = yes\n\tshort preserve case = yes";
+				} else if ($config["case_names"] == "yes") {
+					$case_names = "\n\tcase sensitive = yes\n\tpreserve case = yes\n\tshort preserve case = yes";
+				} else if ($config["case_names"] == "force") {
+					$case_names = "\n\tcase sensitive = yes\n\tpreserve case = no\n\tshort preserve case = no";
+				} else {
+					$case_names = "";
+				}
+				if (count($valid_users)) {
+					$valid_users	= "\n\tvalid users = ".implode(' ', $valid_users);
+					$write_users	= count($write_users) ? "\n\twrite list = ".implode(' ', $write_users) : "";
+					$read_users		= count($read_users) ? "\n\tread list = ".implode(' ', $read_users) : "";
+					$share_cont		= "[{$share_name}]\n\tcomment = {$share_name}\n\tpath = {$dir}{$hidden}{$force_user}{$valid_users}{$write_users}{$read_users}{$vfs_objects}{$case_names}";
+				} else {
+					$share_cont 	= "[{$share_name}]\n\tpath = {$dir}{$hidden}\n\tinvalid users = @users";
+					unassigned_log("Warning: No valid smb users defined. Share '{$dir}' cannot be accessed.");
+				}
+			} else {
+				$force_user = ( get_config("Config", "force_user") == "yes" ) ? "\n\tforce User = nobody" : "";
+				$share_cont = "[{$share_name}]\n\tpath = {$dir}\n\tread only = No\n\tguest ok = Yes{$force_user}{$vfs_objects}";
+			}
+
+			if (! is_dir($paths['smb_usb_shares'])) {
+				@mkdir($paths['smb_usb_shares'], 0755, true);
+			}
+			$share_conf = preg_replace("#\s+#", "_", realpath($paths['smb_usb_shares'])."/".$share_name.".conf");
+
+			unassigned_log("Adding SMB share '{$share_name}'.");
+			@file_put_contents($share_conf, $share_cont);
+			if (! (new MiscUD)->exist_in_file($paths['smb_unassigned'], $share_conf)) {
+				$c		= (is_file($paths['smb_unassigned'])) ? @file($paths['smb_unassigned'], FILE_IGNORE_NEW_LINES) : array();
+				$c[]	= "include = $share_conf";
+
+				/* Do some cleanup. */
+				$smb_unassigned_includes = array_unique(preg_grep("/include/i", $c));
+				foreach($smb_unassigned_includes as $key => $inc) {
+					if (! is_file(parse_ini_string($inc)['include'])) {
+						unset($smb_unassigned_includes[$key]);
+					}
+				} 
+				$c		= array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_unassigned_includes);
+				$c		= preg_replace('/\n\s*\n\s*\n/s', PHP_EOL.PHP_EOL, implode(PHP_EOL, $c));
+				@file_put_contents($paths['smb_unassigned'], $c);
+
+				/* If the recycle bin plugin is installed, add the recycle bin to the share. */
+				if ($recycle_bin) {
+					/* Add the recycle bin parameters if plugin is installed */
+					$recycle_script = "plugins/recycle.bin/scripts/configure_recycle_bin";
+					if (is_file($recycle_script)) {
+						if (file_exists("/boot/config/plugins/recycle.bin/recycle.bin.cfg")) {
+							$recycle_bin_cfg	= @parse_ini_file( "/boot/config/plugins/recycle.bin/recycle.bin.cfg" );
+						} else {
+							$recycle_nin_cfg	= array();
+						}
+						if ((isset($recycle_bin_cfg['INCLUDE_UD'])) && ($recycle_bin_cfg['INCLUDE_UD'] == "yes")) {
+							if (is_file("/var/run/recycle.bin.pid")) {
+								unassigned_log("Enabling the Recycle Bin on share '{$share_name}'.");
+							}
+							exec(escapeshellcmd("$recycle_script $share_conf"));
+						}
+					}
+				}
+			}
+
+			/* Add the [global] tag to the end of the share file. */
+			@file_put_contents($share_conf, "\n[global]\n", FILE_APPEND);
+
+			timed_exec(2, "/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
+		} else {
+			unassigned_log("Warning: Unassigned Devices are not set to be shared with SMB.");
 		}
-
-		/* Add the [global] tag to the end of the share file. */
-		@file_put_contents($share_conf, "\n[global]\n", FILE_APPEND);
-
-		timed_exec(2, "/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
-	} else if ($var['shareSMBEnabled'] == "yes") {
-		unassigned_log("Warning: Unassigned Devices are not set to be shared with SMB.");
 	}
 
 	return true;
@@ -2089,34 +2091,36 @@ function add_nfs_share($dir) {
 	global $var;
 
 	/* If NFS is enabled and export setting is 'yes' then add NFS share. */
-	if ( ($var['shareNFSEnabled'] == "yes") && (get_config("Config", "nfs_export") == "yes") ) {
-		$reload = false;
-		foreach (array("/etc/exports","/etc/exports-") as $file) {
-			if (! (new MiscUD)->exist_in_file($file, $dir)) {
-				$c			= (is_file($file)) ? @file($file, FILE_IGNORE_NEW_LINES) : array();
-				$fsid		= 200 + count(preg_grep("@^\"@", $c));
-				$nfs_sec	= get_config("Config", "nfs_security");
-				if ( $nfs_sec == "private" ) {
-					$sec	= explode(";", get_config("Config", "nfs_rule"));
-				} else {
-					$sec[]	= "*(sec=sys,rw,insecure,anongid=100,anonuid=99,all_squash)";
-				}
-				foreach ($sec as $security) {
-					if ($security) {
-						$c[]		= "\"{$dir}\" -fsid={$fsid},async,no_subtree_check {$security}";
+	if ($var['shareNFSEnabled'] == "yes") {
+		if (get_config("Config", "nfs_export") == "yes") {
+			$reload = false;
+			foreach (array("/etc/exports","/etc/exports-") as $file) {
+				if (! (new MiscUD)->exist_in_file($file, $dir)) {
+					$c			= (is_file($file)) ? @file($file, FILE_IGNORE_NEW_LINES) : array();
+					$fsid		= 200 + count(preg_grep("@^\"@", $c));
+					$nfs_sec	= get_config("Config", "nfs_security");
+					if ( $nfs_sec == "private" ) {
+						$sec	= explode(";", get_config("Config", "nfs_rule"));
+					} else {
+						$sec[]	= "*(sec=sys,rw,insecure,anongid=100,anonuid=99,all_squash)";
 					}
+					foreach ($sec as $security) {
+						if ($security) {
+							$c[]		= "\"{$dir}\" -fsid={$fsid},async,no_subtree_check {$security}";
+						}
+					}
+					$c[]		= "";
+					@file_put_contents($file, implode(PHP_EOL, $c));
+					$reload		= true;
 				}
-				$c[]		= "";
-				@file_put_contents($file, implode(PHP_EOL, $c));
-				$reload		= true;
 			}
+			if ($reload) {
+				unassigned_log("Adding NFS share '".$dir."'.");
+				exec("/usr/sbin/exportfs -ra 2>/dev/null");
+			}
+		} else {
+			unassigned_log("Warning: Unassigned Devices are not set to be shared with NFS.");
 		}
-		if ($reload) {
-			unassigned_log("Adding NFS share '".$dir."'.");
-			exec("/usr/sbin/exportfs -ra 2>/dev/null");
-		}
-	} else if ($var['shareNFSEnabled'] == "yes") {
-		unassigned_log("Warning: Unassigned Devices are not set to be shared with NFS.");
 	}
 
 	return true;
