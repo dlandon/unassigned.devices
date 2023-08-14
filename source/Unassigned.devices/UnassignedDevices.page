@@ -390,15 +390,42 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 	function swalShowResult(success) {
 		if (success) {
-			swal2({title:"<?=_('Success')?>!", icon:"success", text:" ", buttons:{confirm:{visible:false}, cancel:{visible:false}}, timer:2000});
+			swal2({
+				title:"<?=_('Success')?>!",
+				icon:"success",
+				text:" ",
+				buttons: {
+					confirm: { visible:false },
+					cancel: { visible:false }
+				},
+				timer:2000
+			});
 		} else {
-			swal2({title:"<?=_('Fail')?>!", icon:"error", text:"<?=_('Check the syslog for details');?>.", buttons:{confirm:{visible:false}, cancel:{visible:false}}, timer:2000});
+			swal2({
+				title:"<?=_('Fail')?>!",
+				icon:"error",
+				text:"<?=_('Check the syslog for details');?>.",
+				buttons: {
+					confirm: { visible:false },
+					cancel: { visible:false }
+				},
+				timer:2000
+			});
 			opts += "";
 		}
 	}
 
 	function swalShowMountUnmount(device, op) {
-		swal2({title:"<?=_('Fail')?>!", icon:"error", text:"<?=_('Device');?> \'"+device+"\' <?=('failed to ');?>"+op+". <?=_('Check the syslog for details');?>.", buttons:{confirm:{visible:false}, cancel:{visible:false}}, timer:3000});
+		swal2({
+			title: "<?=_('Fail')?>!",
+			icon: "error",
+			text: "<?=_('Device');?> '"+device+"' <?=('failed to ');?>'"+op+"'. <?=_('Check the syslog for details');?>.",
+			buttons: {
+				confirm: { visible: false },
+				cancel: { visible: false }
+			},
+			timer: 3000
+		});
 	}
 
 	function doUnassignedDevicesSurvey(surveyName, surveyOption) {
