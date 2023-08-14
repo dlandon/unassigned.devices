@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices-plus">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2023.04.15">
+<!ENTITY version   "2023.08.14">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/unassigned.devices/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
@@ -22,6 +22,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Add libmd package to support htfs+ disk check.
+
+###2023.04.15
 - Add: Update libbsd to 0.11.7.
 - Add: Update parted to 3.6.
 
@@ -141,6 +144,14 @@ libbsd-0.11.7-x86_64-1cf.txz
 </FILE>
 
 <!--
+libmd-1.1.0-x86_64-1cf.txz
+-->
+<FILE Name="&packages;/libmd-1.1.0-x86_64-1cf.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/libmd-1.1.0-x86_64-1cf.txz"</URL>
+<MD5>fda82ef327f85477de04ee11d386c0d2</MD5>
+</FILE>
+
+<!--
 apfsfuse-v20200708-x86_64-1.txz
 -->
 <FILE Name="&packages;/apfsfuse-v20200708-x86_64-1.txz" Run="upgradepkg --install-new">
@@ -191,6 +202,7 @@ removepkg exfat-utils-1.3.0-x86_64-1_slonly >/dev/null
 removepkg fuse-exfat-1.3.0-x86_64-1_slonly.txz >/dev/null
 removepkg hfsprogs-332.25-x86_64-2sl >/dev/null
 removepkg libbsd-0.11.7-x86_64-1cf.txz >/dev/null
+removepkg libmd-1.1.0-x86_64-1cf.txz >/dev/null
 removepkg apfsfuse-v20200708-x86_64-1.txz >/dev/null
 
 # Remove possible leftovers
