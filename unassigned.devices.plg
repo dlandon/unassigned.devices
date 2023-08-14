@@ -29,13 +29,13 @@
 - Fix: Rework Mounting, Unmounting, and Formatting state files that show status on 'Mount' button to cut down on tmpfs file I/O.
 - Add: Detection for mis-configured 'ip' and 'path' in samba_mounts.cfg file.  Show mis-configuration on mount point and disable mount button.
 
-2023.08.07
+###2023.08.07
 - Fix: Remote mounts were not safe naming the share part of the device when a remote share was added.
 - Fix: Adjust some log messages relating to mounting and unmounting devices.
 - Fix: Mount of hidden Windows remote shares.
 - Fix: Reversion causing issues with default device script file name.
 
-#2023.08.06a
+###2023.08.06a
 - Fix: Mark disks with a file system and no partition as a 'Pool' device so UD does not allow operations on the device.  For example a Linux LVM file system.
 - Fix: Changes to help with UD hanging when remote NFS goes off-line.
 - Fix: Sharing on remote shares not enabling NFS sharing of the remote share on the local server.
