@@ -1833,7 +1833,9 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 			/* Remove saved pool devices if this is a btrfs pooled device. */
 			(new MiscUD)->get_pool_devices($dir, true);
 
-			$cmd = "/sbin/umount".($smb ? " -t cifs" : ($nfs ? " -t nfs" : "")).(($force ? (" -f").($nfs ? "l" : "") : ""))." ".escapeshellarg($dir)." 2>&1";
+			/* The umount flags are set depending on the unmount conditions.  When the array is being stopped force will
+			   be set.  This helps to keep unmounts from hanging.  NFS mounts are always force lazy unmounted. */  
+			$cmd = "/sbin/umount".($smb ? " -t cifs " : ($nfs ? " -t nfs " : " ")).($force ? ("-f".($nfs ? "l " : " ")) : "")."".escapeshellarg($dir)." 2>&1";
 		}
 
 		unassigned_log("Unmount cmd: ".$cmd);
