@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.08.09">
+<!ENTITY version	"2023.08.14">
 <!ENTITY launch		"Tools/Preclear">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/unassigned.devices/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"018bd31157e3e8456ee47b059e4083e7">
+<!ENTITY MD5		"7405103d560258d9ac339690183eb87c">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
@@ -21,6 +21,10 @@
 <CHANGES>
 ###&name;
 ###&version;
+- Fix: Remove memory verify check for checking that sectors are zeroed.  It is not really necessary and causes problems.
+- Fix: Show previous preclear reports in order of the latest one on top of the list.
+
+###2023.08.09
 - Add: Double the dd_hang time when reading to the disk to try to prevent dd read timeouts at the end of large disks.
 
 ###2023.08.08a
@@ -239,9 +243,6 @@ tar -xf /boot/config/plugins/&name;/&name;-&version;.tgz -C /usr/local/emhttp/pl
 # Fix permissions of executable files
 chmod +x /usr/local/emhttp/plugins/&name;/scripts/* /usr/local/emhttp/plugins/&name;/event/*
 
-# Create a symlink to readvz
-ln -sf /usr/local/emhttp/plugins/&name;/scripts/readvz /usr/local/sbin/readvz
-
 # Make sure log file exists
 touch /var/log/preclear/preclear.log
 
@@ -299,8 +300,7 @@ rm -rf	/boot/config/plugins/&name;/ \
 # Remove plugin related files
 rm -rf	/usr/local/bin/preclear \
 		/var/run/preclear_queue.pid \
-		/var/log/preclear/preclear.log \
-		/usr/local/sbin/readvz
+		/var/log/preclear/preclear.log
 
 # Remove plugin related directories
 rm -rf	/var/state/&name; \
