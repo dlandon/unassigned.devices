@@ -17,7 +17,7 @@ export LC_CTYPE
 ionice -c3 -p$BASHPID
 
 # Version
-version="1.0.28"
+version="1.0.29"
 #
 # Change Log
 # 1.0.23
@@ -45,6 +45,12 @@ version="1.0.28"
 #
 # 1.0.28
 # Double dd_hang timeout when reading and writing to disk.
+#
+#
+# 1.0.29
+# Don't read disk data into memory and check to be zero when
+# doing post-read.  Disk data is read, but not confirmed
+# to be zero.
 #
 ######################################################
 ##													##
@@ -667,7 +673,6 @@ write_the_disk(){
 	local tb_formatted
 	local total_bytes
 	local update_period=0
-	local write_bs=""
 	local display_pid=0
 	local write_bs=2097152
 	local write_type_v
@@ -726,7 +731,6 @@ write_the_disk(){
 		pass=$(dd if=/dev/urandom bs=128 count=1 2>/dev/null | base64 -w 0)
 		openssl_cmd="openssl enc -aes-256-ctr -pass pass:'${pass}' -nosalt"
 		$openssl_cmd < /dev/zero > ${all_files[fifo]} 2>/dev/null &
-
 		dd_cmd="dd if=${all_files[fifo]} of=${disk} bs=${write_bs} $dd_seek $dd_flags iflag=fullblock"
 	fi
 
@@ -1073,8 +1077,6 @@ read_the_disk() {
 	local average_speed=0
 	local bytes_read=0
 	local bytes_dd_current=0
-	local cmp_exit_status=0
-	local cmp_output=${all_files[cmp_out]}
 	local cycle=$cycle
 	local cycles=$cycles
 	local display_pid=0
@@ -1189,27 +1191,21 @@ read_the_disk() {
 			# Verify the beginning of the disk skipping the MBR
 			#
 			debug "${read_type_s}: verifying the beginning of the disk."
-			cmp_cmd="cmp ${all_files[fifo]} /dev/zero"
 
-			dd_cmd="dd if=$disk of=${all_files[fifo]} count=$(( $read_bs - 512 )) skip=512 $dd_flags_verify"
+			dd_cmd="dd if=$disk of=/dev/null count=$(( $read_bs - 512 )) skip=512 $dd_flags_verify"
 
 			#
-			# exec dd/compare command
+			# exec dd command
 			#
-			$cmp_cmd &> $cmp_output & cmp_pid=$!
-			sleep 1
 			$dd_cmd 2> >(dd_parse_status $dd_output) & dd_pid=$!
 
 			wait $dd_pid
 			dd_exit=$?
 
 			#
-			# Fail if not zeroed or error
+			# Fail if error
 			#
-			if grep -q "differ" "$cmp_output" &>/dev/null; then
-				debug "${read_type_s}: fail - beginning of the disk not zeroed"
-				return 1
-			elif test $dd_exit -ne 0; then
+			if test $dd_exit -ne 0; then
 				debug "${read_type_s}: dd command failed -> $(cat "${dd_output}_complete")"
 				return 1
 			fi
@@ -1224,14 +1220,11 @@ read_the_disk() {
 		# Verify the rest of the disk
 		#
 		debug "${read_type_s}: verifying the rest of the disk."
-		cmp_cmd="cmp ${all_files[fifo]} /dev/zero"
-		dd_cmd="dd if=$disk of=${all_files[fifo]} bs=$read_bs $dd_skip $dd_flags_verify"
+		dd_cmd="dd if=$disk of=/dev/null bs=$read_bs $dd_skip $dd_flags_verify"
 
 		#
-		# exec dd/compare command
+		# exec dd command
 		#
-		$cmp_cmd &> $cmp_output & cmp_pid=$!
-		sleep 1
 		$dd_cmd 2> >(dd_parse_status $dd_output) & dd_pid=$!
 	else
 		if [ "$skip_initial" -eq 0 ]; then
@@ -1561,16 +1554,6 @@ read_the_disk() {
 	fi
 
 	#
-	# Verify status
-	#
-	if [ "$verify" == "verify" ]; then
-		if grep -q "differ" "$cmp_output" &>/dev/null; then
-			debug "${read_type_s}: cmp command failed - disk not zeroed"
-			cmp_exit_status=1
-		fi
-	fi
-
-	#
 	# Wait last display refresh
 	#
 	for i in $(seq 30); do
@@ -1594,13 +1577,6 @@ read_the_disk() {
 		diskop+=([current_op]="$read_type" [current_pos]="$bytes_read" [current_timer]=$(time_elapsed $read_type display) )
 		save_current_status 1
 
-		return 1
-	fi
-
-	#
-	# Fail if not zeroed or error
-	#
-	if [ "$cmp_exit_status" -ne 0 ]; then
 		return 1
 	fi
 
@@ -2318,7 +2294,6 @@ append all_files 'dir'				"/tmp/.preclear/${disk_properties[name]}"
 append all_files 'dd_out'			"${all_files[dir]}/dd_output"
 append all_files 'dd_exit'			"${all_files[dir]}/dd_exit_code"
 append all_files 'dd_pid'			"${all_files[dir]}/dd_pid"
-append all_files 'cmp_out'			"${all_files[dir]}/cmp_out"
 append all_files 'blkpid'			"${all_files[dir]}/blkpid"
 append all_files 'fifo'				"${all_files[dir]}/fifo"
 append all_files 'pause'			"${all_files[dir]}/pause"
