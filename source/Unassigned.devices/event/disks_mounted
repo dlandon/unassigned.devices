@@ -14,7 +14,7 @@ ${DOCROOT}/plugins/unassigned.devices/scripts/copy_config.sh
 logger "Mounting 'Auto Mount' Devices..." -t"unassigned.devices"
 
 # Automount disks and iso shares.
-${DOCROOT}/plugins/unassigned.devices/scripts/rc.unassigned mount autodevices
+${DOCROOT}/plugins/unassigned.devices/scripts/rc.unassigned mount autodevices &>/dev/null
 
 # Clear that array is shutting down
 rm -rf /tmp/unassigned.devices/shut_down

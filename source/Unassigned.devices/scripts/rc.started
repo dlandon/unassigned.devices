@@ -19,7 +19,7 @@ done
 # If network check did not time out, mount remote shares
 if [ $SECONDS -le 120 ]; then
 	logger "Using Gateway '${gateway}' to Ping Remote Shares." -t"unassigned.devices"
-	${DOCROOT}/plugins/unassigned.devices/scripts/rc.unassigned mount autoshares &
+	${DOCROOT}/plugins/unassigned.devices/scripts/rc.unassigned mount autoshares &>/dev/null &
 else
 	logger "Cannot 'Auto Mount' Remote Shares.  Network not available!" -t"unassigned.devices"
 fi

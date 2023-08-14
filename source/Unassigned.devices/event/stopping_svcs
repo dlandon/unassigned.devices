@@ -9,7 +9,7 @@ fi
 touch /tmp/unassigned.devices/shut_down
 
 logger "Unmounting All Devices..." -t"unassigned.devices"
-${DOCROOT}/plugins/unassigned.devices/scripts/rc.unassigned umount all
+${DOCROOT}/plugins/unassigned.devices/scripts/rc.unassigned umount all &>/dev/null
 
 # Clear that array is shutting down
 rm -rf /tmp/unassigned.devices/shut_down
