@@ -117,6 +117,7 @@ if (isset($_POST['action'])) {
 						$disk_reports	= array_filter($reports, function ($report) use ($disk) {
 											return preg_match("|".$disk["SERIAL_SHORT"]."|", $report) && ( preg_match("|_report_|", $report) || preg_match("|_rpt_|", $report) );
 											});
+					$disk_reports		= array_reverse($disk_reports, false);
 					} else {
 						$disk_reports	= array();
 					}
