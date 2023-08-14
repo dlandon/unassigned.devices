@@ -123,7 +123,17 @@ class MiscUD
 
 	/* Check for text in a file. */
 	public function exist_in_file($file, $text) {
-		return (preg_grep("%{$text}%", @file($file))) ? true : false;
+
+		$rc	= false;
+		$fileContent = file_get_contents($file);
+
+		if ($fileContent !== false) {
+			if (strpos($fileContent, $text) !== false) {
+				$rc	= true;
+			}
+		}
+
+		return $rc;
 	}
 
 	/* Is the device an nvme disk? */
@@ -2036,7 +2046,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 		@file_put_contents($share_conf, "\n[global]\n", FILE_APPEND);
 
 		timed_exec(2, "/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
-	} else {
+	} else if ($var['shareSMBEnabled'] == "yes") {
 		unassigned_log("Warning: Unassigned Devices are not set to be shared with SMB.");
 	}
 
@@ -2082,7 +2092,7 @@ function add_nfs_share($dir) {
 	if ( ($var['shareNFSEnabled'] == "yes") && (get_config("Config", "nfs_export") == "yes") ) {
 		$reload = false;
 		foreach (array("/etc/exports","/etc/exports-") as $file) {
-			if (! (new MiscUD)->exist_in_file($file, "\"{$dir}\"")) {
+			if (! (new MiscUD)->exist_in_file($file, $dir)) {
 				$c			= (is_file($file)) ? @file($file, FILE_IGNORE_NEW_LINES) : array();
 				$fsid		= 200 + count(preg_grep("@^\"@", $c));
 				$nfs_sec	= get_config("Config", "nfs_security");
@@ -2105,7 +2115,7 @@ function add_nfs_share($dir) {
 			unassigned_log("Adding NFS share '".$dir."'.");
 			exec("/usr/sbin/exportfs -ra 2>/dev/null");
 		}
-	} else {
+	} else if ($var['shareNFSEnabled'] == "yes") {
 		unassigned_log("Warning: Unassigned Devices are not set to be shared with NFS.");
 	}
 
@@ -2119,14 +2129,26 @@ function rm_nfs_share($dir) {
 	/* Remove this disk from the exports file. */
 	$reload = false;
 	foreach (array("/etc/exports","/etc/exports-") as $file) {
-		if ( (new MiscUD)->exist_in_file($file, "\"{$dir}\"") && strlen($dir)) {
-			$c		= (is_file($file)) ? @file($file, FILE_IGNORE_NEW_LINES) : array();
-			$c		= preg_grep("@\"{$dir}\"@i", $c, PREG_GREP_INVERT);
-			$c[]	= "";
-			@file_put_contents($file, implode(PHP_EOL, $c));
+		if ( (new MiscUD)->exist_in_file($file, $dir) && strlen($dir)) {
+
+			/* Read the contents of the file into an array. */
+			$fileLines = file($file, FILE_IGNORE_NEW_LINES);
+
+			/* Search for the line containing the target text and remove it. */
+			$updatedLines = array_filter($fileLines, function($line) use ($dir) {
+				return strpos($line, $dir) === false;
+			});
+
+			/* Combine the updated lines into a single string. */
+			$updatedContent = implode("\n", $updatedLines);
+
+			/* Write the updated content back to the file. */
+			file_put_contents($file, $updatedContent);
+
 			$reload	= true;
 		}
 	}
+
 	if ($reload) {
 		unassigned_log("Removing NFS share '".$dir."'.");
 		exec("/usr/sbin/exportfs -ra 2>/dev/null");
