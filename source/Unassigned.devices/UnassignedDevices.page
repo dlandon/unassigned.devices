@@ -411,7 +411,6 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 				},
 				timer:2000
 			});
-			opts += "";
 		}
 	}
 
