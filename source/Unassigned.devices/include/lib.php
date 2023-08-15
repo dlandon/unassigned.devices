@@ -2402,6 +2402,9 @@ function get_samba_mounts() {
 				$mount['used']			= $stats[1]*1024;
 				$mount['avail']			= $stats[2]*1024;
 
+				/* If the device size is zero, the device is effectively off-line. */
+				$mount['is_alive']		= ($mount['mounted'] && $mount['size'] == 0) ? false : $mount['is_alive'];
+
 				/* Target is set to the mount point when the device is mounted. */
 				$mount['target']		= $mount['mounted'] ? $mount['mountpoint'] : "";
 
