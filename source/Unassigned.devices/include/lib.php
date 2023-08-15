@@ -459,7 +459,8 @@ function get_device_stats($mountpoint, $mounted, $active = true) {
 		}
 	}
 
-	$stats		= preg_split('/\s+/', $rc);
+	/* Get the stats from the json file.  If the command timed out, convert to empty string. */
+	$stats		= preg_split('/\s+/', str_replace("command timed out", "", $rc));
 	$stats[0]	= (isset($stats[0])) ? intval($stats[0]) : 0;
 	$stats[1]	= (isset($stats[1])) ? intval($stats[1]) : 0;
 	$stats[2]	= (isset($stats[2])) ? intval($stats[2]) : 0;
