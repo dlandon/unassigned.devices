@@ -676,6 +676,7 @@ switch ($_POST['action']) {
 			foreach ($samba_mounts as $mount)
 			{
 				$is_alive		= $mount['is_alive'];
+				$is_available	= $mount['is_available'];
 				$mounted		= $mount['mounted'];
 
 				/* Is the device mounting or unmounting. */
@@ -688,11 +689,11 @@ switch ($_POST['action']) {
 				$o_remotes		.= "<td>{$mount['name']}";
 				$mount_point	= (! $mount['invalid']) ? basename($mount['mountpoint']) : "-- "._("Invalid Configuration - Remove and Re-add")." --";
 				$o_remotes		.= "<td></td>";
-				if (($mounted) && ($is_alive)) {
+				if ((! $is_unmounting) && ($mounted) && ($is_alive) && ($is_available)) {
 					$o_remotes	.= "<td><i class='fa fa-external-link mount-share'></i><a title='"._("Browse Remote SMB")."/"._("NFS Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
 				} else {
 					$o_remotes	.= "<td><i class='fa fa-pencil mount-share'></i>";
-					if ((! $is_mounting) && (! $mount['invalid']) && (! $mounted)) {
+					if ((! $is_mounting) && (! $is_unmounting) && (! $mount['invalid']) && ($is_alive) && ($is_available)) {
 						$o_remotes	.= "<a title='"._("Change Remote SMB")."/"._("NFS Mount Point")."' class='exec' onclick='chg_samba_mountpoint(\"{$mount['name']}\",\"{$mount_point}\");'>{$mount_point}</a>";
 					} else {
 						$o_remotes	.= $mount_point;
@@ -701,7 +702,7 @@ switch ($_POST['action']) {
 				}
 				$o_remotes		.= "<td></td>";
 
-				$disabled	= (($mount['fstype'] == "root") && ($var['shareDisk'] == "yes" || $var['mdState'] != "STARTED")) ? "disabled" : ($is_alive ? "enabled" : "disabled");
+				$disabled	= (($mount['fstype'] == "root") && ($var['shareDisk'] == "yes" || $var['mdState'] != "STARTED")) ? "disabled" : (($is_alive || $mounted) ? "enabled" : "disabled");
 				$disabled	= ((isset($mount['disable_mount']) && ($mount['disable_mount'])) || ($mount['invalid'])) ? "disabled" : $disabled;
 				if ($mount['mounted'] && (is_script_running($mount['command']) || is_script_running($mount['user_command'], true))) {
 					$o_remotes .= "<td><button class='mount' disabled> <i class='fa fa-spinner fa-spin'></i>"." "._("Running")."</button></td>";
