@@ -688,11 +688,11 @@ switch ($_POST['action']) {
 				$o_remotes		.= "<td>{$mount['name']}";
 				$mount_point	= (! $mount['invalid']) ? basename($mount['mountpoint']) : "-- "._("Invalid Configuration - Remove and Re-add")." --";
 				$o_remotes		.= "<td></td>";
-				if ($mounted) {
+				if (($mounted) && ($is_alive)) {
 					$o_remotes	.= "<td><i class='fa fa-external-link mount-share'></i><a title='"._("Browse Remote SMB")."/"._("NFS Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
 				} else {
 					$o_remotes	.= "<td><i class='fa fa-pencil mount-share'></i>";
-					if ((! $is_mounting) && (! $mount['invalid'])) {
+					if ((! $is_mounting) && (! $mount['invalid']) && (! $mounted)) {
 						$o_remotes	.= "<a title='"._("Change Remote SMB")."/"._("NFS Mount Point")."' class='exec' onclick='chg_samba_mountpoint(\"{$mount['name']}\",\"{$mount_point}\");'>{$mount_point}</a>";
 					} else {
 						$o_remotes	.= $mount_point;
