@@ -684,7 +684,7 @@ switch ($_POST['action']) {
 				$is_unmounting	= $mount['is_unmounting'] ?? false;
 
 				$o_remotes		.= "<tr>";
-				$protocol		= $mount['protocol'] == "NFS" ? "nfs" : "smb";
+				$protocol		= $mount['protocol'] == "NFS" ? "NFS" : "SMB";
 				$o_remotes		.= sprintf( "<td><a class='info'><i class='fa fa-circle orb %s'></i><span>"._("Remote Server is")." %s</span></a>%s</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ), $protocol);
 				$o_remotes		.= "<td>{$mount['name']}";
 				$mount_point	= (! $mount['invalid']) ? basename($mount['mountpoint']) : "-- "._("Invalid Configuration - Remove and Re-add")." --";
@@ -717,8 +717,7 @@ switch ($_POST['action']) {
 					}
 				}
 				$compressed_name	= (new MiscUD)->compress_string($mount['name']);
-				$remove_type		= strtoupper($protocol);
-				$o_remotes .= $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec info' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount['name']}\", \"{$compressed_name}\", \"{$remove_type}\");'><i class='fa fa-remove hdd'></i><span>"._("Remove Remote SMB")."/"._("NFS Share")."</span></a></td>";
+				$o_remotes .= $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec info' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount['name']}\", \"{$compressed_name}\", \"{$protocol}\");'><i class='fa fa-remove hdd'></i><span>"._("Remove Remote SMB")."/"._("NFS Share")."</span></a></td>";
 
 				$title = _("Edit Remote SMB")."/".("NFS Settings and Script");
 				$title .= "<br />"._("Disable Mount Button").": ";
@@ -762,7 +761,7 @@ switch ($_POST['action']) {
 
 				$is_alive		= $mount['is_alive'];
 				$o_remotes		.= "<tr>";
-				$o_remotes		.= sprintf( "<td><a class='info'><i class='fa fa-circle orb %s'></i><span>"._("ISO File is")." %s</span></a>iso</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ));
+				$o_remotes		.= sprintf( "<td><a class='info'><i class='fa fa-circle orb %s'></i><span>"._("ISO File is")." %s</span></a>ISO</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ));
 				$o_remotes		.= "<td>{$mount['file']}</td><td></td>";
 				$mount_point	= basename($mount['mountpoint']);
 				if ($mounted) {
