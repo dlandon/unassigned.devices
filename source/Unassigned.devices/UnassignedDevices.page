@@ -1270,7 +1270,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 				<label class="image-radio-label image-radio-linux" for="{0}"></label>
 				<input type="radio" id="{1}" name="PROTOCOL" value="SMB" required="" <?=($var['shareSMBEnabled']=="no") ? "disabled" : "";?>>
 				<label class="image-radio-label image-radio-windows" for="{1}"></label>
-				<p><?=_('WARNING').": "._('Use caution when using a remote share local mount in a Docker Container or VM for critical data');?>.  <?=_('Media mapped to apps like Plex should not be a problem');?>.  <?=_('Remote share mounts are dependent on a solid and reliable network connection and that can difficult to achieve');?>. <?=_('If the remote share goes offline, you may have problems');?>!</p>
+				<p><?=_('WARNING').": "._('Use caution when using a remote share local mount in a Docker Container or VM for critical data');?>.  <?=_('Media mapped to apps like Plex should not be a problem');?>.  <?=_('Remote share mounts are dependent on a solid and reliable network connection and that can be difficult to achieve');?>. <?=_('If the remote share goes offline, you may have problems');?>!</p>
 				<?if ($var['shareNFSEnabled']=="no"):?><p><?=_('Note').": "._('You must enable NFS in Settings->NFS to mount NFS shares').".";?></p><?endif;?>
 				<?if ($var['shareSMBEnabled']=="no"):?><p><?=_('Note').": "._('You must enable SMB in Settings->SMB to mount SMB shares').".";?></p><?endif;?>
 			</div>
