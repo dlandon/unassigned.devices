@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.08.16">
+<!ENTITY version	"2023.08.17">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"0e4870179db45651ff65d99e98c5963b">
+<!ENTITY MD5		"f1dd78eec8d81dd6330db594df99032d">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Capitalize SMB, NFS, and ISO share types.
+- Fix: Deal with dollar sign in Windows shares when doing configuration check.
+- Fix: Change safe_name function to respect chinese characters in remote shares and iso mounts.
+
+###2023.08.16
 - Fix: Don't time out sync when unmounting and Unraid is not shutting down.
 - Fix: Adjust unmount options.
 - Fix: Situation where some NFS shares were not managed properly in the exports file.
