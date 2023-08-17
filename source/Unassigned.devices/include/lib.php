@@ -409,13 +409,10 @@ function listDir($root) {
 /* Remove characters that will cause issues with php in names. */
 function safe_name($string, $convert_spaces = true, $share_name = false) {
 
-	$string = stripcslashes($string);
+	/* Printable characters only and not escaped. */
+	$string		= preg_replace('/[\p{C}]+/u', '', stripcslashes($string));
 
 	if ($share_name) {
-		/* ISO file names can have a lot of strange characters and the name in this case has to be cleaned up. */
-		/* Printable characters only. */
-		$string		= preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $string);
-
 		/* Remove special characters from iso or remote share name. */
 		$string		= str_replace("@", "_", $string);
 	}
@@ -2391,8 +2388,10 @@ function get_samba_mounts() {
 				$mount['mounted']	= is_mounted($mount['mountpoint']) && ($mount['fstype'] != "root" ? is_mounted($device) : true);
 
 				/* Check that the device built from the ip and path is consistent. */
-				$dev				= ($mount['fstype'] == "nfs") ? $mount['ip'].":".$mount['path'] : "//".$mount['ip'].($mount['fstype'] == "cifs" ? "/" : "").$mount['path'];
-				$check_device		= safe_name($dev, false, true);
+				$check_device			= ($mount['fstype'] == "nfs") ? $mount['ip'].":".safe_name($mount['path'], false, true) : "//".$mount['ip'].($mount['fstype'] == "cifs" ? "/" : "").safe_name($mount['path'], false, true);
+
+				/* Remove dollar signs in device. */
+				$check_device			= str_replace("$", "", $check_device);
 
 				/* If this is a legacy samba mount or is misconfigured.  Indicate that it should be removed and added back. */
 				$mount['invalid']		= (($safe_device != $device) || ($safe_device != $check_device)) ? true : false;
@@ -2779,7 +2778,7 @@ function get_iso_mounts() {
 	if (is_array($iso_mounts)) {
 		foreach ($iso_mounts as $device => $mount) {
 			/* Convert the device to a safe name iso device. */
-			$safe_device		= safe_name($device, true, true);
+			$safe_device		= safe_name($device, false, true);
 
 			$mount['device']			= $safe_device;
 			if ($mount['device']) {
