@@ -1110,6 +1110,7 @@ switch ($_POST['action']) {
 		/* Create the state file. */
 		@touch(sprintf($paths['formatting'], basename($device)));
 
+		/* Format the disk. */
 		$result		= format_disk($device, $fs, $pass, $pool_name);
 		echo json_encode(array( 'status' => $result ));
 
@@ -1242,8 +1243,14 @@ switch ($_POST['action']) {
 		if ($rc) {
 			/* Don't save any information if the share is blank. */
 			if (! empty($share)) {
-				$device	= ($protocol == "NFS") ? $ip.":".safe_name($path, false, true) : "//".strtoupper($ip)."/".safe_name($path, false, true);
+				/* Clean up the device name so it is safe for php. */
+				$safe_path		= safe_name($path, false, true);
+				$device	= ($protocol == "NFS") ? $ip.":".$safe_path : "//".strtoupper($ip)."/".$safe_path;
+
+				/* Remove dollar signs in device. */
 				$device	= str_replace("$", "", $device);
+
+				/* Set this configuration. */
 				set_samba_config($device, "protocol", $protocol);
 				set_samba_config($device, "ip", ((new MiscUD)->is_ip($ip) ? $ip : strtoupper($ip)));
 				set_samba_config($device, "path", $path);
