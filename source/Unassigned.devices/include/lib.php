@@ -1441,7 +1441,7 @@ function is_mounted($dev) {
 		$mount		= timed_exec(2, "/usr/bin/cat /proc/mounts | awk '{print $1 \",\" $2}'");
 		$mount		= str_replace("\\040", " ", $mount);
 		$mount		= str_replace("\n", ",", $mount);
-		$rc			= (strpos($mount, $dev) !== false) ? true : false;
+		$rc			= (strpos($mount, $dev.",") !== false) ? true : false;
 	}
 
 	return $rc;
@@ -3198,12 +3198,12 @@ function get_partition_info($dev) {
 		/* Is the disk mount point mounted? */
 		$disk['mounted']		= ((! $disk['pass_through']) && ($disk['fstype'])) ? is_mounted($disk['mountpoint']) : false;
 
-		/* The device is /dev/mapper/... for all luks devices, but base of device is zfs zpool on luks. */
+		/* The device is /dev/mapper/... for all luks devices, but base name of device is zfs zpool on luks. */
 		$dev_mounted		= is_mounted($disk['device'] || is_mounted(basename($disk['device'])));
 
 		/* Not unmounted is a check that the disk is mounted by mount point but not by device.
 		   The idea is to catch the situation where a disk is removed before being unmounted. */
-		$disk['not_unmounted']	= (($disk['mounted']) && (! $dev_mounted)) ? true : false;
+		$disk['not_unmounted']	= (($disk['mounted']) && (! $dev_mounted));
 
 		if ($disk['mounted'] && $disk['fstype'] == "btrfs") {
 			/* Get the members of a pool if this is a pooled disk. */
