@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.08.17a">
+<!ENTITY version	"2023.08.18">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"2522e55869fc5ff092805f0d540140ea">
+<!ENTITY MD5		"7bf85389030aa2cda5f56cbe0d4e7eb0">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Mount detection not finding unique devices.
+- Fix: All mount/unmount errors were not being detected for failure dialog.
+
+###2023.08.17a
 - Fix: Capitalize SMB, NFS, and ISO share types.
 - Fix: Deal with dollar sign in Windows shares when doing configuration check.
 - Fix: Change safe_name function to respect chinese characters in remote shares and iso mounts.
