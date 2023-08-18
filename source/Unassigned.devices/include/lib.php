@@ -2385,7 +2385,8 @@ function get_samba_mounts() {
 				$mount['is_unmounting']	= (new MiscUD)->get_unmounting_status($mount_device);
 
 				/* Is remote share mounted? */
-				$mount['mounted']	= is_mounted($mount['mountpoint']) && ($mount['fstype'] != "root" ? is_mounted($device) : true);
+				$dev				= ($mount['fstype'] == "cifs") ? "//".$mount['ip']."/".$mount['path'] : $mount['ip'].":".$mount['path'];
+				$mount['mounted']	= is_mounted($mount['mountpoint']) && ($mount['fstype'] != "root" ? is_mounted($dev) : true);
 
 				/* Check that the device built from the ip and path is consistent. */
 				$check_device			= ($mount['fstype'] == "nfs") ? $mount['ip'].":".safe_name($mount['path'], false, true) : "//".$mount['ip'].($mount['fstype'] == "cifs" ? "/" : "").safe_name($mount['path'], false, true);
