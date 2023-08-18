@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.08.18">
+<!ENTITY version	"2023.08.18a">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"7bf85389030aa2cda5f56cbe0d4e7eb0">
+<!ENTITY MD5		"e396393a78afcc59e83a02d4a3421aa5">
 ]>
 
 <PLUGIN name="&name;"
@@ -24,6 +24,7 @@
 ###&version;
 - Fix: Mount detection not finding unique devices.
 - Fix: All mount/unmount errors were not being detected for failure dialog.
+- Fix: Check for mounted status is using the wrong device for samba mounts.
 
 ###2023.08.17a
 - Fix: Capitalize SMB, NFS, and ISO share types.
