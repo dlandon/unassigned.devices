@@ -43,7 +43,7 @@ class MiscUD
 
 	/* Check for text in a file. */
 	public function exist_in_file($file, $text) {
-		return (preg_grep("%{$text}%", @file($file))) ? true : false;
+		return (preg_grep("%{$text}%", @file($file)));
 	}
 
 }
@@ -120,15 +120,15 @@ function is_server_online($server, $log = false) {
 
 		/* Check the last ping status. */
 		$ping_status	= (new MiscUD)->get_json($tc);
-		$was_alive		= (isset($ping_status[$server]['online']) && ($ping_status[$server]['online'] == 'yes')) ? true : false;
-		$is_alive		= (trim(shell_exec("/bin/ping -c 1 -W 1 ".escapeshellarg($server)." >/dev/null 2>&1; echo $?")) == 0 ) ? true : false;
+		$was_alive		= (isset($ping_status[$server]['online']) && ($ping_status[$server]['online'] == 'yes'));
+		$is_alive		= (trim(shell_exec("/bin/ping -c 1 -W 1 ".escapeshellarg($server)." >/dev/null 2>&1; echo $?")) == 0 );
 		$no_pings		= isset($ping_status[$server]['no_pings']) ? $ping_status[$server]['no_pings'] : 0;
 		if (! $is_alive && ! (new MiscUD)->is_ip($server))
 		{
 			$ip			= trim(timed_exec(5, "/usr/bin/nmblookup ".escapeshellarg($server)." | /bin/head -n1 | /bin/awk '{print $1}' 2>/dev/null"));
 			if ((new MiscUD)->is_ip($ip))
 			{
-				$is_alive = (trim(shell_exec("/bin/ping -c 1 -W 1 ".escapeshellarg($ip)." >/dev/null 2>&1; echo $?")) == 0 ) ? true : false;
+				$is_alive = (trim(shell_exec("/bin/ping -c 1 -W 1 ".escapeshellarg($ip)." >/dev/null 2>&1; echo $?")) == 0 );
 			}
 		}
 

@@ -940,7 +940,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	<div data-survey-done>
 		$.post(UDURL, {'action' : 'add_root_share', share:surveyData['SHARE'], path:surveyData['PATH']}).done(function(data)
 		{
-			swalShowResult((data == "true") ? true : false);
+			swalShowResult(data == "true");
 		},'json').fail(function(){swalShowResult(false);});
 	</div>
 
@@ -971,7 +971,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		if (opts.ISO_FILE) {
 			$.post(UDURL, opts).done(function(data)
 			{
-				swalShowResult((data == "true") ? true : false);
+				swalShowResult(data == "true");
 			},'json').fail(function(){swalShowResult(false);});
 		}
 	</div>
@@ -1115,7 +1115,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		$("span[device='"+surveyOption.device+surveyOption.partition+"']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Removing');?>");
 		$.post(UDURL, {'action' : 'rm_partition', serial:surveyOption.serial, device:surveyOption.device, partition:surveyOption.partition}).done(function(data)
 		{
-			swalShowResult((data == "true") ? true : false);
+			swalShowResult(data == "true");
 		},'json').fail(function(){swalShowResult(false);});
 	</div>
 	<div>
@@ -1151,7 +1151,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		$("span[device='"+surveyOption.device+surveyOption.partition+"']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Removing');?>");
 		$.post(UDURL, {'action' : 'clr_disk', serial:surveyOption.serial, device:surveyOption.device}).done(function(data)
 		{
-			swalShowResult((data == "true") ? true : false);
+			swalShowResult(data == "true");
 		},'json').fail(function(){swalShowResult(false);});
 	</div>
 	<div>
@@ -1183,7 +1183,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	<div data-survey-done>
 		$.post(UDURL, {'action' : 'remove_iso_config', device:surveyOption.device}).done(function(data)
 		{
-			swalShowResult((data == "true") ? true : false);
+			swalShowResult(data == "true");
 		},'json').fail(function(){swalShowResult(false);});
 	</div>
 	<div>
@@ -1215,7 +1215,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	<div data-survey-done>
 		$.post(UDURL, {'action' : 'remove_config', serial:surveyOption.serial}).done(function(data)
 		{
-			swalShowResult((data == "true") ? true : false);
+			swalShowResult(data == "true");
 		},'json').fail(function(){swalShowResult(false);});
 	</div>
 	<div>
@@ -1247,7 +1247,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	<div data-survey-done>
 		$.post(UDURL, {'action' : 'remove_samba_config', device:surveyOption.device}).done(function(data)
 		{
-			swalShowResult((data == "true") ? true : false);
+			swalShowResult(data == "true");
 		},'json').fail(function(){swalShowResult(false);});
 	</div>
 	<div>
@@ -1346,7 +1346,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		if (opts.SHARE && opts.IP) {
 			$.post(UDURL, opts).done(function(data)
 			{
-				swalShowResult((data == "true") ? true : false);
+				swalShowResult(data == "true");
 			},'json').fail(function(){swalShowResult(false);});
 		}
 	</div>
@@ -1374,7 +1374,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	<div data-survey-done data-survey-done-wait="true">
 		$.post(UDURL, {'action' : 'chg_mountpoint', serial:surveyOption.serial, partition:surveyOption.partition, device:surveyOption.device, fstype:surveyOption.fstype, mountpoint:surveyData['MOUNTPOINT']}).done(function(data)
 		{
-			swalShowResult((data == "true") ? true : false);
+			swalShowResult(data == "true");
 		},'json').fail(function(){swalShowResult(false);});
 	</div>
 	<div>
@@ -1402,7 +1402,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	<div data-survey-done data-survey-done-wait="true">
 		$.post(UDURL, {'action' : 'chg_samba_mountpoint', device:surveyOption.device,mountpoint:surveyData['MOUNTPOINT']}).done(function(data)
 		{
-			swalShowResult((data == "true") ? true : false);
+			swalShowResult(data == "true");
 		},'json').fail(function(){swalShowResult(false);});
 	</div>
 	<div>
@@ -1430,7 +1430,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	<div data-survey-done data-survey-done-wait="true">
 		$.post(UDURL, {'action' : 'chg_iso_mountpoint', device:surveyOption.device,mountpoint:surveyData['MOUNTPOINT']}).done(function(data)
 		{
-			swalShowResult((data == "true") ? true : false);
+			swalShowResult(data == "true");
 		},'json').fail(function(){swalShowResult(false);});
 	</div>
 	<div>

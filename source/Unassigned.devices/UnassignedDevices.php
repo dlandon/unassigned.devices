@@ -147,7 +147,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 
 		/* Add remove partition icon if destructive mode is enabled. */
 		$preclearing	= $Preclear ? $Preclear->isRunning(basename((new MiscUD)->base_device($partition['device']))) : false;
-		$is_preclearing = shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg((new MiscUD)->base_device($partition['device']))." | /bin/grep -v 'grep'") != "" ? true : false;
+		$is_preclearing = shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg((new MiscUD)->base_device($partition['device']))." | /bin/grep -v 'grep'") != "";
 		$preclearing	= $preclearing || $is_preclearing;
 		$parted			= file_exists("/usr/sbin/parted");
 		$rm_partition	= ((get_config("Config", "destructive_mode") == "enabled") && ($parted) && (! $is_mounting) && (! $is_formatting) && (! $disk['pass_through']) && (! $disk['partitions'][0]['disable_mount']) && (! $disk['array_disk']) && (! $preclearing) && ($fstype) && ($fstype != "zfs")) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$partition['serial']}\",\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i><span>"._("Remove Partition")."</span></a>" : "";
@@ -331,12 +331,12 @@ function make_mount_button($device) {
 		} else {
 			$pass_through	= is_pass_through($device['serial']);
 		}
-		$format			= ((! count($device['partitions'])) && (! $pass_through)) ? true : false;
+		$format			= ((! count($device['partitions'])) && (! $pass_through));
 		$disable		= count(array_filter($device['partitions'], function($p){ if (! empty($p['fstype'])) return true;})) ? "" : "disabled";
 		$context		= "disk";
 
 		/* A pool disk can be part of a disk pool or a disk with a file system and no partition. */
-		$pool_disk		= isset($device['partitions'][0]['pool']) ? $device['partitions'][0]['pool'] : ($device['fstype'] ? true : false);
+		$pool_disk		= isset($device['partitions'][0]['pool']) ? $device['partitions'][0]['pool'] : ($device['fstype']);
 
 		/* Find conditions to disable the 'Mount' button. */
 		$disable_mount	= isset($device['partitions'][0]['disable_mount']) ? $device['partitions'][0]['disable_mount'] : false;
@@ -354,7 +354,7 @@ function make_mount_button($device) {
 		$disable		= (! empty($device['fstype']) && $device['fstype'] != "crypto_LUKS") ? "" : "disabled";
 		$pass_through	= $device['pass_through'];
 		$disable_mount	= $device['disable_mount'];
-		$format			= ((empty($device['fstype'])) && (! $pass_through)) ? true : false;
+		$format			= ((empty($device['fstype'])) && (! $pass_through));
 		$context		= "partition";
 		$pool_disk		= false;
 		$not_unmounted	= false;
@@ -364,11 +364,11 @@ function make_mount_button($device) {
 		$is_mounting	= $device['is_mounting'] ?? false;
 		$is_unmounting	= $device['is_unmounting'] ?? false;
 		$is_formatting	= $device['is_formatting'] ?? false;
-		$zvol_device	= (isset($device['file_system']) && $device['file_system']) ? true : false;
+		$zvol_device	= (isset($device['file_system']) && $device['file_system']);
 	}
 
 	$preclearing	= $Preclear ? $Preclear->isRunning(basename($device['device'])) : false;
-	$is_preclearing = shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg($device['device'])." | /bin/grep -v 'grep'") != "" ? true : false;
+	$is_preclearing = shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg($device['device'])." | /bin/grep -v 'grep'") != "";
 	$preclearing	= $preclearing || $is_preclearing;
 
 	$disable		= ( ($pass_through) || ($disable_mount) || ($preclearing) || ($not_unmounted) ) ? "disabled" : $disable;
@@ -1012,7 +1012,7 @@ switch ($_POST['action']) {
 		$status	= urldecode($_POST['status']);
 		$result	= toggle_share($info['serial'], $info['part'], $status);
 		if (($result) && ($info['target'])) {
-			$fat_fruit	= (($info['fstype'] == "vfat") || ($info['fstype'] == "exfat")) ? true : false;
+			$fat_fruit	= (($info['fstype'] == "vfat") || ($info['fstype'] == "exfat"));
 			add_smb_share($info['mountpoint'], true, $fat_fruit);
 			add_nfs_share($info['mountpoint']);
 		} else if ($info['mounted']) {
@@ -1063,14 +1063,14 @@ switch ($_POST['action']) {
 		/* Mount a disk device. */
 		$device	= urldecode($_POST['device']);
 		$return = shell_exec("plugins/".$plugin."/scripts/rc.unassigned mount ".escapeshellarg($device));
-		echo json_encode($return == "true" ? true : false);
+		echo json_encode($return == "true");
 		break;
 
 	case 'umount':
 		/* Unmount a disk device. */
 		$device	= urldecode($_POST['device']);
 		$return = shell_exec("plugins/".$plugin."/scripts/rc.unassigned umount ".escapeshellarg($device));
-		echo json_encode($return == "true" ? true : false);
+		echo json_encode($return == "true");
 		break;
 
 	case 'rescan_disks':
@@ -1293,7 +1293,7 @@ switch ($_POST['action']) {
 		$status		= urldecode($_POST['status']);
 		$result		= toggle_samba_share($info['device'], $status);
 		if ($result && $info['target']) {
-			add_smb_share($info['mountpoint'], $info['fstype'] == "root" ? true : false);
+			add_smb_share($info['mountpoint'], $info['fstype'] == "root");
 			add_nfs_share($info['mountpoint']);
 		} else if ($info['mounted']) {
 			rm_smb_share($info['mountpoint']);

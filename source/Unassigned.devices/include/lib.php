@@ -96,7 +96,7 @@ if ( is_file( "plugins/preclear.disk/assets/lib.php" ) ) {
 }
 
 /* See if the UD settings are set for either SMB or NFS sharing. */
-$shares_enabled		= ((get_config("Config", "smb_security") && (get_config("Config", "smb_security") != "no")) || (get_config("Config", "nfs_export") == "yes")) ? true : false;
+$shares_enabled		= ((get_config("Config", "smb_security") && (get_config("Config", "smb_security") != "no")) || (get_config("Config", "nfs_export") == "yes"));
 
 /* Misc functions. */
 class MiscUD
@@ -138,7 +138,7 @@ class MiscUD
 
 	/* Is the device an nvme disk? */
 	public function is_device_nvme($dev) {
-		return (strpos($dev, "nvme") !== false) ? true : false;
+		return (strpos($dev, "nvme") !== false);
 	}
 
 	/* Remove the partition number from $dev and return the base device. */
@@ -263,7 +263,7 @@ class MiscUD
 		global $paths;
 
 		$mounting		= array_values(preg_grep("@/mounting_".safe_name($device)."@i", listDir(dirname($paths['mounting']))))[0] ?? '';
-		$is_mounting	= (isset($mounting) && (time() - @filemtime($mounting) < 300)) ? true : false;
+		$is_mounting	= (isset($mounting) && (time() - @filemtime($mounting) < 300));
 		return $is_mounting;
 	}
 
@@ -272,7 +272,7 @@ class MiscUD
 		global $paths;
 
 		$unmounting		= array_values(preg_grep("@/unmounting_".safe_name($device)."@i", listDir(dirname($paths['unmounting']))))[0] ?? '';
-		$is_unmounting	= (isset($unmounting) && (time() - @filemtime($unmounting)) < 300) ? true : false;
+		$is_unmounting	= (isset($unmounting) && (time() - @filemtime($unmounting)) < 300);
 		return $is_unmounting;
 	}
 
@@ -281,7 +281,7 @@ class MiscUD
 		global $paths;
 
 		$formatting		= array_values(preg_grep("@/formatting_".(new MiscUD)->base_device($device)."@i", listDir(dirname($paths['formatting']))))[0] ?? '';
-		$is_formatting	= (isset($formatting) && (time() - @filemtime($formatting) < 300)) ? true : false;
+		$is_formatting	= (isset($formatting) && (time() - @filemtime($formatting) < 300));
 		return $is_formatting;
 	}
 
@@ -554,7 +554,7 @@ function is_disk_running($ud_dev, $dev) {
 	if (is_file($sf)) {
 		$devs	= @parse_ini_file($sf, true);
 		if (isset($devs[$ud_dev])) {
-			$rc			= ($devs[$ud_dev]['spundown'] == "0") ? true : false;
+			$rc			= ($devs[$ud_dev]['spundown'] == "0");
 			$device		= $ud_dev;
 			$timestamp	= time();
 		}
@@ -624,7 +624,7 @@ function is_samba_server_online($ip) {
 	/* Get the updated ping status. */
 	$ping_status	= (new MiscUD)->get_json($tc);
 	if (isset($ping_status[$server])) {
-		$is_alive = ($ping_status[$server]['online'] == "yes") ? true : false;
+		$is_alive = ($ping_status[$server]['online'] == "yes");
 	}
 
 	return $is_alive;
@@ -648,7 +648,7 @@ function is_script_running($cmd, $user = false) {
 		}
 
 		/* Check if the script is currently running. */
-		$is_running = shell_exec("/usr/bin/ps -ef | /bin/grep ".escapeshellarg(basename($cmd))." | /bin/grep -v 'grep' | /bin/grep ".escapeshellarg($source)) != "" ? true : false;
+		$is_running = shell_exec("/usr/bin/ps -ef | /bin/grep ".escapeshellarg(basename($cmd))." | /bin/grep -v 'grep' | /bin/grep ".escapeshellarg($source)) != "";
 	}
 
 	return $is_running;
@@ -1162,7 +1162,7 @@ function is_automount($serial, $usb = false) {
 	$auto			= get_config($serial, "automount");
 	$auto_usb		= get_config("Config", "automount_usb");
 	$pass_through	= get_config($serial, "pass_through");
-	return ( (($pass_through != "yes") && (($auto == "yes") || ($usb && $auto_usb == "yes"))) ) ? true : false;
+	return ( (($pass_through != "yes") && (($auto == "yes") || ($usb && $auto_usb == "yes"))) );
 }
 
 /* Is device set to mount read only? */
@@ -1186,7 +1186,7 @@ function is_pass_through($serial, $part = "") {
 function is_disable_mount($serial, $part = "") {
 	$disable_mount	= "disable_mount";
 	$disable_mount	= ($part) ? $disable_mount.".".$part : $disable_mount;
-	return (get_config($serial, $disable_mount) == "yes") ? true : false;
+	return (get_config($serial, $disable_mount) == "yes");
 }
 
 /* Toggle auto mount on/off. */
@@ -1408,7 +1408,7 @@ function remove_config_disk($serial) {
 	/* Release the file lock. */
 	release_file_lock($lock_file);
 
-	return (! isset($config[$serial])) ? true : false;
+	return (! isset($config[$serial]));
 }
 
 /* Is disk device an SSD? */
@@ -1420,7 +1420,7 @@ function is_disk_ssd($dev) {
 	$device	= (new MiscUD)->base_device(basename($dev));
 	if (! (new MiscUD)->is_device_nvme($device)) {
 		$file = "/sys/block/".basename($device)."/queue/rotational";
-		$rc = (exec("/bin/cat ".escapeshellarg($file)." 2>/dev/null") == 0) ? true : false;
+		$rc = (exec("/bin/cat ".escapeshellarg($file)." 2>/dev/null") == 0);
 	} else {
 		$rc = true;
 	}
@@ -1441,7 +1441,7 @@ function is_mounted($dev) {
 		$mount		= timed_exec(2, "/usr/bin/cat /proc/mounts | awk '{print $1 \",\" $2}'");
 		$mount		= str_replace("\\040", " ", $mount);
 		$mount		= str_replace("\n", ",", $mount);
-		$rc			= (strpos($mount, $dev.",") !== false) ? true : false;
+		$rc			= (strpos($mount, $dev.",") !== false);
 	}
 
 	return $rc;
@@ -1455,7 +1455,7 @@ function is_mounted_read_only($dev) {
 		$dev_lookup	= (strpos($dev, "/dev/mapper") !== false) ? basename($dev) : $dev;
 		$mount		= timed_exec(1, "/usr/bin/cat /proc/mounts | awk '{print $2 \",\" toupper(substr($4,0,2))}'");
 		$mount		= str_replace("\\040", " ", $mount);
-		$rc			= (strpos($mount, $dev_lookup.",RO") !== false) ? true : false;
+		$rc			= (strpos($mount, $dev_lookup.",RO") !== false);
 	}
 
 	return $rc;
@@ -1768,7 +1768,7 @@ function do_mount_root($info) {
 		if ($is_alive) {
 			$dir		= $info['mountpoint'];
 			$fs			= $info['fstype'];
-			$ro			= $info['read_only'] ? true : false;
+			$ro			= $info['read_only'];
 			$dev		= str_replace("//".$info['ip'], "", $info['path']);
 			if (! is_mounted($dir)) {
 				/* Create the mount point and set permissions. */
@@ -1898,7 +1898,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 function config_shared($serial, $part, $usb = false) {
 	$share		= get_config($serial, "share.{$part}");
 	$auto_usb	= get_config("Config", "automount_usb");
-	return (($share == "yes") || ($usb && $auto_usb == "yes")) ? true : false; 
+	return (($share == "yes") || ($usb && $auto_usb == "yes")); 
 }
 
 /* Toggle samba share on/off. */
@@ -1906,7 +1906,7 @@ function toggle_share($serial, $part, $status) {
 
 	$new 	= ($status == "true") ? "yes" : "no";
 	set_config($serial, "share.{$part}", $new);
-	return ($new == "yes") ? true : false;
+	return ($new == "yes");
 }
 
 /* Add mountpoint to samba shares. */
@@ -2196,7 +2196,7 @@ function reload_shares() {
 		foreach ($disk['partitions'] as $p) {
 			$info = get_partition_info($p);
 			if ( $info['mounted'] && $info['shared'] ) {
-				$fat_fruit = (($info['fstype'] == "vfat") || ($info['fstype'] == "exfat")) ? true : false;
+				$fat_fruit = (($info['fstype'] == "vfat") || ($info['fstype'] == "exfat"));
 				add_smb_share($info['mountpoint'], true, $fat_fruit);
 				add_nfs_share($info['mountpoint']);
 			}
@@ -2206,7 +2206,7 @@ function reload_shares() {
 	/* SMB Mounts */
 	foreach (get_samba_mounts() as $name => $info) {
 		if ( ($info['mounted']) && ($info['smb_share']) ) {
-			add_smb_share($info['mountpoint'], $info['fstype'] == "root" ? true : false);
+			add_smb_share($info['mountpoint'], $info['fstype'] == "root");
 			add_nfs_share($info['mountpoint']);
 		}
 	}
@@ -2248,7 +2248,7 @@ function set_samba_config($source, $variable, $value) {
 		/* Release the file lock. */
 		release_file_lock($lock_file);
 
-		$rc	= (isset($config[$source][$variable])) ? true : false;
+		$rc	= (isset($config[$source][$variable]));
 	} else {
 		$rc	= false;
 	}
@@ -2294,25 +2294,25 @@ function decrypt_data($data) {
 /* Is the samba mount set for auto mount? */
 function is_samba_automount($serial) {
 	$auto	= get_samba_config($serial, "automount");
-	return ( ($auto == "yes") ? true : false );
+	return ($auto == "yes");
 }
 
 /* Is the samba mount set to share? */
 function is_samba_share($serial) {
 	$smb_share	= get_samba_config($serial, "smb_share");
-	return ( ($smb_share == "yes") ? true : false );
+	return ($smb_share == "yes");
 }
 
 /* Is disable mount enabled. */
 function is_samba_disable_mount($serial) {
 	$disable_mount	= get_samba_config($serial, "disable_mount");
-	return ($disable_mount == "yes") ? true : false;
+	return ($disable_mount == "yes");
 }
 
 /* Is the samba mount set to read only? */
 function is_samba_read_only($serial) {
 	$smb_readonly	= get_samba_config($serial, "read_only");
-	return ( ($smb_readonly == "yes") ? true : false );
+	return ($smb_readonly == "yes");
 }
 
 /* Get all defined samba and NFS remote shares. */
@@ -2351,10 +2351,22 @@ function get_samba_mounts() {
 					$path = (isset($mount['share'])) ? $mount['share'] : "";
 				}
 
+				/* This is the device that is actually mounted based on the protocol and is used to check mounted status. */
+				$mount['mount_dev']		= ($mount['fstype'] == "cifs") ? "//".$mount['ip']."/".$mount['path'] : $mount['ip'].":".$mount['path'];
+
+				/* Is the remote server on line? */
 				$mount['is_alive']		= is_samba_server_online($mount['ip']);
+
+				/* Is read only enabled? */
 				$mount['read_only']		= is_samba_read_only($mount['name']);
+
+				/* Is auto mount enabled? */
 				$mount['automount']		= is_samba_automount($mount['name']);
+
+				/* Is smb and nfs sharing enabled? */
 				$mount['smb_share']		= is_samba_share($mount['name']);
+
+				/* Is the mount button set disabled? */
 				$mount['disable_mount']	= is_samba_disable_mount($mount['name']);
 
 				/* Determine the mountpoint for this remote share. */
@@ -2385,8 +2397,7 @@ function get_samba_mounts() {
 				$mount['is_unmounting']	= (new MiscUD)->get_unmounting_status($mount_device);
 
 				/* Is remote share mounted? */
-				$dev				= ($mount['fstype'] == "cifs") ? "//".$mount['ip']."/".$mount['path'] : $mount['ip'].":".$mount['path'];
-				$mount['mounted']	= is_mounted($mount['mountpoint']) && ($mount['fstype'] != "root" ? is_mounted($dev) : true);
+				$mount['mounted']	= is_mounted($mount['mountpoint']) && ($mount['fstype'] != "root" ? is_mounted($mount['mount_dev']) : true);
 
 				/* Check that the device built from the ip and path is consistent. */
 				$check_device			= ($mount['fstype'] == "nfs") ? $mount['ip'].":".safe_name($mount['path'], false, true) : "//".$mount['ip'].($mount['fstype'] == "cifs" ? "/" : "").safe_name($mount['path'], false, true);
@@ -2395,7 +2406,7 @@ function get_samba_mounts() {
 				$check_device			= str_replace("$", "", $check_device);
 
 				/* If this is a legacy samba mount or is misconfigured.  Indicate that it should be removed and added back. */
-				$mount['invalid']		= (($safe_device != $device) || ($safe_device != $check_device)) ? true : false;
+				$mount['invalid']		= (($safe_device != $device) || ($safe_device != $check_device));
 
 				/* Get the disk size, used, and free stats. */
 				$stats					= get_device_stats($mount['mountpoint'], $mount['mounted'], $mount['is_alive']);
@@ -2445,8 +2456,8 @@ function do_mount_samba($info) {
 	if ($is_alive) {
 		$dir		= $info['mountpoint'];
 		$fs			= $info['fstype'];
-		$ro			= $info['read_only'] ? true : false;
-		$dev		= ($fs == "cifs") ? "//".$info['ip']."/".$info['path'] : $info['ip'].":".$info['path'];
+		$ro			= $info['read_only'];
+		$dev		= $info['mount_dev'];
 		if ((! is_mounted($dev)) && (! is_mounted($dir))) {
 			/* Create the mount point and set permissions. */
 			if (! is_dir($dir)) {
@@ -2481,7 +2492,7 @@ function do_mount_samba($info) {
 				@file_put_contents("$credentials_file", "domain=".$info['domain']."\n", FILE_APPEND);
 
 				/* If the smb version is not required, just mount the remote share with no version. */
-				$smb_version = (get_config("Config", "smb_version") == "yes") ? true : false;
+				$smb_version = (get_config("Config", "smb_version") == "yes");
 				if (! $smb_version) {
 					$ver	= "";
 					$params	= sprintf(get_mount_params($fs, $dev, $ro), $ver);
@@ -2610,7 +2621,7 @@ function toggle_samba_automount($source, $status) {
 		/* Release the file lock. */
 		release_file_lock($lock_file);
 
-		$rc	= ($config[$source]["automount"] == "yes") ? true : false;
+		$rc	= ($config[$source]["automount"] == "yes");
 	} else {
 		$rc	= false;
 	}
@@ -2635,7 +2646,7 @@ function toggle_samba_share($source, $status) {
 		/* Release the file lock. */
 		release_file_lock($lock_file);
 
-		$rc	= ($config[$source]["smb_share"] == "yes") ? true : false;
+		$rc	= ($config[$source]["smb_share"] == "yes");
 	} else {
 		$rc	= false;
 	}
@@ -2685,7 +2696,7 @@ function toggle_samba_readonly($source, $status) {
 		/* Release the file lock. */
 		release_file_lock($lock_file);
 
-		$rc	= ($config[$source]["read_only"] == "yes") ? true : false;
+		$rc	= ($config[$source]["read_only"] == "yes");
 	} else {
 		$rc	= false;
 	}
@@ -2719,7 +2730,7 @@ function remove_config_samba($source) {
 	/* Release the file lock. */
 	release_file_lock($lock_file);
 
-	return (! isset($config[$source])) ? true : false;
+	return (! isset($config[$source]));
 }
 
 #########################################################
@@ -2750,7 +2761,7 @@ function set_iso_config($source, $variable, $value) {
 		/* Release the file lock. */
 		release_file_lock($lock_file);
 
-		$rc	= (isset($config[$source][$variable])) ? true : false;
+		$rc	= (isset($config[$source][$variable]));
 	} else {
 		$rc	= false;
 	}
@@ -2761,7 +2772,7 @@ function set_iso_config($source, $variable, $value) {
 /* Is the iso file set to auto mount? */
 function is_iso_automount($serial) {
 	$auto			= get_iso_config($serial, "automount");
-	return ( ($auto) ? ( ($auto == "yes") ? true : false ) : false);
+	return ( ($auto) ? ($auto == "yes") : false);
 }
 
 /* Get all ISO moints. */
@@ -2880,7 +2891,7 @@ function toggle_iso_automount($source, $status) {
 		/* Release the file lock. */
 		release_file_lock($lock_file);
 
-		$rc	= ($config[$source]["automount"] == "yes") ? true : false;
+		$rc	= ($config[$source]["automount"] == "yes");
 	} else {
 		$rc	= false;
 	}
@@ -2911,7 +2922,7 @@ function remove_config_iso($source) {
 		/* Save new iso config. */
 		save_ini_file($config_file, $config);
 
-		$rc	= (! isset($config[$source])) ? true : false;
+		$rc	= (! isset($config[$source]));
 	} else {
 		$rc	= false;
 	}
@@ -3114,7 +3125,7 @@ function get_disk_info($dev) {
 	$disk['read_rate']			= $rw[2];
 	$disk['write_rate']			= $rw[3];
 	$disk['running']			= is_disk_running($disk['ud_dev'], $disk['device']);
-	$usb						= (isset($attrs['ID_BUS']) && ($attrs['ID_BUS'] == "usb")) ? true : false;
+	$usb						= (isset($attrs['ID_BUS']) && ($attrs['ID_BUS'] == "usb"));
 	$disk['automount']			= is_automount($disk['serial'], $usb);
 	$disk['temperature']		= get_temp($disk['ud_dev'], $disk['device'], $disk['running']);
 	$disk['command']			= get_config($disk['serial'], "command.1");
@@ -3240,7 +3251,7 @@ function get_partition_info($dev) {
 		$disk['avail']			= $stats[2]*1024;
 		$disk['owner']			= (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
 		$disk['read_only']		= is_read_only($disk['serial']);
-		$usb					= (isset($attrs['ID_BUS']) && ($attrs['ID_BUS'] == "usb")) ? true : false;
+		$usb					= (isset($attrs['ID_BUS']) && ($attrs['ID_BUS'] == "usb"));
 		$disk['shared']			= config_shared($disk['serial'], $disk['part'], $usb);
 		$disk['command']		= get_config($disk['serial'], "command.{$disk['part']}");
 		$disk['user_command']	= get_config($disk['serial'], "user_command.{$disk['part']}");

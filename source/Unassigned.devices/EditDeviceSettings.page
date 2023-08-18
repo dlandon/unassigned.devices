@@ -100,7 +100,7 @@ if (isset($_GET['s'])) {
 		$zvol			= "";
 	}
 	$automount			= (is_automount($ud_device)) ? "checked" : "";
-	$usb				= ((isset($_GET['u'])) && ($_GET['u'] == "usb")) ? true : false;
+	$usb				= ((isset($_GET['u'])) && ($_GET['u'] == "usb"));
 	$share				= config_shared($ud_device, $partition, $usb) ? "checked" : "";
 	$show_partitions	= (get_config($ud_device, "show_partitions") == "no" ) ? "" : "checked";
 	$is_mounting		= (new MiscUD)->get_mounting_status(basename($device));
@@ -117,7 +117,7 @@ if (isset($_GET['s'])) {
 	}
 	$width				= ($fstype == "zvol") ? ($mounted ? "27%" : "40%") : ($mounted ? "57%" : "70%");
 	$volume				= ($fstype == "apfs") ? get_config($ud_device, "volume.{$partition}") : "0";
-	$is_preclearing		= shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg((new MiscUD)->base_device($device))." | /bin/grep -v 'grep'") != "" ? true : false;
+	$is_preclearing		= shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg((new MiscUD)->base_device($device))." | /bin/grep -v 'grep'") != "";
 	$host				= (new MiscUD)->get_device_host($_GET['s']);
 	if ($host) {
 		$connected		= (! empty(glob("/dev/disk/by-id/*-".$_GET['s']."*")));

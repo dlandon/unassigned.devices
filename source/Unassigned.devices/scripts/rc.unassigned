@@ -145,7 +145,7 @@ function unassigned_mount() {
 						{
 							/* Add smb and nfs shares for this device. */
 							if ($info['shared']) {
-								$fat_fruit	= (($info['fstype'] == "vfat") || ($info['fstype'] == "exfat")) ? true : false;
+								$fat_fruit	= (($info['fstype'] == "vfat") || ($info['fstype'] == "exfat"));
 								add_smb_share($info['mountpoint'], true, $fat_fruit);
 								add_nfs_share($info['mountpoint']);
 							} else {
@@ -250,7 +250,7 @@ function unassigned_mount() {
 				} else if (($info['is_alive']) && (do_mount($info))) {
 					if ($info['smb_share']) {
 						/* Add smb share for the remote share. */
-						add_smb_share($info['mountpoint'], $info['fstype'] == "root" ? true : false);
+						add_smb_share($info['mountpoint'], ($info['fstype'] == "root"));
 						add_nfs_share($info['mountpoint']);
 
 						/* Update the samba mount status. */
@@ -351,7 +351,7 @@ function unassigned_mount() {
 function unassigned_umount() {
 	global $DEVNAME, $paths, $result;
 
-	$force = ($DEVNAME == "all") ? true : false;
+	$force = ($DEVNAME == "all");
 
 	/* Unmount local disks. */
 	foreach(get_unassigned_disks() as $disk) {
@@ -521,11 +521,11 @@ function unassigned_umount() {
 					$force_unmount = $info['fstype'] == "root" ? false : ($info['is_alive'] && $info['is_available'] ? $force : true);
 
 					/* Determine if this is a remote mount and what kink. */
-					$smb = $info['fstype'] == "cifs" ? true : false;
-					$nfs = $info['fstype'] == "nfs" ? true : false;
+					$smb = ($info['fstype'] == "cifs");
+					$nfs = ($info['fstype'] == "nfs");
 
 					/* Unmount the remote share. */
-					if ( do_unmount(($info['fstype'] == "cifs") ? "//".$info['ip']."/".$info['path'] : $info['ip'].":".$info['path'], $info['mountpoint'], $force_unmount, $smb, $nfs) ) {
+					if ( do_unmount($info['mount_dev'], $info['mountpoint'], $force_unmount, $smb, $nfs) ) {
 						rm_smb_share($info['mountpoint']);
 						rm_nfs_share($info['mountpoint']);
 
@@ -779,7 +779,7 @@ switch ($COMMAND) {
 		break;
 
 	case 'detach':
-		$ata = (isset($argv[3])) ? ($argv[3] == "true" ? true : false) : false;
+		$ata = (isset($argv[3])) ? ($argv[3] == "true") : false;
 		unassigned_detach($DEVNAME, $ata);
 		break;
 
