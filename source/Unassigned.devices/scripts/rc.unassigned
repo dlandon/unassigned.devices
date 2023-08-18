@@ -389,6 +389,8 @@ function unassigned_umount() {
 
 					/* Execute device script with error unmount action. */
 					execute_script($info, "ERROR_UNMOUNT");
+
+					$result		= "false";
 				} else {
 					/* If the device is mounted, unmount it. */
 					$pool_name	= ($info['fstype'] == "zfs") ? (new MiscUD)->zfs_pool_name($info['mountpoint'], true) : "";
@@ -533,6 +535,8 @@ function unassigned_umount() {
 					} else {
 						/* Execute remote mount script with error unmount action. */
 						execute_script($info, "ERROR_UNMOUNT");
+
+						$result	= "false";
 					}
 				} else {
 					unassigned_log("Remote SMB/NFS share '{$info['device']}' is not mounted.");
@@ -575,6 +579,8 @@ function unassigned_umount() {
 					} else {
 						/* Execute the iso script with the error unmount action. */
 						execute_script($info, "ERROR_UNMOUNT");
+
+						$result	= "false";
 					}
 				} else {
 					unassigned_log("Remote ISO File share '{$info['device']}' is not mounted.");
