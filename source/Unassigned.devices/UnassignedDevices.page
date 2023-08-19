@@ -1233,7 +1233,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			[surveyOption.device, surveyOption.compressed, surveyOption.type]
 		</div>
 		<div data-question-content>
-			<div class="swal-title" style="font-size: 20px;"><?=_('This will remove the remote');?> <span style="font-weight: bold;">{2}</span> <?=_('share for');?>:</div>
+			<div class="swal-title" style="font-size: 20px;"><?=_('This will remove the');?> <span style="font-weight: bold;">{2}</span> <?=_('share for');?>:</div>
 			<div style="margin-bottom: 15px;margin-top: 15px;">
 				<span style="font-weight: bold;">{1}</span>
 			</div>
