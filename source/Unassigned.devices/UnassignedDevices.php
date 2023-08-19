@@ -963,7 +963,7 @@ switch ($_POST['action']) {
 		/* Set disk name configuration setting. */
 		$serial		= urldecode($_POST['serial']);
 		$dev		= urldecode($_POST['device']);
-		$name		= safe_name(urldecode($_POST['name']), true);
+		$name		= safe_name(urldecode($_POST['name']));
 		$disk_names = (new MiscUD)->get_json($paths['disk_names']);
 
 		/* Remove our disk name. */
@@ -1244,7 +1244,7 @@ switch ($_POST['action']) {
 			/* Don't save any information if the share is blank. */
 			if (! empty($share)) {
 				/* Clean up the device name so it is safe for php. */
-				$safe_path		= safe_name($path, false, true);
+				$safe_path		= safe_name($path, false);
 				$device	= ($protocol == "NFS") ? $ip.":".$safe_path : "//".strtoupper($ip)."/".$safe_path;
 
 				/* Remove dollar signs in device. */
@@ -1346,10 +1346,10 @@ switch ($_POST['action']) {
 			$info = pathinfo($file);
 
 			/* Clean up the file name for the share so php won't be upset. */
-			$share	= safe_name($info['filename'], true, true);
+			$share	= safe_name($info['filename']);
 
 			/* Clean up the file name to use as the device. */
-			$device		= safe_name($info['basename'], true, true);
+			$device		= safe_name($info['basename']);
 
 			set_iso_config("{$device}", "file", $file);
 			set_iso_config("{$device}", "share", $share);
