@@ -407,18 +407,13 @@ function listDir($root) {
 }
 
 /* Remove characters that will cause issues with php in names. */
-function safe_name($string, $convert_spaces = true, $share_name = false) {
+function safe_name($string, $convert_spaces = true) {
 
 	/* Printable characters only and not escaped. */
 	$string		= preg_replace('/[\p{C}]+/u', '', stripcslashes($string));
 
-	if ($share_name) {
-		/* Remove special characters from iso or remote share name. */
-		$string		= str_replace("@", "_", $string);
-	}
-
 	/* Convert reserved php characters and invalid file name characters to underscore. */
-	$string = str_replace( array("'", '"', "?", "#", "&", "!", "<", ">", "|"), "_", $string);
+	$string = str_replace( array("'", '"', "?", "#", "&", "!", "<", ">", "|", "+", "@"), "_", $string);
 
 	/* Convert spaces to underscore. */
 	if ($convert_spaces) {
@@ -2326,7 +2321,7 @@ function get_samba_mounts() {
 		ksort($samba_mounts, SORT_NATURAL);
 		foreach ($samba_mounts as $device => $mount) {
 			/* Convert the device to a safe name samba device. */
-			$safe_device				= safe_name($device, false, true);
+			$safe_device				= safe_name($device, false);
 
 			$mount['device']			= $safe_device;
 			if ($device) {
@@ -2336,7 +2331,7 @@ function get_samba_mounts() {
 				$mount['protocol']		= $mount['protocol'] ?? "";
 				$mount['path']			= $mount['path'] ?? "";
 				$mount['share']			= $mount['share'] ?? "";
-				$mount['share']			= safe_name($mount['share'], false, true);
+				$mount['share']			= safe_name($mount['share'], false);
 
 				/* Set the mount protocol. */
 				if ($mount['protocol'] == "NFS") {
@@ -2403,7 +2398,7 @@ function get_samba_mounts() {
 				$mount['mounted']		= (is_mounted($mount['mountpoint']) && is_mounted($mount['mount_dev']));
 
 				/* Check that the device built from the ip and path is consistent with the config file device. */
-				$check_device			= safe_name($dev_check, false, true);
+				$check_device			= safe_name($dev_check, false);
 
 				/* Remove dollar signs in device. */
 				$check_device			= str_replace("$", "", $check_device);
@@ -2787,14 +2782,14 @@ function get_iso_mounts() {
 	if (is_array($iso_mounts)) {
 		foreach ($iso_mounts as $device => $mount) {
 			/* Convert the device to a safe name iso device. */
-			$safe_device		= safe_name($device, false, true);
+			$safe_device		= safe_name($device, false);
 
 			$mount['device']			= $safe_device;
 			if ($mount['device']) {
 				$mount['fstype']		= "loop";
 				$mount['automount'] 	= is_iso_automount($mount['device']);
 				$mount['mountpoint']	= $mount['mountpoint'] ?? "";
-				$mount['share']			= safe_name($mount['share'], true, true) ?? "";
+				$mount['share']			= $mount['share'] ?? "";
 				$mount['file']			= $mount['file'] ?? "";
 
 				if (! $mount['mountpoint']) {
@@ -3040,7 +3035,11 @@ function get_udev_info($dev, $udev = null) {
 
 	/* Make file changes. */
 	$state	= is_file($paths['state']) ? @parse_ini_file($paths['state'], true, INI_SCANNER_RAW) : array();
+
+	/* Be sure the device name has safe characters. */
 	$device	= safe_name($dev);
+
+	/* If the udev is not null, save it to the unassigned.devices.ini file. */
 	if ($udev) {
 		unassigned_log("Udev: Update udev info for ".$dev.".", $GLOBALS['UDEV_DEBUG']);
 
@@ -3187,8 +3186,8 @@ function get_partition_info($dev) {
 
 		/* crypto_LUKS file system. */
 		if ($disk['fstype'] == "crypto_LUKS") {
-			$disk['luks']		= safe_name($disk['device']);
-			$disk['device']		= "/dev/mapper/".safe_name(basename($disk['mountpoint']));
+			$disk['luks']		= $disk['device'];
+			$disk['device']		= "/dev/mapper/".basename($disk['mountpoint']);
 			$dev				= $disk['luks'];
 		} else {
 			$disk['luks']		= "";
