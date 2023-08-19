@@ -2351,8 +2351,8 @@ function get_samba_mounts() {
 					$path = (isset($mount['share'])) ? $mount['share'] : "";
 				}
 
-				/* This is the device that is actually mounted based on the protocol and is used to check mounted status. */
-				$mount['mount_dev']		= ($mount['fstype'] == "cifs") ? "//".$mount['ip']."/".$mount['path'] : $mount['ip'].":".$mount['path'];
+				/* This is the mount device for checking for an invalid configuration. */
+				$dev_check				= ($mount['fstype'] == "nfs") ? $mount['ip'].":".$mount['path'] : "//".$mount['ip'].(($mount['fstype'] == "cifs") ? "/" : "") .$mount['path'];
 
 				/* Is the remote server on line? */
 				$mount['is_alive']		= is_samba_server_online($mount['ip']);
@@ -2391,21 +2391,24 @@ function get_samba_mounts() {
 					}
 				}
 
-				/* Remove special characters. */
+				/* This is the device that is actually mounted based on the protocol and is used to check mounted status. */
+				$mount['mount_dev']		= ($mount['fstype'] == "nfs") ? $mount['ip'].":".$mount['path'] : (($mount['fstype'] == "cifs") ? "//".$mount['ip']."/".$mount['path'] : $mount['mountpoint']);
+
+				/* Check for mounting/unmounting state. */
 				$mount_device			= basename($mount['ip'])."_".basename($mount['path']);
 				$mount['is_mounting']	= (new MiscUD)->get_mounting_status($mount_device);
 				$mount['is_unmounting']	= (new MiscUD)->get_unmounting_status($mount_device);
 
 				/* Is remote share mounted? */
-				$mount['mounted']	= is_mounted($mount['mountpoint']) && ($mount['fstype'] != "root" ? is_mounted($mount['mount_dev']) : true);
+				$mount['mounted']		= (is_mounted($mount['mountpoint']) && is_mounted($mount['mount_dev']));
 
-				/* Check that the device built from the ip and path is consistent. */
-				$check_device			= ($mount['fstype'] == "nfs") ? $mount['ip'].":".safe_name($mount['path'], false, true) : "//".$mount['ip'].($mount['fstype'] == "cifs" ? "/" : "").safe_name($mount['path'], false, true);
+				/* Check that the device built from the ip and path is consistent with the config file device. */
+				$check_device			= safe_name($dev_check, false, true);
 
 				/* Remove dollar signs in device. */
 				$check_device			= str_replace("$", "", $check_device);
 
-				/* If this is a legacy samba mount or is misconfigured.  Indicate that it should be removed and added back. */
+				/* If this is a legacy samba mount or is misconfigured, indicate that it should be removed and added back. */
 				$mount['invalid']		= (($safe_device != $device) || ($safe_device != $check_device));
 
 				/* Get the disk size, used, and free stats. */
@@ -3213,8 +3216,8 @@ function get_partition_info($dev) {
 		/* The device is /dev/mapper/... for all luks devices, but base name of device is zfs zpool on luks. */
 		$dev_mounted		= is_mounted($disk['device'] || is_mounted(basename($disk['device'])));
 
-		/* Not unmounted is a check that the disk is mounted by mount point but not by device.
-		   The idea is to catch the situation where a disk is removed before being unmounted. */
+		/* Not unmounted is a check that the disk is mounted by mount point but not by device. */
+		/* The idea is to catch the situation where a disk is removed before being unmounted. */
 		$disk['not_unmounted']	= (($disk['mounted']) && (! $dev_mounted));
 
 		if ($disk['mounted'] && $disk['fstype'] == "btrfs") {

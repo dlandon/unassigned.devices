@@ -312,7 +312,7 @@ function unassigned_mount() {
 				unassigned_log("Mounting ISO File '{$info['device']}'...");
 
 				/* Mount the iso file. */
-				if (do_mount( $info )) {
+				if (do_mount($info)) {
 					/* Add smb and nfs shares for the iso file. */
 					add_smb_share($info['mountpoint']);
 					add_nfs_share($info['mountpoint']);
