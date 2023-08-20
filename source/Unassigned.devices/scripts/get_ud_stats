@@ -79,9 +79,19 @@ function timed_exec($timeout, $cmd) {
 function is_server_online($server, $log = false) {
 	global $tc, $var;
 
-	/* See if we need to add this server to the hosts file. This seems to be an issue mostly with Windows computers. */
+	/* The scheme here is to do name lookup using 'arp -a server'.  The problem is that the server name might not
+	   be available using 'arp -a server'.  Local servers will need to be looked up using 'server.local TLD'.  If
+	   the 'server.local TLD' name resolves, we create or update the '/etc/hosts' file entry for this server so
+	   the 'arp -a server' will be able to resolve the name.  There are several advantages to this.
+	   For example:
+	   	- UD mount commnds can use 'server' and not have to use 'server.local TLD' to use name resolution.
+		- Ping commands will use 'server' and not 'server.local TLD' and the 'server' name will resolve.
+		- Ping status is kept for 'server' and 'server.local TLD' in one entry.
+		- Server lookups don't have to be adjusted for the local TLD.
+		- Lookups seem to be much faster.
+	*/
 
-	/* Strip off any local tld reference and capitalize the server name. */
+	/* Strip off any local tld reference and capitalize the server name.  Default local TLD is 'local'. */
 	$local_tld	= strtoupper(".".($var['LOCAL_TLD'] ?: "local"));
 	$server	= str_replace($local_tld, "", strtoupper($server));
 	if ($server) {
@@ -98,7 +108,7 @@ function is_server_online($server, $log = false) {
 			}
 
 			/* Get the IP address from the arp response. */
-			$ip				= ((($ip_array[0] == $server) || ($srvr == $server)) && ((new MiscUD)->is_ip($ip))) ? $ip : "";
+			$ip				= ((($ip_array[0] == $server) || ($srvr == $server)) && ((new MiscUD)->is_ip($ip))) ?: "";
 
 			/* If arp did not return a valid IP address, look up the IP address using Local TLD. */
 			/* If the ip address is found, update the hosts file with this local ip address. */
@@ -107,7 +117,7 @@ function is_server_online($server, $log = false) {
 				$ip_local	= timed_exec(10, "/sbin/arp -a ".escapeshellarg($srvr)." 2>&1");
 				$ip_array	= explode(" ", $ip_local);
 				$ip_local	= str_replace(array("(", ")"), "", $ip_array[1]);
-				$ip_local	= (new MiscUD)->is_ip($ip_local) ? $ip_local : "";
+				$ip_local	= (new MiscUD)->is_ip($ip_local) ?: "";
 			} else {
 				$ip_local	= $ip;
 			}
