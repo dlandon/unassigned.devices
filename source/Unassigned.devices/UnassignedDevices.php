@@ -1155,15 +1155,17 @@ switch ($_POST['action']) {
 	case 'list_samba_shares':
 		/* Get a list of samba shares for a specific host. */
 		$ip		= urldecode($_POST['IP']);
-		$user	= isset($_POST['USER']) ? $_POST['USER'] : NULL;
-		$pass	= isset($_POST['PASS']) ? $_POST['PASS'] : NULL;
-		$domain	= isset($_POST['DOMAIN']) ? $_POST['DOMAIN'] : NULL;
+		$user	= isset($_POST['USER']) ? $_POST['USER'] : null;
+		$pass	= isset($_POST['PASS']) ? $_POST['PASS'] : null;
+		$domain	= isset($_POST['DOMAIN']) ? $_POST['DOMAIN'] : null;
+
+		/* Create the credentials file. */
 		@file_put_contents("{$paths['authentication']}", "username=".$user."\n");
 		@file_put_contents("{$paths['authentication']}", "password=".$pass."\n", FILE_APPEND);
 		@file_put_contents("{$paths['authentication']}", "domain=".$domain."\n", FILE_APPEND);
 
 		/* Update this server status before listing shares. */
-		exec("plugins/".$plugin."/scripts/get_ud_stats is_online $ip");
+		exec("plugins/".$plugin."/scripts/get_ud_stats is_online ".escapeshellarg($ip));
 
 		/* Get a list of samba shares on this server. */
 		$list	= shell_exec("/usr/bin/smbclient -t2 -g -L ".escapeshellarg($ip)." --authentication-file=".escapeshellarg($paths['authentication'])." 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}' | sort");
@@ -1208,7 +1210,7 @@ switch ($_POST['action']) {
 		$ip		= urldecode($_POST['IP']);
 
 		/* Update this server status before listing shares. */
-		exec("plugins/".$plugin."/scripts/get_ud_stats is_online $ip");
+		exec("plugins/".$plugin."/scripts/get_ud_stats is_online ".escapeshellarg($ip));
 
 		/* List the shares. */
 		$rc		= timed_exec(10, "/usr/sbin/showmount --no-headers -e ".escapeshellarg($ip)." 2>/dev/null | rev | cut -d' ' -f2- | rev | sort");
