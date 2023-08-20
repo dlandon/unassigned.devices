@@ -555,7 +555,7 @@ function unassigned_umount() {
 				}
 				unassigned_log("ISO File share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
 
-				/* If iso file is mounted, unmlount it. */
+				/* If iso file is mounted, unmount it. */
 				if ( is_mounted($info['mountpoint']) ) {
 					/* Create mounting status file. */
 					addFile(sprintf($paths['unmounting'], basename($info['device'])));
