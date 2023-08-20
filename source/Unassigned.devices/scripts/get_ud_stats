@@ -82,7 +82,6 @@ function is_server_online($server, $log = false) {
 	/* See if we need to add this server to the hosts file. This seems to be an issue mostly with Windows computers. */
 	$server					= strtoupper($server);
 	if ($server) {
-		$local_tld			= strtoupper($var['LOCAL_TLD']);
 		if (! (new MiscUD)->is_ip($server)) {
 			$ip_arp			= timed_exec(15, "/sbin/arp -a ".escapeshellarg($server)." 2>&1");
 			$ip_array		= explode(" ", $ip_arp);
@@ -90,24 +89,30 @@ function is_server_online($server, $log = false) {
 			$ip				= str_replace(array("(", ")"), "", $ip_array[1]);
 
 			if (strpos($ip_arp, "Unknown server error") === false) {
-				$srvr		= $ip_array[0].".".($local_tld ? $local_tld : "local");
+				$srvr		= $ip_array[0];
 			} else {
 				$srvr		= "";
 			}
+
+			/* Get the IP address from the arp response. */
 			$ip				= ((($ip_array[0] == $server) || ($srvr == $server)) && ((new MiscUD)->is_ip($ip))) ? $ip : "";
 
 			/* If arp did not return a valid IP address, look up the IP address using Local TLD. */
-			if ((! $ip) && (strpos($ip_arp, "no match found") === false)) {
+			/* If the ip address is found, update the hosts file with this local ip address. */
+			if (strpos($ip_arp, "no match found") === false) {
+				$local_tld	= strtoupper($var['LOCAL_TLD']);
 				$srvr		= $server.".".($local_tld ? $local_tld : "local");
-				$ip_local	= timed_exec(10, "/sbin/arp -an ".escapeshellarg($srvr)." 2>&1");
+				$ip_local	= timed_exec(10, "/sbin/arp -a ".escapeshellarg($srvr)." 2>&1");
 				$ip_array	= explode(" ", $ip_local);
 				$ip_local	= str_replace(array("(", ")"), "", $ip_array[1]);
 				$ip_local	= (new MiscUD)->is_ip($ip_local) ? $ip_local : "";
 			} else {
 				$ip_local	= $ip;
 			}
-
+echo("server ".$server." ip ".$ip_local."\n");
 			/* If the ip address does not match the .local ip address, add/update entry in hosts file. */
+			/* After the server is put into the hosts file, arp will be able to find the host on the first lookup. */
+			/* If this is not done, the server cannot be found unless specified by server.local. */
 			if ($ip_local) {
 				if (($ip != $ip_local) && ((new MiscUD)->is_ip($ip_local))) {
 					timed_exec(5, "/bin/sed -i '/".escapeshellarg($server)."/d' /etc/hosts");
@@ -167,16 +172,18 @@ function is_server_online($server, $log = false) {
 
 /* Ping all remote servers to check for being on-line. */
 function ping_servers() {
-	global $config_file, $tc;
+	global $config_file, $tc, $var;
 
 	/* Refresh the ping status. */
+	$local_tld		= strtoupper($var['LOCAL_TLD']);
 	$samba_mounts	= @parse_ini_file($config_file, true);
 	if (is_array($samba_mounts)) {
 		/* Ceate an array of unique server names/ip addresses. */
 		$srvr	= array();
 		foreach ($samba_mounts as $device => $mount) {
 			if (isset($mount['ip'])) {
-				$srvr[]	= $mount['ip'];
+				/* Strip off any local tld reference and capitalize the server name. */
+				$srvr[]	= str_replace(".".$local_tld, "", strtoupper($mount['ip']));
 			}
 		}
 		$srvr	= array_unique($srvr);
@@ -184,6 +191,7 @@ function ping_servers() {
 		/* Now ping every server to check for it being on-line. */
 		foreach ($srvr as $device => $server) {
 			/* This updates the ping_status file with the current state of the remote server. */
+			/* See if the server is on-line and if the status has changed. */
 			$changed		= is_server_online($server);
 
 			/* Update server ping status if it has changed. */
