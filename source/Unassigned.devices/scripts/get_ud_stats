@@ -80,7 +80,10 @@ function is_server_online($server, $log = false) {
 	global $tc, $var;
 
 	/* See if we need to add this server to the hosts file. This seems to be an issue mostly with Windows computers. */
-	$server					= strtoupper($server);
+
+	/* Strip off any local tld reference and capitalize the server name. */
+	$local_tld	= strtoupper(".".($var['LOCAL_TLD'] ?: "local"));
+	$server	= str_replace($local_tld, "", strtoupper($server));
 	if ($server) {
 		if (! (new MiscUD)->is_ip($server)) {
 			$ip_arp			= timed_exec(15, "/sbin/arp -a ".escapeshellarg($server)." 2>&1");
@@ -100,8 +103,7 @@ function is_server_online($server, $log = false) {
 			/* If arp did not return a valid IP address, look up the IP address using Local TLD. */
 			/* If the ip address is found, update the hosts file with this local ip address. */
 			if (strpos($ip_arp, "no match found") === false) {
-				$local_tld	= strtoupper($var['LOCAL_TLD']);
-				$srvr		= $server.".".($local_tld ? $local_tld : "local");
+				$srvr		= $server.$local_tld;
 				$ip_local	= timed_exec(10, "/sbin/arp -a ".escapeshellarg($srvr)." 2>&1");
 				$ip_array	= explode(" ", $ip_local);
 				$ip_local	= str_replace(array("(", ")"), "", $ip_array[1]);
@@ -109,7 +111,7 @@ function is_server_online($server, $log = false) {
 			} else {
 				$ip_local	= $ip;
 			}
-echo("server ".$server." ip ".$ip_local."\n");
+
 			/* If the ip address does not match the .local ip address, add/update entry in hosts file. */
 			/* After the server is put into the hosts file, arp will be able to find the host on the first lookup. */
 			/* If this is not done, the server cannot be found unless specified by server.local. */
@@ -175,7 +177,7 @@ function ping_servers() {
 	global $config_file, $tc, $var;
 
 	/* Refresh the ping status. */
-	$local_tld		= strtoupper($var['LOCAL_TLD']);
+	$local_tld		= strtoupper(".".($var['LOCAL_TLD'] ?: "local"));
 	$samba_mounts	= @parse_ini_file($config_file, true);
 	if (is_array($samba_mounts)) {
 		/* Ceate an array of unique server names/ip addresses. */
@@ -183,9 +185,11 @@ function ping_servers() {
 		foreach ($samba_mounts as $device => $mount) {
 			if (isset($mount['ip'])) {
 				/* Strip off any local tld reference and capitalize the server name. */
-				$srvr[]	= str_replace(".".$local_tld, "", strtoupper($mount['ip']));
+				$srvr[]	= str_replace($local_tld, "", $mount['ip']);
 			}
 		}
+
+		/* Remove all duplicate servers.  There is no reason to ping the same server more than once. */
 		$srvr	= array_unique($srvr);
 
 		/* Now ping every server to check for it being on-line. */
