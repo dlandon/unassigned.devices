@@ -1224,7 +1224,7 @@ switch ($_POST['action']) {
 
 		$ip			= urldecode($_POST['IP']);
 		$ip			= implode("",explode("\\", $ip));
-		$ip			= stripslashes(trim($ip));
+		$ip			= strtoupper(stripslashes(trim($ip)));
 		$protocol	= urldecode($_POST['PROTOCOL']);
 		$user		= isset($_POST['USER']) ? urldecode($_POST['USER']) : "";
 		$domain		= isset($_POST['DOMAIN']) ? urldecode($_POST['DOMAIN']) : "";
@@ -1247,7 +1247,7 @@ switch ($_POST['action']) {
 			if (! empty($share)) {
 				/* Clean up the device name so it is safe for php. */
 				$safe_path		= safe_name($path, false);
-				$device	= ($protocol == "NFS") ? $ip.":".$safe_path : "//".strtoupper($ip)."/".$safe_path;
+				$device	= ($protocol == "NFS") ? $ip.":".$safe_path : "//".$ip."/".$safe_path;
 
 				/* Remove dollar signs in device. */
 				$device	= str_replace("$", "", $device);
