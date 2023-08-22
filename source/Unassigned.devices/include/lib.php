@@ -616,7 +616,7 @@ function is_samba_server_online($ip) {
 
 	/* Strip off any local tld reference and capitalize the server name. */
 	$local_tld	= strtoupper(".".($var['LOCAL_TLD'] ?: "local"));
-	$server			= str_replace($local_tld, "", strtoupper($ip));
+	$server			= str_replace( array($local_tld, ".LOCAL"), "", strtoupper($ip));
 
 	$tc				= $paths['ping_status'];
 

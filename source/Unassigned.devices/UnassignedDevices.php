@@ -1135,6 +1135,9 @@ switch ($_POST['action']) {
 					$name	= shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'");
 					if ($name) {
 						$n			= strpos($name, ".".$var['LOCAL_TLD']);
+						if ($n === false) {
+							$n		= strpos($name, ".LOCAL");
+						}
 						if ($n !== false) {
 							$name	= substr($name, 0, $n);
 						}
@@ -1189,6 +1192,9 @@ switch ($_POST['action']) {
 				$name	= shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'");
 				if ($name) {
 					$n			= strpos($name, ".".$var['LOCAL_TLD']);
+					if ($n === false) {
+						$n		= strpos($name, ".LOCAL");
+					}
 					if ($n !== false) {
 						$name	= substr($name, 0, $n);
 					}

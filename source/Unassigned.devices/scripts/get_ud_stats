@@ -111,13 +111,21 @@ function is_server_online($server, $log = false) {
 			$ip				= ((($ip_array[0] == $server) || ($srvr == $server)) && ((new MiscUD)->is_ip($ip))) ?: "";
 
 			/* If arp did not return a valid IP address, look up the IP address using Local TLD. */
-			/* If the ip address is found, update the hosts file with this local ip address. */
 			if (strpos($ip_arp, "no match found") === false) {
 				$srvr		= $server.$local_tld;
-				$ip_local	= timed_exec(10, "/sbin/arp -a ".escapeshellarg($srvr)." 2>&1");
-				$ip_array	= explode(" ", $ip_local);
+				$ip_arp		= timed_exec(10, "/sbin/arp -a ".escapeshellarg($srvr)." 2>&1");
+				$ip_array	= explode(" ", $ip_arp);
 				$ip_local	= str_replace(array("(", ")"), "", $ip_array[1]);
 				$ip_local	= (new MiscUD)->is_ip($ip_local) ?: "";
+
+				/* If arp did not return a valid IP address, look up the IP address using Local. */
+				if (strpos($ip_arp, "no match found") === false) {
+					$srvr		= $server.".LOCAL";
+					$ip_local	= timed_exec(10, "/sbin/arp -a ".escapeshellarg($srvr)." 2>&1");
+					$ip_array	= explode(" ", $ip_local);
+					$ip_local	= str_replace(array("(", ")"), "", $ip_array[1]);
+					$ip_local	= (new MiscUD)->is_ip($ip_local) ?: "";
+				}
 			} else {
 				$ip_local	= $ip;
 			}
@@ -195,7 +203,7 @@ function ping_servers() {
 		foreach ($samba_mounts as $device => $mount) {
 			if (isset($mount['ip'])) {
 				/* Strip off any local tld reference and capitalize the server name. */
-				$srvr[]	= str_replace($local_tld, "", $mount['ip']);
+				$srvr[]	= str_replace( array($local_tld, ".LOCAL"), "", $mount['ip']);
 			}
 		}
 
