@@ -48,6 +48,10 @@ $paths = [	"smb_unassigned"	=> "/etc/samba/smb-unassigned.conf",
 $users			= @parse_ini_file($docroot."/state/users.ini", true);
 $users			= (is_array($users)) ? $users : array();
 
+/* Strip off any local tld reference and capitalize the server name.  Default local TLD is 'local'. */
+$default_tld	= "LOCAL";
+$local_tld		= strtoupper($var['LOCAL_TLD']) ?: $default_tld;
+
 /* Get all Unraid disk devices (array disks, cache, and pool devices). */
 $array_disks	= @parse_ini_file($docroot."/state/disks.ini", true);
 $unraid_disks	= array();
@@ -610,13 +614,12 @@ function is_disk_spin($ud_dev, $running) {
 
 /* Check to see if a remote server is online by chccking the ping status. */
 function is_samba_server_online($ip) {
-	global $paths, $var;
+	global $paths, $local_tld, $default_tld;
 
 	$is_alive		= false;
 
 	/* Strip off any local tld reference and capitalize the server name. */
-	$local_tld	= strtoupper(".".($var['LOCAL_TLD'] ?: "local"));
-	$server			= str_replace( array($local_tld, ".LOCAL"), "", strtoupper($ip));
+	$server			= str_replace( array(".".$local_tld, ".".$default_tld), "", strtoupper($ip));
 
 	$tc				= $paths['ping_status'];
 
