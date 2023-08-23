@@ -48,10 +48,6 @@ $paths = [	"smb_unassigned"	=> "/etc/samba/smb-unassigned.conf",
 $users			= @parse_ini_file($docroot."/state/users.ini", true);
 $users			= (is_array($users)) ? $users : array();
 
-/* Strip off any local tld reference and capitalize the server name.  Default local TLD is 'local'. */
-$default_tld	= "LOCAL";
-$local_tld		= strtoupper($var['LOCAL_TLD']) ?: $default_tld;
-
 /* Get all Unraid disk devices (array disks, cache, and pool devices). */
 $array_disks	= @parse_ini_file($docroot."/state/disks.ini", true);
 $unraid_disks	= array();
@@ -87,6 +83,10 @@ if (! isset($var)){
 	}
 	$var = @parse_ini_file($docroot."/state/var.ini");
 }
+
+/* Strip off any local tld reference and capitalize the server name.  Default local TLD is 'local'. */
+$default_tld	= "LOCAL";
+$local_tld		= strtoupper($var['LOCAL_TLD']) ?: $default_tld;
 
 /* See if the preclear plugin is installed. */
 if ( is_file( "plugins/preclear.disk/assets/lib.php" ) ) {
@@ -621,9 +621,8 @@ function is_samba_server_online($ip) {
 	/* Strip off any local tld reference and capitalize the server name. */
 	$server			= str_replace( array(".".$local_tld, ".".$default_tld), "", strtoupper($ip));
 
-	$tc				= $paths['ping_status'];
-
 	/* Get the updated ping status. */
+	$tc				= $paths['ping_status'];
 	$ping_status	= (new MiscUD)->get_json($tc);
 	if (isset($ping_status[$server])) {
 		$is_alive = ($ping_status[$server]['online'] == "yes");
