@@ -1920,7 +1920,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 	$config			= (isset($config["Config"])) ? $config["Config"] : array();
 
 	/* Add mountpoint to samba shares. */
-	if ($var['shareSMBEnabled'] == "yes") {
+	if ($var['shareSMBEnabled'] != "no") {
 		if ( (isset($config['smb_security'])) && ($config['smb_security'] != "no") ) {
 			/* Remove special characters from share name. */
 			$share_name = str_replace( array("(", ")"), "", basename($dir));
