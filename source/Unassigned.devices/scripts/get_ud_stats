@@ -89,7 +89,7 @@ function is_server_online($server, $log = false) {
 	   the 'arp -a server' will be able to resolve the name.  There are several advantages to this.
 	   For example:
 	   	- UD mount commnds can use 'server' and not have to use 'server.local TLD' to use name resolution.
-		- Ping commands will use 'server' and not 'server.local TLD' and the 'server' name will resolve.
+		- Ping commands can use 'server' and not 'server.local TLD' and the 'server' name will resolve.
 		- Ping status is kept for 'server' and 'server.local TLD' in one entry.
 		- Server lookups don't have to be adjusted for the local TLD.
 		- Lookups seem to be much faster.
@@ -139,9 +139,9 @@ function is_server_online($server, $log = false) {
 				$ip_local	= $ip;
 			}
 
-			/* If the ip address does not match the .local ip address, add/update entry in hosts file. */
+			/* If the ip address does not match the 'Local TLD'  ip address, add/update entry in hosts file. */
 			/* After the server is put into the hosts file, arp will be able to find the host on the first lookup. */
-			/* If this is not done, the server cannot be found unless specified by server.local. */
+			/* If this is not done, the server cannot be found unless specified by 'server.Local TLD'. */
 			if ($ip_local) {
 				if (($ip != $ip_local) && ((new MiscUD)->is_ip($ip_local))) {
 					timed_exec(5, "/bin/sed -i '/".escapeshellarg($server)."/d' /etc/hosts");
