@@ -1134,9 +1134,9 @@ switch ($_POST['action']) {
 					/* If name doesn't resolve, see if it is a local name. */
 					$name	= shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'");
 					if ($name) {
-						$n			= strpos($name, ".".$var['LOCAL_TLD']);
+						$n			= strpos($name, ".".$local_tld);
 						if ($n === false) {
-							$n		= strpos($name, ".LOCAL");
+							$n		= strpos($name, ".".$default_tld);
 						}
 						if ($n !== false) {
 							$name	= substr($name, 0, $n);
@@ -1191,9 +1191,9 @@ switch ($_POST['action']) {
 				/* Resolve name as a local server. */
 				$name	= shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'");
 				if ($name) {
-					$n			= strpos($name, ".".$var['LOCAL_TLD']);
+					$n			= strpos($name, ".".$local_tld);
 					if ($n === false) {
-						$n		= strpos($name, ".LOCAL");
+						$n		= strpos($name, ".".$default_tld);
 					}
 					if ($n !== false) {
 						$name	= substr($name, 0, $n);
