@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.08.18a">
+<!ENTITY version	"2023.08.25">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"e396393a78afcc59e83a02d4a3421aa5">
+<!ENTITY MD5		"3ba9639d7c00f221061ea9b05fd0b020">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,8 +22,17 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Show 'ROOT' on GUI for root shares type.
+- Fix: Some code cleanup.
+- Fix: Remote server can falsely be detected off-line if the remote server IP address changes.
+- Fix: Prevent 'server' with TLD specification from being a duplicate server in ping status.
+- Fix: Remove excess logging on CIFS mounts when trying different versions of SMB.
+- Fix: UD Devices are not shared with SMB if AD is enabled.
+- Add: Remove '+' character from disk serial numbers causing php issues.
+
+###2023.08.18a
 - Fix: Mount detection not finding unique devices.
-- Fix: All mount/unmount errors were not being detected for failure dialog.
+- Fix: All mount/unmount errors were not being detected for mount/unmount failure dialog.
 - Fix: Check for mounted status is using the wrong device for samba mounts.
 
 ###2023.08.17a
