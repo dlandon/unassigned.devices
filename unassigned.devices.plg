@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.08.25">
+<!ENTITY version	"2023.08.27">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"3ba9639d7c00f221061ea9b05fd0b020">
+<!ENTITY MD5		"d18935d655ce0031c6cbf193bdc65c71">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Ping remote share servers that are not found on the LAN.
+- Add: Additional improvements in resolving server names.
+
+###2023.08.25
 - Fix: Show 'ROOT' on GUI for root shares type.
 - Fix: Some code cleanup.
 - Fix: Remote server can falsely be detected off-line if the remote server IP address changes.
