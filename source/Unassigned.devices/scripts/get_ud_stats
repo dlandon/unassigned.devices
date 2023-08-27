@@ -95,6 +95,7 @@ function is_server_online($server, $log = false) {
 		- Lookups seem to be much faster.
 	*/
 
+	/* Keep the original server with and TLD reference in case the server is not on the LAN. */
 	$orig_srvr	= $server;
 
 	/* Strip off any local tld reference and capitalize the server name.  Default local TLD is 'local'. */
@@ -116,7 +117,7 @@ function is_server_online($server, $log = false) {
 			/* Get the IP address from the arp response. */
 			$ip				= ((($ip_array[0] == $server) || ($srvr == $server)) && ((new MiscUD)->is_ip($ip))) ? $ip : "";
 
-			/* If arp did not return a valid IP address, look up the IP address using Local. */
+			/* If arp did not return a valid IP address, look up the IP address using 'Local'. */
 			if (strpos($ip_arp, "no match found") === false) {
 				$srvr		= $server.".".$default_tld;
 				$ip_arp		= timed_exec(10, "/sbin/arp -a ".escapeshellarg($srvr)." 2>&1");
@@ -124,12 +125,15 @@ function is_server_online($server, $log = false) {
 				$ip_local	= str_replace(array("(", ")"), "", $ip_array[1]);
 				$ip_local	= (new MiscUD)->is_ip($ip_local) ?: "";
 
+				/* If arp did not return a valid IP address, look up the IP address using 'Local TLD'. */
 				if (! (new MiscUD)->is_ip($ip_local)) {
 					$srvr		= $server.".".$local_tld;
 					$ip_local	= timed_exec(10, "/sbin/arp -a ".escapeshellarg($srvr)." 2>&1");
 					$ip_array	= explode(" ", $ip_local);
 					$ip_local	= str_replace(array("(", ")"), "", $ip_array[1]);
 					$ip_local	= (new MiscUD)->is_ip($ip_local) ?: "";
+
+					/* If the ip cannot be found on the local LAN, then the server is off-site and we just ping the server. */
 					if (! $ip_local) {
 						$server	= $orig_srvr;
 					}
@@ -153,10 +157,19 @@ function is_server_online($server, $log = false) {
 
 		/* Check the last ping status. */
 		if (strpos($ip_arp, "Unknown server error") === false) {
+			/* Get the ping status json file. */
 			$ping_status	= (new MiscUD)->get_json($tc);
+
+			/* See if the server was last seen as being online. */
 			$was_alive		= (isset($ping_status[$server]['online']) && ($ping_status[$server]['online'] == 'yes'));
+
+			/* Ping the server to see if it is currently offline. */
 			$is_alive		= (trim(shell_exec("/bin/ping -c 1 -W 1 ".escapeshellarg($server)." >/dev/null 2>&1; echo $?")) == 0 );
+
+			/* Get the number of pings we've checked since it went offline. */
 			$no_pings		= isset($ping_status[$server]['no_pings']) ? $ping_status[$server]['no_pings'] : 0;
+
+			/* If it's not online and the server is not an ip address lookup the server and ping it. */
 			if ((! $is_alive) && (! (new MiscUD)->is_ip($server)))
 			{
 				$ip			= trim(timed_exec(5, "/usr/bin/nmblookup ".escapeshellarg($server)." | /bin/head -n1 | /bin/awk '{print $1}' 2>/dev/null"));
