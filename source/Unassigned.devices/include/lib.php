@@ -614,12 +614,12 @@ function is_disk_spin($ud_dev, $running) {
 
 /* Check to see if a remote server is online by chccking the ping status. */
 function is_samba_server_online($ip) {
-	global $paths, $local_tld, $default_tld;
+	global $paths, $default_tld;
 
 	$is_alive		= false;
 
 	/* Strip off any local tld reference and capitalize the server name. */
-	$server			= str_replace( array(".".$local_tld, ".".$default_tld), "", strtoupper($ip));
+	$server			= str_replace(".".$default_tld, "", strtoupper($ip));
 
 	/* Get the updated ping status. */
 	$tc				= $paths['ping_status'];
