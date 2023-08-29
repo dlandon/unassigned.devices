@@ -895,8 +895,6 @@ switch ($_POST['action']) {
 	case 'update_ping':
 		/* Refresh the ping status in the background. */
 		exec("plugins/".$plugin."/scripts/get_ud_stats ping &");
-
-		publish();
 		break;
 
 	case 'get_content_json':
