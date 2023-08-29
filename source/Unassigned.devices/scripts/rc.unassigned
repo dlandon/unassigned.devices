@@ -247,7 +247,7 @@ function unassigned_mount() {
 				if ($info['invalid']) {
 					/* If the cofiguration is invalid, don't mount the device. */
 					unassigned_log("Warning: Device '".$info['device']."' has an invalid configuration and can not be mounted.");
-				} else if (($info['is_alive']) && (do_mount($info))) {
+				} else if (do_mount($info)) {
 					if ($info['smb_share']) {
 						/* Add smb share for the remote share. */
 						add_smb_share($info['mountpoint'], ($info['fstype'] == "root"));
