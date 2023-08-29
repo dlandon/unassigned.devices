@@ -95,7 +95,9 @@ function is_server_online($server, $log = false) {
 		- Lookups seem to be much faster.
 	*/
 
-	/* Keep the original server with and TLD reference in case the server is not on the LAN. */
+	$changed	= false;
+
+	/* Keep the original server with TLD reference in case the server is not on the LAN. */
 	$orig_srvr	= $server;
 
 	/* Strip off any local tld reference and capitalize the server name.  Default local TLD is 'local'. */
@@ -108,11 +110,8 @@ function is_server_online($server, $log = false) {
 			$ip_array[0]	= strtoupper($ip_array[0]);
 			$ip				= str_replace(array("(", ")"), "", $ip_array[1]);
 
-			if (strpos($ip_arp, "Unknown server error") === false) {
-				$srvr		= $ip_array[0];
-			} else {
-				$srvr		= "";
-			}
+			/* Get the ip address if one was returned. */
+			$srvr			= (strpos($ip_arp, "Unknown server error") === false) ? $ip_array[0] : "";
 
 			/* Get the IP address from the arp response. */
 			$ip				= ((($ip_array[0] == $server) || ($srvr == $server)) && ((new MiscUD)->is_ip($ip))) ? $ip : "";
@@ -142,7 +141,8 @@ function is_server_online($server, $log = false) {
 				$ip_local	= $ip;
 			}
 
-			/* If the ip address does not match the 'Local TLD'  ip address, add/update entry in hosts file. */
+			/* If the ip address does not match the 'Local TLD' ip address, add/update entry in hosts file. */
+			/* If the 'Local TLD' ip address changed, update the hosts file with the new 'Local TLD' ip address. */
 			/* After the server is put into the hosts file, arp will be able to find the host on the first lookup. */
 			/* If this is not done, the server cannot be found unless specified by 'server.Local TLD'. */
 			if ((new MiscUD)->is_ip($ip_local)) {
@@ -197,27 +197,22 @@ function is_server_online($server, $log = false) {
 				if (! $is_alive) {
 					unassigned_log("Remote server '".$server."' is not responding to a ping and appears to be offline.");
 				}
+
 				$changed = true;
-			} else {
-				$changed = false;
 			}
 
 			/* Update the server status file. */
 			$ping_status[$server] = array('no_pings' => $no_pings, 'online' => $is_alive ? 'yes' : 'no', 'changed' => $changed ? 'yes' : 'no');
 			(new MiscUD)->save_json($tc, $ping_status);
-		} else {
-			$changed	= false;
 		}
-	} else {
-		$changed = false;
 	}
 
-	return $changed;
+	return;
 }
 
 /* Ping all remote servers to check for being on-line. */
 function ping_servers() {
-	global $config_file, $tc, $default_tld;
+	global $config_file, $default_tld;
 
 	/* Refresh the ping status. */
 	$samba_mounts	= @parse_ini_file($config_file, true);
@@ -237,17 +232,7 @@ function ping_servers() {
 		/* Now ping every server to check for it being on-line. */
 		foreach ($srvr as $device => $server) {
 			/* This updates the ping_status file with the current state of the remote server. */
-			/* See if the server is on-line and if the status has changed. */
-			$changed		= is_server_online($server);
-
-			/* Update server ping status if it has changed. */
-			if ($changed) {
-				$ping_status			= (new MiscUD)->get_json($tc);
-				$no_pings				= $ping_status[$server]['no_pings'];
-				$online					= $ping_status[$server]['online'];
-				$ping_status[$server]	= array('no_pings' => $no_pings, 'online' => $online, 'changed' => 'no');
-				(new MiscUD)->save_json($tc, $ping_status);
-			}
+			is_server_online($server);
 		}
 	}
 }
