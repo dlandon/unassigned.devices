@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.08.27">
+<!ENTITY version	"2023.08.30">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"d18935d655ce0031c6cbf193bdc65c71">
+<!ENTITY MD5		"2a78bd06b57d054579dd5eb796015918">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Duplicate updating and refresh of ping status file.
+- Fix: Issue with local server name that does not resolve with 'server.local' and not getting a ping status.
+
+###2023.08.27
 - Fix: Ping remote share servers that are not found on the LAN.
 - Add: Additional improvements in resolving server names.
 
