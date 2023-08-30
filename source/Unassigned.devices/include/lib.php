@@ -2489,7 +2489,7 @@ function do_mount_samba($info) {
 				}
 			} else if ($var['shareSMBEnabled'] != "no") {
 				/* Create the credentials file. */
-				$credentials_file = "{$paths['credentials']}_".basename($dev);
+				$credentials_file = "{$paths['credentials']}_".basename($dir);
 				@file_put_contents("$credentials_file", "username=".($info['user'] ? $info['user'] : 'guest')."\n");
 				@file_put_contents("$credentials_file", "password=".decrypt_data($info['pass'])."\n", FILE_APPEND);
 				@file_put_contents("$credentials_file", "domain=".$info['domain']."\n", FILE_APPEND);
@@ -2498,7 +2498,7 @@ function do_mount_samba($info) {
 				$smb_version = (get_config("Config", "smb_version") == "yes");
 				if (! $smb_version) {
 					$ver	= "";
-					$params	= sprintf(get_mount_params($fs, $dev, $ro), $ver);
+					$params	= sprintf(get_mount_params($fs, $dir, $ro), $ver);
 					$cmd	= "/sbin/mount -t ".escapeshellarg($fs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 
 					unassigned_log("Mount SMB share '".$dev."' using SMB default protocol.");
@@ -2511,7 +2511,7 @@ function do_mount_samba($info) {
 				/* If the remote share didn't mount, try SMB 3.1.1. */
 				if (! is_mounted($dev) && (strpos($o, "Permission denied") === false) && (strpos($o, "Network is unreachable") === false)) {
 					$ver	= ",vers=3.1.1";
-					$params	= sprintf(get_mount_params($fs, $dev, $ro), $ver);
+					$params	= sprintf(get_mount_params($fs, $dir, $ro), $ver);
 					$cmd	= "/sbin/mount -t $fs -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 
 					unassigned_log("Mount SMB share '".$dev."' using SMB 3.1.1 protocol.");
@@ -2525,7 +2525,7 @@ function do_mount_samba($info) {
 				if (! is_mounted($dev) && (strpos($o, "Permission denied") === false) && (strpos($o, "Network is unreachable") === false)) {
 					/* If the mount failed, try to mount with samba vers=3.0. */
 					$ver	= ",vers=3.0";
-					$params	= sprintf(get_mount_params($fs, $dev, $ro), $ver);
+					$params	= sprintf(get_mount_params($fs, $dir, $ro), $ver);
 					$cmd	= "/sbin/mount -t $fs -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 
 					unassigned_log("Mount SMB share '".$dev."' using SMB 3.0 protocol.");
@@ -2539,7 +2539,7 @@ function do_mount_samba($info) {
 				if (! is_mounted($dev) && (strpos($o, "Permission denied") === false) && (strpos($o, "Network is unreachable") === false)) {
 					/* If the mount failed, try to mount with samba vers=2.0. */
 					$ver	= ",vers=2.0";
-					$params	= sprintf(get_mount_params($fs, $dev, $ro), $ver);
+					$params	= sprintf(get_mount_params($fs, $dir, $ro), $ver);
 					$cmd	= "/sbin/mount -t ".escapeshellarg($fs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 
 					unassigned_log("Mount SMB share '".$dev."' using SMB 2.0 protocol.");
@@ -2553,7 +2553,7 @@ function do_mount_samba($info) {
 				if ((! is_mounted($dev)) && (strpos($o, "Permission denied") === false) && (strpos($o, "Network is unreachable") === false)) {
 					/* If the mount failed, try to mount with samba vers=1.0. */
 					$ver	= ",vers=1.0";
-					$params	= sprintf(get_mount_params($fs, $dev, $ro), $ver);
+					$params	= sprintf(get_mount_params($fs, $dir, $ro), $ver);
 					$cmd	= "/sbin/mount -t ".escapeshellarg($fs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 
 					unassigned_log("Mount SMB share '".$dev."' using SMB 1.0 protocol.");
