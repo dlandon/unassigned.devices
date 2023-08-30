@@ -413,7 +413,7 @@ function listDir($root) {
 /* Remove characters that will cause issues with php in names. */
 function safe_name($string, $convert_spaces = true) {
 
-	/* Printable characters only and not escaped. */
+	/* UTF8 characters only and not escaped. */
 	$string		= preg_replace('/[\p{C}]+/u', '', stripcslashes($string));
 
 	/* Convert reserved php characters and invalid file name characters to underscore. */
@@ -1802,7 +1802,7 @@ function do_mount_root($info) {
 				unassigned_log("Root Share '".$dev."' is already mounted.");
 			}
 		} else {
-			unassigned_log("Root Server '".$info['ip']."' is offline and share '".$info['device']."' cannot be mounted."); 
+			unassigned_log("Root Server '".$info['ip']."' is offline and remote share '".$info['path']."' cannot be mounted."); 
 		}
 	} else {
 		unassigned_log("Error: Root Server share '".$info['device']."' cannot be mounted with Disk Sharing enabled."); 
@@ -2056,7 +2056,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 
 /* Remove mountpoint from samba shares. */
 function rm_smb_share($dir) {
-	global $paths, $var;
+	global $paths;
 
 	/* Remove special characters from share name */
 	$share_name = str_replace( array("(", ")"), "", basename($dir));
@@ -2127,7 +2127,6 @@ function add_nfs_share($dir) {
 
 /* Remove a mountpoint from NFS shares. */
 function rm_nfs_share($dir) {
-	global $var;
 
 	/* Remove this disk from the exports file. */
 	$reload = false;
@@ -2596,7 +2595,7 @@ function do_mount_samba($info) {
 			unassigned_log("Remote Share '".$dev."' is already mounted.");
 		}
 	} else {
-		unassigned_log("Remote Server '".$info['ip']."' is offline and share '".$info['device']."' cannot be mounted."); 
+		unassigned_log("Remote Server '".$info['ip']."' is offline and remote share '".$info['path']."' cannot be mounted."); 
 	}
 
 	return $rc;
@@ -2787,10 +2786,7 @@ function get_iso_mounts() {
 
 	if (is_array($iso_mounts)) {
 		foreach ($iso_mounts as $device => $mount) {
-			/* Convert the device to a safe name iso device. */
-			$safe_device		= safe_name($device, false);
-
-			$mount['device']			= $safe_device;
+			$mount['device']			= $device;
 			if ($mount['device']) {
 				$mount['fstype']		= "loop";
 				$mount['automount'] 	= is_iso_automount($mount['device']);
@@ -2804,6 +2800,8 @@ function get_iso_mounts() {
 
 				/* Remove special characters. */
 				$mount_device			= safe_name(basename($mount['device']));
+
+				/* Check mounting and unmounting status. */
 				$mount['is_mounting']	= (new MiscUD)->get_mounting_status($mount_device);
 				$mount['is_unmounting']	= (new MiscUD)->get_unmounting_status($mount_device);
 
@@ -2812,8 +2810,8 @@ function get_iso_mounts() {
 
 				/* If this is a legacy iso mount indicate that it should be removed. */
 				$mount['invalid']		= false;
+				$safe_device			= safe_name($mount['file']);
 				if (basename($safe_device) != $device) {
-					$mount['mountpoint'] = "-- Invalid Configuration - Remove and Re-add --";
 					$mount['invalid']	= true;
 				}
 	
