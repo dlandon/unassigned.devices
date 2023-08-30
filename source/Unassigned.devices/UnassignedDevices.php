@@ -762,8 +762,8 @@ switch ($_POST['action']) {
 				$is_alive		= $mount['is_alive'];
 				$o_remotes		.= "<tr>";
 				$o_remotes		.= sprintf( "<td><a class='info'><i class='fa fa-circle orb %s'></i><span>"._("ISO File is")." %s</span></a>ISO</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ));
-				$o_remotes		.= "<td>{$mount['file']}</td><td></td>";
-				$mount_point	= basename($mount['mountpoint']);
+				$o_remotes		.= "<td>{$mount['device']}</td><td></td>";
+				$mount_point	= (! $mount['invalid']) ? basename($mount['mountpoint']) : "-- "._("Invalid Configuration - Remove and Re-add")." --";
 				if ($mounted) {
 					$o_remotes .= "<td><i class='fa fa-external-link mount-share'></i><a title='"._("Browse ISO File Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
 				} else {
