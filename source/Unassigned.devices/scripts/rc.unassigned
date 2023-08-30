@@ -520,7 +520,7 @@ function unassigned_umount() {
 					/* See if we are force unmounting this device. */
 					$force_unmount = $info['fstype'] == "root" ? false : ($info['is_alive'] && $info['is_available'] ? $force : true);
 
-					/* Determine if this is a remote mount and what kink. */
+					/* Determine if this is a remote mount and what kind. */
 					$smb = ($info['fstype'] == "cifs");
 					$nfs = ($info['fstype'] == "nfs");
 
