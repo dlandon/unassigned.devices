@@ -1103,7 +1103,7 @@ switch ($_POST['action']) {
 		$fs			= urldecode($_POST['fs']);
 		$pass		= isset($_POST['pass']) ? urldecode($_POST['pass']) : "";
 		$pool_name	= isset($_POST['pool_name']) ? urldecode($_POST['pool_name']) : "";
-		$pool_name	= str_replace(" ", "_", $pool_name);
+		$pool_name	= safe_name($pool_name, false);
 
 		/* Create the state file. */
 		@touch(sprintf($paths['formatting'], basename($device)));
@@ -1155,7 +1155,13 @@ switch ($_POST['action']) {
 
 	case 'list_samba_shares':
 		/* Get a list of samba shares for a specific host. */
-		$ip		= urldecode($_POST['IP']);
+		$ip			= urldecode($_POST['IP']);
+		$ip			= implode("",explode("\\", $ip));
+		$ip			= strtoupper(stripslashes(trim($ip)));
+
+		/* Remove the 'local' and 'default' tld reference as they are unnecessary. */
+		$ip			= str_replace( array(".".$local_tld, ".".$default_tld), "", $ip);
+
 		$user	= isset($_POST['USER']) ? $_POST['USER'] : null;
 		$pass	= isset($_POST['PASS']) ? $_POST['PASS'] : null;
 		$domain	= isset($_POST['DOMAIN']) ? $_POST['DOMAIN'] : null;
@@ -1211,13 +1217,19 @@ switch ($_POST['action']) {
 
 	case 'list_nfs_shares':
 		/* Get a list of nfs shares for a specific host. */
-		$ip		= urldecode($_POST['IP']);
+		$ip			= urldecode($_POST['IP']);
+		$ip			= implode("",explode("\\", $ip));
+		$ip			= strtoupper(stripslashes(trim($ip)));
+
+		/* Remove the 'local' and 'default' tld reference as they are unnecessary. */
+		$ip			= str_replace( array(".".$local_tld, ".".$default_tld), "", $ip);
 
 		/* Update this server status before listing shares. */
 		exec("plugins/".$plugin."/scripts/get_ud_stats is_online ".escapeshellarg($ip));
 
 		/* List the shares. */
-		$rc		= timed_exec(10, "/usr/sbin/showmount --no-headers -e ".escapeshellarg($ip)." 2>/dev/null | rev | cut -d' ' -f2- | rev | sort");
+		$result		= timed_exec(10, "/usr/sbin/showmount --no-headers -e ".escapeshellarg($ip)." 2>/dev/null | rev | cut -d' ' -f2- | rev | sort");
+		$rc			= ($result != "command timed out") ? $result : "";
 		echo $rc ? $rc : " ";
 		break;
 
@@ -1237,6 +1249,9 @@ switch ($_POST['action']) {
 		$path		= implode("",explode("\\", $path));
 		$path		= stripslashes(trim($path));
 		$share		= basename($path);
+
+		/* Remove the 'local' and 'default' tld reference as they are unnecessary. */
+		$ip			= str_replace( array(".".$local_tld, ".".$default_tld), "", $ip);
 
 		/* See if there is another mount with a different protocol. */
 		foreach (get_samba_mounts() as $mount) {
