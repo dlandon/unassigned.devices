@@ -300,8 +300,10 @@ class MiscUD
 		if (is_file("/usr/sbin/zpool")) {
 			if ($mounted) {
 				$rc	= shell_exec("/usr/bin/cat /proc/mounts | grep ".escapeshellarg(basename($dev)." ")." | awk '{print $1}'") ?? "";
+				$rc	= str_replace("\040", " ", $rc);
 			} else {
-				$rc	= shell_exec("/usr/sbin/zpool import -d ".escapeshellarg($dev)." 2>/dev/null | grep 'pool:' | /bin/awk '{print $2}'") ?? "";
+				$rc	= shell_exec("/usr/sbin/zpool import -d ".escapeshellarg($dev)." 2>/dev/null | grep 'pool:'") ?? "";
+				$rc	= trim(str_replace("pool:", "", $rc));
 			}
 		} else {
 			$rc	= "";
@@ -2317,7 +2319,7 @@ function is_samba_read_only($serial) {
 
 /* Get all defined samba and NFS remote shares. */
 function get_samba_mounts() {
-	global $paths;
+	global $paths, $default_tld, $local_tld;
 
 	$o = array();
 	$config_file	= $paths['samba_mount'];
@@ -2353,6 +2355,9 @@ function get_samba_mounts() {
 
 				/* This is the mount device for checking for an invalid configuration. */
 				$dev_check				= ($mount['fstype'] == "nfs") ? $mount['ip'].":".$mount['path'] : "//".$mount['ip'].(($mount['fstype'] == "cifs") ? "/" : "") .$mount['path'];
+
+				/* Remove the 'local' and 'default' tld reference as they are unnecessary. */
+				$dev_check				= str_replace( array(".".$local_tld, ".".$default_tld), "", $dev_check);
 
 				/* Is the remote server on line? */
 				$mount['is_alive']		= is_samba_server_online($mount['ip']);
