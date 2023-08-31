@@ -221,7 +221,7 @@ function ping_servers() {
 		foreach ($samba_mounts as $device => $mount) {
 			if (isset($mount['ip'])) {
 				/* Strip off any local tld reference and capitalize the server name. */
-				$srvr[]	= str_replace( ".".$default_tld, "", $mount['ip']);
+				$srvr[]	= str_replace(".".$default_tld, "", $mount['ip']);
 			}
 		}
 
