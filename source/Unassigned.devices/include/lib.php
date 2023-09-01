@@ -300,7 +300,7 @@ class MiscUD
 		if (is_file("/usr/sbin/zpool")) {
 			if ($mounted) {
 				$rc	= shell_exec("/usr/bin/cat /proc/mounts | grep ".escapeshellarg(basename($dev)." ")." | awk '{print $1}'") ?? "";
-				$rc	= str_replace("\040", " ", $rc);
+				$rc	= str_replace("\\040", " ", $rc);
 			} else {
 				$rc	= shell_exec("/usr/sbin/zpool import -d ".escapeshellarg($dev)." 2>/dev/null | grep 'pool:'") ?? "";
 				$rc	= trim(str_replace("pool:", "", $rc));
@@ -413,21 +413,23 @@ function listDir($root) {
 }
 
 /* Remove characters that will cause issues with php in names. */
-function safe_name($string, $convert_spaces = true) {
+function safe_name($name, $convert_spaces = true) {
 
-	/* UTF8 characters only and not escaped. */
-	$string		= preg_replace('/[\p{C}]+/u', '', stripcslashes($string));
+	/* UTF8 characters only and not escaped. Decode html entities. */
+	$string				= html_entity_decode($name, ENT_QUOTES, 'UTF-8');
+	$string				= preg_replace('/[\p{C}]+/u', '', stripcslashes($string));
 
 	/* Convert reserved php characters and invalid file name characters to underscore. */
-	$string = str_replace( array("'", '"', "?", "#", "&", "!", "<", ">", "|", "+", "@"), "_", $string);
+	$escapeSequences	= array("'", '"', "?", "#", "&", "!", "<", ">", "|", "+", "@");
+	$replacementChars	= array("_");
 
 	/* Convert spaces to underscore. */
 	if ($convert_spaces) {
-		$string = str_replace(" " , "_", $string);
+		$escapeSequences[]	= " ";
 	}
 
-	$string = htmlentities($string, ENT_QUOTES, 'UTF-8');
-	$string = html_entity_decode($string, ENT_QUOTES, 'UTF-8');
+	/* Convert all unsafe characters to underline character. */
+	$string = str_replace($escapeSequences, $replacementChars, $string);
 
 	return trim($string);
 }
@@ -1016,10 +1018,14 @@ function remove_all_partitions($dev) {
 
 		unassigned_log("Removing all partitions from disk '".$device."'.");
 
-		$pool_name	= (new MiscUD)->zfs_pool_name($device);
+		$pool_name	= (new MiscUD)->zfs_pool_name($dev);
 		if ($pool_name) {
 			/* Remove zpool label info. */
-			exec("/usr/sbin/zpool labelclear -f ".escapeshellarg($device));
+			exec("/usr/sbin/zpool labelclear -f ".escapeshellarg($dev));
+			sleep(1);
+
+			/* Export the zpool. */
+			exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
 			sleep(1);
 		}
 
@@ -1029,15 +1035,19 @@ function remove_all_partitions($dev) {
 				foreach ($d['partitions'] as $p) {
 					/* Get partition designation based on type of device. */
 					if ((new MiscUD)->is_device_nvme($device)) {
-						$zfs_device	= $device."p".$p['part'];
+						$zfs_device	= $dev."p".$p['part'];
 					} else {
-						$zfs_device	= $device.$p['part'];
+						$zfs_device	= $dev.$p['part'];
 					}
 
 					$pool_name	= (new MiscUD)->zfs_pool_name($zfs_device);
 					if ($pool_name) {
 						/* Remove zpool label info. */
 						exec("/usr/sbin/zpool labelclear -f ".escapeshellarg($zfs_device));
+						sleep(1);
+
+						/* Export the zpool. */
+						exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
 						sleep(1);
 					}
 
@@ -1132,7 +1142,7 @@ function zvol_fs_type($dev) {
 function get_config($serial, $variable) {
 	$config_file	= $GLOBALS["paths"]["config_file"];
 	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
-	return (isset($config[$serial][$variable])) ? html_entity_decode($config[$serial][$variable], ENT_COMPAT) : "";
+	return (isset($config[$serial][$variable])) ? $config[$serial][$variable] : "";
 }
 
 /* Set device configuration parameter. */
@@ -1144,9 +1154,9 @@ function set_config($serial, $variable, $value) {
 		$lock_file		= get_file_lock("cfg");
 
 		/* Make file changes. */
-		$config_file	= $GLOBALS["paths"]["config_file"];
-		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
-		$config[$serial][$variable] = htmlentities($value, ENT_COMPAT);
+		$config_file				= $GLOBALS["paths"]["config_file"];
+		$config						= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
+		$config[$serial][$variable] = $value;
 		save_ini_file($config_file, $config);
 
 		/* Release the file lock. */
@@ -1441,10 +1451,11 @@ function is_mounted($dev) {
 	$rc = false;
 	if ($dev) {
 
-		$mount		= timed_exec(2, "/usr/bin/cat /proc/mounts | awk '{print $1 \",\" $2}'");
-		$mount		= str_replace("\\040", " ", $mount);
-		$mount		= str_replace("\n", ",", $mount);
-		$rc			= (strpos($mount, $dev.",") !== false);
+		$mount				= timed_exec(2, "/usr/bin/cat /proc/mounts | awk '{print $1 \",\" $2}'");
+		$escapeSequences	= array("\\040","\n");
+		$replacementChars	= array(" ",",");
+		$mount				= str_replace($escapeSequences, $replacementChars, $mount);
+		$rc					= (strpos($mount, $dev.",") !== false);
 	}
 
 	return $rc;
@@ -3241,11 +3252,10 @@ function get_partition_info($dev) {
 		if ($disk['mounted']) {
 			if (($disk['fstype'] == "zfs") || (($disk['fstype'] == "crypto_LUKS") && (luks_fs_type($disk['mountpoint']) == "zfs"))) {
 				$mount			= shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep '".escapeshellarg(basename($disk['mountpoint']))." ' | /bin/awk '{print $2}'");
-				$disk['target']	= isset($mount) ? str_replace("\\040", " ", trim($mount)) : "";
 			} else {
 				$mount			= shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep ".escapeshellarg($disk['device'])." | /bin/awk '{print $2}'");
-				$disk['target']	= isset($mount) ? str_replace("\\040", " ", trim($mount)) : "";
 			}
+			$disk['target']		= isset($mount) ? str_replace("\\040", " ", trim($mount)) : "";
 		} else {
 			$disk['target']		= "";
 		}
