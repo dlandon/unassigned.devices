@@ -550,8 +550,7 @@ switch ($_POST['action']) {
 					$o_disks .= "<i class='fa fa-circle ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>";
 				} else {
 					$str	= "Device?name";
-					$cookie	= "test_".addslashes(htmlspecialchars($disk_device));
-					if ((! $preclearing) && (! isset($_COOKIE[$cookie]))) {
+					if (! $preclearing) {
 						if (! is_disk_spin($disk['ud_dev'], $disk['running'])) {
 							if ($disk['running']) {
 								$o_disks .= "<a style='cursor:pointer' class='exec info' onclick='spin_down_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle green-orb'></i><span>"._("Click to spin down device")."</span></a>";
@@ -1006,7 +1005,7 @@ switch ($_POST['action']) {
 
 	case 'toggle_share':
 		/* Toggle the share configuration setting. */
-		$info	= json_decode(html_entity_decode($_POST['info']), true);
+		$info	= json_decode($_POST['info'], true);
 		$status	= urldecode($_POST['status']);
 		$result	= toggle_share($info['serial'], $info['part'], $status);
 		if (($result) && ($info['target'])) {
@@ -1310,7 +1309,7 @@ switch ($_POST['action']) {
 
 	case 'toggle_samba_share':
 		/* Toggle samba share configuration setting. */
-		$info		= json_decode(html_entity_decode($_POST['info']), true);
+		$info		= json_decode($_POST['info'], true);
 		$status		= urldecode($_POST['status']);
 		$result		= toggle_samba_share($info['device'], $status);
 		if ($result && $info['target']) {
