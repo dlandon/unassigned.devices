@@ -448,8 +448,8 @@ function unassigned_umount() {
 							}
 
 							/* Remove smb and nfs shares for this device. */
-							rm_smb_share($info['target']);
-							rm_nfs_share($info['target']);
+							rm_smb_share($info['mountpoint']);
+							rm_nfs_share($info['mountpoint']);
 
 							/* Execute device script with remove action. */
 							execute_script($info, "REMOVE");

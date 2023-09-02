@@ -299,8 +299,27 @@ class MiscUD
 		/* Only check for pool name if zfs is running. */
 		if (is_file("/usr/sbin/zpool")) {
 			if ($mounted) {
-				$rc	= shell_exec("/usr/bin/cat /proc/mounts | grep ".escapeshellarg(basename($dev)." ")." | awk '{print $1}'") ?? "";
-				$rc	= str_replace("\\040", " ", $rc);
+				$mount				= timed_exec(2, "/usr/bin/cat /proc/mounts | awk '{print $2 \",\" $1}'");
+				$escapeSequences	= array("\\040");
+				$replacementChars	= array(" ");
+				$mount				= str_replace($escapeSequences, $replacementChars, $mount);
+
+				/* Create a two element array of the values. */
+				$lines	= explode("\n", $mount);
+				$result	= [];
+
+				/* Break down each line into the key (device) and value (pool name). */
+				foreach ($lines as $line) {
+					$parts = explode(',', $line, 2);
+					if (count($parts) === 2) {
+						$key = trim($parts[0]);
+						$value = trim($parts[1]);
+						$result[$key] = $value;
+					}
+				}
+
+				/* Get the pool name for this device. */
+				$rc		= isset($result[$dev]) ? $result[$dev] : "";
 			} else {
 				$rc	= shell_exec("/usr/sbin/zpool import -d ".escapeshellarg($dev)." 2>/dev/null | grep 'pool:'") ?? "";
 				$rc	= trim(str_replace("pool:", "", $rc));
@@ -421,7 +440,7 @@ function safe_name($name, $convert_spaces = true) {
 
 	/* Convert reserved php characters and invalid file name characters to underscore. */
 	$escapeSequences	= array("'", '"', "?", "#", "&", "!", "<", ">", "|", "+", "@");
-	$replacementChars	= array("_");
+	$replacementChars	= "_";
 
 	/* Convert spaces to underscore. */
 	if ($convert_spaces) {
@@ -1110,6 +1129,7 @@ function luks_fs_type($dev) {
 
 	/* Get the file system type from lsblk for a crypto_LUKS file system. */
 	$o	= shell_exec("/bin/lsblk -f | grep ".escapeshellarg(basename($dev)." ")." 2>/dev/null | grep -v 'crypto_LUKS' | /bin/awk '{print $2}'");
+
 	$o	= isset($o) ? str_replace("\n", "", $o) : "";
 	$rc	= ($o == "zfs_member") ? "zfs" : $o;
 
@@ -1467,7 +1487,7 @@ function is_mounted_read_only($dev) {
 	$rc = false;
 	if ($dev) {
 		$dev_lookup	= (strpos($dev, "/dev/mapper") !== false) ? basename($dev) : $dev;
-		$mount		= timed_exec(1, "/usr/bin/cat /proc/mounts | awk '{print $2 \",\" toupper(substr($4,0,2))}'");
+		$mount		= timed_exec(2, "/usr/bin/cat /proc/mounts | awk '{print $2 \",\" toupper(substr($4,0,2))}'");
 		$mount		= str_replace("\\040", " ", $mount);
 		$rc			= (strpos($mount, $dev_lookup.",RO") !== false);
 	}
@@ -1574,7 +1594,9 @@ function do_mount($info) {
 				} else {
 					unassigned_log("Using Unraid api to open the 'crypto_LUKS' device.");
 					$o		= shell_exec("/usr/local/sbin/emcmd cmdCryptsetup=".escapeshellarg($cmd)." 2>&1");
-					if (! file_exists("/dev/mapper/".$luks)) {
+
+					/* Check for the mapper file existing. */
+					if (! file_exists($info['device'])) {
 						$o	= "Error: Passphrase or Key File not found.";
 					}
 				}
@@ -1656,7 +1678,8 @@ function do_mount_local($info) {
 				$device = $info['luks'];
 
 				/* Find the file system type on the luks device to use the proper mount options. */
-				$mapper	= "/dev/mapper/".basename($info['device']);
+				$mapper			= $info['device'];
+
 				$file_system	= luks_fs_type($mapper);
 
 				if ($file_system != "zfs") {
@@ -2179,8 +2202,8 @@ function remove_shares() {
 		foreach ($disk['partitions'] as $p) {
 			$info = get_partition_info($p);
 			if ( ($info['mounted']) && ($info['shared']) ) {
-				rm_smb_share($info['target']);
-				rm_nfs_share($info['target']);
+				rm_smb_share($info['mountpoint']);
+				rm_nfs_share($info['mountpoint']);
 			}
 		}
 	}
@@ -3207,7 +3230,7 @@ function get_partition_info($dev) {
 		/* crypto_LUKS file system. */
 		if ($disk['fstype'] == "crypto_LUKS") {
 			$disk['luks']		= $disk['device'];
-			$disk['device']		= "/dev/mapper/".basename($disk['mountpoint']);
+			$disk['device']		= "/dev/mapper/".safe_name(basename($disk['mountpoint']));
 			$dev				= $disk['luks'];
 		} else {
 			$disk['luks']		= "";
@@ -3249,16 +3272,7 @@ function get_partition_info($dev) {
 		$disk['disable_mount']	= is_disable_mount($disk['serial']);
 
 		/* Target is set to the mount point when the device is mounted. */
-		if ($disk['mounted']) {
-			if (($disk['fstype'] == "zfs") || (($disk['fstype'] == "crypto_LUKS") && (luks_fs_type($disk['mountpoint']) == "zfs"))) {
-				$mount			= shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep '".escapeshellarg(basename($disk['mountpoint']))." ' | /bin/awk '{print $2}'");
-			} else {
-				$mount			= shell_exec("/bin/cat /proc/mounts 2>&1 | /bin/grep ".escapeshellarg($disk['device'])." | /bin/awk '{print $2}'");
-			}
-			$disk['target']		= isset($mount) ? str_replace("\\040", " ", trim($mount)) : "";
-		} else {
-			$disk['target']		= "";
-		}
+		$disk['target']			= $disk['mounted'] ? $disk['mountpoint'] : "";
 
 		$stats					= get_device_stats($disk['mountpoint'], $disk['mounted']);
 		$disk['size']			= $stats[0]*1024;
@@ -3481,7 +3495,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 					timed_exec(20, "/sbin/cryptsetup config ".escapeshellarg($dev)." --label ".escapeshellarg($mountpoint)." 2>/dev/null");
 
 					/* Set the partition label. */
-					$mapper	= basename($mountpoint);
+					$mapper	= safe_name(basename($mountpoint));
 					$cmd	= "luksOpen ".escapeshellarg($dev)." ".escapeshellarg($mapper);
 					$pass	= decrypt_data(get_config($serial, "pass"));
 					if (! $pass) {
