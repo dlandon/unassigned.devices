@@ -155,11 +155,13 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$mount_point	= basename($partition['mountpoint']);
 
 		/* Add change mount point or browse disk share icon if disk is mounted. */
-
 		if ($not_unmounted) {
 			$mpoint .= "<i class='fa partition-hdd'></i>".$mount_point."</span>";
 		} else if ($mounted) {
-			$mpoint .= "<i class='fa fa-external-link partition-hdd'></i><a title='"._("Browse Disk Share")."' href='/Main/Browse?dir={$partition['mountpoint']}'>".$mount_point."</a></span>";
+			/* If the partition is mounted read only, indicate that on the mount point. */
+			$read_only		= $partition['part_read_only'] ? "<font color='red'> (RO)<font>" : "";
+
+			$mpoint			.= "<i class='fa fa-external-link partition-hdd'></i><a title='"._("Browse Disk Share")."' href='/Main/Browse?dir={$partition['mountpoint']}'>".$mount_point."</a>".$read_only."</span>";
 		} else {
 			$mount_point	= basename($partition['mountpoint']);
 			$disk_label		= $partition['disk_label'];
@@ -262,28 +264,31 @@ function render_partition($disk, $partition, $disk_line = false) {
 		if (count($disk['zvol'])) {
 			foreach ($disk['zvol'] as $k => $z) {
 				if ((get_config("Config", "zvols") == "yes") || ($z['mounted'])) { 
-					$mbutton	= $z['active'] ? make_mount_button($z) : "";
-					$fstype		= $z['file_system'];
-					$out[]		= "<tr class='toggle-parts toggle-".basename($disk['device'])."' name='toggle-".basename($disk['device'])."' $style>";
-					$out[]		= "<td></td><td><span>"._("ZFS Volume").":</span>";
+					$mbutton		= $z['active'] ? make_mount_button($z) : "";
+					$fstype			= $z['file_system'];
+					$out[]			= "<tr class='toggle-parts toggle-".basename($disk['device'])."' name='toggle-".basename($disk['device'])."' $style>";
+					$out[]			= "<td></td><td><span>"._("ZFS Volume").":</span>";
 
 					/* Put together the file system check icon. */
 					if (((! $z['mounted']) && ($fstype) && ($fstype != "btrfs")) || (($z['mounted']) && ($fstype == "btrfs" || $fstype == "zfs"))) {
 						$file_system_check = (($fstype != "btrfs") && ($fstype != "zfs")) ? _('File System Check') : _('File System Scrub');
-						$fscheck = "<a class='exec info' onclick='openWindow_fsck(\"/plugins/".$plugin."/include/fsck.php?device={$z['device']}&fs={$fstype}&luks={$z['device']}&serial={$z['volume']}&mountpoint={$z['mountpoint']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i><span>".$file_system_check."</span></a>";
+						$fscheck	= "<a class='exec info' onclick='openWindow_fsck(\"/plugins/".$plugin."/include/fsck.php?device={$z['device']}&fs={$fstype}&luks={$z['device']}&serial={$z['volume']}&mountpoint={$z['mountpoint']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i><span>".$file_system_check."</span></a>";
 					} else {
-						$fscheck = "<i class='fa fa-check partition-hdd'></i></a>";
+						$fscheck	= "<i class='fa fa-check partition-hdd'></i></a>";
 					}
 
 					if ($z['mounted']) {
-						$out[]	= "<span>".$fscheck."<i class='fa fa-external-link partition-hdd'></i><a title='"._("Browse ZFS Volume")."' href='/Main/Browse?dir=".$z['mountpoint']."'>".basename($z['mountpoint'])."</a></span>";
+						/* If the volume is mounted read only, indicate that on the mount point. */
+						$read_only	= $z['zfs_read_only'] ? "<font color='red'> (RO)<font>" : "";
+	
+						$out[]		= "<span>".$fscheck."<i class='fa fa-external-link partition-hdd'></i><a title='"._("Browse ZFS Volume")."' href='/Main/Browse?dir=".$z['mountpoint']."'>".basename($z['mountpoint'])."</a>".$read_only."</span>";
 					} elseif ($z['active']) {
-						$out[]	= "<span>".$fscheck.basename($z['mountpoint'])."</span>";
+						$out[]		= "<span>".$fscheck.basename($z['mountpoint'])."</span>";
 					} else {
-						$out[]	= "<span>".basename($z['mountpoint'])."</span>";
+						$out[]		= "<span>".basename($z['mountpoint'])."</span>";
 					}
-					$out[]	= "<td class='mount'>".$mbutton."</td>";
-					$out[]	= "<td></td><td></td><td></td>";
+					$out[]			= "<td class='mount'>".$mbutton."</td>";
+					$out[]			= "<td></td><td></td><td></td>";
 
 					/* Set up the device settings and script settings tooltip. */
 					$title = _("Edit ZFS Volume Settings");
@@ -300,14 +305,14 @@ function render_partition($disk, $partition, $disk_line = false) {
 					$id_bus	= "";
 
 					if (($z['active']) && ($fstype)) {
-						$out[]	= "<td><a class='info' href='/Main/EditDeviceSettings?s=".$serial."&b=".$volume."&f=".$z['fstype']."&l=".$z['mountpoint']."&p=".$volume."&m=".json_encode($z)."&t=false&u=".$id_bus."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
-						$out[]	= "<td>".$fstype."</td>";
-						$out[]	= "<td>".my_scale($z['size'], $unit)." $unit</td>";
+						$out[]		= "<td><a class='info' href='/Main/EditDeviceSettings?s=".$serial."&b=".$volume."&f=".$z['fstype']."&l=".$z['mountpoint']."&p=".$volume."&m=".json_encode($z)."&t=false&u=".$id_bus."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+						$out[]		= "<td>".$fstype."</td>";
+						$out[]		= "<td>".my_scale($z['size'], $unit)." $unit</td>";
 					} else {
-						$out[]	= "<td></td><td></td>";
+						$out[]		= "<td></td><td></td>";
 					}
-					$out[]	= render_used_and_free($z);
-					$out[]	= "<td></td>";
+					$out[]			= render_used_and_free($z);
+					$out[]			= "<td></td>";
 				}
 			}
 		}
@@ -688,8 +693,12 @@ switch ($_POST['action']) {
 				$o_remotes		.= "<td>{$mount['name']}";
 				$mount_point	= (! $mount['invalid']) ? basename($mount['mountpoint']) : "-- "._("Invalid Configuration - Remove and Re-add")." --";
 				$o_remotes		.= "<td></td>";
+
 				if ((! $is_unmounting) && ($mounted) && ($is_alive) && ($is_available)) {
-					$o_remotes	.= "<td><i class='fa fa-external-link mount-share'></i><a title='"._("Browse Remote SMB")."/"._("NFS Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
+					/* If the partition is mounted read only, indicate that on the mount point. */
+					$read_only	= $mount['remote_read_only'] ? "<font color='red'> (RO)<font>" : "";
+
+					$o_remotes	.= "<td><i class='fa fa-external-link mount-share'></i><a title='"._("Browse Remote SMB")."/"._("NFS Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a>".$read_only."</td>";
 				} else {
 					$o_remotes	.= "<td><i class='fa fa-pencil mount-share'></i>";
 					if ((! $is_mounting) && (! $is_unmounting) && (! $mount['invalid']) && ($is_alive) && ($is_available)) {

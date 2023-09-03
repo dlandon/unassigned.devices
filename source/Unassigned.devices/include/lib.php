@@ -312,9 +312,9 @@ class MiscUD
 				foreach ($lines as $line) {
 					$parts = explode(',', $line, 2);
 					if (count($parts) === 2) {
-						$key = trim($parts[0]);
-						$value = trim($parts[1]);
-						$result[$key] = $value;
+						$key			= trim($parts[0]);
+						$value			= trim($parts[1]);
+						$result[$key]	= $value;
 					}
 				}
 
@@ -1486,10 +1486,12 @@ function is_mounted_read_only($dev) {
 
 	$rc = false;
 	if ($dev) {
-		$dev_lookup	= (strpos($dev, "/dev/mapper") !== false) ? basename($dev) : $dev;
-		$mount		= timed_exec(2, "/usr/bin/cat /proc/mounts | awk '{print $2 \",\" toupper(substr($4,0,2))}'");
-		$mount		= str_replace("\\040", " ", $mount);
-		$rc			= (strpos($mount, $dev_lookup.",RO") !== false);
+		$dev_lookup			= (strpos($dev, "/dev/mapper") !== false) ? basename($dev) : $dev;
+		$mount				= timed_exec(2, "/usr/bin/cat /proc/mounts | awk '{print $2 \",\" toupper(substr($4,0,2))}'");
+		$escapeSequences	= array("\\040","\n");
+		$replacementChars	= array(" ",",");
+		$mount				= str_replace($escapeSequences, $replacementChars, $mount);
+		$rc					= (strpos($mount, $dev_lookup.",RO,") !== false);
 	}
 
 	return $rc;
@@ -2441,6 +2443,9 @@ function get_samba_mounts() {
 				/* Is remote share mounted? */
 				$mount['mounted']		= (is_mounted($mount['mountpoint']) && is_mounted($mount['mount_dev']));
 
+				/* Is the remote share mounted read only? */
+				$mount['remote_read_only']	= is_mounted_read_only($mount['mountpoint']);
+
 				/* Check that the device built from the ip and path is consistent with the config file device. */
 				$check_device			= safe_name($dev_check, false);
 
@@ -3249,8 +3254,11 @@ function get_partition_info($dev) {
 		/* Is the disk mount point mounted? */
 		$disk['mounted']		= ((! $disk['pass_through']) && ($disk['fstype'])) ? is_mounted($disk['mountpoint']) : false;
 
+		/* is the partition mounted read only. */
+		$disk['part_read_only']	= ($disk['mounted']) ? is_mounted_read_only($disk['mountpoint']) : false;
+
 		/* The device is /dev/mapper/... for all luks devices, but base name of device is zfs zpool on luks. */
-		$dev_mounted		= is_mounted($disk['device'] || is_mounted(basename($disk['device'])));
+		$dev_mounted			= is_mounted($disk['device'] || is_mounted(basename($disk['device'])));
 
 		/* Not unmounted is a check that the disk is mounted by mount point but not by device. */
 		/* The idea is to catch the situation where a disk is removed before being unmounted. */
@@ -3316,6 +3324,7 @@ function get_zvol_info($disk) {
 			$zvol[$vol]['file_system']		= zvol_fs_type($zvol[$vol]['device']);
 			$zvol[$vol]['mountpoint']		= $disk['mountpoint'].".".basename($q);
 			$zvol[$vol]['mounted']			= is_mounted($zvol[$vol]['mountpoint']);
+			$zvol[$vol]['zfs_read_only']	= is_mounted_read_only($zvol[$vol]['mountpoint']);
 			$stats							= get_device_stats($zvol[$vol]['mountpoint'], $zvol[$vol]['mounted']);
 			$zvol[$vol]['size']				= $stats[0]*1024;
 			$zvol[$vol]['used']				= $stats[1]*1024;
