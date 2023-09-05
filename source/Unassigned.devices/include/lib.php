@@ -1597,7 +1597,7 @@ function do_mount($info) {
 					unassigned_log("Using Unraid api to open the 'crypto_LUKS' device.");
 					$o		= shell_exec("/usr/local/sbin/emcmd cmdCryptsetup=".escapeshellarg($cmd)." 2>&1");
 
-					/* Check for the mapper file existing. */
+					/* Check for the mapper file existing. If it's not there, unraid did not open the luks disk. */
 					if (! file_exists($info['device'])) {
 						$o	= "Error: Passphrase or Key File not found.";
 					}
@@ -3450,6 +3450,7 @@ function check_for_duplicate_share($dev, $mountpoint) {
 
 	/* Merge samba shares, reserved names, and ud shares. */
 	$shares = array_merge($smb_shares, $ud_shares, $disk_names);
+
 	/* See if the share name is already being used. */
 	if (is_array($shares) && in_array(strtoupper($mountpoint), $shares, true)) {
 		unassigned_log("Error: Device '".$dev."' mount point '".$mountpoint."' - name is reserved, used in the array or a pool, or by an unassigned device.");
@@ -3469,9 +3470,9 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 		$rc = check_for_duplicate_share($dev, $mountpoint);
 		if ($rc) {
 			$old_mountpoint	= basename(get_config($serial, "mountpoint.{$partition}"));
-			$mountpoint = $paths['usb_mountpoint']."/".$mountpoint;
+			$mountpoint		= $paths['usb_mountpoint']."/".$mountpoint;
 			set_config($serial, "mountpoint.{$partition}", $mountpoint);
-			$mountpoint = safe_name(basename($mountpoint));
+			$mountpoint		= safe_name(basename($mountpoint));
 			switch ($fstype) {
 				case 'xfs';
 					timed_exec(20, "/usr/sbin/xfs_admin -L ".escapeshellarg($mountpoint)." ".escapeshellarg($dev)." 2>/dev/null");
