@@ -1514,36 +1514,36 @@ function get_mount_params($fs, $dev, $ro = false) {
 			break;
 
 		case 'btrfs':
-			$rc = "{$rw},noatime,nodiratime,space_cache=v2{$discard}";
+			$rc = "{$rw},relatime,space_cache=v2{$discard}";
 			break;
 
 		case 'xfs':
-			$rc = "{$rw},noatime,nodiratime{$discard}";
+			$rc = "{$rw},relatime{$discard}";
 			break;
 
 		case 'zfs':
-			$rc = "{$rw},noatime,nodiratime";
+			$rc = "{$rw},relatime";
 			break;
 
 		case 'exfat':
-			$rc = "{$rw},noatime,nodiratime,nodev,nosuid,umask=000";
+			$rc = "{$rw},relatime,nodev,nosuid,umask=000";
 			break;
 
 		case 'vfat':
-			$rc = "{$rw},noatime,nodiratime,nodev,nosuid,iocharset=utf8,umask=000";
+			$rc = "{$rw},relatime,nodev,nosuid,iocharset=utf8,umask=000";
 			break;
 
 		case 'ntfs':
-			$rc = "{$rw},noatime,nodiratime,nodev,nosuid,nls=utf8,umask=000";
+			$rc = "{$rw},relatime,nodev,nosuid,nls=utf8,umask=000";
 			break;
 
 		case 'ext4':
-			$rc = "{$rw},noatime,nodiratime,nodev,nosuid{$discard}";
+			$rc = "{$rw},relatime,nodev,nosuid{$discard}";
 			break;
 
 		case 'cifs':
 			$credentials_file = "{$paths['credentials']}_".basename($dev);
-			$rc = "{$rw},noserverino,nounix,iocharset=utf8,file_mode=0777,dir_mode=0777,uid=99,gid=100%s,credentials=".escapeshellarg($credentials_file);
+			$rc = "{$rw},relatime,noserverino,nounix,iocharset=utf8,file_mode=0777,dir_mode=0777,uid=99,gid=100%s,credentials=".escapeshellarg($credentials_file);
 			break;
 
 		case 'nfs':
@@ -1551,11 +1551,11 @@ function get_mount_params($fs, $dev, $ro = false) {
 			break;
 
 		case 'root':
-			$rc = "{$rw},bind,noatime,nodiratime";
+			$rc = "{$rw},bind,relatime";
 			break;
 
 		default:
-			$rc = "{$rw},noatime,nodiratime";
+			$rc = "{$rw},relatime";
 			break;
 	}
 
@@ -3258,7 +3258,7 @@ function get_partition_info($dev) {
 		$disk['part_read_only']	= ($disk['mounted']) ? is_mounted_read_only($disk['mountpoint']) : false;
 
 		/* The device is /dev/mapper/... for all luks devices, but base name of device is zfs zpool on luks. */
-		$dev_mounted			= is_mounted($disk['device'] || is_mounted(basename($disk['device'])));
+		$dev_mounted			= is_mounted($disk['device']) || is_mounted(basename($disk['device']));
 
 		/* Not unmounted is a check that the disk is mounted by mount point but not by device. */
 		/* The idea is to catch the situation where a disk is removed before being unmounted. */
