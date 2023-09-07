@@ -653,9 +653,9 @@ switch ($_POST['action']) {
 							$disk_uuid[$uuid]		= $dev;
 						}
 
-						$share_names				= array_flip($share_names);
-						$share_names[$mountpoint]	= isset($disk_uuid[$uuid]) ? $disk_uuid[$uuid] : $dev;
-						$share_names				= array_flip($share_names);
+						$share_names					= array_flip($share_names);
+						$share_names[$mountpoint]		= isset($disk_uuid[$uuid]) ? $disk_uuid[$uuid] : $dev;
+						$share_names					= array_flip($share_names);
 					}
 				}
 			}
