@@ -3257,8 +3257,8 @@ function get_partition_info($dev) {
 		/* is the partition mounted read only. */
 		$disk['part_read_only']	= ($disk['mounted']) ? is_mounted_read_only($disk['mountpoint']) : false;
 
-		/* The device is /dev/mapper/... for all luks devices, but base name of device is zfs zpool on luks. */
-		$dev_mounted			= is_mounted($disk['device']) || is_mounted(basename($disk['device']));
+		/* The device is /dev/mapper/... for all luks devices, but base name of the mount point is zfs zpool. */
+		$dev_mounted			= is_mounted($disk['device']) || is_mounted(basename($disk['device'])) || is_mounted(basename($disk['mountpoint']));
 
 		/* Not unmounted is a check that the disk is mounted by mount point but not by device. */
 		/* The idea is to catch the situation where a disk is removed before being unmounted. */
