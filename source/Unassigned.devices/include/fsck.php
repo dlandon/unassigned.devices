@@ -85,7 +85,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 	}
 
 	/* If there was no error from the luks open command or the disk is not encrypted, go ahead with the file check. */
-	$file_system = ($fs == "crypto_LUKS") ? luks_fs_type($device) : $fs;
+	$file_system = part_fs_type($device);
 	if ($rc) {
 		if ($file_system) {
 			/* If the file system is btrfs, we will do a scrub. */
