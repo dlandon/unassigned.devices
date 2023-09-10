@@ -119,6 +119,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 	if (isset($partition['device'])) {
 		$mounted		= $partition['mounted'];
 		$not_unmounted	= $partition['not_unmounted'];
+		$not_udev		= $partition['not_udev'];
 		$cmd			= $partition['command'];
 		$device			= $partition['fstype'] == "crypto_LUKS" ? $partition['luks'] : $partition['device'];
 		$is_mounting	= $partition['is_mounting'];
@@ -127,7 +128,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$disabled		= $is_mounting || $is_unmounting || is_script_running($cmd) || ! $partition['fstype'] || $disk['array_disk'];
 
 		/* Set up icons for file system check/scrub and script execution. */
-		$fstype = ($partition['fstype'] == "crypto_LUKS") ? luks_fs_type($partition['device']) : $partition['fstype'];
+		$fstype = ($partition['fstype'] == "crypto_LUKS") ? part_fs_type($partition['device']) : $partition['fstype'];
 		if (((! $disabled) && (! $mounted) && ($fstype != "apfs") && ($fstype != "btrfs")) || ((! $disabled) && ($mounted) && ($fstype == "btrfs" || $fstype == "zfs"))) {
 			$file_system_check = (($fstype != "btrfs") && ($fstype != "zfs")) ? _('File System Check') : _('File System Scrub');
 			$fscheck = "<a class='exec info' onclick='openWindow_fsck(\"/plugins/".$plugin."/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&mountpoint={$partition['mountpoint']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i><span>".$file_system_check."</span></a>";
@@ -155,7 +156,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$mount_point	= basename($partition['mountpoint']);
 
 		/* Add change mount point or browse disk share icon if disk is mounted. */
-		if ($not_unmounted) {
+		if (($not_unmounted) || ($not_udev)) {
 			$mpoint .= "<i class='fa partition-hdd'></i>".$mount_point."</span>";
 		} else if ($mounted) {
 			/* If the partition is mounted read only, indicate that on the mount point. */
@@ -245,7 +246,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		}
 
 		/* Show disk and partition usage. */
-		$out[] = "<td>".($fstype == "crypto_LUKS" ? luks_fs_type($partition['device']) : $fstype)."</td>";
+		$out[] = "<td>".($fstype == "crypto_LUKS" ? part_fs_type($partition['device']) : $fstype)."</td>";
 		if ($disk_line) {
 			$out[] = render_used_and_free_disk($disk, $mounted_disk);
 		} else {
@@ -346,8 +347,12 @@ function make_mount_button($device) {
 		/* Find conditions to disable the 'Mount' button. */
 		$disable_mount	= isset($device['partitions'][0]['disable_mount']) ? $device['partitions'][0]['disable_mount'] : false;
 
-		/* Is the disk not unmounted? */
+		/* Is the disk not unmounted properly? */
 		$not_unmounted	= isset($device['partitions'][0]['not_unmounted']) ? $device['partitions'][0]['not_unmounted'] : false;
+
+		/* Is the disk file system not matching udev file system? */
+		$not_udev		= isset($device['partitions'][0]['not_udev']) ? $device['partitions'][0]['not_udev'] : false;
+
 		$zvol_device	= false;
 
 		/* Check the state of mounting, unmounting, and formatting. */
@@ -363,6 +368,7 @@ function make_mount_button($device) {
 		$context		= "partition";
 		$pool_disk		= false;
 		$not_unmounted	= false;
+		$not_udev		= false;
 		$dev			= $device['fstype'] == "crypto_LUKS" ? $device['luks'] : $device['device'];
 
 		/* Check the state of mounting, unmounting, and formatting. */
@@ -376,8 +382,8 @@ function make_mount_button($device) {
 	$is_preclearing = shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg($device['device'])." | /bin/grep -v 'grep'") != "";
 	$preclearing	= $preclearing || $is_preclearing;
 
-	$disable		= ( ($pass_through) || ($disable_mount) || ($preclearing) || ($not_unmounted) ) ? "disabled" : $disable;
-	$class			= ( ($pass_through) || ($disable_mount) || ($not_unmounted) ) ? "fa fa-ban" : "";
+	$disable		= ( ($pass_through) || ($disable_mount) || ($preclearing) || ($not_unmounted) || ($not_udev) ) ? "disabled" : $disable;
+	$class			= ( ($pass_through) || ($disable_mount) || ($not_unmounted) || ($not_udev) ) ? "fa fa-ban" : "";
 
 	if ($pool_disk) {
 		$button = sprintf($button, $context, 'mount', 'disabled', '', _('Pool'));
@@ -385,6 +391,8 @@ function make_mount_button($device) {
 		$button = sprintf($button, $context, 'mount', 'disabled', '', _('Mount'));
 	} else if ($device['array_disk']) {
 		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-ban', _('Array'));
+	} else if ($not_udev) {
+		$button = sprintf($button, $context, 'umount', $disable, $class, _('Udev'));
 	} else if (($format) || ($preclearing)) {
 		if ($preclearing) {
 			$button = sprintf($button, $context, 'mount', 'disabled', '', " "._('Preclear'));

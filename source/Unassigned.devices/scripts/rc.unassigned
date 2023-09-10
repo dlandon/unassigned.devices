@@ -433,7 +433,7 @@ function unassigned_umount() {
 
 						/* Unmount the device. */
 						if ($rc) {
-							if (($info['fstype'] == "zfs") || (($info['fstype'] == "crypto_LUKS") && (luks_fs_type($info['device'], true) == "zfs"))) {
+							if (($info['fstype'] == "zfs") || (($info['fstype'] == "crypto_LUKS") && (part_fs_type($info['device'], true) == "zfs"))) {
 								$zfs	= true;
 							} else {
 								$zfs	= false;

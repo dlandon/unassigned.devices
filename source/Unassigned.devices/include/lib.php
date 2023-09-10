@@ -1125,7 +1125,7 @@ function timed_exec($timeout, $cmd) {
 }
 
 /* Find the file system of a luks device. */
-function luks_fs_type($dev) {
+function part_fs_type($dev) {
 
 	/* Get the file system type from lsblk for a crypto_LUKS file system. */
 	$o	= shell_exec("/bin/lsblk -f | grep ".escapeshellarg(basename($dev)." ")." 2>/dev/null | grep -v 'crypto_LUKS' | /bin/awk '{print $2}'");
@@ -1581,7 +1581,7 @@ function do_mount($info) {
 
 	/* Mount a luks encrypted disk device. */
 	} else if ($info['fstype'] == "crypto_LUKS") {
-		$fstype		= luks_fs_type($info['device']);
+		$fstype		= part_fs_type($info['device']);
 		$pool_name	= (new MiscUD)->zfs_pool_name($info['mountpoint'], true);
 		$mounted	= (($fstype == "zfs") && ($pool_name)) ? (is_mounted($pool_name) || is_mounted($info['mountpoint'])) : (is_mounted($info['device']) || is_mounted($info['mountpoint']));
 		if (! $mounted) {
@@ -1682,7 +1682,7 @@ function do_mount_local($info) {
 				/* Find the file system type on the luks device to use the proper mount options. */
 				$mapper			= $info['device'];
 
-				$file_system	= luks_fs_type($mapper);
+				$file_system	= part_fs_type($mapper);
 
 				if ($file_system != "zfs") {
 					$params	= get_mount_params($file_system, $device, $ro);
@@ -3226,6 +3226,9 @@ function get_partition_info($dev) {
 		$disk['fstype']			= isset($attrs['ID_FS_TYPE']) ? safe_name($attrs['ID_FS_TYPE']) : "";
 		$disk['fstype']			= ($disk['fstype'] == "zfs_member") ? "zfs" : $disk['fstype'];
 
+		/* Check for udev and lsblk file system type matching. If not then udev is not reporting the correct file system. */
+		$disk['not_udev']		= $disk['fstype'] != "crypto_LUKS" ? ($disk['fstype'] != part_fs_type($disk['device'])) : false;
+
 		/* Get the mount point from the configuration and if not set create a default mount point. */
 		$disk['mountpoint']		= get_config($disk['serial'], "mountpoint.{$disk['part']}");
 		if (! $disk['mountpoint']) { 
@@ -3248,10 +3251,10 @@ function get_partition_info($dev) {
 		$disk['is_formatting']	= (new MiscUD)->get_formatting_status(basename($dev));
 
 		/* Set up all disk parameters and status. */
-		/* If the partition doesn't have a file system, it can't possibly be mounted. */
 		$disk['pass_through']	= is_pass_through($disk['serial']);
 
 		/* Is the disk mount point mounted? */
+		/* If the partition doesn't have a file system, it can't possibly be mounted. */
 		$disk['mounted']		= ((! $disk['pass_through']) && ($disk['fstype'])) ? is_mounted($disk['mountpoint']) : false;
 
 		/* is the partition mounted read only. */
@@ -3264,6 +3267,7 @@ function get_partition_info($dev) {
 		/* The idea is to catch the situation where a disk is removed before being unmounted. */
 		$disk['not_unmounted']	= (($disk['mounted']) && (! $dev_mounted));
 
+		/* Is this a btrfs pooled disk. */
 		if ($disk['mounted'] && $disk['fstype'] == "btrfs") {
 			/* Get the members of a pool if this is a pooled disk. */
 			$pool_devs			= (new MiscUD)->get_pool_devices($disk['mountpoint']);
@@ -3531,7 +3535,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 						unassigned_log("Change disk label luksOpen error: ".$o);
 						$rc = false;
 					} else {
-						switch (luks_fs_type("/dev/mapper/".$mapper)) {
+						switch (part_fs_type("/dev/mapper/".$mapper)) {
 							case "btrfs":
 								/* btrfs label change. */
 								timed_exec(20, "/sbin/btrfs filesystem label ".escapeshellarg($mapper)." ".escapeshellarg($mountpoint)." 2>/dev/null");
@@ -3662,9 +3666,9 @@ function change_UUID($dev) {
 		if ($o) {
 			unassigned_log("luksOpen error: ".$o);
 		} else {
-			/* Get the crypto file system check so we can determine the luks file system. */
+			/* Get the crypto luks file system. */
 			$mapper_dev = "/dev/mapper/".$mapper;
-			switch (luks_fs_type($mapper_dev)) {
+			switch (part_fs_type($mapper_dev)) {
 				case "xfs":
 					/* Change the xfs UUID. */
 					$rc = timed_exec(10, "/usr/sbin/xfs_admin -U generate ".escapeshellarg($mapper_dev));
