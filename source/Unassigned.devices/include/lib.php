@@ -1125,7 +1125,7 @@ function timed_exec($timeout, $cmd) {
 }
 
 /* Find the file system of a luks device. */
-function part_fs_type($dev) {
+function part_fs_type($dev, $luks = true) {
 
 	/* Get the file system type from lsblk for a crypto_LUKS file system. */
 	$o	= shell_exec("/bin/lsblk -f | grep ".escapeshellarg(basename($dev)." ")." 2>/dev/null | grep -v 'crypto_LUKS' | /bin/awk '{print $2}'");
@@ -1133,7 +1133,7 @@ function part_fs_type($dev) {
 	$o	= isset($o) ? str_replace("\n", "", $o) : "";
 	$rc	= ($o == "zfs_member") ? "zfs" : $o;
 
-	return ($rc ? $rc : "luks");
+	return ($rc ? $rc : ($luks ? "luks" : ""));
 }
 
 /* Find the file system of a zvol device. */
@@ -3227,7 +3227,7 @@ function get_partition_info($dev) {
 		$disk['fstype']			= ($disk['fstype'] == "zfs_member") ? "zfs" : $disk['fstype'];
 
 		/* Check for udev and lsblk file system type matching. If not then udev is not reporting the correct file system. */
-		$disk['not_udev']		= $disk['fstype'] != "crypto_LUKS" ? ($disk['fstype'] != part_fs_type($disk['device'])) : false;
+		$disk['not_udev']		= ($disk['fstype'] != "crypto_LUKS") ? ($disk['fstype'] != part_fs_type($disk['device'], false)) : false;
 
 		/* Get the mount point from the configuration and if not set create a default mount point. */
 		$disk['mountpoint']		= get_config($disk['serial'], "mountpoint.{$disk['part']}");
