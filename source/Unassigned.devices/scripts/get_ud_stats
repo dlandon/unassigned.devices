@@ -19,10 +19,11 @@ $COMMAND	= $argv[1];
 $plugin			= "unassigned.devices";
 $docroot		= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 $config_file	= "/tmp/".$plugin."/config/samba_mount.cfg";
+$pidFile		= "/var/run/get_ud_stats";
 $tc 			= "/var/state/".$plugin."/ping_status.json";
 $var			= @parse_ini_file("$docroot/state/var.ini");
 
-/* Strip off any local tld reference and capitalize the server name.  Default local TLD is 'local'. */
+/* Set default local TLD reference and capitalize the LOCLA_TLD.  Default local TLD is 'local'. */
 $default_tld	= "LOCAL";
 $local_tld		= strtoupper($var['LOCAL_TLD']) ?: $default_tld;
 
@@ -44,12 +45,6 @@ class MiscUD
 	public function is_ip($str) {
 		return filter_var($str, FILTER_VALIDATE_IP);
 	}
-
-	/* Check for text in a file. */
-	public function exist_in_file($file, $text) {
-		return (preg_grep("%{$text}%", @file($file)));
-	}
-
 }
 
 /* Unassigned Devices logging. */
@@ -105,7 +100,7 @@ function is_server_online($server, $log = false) {
 	$ip_arp	= "";
 	if ($server) {
 		if (! (new MiscUD)->is_ip($server)) {
-			$ip_arp			= timed_exec(15, "/sbin/arp -a ".escapeshellarg($server)." 2>&1");
+			$ip_arp			= shell_exec("/sbin/arp -a ".escapeshellarg($server)." 2>&1");
 			$ip_array		= explode(" ", $ip_arp);
 			$ip_array[0]	= strtoupper($ip_array[0]);
 			$ip				= str_replace(array("(", ")"), "", $ip_array[1]);
@@ -119,7 +114,7 @@ function is_server_online($server, $log = false) {
 			/* If arp did not return a valid IP address, look up the IP address using 'Local'. */
 			if (strpos($ip_arp, "no match found") === false) {
 				$srvr		= $server.".".$default_tld;
-				$ip_arp		= timed_exec(10, "/sbin/arp -a ".escapeshellarg($srvr)." 2>&1");
+				$ip_arp		= shell_exec("/sbin/arp -a ".escapeshellarg($srvr)." 2>&1");
 				$ip_array	= explode(" ", $ip_arp);
 				$ip_local	= str_replace(array("(", ")"), "", $ip_array[1]);
 				$ip_local	= (new MiscUD)->is_ip($ip_local) ?: "";
@@ -127,16 +122,15 @@ function is_server_online($server, $log = false) {
 				/* If arp did not return a valid IP address, look up the IP address using 'Local TLD'. */
 				if ((! (new MiscUD)->is_ip($ip_local) && ($default_tld != $local_tld))) {
 					$srvr		= $server.".".$local_tld;
-					$ip_local	= timed_exec(10, "/sbin/arp -a ".escapeshellarg($srvr)." 2>&1");
-					$ip_array	= explode(" ", $ip_local);
+					$ip_arp		= shell_exec("/sbin/arp -a ".escapeshellarg($srvr)." 2>&1");
+					$ip_array	= explode(" ", $ip_arp);
 					$ip_local	= str_replace(array("(", ")"), "", $ip_array[1]);
 					$ip_local	= (new MiscUD)->is_ip($ip_local) ?: "";
-
 				}
 
 				/* If the ip cannot be found on the local LAN, then the server is probably off-site and we just ping the server. */
 				if (! $ip_local) {
-					$server	= $orig_srvr;
+					$server		= $orig_srvr;
 				}
 			} else {
 				$ip_local	= $ip;
@@ -261,14 +255,26 @@ function df_status($tc, $mountpoint) {
 
 switch ($COMMAND) {
 	case 'ping':
-		ping_servers();
+		/* If we are already running, skip the update so we don't duplicate the instances of the ping script. */
+		if (! file_exists($pidFile)) {
+			/* Get the current PID and save it to the file. */
+			file_put_contents($pidFile, getmypid());
+
+			/* Update ping status on all remote servers. */
+			ping_servers();
+
+			/* Remove PID file when script is done. */
+			unlink($pidFile);
+		}
 		break;
 
 	case 'df_status':
+		/* Update size, used, and free stats on mounted device. */
 		df_status($argv[2], $argv[3]);
 		break;
 
 	case 'is_online':
+		/* Check that the remote server is online. */
 		is_server_online($argv[2], true);
 		break;
 
