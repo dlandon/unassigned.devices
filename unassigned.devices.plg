@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.08.30">
+<!ENTITY version	"2023.09.10">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"2a78bd06b57d054579dd5eb796015918">
+<!ENTITY MD5		"8880fb71f703ce34ba8f07aac99bf159">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,17 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Server names that are entered in lower case are converted to upper case when remote shares are added and when listing shares.
+- Fix: Deal with spaces in mount points of encrypted disks.
+- Fix: Could not change BTRFS pool devices mount points.
+- Fix: Change 'noatime,nodiratime' options to 'relatime' on mount except for NFS remote mounts.
+- Fix: Improperly unmounted disk indicator ('Reboot') not working.
+- Add: Any local tld references are removed from the server name when remote shares are added.
+- Add: Check for local_tld as part of the server name of existing remote shares and show 'Invalid configuration' if found.  Congiguration has to be removed and added back.
+- Add: Allow ZFS Pool Names to include spaces.  ZFS pool names with spaces were not being handled properly and would fail to mount/unmount.
+- Add: Read only marker '(RO)' to mount point when disk is mounted read only.  Read only can occur when disk is mounted read only by the switch setting, or the mount forces read only.
+
+###2023.08.30
 - Fix: Duplicate updating and refresh of ping status file.
 - Fix: Issue with local server name that does not resolve with 'server.local' and not getting a ping status.
 
