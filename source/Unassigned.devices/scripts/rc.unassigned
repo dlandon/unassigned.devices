@@ -661,45 +661,27 @@ function unassigned_spin_down($device) {
 }
 
 /* Detach the disk device. */
-function unassigned_detach($device, $ata = false) {
+function unassigned_detach($device) {
 
 	$dev = (new MiscUD)->base_device(basename($device));
 
 	if (! is_file("/tmp/unassigned.devices/shut_down")) {
-		/* We only allow removing USB devices. */
-		foreach (get_all_disks_info() as $disk) {
-			if (basename($disk['device']) == $dev) {
-				if (($disk['id_bus'] == "usb") || ($ata)) {
-					$mounted		= false;
-					foreach ($disk['partitions'] as $partition) {
-						if ($partition['mounted']) {
-							$mounted = true;
-							continue;
-						}
-					}
+		if (is_dir("/sys/block/".$dev."/")) {
+			exec("echo '1' > /sys/block/".$dev."/device/delete");
+			$i	= 0;
 
-					if (! $mounted) {
-						if (is_dir("/sys/block/{$dev}/")) {
-							exec("echo '1' > /sys/block/{$dev}/device/delete");
-							$i	= 0;
+			/* Wait for the device to be removed. */
+			while (is_file("/sys/block/".$dev) && ($i < 25)) {
+				sleep(1);
+				$i++;
+			}
 
-							/* Wait for the device to be removed. */
-							while (is_file("/dev/".$dev) && ($i < 5)) {
-								sleep(1);
-								$i++;
-							}
+			sleep(2);
 
-							sleep(2);
-
-							unassigned_log("Device '/dev/".$dev."' has been detached.");
-						}
-					} else {
-						unassigned_log("Device '/dev/".$dev."' is mounted and cannot be detached!");
-					}
-				} else {
-					unassigned_log("Device '/dev/".$dev."' is not a USB device and cannot be detached!");
-				}
-				break;
+			if ($i >= 15) {
+				unassigned_log("Device '/dev/".$dev."' detach timed out.");
+			} else {
+				unassigned_log("Device '/dev/".$dev."' has been detached.");
 			}
 		}
 	}
@@ -717,13 +699,13 @@ function unassigned_attach($device) {
 
 	$file	= "";
 	$i		= 0;
-	while ((! $file) && ($i < 10)) {
+	while ((! $file) && ($i < 25)) {
 		sleep(1);
 		$file	= shell_exec("/usr/bin/ls /dev/disk/by-id/*-".$device." 2>/dev/null");
 		$i++;
 	}
 
-	if ($i < 10) {
+	if ($i < 25) {
 		unassigned_log("Device with serial '".$device."' has been attached.");
 	} else {
 		unassigned_log("Device with serial '".$device."' could not be attached.");
@@ -795,8 +777,7 @@ switch ($COMMAND) {
 		break;
 
 	case 'detach':
-		$ata = (isset($argv[3])) ? ($argv[3] == "true") : false;
-		unassigned_detach($DEVNAME, $ata);
+		unassigned_detach($DEVNAME);
 		break;
 
 	case 'attach':

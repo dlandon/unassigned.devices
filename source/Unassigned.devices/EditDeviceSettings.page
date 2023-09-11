@@ -624,7 +624,7 @@ _(User Script)_:
 	function detach_disk(device) {
 		$("button[id='detach']").prop("disabled", "true");
 		$("button[id='detach']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Detaching');?>");
-		$.post("/update.php",{"#command":"/plugins/unassigned.devices/scripts/rc.unassigned","#arg[1]":"detach","#arg[2]":device, "#arg[3]":"true"}).done(function(){location.reload();});
+		$.post("/update.php",{"#command":"/plugins/unassigned.devices/scripts/rc.unassigned","#arg[1]":"detach","#arg[2]":device}).done(function(){location.reload();});
 	}
 
 	function attach_disk(serial) {
