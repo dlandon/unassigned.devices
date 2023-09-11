@@ -564,7 +564,7 @@ function get_disk_reads_writes($ud_dev, $dev) {
 }
 
 /* Check to see if the disk is spun up or down. */
-function is_disk_running($ud_dev, $dev) {
+function is_disk_running($ud_dev) {
 	global $paths;
 
 	$rc			= false;
@@ -3168,7 +3168,7 @@ function get_disk_info($dev) {
 	$disk['writes']				= $rw[1];
 	$disk['read_rate']			= $rw[2];
 	$disk['write_rate']			= $rw[3];
-	$disk['running']			= is_disk_running($disk['ud_dev'], $disk['device']);
+	$disk['running']			= is_disk_running($disk['ud_dev']);
 	$usb						= (isset($attrs['ID_BUS']) && ($attrs['ID_BUS'] == "usb"));
 	$disk['automount']			= is_automount($disk['serial'], $usb);
 	$disk['temperature']		= get_temp($disk['ud_dev'], $disk['device'], $disk['running']);
