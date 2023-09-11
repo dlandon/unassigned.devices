@@ -636,10 +636,27 @@ function unassigned_hotplug() {
 
 /* Spin down a disk using Unraid api. */
 function unassigned_spin_down($device) {
+	global $paths;
 
 	if (! is_file("/tmp/unassigned.devices/shut_down")) {
 		$dev = basename($device);
-		(new MiscUD)->spin_disk(true, $dev);
+
+		/* Set the spinning_down state. */
+		$tc			= $paths['run_status'];
+		$run_status	= file_exists($tc) ? json_decode(file_get_contents($tc), true) : array();
+		if ($run_status[$device]['running'] == "yes") {
+			$run_status[$device]['spin_time']	= time();
+			$run_status[$device]['spin']		= "down";
+			@file_put_contents($tc, json_encode($run_status));
+
+			/* Spin down the disk. */
+			$result	= (new MiscUD)->spin_disk(true, $dev);
+
+			/* Wait for the disk to finish spinning down or time out. */
+			while (is_disk_spin($dev, true)) {
+				sleep(1);
+			}
+		}
 	}
 }
 
@@ -653,11 +670,11 @@ function unassigned_detach($device, $ata = false) {
 		foreach (get_all_disks_info() as $disk) {
 			if (basename($disk['device']) == $dev) {
 				if (($disk['id_bus'] == "usb") || ($ata)) {
+					$mounted		= false;
 					foreach ($disk['partitions'] as $partition) {
 						if ($partition['mounted']) {
 							$mounted = true;
-						} else {
-							$mounted = false;
+							continue;
 						}
 					}
 
