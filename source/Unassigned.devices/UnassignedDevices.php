@@ -1485,8 +1485,8 @@ switch ($_POST['action']) {
 		$tc			= $paths['run_status'];
 		$run_status	= file_exists($tc) ? json_decode(file_get_contents($tc), true) : array();
 		if ($run_status[$device]['running'] == "yes") {
-			$run_status[$device]['spin_time'] = time();
-			$run_status[$device]['spin'] = "down";
+			$run_status[$device]['spin_time']	= time();
+			$run_status[$device]['spin']		= "down";
 			@file_put_contents($tc, json_encode($run_status));
 			$result	= (new MiscUD)->spin_disk(true, $device);
 			echo json_encode($result);
@@ -1501,8 +1501,8 @@ switch ($_POST['action']) {
 		$tc			= $paths['run_status'];
 		$run_status	= file_exists($tc) ? json_decode(file_get_contents($tc), true) : array();
 		if ($run_status[$device]['running'] == "no") {
-			$run_status[$device]['spin_time'] = time();
-			$run_status[$device]['spin'] = "up";
+			$run_status[$device]['spin_time']	= time();
+			$run_status[$device]['spin']		= "up";
 			@file_put_contents($tc, json_encode($run_status));
 			$result	= (new MiscUD)->spin_disk(false, $device);
 			echo json_encode($result);
