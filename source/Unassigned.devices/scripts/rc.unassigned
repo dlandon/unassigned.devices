@@ -680,7 +680,6 @@ function unassigned_detach($device, $ata = false) {
 
 					if (! $mounted) {
 						if (is_dir("/sys/block/{$dev}/")) {
-							exec("echo 'offline' > /sys/block/{$dev}/device/state");
 							exec("echo '1' > /sys/block/{$dev}/device/delete");
 							$i	= 0;
 
