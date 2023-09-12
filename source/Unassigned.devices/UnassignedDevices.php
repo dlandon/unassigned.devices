@@ -367,7 +367,9 @@ function make_mount_button($device) {
 		$format			= ((empty($device['fstype'])) && (! $pass_through));
 		$context		= "partition";
 		$pool_disk		= false;
-		$not_unmounted	= false;
+
+		/* Is the disk not unmounted properly? */
+		$not_unmounted	= isset($device['not_unmounted']) ? $device['not_unmounted'] : false;
 		$not_udev		= false;
 		$dev			= $device['fstype'] == "crypto_LUKS" ? $device['luks'] : $device['device'];
 
@@ -424,7 +426,7 @@ function make_mount_button($device) {
 		if ($script_running) {
 			$button = sprintf($button, $context, 'running', 'disabled', 'fa fa-spinner fa-spin', ' '._('Running'));
 		} else if ($not_unmounted) {
-			$button = sprintf($button, $context, 'umount', $disable, $class, _('Reboot'));
+			$button = sprintf($button, $context, 'umount', $disable, $class, _('Unmounted'));
 		} else {
 			$button = sprintf($button, $context, 'umount', $disable, $class, _('Unmount'));
 		}
