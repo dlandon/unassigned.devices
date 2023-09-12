@@ -1463,7 +1463,6 @@ function is_mounted($dev) {
 
 	$rc = false;
 	if ($dev) {
-
 		$mount				= timed_exec(2, "/usr/bin/cat /proc/mounts | awk '{print $1 \",\" $2}'");
 		$escapeSequences	= array("\\040","\n");
 		$replacementChars	= array(" ",",");
@@ -1856,13 +1855,17 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 		if ((! $force) || (($force) && (! $smb) && (! $nfs))) {
 			unassigned_log("Synching file system on '".$dir."'.");
 			if ($zfs) {
-				exec("/usr/sbin/zpool sync ".escapeshellarg($pool_name)." 2>/dev/null");
+				if (! $force) {
+					exec("/usr/sbin/zpool sync ".escapeshellarg($pool_name)." 2>/dev/null");
+				} else {
+					timed_exec($timeout, "/usr/sbin/zpool sync ".escapeshellarg($pool_name)." 2>/dev/null");
+				}
 			} else if ((! $force) && (! $smb) && (! $nfs)) {
 				/* Sync the file system and wait for it to be done. */
-				exec("/bin/sync -f ".escapeshellarg($dir));
+				exec("/bin/sync -f ".escapeshellarg($dir)." 2>/dev/null");
 			} else {
 				/* Time out so sync command doesn't get stuck. */
-				timed_exec($timeout, "/bin/sync -f ".escapeshellarg($dir));
+				timed_exec($timeout, "/bin/sync -f ".escapeshellarg($dir)." 2>/dev/null");
 			}
 		}
 
@@ -3253,8 +3256,16 @@ function get_partition_info($dev) {
 		/* is the partition mounted read only. */
 		$disk['part_read_only']	= ($disk['mounted']) ? is_mounted_read_only($disk['mountpoint']) : false;
 
+		/* See if this is a zfs file system. */
+		if (($disk['fstype'] == "zfs") || (($disk['fstype'] == "crypto_LUKS") && (part_fs_type(basename($disk['device']), true) == "zfs"))) {
+			$zfs	= true;
+		} else {
+			$zfs	= false;
+		}
+
 		/* The device is /dev/mapper/... for all luks devices, but base name of the mount point is zfs zpool. */
-		$dev_mounted			= is_mounted($disk['device']) || is_mounted(basename($disk['device'])) || is_mounted(basename($disk['mountpoint']));
+		$pool_name				= ($zfs) ? (new MiscUD)->zfs_pool_name($disk['mountpoint'], true) : "";
+		$dev_mounted			= is_mounted($disk['device']) || (($disk['fstype'] == "crypto_LUKS") && is_mounted(basename($disk['device']))) || (($zfs) && ($pool_name) && is_mounted($pool_name));
 
 		/* Not unmounted is a check that the disk is mounted by mount point but not by device. */
 		/* The idea is to catch the situation where a disk is removed before being unmounted. */
