@@ -61,6 +61,7 @@ if (isset($_GET['s'])) {
 	$device				= isset($_GET['b']) ? $_GET['b'] : $_GET['l'];
 	$partition			= $_GET['p'];
 	$mount_point		= $_GET['l'];
+	$mounted			= isset($_GET['n']) ? $_GET['n'] : "";
 	$info				= (isset($_GET['m'])) ? $_GET['m'] : "";
 	if (isset($_GET['m'])) {
 		$id_bus			= ($_GET['u'] == "usb") ? " - USB" : " - SATA";
@@ -83,6 +84,7 @@ if (isset($_GET['s'])) {
 		$user_file		= "";
 	}
 	$background			= (get_config($ud_device, "command_bg.{$partition}") != "false") ? "yes" : "no";
+	$enable_script		= (get_config($ud_device, "enable_script.{$partition}") != "false") ? "yes" : "no";
 
 	if ($fstype == "zvol") {
 		$pass_through	= (is_pass_through($ud_device, $partition)) ? "checked" : "";
@@ -103,12 +105,11 @@ if (isset($_GET['s'])) {
 	$usb				= ((isset($_GET['u'])) && ($_GET['u'] == "usb"));
 	$share				= config_shared($ud_device, $partition, $usb) ? "checked" : "";
 	$show_partitions	= (get_config($ud_device, "show_partitions") == "no" ) ? "" : "checked";
-	$is_mounting		= (new MiscUD)->get_mounting_status(basename($device));
-	$mounted			= is_mounted($mount_point) || $is_mounting;
 	$width				= $mounted ? "57%" : "70%";
 	$automount_action	= "automount";
 	$name				= get_config($ud_device, "unassigned_dev");
 	$background_action	= "background";
+	$script_action		= "enable_script";
 	$share_action		= ($info) ? "toggle_share" : "toggle_historical_share";
 	$disable_action		= "toggle_disable_mount";
 	$readonly_action	= "toggle_read_only";
@@ -145,11 +146,11 @@ if (isset($_GET['s'])) {
 		$user_file		= "";
 	}
 	$background			= (get_samba_config($device, "command_bg") != "false" ) ? "yes" : "no";
+	$enable_script		= (get_samba_config($device, "enable_script") != "false" ) ? "yes" : "no";
 	$disable_mount		= (is_samba_disable_mount($device)) ? "checked" : "";
 	$automount			= (is_samba_automount($device)) ? "checked" : "";
 	$share				= (is_samba_share($device)) ? "checked" : "";
 	$read_only			= (is_samba_read_only($device)) ? "checked" : "";
-	$is_mounting		= (new MiscUD)->get_mounting_status(basename($device));
 	$mount_device		= basename($mount['ip'])."_".basename($mount['path']);
 	$is_mounting		= (new MiscUD)->get_mounting_status($mount_device);
 	$mounted			= is_mounted($mount_point) || $is_mounting;
@@ -157,6 +158,7 @@ if (isset($_GET['s'])) {
 	$automount_action	= "samba_automount";
 	$ud_device			= $device;
 	$background_action	= "samba_background";
+	$script_action		= "samba_enable_script";
 	$share_action		= "toggle_samba_share";
 	$disable_action		= "toggle_samba_disable_mount";
 	$readonly_action	= "toggle_samba_readonly";
@@ -173,12 +175,14 @@ if (isset($_GET['s'])) {
 		$file			= "";
 	}
 	$background			= (get_iso_config($device, "command_bg") != "false" ) ? "yes" : "no";
+	$enable_script		= (get_iso_config($device, "enable_script") != "false" ) ? "yes" : "no";
 	$automount			= (is_iso_automount($device)) ? "checked" : "";
 	$mounted			= is_mounted($mount_point);
 	$witdh				= "20%";
 	$automount_action	= "iso_automount";
 	$ud_device			= $device;
 	$background_action	= "iso_background";
+	$script_action		= "iso_enable_script";
 	$disk_setting		= false;
 }
 
@@ -188,7 +192,7 @@ if (! $file) {
 }
 
 /* If the disk is mounted, disable the device script file field. */
-if ($mounted) {
+if (is_mounted($mount_point)) {
 	$script_disabled = "disabled";
 }
 
@@ -199,7 +203,7 @@ if ((! file_exists($file)) || (! is_dir("/boot/config/plugins/user.scripts/scrip
 
 /* Show that the device is currently mounted. */
 $mount_point		= basename($mount_point);
-if ($mounted) {
+if (is_mounted($mount_point)) {
 	$mount_point	.= " <strong>(mounted)</strong>";
 }
 
@@ -346,7 +350,7 @@ EOT;
 > Select the options for this device and mount point.
 :end
 
-<?if (($disk_setting) && ($fstype != "zvol") && (isset($_GET['s'])) && (isset($_GET['m'])) && (! $mounted) && (! $is_preclearing) && (! is_pass_through($_GET['s'])) && ($host) && ($connected)):?>
+<?if (($show_device_switches) && ($fstype != "zvol") && (isset($_GET['s'])) && (isset($_GET['m'])) && (! $mounted) && (! $is_preclearing) && (! is_pass_through($_GET['s'])) && ($host) && ($connected)):?>
 <button type="button" id="detach" title='_(Detach This Disk)_.' onclick='detach_disk("<?=$device;?>");'>_(Detach)_</button>
 
 :ud_edit_script_detach_plug:
@@ -412,6 +416,16 @@ _(Device Script)_:
 
 :ud_edit_script_choose_name_plug:
 > This is the Script File that runs when the device is mounted. Choose your Script File name from the file selection dropdown, or enter your desired script.  This cannot be changed if the device is mounted.
+:end
+
+_(Enable Device Script)_?
+: <select name="#enable_script" size="1" <?=$script_disabled;?>>
+  <?=mk_option($enable_script, "yes", "_(Yes)_");?>
+  <?=mk_option($enable_script, "no", "_(No)_");?>
+  </select>
+
+:ud_edit_script_enable_script_plug:
+> Set to **Yes** to have the Device Script run on any UD event.
 :end
 
 _(Run Device Script File in the background)_?
@@ -549,6 +563,7 @@ _(User Script)_:
 		<?if ($disk_setting):?>
 			$.post(UDURL,{action:"set_name",serial:"<?=$ud_device;?>",device:"<?=$device;?>",name:$("input[name='#name']").val()}).done(function(){location.reload();});
 		<?endif;?>
+			$.post(UDURL,{action:"<?=$script_action;?>",device:"<?=$ud_device;?>",part:"<?=$partition;?>",status:$("select[name='#enable_script']").val()}).done(function(){location.reload();});
 			$.post(UDURL,{action:"<?=$background_action;?>",device:"<?=$ud_device;?>",part:"<?=$partition;?>",status:$("select[name='#background']").val()}).done(function(){location.reload();});
 		<?if ($fstype == "apfs"):?>
 			$.post(UDURL,{action:"set_volume",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",volume:$("input[name='#volume']").val()}).done(function(){location.reload();});
@@ -560,6 +575,7 @@ _(User Script)_:
 		<?if (isset($_GET['i'])):?>
 			$.post(UDURL,{action:"set_iso_command",device:"<?=$device;?>",command:$("input[name='#file']").val()}).done(function(){location.reload();});
 		<?endif;?>
+			$.post(UDURL,{action:"<?=$script_action;?>",device:"<?=$ud_device;?>",part:"<?=$partition;?>",status:$("select[name='#enable_script']").val()}).done(function(){location.reload();});
 			$.post(UDURL,{action:"<?=$background_action;?>",device:"<?=$ud_device;?>",status:$("select[name='#background']").val()}).done(function(){location.reload();});
 	<?endif;?>
 	});

@@ -1369,42 +1369,47 @@ function execute_script($info, $action, $testing = false) {
 	}
 
 	/* If there is a command, execute the script. */
-	$cmd	= $info['command'];
-	$bg		= (($info['command_bg'] != "false") && ($action == "ADD")) ? "&" : "";
+	$cmd			= $info['command'];
+	$bg				= (($info['command_bg'] != "false") && ($action == "ADD")) ? "&" : "";
+	$enable_script	= ($info['enable_script'] != "false") ? true : false;
 	if (file_exists($cmd)) {
 		$command_script = $paths['scripts'].basename($cmd);
-		if (is_file($cmd)) {
-			copy($cmd, $command_script);
-			@chmod($command_script, 0755);
+		if ($enable_script) {
+			if (is_file($cmd)) {
+				copy($cmd, $command_script);
+				@chmod($command_script, 0755);
 
-			unassigned_log("Running device script: '".basename($cmd)."' with action '".$action."'.");
+				unassigned_log("Running device script: '".basename($cmd)."' with action '".$action."'.");
 
-			$script_running = is_script_running($cmd);
-			if ((! $script_running) || (($script_running) && ($action != "ADD"))) {
-				if (! $testing) {
-					if (($action == "REMOVE") || ($action == "ERROR_MOUNT") || ($action == "ERROR_UNMOUNT")) {
-						sleep(1);
-					}
-					$clear_log	= ($action == "ADD") ? " > " : " >> ";
+				$script_running = is_script_running($cmd);
+				if ((! $script_running) || (($script_running) && ($action != "ADD"))) {
+					if (! $testing) {
+						if (($action == "REMOVE") || ($action == "ERROR_MOUNT") || ($action == "ERROR_UNMOUNT")) {
+							sleep(1);
+						}
+						$clear_log	= ($action == "ADD") ? " > " : " >> ";
 
-					/* Apply escapeshellarg() to the command and logfile of the command. */
-					$cmd		= escapeshellarg($command_script).$clear_log.escapeshellarg($info['logfile'])." 2>&1 $bg";
+						/* Apply escapeshellarg() to the command and logfile of the command. */
+						$cmd		= escapeshellarg($command_script).$clear_log.escapeshellarg($info['logfile'])." 2>&1 $bg";
 
-					/* Run the script. */
-					$out		= null;
-					$return		= null;
-					exec($cmd, $out, $return);
-					if ($return) {
-						unassigned_log("Error: device script failed: '".$return."'");
+						/* Run the script. */
+						$out		= null;
+						$return		= null;
+						exec($cmd, $out, $return);
+						if ($return) {
+							unassigned_log("Error: device script failed: '".$return."'");
+						}
+					} else {
+						$rc			= $command_script;
 					}
 				} else {
-					$rc			= $command_script;
+					unassigned_log("Device script '".basename($cmd)."' aleady running!");
 				}
 			} else {
-				unassigned_log("Device script '".basename($cmd)."' aleady running!");
+				unassigned_log("Script file '".$command_script."' is not a valid file!");
 			}
-		} else {
-			unassigned_log("Script file '".$command_script."' is not a valid file!");
+		} else if ($action == "ADD")  {
+			unassigned_log("Device script '".basename($cmd)."' is not enabled!");
 		}
 	}
 
@@ -2465,6 +2470,7 @@ function get_samba_mounts() {
 
 				$mount['command']		= get_samba_config($mount['device'],"command");
 				$mount['command_bg']	= get_samba_config($mount['device'],"command_bg");
+				$mount['enable_script']	= $mount['command'] ? get_samba_config($mount['device'],"enable_script") : "false";
 				$mount['prog_name']		= basename($mount['command'], ".sh");
 				$mount['user_command']	= get_samba_config($mount['device'],"user_command");
 				$mount['logfile']		= ($mount['prog_name']) ? $paths['device_log'].$mount['prog_name'].".log" : "";
@@ -2865,6 +2871,7 @@ function get_iso_mounts() {
 				$mount['avail']			= $stats[2]*1024;
 				$mount['command']		= get_iso_config($mount['device'],"command");
 				$mount['command_bg']	= get_iso_config($mount['device'],"command_bg");
+				$mount['enable_script']	= $mount['command'] ? get_iso_config($mount['device'],"enable_script") : "false";
 				$mount['prog_name']		= basename($mount['command'], ".sh");
 				$mount['user_command']	= get_iso_config($mount['device'],"user_command");
 				$mount['logfile']		= ($mount['prog_name']) ? $paths['device_log'].$mount['prog_name'].".log" : "";
@@ -3170,6 +3177,7 @@ function get_disk_info($dev) {
 	$disk['temperature']		= get_temp($disk['ud_dev'], $disk['device'], $disk['running']);
 	$disk['command']			= get_config($disk['serial'], "command.1");
 	$disk['command_bg']			= get_config($disk['serial'], "command_bg.1");
+	$disk['enable_script']		= $disk['command'] ? get_config($disk['serial'], "enable_script.1") : "false";
 	$disk['user_command']		= get_config($disk['serial'], "user_command.1");
 	$disk['show_partitions']	= (get_config($disk['serial'], "show_partitions") == "no") ? false : true;
 	$disk['pass_through']		= is_pass_through($disk['serial']);
@@ -3301,6 +3309,7 @@ function get_partition_info($dev) {
 		$disk['command']		= get_config($disk['serial'], "command.{$disk['part']}");
 		$disk['user_command']	= get_config($disk['serial'], "user_command.{$disk['part']}");
 		$disk['command_bg']		= get_config($disk['serial'], "command_bg.{$disk['part']}");
+		$disk['enable_script']	= $disk['command'] ? get_config($disk['serial'], "enable_script.{$disk['part']}") : "false";
 		$disk['prog_name']		= basename($disk['command'], ".sh");
 		$disk['logfile']		= ($disk['prog_name']) ? $paths['device_log'].$disk['prog_name'].".log" : "";
 

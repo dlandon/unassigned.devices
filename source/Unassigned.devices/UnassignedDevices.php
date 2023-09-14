@@ -184,6 +184,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$out[]	= "<td>".$mpoint."</td>";
 		$out[]	= ((count($disk['partitions']) > 1) && ($mounted)) ? "<td class='mount'>".$mbutton."</td>" : "<td></td>";
 
+		/* Determine the file type of the disk by getting the first partition with a fstype. */
 		$fstype	= $partition['fstype'];
 		if ($disk_line) {
 			foreach ($disk['partitions'] as $part) {
@@ -225,24 +226,36 @@ function render_partition($disk, $partition, $disk_line = false) {
 		if ($disk_line) {
 			$title .= "<br />"._("Show Partitions").": ";
 			$title .= $disk['show_partitions'] ? "Yes" : "No";
+		} else {
+			$title .= "<br />"._("Script Enabled").": ";
+			$title .= $partition['enable_script'] != "false" ? "Yes" : "No";
+		}
+
+		/* Get the mounted, mounting, and unmounting status of all partitions to determine the status of the disk. */
+		$mounted_disk		= $mounted;
+		$mounting_disk		= $is_mounting;
+		$unmounting_disk	= $is_unmounting;
+		if ($disk_line) {
+			foreach ($disk['partitions'] as $part) {
+				if ($part['mounted']) {
+					$mounted_disk = $mounted_disk || true;
+				}
+				if ($part['is_mounting']) {
+					$mounting_disk = $mounting_disk || true;
+				}
+				if ($part['is_unmounting']) {
+					$unmounting_disk = $unmounting_disk || true;
+				}
+			}
 		}
 
 		$device		= (new MiscUD)->base_device(basename($device)) ;
 		$serial		= $partition['serial'];
 		$id_bus		= $disk['id_bus'];
 		if (! $disk['array_disk']) {
-			$out[]		= "<td><a class='info' href='/Main/EditDeviceSettings?s=".$serial."&b=".$device."&f=".$fstype."&l=".$partition['mountpoint']."&p=".$partition['part']."&m=".json_encode($partition)."&t=".$disk_line."&u=".$id_bus."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+			$out[]		= "<td><a class='info' href='/Main/EditDeviceSettings?s=".$serial."&b=".$device."&f=".$fstype."&l=".$partition['mountpoint']."&n=".($mounted_disk || $mounting_disk || $unmounting_disk)."&p=".$partition['part']."&m=".json_encode($partition)."&t=".$disk_line."&u=".$id_bus."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 		} else {
 			$out[]		= "<td><i class='fa fa-gears' disabled></i></td>";
-		}
-		if ($disk_line) {
-			$mounted_disk = false;
-			foreach ($disk['partitions'] as $part) {
-				if ($part['mounted']) {
-					$mounted_disk = true;
-					break;
-				}
-			}
 		}
 
 		/* Show disk and partition usage. */
@@ -306,7 +319,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 					$id_bus	= "";
 
 					if (($z['active']) && ($fstype)) {
-						$out[]		= "<td><a class='info' href='/Main/EditDeviceSettings?s=".$serial."&b=".$volume."&f=".$z['fstype']."&l=".$z['mountpoint']."&p=".$volume."&m=".json_encode($z)."&t=false&u=".$id_bus."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+						$out[]		= "<td><a class='info' href='/Main/EditDeviceSettings?s=".$serial."&b=".$volume."&f=".$z['fstype']."&l=".$z['mountpoint']."&n=".$z['mounted']."&p=".$volume."&m=".json_encode($z)."&t=false&u=".$id_bus."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
 						$out[]		= "<td>".$fstype."</td>";
 						$out[]		= "<td>".my_scale($z['size'], $unit)." $unit</td>";
 					} else {
@@ -739,6 +752,8 @@ switch ($_POST['action']) {
 				$title .= $mount['automount'] ? "Yes" : "No";
 				$title .= "<br />"._("Share").": ";
 				$title .= $shares_enabled ? (($mount['smb_share']) ? "Yes" : "No") : "Not Enabled";
+				$title .= "<br />"._("Script Enabled").": ";
+				$title .= $mount['enable_script'] != "false" ? "Yes" : "No";
 
 				if (! $mount['invalid']) {
 					$o_remotes .= "<td><a class='info' href='/Main/EditDeviceSettings?d=".$mount['device']."&l=".$mount['mountpoint']."&j=".$mount['name']."&m=".json_encode($mount)."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
@@ -808,6 +823,8 @@ switch ($_POST['action']) {
 				$title .= "<br />"._("Automount").": ";
 				$title .= $mount['automount'] ? "Yes" : "No";
 				$title .= "<br />"._("Share").": Yes";
+				$title .= "<br />"._("Script Enabled").": ";
+				$title .= $mount['enable_script'] != "false" ? "Yes" : "No";
 
 				if (! $mount['invalid']) {
 					$o_remotes .= "<td><a class='info' href='/Main/EditDeviceSettings?i=".$device."&l=".$mount['mountpoint']."&j=".$mount['file']."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
@@ -937,6 +954,15 @@ switch ($_POST['action']) {
 		$part	= urldecode($_POST['part']);
 		$status = urldecode($_POST['status']) == "yes" ? "true" : "false";
 		$result	= set_config($device, "command_bg.{$part}", $status);
+		echo json_encode(array( 'result' => $result ));
+		break;
+
+	case 'enable_script':
+		/* Update the enable script configuration setting. */
+		$device	= urldecode($_POST['device']);
+		$part	= urldecode($_POST['part']);
+		$status = urldecode($_POST['status']) == "yes" ? "true" : "false";
+		$result	= set_config($device, "enable_script.{$part}", $status);
 		echo json_encode(array( 'result' => $result ));
 		break;
 
@@ -1358,6 +1384,14 @@ switch ($_POST['action']) {
 		echo json_encode(array( 'result' => $result ));
 		break;
 
+	case 'samba_enable_script':
+		/* Set samba share enable script configuration setting. */
+		$device		= urldecode($_POST['device']);
+		$status		= urldecode($_POST['status']) == "yes" ? "true" : "false";
+		$result		= set_samba_config($device, "enable_script", $status);
+		echo json_encode(array( 'result' => $result ));
+		break;
+
 	case 'set_samba_command':
 		/* Set samba share user command configuration setting. */
 		$device		= urldecode($_POST['device']);
@@ -1412,6 +1446,14 @@ switch ($_POST['action']) {
 		$device		= urldecode($_POST['device']);
 		$status		= urldecode($_POST['status']) == "yes" ? "true" : "false";
 		$result		= set_iso_config($device, "command_bg", $status);
+		echo json_encode(array( 'result' => $result ));
+		break;
+
+	case 'iso_enable_script':
+		/* Set the enable configuration setting. */
+		$device		= urldecode($_POST['device']);
+		$status		= urldecode($_POST['status']) == "yes" ? "true" : "false";
+		$result		= set_iso_config($device, "enable_script", $status);
 		echo json_encode(array( 'result' => $result ));
 		break;
 
