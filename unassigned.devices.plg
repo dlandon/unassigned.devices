@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.09.10">
+<!ENTITY version	"2023.09.15">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"8880fb71f703ce34ba8f07aac99bf159">
+<!ENTITY MD5		"19c68263ac3ebdfa2fb7f19c0661739e">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,16 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: False 'Udev' indicator on the mount button when a partition on the disk has no file system.
+- Fix: Spindown a disk using 'rc.unassigned' waits for the disk to actually be spun down.
+- Fix: Detach device sometimes loses detached status and disk cannot be re-attached.
+- Fix: Detaching a disk in a device script at times confuses udev and the wrong file type shows on other UD disks.
+- Fix: Additional work on disk removed without being unmounted.
+- Fix: Detach button only shows on disk settings and not partition settings when disk is unmounted, not mounting, and not unmounting.
+- Fix: Disk standby status not always correct when a disk is detached in the device script.
+- Add: Ability to enable/disable device script so it will not run on any device event - 'udev' or 'user' initiated event.
+
+###2023.09.10
 - Fix: Server names that are entered in lower case are converted to upper case when remote shares are added and when listing shares.
 - Fix: Deal with spaces in mount points of encrypted disks.
 - Fix: Could not change BTRFS pool devices mount points.
