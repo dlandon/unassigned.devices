@@ -667,6 +667,8 @@ function unassigned_detach($device) {
 
 	if (! is_file("/tmp/unassigned.devices/shut_down")) {
 		if (is_dir("/sys/block/".$dev."/")) {
+			exec("echo 'offline' > /sys/block/{$dev}/device/state");
+			sleep(1);
 			exec("echo '1' > /sys/block/".$dev."/device/delete");
 			$i	= 0;
 
@@ -693,6 +695,7 @@ function unassigned_attach($device) {
 	/* Get this device's hostX and delete the hosts entry in case the device has been removed. */
 	$host	= (new MiscUD)->get_device_host($device, true);
 
+	/* Initiate a rescan of the scsi devices. */
 	if ($host) {
 		@file_put_contents("/sys/class/scsi_host/{$host}/scan", "- - -");
 	}

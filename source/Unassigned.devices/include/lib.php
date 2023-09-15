@@ -213,19 +213,32 @@ class MiscUD
 	public function save_device_host($serial, $devpath) {
 		global $paths;
 
-		/* Get the current hostX status. */
-		$device_hosts	= (new MiscUD)->get_json($paths['device_hosts']);
-
 		/* Find the hostX in the DEVPATH and parse it from the DEVPATH. */
 		$begin	= strpos($devpath, "host");
 		$end	= strpos($devpath, "/", $begin);
 		$host	= substr($devpath, $begin, $end-$begin);
 
-		/* Save the hostX. */
-		$device_hosts[$serial] = $host;
+		if (($host) && ($serial)) {
+			/* Get the current hostX status. */
+			$device_hosts	= (new MiscUD)->get_json($paths['device_hosts']);
 
-		/* Save the new hosts array. */
-		(new MiscUD)->save_json($paths['device_hosts'], $device_hosts);
+			if ((! isset($device_hosts[$serial])) || ($device_hosts[$serial] != $host)) {
+				/* Get a lock so file changes can be made. */
+				$lock_file		= get_file_lock("hosts");
+
+				/* Get the current hostX status. */
+				$device_hosts	= (new MiscUD)->get_json($paths['device_hosts']);
+
+				/* Add new entry or replace existing entry. */
+				$device_hosts[$serial]	= $host;
+
+				/* Save the new hosts array. */
+				(new MiscUD)->save_json($paths['device_hosts'], $device_hosts);
+
+				/* Release the file lock. */
+				release_file_lock($lock_file);
+			}
+		}
 	}
 
 	/* Get the device hostX. */
@@ -244,11 +257,20 @@ class MiscUD
 			}
 
 			if ((! $rc) || ($delete)) {
+				/* Get a lock so file changes can be made. */
+				$lock_file		= get_file_lock("hosts");
+
+				/* Get the current hostX status. */
+				$device_hosts	= (new MiscUD)->get_json($paths['device_hosts']);
+
 				/* Delete this host entry.  If the device is actually connected, the host entry will be restored when it is recognized. */
 				unset($device_hosts[$serial]);
 
 				/* Save the new hosts array. */
 				(new MiscUD)->save_json($paths['device_hosts'], $device_hosts);
+
+				/* Release the file lock. */
+				release_file_lock($lock_file);
 			}
 		}
 
@@ -347,7 +369,7 @@ function get_file_lock($type = "cfg") {
 
 	/* Did we time out waiting for unlock release? */
 	if ($i == 200) {
-		unassigned_log("Debug: Timed out waiting for get file lock.", $GLOBALS['UPDATE_DEBUG']);
+		unassigned_log("Debug: Timed out waiting for file lock.", $GLOBALS['UPDATE_DEBUG']);
 	}
 
 	/* Create the lock. */
