@@ -56,13 +56,8 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 		$pass	= decrypt_data(get_config($serial, "pass"));
 		write_log("Opening crypto_LUKS device '$luks'...<br />");
 		if (! $pass) {
-			if (file_exists($var['luksKeyfile'])) {
-				unassigned_log("Using luksKeyfile to open the 'crypto_LUKS' device.");
-				$o		= shell_exec("/sbin/cryptsetup ".$cmd." -d ".escapeshellarg($var['luksKeyfile'])." 2>&1");
-			} else {
-				unassigned_log("Using Unraid api to open the 'crypto_LUKS' device.");
-				$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
-			}
+			unassigned_log("Using Unraid api to open the 'crypto_LUKS' device.");
+			$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
 			$luks_pass_file	= "";
 		} else {
 			$luks_pass_file = "{$paths['luks_pass']}_".basename($luks);
@@ -70,6 +65,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 			unassigned_log("Using disk password to open the 'crypto_LUKS' device.");
 			$o		= shell_exec("/sbin/cryptsetup ".$cmd." -d ".escapeshellarg($luks_pass_file)." 2>&1");
 		}
+
 		if ($o) {
 			write_log("luksOpen error: ".$o."<br />");
 			if (strpos($o, "Device or resource busy") === false) {

@@ -885,6 +885,8 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 				/* Use a disk password, or Unraid's. */
 				if (! $pass) {
 					$o = shell_exec("/usr/local/sbin/emcmd cmdCryptsetup=".escapeshellarg($cmd)." 2>&1");
+
+					/* Check for the mapper file existing. If it's not there, unraid did not open the luks disk. */
 					if (! file_exists("/dev/mapper/".$mapper)) {
 						$o	= "Error: Passphrase or Key File not found.";
 					}
@@ -1609,17 +1611,12 @@ function do_mount($info) {
 			$cmd		= "luksOpen $discard ".escapeshellarg($info['luks'])." ".escapeshellarg($luks);
 			$pass		= decrypt_data(get_config($info['serial'], "pass"));
 			if (! $pass) {
-				if (file_exists($var['luksKeyfile'])) {
-					unassigned_log("Using luksKeyfile to open the 'crypto_LUKS' device.");
-					$o		= shell_exec("/sbin/cryptsetup ".escapeshellcmd($cmd)." -d ".escapeshellarg($var['luksKeyfile'])." 2>&1");
-				} else {
-					unassigned_log("Using Unraid api to open the 'crypto_LUKS' device.");
-					$o		= shell_exec("/usr/local/sbin/emcmd cmdCryptsetup=".escapeshellarg($cmd)." 2>&1");
+				unassigned_log("Using Unraid api to open the 'crypto_LUKS' device.");
+				$o		= shell_exec("/usr/local/sbin/emcmd cmdCryptsetup=".escapeshellarg($cmd)." 2>&1");
 
-					/* Check for the mapper file existing. If it's not there, unraid did not open the luks disk. */
-					if (! file_exists($info['device'])) {
-						$o	= "Error: Passphrase or Key File not found.";
-					}
+				/* Check for the mapper file existing. If it's not there, unraid did not open the luks disk. */
+				if (! file_exists($info['device'])) {
+					$o	= "Error: Passphrase or Key File not found.";
 				}
 			} else {
 				$luks_pass_file = $paths['luks_pass']."_".$luks;
@@ -3548,15 +3545,12 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 					$cmd	= "luksOpen ".escapeshellarg($dev)." ".escapeshellarg($mapper);
 					$pass	= decrypt_data(get_config($serial, "pass"));
 					if (! $pass) {
-						if (file_exists($var['luksKeyfile'])) {
-							unassigned_log("Using luksKeyfile to open the 'crypto_LUKS' device.");
-							$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($var['luksKeyfile'])." 2>&1");
-						} else {
-							unassigned_log("Using Unraid api to open the 'crypto_LUKS' device.");
-							$o		= shell_exec("/usr/local/sbin/emcmd cmdCryptsetup=".escapeshellarg($cmd)." 2>&1");
-							if (! file_exists("/dev/mapper/".$mapper)) {
-								$o	= "Error: Passphrase or Key File not found.";
-							}
+						unassigned_log("Using Unraid api to open the 'crypto_LUKS' device.");
+						$o		= shell_exec("/usr/local/sbin/emcmd cmdCryptsetup=".escapeshellarg($cmd)." 2>&1");
+
+						/* Check for the mapper file existing. If it's not there, unraid did not open the luks disk. */
+						if (! file_exists("/dev/mapper/".$mapper)) {
+							$o	= "Error: Passphrase or Key File not found.";
 						}
 					} else {
 						$luks_pass_file = "{$paths['luks_pass']}_".basename($dev);
@@ -3678,15 +3672,12 @@ function change_UUID($dev) {
 		$cmd	= "luksOpen ".escapeshellarg($luks)." ".escapeshellarg($mapper);
 		$pass	= decrypt_data(get_config($serial, "pass"));
 		if (! $pass) {
-			if (file_exists($var['luksKeyfile'])) {
-				unassigned_log("Using luksKeyfile to open the 'crypto_LUKS' device.");
-				$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($var['luksKeyfile'])." 2>&1");
-			} else {
-				unassigned_log("Using Unraid api to open the 'crypto_LUKS' device.");
-				$o		= shell_exec("/usr/local/sbin/emcmd cmdCryptsetup=".escapeshellarg($cmd)." 2>&1");
-				if (! file_exists("/dev/mapper/".$mapper)) {
-					$o	= "Error: Passphrase or Key File not found.";
-				}
+			unassigned_log("Using Unraid api to open the 'crypto_LUKS' device.");
+			$o		= shell_exec("/usr/local/sbin/emcmd cmdCryptsetup=".escapeshellarg($cmd)." 2>&1");
+
+			/* Check for the mapper file existing. If it's not there, unraid did not open the luks disk. */
+			if (! file_exists("/dev/mapper/".$mapper)) {
+				$o	= "Error: Passphrase or Key File not found.";
 			}
 		} else {
 			$luks_pass_file = "{$paths['luks_pass']}_".basename($luks);
