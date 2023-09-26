@@ -1568,7 +1568,7 @@ function get_mount_params($fs, $dev, $ro = false) {
 			break;
 
 		case 'nfs':
-			$rc = "{$rw},soft,noac,noatime,nodiratime,retrans=4,timeo=300";
+			$rc = "{$rw},soft,relatime,retrans=4,timeo=300";
 			break;
 
 		case 'root':
@@ -1874,8 +1874,6 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 	$mounted	= (($zfs) && ($pool_name)) ? (is_mounted($pool_name) || is_mounted($dir)) : (is_mounted($dev) || is_mounted($dir));
 	$timeout	= ($smb || $nfs) ? ($force ? 30 : 10) : 90;
 	if ($mounted) {
-
-		/* Sync file system to be sure all devices are up to date. */
 		if ((! $force) || (($force) && (! $smb) && (! $nfs))) {
 			unassigned_log("Synching file system on '".$dir."'.");
 			if ($zfs) {
@@ -1897,9 +1895,6 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 			/* Unmount zfs file system. */
 			$cmd = ("/usr/sbin/zfs unmount".($force ? " -f" : "")." ".escapeshellarg($dir)." 2>&1");
 		} else {
-			/* Remove saved pool devices if this is a btrfs pooled device. */
-			(new MiscUD)->get_pool_devices($dir, true);
-
 			/* The umount flags are set depending on the unmount conditions.  When the array is being stopped force will
 			   be set.  This helps to keep unmounts from hanging.  NFS mounts are always force lazy unmounted. */  
 			$cmd = "/sbin/umount".($smb ? " -t cifs " : ($nfs ? " -t nfs " : " ")).($force ? ("-f".($nfs ? "l " : " ")) : "")."".escapeshellarg($dir)." 2>&1";
@@ -1929,6 +1924,10 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 					}
 
 					unassigned_log("Successfully unmounted '".$dev."'");
+
+					/* Remove saved pool devices if this is a btrfs pooled device. */
+					(new MiscUD)->get_pool_devices($dir, true);
+
 					$rc = true;
 					break;
 				} else {
