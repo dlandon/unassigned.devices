@@ -82,6 +82,13 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 
 	/* If there was no error from the luks open command or the disk is not encrypted, go ahead with the file check. */
 	$file_system = part_fs_type($device, false);
+
+	/* A BTRFS file syste scrub is done on the mountpoint, not the physical device. */
+	if ($file_system == "btrfs") {
+		$device		= $mountpoint;
+	}
+
+	/* If all is good, perform the file system check or scrub. */
 	if ($rc) {
 		if ($file_system) {
 			/* If the file system is btrfs, we will do a scrub. */
@@ -102,7 +109,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 				}
 				$command = get_fsck_commands($file_system, escapeshellarg($pool_name), $check_type)." 2>&1";
 			} else {
-				$command = get_fsck_commands($file_system, $device, $check_type)." 2>&1";
+				$command = get_fsck_commands($file_system, escapeshellarg($device), $check_type)." 2>&1";
 			}
 			write_log($command."<br />");
 
