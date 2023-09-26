@@ -439,6 +439,16 @@ function unassigned_umount() {
 								$zfs	= false;
 							}
 
+							/* Check for a btrfs scrub running on this device and cancel if there is. */
+							if ($info['fstype'] == "btrfs") {
+								$scrub_status	= shell_exec("/sbin/btrfs scrub status ".escapeshellarg($info['mountpoint'])." | grep 'Status:' | /bin/awk '{print $2}'");
+								if (strpos($scrub_status, "running") !== false) {
+									$scrub_status	= shell_exec("/sbin/btrfs scrub cancel ".escapeshellarg($info['mountpoint']));
+									sleep(1);
+								}
+							}
+
+							/* Unmount the disk. */
 							$rc	= do_unmount($info['device'], $info['mountpoint'], $force, false, false, $zfs);
 						}
 
