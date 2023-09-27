@@ -2191,12 +2191,14 @@ function rm_nfs_share($dir) {
 		if ( (new MiscUD)->exist_in_file($file, $dir) && strlen($dir)) {
 
 			/* Read the contents of the file into an array. */
-			$fileLines = file($file, FILE_IGNORE_NEW_LINES);
+			$fileLines	= file($file, FILE_IGNORE_NEW_LINES);
 
-			/* Search for the line containing the target text and remove it. */
 			$updatedLines = array_filter($fileLines, function($line) use ($dir) {
-				return strpos($line, $dir) === false;
+				return (strpos($line, $dir) === false);
 			});
+
+			/* Add a final empty line. */
+			$updatedLines[]	= "";
 
 			/* Combine the updated lines into a single string. */
 			$updatedContent = implode("\n", $updatedLines);
