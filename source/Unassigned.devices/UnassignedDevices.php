@@ -158,7 +158,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		/* Add change mount point or browse disk share icon if disk is mounted. */
 		if (($not_unmounted) || ($not_udev)) {
 			$mpoint .= "<i class='fa partition-hdd'></i>".$mount_point."</span>";
-		} else if ($mounted) {
+		} else if (($mounted) && (! $is_unmounting)) {
 			/* If the partition is mounted read only, indicate that on the mount point. */
 			$read_only		= $partition['part_read_only'] ? "<font color='red'> (RO)<font>" : "";
 
@@ -166,7 +166,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		} else {
 			$mount_point	= basename($partition['mountpoint']);
 			$disk_label		= $partition['disk_label'];
-			if ((! $disk['array_disk']) && (! $preclearing) && (! $is_mounting)) {
+			if ((! $disk['array_disk']) && (! $preclearing) && (! $is_mounting) && (! $is_unmounting)) {
 				$mpoint		.= "<i class='fa fa-pencil partition-hdd'></i><a title='"._("Change Disk Mount Point")."' class='exec' onclick='chg_mountpoint(\"{$partition['serial']}\",\"{$partition['part']}\",\"{$device}\",\"{$partition['fstype']}\",\"{$mount_point}\",\"{$disk_label}\");'>{$mount_point}</a>";
 			} else {
 				$mpoint		.= "<i class='fa fa-pencil partition-hdd'></i>".$mount_point;
