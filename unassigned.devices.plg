@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.09.15">
+<!ENTITY version	"2023.09.30">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"19c68263ac3ebdfa2fb7f19c0661739e">
+<!ENTITY MD5		"4d02bef3c0d55e80b51afa72886fda80">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,15 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Remove key file check for encrypted disk password.  Unraid handles that in the luksOpen API call.
+- Fix: Do a BTRFS scrub on the mount point and not the device.
+- Fix: Don't remove btrfs pool device if unmount is not successful.
+- Fix: UD causes exports file to get corrupted at times.
+- Fix: Disk file browse not disabled while it is unmounting.
+- Fix: Change 'noac,noatime,nodiratime' to 'relatime' for NFS remote mounts.
+- Add: Cancel a btrfs scrub if it is running on a disk when unmounting.
+
+###2023.09.15
 - Fix: False 'Udev' indicator on the mount button when a partition on the disk has no file system.
 - Fix: Spindown a disk using 'rc.unassigned' waits for the disk to actually be spun down.
 - Fix: Detach device sometimes loses detached status and disk cannot be re-attached.
