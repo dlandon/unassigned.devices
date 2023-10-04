@@ -314,7 +314,7 @@ class MiscUD
 		/* Only check for pool name if zfs is running. */
 		if (is_file("/usr/sbin/zpool")) {
 			if ($mounted) {
-				$mount				= timed_exec(2, "/usr/bin/cat /proc/mounts | awk '{print $2 \",\" $1}'");
+				$mount				= timed_exec(2, "/usr/bin/cat /proc/mounts | /bin/awk '{print $2 \",\" $1}'");
 				$escapeSequences	= array("\\040");
 				$replacementChars	= array(" ");
 				$mount				= str_replace($escapeSequences, $replacementChars, $mount);
@@ -1775,6 +1775,7 @@ function do_mount_local($info) {
 					exec("/sbin/cryptsetup luksClose ".escapeshellarg(basename($info['device']))." 2>/dev/null");
 				}
 				unassigned_log("Mount of '".basename($dev)."' failed: '".$o."'");
+
 				exec("/bin/rmdir ".escapeshellarg($dir)." 2>/dev/null");
 			} else {
 				if ($info['fstype'] == "btrfs") {
@@ -1787,6 +1788,44 @@ function do_mount_local($info) {
 				/* Ntfs is mounted but is most likely mounted r/o. Display the mount command warning. */
 				if ($o && ($fs == "ntfs")) {
 					unassigned_log("Mount warning: ".$o);
+				}
+
+				/* If file system is zfs, mount any datasets. */
+				if ($fs == "zfs") {
+					$data	= shell_exec("/usr/sbin/zfs list | grep ".escapeshellarg($pool_name)." | grep -v 'legacy' | grep -v '-' | /bin/awk '{print $1 \",\" $5}'");
+
+					$rows	= explode("\n", $data);
+
+					/* Check for any potential datasets to mount. */
+					if (count($rows) > 2) {
+						unassigned_log("Mounting zfs datasets...");
+
+						/* Check each dataset to see if can be mounted. */
+						foreach ($rows as $dataset) {
+							$columns		= explode(',', $dataset);
+
+							/* The dataset (folder) must exist before it can be mounted. */
+							if ((count($columns) == 2) && ($columns[0] != $pool_name)) {
+								if (is_dir($columns[1])) {
+									/* Mount the dataset. */
+									$params	= get_mount_params($file_system, $pool_name, $ro);
+									$cmd = "/usr/sbin/zfs mount -o ".$params." ".$columns[0];
+
+									unassigned_log("Mount cmd: ".$cmd);
+
+									/* Do the mount command. */
+									$o = shell_exec(escapeshellcmd($cmd)." 2>&1");
+
+									/* Was there an error? */
+									if ($o) {
+										unassigned_log("Mount of zfs dataset'".$columns[0]."' failed: '".$o."'");
+									} else {
+										unassigned_log("Successfully mounted zfs dataset '".$columns[0]."' on '".$columns[1]."'.");
+									}
+								}
+							}
+						}
+					}
 				}
 			}
 		} else {
