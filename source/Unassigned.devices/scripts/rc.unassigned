@@ -654,17 +654,19 @@ function unassigned_spin_down($device) {
 		/* Set the spinning_down state. */
 		$tc			= $paths['run_status'];
 		$run_status	= file_exists($tc) ? json_decode(file_get_contents($tc), true) : array();
-		if ($run_status[$device]['running'] == "yes") {
-			$run_status[$device]['spin_time']	= time();
-			$run_status[$device]['spin']		= "down";
-			@file_put_contents($tc, json_encode($run_status));
+		if (isset($run_status[$device])) {
+			if ($run_status[$device]['running'] == "yes") {
+				$run_status[$device]['spin_time']	= time();
+				$run_status[$device]['spin']		= "down";
+				@file_put_contents($tc, json_encode($run_status));
 
-			/* Spin down the disk. */
-			$result	= (new MiscUD)->spin_disk(true, $dev);
+				/* Spin down the disk. */
+				$result	= (new MiscUD)->spin_disk(true, $dev);
 
-			/* Wait for the disk to finish spinning down or time out. */
-			while (is_disk_spin($dev, true)) {
-				sleep(1);
+				/* Wait for the disk to finish spinning down or time out. */
+				while (is_disk_spin($dev, true)) {
+					sleep(1);
+				}
 			}
 		}
 	}
