@@ -77,7 +77,7 @@ _(Case-sensitive names)_:
 :ud_settings_case_sensitive_plug:
 > Controls whether filenames are case-sensitive.
 >
-> The default setting of **Auto** allows clients that support case sensitive filenames (Linux CIFSVFS) to tell the Samba server on a per-packet basis that they wish to access the file system in a case-sensitive manner (to support UNIX case sensitive semantics). No Windows system supports case-sensitive filenames so setting this option to auto is the same as setting it to No for them; however, the case of filenames passed by a Windows client will be preserved. This setting can result in reduced performance with very large directories because Samba must do a filename search and match on passed names.
+> The default setting of **Auto** allows clients that support case sensitive filenames (Linux CIFS and NFS) to tell the Samba server on a per-packet basis that they wish to access the file system in a case-sensitive manner (to support UNIX case sensitive semantics). No Windows system supports case-sensitive filenames so setting this option to auto is the same as setting it to No for them; however, the case of filenames passed by a Windows client will be preserved. This setting can result in reduced performance with very large directories because Samba must do a filename search and match on passed names.
 >
 > A setting of **Yes** means that files are created with the case that the client passes, and only accessible using this same case. This will speed very large directory access, but some Windows applications may not function properly with this setting. For example, if "MyFile" is created but a Windows app attempts to open "MYFILE" (which is permitted in Windows), it will not be found.
 >
