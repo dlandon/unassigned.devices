@@ -249,10 +249,10 @@ case \$ACTION in
     # do your stuff here
 
 	# Spin down disk - uncomment this if you want the disk to be spun down after the disk is unmounted
-#	/usr/local/sbin/rc.unassigned spindown \$DEVICE
+#	/usr/local/sbin/rc.unassigned spindown \$UD_DEVICE
 
 	# Detach the disk - uncomment this if you want the USB disk to be detached after it is unmounted
-#	/usr/local/sbin/rc.unassigned detach \$DEVICE
+#	/usr/local/sbin/rc.unassigned detach \$UD_DEVICE
 
 	/usr/local/emhttp/webGui/scripts/notify -e "Unraid Server Notice" -s "Unassigned Devices" -d "Device unmounted" -i "normal"
   ;;
