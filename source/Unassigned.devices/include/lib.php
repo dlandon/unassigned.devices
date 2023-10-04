@@ -1371,7 +1371,8 @@ function execute_script($info, $action, $testing = false) {
 	}
 
 	/* Set the device devX designation. */
-	$ud_dev = get_disk_dev((new MiscUD)->base_device(basename($info['device'])));
+	$device	= $info['fstype'] != "crypto_LUKS" ? $info['device'] : $info['luks'];
+	$ud_dev = get_disk_dev((new MiscUD)->base_device(basename($device)));
 	putenv("UD_DEVICE=".$ud_dev);
 
 	/* Execute the common script if it is defined. */
@@ -1791,8 +1792,8 @@ function do_mount_local($info) {
 				}
 
 				/* If file system is zfs, mount any datasets. */
-				if ($fs == "zfs") {
-					$data	= shell_exec("/usr/sbin/zfs list | grep ".escapeshellarg($pool_name)." | grep -v 'legacy' | grep -v '-' | /bin/awk '{print $1 \",\" $5}'");
+				if (($fs == "zfs") || ($file_system == "zfs")) {
+					$data	= shell_exec("/usr/sbin/zfs list -H -o name,mountpoint | grep ".escapeshellarg($pool_name)." | grep -Ev 'legacy|-' | /bin/awk -F'\t' '{print $1 \",\" $2}'");
 
 					$rows	= explode("\n", $data);
 
@@ -1809,7 +1810,7 @@ function do_mount_local($info) {
 								if (is_dir($columns[1])) {
 									/* Mount the dataset. */
 									$params	= get_mount_params($file_system, $pool_name, $ro);
-									$cmd = "/usr/sbin/zfs mount -o ".$params." ".$columns[0];
+									$cmd = "/usr/sbin/zfs mount -o ".$params." ".escapeshellarg($columns[0]);
 
 									unassigned_log("Mount cmd: ".$cmd);
 
@@ -1818,7 +1819,7 @@ function do_mount_local($info) {
 
 									/* Was there an error? */
 									if ($o) {
-										unassigned_log("Mount of zfs dataset'".$columns[0]."' failed: '".$o."'");
+										unassigned_log("Mount of zfs dataset '".$columns[0]."' failed: '".$o."'");
 									} else {
 										unassigned_log("Successfully mounted zfs dataset '".$columns[0]."' on '".$columns[1]."'.");
 									}
@@ -3559,6 +3560,13 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 					break;
 
 				case 'zfs';
+					/* Change the pool name. */
+					$pool_name	= (new MiscUD)->zfs_pool_name($dev);
+					shell_exec("/usr/sbin/zpool export ".escapeshellarg($pool_name));
+					sleep(1);
+					shell_exec("/usr/sbin/zpool import -N ".escapeshellarg($pool_name)." ".escapeshellarg($mountpoint));
+					sleep(1);
+					shell_exec("/usr/sbin/zpool export ".escapeshellarg($mountpoint));
 					break;
 
 				case 'ntfs';
@@ -3616,7 +3624,13 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 								break;
 
 							case "zfs":
-								/* zfs pool name change - nothing to do. */
+								/* Change the pool name. */
+								$pool_name	= (new MiscUD)->zfs_pool_name($dev);
+								shell_exec("/usr/sbin/zpool export ".escapeshellarg($pool_name));
+								sleep(1);
+								shell_exec("/usr/sbin/zpool import -N ".escapeshellarg($pool_name)." ".escapeshellarg($mountpoint));
+								sleep(1);
+								shell_exec("/usr/sbin/zpool export ".escapeshellarg($mountpoint));
 								break;
 
 							default:
