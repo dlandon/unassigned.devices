@@ -1760,7 +1760,6 @@ function do_mount_local($info) {
 						exec("/bin/chown 99 ".escapeshellarg($dir)." 2>/dev/null");
 						exec("/bin/chgrp 100 ".escapeshellarg($dir)." 2>/dev/null");
 					}
-
 					unassigned_log("Successfully mounted '".$dev."' on '".$dir."'.");
 
 					$rc = true;
@@ -1777,6 +1776,7 @@ function do_mount_local($info) {
 				}
 				unassigned_log("Mount of '".basename($dev)."' failed: '".$o."'");
 
+				/* Remove the mount point. */
 				exec("/bin/rmdir ".escapeshellarg($dir)." 2>/dev/null");
 			} else {
 				if ($info['fstype'] == "btrfs") {
@@ -1868,6 +1868,8 @@ function do_mount_root($info) {
 			if (! is_mounted($dir)) {
 				/* Create the mount point and set permissions. */
 				@mkdir($dir, 0777, true);
+				@chown($dir, 99);
+				@chgrp($dir, 100);
 
 				$params	= get_mount_params($fs, $dev, $ro);
 				$cmd	= "/sbin/mount -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
@@ -1882,10 +1884,6 @@ function do_mount_root($info) {
 
 				/* Did the root share successfully mount? */
 				if (is_mounted($dir)) {
-					@chmod($dir, 0777);
-					@chown($dir, 99);
-					@chgrp($dir, 100);
-
 					unassigned_log("Successfully mounted '".$dev."' on '".$dir."'.");
 
 					$rc = true;
@@ -2571,6 +2569,8 @@ function do_mount_samba($info) {
 			/* Create the mount point and set permissions. */
 			if (! is_dir($dir)) {
 				@mkdir($dir, 0777, true);
+				@chown($dir, 99);
+				@chgrp($dir, 100);
 			}
 
 			if ($fs == "nfs") {
@@ -2679,15 +2679,13 @@ function do_mount_samba($info) {
 
 			/* Did the share successfully mount? */
 			if (is_mounted($dev) && is_mounted($dir)) {
-				if (! is_mounted_read_only($dir)) {
-					exec("/bin/chmod 0777 ".escapeshellarg($dir)." 2>/dev/null");
-					exec("/bin/chown 99 ".escapeshellarg($dir)." 2>/dev/null");
-					exec("/bin/chgrp 100 ".escapeshellarg($dir)." 2>/dev/null");
-				}
 				$link = $paths['usb_mountpoint']."/";
 				if ((get_config("Config", "symlinks") == "yes" ) && (dirname($dir) == $paths['remote_mountpoint'])) {
 					$dir .= "/".
 					exec("/bin/ln -s ".escapeshellarg($dir)." ".escapeshellarg($link));
+					@chmod($dir, 0777);
+					@chown($dir, 99);
+					@chgrp($dir, 100);
 				}
 				unassigned_log("Successfully mounted '".$dev."' on '".$dir."'.");
 
@@ -2956,6 +2954,7 @@ function do_mount_iso($info) {
 	if (is_file($file)) {
 		if (! is_mounted($dir)) {
 			@mkdir($dir, 0777, true);
+
 			$cmd = "/sbin/mount -ro loop ".escapeshellarg($file)." ".escapeshellarg($dir);
 			unassigned_log("Mount iso command: mount -ro loop '".$file."' '".$dir."'");
 			$o = timed_exec(15, $cmd." 2>&1");
@@ -3629,6 +3628,8 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 								shell_exec("/usr/sbin/zpool export ".escapeshellarg($pool_name));
 								sleep(1);
 								shell_exec("/usr/sbin/zpool import -N ".escapeshellarg($pool_name)." ".escapeshellarg($mountpoint));
+								sleep(1);
+								shell_exec("/usr/sbin/cryptsetup luksUUID --uuid=".escapeshellarg($mountpoint)." ".$mapper);
 								sleep(1);
 								shell_exec("/usr/sbin/zpool export ".escapeshellarg($mountpoint));
 								break;
