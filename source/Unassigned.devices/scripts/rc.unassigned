@@ -433,17 +433,14 @@ function unassigned_umount() {
 
 						/* Unmount the device. */
 						if ($rc) {
-							if (($info['fstype'] == "zfs") || (($info['fstype'] == "crypto_LUKS") && (part_fs_type($info['device'], true) == "zfs"))) {
-								$zfs	= true;
-							} else {
-								$zfs	= false;
-							}
+							$file_system	= part_fs_type($info['device'], ($info['fstype'] == "crypto_LUKS"));
+							$zfs			= $file_system == "zfs";
 
 							/* Check for a btrfs scrub running on this device and cancel if there is. */
-							if ($info['fstype'] == "btrfs") {
-								$scrub_status	= shell_exec("/sbin/btrfs scrub status ".escapeshellarg($info['mountpoint'])." | grep 'Status:' | /bin/awk '{print $2}'");
+							if ($file_system == 'btrfs') {
+								$scrub_status	= shell_exec("/sbin/btrfs scrub status ".escapeshellarg($info['mountpoint'])." | grep 'Status:' | /bin/awk '{print $2}'") ?? "";
 								if (strpos($scrub_status, "running") !== false) {
-									$scrub_status	= shell_exec("/sbin/btrfs scrub cancel ".escapeshellarg($info['mountpoint']));
+									$scrub_status	= shell_exec("/sbin/btrfs scrub cancel ".escapeshellarg($info['mountpoint'])) ?? "";
 									sleep(1);
 								}
 							}
