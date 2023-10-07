@@ -85,6 +85,7 @@ function unassigned_mount() {
 		}
 
 		/* Now mount the partitions. */
+		$auto_mount	= true;
 		foreach ($disk['partitions'] as $partition)
 		{
 			if ( (preg_match("#".$DEVNAME."#i", realpath($partition))) || $DEVNAME == "auto" || $DEVNAME == "autodevices" ) {
@@ -97,7 +98,10 @@ function unassigned_mount() {
 
 				/* If disk is not set to auto mount, skip to the next disk. */
 				if (($info['fstype']) && (! $disk_info['automount']) && ( $DEVNAME == "auto" || $DEVNAME == "autodevices" || isset($_ENV['DEVNAME']) )) {
-					unassigned_log("Disk with ID '{$info['serial']} (".(new MiscUD)->base_device(basename($device)).")' is not set to auto mount.");
+					if ($auto_mount) {
+						unassigned_log("Disk with ID '{$info['serial']} (".$disk_info['unassigned_dev'].")' is not set to auto mount.");
+						$auto_mount	= false;
+					}
 					continue;
 				}
 
@@ -145,8 +149,14 @@ function unassigned_mount() {
 						{
 							/* Add smb and nfs shares for this device. */
 							if ($info['shared']) {
+								/* If the disk is mounted read only, don't enable recycle bin. */
+								$mounted_read_only	= is_mounted_read_only($info['mountpoint']);
+
+								/* If the device is vfat file system, enable fat fruit. */
 								$fat_fruit	= (($info['fstype'] == "vfat") || ($info['fstype'] == "exfat"));
-								add_smb_share($info['mountpoint'], true, $fat_fruit);
+
+								/* Add samba and nfs shares. */
+								add_smb_share($info['mountpoint'], (! $mounted_read_only), $fat_fruit);
 								add_nfs_share($info['mountpoint']);
 							} else {
 								unassigned_log("Device '".$device."' is not set to be shared.");
@@ -434,7 +444,7 @@ function unassigned_umount() {
 						/* Unmount the device. */
 						if ($rc) {
 							$file_system	= part_fs_type($info['device'], ($info['fstype'] == "crypto_LUKS"));
-							$zfs			= $file_system == "zfs";
+							$zfs			= ($file_system == "zfs");
 
 							/* Check for a btrfs scrub running on this device and cancel if there is. */
 							if ($file_system == 'btrfs') {
