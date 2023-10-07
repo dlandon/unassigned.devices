@@ -1159,7 +1159,7 @@ function zvol_fs_type($dev) {
 	$rc	= "";
 
 	/* Get the file system type from blkid for a zfs volume. */
-	$o	= shell_exec("/sbin/blkid ".escapeshellarg($dev)." 2>/dev/null");
+	$o	= shell_exec("/usr/bin/timeout 0.1 /sbin/blkid ".escapeshellarg($dev)." 2>/dev/null");
 	$o	= isset($o) ? trim($o) : "";
 	$l	= strpos($o, 'TYPE="');
 	if ($l !== false) {
@@ -3083,7 +3083,7 @@ function get_all_disks_info() {
 	if (is_array($ud_disks)) {
 		foreach ($ud_disks as $key => $disk) {
 			/* Get the device size. */
-			$disk['size']	= intval(trim(timed_exec(5, "/bin/lsblk -nb -o size ".escapeshellarg(realpath($key))." 2>/dev/null")));
+			$disk['size']	= intval(trim(timed_exec(0.5, "/bin/lsblk -nb -o size ".escapeshellarg(realpath($key))." 2>/dev/null")));
 
 			/* If the device size is not zero, then add as a UD device. */
 			if ($disk['size'] > 0) {
@@ -3377,7 +3377,7 @@ function get_zvol_info($disk) {
 
 	/* Get any zfs volumes. */
 	$zvol		= array();
-	if (($disk['fstype'] == "zfs") && ($disk['mounted'])) {
+	if ((get_config("Config", "zvols") == "yes") && ($disk['fstype'] == "zfs") && ($disk['mounted'])) {
 		$serial		= $disk['serial'];
 		$zpool_name	= (new MiscUD)->zfs_pool_name($disk['mountpoint'], true);
 		foreach (glob("/dev/zvol/".$zpool_name."/*") as $n => $q) {
@@ -3392,10 +3392,10 @@ function get_zvol_info($disk) {
 				$zvol[$vol]['active']		= empty(glob($q."-part*"));
 			}
 
-			$zvol[$vol]['fstype']			= "zvol";
-			$zvol[$vol]['file_system']		= zvol_fs_type($zvol[$vol]['device']);
 			$zvol[$vol]['mountpoint']		= $disk['mountpoint'].".".basename($q);
 			$zvol[$vol]['mounted']			= is_mounted($zvol[$vol]['mountpoint']);
+			$zvol[$vol]['fstype']			= "zvol";
+			$zvol[$vol]['file_system']		= zvol_fs_type($zvol[$vol]['device']);
 			$zvol[$vol]['zfs_read_only']	= is_mounted_read_only($zvol[$vol]['mountpoint']);
 			$stats							= get_device_stats($zvol[$vol]['mountpoint'], $zvol[$vol]['mounted']);
 			$zvol[$vol]['size']				= $stats[0]*1024;
@@ -3408,7 +3408,6 @@ function get_zvol_info($disk) {
 			$zvol[$vol]['array_disk']		= false;
 			$zvol[$vol]['command']			= "";
 			$zvol[$vol]['user_command']		= "";
-
 		}
 	}
 
