@@ -1144,7 +1144,7 @@ function timed_exec($timeout, $cmd) {
 /* Find the file system of a luks device. */
 function part_fs_type($dev, $luks = true) {
 
-	/* Get the file system type from lsblk for a crypto_LUKS file system. */
+	/* Get the file system type from lsblk. */
 	$o	= shell_exec("/bin/lsblk -f | grep ".escapeshellarg(basename($dev)." ")." 2>/dev/null | grep -v 'crypto_LUKS' | /bin/awk '{print $2}'");
 
 	$o	= isset($o) ? str_replace("\n", "", $o) : "";
@@ -3324,11 +3324,7 @@ function get_partition_info($dev) {
 		$disk['part_read_only']	= ($disk['mounted']) ? is_mounted_read_only($disk['mountpoint']) : false;
 
 		/* See if this is a zfs file system. */
-		if (($disk['fstype'] == "zfs") || (($disk['fstype'] == "crypto_LUKS") && (part_fs_type(basename($disk['device']), true) == "zfs"))) {
-			$zfs	= true;
-		} else {
-			$zfs	= false;
-		}
+		$zfs					= (part_fs_type($disk['device'], ($disk['fstype'] == "crypto_LUKS")) == "zfs");
 
 		/* The device is /dev/mapper/... for all luks devices, but base name of the mount point is zfs zpool. */
 		$pool_name				= ($zfs) ? (new MiscUD)->zfs_pool_name($disk['mountpoint'], true) : "";
