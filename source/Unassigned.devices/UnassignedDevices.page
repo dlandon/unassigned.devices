@@ -1367,7 +1367,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		<div data-question-content>
 			<input type="text" class="swal-content__input" name="MOUNTPOINT" value={0} placeholder="<?=_('Mount Point');?>">
 			<p><?=_('Disk Label');?>:&nbsp;{1}</p>
-			<p><?=_('Changing the Mount Point will also change the disk label');?>.</p>
+			<p><?=_('Changing the Mount Point will also change the disk label on all disks and the pool name on a ZFS disk');?>.</p>
 		</div>
 		<div data-question-load></div>
 	</div>
