@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.09.30">
+<!ENTITY version	"2023.10.08">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"4d02bef3c0d55e80b51afa72886fda80">
+<!ENTITY MD5		"3265a06f94f5d043c21d5644075205bd">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,17 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Spindown and detach of a luks device from the device script not working.
+- Fix: Apply mount point permissions when the mount point is created before mounting devices.
+- Fix: Php warning when checking for scrub running on a disk when unmounting.
+- Fix: Rewrite of scrub cancel when unmounting a btrfs disk.
+- Fix: Don't get zvol info on a zfs disk when 'Show ZFS Volumes on Disk?' is disabled.
+- Fix: Use 'lsblk -f' to get zvol file system type and not 'blkid'.  Blkid will at times hang possibly causing an unresponsive Unraid GUI.
+- Add: Changing the mount point on a ZFS disk will change the pool name to the mount point.
+- Add: Mount datasets on ZFS disks; only active datasets are mounted.
+- Add: Do not enable the Recycle Bin on read only disk shares.  It won't be used because files cannot be deleted.
+
+###2023.09.30
 - Fix: Remove key file check for encrypted disk password.  Unraid handles that in the luksOpen API call.
 - Fix: Do a BTRFS scrub on the mount point and not the device.
 - Fix: Don't remove btrfs pool device if unmount is not successful.
