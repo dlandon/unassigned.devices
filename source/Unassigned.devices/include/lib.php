@@ -3376,6 +3376,8 @@ function get_zvol_info($disk) {
 
 			$zvol[$vol]['mountpoint']		= $disk['mountpoint'].".".basename($q);
 			$zvol[$vol]['mounted']			= is_mounted($zvol[$vol]['mountpoint']);
+			$zvol[$vol]['is_mounting']		= (new MiscUD)->get_mounting_status(basename($zvol[$vol]['device']));
+			$zvol[$vol]['is_unmounting']	= (new MiscUD)->get_unmounting_status(basename($zvol[$vol]['device']));
 			$zvol[$vol]['fstype']			= "zvol";
 			$zvol[$vol]['file_system']		= part_fs_type($zvol[$vol]['device'], false);
 			$zvol[$vol]['zfs_read_only']	= is_mounted_read_only($zvol[$vol]['mountpoint']);
