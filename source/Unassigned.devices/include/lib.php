@@ -1141,7 +1141,7 @@ function timed_exec($timeout, $cmd) {
 	return $out ?? "";
 }
 
-/* Find the file system of a luks device. */
+/* Find the file system type of a partition. */
 function part_fs_type($dev, $luks = true) {
 
 	/* Get the file system type from lsblk. */
@@ -1151,24 +1151,6 @@ function part_fs_type($dev, $luks = true) {
 	$rc	= ($o == "zfs_member") ? "zfs" : $o;
 
 	return ($rc ? $rc : ($luks ? "luks" : ""));
-}
-
-/* Find the file system of a zvol device. */
-function zvol_fs_type($dev) {
-
-	$rc	= "";
-
-	/* Get the file system type from blkid for a zfs volume. */
-	$o	= shell_exec("/usr/bin/timeout 0.1 /sbin/blkid ".escapeshellarg($dev)." 2>/dev/null");
-	$o	= isset($o) ? trim($o) : "";
-	$l	= strpos($o, 'TYPE="');
-	if ($l !== false) {
-		$l	= $l+6;
-		$n	= strpos(substr($o, $l), '"');
-		$rc	= substr($o, $l, $n);
-	}
-
-	return $rc;
 }
 
 #########################################################
@@ -1685,7 +1667,7 @@ function do_mount_local($info) {
 					$params		= get_mount_params($fs, $dev, $ro);
 					$cmd		= "/usr/sbin/zfs mount -o $params ".escapeshellarg($pool_name);
 				} else if ($fs == "zvol") {
-					$z_fstype	= zvol_fs_type($dev);
+					$z_fstype	= part_fs_type($dev);
 					$params		= get_mount_params($z_fstype, $dev, $ro);
 					$cmd		= "/sbin/mount -t ".escapeshellarg($z_fstype)." -o $params ".escapeshellarg($dev)." ".escapeshellarg($dir);
 				} else {
@@ -3395,7 +3377,7 @@ function get_zvol_info($disk) {
 			$zvol[$vol]['mountpoint']		= $disk['mountpoint'].".".basename($q);
 			$zvol[$vol]['mounted']			= is_mounted($zvol[$vol]['mountpoint']);
 			$zvol[$vol]['fstype']			= "zvol";
-			$zvol[$vol]['file_system']		= zvol_fs_type($zvol[$vol]['device']);
+			$zvol[$vol]['file_system']		= part_fs_type($zvol[$vol]['device'], false);
 			$zvol[$vol]['zfs_read_only']	= is_mounted_read_only($zvol[$vol]['mountpoint']);
 			$stats							= get_device_stats($zvol[$vol]['mountpoint'], $zvol[$vol]['mounted']);
 			$zvol[$vol]['size']				= $stats[0]*1024;
