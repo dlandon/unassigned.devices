@@ -131,6 +131,8 @@ function unassigned_mount() {
 					} else {
 						$device	= $info['luks'];
 					}
+
+					/* Create mounting status file. */
 					addFile(sprintf($paths['mounting'], basename($device)));
 
 					unassigned_log("Mounting partition '".basename($device)."' at mountpoint '{$info['mountpoint']}'...");
@@ -195,6 +197,7 @@ function unassigned_mount() {
 				if ($info['mounted']) {
 					foreach (get_zvol_info($info) as $k => $zvol) {
 						if ( (preg_match("#".$DEVNAME."#i", $zvol['device']))) {
+							/* Create mounting status file. */
 							addFile(sprintf($paths['mounting'], basename($zvol['device'])));
 
 							$rc = do_mount($zvol);
@@ -431,6 +434,9 @@ function unassigned_umount() {
 						if ($info['fstype'] == "zfs") {
 							foreach (get_zvol_info($info) as $k => $zvol) {
 								if ($zvol['mounted']) {
+									/* Create unmounting status file. */
+									addFile(sprintf($paths['unmounting'], basename($zvol['device'])));
+
 									$rc = do_unmount($zvol['device'], $zvol['mountpoint'], $force, false, false, false);
 									if (! $rc) {
 										unassigned_log("ZFS Volume '".$k."' cannot be unmounted.");
@@ -495,6 +501,7 @@ function unassigned_umount() {
 					foreach (get_zvol_info($info) as $k => $zvol) {
 						if ( (preg_match("#".$DEVNAME."#i", $zvol['device']))) {
 							if ($zvol['mounted']) {
+								/* Create unmounting status file. */
 								addFile(sprintf($paths['unmounting'], basename($zvol['device'])));
 
 								$rc = do_unmount($zvol['device'], $zvol['mountpoint'], $force, false, false, false);
