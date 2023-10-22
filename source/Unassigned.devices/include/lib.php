@@ -1789,12 +1789,12 @@ function do_mount_local($info) {
 
 							/* The dataset (folder) must exist before it can be mounted. */
 							if ((count($columns) == 2) && ($columns[0] != $pool_name) && ($columns[1] != "-")) {
-									if (is_dir($columns[1])) {
+								if (is_dir($columns[1])) {
 									/* Mount the dataset. */
 									$params	= get_mount_params($file_system, $pool_name, $ro);
 									$cmd = "/usr/sbin/zfs mount -o ".$params." ".escapeshellarg($columns[0]);
 
-									unassigned_log("Mount cmd: ".$cmd);
+									unassigned_log("Mount dataset cmd: ".$cmd);
 
 									/* Do the mount command. */
 									$o = shell_exec(escapeshellcmd($cmd)." 2>&1");
