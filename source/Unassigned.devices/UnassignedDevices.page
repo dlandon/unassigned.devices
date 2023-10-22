@@ -1284,6 +1284,8 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			<input type="text" class="swal-content__input" name="IP" autocomplete="off" required placeholder="<?=_('Enter or Select Server');?>"><br/>
 			<button class="swal-button" onclick='load_hosts(this,"{0}")'><?=_('Search For Servers');?></button>
 			<p><?=_('Search for Servers, or enter the Server name/IP address manually');?>.</p>
+			<p><?=_('If the IP ddress of the server shows in the list after searching, your DNS server is not resolving the name');?>.</p>
+			<p><?=_('Enter the server name and it will be added to the local DNS names and will then resolve by name');?>.</p>
 		</div>
 	</div>
 	<div data-question data-question-title="<?=_('Username');?>">
