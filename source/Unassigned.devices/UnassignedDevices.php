@@ -1163,27 +1163,19 @@ switch ($_POST['action']) {
 			$netmask = $iface['netmask'];
 			exec("plugins/".$plugin."/scripts/port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 445", $hosts);
 			foreach ($hosts as $host) {
-				/* Look up the server name using nmblookup. */
-				$name		= trim(shell_exec("/usr/bin/nmblookup -A ".escapeshellarg($host)." 2>/dev/null | grep -v 'GROUP' | grep -Po '[^<]*(?=<00>)' | head -n 1") ?? "");
-				if (! $name) {
-					/* If name doesn't resolve, see if it is a local name. */
-					$name	= shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'");
-					if ($name) {
-						$n			= strpos($name, ".".$local_tld);
-						if ($n === false) {
-							$n		= strpos($name, ".".$default_tld);
-						}
-						if ($n !== false) {
-							$name	= substr($name, 0, $n);
-						}
-						$name		= strtoupper($name);
-					} else {
-						if ($host == $_SERVER['SERVER_ADDR']) {
-							$name	= strtoupper($var['NAME']);
-						}
+				/* Resolve name as a local server. */
+				$name	= trim(shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'") ?? "");
+				if ($name) {
+					$name		= strtoupper($name);
+					if ($name == "?") {
+						/* Look up the server name using nmblookup. */
+						$name		= trim(shell_exec("/usr/bin/nmblookup -A ".escapeshellarg($host)." 2>/dev/null | grep -v 'GROUP' | grep -Po '[^<]*(?=<00>)' | head -n 1") ?? "");
 					}
+				} else if ($host == $_SERVER['SERVER_ADDR']) {
+					$name		= strtoupper($var['NAME']);
 				}
-				$names[] = $name ? $name : $host;
+				$name			= str_replace( array(".".$local_tld, ".".$default_tld), "", $name);
+				$names[] 		= $name ? $name : $host;
 			}
 		}
 		natsort($names);
@@ -1199,9 +1191,9 @@ switch ($_POST['action']) {
 		/* Remove the 'local' and 'default' tld reference as they are unnecessary. */
 		$ip			= str_replace( array(".".$local_tld, ".".$default_tld), "", $ip);
 
-		$user	= isset($_POST['USER']) ? $_POST['USER'] : null;
-		$pass	= isset($_POST['PASS']) ? $_POST['PASS'] : null;
-		$domain	= isset($_POST['DOMAIN']) ? $_POST['DOMAIN'] : null;
+		$user	= isset($_POST['USER']) ? $_POST['USER'] : "";
+		$pass	= isset($_POST['PASS']) ? $_POST['PASS'] : "";
+		$domain	= isset($_POST['DOMAIN']) ? $_POST['DOMAIN'] : "";
 
 		/* Create the credentials file. */
 		@file_put_contents("{$paths['authentication']}", "username=".$user."\n");
@@ -1214,8 +1206,11 @@ switch ($_POST['action']) {
 		/* Get a list of samba shares on this server. */
 		$list	= shell_exec("/usr/bin/smbclient -t2 -g -L ".escapeshellarg($ip)." --authentication-file=".escapeshellarg($paths['authentication'])." 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}' | sort");
 
-		/* Shred the authentication file. */
+		/* Shred the authentication file and remove the credential variables. */
 		exec("/bin/shred -u ".escapeshellarg($paths['authentication']));
+		unset($user);
+		unset($pass);
+		unset($domain);
 		echo $list;
 		break;
 
@@ -1230,22 +1225,17 @@ switch ($_POST['action']) {
 			exec("/usr/bin/timeout -s 13 5 plugins/".$plugin."/scripts/port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 2049 2>/dev/null | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4", $hosts);
 			foreach ($hosts as $host) {
 				/* Resolve name as a local server. */
-				$name	= shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'");
+				$name	= trim(shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'") ?? "");
 				if ($name) {
-					$n			= strpos($name, ".".$local_tld);
-					if ($n === false) {
-						$n		= strpos($name, ".".$default_tld);
-					}
-					if ($n !== false) {
-						$name	= substr($name, 0, $n);
-					}
 					$name		= strtoupper($name);
-				} else {
-					if ($host == $_SERVER['SERVER_ADDR']) {
-						$name	= strtoupper($var['NAME']);
+					if ($name == "?") {
+						$name	= "";
 					}
+				} else if ($host == $_SERVER['SERVER_ADDR']) {
+					$name		= strtoupper($var['NAME']);
 				}
-				$names[] = $name ? $name : $host;
+				$name			= str_replace( array(".".$local_tld, ".".$default_tld), "", $name);
+				$names[] 		= $name ? $name : $host;
 			}
 		}
 		natsort($names);
