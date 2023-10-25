@@ -345,6 +345,18 @@ class MiscUD
 
 		return trim($rc);
 	}
+
+	/* Check if the path is a valid mountpoint. */
+	public function is_valid_mountpoint($path) {
+		$rc	= false;
+
+		$current_dir	= posix_getcwd();
+		if (posix_access($path, POSIX_R_OK) && $path != '/' && $path != $current_dir) {
+			$rc	= true;
+		}
+
+		return $rc;
+	}
 }
 
 /* Echo variable to GUI for debugging. */
@@ -1526,7 +1538,7 @@ function get_mount_params($fs, $dev, $ro = false) {
 			break;
 
 		case 'zfs':
-			$rc = "{$rw},relatime";
+			$rc = "relatime";
 			break;
 
 		case 'exfat':
@@ -1697,6 +1709,7 @@ function do_mount_local($info) {
 						exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
 						exec("/usr/sbin/zpool import -N ".escapeshellarg($pool_name)." 2>/dev/null");
 						exec("/usr/sbin/zfs set mountpoint=".escapeshellarg($dir)." ".escapeshellarg($pool_name)." 2>/dev/null");
+						/* Set as read only. */
 					}
 					$params		= get_mount_params($file_system, $device, $ro);
 					$cmd		= "/usr/sbin/zfs mount -o $params ".escapeshellarg($pool_name);
@@ -1745,6 +1758,12 @@ function do_mount_local($info) {
 					unassigned_log("Successfully mounted '".$dev."' on '".$dir."'.");
 
 					$rc = true;
+
+					/* Set zfs readonly flag based on read only flag. */
+					if ($fs == "zfs") {
+						exec("/usr/sbin/zfs set readonly=".($ro ? 'on' : 'off')." ".escapeshellarg($pool_name)." 2>/dev/null");
+					}
+
 					break;
 				} else {
 					usleep(500 * 1000);
@@ -1779,17 +1798,17 @@ function do_mount_local($info) {
 
 					$rows	= explode("\n", $data);
 
+					unassigned_log("Mounting zfs datasets...");
+
 					/* Check for any potential datasets to mount. */
 					if (count($rows) > 2) {
-						unassigned_log("Mounting zfs datasets...");
-
 						/* Check each dataset to see if can be mounted. */
 						foreach ($rows as $dataset) {
 							$columns		= explode(',', $dataset);
 
 							/* The dataset (folder) must exist before it can be mounted. */
 							if ((count($columns) == 2) && ($columns[0] != $pool_name) && ($columns[1] != "-")) {
-								if (is_dir($columns[1])) {
+								if (! (new MiscUD)->is_valid_mountpoint($columns[1])) {
 									/* Mount the dataset. */
 									$params	= get_mount_params($file_system, $pool_name, $ro);
 									$cmd = "/usr/sbin/zfs mount -o ".$params." ".escapeshellarg($columns[0]);
@@ -1805,6 +1824,8 @@ function do_mount_local($info) {
 									} else {
 										unassigned_log("Successfully mounted zfs dataset '".$columns[0]."' on '".$columns[1]."'.");
 									}
+								} else {
+									unassigned_log("Dataset '".$columns[0]."' already mounted");
 								}
 							}
 						}
@@ -1912,6 +1933,9 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 		}
 
 		if ($zfs) {
+			/* Clear readonly flag. */
+			exec("/usr/sbin/zfs set readonly=off ".escapeshellarg($pool_name)." 2>/dev/null");
+
 			/* Unmount zfs file system. */
 			$cmd = ("/usr/sbin/zfs unmount".($force ? " -f" : "")." ".escapeshellarg($dir)." 2>&1");
 		} else {
