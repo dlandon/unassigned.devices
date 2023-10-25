@@ -345,18 +345,6 @@ class MiscUD
 
 		return trim($rc);
 	}
-
-	/* Check if the path is a valid mountpoint. */
-	public function is_valid_mountpoint($path) {
-		$rc	= false;
-
-		$current_dir	= posix_getcwd();
-		if (posix_access($path, POSIX_R_OK) && $path != '/' && $path != $current_dir) {
-			$rc	= true;
-		}
-
-		return $rc;
-	}
 }
 
 /* Echo variable to GUI for debugging. */
@@ -1165,6 +1153,24 @@ function part_fs_type($dev, $luks = true) {
 	return ($rc ? $rc : ($luks ? "luks" : ""));
 }
 
+/* Find the file system of a zvol device. */
+function zvol_fs_type($dev) {
+
+	$rc	= "";
+
+	/* Get the file system type from blkid for a zfs volume. */
+	$o	= shell_exec("/sbin/blkid ".escapeshellarg($dev)." 2>/dev/null");
+	$o	= isset($o) ? trim($o) : "";
+	$l	= strpos($o, 'TYPE="');
+	if ($l !== false) {
+		$l	= $l+6;
+		$n	= strpos(substr($o, $l), '"');
+		$rc	= substr($o, $l, $n);
+	}
+
+	return $rc;
+}
+
 #########################################################
 ############		CONFIG FUNCTIONS		#############
 #########################################################
@@ -1538,7 +1544,7 @@ function get_mount_params($fs, $dev, $ro = false) {
 			break;
 
 		case 'zfs':
-			$rc = "relatime";
+			$rc = "{$rw},relatime";
 			break;
 
 		case 'exfat':
@@ -1644,7 +1650,7 @@ function do_mount($info) {
 
 /* Mount a disk device. */
 function do_mount_local($info) {
-	global $paths;
+	global $paths, $version;
 
 	$rc				= false;
 	$dev			= $info['device'];
@@ -1679,7 +1685,11 @@ function do_mount_local($info) {
 					$params		= get_mount_params($fs, $dev, $ro);
 					$cmd		= "/usr/sbin/zfs mount -o $params ".escapeshellarg($pool_name);
 				} else if ($fs == "zvol") {
-					$z_fstype	= part_fs_type($dev);
+					if (version_compare($version['version'],"6.12.9", ">")) {
+						$z_fstype	= part_fs_type($dev, false);
+					} else {
+						$z_fstype	= zvol_fs_type($dev);
+					}
 					$params		= get_mount_params($z_fstype, $dev, $ro);
 					$cmd		= "/sbin/mount -t ".escapeshellarg($z_fstype)." -o $params ".escapeshellarg($dev)." ".escapeshellarg($dir);
 				} else {
@@ -1808,7 +1818,7 @@ function do_mount_local($info) {
 
 							/* The dataset (folder) must exist before it can be mounted. */
 							if ((count($columns) == 2) && ($columns[0] != $pool_name) && ($columns[1] != "-")) {
-								if (! (new MiscUD)->is_valid_mountpoint($columns[1])) {
+								if (! is_mounted($columns[1])) {
 									/* Mount the dataset. */
 									$params	= get_mount_params($file_system, $pool_name, $ro);
 									$cmd = "/usr/sbin/zfs mount -o ".$params." ".escapeshellarg($columns[0]);
@@ -3380,6 +3390,7 @@ function get_partition_info($dev) {
 
 /* Get zfs volume info if the partition has any zvols. */
 function get_zvol_info($disk) {
+	global $version;
 
 	/* Get any zfs volumes. */
 	$zvol		= array();
@@ -3391,7 +3402,6 @@ function get_zvol_info($disk) {
 			$volume							= $zpool_name.".".basename($q);
 			$zvol[$vol]['volume']			= $volume;
 			$zvol[$vol]['device']			= realpath($q);
-
 			if (strpos($q, "-part") !== false) {
 				$zvol[$vol]['active']		= true;
 			} else {
@@ -3403,7 +3413,11 @@ function get_zvol_info($disk) {
 			$zvol[$vol]['is_mounting']		= (new MiscUD)->get_mounting_status(basename($zvol[$vol]['device']));
 			$zvol[$vol]['is_unmounting']	= (new MiscUD)->get_unmounting_status(basename($zvol[$vol]['device']));
 			$zvol[$vol]['fstype']			= "zvol";
-			$zvol[$vol]['file_system']		= part_fs_type($zvol[$vol]['device'], false);
+			if (version_compare($version['version'],"6.12.9", ">")) {
+				$zvol[$vol]['file_system']	= part_fs_type($zvol[$vol]['device'], false);
+			} else {
+				$zvol[$vol]['file_system']	= zvol_fs_type($zvol[$vol]['device']);
+			}
 			$zvol[$vol]['zfs_read_only']	= is_mounted_read_only($zvol[$vol]['mountpoint']);
 			$stats							= get_device_stats($zvol[$vol]['mountpoint'], $zvol[$vol]['mounted']);
 			$zvol[$vol]['size']				= $stats[0]*1024;
