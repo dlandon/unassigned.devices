@@ -1769,8 +1769,8 @@ function do_mount_local($info) {
 
 					$rc = true;
 
-					/* Set zfs readonly flag based on read only flag. */
-					if ($fs == "zfs") {
+					/* Set zfs readonly flag based on device read only setting. */
+					if (($fs == "zfs") || ($file_system == "zfs")) {
 						exec("/usr/sbin/zfs set readonly=".($ro ? 'on' : 'off')." ".escapeshellarg($pool_name)." 2>/dev/null");
 					}
 
