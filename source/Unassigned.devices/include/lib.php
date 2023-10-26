@@ -1804,20 +1804,20 @@ function do_mount_local($info) {
 
 				/* If file system is zfs, mount any datasets. */
 				if (($fs == "zfs") || ($file_system == "zfs")) {
-					$data	= shell_exec("/usr/sbin/zfs list -H -o name,mountpoint | grep ".escapeshellarg($pool_name)." | grep -Ev 'legacy' | /bin/awk -F'\t' '{print $1 \",\" $2}'") ?? "";
+					$data	= shell_exec("/usr/sbin/zfs list -H -o name,mountpoint | /usr/bin/grep ".escapeshellarg($pool_name)." | /bin/awk -F'\t' '$2 != \"-\" && $2 != \"legacy\" {print $1 \",\" $2}'");
 
 					$rows	= explode("\n", $data);
 
-					unassigned_log("Mounting zfs datasets...");
-
 					/* Check for any potential datasets to mount. */
 					if (count($rows) > 2) {
+						unassigned_log("Mounting zfs datasets...");
+
 						/* Check each dataset to see if can be mounted. */
 						foreach ($rows as $dataset) {
 							$columns		= explode(',', $dataset);
 
 							/* The dataset (folder) must exist before it can be mounted. */
-							if ((count($columns) == 2) && ($columns[0] != $pool_name) && ($columns[1] != "-")) {
+							if ((count($columns) == 2) && ($columns[0] != $pool_name)) {
 								if (! is_mounted($columns[1])) {
 									/* Mount the dataset. */
 									$params	= get_mount_params($file_system, $pool_name, $ro);
