@@ -727,7 +727,7 @@ function get_format_cmd($dev, $fs, $pool_name) {
 
 		case 'zfs':
 		case 'zfs-encrypted';
-			$rc = "/usr/sbin/zpool create -o ashift=12 -f ".escapeshellarg($pool_name)." ".escapeshellarg($dev)." 2>&1";
+			$rc = "/usr/sbin/zpool create -o compatibility=legacy -o ashift=12 -f ".escapeshellarg($pool_name)." ".escapeshellarg($dev)." 2>&1";
 			break;
 
 		case 'ntfs':
@@ -1145,9 +1145,8 @@ function timed_exec($timeout, $cmd) {
 function part_fs_type($dev, $luks = true) {
 
 	/* Get the file system type from lsblk. */
-	$o	= shell_exec("/bin/lsblk -f | grep ".escapeshellarg(basename($dev)." ")." 2>/dev/null | grep -v 'crypto_LUKS' | /bin/awk '{print $2}'");
+	$o	= trim(shell_exec("/bin/lsblk -f | grep ".escapeshellarg(basename($dev)." ")." 2>/dev/null | grep -v 'crypto_LUKS' | /bin/awk '{print $2}'") ?? "");
 
-	$o	= isset($o) ? str_replace("\n", "", $o) : "";
 	$rc	= ($o == "zfs_member") ? "zfs" : $o;
 
 	return ($rc ? $rc : ($luks ? "luks" : ""));
@@ -1657,7 +1656,7 @@ function do_mount_local($info) {
 	$dir			= $info['mountpoint'];
 	$fs				= $info['fstype'];
 	$ro				= $info['read_only'];
-	$file_system	="";
+	$file_system	= "";
 
 	$pool_name	= ($info['fstype'] == "zfs") ? (new MiscUD)->zfs_pool_name($dir, true) : "";
 	$mounted	= (($info['fstype'] == "zfs") && ($pool_name))? (is_mounted($pool_name) || is_mounted($dir)) : (is_mounted($dev) || is_mounted($dir));
@@ -3795,6 +3794,40 @@ function change_UUID($dev) {
 	/* Show the result of the UUID change operation. */
 	if ($rc) {
 		unassigned_log("Changed partition UUID on '".$device."' with result: ".$rc);
+	}
+}
+
+/* Check to see if a pool can be upgraded. */
+function is_upgraded_ZFS_pool($pool_name) {
+
+	/* Get the original compatibility setting. */
+	$compatibility	= trim(shell_exec("/usr/sbin/zpool get -H -o value compatibility ".escapeshellarg($pool_name)) ?? "");
+
+	/* Set compatibility setting off so we can check for needing upgrade. */
+	shell_exec("/usr/sbin/zpool set compatibility=off ".escapeshellarg($pool_name));
+
+	/* See if the pool is aready upgraded. */
+	$upgrade	= shell_exec("/usr/sbin/zpool status ".escapeshellarg($pool_name)." | /usr/bin/grep 'Enable all features using.'") ?? "";
+
+	/* Restore the compatibility setting. */
+	shell_exec("/usr/sbin/zpool set compatibility=".$compatibility." ".escapeshellarg($pool_name));
+
+	return ($upgrade ? false : true);
+}
+
+/* Upgrade the zfs disk. */
+function upgrade_ZFS_pool($pool_name) {
+
+	if (! is_upgraded_ZFS_pool($pool_name)) {
+		/* Set compatibility setting off so we can check for needing upgrade. */
+		shell_exec("/usr/sbin/zpool set compatibility=off ".escapeshellarg($pool_name));
+
+		/* Upgrade the zfs pool. */
+		shell_exec("/usr/sbin/zpool upgrade ".escapeshellarg($pool_name));
+
+		unassigned_log("ZFS pool '".$pool_name."' has been upgraded");
+	} else {
+		unassigned_log("ZFS pool '".$pool_name."' has already been upgraded");
 	}
 }
 
