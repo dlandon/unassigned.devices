@@ -906,11 +906,21 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 					$return	= null;
 					$cmd	= get_format_cmd("/dev/mapper/".$mapper, $fs, $pool_name);
 					unassigned_log("Format drive command: ".$cmd);
+
+					/* Format the disk. */
 					exec($cmd, $out, $return);
 					sleep(1);
+
+					/* Set compatibility setting off so we can check for needing upgrade. */
+					exec("/usr/sbin/zpool set compatibility=off ".escapeshellarg($pool_name));
+					sleep(1);
+
+					/* Export the pool. */
 					exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
 					sleep(1);
 				}
+
+				/* Close the uks device. */
 				exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper)." 2>/dev/null");
 			}
 		} else {
@@ -922,6 +932,11 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 			exec($cmd, $out, $return);
 			sleep(1);
 			if (($fs == "zfs") && ($pool_name)) {
+				/* Set compatibility setting off so we can check for needing upgrade. */
+				exec("/usr/sbin/zpool set compatibility=off ".escapeshellarg($pool_name));
+				sleep(1);
+
+				/* Export the pool. */
 				exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
 				sleep(1);
 			}
@@ -3791,20 +3806,11 @@ function change_UUID($dev) {
 	}
 }
 
-/* Check to see if a pool can be upgraded. */
+/* Check to see if a pool has already been upgraded. */
 function is_upgraded_ZFS_pool($pool_name) {
 
-	/* Get the original compatibility setting. */
-	$compatibility	= trim(shell_exec("/usr/sbin/zpool get -H -o value compatibility ".escapeshellarg($pool_name)) ?? "");
-
-	/* Set compatibility setting off so we can check for needing upgrade. */
-	shell_exec("/usr/sbin/zpool set compatibility=off ".escapeshellarg($pool_name));
-
 	/* See if the pool is aready upgraded. */
-	$upgrade	= shell_exec("/usr/sbin/zpool status ".escapeshellarg($pool_name)." | /usr/bin/grep 'Enable all features using.'") ?? "";
-
-	/* Restore the compatibility setting. */
-	shell_exec("/usr/sbin/zpool set compatibility=".$compatibility." ".escapeshellarg($pool_name));
+	$upgrade	= trim(shell_exec("/usr/sbin/zpool status ".escapeshellarg($pool_name)." | /usr/bin/grep 'Enable all features using.'") ?? "");
 
 	return ($upgrade ? false : true);
 }
@@ -3813,9 +3819,6 @@ function is_upgraded_ZFS_pool($pool_name) {
 function upgrade_ZFS_pool($pool_name) {
 
 	if (! is_upgraded_ZFS_pool($pool_name)) {
-		/* Set compatibility setting off so we can check for needing upgrade. */
-		shell_exec("/usr/sbin/zpool set compatibility=off ".escapeshellarg($pool_name));
-
 		/* Upgrade the zfs pool. */
 		shell_exec("/usr/sbin/zpool upgrade ".escapeshellarg($pool_name));
 
