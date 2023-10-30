@@ -1216,8 +1216,7 @@ function is_automount($serial, $usb = false) {
 
 /* Is device set to mount read only? */
 function is_read_only($serial, $default = false, $part = "") {
-	$read_only		= "read_only";
-	$read_only		= ($part) ? $read_only.".".$part : $read_only;
+	$read_only		= "read_only".($part ? ".$part" : "");
 	$read_only		= get_config($serial, $read_only);
 	$pass_through	= get_config($serial, "pass_through");
 	return ( $pass_through != "yes" && $read_only == "yes" ) ? true : (($read_only == "no") ? false : $default);
@@ -1225,16 +1224,14 @@ function is_read_only($serial, $default = false, $part = "") {
 
 /* Is device set to pass through. */
 function is_pass_through($serial, $part = "") {
-	$pass_through	= "pass_through";
-	$pass_through	= ($part) ? $pass_through.".".$part : $pass_through;
+	$pass_through	= "pass_through".($part ? ".$part" : "");
 	$passed_through	= get_config($serial, $pass_through);
 	return ($passed_through == "yes") ? true : (($passed_through == "no") ? false : false);
 }
 
 /* Is disable mount button set. */
 function is_disable_mount($serial, $part = "") {
-	$disable_mount	= "disable_mount";
-	$disable_mount	= ($part) ? $disable_mount.".".$part : $disable_mount;
+	$disable_mount	= "disable_mount".($part ? ".$part" : "");
 	return (get_config($serial, $disable_mount) == "yes");
 }
 
@@ -1274,8 +1271,7 @@ function toggle_read_only($serial, $status, $part = "") {
 		/* Make file changes. */
 		$config_file	= $GLOBALS["paths"]["config_file"];
 		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
-		$read_only		= "read_only";
-		$read_only		= ($part) ? $read_only.".".$part : $read_only;
+		$read_only		= "read_only".($part ? ".$part" : "");
 		$config[$serial][$read_only] = ($status == "true") ? "yes" : "no";
 		save_ini_file($config_file, $config);
 
@@ -1301,8 +1297,7 @@ function toggle_pass_through($serial, $status, $part = "") {
 		/* Make file changes. */
 		$config_file	= $GLOBALS["paths"]["config_file"];
 		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
-		$pass_through	= "pass_through";
-		$pass_through	= ($part) ? $pass_through.".".$part : $pass_through;
+		$pass_through	= "pass_through".($part ? ".$part" : "");
 		$config[$serial][$pass_through] = ($status == "true") ? "yes" : "no";
 		save_ini_file($config_file, $config);
 
@@ -1328,8 +1323,7 @@ function toggle_disable_mount($serial, $status, $part = "") {
 		/* Make file changes. */
 		$config_file	= $GLOBALS["paths"]["config_file"];
 		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
-		$disable_mount	= "disable_mount";
-		$disable_mount	= ($part) ? $disable_mount.".".$part : $disable_mount;
+		$disable_mount	= "disable_mount".($part ? ".$part" : "");
 		$config[$serial][$disable_mount] = ($status == "true") ? "yes" : "no";
 		save_ini_file($config_file, $config);
 
