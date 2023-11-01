@@ -920,7 +920,7 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 					sleep(1);
 				}
 
-				/* Close the uks device. */
+				/* Close the luks device. */
 				exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper)." 2>/dev/null");
 			}
 		} else {
@@ -1000,6 +1000,7 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 			/* Remove zpool label info. */
 			exec("/usr/sbin/zpool labelclear -f ".escapeshellarg($device));
 			sleep(1);
+
 			unassigned_log("Format failed, zpool signature found on device partition '".$device."'!  Clear the disk and try again.");
 			$rc		= false;
 		}
@@ -1173,8 +1174,7 @@ function zvol_fs_type($dev) {
 	$rc	= "";
 
 	/* Get the file system type from blkid for a zfs volume. */
-	$o	= shell_exec("/sbin/blkid ".escapeshellarg($dev)." 2>/dev/null");
-	$o	= isset($o) ? trim($o) : "";
+	$o	= trim(shell_exec("/sbin/blkid ".escapeshellarg($dev)." 2>/dev/null") ?? "");
 	$l	= strpos($o, 'TYPE="');
 	if ($l !== false) {
 		$l	= $l+6;
@@ -3588,8 +3588,10 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 					$pool_name	= (new MiscUD)->zfs_pool_name($dev);
 					shell_exec("/usr/sbin/zpool export ".escapeshellarg($pool_name));
 					sleep(1);
+
 					shell_exec("/usr/sbin/zpool import -N ".escapeshellarg($pool_name)." ".escapeshellarg($mountpoint));
 					sleep(1);
+
 					shell_exec("/usr/sbin/zpool export ".escapeshellarg($mountpoint));
 					break;
 
@@ -3652,10 +3654,13 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 								$pool_name	= (new MiscUD)->zfs_pool_name($dev);
 								shell_exec("/usr/sbin/zpool export ".escapeshellarg($pool_name));
 								sleep(1);
+
 								shell_exec("/usr/sbin/zpool import -N ".escapeshellarg($pool_name)." ".escapeshellarg($mountpoint));
 								sleep(1);
+
 								shell_exec("/usr/sbin/cryptsetup luksUUID --uuid=".escapeshellarg($mountpoint)." ".$mapper);
 								sleep(1);
+
 								shell_exec("/usr/sbin/zpool export ".escapeshellarg($mountpoint));
 								break;
 
