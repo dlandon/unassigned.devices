@@ -272,13 +272,13 @@ esac
 EOT;
 ?>
 
-<script type="text/javascript" src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
-<script type="text/javascript" src="<?autov('/webGui/javascript/jquery.filetree.js')?>"></script>
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.ui.css')?>">
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.switchbutton.css')?>">
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.filetree.css')?>" >
 
-<script type="text/javascript" src="<?autov('/plugins/'.$plugin.'/assets/arrive.min.js')?>"></script>
+<script src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
+<script src="<?autov('/webGui/javascript/jquery.filetree.js')?>"></script>
+<script src="<?autov('/plugins/'.$plugin.'/assets/arrive.min.js')?>"></script>
 
 <style type="text/css">
 	.fileTree {
