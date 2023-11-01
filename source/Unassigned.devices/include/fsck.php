@@ -91,49 +91,52 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 	/* If all is good, perform the file system check or scrub. */
 	if ($rc) {
 		if ($file_system) {
-			/* If the file system is btrfs, we will do a scrub. */
+			/* If the file system is btrfs or zfs, we will do a scrub. */
 			if (($file_system == "btrfs") || ($file_system == "zfs")) {
-				write_log("Executing file system scrub:&nbsp;");
+				if ($mounted) {
+					write_log("Executing file system scrub:&nbsp;");
+				}
 			} else {
 				write_log("Executing file system check:&nbsp;");
 			}
 
 			/* Get the file system check command based on the file system. */
 			if ($file_system == "zfs") {
-				if (! $mounted) {
-					$pool_name	= (new MiscUD)->zfs_pool_name($device);
-					exec("/usr/sbin/zpool import -N ".escapeshellarg($pool_name)." 2>/dev/null");
-					sleep(1);
-				} else {
+				if ($mounted) {
 					$pool_name	= (new MiscUD)->zfs_pool_name($mountpoint, $mounted);
+					$command	= get_fsck_commands($file_system, escapeshellarg($pool_name), $check_type)." 2>&1";
+				} else {
+					$command	= "";
 				}
-				$command = get_fsck_commands($file_system, escapeshellarg($pool_name), $check_type)." 2>&1";
+			} else if (($file_system != "btrfs") || (($file_system == "btrfs") && ($mounted))) {
+				$command		= get_fsck_commands($file_system, escapeshellarg($device), $check_type)." 2>&1";
 			} else {
-				$command = get_fsck_commands($file_system, escapeshellarg($device), $check_type)." 2>&1";
-			}
-			write_log($command."<br />");
-
-			/* Execute the fsck command and pipe it to $proc. */
-			$proc = popen($command, 'r');
-			while (! feof($proc)) {
-				write_log(fgets($proc));
+				$command		= "";
 			}
 
-			/* Show the results of the zfs scrub. */
-			if ($file_system == "zfs") {
-				$command = "/usr/sbin/zpool status ".escapeshellarg($pool_name);
-				/* Execute the status command and pipe it to $proc. */
+			/* If the command is defined, execute the command. */
+			if ($command) {
+				write_log($command."<br />");
+
+				/* Execute the fsck command and pipe it to $proc. */
 				$proc = popen($command, 'r');
 				while (! feof($proc)) {
 					write_log(fgets($proc));
 				}
-				if (! $mounted) {
-					exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
-				}
-			}
 
-			/* Close $proc and get the process error code. */
-			$rc_check = pclose($proc);
+				/* Show the results of the zfs scrub. */
+				if ($file_system == "zfs") {
+					$command = "/usr/sbin/zpool status ".escapeshellarg($pool_name);
+					/* Execute the status command and pipe it to $proc. */
+					$proc = popen($command, 'r');
+					while (! feof($proc)) {
+						write_log(fgets($proc));
+					}
+				}
+
+				/* Close $proc and get the process error code. */
+				$rc_check = pclose($proc);
+			}
 		} else {
 			if ($fs == "crypto_LUKS") {
 				write_log("Cannot determine file system on an encrypted disk!<br />");
@@ -153,8 +156,8 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 }
 
 /* Btrfs file systems have to be mounted to scrub them. */
-if (($file_system == "btrfs") && (! $mounted)) {
-	write_log("<br />"._('A btrfs file system has to be mounted to be scrubbed')."!<br />");
+if ((($file_system == "btrfs")|| ($file_system == "zfs"))&& (! $mounted)) {
+	write_log("<br />"._('A btrfs or zfs file system has to be mounted to be scrubbed')."!<br />");
 } else {
 	/* Check the fsck return code and process the return code. */
 	if ($rc_check != 0) {
