@@ -38,8 +38,9 @@ if ((! $parted) && ($cfg['Config']['destructive_mode'] == "enabled")) {
 }
 ?>
 
-<script type="text/javascript" src="<?autov('/webGui/javascript/jquery.filetree.js')?>"></script>
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.filetree.css')?>" >
+
+<script type="text/javascript" src="<?autov('/webGui/javascript/jquery.filetree.js')?>"></script>
 
 <style type="text/css">
 	.fileTree {
