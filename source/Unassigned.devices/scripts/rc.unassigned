@@ -463,11 +463,11 @@ function unassigned_umount() {
 
 							/* Check for a zfs scrub running on this device and cancel if there is. */
 							if ($file_system == 'zfs') {
-								$scrub_status	= trim(shell_exec("/usr/sbin/zpool status ".escapeshellarg($pool_name)." | grep 'scrub in progress'") ?? "");
-								if ($scrub_status) {
+								$scrub_status	= trim(shell_exec("/usr/sbin/zpool status ".escapeshellarg($pool_name)." | grep 'scan:'") ?? "");
+								if (strpos($scrub_status, "scrub in progress") !== false) {
 									exec("/usr/sbin/zpool scrub -s ".escapeshellarg($pool_name));
+									sleep(1);
 								}
-								sleep(1);
 							}
 
 							/* Unmount the disk. */
