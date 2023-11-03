@@ -454,11 +454,20 @@ function unassigned_umount() {
 
 							/* Check for a btrfs scrub running on this device and cancel if there is. */
 							if ($file_system == 'btrfs') {
-								$scrub_status	= shell_exec("/sbin/btrfs scrub status ".escapeshellarg($info['mountpoint'])." | grep 'Status:' | /bin/awk '{print $2}'") ?? "";
+								$scrub_status	= trim(shell_exec("/sbin/btrfs scrub status ".escapeshellarg($info['mountpoint'])." | grep 'Status:' | /bin/awk '{print $2}'") ?? "");
 								if (strpos($scrub_status, "running") !== false) {
-									$scrub_status	= shell_exec("/sbin/btrfs scrub cancel ".escapeshellarg($info['mountpoint'])) ?? "";
+									exec("/sbin/btrfs scrub cancel ".escapeshellarg($info['mountpoint']));
 									sleep(1);
 								}
+							}
+
+							/* Check for a zfs scrub running on this device and cancel if there is. */
+							if ($file_system == 'zfs') {
+								$scrub_status	= trim(shell_exec("/usr/sbin/zpool status ".escapeshellarg($pool_name)." | grep 'scrub in progress'") ?? "");
+								if ($scrub_status) {
+									exec("/usr/sbin/zpool scrub -s ".escapeshellarg($pool_name));
+								}
+								sleep(1);
 							}
 
 							/* Unmount the disk. */
