@@ -41,6 +41,32 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 <div class='pluginUpdate'></div>
 
+<style>
+div.title.ud{margin-top:0}
+span.right.ud+span.status{display:none}
+</style>
+
+<div class="title ud">
+<span class="left">
+<img src="/plugins/<?=$plugin?>/icons/disk.png" class="icon">_(Disk Devices)_
+</span>
+<span class="right ud">
+<a class="hand tooltip" title="_(Unassigned Devices Settings)_" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>
+</span>
+<span class="right ud">
+<a class="hand tooltip" title="_(Refresh Disks and Configuration)_" onclick="rescan_disks()"><i class="fa fa-refresh"></i></a>
+</span>
+<span class="right ud">
+<a class="hand tooltip" title="_(Show Historical Devices)_"><input type="checkbox" class="historical-switch"></a>
+</span>
+<span class="right ud">
+<a class="hand tooltip" title="_(Show SMB/NFS/ISO Shares)_"><input type="checkbox" class="shares-switch"></a>
+</span>
+<span class="right ud">
+<a class="hand tooltip" title="_(Show Disk Devices)_"><input type="checkbox" class="disks-switch"></a>
+</span>
+</div>
+
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.ui.css')?>">
 <link type="text/css" rel="stylesheet" href="<?autov("/plugins/dynamix.docker.manager/styles/style-$theme.css")?>">
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.switchbutton.css')?>">
@@ -316,73 +342,6 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		});
 	}
 
-	function get_tab_title_by_name(name) {
-		var tab		= $("input[name$=tabs] + label").filter(function(){return $(this).text() === name;}).prev();
-<?if ($new_model):?>
-		var title	= $("div.title > span.left").filter(function(){return $(this).text() === name;}).parent();
-<?else:?>
-		var title	= $("div#title > span.left").filter(function(){return $(this).text() === name;}).parent();
-<?endif;?>
-		if (tab.length) {
-			rc = tab;
-		} else if (title.length) {
-			rc = title;
-		} else {
-			rc = $(document);
-		}
-
-		return rc;
-	}
-
-	function addButtonTab(Button, Name, autoHide = true, Append = true) {
-		var Target		= get_tab_title_by_name(Name);
-		var elementId 	= 'event-' + new Date().getTime() * Math.floor(Math.random()*100000);
-		var element		= $("<span id='"+elementId+"' class='status'>"+Button+"</span>");
-
-		rc = true;
-		if (element.find("input[type='button']").length) {
-			element.addClass("vhshift");
-			element.find("input[type='button']").prop("style","padding-top: 5px; padding-bottom: 5px; margin-top:-3px; margin-bottom:0;");
-		}
-
-		if (Target.prop('nodeName') === "DIV") {
-			element.addClass("vhshift");
-			if (Append) {
-				Target.append(element);
-			} else {
-				Target.prepend(element);
-			}
-		} else if (Target.prop('nodeName') === "INPUT") {
-			element.css("display","none");
-
-			if (Append) {
-				$('.tabs').append(element);
-			} else {
-				$('.tabs').prepend(element);
-			}
-
-			Target.bind({click:function() {
-				$('#'+elementId).fadeIn('slow');}
-			});
-
-			if (Target.is(':checked') || (! autoHide)) {
-				$('#'+elementId).fadeIn('slow');
-			}
-
-			$("input[name$=tabs]").each(function() {
-				if (! $(this).is(Target) && autoHide ) {
-					$(this).bind({click:function() {
-						$('#'+elementId).fadeOut('slow');}
-					});
-				}
-			});
-		} else {
-			rc = false;
-		}
-
-		return rc;
-	}
-
 	function rescan_disks() {
 		$.post(UDURL, {'action' : 'rescan_disks'});
 		swalShowResult(true);
@@ -614,7 +573,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 <?=$Preclear ? $Preclear->html() : "";?>
 
-<table id ='usb_devices_list' class='disk_status wide disk_mounts show-disks'>
+<table id='usb_devices_list' class='disk_status wide disk_mounts show-disks'>
 	<thead>
 		<tr>
 			<td><?=('Device')?></td>
@@ -861,17 +820,6 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		if ($.cookie('unassigned-historical-view') == 'false') {
 			$('.show-historical').slideToggle('slow');
 		}
-
-		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Unassigned Devices Settings");?>" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear fa-switch"></i></a>',
-								"<?=_('Unassigned Devices');?>");
-		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Refresh Disks and Configuration");?>" onclick="rescan_disks()"><i class="fa fa-refresh fa-switch"></i></a>',
-								"<?=_('Unassigned Devices');?>");
-		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Show Historical Devices");?>"><input type="checkbox" class="historical-switch"></a>',
-								"<?=_('Unassigned Devices');?>");
-		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Show SMB/NFS/ISO Shares");?>"><input type="checkbox" class="shares-switch"></a>',
-								"<?=_('Unassigned Devices');?>");
-		addButtonTab('<a style="cursor:pointer" class="tooltip" title="<?=_("Show Disk Devices");?>"><input type="checkbox" class="disks-switch"></a>',
-								"<?=_('Unassigned Devices');?>");
 
 		$('.tooltip').tooltipster({delay:100, trigger:'custom', triggerOpen:{mouseenter:true}, triggerClose:{click:false, scroll:true, mouseleave:true}});
 
