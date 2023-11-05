@@ -94,10 +94,10 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 			/* If the file system is btrfs or zfs, we will do a scrub. */
 			if (($file_system == "btrfs") || ($file_system == "zfs")) {
 				if ($mounted) {
-					write_log("Executing file system scrub:&nbsp;");
+					write_log(_('Executing file system scrub').":&nbsp;");
 				}
 			} else {
-				write_log("Executing file system check:&nbsp;");
+				write_log(_('Executing file system check').":&nbsp;");
 			}
 
 			/* Get the file system check command based on the file system. */
@@ -139,7 +139,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 			}
 		} else {
 			if ($fs == "crypto_LUKS") {
-				write_log("Cannot determine file system on an encrypted disk!<br />");
+				write_log(_('Cannot determine file system on an encrypted disk')."!<br />");
 			}
 			$rc_check = 0;
 		}
