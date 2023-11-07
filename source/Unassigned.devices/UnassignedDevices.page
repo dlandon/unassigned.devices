@@ -39,34 +39,6 @@ $ud_reload = "UD_reload";
 $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "no")) ? "disabled" : "";
 ?>
 
-<div class='pluginUpdate'></div>
-
-<style>
-div.title.ud{margin-top:0}
-span.right.ud+span.status{display:none}
-</style>
-
-<div class="title ud">
-<span class="left">
-<img src="/plugins/<?=$plugin?>/icons/disk.png" class="icon">_(Disk Devices)_
-</span>
-<span class="right ud">
-<a class="hand tooltip" title="_(Unassigned Devices Settings)_" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>
-</span>
-<span class="right ud">
-<a class="hand tooltip" title="_(Refresh Disks and Configuration)_" onclick="rescan_disks()"><i class="fa fa-refresh"></i></a>
-</span>
-<span class="right ud">
-<a class="hand tooltip" title="_(Show Historical Devices)_"><input type="checkbox" class="historical-switch"></a>
-</span>
-<span class="right ud">
-<a class="hand tooltip" title="_(Show SMB/NFS/ISO Shares)_"><input type="checkbox" class="shares-switch"></a>
-</span>
-<span class="right ud">
-<a class="hand tooltip" title="_(Show Disk Devices)_"><input type="checkbox" class="disks-switch"></a>
-</span>
-</div>
-
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.ui.css')?>">
 <link type="text/css" rel="stylesheet" href="<?autov("/plugins/dynamix.docker.manager/styles/style-$theme.css")?>">
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.switchbutton.css')?>">
@@ -77,6 +49,13 @@ span.right.ud+span.status{display:none}
 <script src="<?autov('/plugins/'.$plugin.'/assets/arrive.min.js')?>"></script>
 
 <style>
+<?if ($themes1):?>
+	div.title.ud{margin-top:-45px}
+<?else:?>
+	div.title.ud{margin-top:0}
+<?endif;?>
+	span.right.ud+span.status{display:none}
+
 	table.disk_mounts {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
 	table.disk_mounts thead tr>td{text-align:left;width:8%;}
 	table.disk_mounts tr>td+td{text-align:left;}
@@ -132,7 +111,6 @@ span.right.ud+span.status{display:none}
 </style>
 
 <script type="text/javascript">
-
 	function spin_down_disk(dev) {
 		document.getElementById('disk_orb-'+dev).className = "fa fa-refresh fa-spin green-orb";
 		$.post(UDURL, {'action' : 'spin_down_disk', device:dev});
@@ -573,30 +551,57 @@ span.right.ud+span.status{display:none}
 
 <?=$Preclear ? $Preclear->html() : "";?>
 
-<table id='usb_devices_list' class='disk_status wide disk_mounts show-disks'>
-	<thead>
-		<tr>
-			<td><?=('Device')?></td>
-			<td><?=('Identification')?></td>
-			<td></td>
-			<td><?=_('Temp')?>.</td>
-			<td><?=_('Reads')?></td>
-			<td><?=_('Writes')?></td>
-			<td><?=_('Settings')?></td>
-			<td><?=_('FS')?></td>
-			<td><?=_('Size')?></td>
-			<td><?=_('Used')?></td>
-			<td><?=_('Free')?></td>
-			<td><?=_('Log')?></td>
-		</tr>
-	</thead>
-	<tbody id="disk-table-body">
-		<tr>
-			<td colspan='12'><div class='spinner'></div>
-			</td>
-		</tr>
-	</tbody>
-</table>
+<div class='pluginUpdate'></div>
+
+<div class="title ud">
+<span class="left">_(Unassigned Disks)_/_(Remote Shares)_/_(Historical Devices)_</span>
+<span class="right ud">
+<a class="hand tooltip" title="_(Unassigned Devices Settings)_" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>
+</span>
+<span class="right ud">
+<a class="hand tooltip" title="_(Refresh Disks and Configuration)_" onclick="rescan_disks()"><i class="fa fa-refresh"></i></a>
+</span>
+<span class="right ud">
+<a class="hand tooltip" title="_(Show/Hide Historical Devices)_"><input type="checkbox" class="historical-switch"></a>
+</span>
+<span class="right ud">
+<a class="hand tooltip" title="_(Show/Hide SMB/NFS/ISO Shares)_"><input type="checkbox" class="shares-switch"></a>
+</span>
+<span class="right ud">
+<a class="hand tooltip" title="_(Show/Hide Disk Devices)_"><input type="checkbox" class="disks-switch"></a>
+</span>
+</div>
+
+<div class='show-disks'>
+	<div <?=$title_classid;?>>
+		<span class='left'><img src='/plugins/<?=$plugin?>/icons/disk.png' class='icon'><?=_('Disk Devices')?></span>
+	</div>
+
+	<table id='usb_devices_list' class='disk_status wide disk_mounts'>
+		<thead>
+			<tr>
+				<td><?=('Device')?></td>
+				<td><?=('Identification')?></td>
+				<td></td>
+				<td><?=_('Temp')?>.</td>
+				<td><?=_('Reads')?></td>
+				<td><?=_('Writes')?></td>
+				<td><?=_('Settings')?></td>
+				<td><?=_('FS')?></td>
+				<td><?=_('Size')?></td>
+				<td><?=_('Used')?></td>
+				<td><?=_('Free')?></td>
+				<td><?=_('Log')?></td>
+			</tr>
+		</thead>
+		<tbody id="disk-table-body">
+			<tr>
+				<td colspan='12'><div class='spinner'></div>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
 
 :unassgned_devices_switches_plug:
 > Turn on the **Disks** switch to change the web page to show disk devices. Turn off the **Disks** switch to change the web page to hide disk devices.
@@ -613,9 +618,9 @@ span.right.ud+span.status{display:none}
 :end
 
 <div class='show-shares'>
-	<div <?=$title_classid;?> class='show-disks'>
+	<div <?=$title_classid;?>>
 		<span class='left'>
-			<img src='/plugins/<?=$plugin?>/icons/smbsettings.png' class='icon'><?=_('SMB Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/nfssettings.png' class='icon'><?=_('NFS Shares')?> &nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/iso.png' class='icon' style='width:16px;'><?=_('ISO File Shares')?>
+			<img src='/plugins/<?=$plugin?>/icons/smbsettings.png' class='icon'><?=_('SMB Shares')?>&nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/nfssettings.png' class='icon'><?=_('NFS Shares')?>&nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/iso.png' class='icon' style='width:16px;'><?=_('ISO File Shares')?>
 		</span>
 	</div>
 	<table class='disk_status wide samba_mounts'>
