@@ -1679,8 +1679,7 @@ function do_mount_local($info) {
 					if ($password) {
 						$recovery = ",pass='".$password."'";
 					}
-					$vol		= get_config($info['serial'], "volume".$info['part']);
-					$vol		= ($vol != 0) ? ",vol=".$vol : "";
+					$vol		= ",vol=".(get_config($info['serial'], "volume.".$info['part']) ?: "0");
 					$cmd		= "/usr/bin/apfs-fuse -o uid=99,gid=100,allow_other{$vol}{$recovery} ".escapeshellarg($dev)." ".escapeshellarg($dir);
 				} else if ($fs == "zfs") {
 					/* Mount a zfs pool device. */
