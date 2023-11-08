@@ -177,7 +177,7 @@ if (isset($_POST['action'])) {
 				}
 			} else {
 				$sort['none']			= $counter;
-				$all_disks_o['none']	= "<tr><td colspan='5' style='text-align:center;'>"._('There are no disks that can be precleared').".</td></tr>";
+				$all_disks_o['none']	= "<tr><td colspan='5' style='text-align:center;'>"._('There are no disks that can be precleared').".</td></tr>"."<tr><td colspan='5' style='text-align:center;'>"._('A disk must to be cleared of all partitions before it can be precleared').".&nbsp;&nbsp;"._('You can use Unassigned Devices to clear the disk').".</td></tr>";
 			}
 
 			preclear_log("get_content Finished: ".(time() - $start_time),'DEBUG');
