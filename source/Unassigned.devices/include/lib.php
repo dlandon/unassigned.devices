@@ -1932,7 +1932,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 	$mounted	= (($zfs) && ($pool_name)) ? (is_mounted($pool_name) || is_mounted($dir)) : (is_mounted($dev) || is_mounted($dir));
 	$timeout	= ($smb || $nfs) ? ($force ? 30 : 10) : 90;
 	if ($mounted) {
-		if ((! $force) || (($force) && (! $smb) && (! $nfs))) {
+		if (((! $force) || (($force) && (! $smb) && (! $nfs))) && (! is_mounted_read_only($dir))) {
 			unassigned_log("Synching file system on '".$dir."'.");
 			if ($zfs) {
 				if (! $force) {
