@@ -24,15 +24,6 @@ parse_plugin('UnassignedDevices');
 /* Get the version of Unraid we are running. */
 $version = parse_ini_file("/etc/unraid-version");
 
-/* Adjustments for 6.12 UI changes. */
-if (version_compare($version['version'], '6.12.0-beta5', '>')) {
-	$title_classid	= "class='title'";
-	$new_model		= true;
-} else {
-	$title_classid	= "id='title'";
-	$new_model		= false;
-}
-
 /* Set up name for nchan socket. */
 $ud_reload = "UD_reload";
 
@@ -51,8 +42,10 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 <style>
 <?if ($themes1):?>
 	div.title.ud{margin-top:-45px}
+	div#title.ud{margin-top:-45px}
 <?else:?>
 	div.title.ud{margin-top:0}
+	div#title.ud{margin-top:0}
 <?endif;?>
 	span.right.ud+span.status{display:none}
 
@@ -553,27 +546,27 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 <div class='pluginUpdate'></div>
 
-<div class="title ud">
-<span class="left">_(Unassigned Disks)_/_(Remote Shares)_/_(Historical Devices)_</span>
-<span class="right ud">
-<a class="hand tooltip" title="_(Unassigned Devices Settings)_" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>
+<div id='title' class='title ud'>
+<span class='left'>_(Unassigned Disks)_/_(Remote Shares)_/_(Historical Devices)_</span>
+<span class='right ud'>
+<a class='hand tooltip' title="_(Unassigned Devices Settings)_" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>
 </span>
-<span class="right ud">
-<a class="hand tooltip" title="_(Refresh Disks and Configuration)_" onclick="rescan_disks()"><i class="fa fa-refresh"></i></a>
+<span class='right ud'>
+<a class='hand tooltip' title="_(Refresh Disks and Configuration)_" onclick="rescan_disks()"><i class="fa fa-refresh"></i></a>
 </span>
-<span class="right ud">
-<a class="hand tooltip" title="_(Show/Hide Historical Devices)_"><input type="checkbox" class="historical-switch"></a>
+<span class='right ud'>
+<a class='hand tooltip' title="_(Show/Hide Historical Devices)_"><input type="checkbox" class="historical-switch"></a>
 </span>
-<span class="right ud">
-<a class="hand tooltip" title="_(Show/Hide SMB/NFS/ISO Shares)_"><input type="checkbox" class="shares-switch"></a>
+<span class='right ud'>
+<a class='hand tooltip' title="_(Show/Hide SMB/NFS/ISO Shares)_"><input type="checkbox" class="shares-switch"></a>
 </span>
-<span class="right ud">
-<a class="hand tooltip" title="_(Show/Hide Disk Devices)_"><input type="checkbox" class="disks-switch"></a>
+<span class='right ud'>
+<a class='hand tooltip' title="_(Show/Hide Disk Devices)_"><input type="checkbox" class="disks-switch"></a>
 </span>
 </div>
 
 <div class='show-disks'>
-	<div <?=$title_classid;?>>
+	<div id='title' class='title'>
 		<span class='left'><img src='/plugins/<?=$plugin?>/icons/disk.png' class='icon'><?=_('Disk Devices')?></span>
 	</div>
 
@@ -618,7 +611,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 :end
 
 <div class='show-shares'>
-	<div <?=$title_classid;?>>
+	<div id='title' class='title'>
 		<span class='left'>
 			<img src='/plugins/<?=$plugin?>/icons/smbsettings.png' class='icon'><?=_('SMB Shares')?>&nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/nfssettings.png' class='icon'><?=_('NFS Shares')?>&nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/iso.png' class='icon' style='width:16px;'><?=_('ISO File Shares')?>
 		</span>
@@ -654,7 +647,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 <div class='show-disks'>
 	<div class='show-historical'>
-		<div <?=$title_classid;?>>
+		<div id='title' class='title'>
 			<span class='left'><img src='/plugins/<?=$plugin?>/icons/historical.png' class='icon'><?=_('Historical Devices')?></span>
 		</div>
 		<table class='disk_status wide usb_absent'>
