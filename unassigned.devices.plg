@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.10.08">
+<!ENTITY version	"2023.11.10">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"3265a06f94f5d043c21d5644075205bd">
+<!ENTITY MD5		"681f160009dbef5ce80b3fcd03520833">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,22 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Mount/unmount status on zvol 'Mount' button not turns off too soon.
+- Fix: Datasets on ZFS disks would not mount if the pool had a '-' in the pool name.
+- Fix: NFS and Samba server lookups showed a '?' when ARP could not get the server name from the IP address. The IP address will show so a user can figure out which server it is.
+- Fix: Mounting a zfs disk read only not working.
+- Fix: Change remote server lookup for servers with SMB shares to be faster.
+- Fix: Volume setting for apfs file system mount not working correctly.
+- Fix: Don't sync a file system that is mounted read only when unmounting the device.
+- Add: More information on how to enter NFS and Samba servers so they will resolve by name.
+- Add: If lsblk does not get the file system for a zvol, revert to blkid to get the file system; lsblk doesn't work on 6.12 for a zvol.
+- Add: Format ZFS disks with legacy compatibility in 6.13 so ZFS disks will mount in older versions of Unraid.
+- Add: Upgrade ZFS disks in Unraid 6.13 through UD settings with the caveat that they will not mount in older versions of Unraid.
+- Add: Load theme css so UD won't change the Unraid dialogs to white in all themes.
+- Add: Cancel a zfs scrub if it is running on a disk when unmounting.
+- Add: New line labeled 'Unassigned Devices/Remote Shares/Historical Devices' and move switches, refresh, and UD settings icons off the tab line to the new 'Unassigned Devices' line.  This fixes the overlay of the switches and icons over the disk devices header when the display width is too small.
+
+###2023-10.08
 - Fix: Spindown and detach of a luks device from the device script not working.
 - Fix: Apply mount point permissions when the mount point is created before mounting devices.
 - Fix: Php warning when checking for scrub running on a disk when unmounting.
