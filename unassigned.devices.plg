@@ -37,7 +37,7 @@
 - Add: Cancel a zfs scrub if it is running on a disk when unmounting.
 - Add: New line labeled 'Unassigned Devices/Remote Shares/Historical Devices' and move switches, refresh, and UD settings icons off the tab line to the new 'Unassigned Devices' line.  This fixes the overlay of the switches and icons over the disk devices header when the display width is too small.
 
-###2023-10.08
+###2023.10.08
 - Fix: Spindown and detach of a luks device from the device script not working.
 - Fix: Apply mount point permissions when the mount point is created before mounting devices.
 - Fix: Php warning when checking for scrub running on a disk when unmounting.
