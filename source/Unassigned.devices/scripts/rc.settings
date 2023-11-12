@@ -10,8 +10,8 @@
  * all copies or substantial portions of the Software.
  */
 
-$plugin = "unassigned.devices";
-$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+$plugin		= "unassigned.devices";
+$docroot	= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 require_once("$docroot/plugins/".$plugin."/include/lib.php");
 
 /* Save changed settings. */
