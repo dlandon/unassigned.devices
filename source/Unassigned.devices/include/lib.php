@@ -3133,7 +3133,7 @@ function get_all_disks_info() {
 				$unassigned_dev	= $unassigned_dev ? $unassigned_dev : basename($disk['device']);
 
 				/* If there is already a devX that is the same, use the disk device sdX designation. */
-				if (isset($ud_disks[$unassigned_dev]) && (substr($unassigned_dev, 0, 3) == "dev")) {
+				if (isset($ud_disks[$unassigned_dev]) && (strtoupper(substr($unassigned_dev, 0, 3)) == "DEV")) {
 					/* Get the sdX device designation. */
 					$unassigned_dev = basename($disk['device']);
 
@@ -3246,7 +3246,9 @@ function get_disk_info($dev) {
 	$disk['id_bus']				= isset($attrs['ID_BUS']) ? $attrs['ID_BUS'] : "";
 	$disk['fstype']				= isset($attrs['ID_FS_TYPE']) ? $attrs['ID_FS_TYPE'] : "";
 	$disk['ud_dev']				= get_disk_dev($disk['device']);
+	$disk['ud_device']			= (strtoupper(substr($disk['ud_dev'], 0, 3)) == "DEV");
 	$disk['unassigned_dev']		= get_config($disk['serial'], "unassigned_dev");
+	$disk['ud_unassigned_dev']	= (strtoupper(substr($disk['unassigned_dev'], 0, 3)) == "DEV");
 	$disk['ssd']				= is_disk_ssd($disk['device']);
 	$rw							= get_disk_reads_writes($disk['ud_dev'], $disk['device']);
 	$disk['reads']				= $rw[0];

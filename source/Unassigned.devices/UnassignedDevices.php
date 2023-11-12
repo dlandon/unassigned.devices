@@ -476,7 +476,7 @@ switch ($_POST['action']) {
 				if ((! $unassigned) && ($disk['device'] != $disk['ud_dev'])) {
 					set_config($disk['serial'], "unassigned_dev", $disk['ud_dev']);					
 
-				} else if (($unassigned) && ((substr($unassigned, 0, 3) == "dev" || substr($unassigned, 0, 2) == "sd") && ($unassigned != $disk['ud_dev']))) {
+				} else if (($unassigned) && ((strtoupper(substr($unassigned, 0, 3)) == "DEV" || strtoupper(substr($unassigned, 0, 2)) == "SD") && ($unassigned != $disk['ud_dev']))) {
 					set_config($disk['serial'], "unassigned_dev", $disk['ud_dev']);
 				}
 			}
@@ -553,15 +553,15 @@ switch ($_POST['action']) {
 						$hdd_serial .="<span><i class='fa fa-minus-square fa-append grey-orb'></i></span>";
 					}
 				} else {
-					$add_toggle = false;
+					$add_toggle	= false;
 					$hdd_serial .= "<span class='toggle-hdd' hdd='".$disk_device."'></span>";
 				}
 
-				$device = substr($disk_dev, 0, 3) != "dev" ? "" : " ({$disk_device})";
+				$device		= $disk['ud_device'] ? " ({$disk_device})" : "";
 				$hdd_serial .= $disk['serial'].$device.$preclear_link.$clear_disk."<span id='preclear_".$disk['serial_short']."' style='display:block;'></span>";
 
 				$o_disks .= "<tr class='toggle-disk'>";
-				if (substr($disk_name, 0, 3) != "dev") {
+				if (! $disk['ud_unassigned_dev']) {
 					if (! $disk['array_disk']) {
 						$disk_display = $disk_name;
 					} else {
@@ -573,7 +573,7 @@ switch ($_POST['action']) {
 				}
 
 				$o_disks .= "<td>";
-				if (substr($disk_dev, 0, 3) != "dev") {
+				if (! $disk['ud_device']) {
 					$str = "New?name";
 					$o_disks .= "<i class='fa fa-circle ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>";
 				} else {
