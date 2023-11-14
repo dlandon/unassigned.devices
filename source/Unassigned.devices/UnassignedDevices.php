@@ -135,6 +135,8 @@ function render_partition($disk, $partition, $disk_line = false) {
 		} else {
 			$fscheck = "<i class='fa fa-check partition-hdd'></i></a>";
 		}
+		$fscheck .= $partition['part'];
+
 		if ($mounted && is_file($cmd)) {
 			if ((! $disabled && ! is_script_running($cmd)) && (! is_script_running($partition['user_command'], true))) {
 				$fscheck .= "<a class='exec info' onclick='openWindow_fsck(\"/plugins/".$plugin."/include/script.php?device={$device}&type="._('Done')."\",\"Execute Script\",600,900);'><i class='fa fa-flash partition-script'></i><span>"._("Execute Script as udev simulating a device being installed")."</span></a>";
@@ -144,7 +146,6 @@ function render_partition($disk, $partition, $disk_line = false) {
 		} else if ($mounted) {
 			$fscheck .= "<i class='fa fa-flash partition-script'></i>";
 		}
-		$fscheck .= $partition['part'];
 
 		/* Add remove partition icon if destructive mode is enabled. */
 		$preclearing		= $Preclear ? $Preclear->isRunning(basename((new MiscUD)->base_device($partition['device']))) : false;
@@ -153,6 +154,14 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$parted				= file_exists("/usr/sbin/parted");
 		$rm_partition		= ((get_config("Config", "destructive_mode") == "enabled") && ($parted) && (! $is_mounting) && (! $is_unmounting) && (! $is_formatting) && (! $disk['pass_through']) && (! $disk['partitions'][0]['disable_mount']) && (! $disk['array_disk']) && (! $preclearing) && ($fstype) && ($fstype != "zfs")) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$partition['serial']}\",\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i><span>"._("Remove Partition")."</span></a>" : "";
 		$mpoint				= "<span>".$fscheck;
+
+		/* Add script log icon. */
+		if ($partition['command']) {
+			$mpoint			.= "<a class='info' href='/Main/ScriptLog?s=".$partition['serial']."&p=".$partition['part']."'><i class='fa fa-align-left partition-log'></i><span>"._("View Device Script Log")."</span></a>";
+		} else {
+			$mpoint			.= "<i class='fa fa-align-left partition-log' disabled></i>";
+		}
+
 		$mount_point		= basename($partition['mountpoint']);
 
 		/* Add change mount point or browse disk share icon if disk is mounted. */
@@ -162,7 +171,8 @@ function render_partition($disk, $partition, $disk_line = false) {
 			/* If the partition is mounted read only, indicate that on the mount point. */
 			$read_only		= $partition['part_read_only'] ? "<font color='red'> (RO)<font>" : "";
 
-			$mpoint			.= "<i class='fa fa-external-link partition-hdd'></i><a title='"._("Browse Disk Share")."' href='/Main/Browse?dir={$partition['mountpoint']}'>".$mount_point."</a>".$read_only."</span>";
+			$mpoint			.= "<i class='fa fa-external-link partition-hdd'></i>";
+			$mpoint			.= "<a title='"._("Browse Disk Share")."' href='/Main/Browse?dir={$partition['mountpoint']}'>".$mount_point."</a>".$read_only."</span>";
 		} else {
 			$mount_point	= basename($partition['mountpoint']);
 			$disk_label		= $partition['disk_label'];
@@ -265,13 +275,6 @@ function render_partition($disk, $partition, $disk_line = false) {
 		} else {
 			$out[] = "<td>".my_scale($partition['size'], $unit)." $unit</td>";
 			$out[] = render_used_and_free($partition);
-		}
-
-		/* Add device log icon. */
-		if ((! $disk_line) || (! $disk['show_partitions'])) {
-			$out[] = "<td><a title='"._("View Device Script Log")."' href='/Main/ScriptLog?s=".$partition['serial']."&p=".$partition['part']."'><i class='fa fa-align-left".( $partition['command'] ? "":" grey-orb" )."'></i></a></td>";
-		} else {
-			$out[] = "<td></td>";
 		}
 
 		/* Show any zvol devices. */
@@ -683,7 +686,7 @@ switch ($_POST['action']) {
 				}
 			}
 		} else {
-			$o_disks .= "<tr><td colspan='12' style='text-align:center;'>"._('No Unassigned Disks available').".</td></tr>";
+			$o_disks .= "<tr><td colspan='11' style='text-align:center;'>"._('No Unassigned Disks available').".</td></tr>";
 		}
 
 		unassigned_log("Debug: Update Remote Mounts...", $UPDATE_DEBUG);
@@ -710,13 +713,20 @@ switch ($_POST['action']) {
 				$mount_point	= (! $mount['invalid']) ? basename($mount['mountpoint']) : "-- "._("Invalid Configuration - Remove and Re-add")." --";
 				$o_remotes		.= "<td></td>";
 
+				/* Add the view log icon. */
+				if ($mount['command']) {
+					$o_remotes		.= "<td><a class='info' href='/Main/ScriptLog?d=".$mount['device']."'><i class='fa fa-align-left partition-log'></i><span>"._("View Remote SMB")."/"._("NFS Script Log")."</span></a>";
+				} else {
+					$o_remotes		.= "<td><i class='fa fa-align-left partition-log'></i>";
+				}
+
 				if ((! $is_unmounting) && ($mounted) && ($is_alive) && ($is_available)) {
 					/* If the partition is mounted read only, indicate that on the mount point. */
 					$read_only	= $mount['remote_read_only'] ? "<font color='red'> (RO)<font>" : "";
 
-					$o_remotes	.= "<td><i class='fa fa-external-link mount-share'></i><a title='"._("Browse Remote SMB")."/"._("NFS Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a>".$read_only."</td>";
+					$o_remotes	.= "<i class='fa fa-external-link mount-share'></i><a title='"._("Browse Remote SMB")."/"._("NFS Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a>".$read_only."</td>";
 				} else {
-					$o_remotes	.= "<td><i class='fa fa-pencil mount-share'></i>";
+					$o_remotes	.= "<i class='fa fa-pencil mount-share'></i>";
 					if ((! $is_mounting) && (! $is_unmounting) && (! $mount['invalid']) && ($is_alive) && ($is_available)) {
 						$o_remotes	.= "<a title='"._("Change Remote SMB")."/"._("NFS Mount Point")."' class='exec' onclick='chg_samba_mountpoint(\"{$mount['name']}\",\"{$mount_point}\");'>{$mount_point}</a>";
 					} else {
@@ -763,8 +773,6 @@ switch ($_POST['action']) {
 				$o_remotes .= "<td></td><td></td><td></td>";
 				$o_remotes .= "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				$o_remotes .= render_used_and_free($mount);
-
-				$o_remotes .= "<td><a title='"._("View Remote SMB")."/"._("NFS Script Log")."' href='/Main/ScriptLog?d=".$mount['device']."'><i class='fa fa-align-left".( $mount['command'] ? "":" grey-orb" )."'></i></a></td>";
 				$o_remotes .= "</tr>";
 
 				/* Add to the share names. */
@@ -790,10 +798,16 @@ switch ($_POST['action']) {
 				$o_remotes		.= sprintf( "<td><a class='info'><i class='fa fa-circle orb %s'></i><span>"._("ISO File is")." %s</span></a>ISO</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ));
 				$o_remotes		.= "<td>{$mount['device']}</td><td></td>";
 				$mount_point	= (! $mount['invalid']) ? basename($mount['mountpoint']) : "-- "._("Invalid Configuration - Remove and Re-add")." --";
-				if ($mounted) {
-					$o_remotes .= "<td><i class='fa fa-external-link mount-share'></i><a title='"._("Browse ISO File Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
+
+				if ($mount['command']) {
+					$o_remotes .= "<td><a class='info' href='/Main/ScriptLog?i=".$mount['device']."'><i class='fa fa-align-left'></i><span>"._("View ISO File Script Log")."</span></a>";
 				} else {
-					$o_remotes	.= "<td>";
+					$o_remotes .= "<td><i class='fa fa-align-left partition-log' disabled></i>";
+				}
+
+				if ($mounted) {
+					$o_remotes .= "<i class='fa fa-external-link mount-share'></i><a title='"._("Browse ISO File Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
+				} else {
 					$o_remotes	.= "<i class='fa fa-pencil mount-share'></i>";
 					if (! $is_mounting) {
 						$o_remotes	.= "<a title='"._("Change ISO File Mount Point")."' class='exec' onclick='chg_iso_mountpoint(\"{$mount['device']}\",\"{$mount_point}\");'>{$mount_point}</a>";
@@ -834,7 +848,6 @@ switch ($_POST['action']) {
 				$o_remotes .= "<td></td><td></td><td></td>";
 				$o_remotes .= "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				$o_remotes .= render_used_and_free($mount);
-				$o_remotes .= "<td><a title='"._("View ISO File Script Log")."' href='/Main/ScriptLog?i=".$mount['device']."'><i class='fa fa-align-left".( $mount['command'] ? "":" grey-orb" )."'></i></a></td>";
 				$o_remotes .= "</tr>";
 
 				/* Add to the share names. */
@@ -844,7 +857,7 @@ switch ($_POST['action']) {
 
 		/* If there are no remote or ISO mounts, show message. */
 		if (! count($samba_mounts) && ! count($iso_mounts)) {
-			$o_remotes .= "<tr><td colspan='15' style='text-align:center;'>"._('No Remote SMB')."/"._('NFS or ISO File Shares configured').".</td></tr>";
+			$o_remotes .= "<tr><td colspan='13' style='text-align:center;'>"._('No Remote SMB')."/"._('NFS or ISO File Shares configured').".</td></tr>";
 		}
 
 		unassigned_log("Debug: Update Historical Devices...", $UPDATE_DEBUG);

@@ -76,7 +76,9 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	i.hdd{margin:5px; 5px; 0px; 0px;}
 	i.share{margin:5px 5px 0px 0px;}
 	i.mount-share{margin:5px 5px 0px 0px;}
-	i.partition-script{margin-left: 10px; margin-right: 6px;}
+	i.partition-script{margin-left: 10px;}
+	i.partition-log{margin-left: 10px; margin-right: 10px;}
+	i.partition-samba-log{margin-left: 10px; margin-right: 10px;}
 	.exec{cursor: pointer;}
 	i.fa-append{margin:0px;font-size: 0.8em;position: relative; left:-0.3em;top:0.7em;}
 	i.fa-switch{margin:5px; 5px; 0px; 0px;}
@@ -584,7 +586,6 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 				<td><?=_('Size')?></td>
 				<td><?=_('Used')?></td>
 				<td><?=_('Free')?></td>
-				<td><?=_('Log')?></td>
 			</tr>
 		</thead>
 		<tbody id="disk-table-body">
@@ -632,7 +633,6 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			<td><?=_('Size')?></td>
 			<td><?=_('Used')?></td>
 			<td><?=_('Free')?></td>
-			<td><?=_('Log')?></td>
 		</tr>
 		</thead>
 		<tbody id="remotes-table-body">
