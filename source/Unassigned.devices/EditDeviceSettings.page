@@ -74,7 +74,7 @@ if (isset($_GET['s'])) {
 
 	/* Do some configuration file work */
 	/* If the script file does not exist, reset the command script file. */
-		if (($file) && (! file_exists($file))) {
+	if (($file) && (! file_exists($file))) {
 		set_config($ud_device,"command.{$partition}", "");
 		$file			= "";
 	}
@@ -371,7 +371,6 @@ EOT;
 > Click **Abort** to abort the device script.
 :end
 <?endif;?>
-
 </form>
 
 <form markdown="1" name="device_settings" method="POST" action="/update.php" target="progressFrame">
