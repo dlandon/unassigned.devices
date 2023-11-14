@@ -3115,9 +3115,9 @@ function get_all_disks_info() {
 				$disk['zvol']	= array();
 				foreach ($disk['partitions'] as $k => $p) {
 					if ($p) {
-						$disk['partitions'][$k] = get_partition_info($p);
-						$disk['partitions'][$k]['array_disk'] = $disk['partitions'][$k]['array_disk'] ?? false;
-						$disk['array_disk'] = $disk['array_disk'] || $disk['partitions'][$k]['array_disk'];
+						$disk['partitions'][$k]					= get_partition_info($p);
+						$disk['partitions'][$k]['array_disk']	= $disk['partitions'][$k]['array_disk'] ?? false;
+						$disk['array_disk']						= $disk['array_disk'] || $disk['partitions'][$k]['array_disk'];
 					}
 
 					/* Get any zfs volumes. */
@@ -3235,7 +3235,7 @@ function get_udev_info($dev, $udev = null) {
 
 /* Get information on specific disk device. */
 function get_disk_info($dev) {
-	global $paths, $unraid_disks;
+	global $unraid_disks;
 
 	/* Get all the disk information for this disk device. */
 	$disk						= array();
