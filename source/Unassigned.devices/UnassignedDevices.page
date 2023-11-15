@@ -52,11 +52,10 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	table.disk_mounts {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
 	table.disk_mounts thead tr>td{text-align:left;width:8%;}
 	table.disk_mounts tr>td+td{text-align:left;}
-	table.disk_mounts tr>td+td+td{text-align:center;}
-	table.disk_mounts tr>td+td+td+td{text-align:right;}
+	table.disk_mounts tr>td+td+td+td{text-align:center;}
+	table.disk_mounts tr>td+td+td+td+td+td{text-align:right;}
 	table.disk_mounts tr>td+td+td+td+td+td+td{text-align:center;}
 	table.disk_mounts tr>td+td+td+td+td+td+td+td{text-align:right;}
-	table.disk_mounts tr>td+td+td+td+td+td+td+td+td+td+td+td{text-align:center;}
 
 	table.usb_absent {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
 	table.usb_absent thead tr>td{text-align:left;width:8%;}
@@ -69,7 +68,6 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	table.samba_mounts tr>td+td+td+td{text-align:left;}
 	table.samba_mounts tr>td+td+td+td+td+td{text-align:center;}
 	table.samba_mounts tr>td+td+td+td+td+td+td+td+td{text-align:right;}
-	table.samba_mounts tr>td+td+td+td+td+td+td+td+td+td+td+td+td+td+td{text-align:center}
 
 	button.mount {user-drag:none;user-select:none;padding:2px 4px 3px 6px;margin:1px 0px 1px 0px;}
 	i.partition-hdd{margin:5px; 5px; 0px; 0px;}
@@ -78,9 +76,9 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	i.mount-share{margin:5px 5px 0px 0px;}
 	i.partition-script{margin-left: 10px;}
 	i.partition-log{margin-left: 10px; margin-right: 10px;}
-	i.partition-samba-log{margin-left: 10px; margin-right: 10px;}
+	i.samba-log{margin-left: 0px; margin-right: 10px;}
 	.exec{cursor: pointer;}
-	i.fa-append{margin:0px;font-size: 0.8em;position: relative; left:-0.3em;top:0.7em;}
+	i.fa-append{margin:0px; font-size: 0.8em; position: relative; left:-0.3em; top:0.7em;}
 	i.fa-switch{margin:5px; 5px; 0px; 0px;}
 	.underline{text-decoration: underline;}
 
@@ -624,7 +622,8 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			<td><?=_('Source')?></td>
 			<td></td>
 			<td><?=_('Mount Point')?></td>
-			<td></td><td></td>
+			<td></td>
+			<td></td>
 			<td><?=_('Remove')?></td>
 			<td><?=_('Settings')?></td>
 			<td></td>
@@ -655,6 +654,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			<tr>
 				<td><?=_('Device')?></td>
 				<td><?=_('Serial Number (Mount Point)')?></td>
+				<td></td>
 				<td></td>
 				<td><?=_('Remove')?></td>
 				<td><?=_('Settings')?></td>
