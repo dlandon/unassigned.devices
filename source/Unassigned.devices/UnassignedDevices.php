@@ -215,7 +215,8 @@ function render_partition($disk, $partition, $disk_line = false) {
 				$out[] = "<td>".my_diskio($disk['write_rate'])."</td>";
 			}
 		} else {
-			$out[] = "<td></td><td></td><td></td>";
+			$out[] = "<td></td>";
+			$out[] = "<td></td>";
 		}
 
 		/* Set up the device settings and script settings tooltip. */
@@ -257,6 +258,8 @@ function render_partition($disk, $partition, $disk_line = false) {
 					$unmounting_disk = $unmounting_disk || true;
 				}
 			}
+		} else {
+			$out[] = "<td></td>";
 		}
 
 		$device		= (new MiscUD)->base_device(basename($device)) ;
@@ -305,7 +308,9 @@ function render_partition($disk, $partition, $disk_line = false) {
 						$out[]		= "<span>".basename($z['mountpoint'])."</span>";
 					}
 					$out[]			= "<td class='mount'>".$mbutton."</td>";
-					$out[]			= "<td></td><td></td><td></td>";
+					$out[]			= "<td></td>";
+					$out[]			= "<td></td>";
+					$out[]			= "<td></td>";
 
 					/* Set up the device settings and script settings tooltip. */
 					$title = _("Edit ZFS Volume Settings");
@@ -326,10 +331,11 @@ function render_partition($disk, $partition, $disk_line = false) {
 						$out[]		= "<td>".$fstype."</td>";
 						$out[]		= "<td>".my_scale($z['size'], $unit)." $unit</td>";
 					} else {
-						$out[]		= "<td></td><td></td>";
+						$out[]		= "<td></td>";
+						$out[]		= "<td></td>";
+						$out[]		= "<td></td>";
 					}
 					$out[]			= render_used_and_free($z);
-					$out[]			= "<td></td>";
 				}
 			}
 		}
@@ -575,6 +581,7 @@ switch ($_POST['action']) {
 					$disk_display = my_disk($disk_display);
 				}
 
+				/* Device table element. */
 				$o_disks .= "<td>";
 				if (! $disk['ud_device']) {
 					$str = "New?name";
@@ -625,25 +632,23 @@ switch ($_POST['action']) {
 				}
 
 				/* Reads. */
-				$o_disks .= ($p)?$p[4]:"<td>".$reads."</td>";
+				$o_disks .= ($p)?$p[4] : "<td>".$reads."</td>";
 
 				/* Writes. */
-				$o_disks .= ($p)?$p[5]:"<td>".$writes."</td>";
+				$o_disks .= ($p)?$p[5] : "<td>".$writes."</td>";
 
 				/* Settings. */
-				$o_disks .= ($p)?$p[6]:"<td></td>";
+				$o_disks .= ($p)?$p[6] : "<td></td>";
 
 				/* File system. */
-				$o_disks .= ($p)?$p[7]:"<td></td>";
+				$o_disks .= ($p)?$p[7] : "<td></td>";
 
 				/* Disk size. */
 				$o_disks .= "<td>".my_scale($disk['size'], $unit)." {$unit}</td>";
 
 				/* Disk used and free space. */
-				$o_disks .= ($p)?$p[8]:"<td></td><td></td>";
+				$o_disks .= ($p)?$p[8] : "<td></td><td></td>";
 
-				/* Log button. */
-				$o_disks .= ($p)?$p[9]:"<td></td>";
 				$o_disks .= "</tr>";
 
 				if ($add_toggle)
@@ -706,25 +711,36 @@ switch ($_POST['action']) {
 				$is_mounting	= $mount['is_mounting'] ?? false;
 				$is_unmounting	= $mount['is_unmounting'] ?? false;
 
+				/* Populate the table row for this device. */
 				$o_remotes		.= "<tr>";
+
 				$protocol		= $mount['protocol'];
+
+				/* Orb and Protocol table element. */
 				$o_remotes		.= sprintf( "<td><a class='info'><i class='fa fa-circle orb %s'></i><span>"._("Remote Server is")." %s</span></a>%s</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ), $protocol);
-				$o_remotes		.= "<td>{$mount['name']}";
+
+				/* Source table element. */
+				$o_remotes		.= "<td>{$mount['name']}</td>";
 				$mount_point	= (! $mount['invalid']) ? basename($mount['mountpoint']) : "-- "._("Invalid Configuration - Remove and Re-add")." --";
+
+				/* Empty table element. */
 				$o_remotes		.= "<td></td>";
+
+				/* Mount point table element. */
+				$o_remotes		.= "<td>";
 
 				/* Add the view log icon. */
 				if ($mount['command']) {
-					$o_remotes		.= "<td><a class='info' href='/Main/ScriptLog?d=".$mount['device']."'><i class='fa fa-align-left partition-log'></i><span>"._("View Remote SMB")."/"._("NFS Script Log")."</span></a>";
+					$o_remotes		.= "<a class='info' href='/Main/ScriptLog?d=".$mount['device']."'><i class='fa fa-align-left samba-log'></i><span>"._("View Remote SMB")."/"._("NFS Script Log")."</span></a>";
 				} else {
-					$o_remotes		.= "<td><i class='fa fa-align-left partition-log'></i>";
+					$o_remotes		.= "<i class='fa fa-align-left samba-log'></i>";
 				}
 
 				if ((! $is_unmounting) && ($mounted) && ($is_alive) && ($is_available)) {
 					/* If the partition is mounted read only, indicate that on the mount point. */
 					$read_only	= $mount['remote_read_only'] ? "<font color='red'> (RO)<font>" : "";
 
-					$o_remotes	.= "<i class='fa fa-external-link mount-share'></i><a title='"._("Browse Remote SMB")."/"._("NFS Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a>".$read_only."</td>";
+					$o_remotes	.= "<i class='fa fa-external-link mount-share'></i><a title='"._("Browse Remote SMB")."/"._("NFS Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a>".$read_only;
 				} else {
 					$o_remotes	.= "<i class='fa fa-pencil mount-share'></i>";
 					if ((! $is_mounting) && (! $is_unmounting) && (! $mount['invalid']) && ($is_alive) && ($is_available)) {
@@ -732,26 +748,37 @@ switch ($_POST['action']) {
 					} else {
 						$o_remotes	.= $mount_point;
 					}
-					$o_remotes .= "</td>";
 				}
+				$o_remotes			.= "</td>";
+
+				/* Empty table element. */
 				$o_remotes		.= "<td></td>";
+
+				/* Mount button table element. */
+				$o_remotes			.= "<td>";
 
 				$disabled	= (($mount['fstype'] == "root") && ($var['shareDisk'] == "yes" || $var['mdState'] != "STARTED")) ? "disabled" : (($is_alive || $mounted) ? "enabled" : "disabled");
 				$disabled	= ((isset($mount['disable_mount']) && ($mount['disable_mount'])) || ($mount['invalid'])) ? "disabled" : $disabled;
 				if ($mount['mounted'] && (is_script_running($mount['command']) || is_script_running($mount['user_command'], true))) {
-					$o_remotes .= "<td><button class='mount' disabled> <i class='fa fa-spinner fa-spin'></i>"." "._("Running")."</button></td>";
+					$o_remotes .= "<button class='mount' disabled> <i class='fa fa-spinner fa-spin'></i>"." "._("Running")."</button>";
 				} else {
 					$class	= ( isset($mount['disable_mount']) && ($mount['disable_mount']) ) ? "fa fa-ban" : "";
 					if ($is_mounting) {
-						$o_remotes .= "<td><button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Mounting')."</button></td>";
+						$o_remotes .= "<button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Mounting')."</button>";
 					} else if ($is_unmounting) {
-						$o_remotes .= "<td><button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Unmounting')."</button></td>";
+						$o_remotes .= "<button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Unmounting')."</button>";
 					} else {
-						$o_remotes .= "<td>".($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\" {$disabled}><i class='$class'></i>"._('Unmount')."</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='$class'></i>"._('Mount')."</button>")."</td>";
+						$o_remotes .= ($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\" {$disabled}><i class='$class'></i>"._('Unmount')."</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='$class'></i>"._('Mount')."</button>");
 					}
 				}
+				$o_remotes			.= "</td>";
+
 				$compressed_name	= (new MiscUD)->compress_string($mount['name']);
-				$o_remotes .= $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec info' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount['name']}\", \"{$compressed_name}\", \"{$protocol}\");'><i class='fa fa-remove hdd'></i><span>"._("Remove Remote SMB")."/"._("NFS Share")."</span></a></td>";
+
+				/* Remove SMB/NFS remote share table element. */
+				$o_remotes			.= "<td>";
+				$o_remotes			.= $mounted ? "<i class='fa fa-remove hdd'></i>" : "<a class='exec info' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount['name']}\", \"{$compressed_name}\", \"{$protocol}\");'><i class='fa fa-remove hdd'></i><span>"._("Remove Remote SMB")."/"._("NFS Share")."</span></a>";
+				$o_remotes			.= "</td>";
 
 				$title = _("Edit Remote SMB")."/".("NFS Settings and Script");
 				$title .= "<br />"._("Disable Mount Button").": ";
@@ -765,14 +792,23 @@ switch ($_POST['action']) {
 				$title .= "<br />"._("Script Enabled").": ";
 				$title .= $mount['enable_script'] != "false" ? "Yes" : "No";
 
+				/* Settings icon table element. */
+				$o_remotes			.= "<td>";
 				if (! $mount['invalid']) {
-					$o_remotes .= "<td><a class='info' href='/Main/EditDeviceSettings?d=".$mount['device']."&l=".$mount['mountpoint']."&j=".$mount['name']."&m=".json_encode($mount)."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+					$o_remotes .= "<a class='info' href='/Main/EditDeviceSettings?d=".$mount['device']."&l=".$mount['mountpoint']."&j=".$mount['name']."&m=".json_encode($mount)."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a>";
 				} else {
-					$o_remotes .= "<td><i class='fa fa-gears grey-orb'></i><span style='text-align:left'></span></td>";
+					$o_remotes .= "<i class='fa fa-gears grey-orb'></i><span style='text-align:left'></span>";
 				}
+				$o_remotes			.= "</td>";
+
+				/* Empty table elements. */
 				$o_remotes .= "<td></td><td></td><td></td>";
+
+				/* Size, used, and free table elements. */
 				$o_remotes .= "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				$o_remotes .= render_used_and_free($mount);
+
+				/* End of tabe row, */
 				$o_remotes .= "</tr>";
 
 				/* Add to the share names. */
@@ -794,19 +830,29 @@ switch ($_POST['action']) {
 				$is_unmounting	= $mount['is_unmounting'];
 
 				$is_alive		= $mount['is_alive'];
-				$o_remotes		.= "<tr>";
-				$o_remotes		.= sprintf( "<td><a class='info'><i class='fa fa-circle orb %s'></i><span>"._("ISO File is")." %s</span></a>ISO</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ));
-				$o_remotes		.= "<td>{$mount['device']}</td><td></td>";
-				$mount_point	= (! $mount['invalid']) ? basename($mount['mountpoint']) : "-- "._("Invalid Configuration - Remove and Re-add")." --";
 
+				/* Populate the iso line for this device. */
+				$o_remotes		.= "<tr>";
+
+				/* Device table element. */
+				$o_remotes		.= sprintf( "<td><a class='info'><i class='fa fa-circle orb %s'></i><span>"._("ISO File is")." %s</span></a>ISO</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ));
+				$o_remotes		.= "<td>{$mount['device']}</td>";
+				
+				/* Empty table element. */
+				$o_remotes		.= "<td></td>";
+
+				/* Mount point table element. */
+				$o_remotes			.= "<td>";
+
+				$mount_point	= (! $mount['invalid']) ? basename($mount['mountpoint']) : "-- "._("Invalid Configuration - Remove and Re-add")." --";
 				if ($mount['command']) {
-					$o_remotes .= "<td><a class='info' href='/Main/ScriptLog?i=".$mount['device']."'><i class='fa fa-align-left'></i><span>"._("View ISO File Script Log")."</span></a>";
+					$o_remotes .= "<a class='info' href='/Main/ScriptLog?i=".$mount['device']."'><i class='fa fa-align-left samba-log'></i><span>"._("View ISO File Script Log")."</span></a>";
 				} else {
-					$o_remotes .= "<td><i class='fa fa-align-left partition-log' disabled></i>";
+					$o_remotes .= "<i class='fa fa-align-left samba-log' disabled></i>";
 				}
 
 				if ($mounted) {
-					$o_remotes .= "<i class='fa fa-external-link mount-share'></i><a title='"._("Browse ISO File Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a></td>";
+					$o_remotes .= "<i class='fa fa-external-link mount-share'></i><a title='"._("Browse ISO File Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a>";
 				} else {
 					$o_remotes	.= "<i class='fa fa-pencil mount-share'></i>";
 					if (! $is_mounting) {
@@ -814,22 +860,30 @@ switch ($_POST['action']) {
 					} else {
 						$o_remotes	.= $mount_point;
 					}
-					$o_remotes	.= "</td>";
 				}
+				$o_remotes			.= "</td>";
+
+				/* Empty table elemebt. */
 				$o_remotes		.= "<td></td>";
+
+				/* Remove ISO mount table element. */
+				$o_remotes			.= "<td>";
 
 				$disabled = $is_alive ? "enabled" : "disabled";
 				if ($mount['mounted'] && (is_script_running($mount['command']) || is_script_running($mount['user_command'], true))) {
-					$o_remotes .= "<td><button class='mount' disabled> <i class='fa fa-spinner fa-spin'></i> "._('Running')."</button></td>";
+					$o_remotes .= "<button class='mount' disabled> <i class='fa fa-spinner fa-spin'></i> "._('Running')."</button>";
 				} else {
 					if ($is_mounting) {
-						$o_remotes .= "<td><button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Mounting')."</button></td>";
+						$o_remotes .= "<button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Mounting')."</button>";
 					} else if ($is_unmounting) {
-						$o_remotes .= "<td><button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Unmounting')."</button></td>";
+						$o_remotes .= "<button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Unmounting')."</button>";
 					} else {
-						$o_remotes .= "<td>".($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>"._('Unmount')."</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>"._('Mount')."</button>")."</td>";
+						$o_remotes .= ($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>"._('Unmount')."</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>"._('Mount')."</button>");
 					}
 				}
+				$o_remotes			.= "</td>";
+
+
 				$compressed_device	= (new MiscUD)->compress_string($mount['device']);
 				$o_remotes .= $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec info' style='color:#CC0000;font-weight:bold;' onclick='remove_iso_config(\"{$mount['device']}\", \"{$compressed_device}\");'> <i class='fa fa-remove hdd'></i><span>"._("Remove ISO File Share")."</span></a></td>";
 
@@ -840,14 +894,23 @@ switch ($_POST['action']) {
 				$title .= "<br />"._("Script Enabled").": ";
 				$title .= $mount['enable_script'] != "false" ? "Yes" : "No";
 
+				/* Device settings table element. */
+				$o_remotes			.= "<td>";
 				if (! $mount['invalid']) {
-					$o_remotes .= "<td><a class='info' href='/Main/EditDeviceSettings?i=".$device."&l=".$mount['mountpoint']."&j=".$mount['file']."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+					$o_remotes .= "<a class='info' href='/Main/EditDeviceSettings?i=".$device."&l=".$mount['mountpoint']."&j=".$mount['file']."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a>";
 				} else {
-					$o_remotes .= "<td><i class='fa fa-gears grey-orb'></i><span style='text-align:left'></span></td>";
+					$o_remotes .= "<i class='fa fa-gears grey-orb'></i><span style='text-align:left'></span>";
 				}
+				$o_remotes			.= "</td>";
+
+				/* Empty table element. */
 				$o_remotes .= "<td></td><td></td><td></td>";
+
+				/* Size, used, and free table elements. */
 				$o_remotes .= "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				$o_remotes .= render_used_and_free($mount);
+
+				/* End of table row. */
 				$o_remotes .= "</tr>";
 
 				/* Add to the share names. */
@@ -857,7 +920,7 @@ switch ($_POST['action']) {
 
 		/* If there are no remote or ISO mounts, show message. */
 		if (! count($samba_mounts) && ! count($iso_mounts)) {
-			$o_remotes .= "<tr><td colspan='13' style='text-align:center;'>"._('No Remote SMB')."/"._('NFS or ISO File Shares configured').".</td></tr>";
+			$o_remotes .= "<tr><td colspan='14' style='text-align:center;'>"._('No Remote SMB')."/"._('NFS or ISO File Shares configured').".</td></tr>";
 		}
 
 		unassigned_log("Debug: Update Historical Devices...", $UPDATE_DEBUG);
@@ -904,17 +967,40 @@ switch ($_POST['action']) {
 			$is_standby		= ((new MiscUD)->get_device_host($historical[$disk_display]['serial']) && (empty(glob("/dev/disk/by-id/*-".$historical[$disk_display]['serial']."*"))));
 	
 			/* Add to the historical devices. */
-			$o_historical .= sprintf( "<tr><td><a class='info'><i class='fa fa-minus-circle orb %s'></i><span>"._("Historical Device is")." %s</span></a>".$historical[$disk_display]['device']."</td>", ( $is_standby ? "green-orb" : "grey-orb" ), ( $is_standby ? _("in standby") : _("offline") ));
-			$o_historical .= "<td>".$historical[$disk_display]['serial'].$historical[$disk_display]['mountpoint']."</td>";
-			$o_historical .= "<td></td>";
+
+			/* Start of taable row for this device. */
+			$o_historical	.= "<tr>";
+
+			$o_historical	.= sprintf( "<td><a class='info'><i class='fa fa-minus-circle orb %s'></i><span>"._("Historical Device is")." %s</span></a>".$historical[$disk_display]['device']."</td>", ( $is_standby ? "green-orb" : "grey-orb" ), ( $is_standby ? _("in standby") : _("offline") ));
+
+			$o_historical	.= "<td>";
+			$o_historical	.= $historical[$disk_display]['serial'].$historical[$disk_display]['mountpoint'];
+			$o_historical	.= "<td>";
+
+			/* Empty table element. */
+			$o_historical	.= "<td></td>";
+
+			/* Remove device table element. */
+			$o_historical	.= "<td>";
 			if (! $is_standby) {
 				$compressed_serial	= (new MiscUD)->compress_string($historical[$disk_display]['serial']);
-				$o_historical .= "<td><a style='color:#CC0000;font-weight:bold;cursor:pointer;' class='exec info' onclick='remove_disk_config(\"{$historical[$disk_display]['serial']}\", \"{$compressed_serial}\")'><i class='fa fa-remove hdd' disabled></i><span>"._("Remove Device Configuration")."</span></a></td>";
+				$o_historical .= "<a style='color:#CC0000;font-weight:bold;cursor:pointer;' class='exec info' onclick='remove_disk_config(\"{$historical[$disk_display]['serial']}\", \"{$compressed_serial}\")'><i class='fa fa-remove hdd' disabled></i><span>"._("Remove Device Configuration")."</span></a>";
 			} else {
-				$o_historical .= "<td><i class='fa fa-remove hdd' disabled></i></td>";
+				$o_historical .= "<i class='fa fa-remove hdd' disabled></i>";
 			}
-			$o_historical .= "<td><a class='info' href='/Main/EditDeviceSettings?s=".$historical[$disk_display]['serial']."&l=".$historical[$disk_display]['mntpoint']."&p="."1"."&t=true'><i class='fa fa-gears'></i><span>"._("Edit Historical Device Settings and Script")."</span></a></td>";
-			$o_historical .= "<td></td><td></td><td></td><td></td><td></td></tr>";
+			$o_historical	.= "</td>";
+
+			/* Device settings table element. */
+			$o_historical	.= "<td>";
+			$o_historical	.= "<a class='info' href='/Main/EditDeviceSettings?s=".$historical[$disk_display]['serial']."&l=".$historical[$disk_display]['mntpoint']."&p="."1"."&t=true'><i class='fa fa-gears'></i><span>"._("Edit Historical Device Settings and Script")."</span></a>";
+			$o_historical	.= "</td>";
+
+
+			/* Empty table elements. */
+			$o_historical .= "<td></td><td></td><td></td><td></td><td></td>";
+
+			/* End of table row for this device. */
+			$o_historical	.= "</tr>";
 		}
 
 		unassigned_log("Debug: End - Update status files...", $UPDATE_DEBUG);
