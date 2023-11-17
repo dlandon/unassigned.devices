@@ -144,7 +144,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 				$fscheck .= "<i class='fa fa-flash partition-script'></i>";
 			}
 		} else if ($mounted) {
-			$fscheck .= "<i class='fa fa-flash partition-script'></i>";
+			$fscheck 	.= "<i class='fa fa-flash partition-script'></i>";
 		}
 
 		/* Add remove partition icon if destructive mode is enabled. */
@@ -156,7 +156,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$mpoint				= "<span>".$fscheck;
 
 		/* Add script log icon. */
-		if ($partition['command']) {
+		if ($cmd) {
 			$mpoint			.= "<a class='info' href='/Main/ScriptLog?s=".$partition['serial']."&p=".$partition['part']."'><i class='fa fa-align-left partition-log'></i><span>"._("View Device Script Log")."</span></a>";
 		} else {
 			$mpoint			.= "<i class='fa fa-align-left partition-log' disabled></i>";
