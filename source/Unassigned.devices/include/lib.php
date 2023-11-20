@@ -1620,7 +1620,6 @@ function do_mount($info) {
 			$cmd		= "luksOpen $discard ".escapeshellarg($info['luks'])." ".escapeshellarg($luks);
 			$pass		= decrypt_data(get_config($info['serial'], "pass"));
 			if (! $pass) {
-				unassigned_log("Using Unraid api to open the 'crypto_LUKS' device.");
 				$o		= shell_exec("/usr/local/sbin/emcmd cmdCryptsetup=".escapeshellarg($cmd)." 2>&1");
 
 				/* Check for the mapper file existing. If it's not there, unraid did not open the luks disk. */
@@ -3620,7 +3619,6 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 					$cmd	= "luksOpen ".escapeshellarg($dev)." ".escapeshellarg($mapper);
 					$pass	= decrypt_data(get_config($serial, "pass"));
 					if (! $pass) {
-						unassigned_log("Using Unraid api to open the 'crypto_LUKS' device.");
 						$o		= shell_exec("/usr/local/sbin/emcmd cmdCryptsetup=".escapeshellarg($cmd)." 2>&1");
 
 						/* Check for the mapper file existing. If it's not there, unraid did not open the luks disk. */
@@ -3758,7 +3756,6 @@ function change_UUID($dev) {
 		$cmd	= "luksOpen ".escapeshellarg($luks)." ".escapeshellarg($mapper);
 		$pass	= decrypt_data(get_config($serial, "pass"));
 		if (! $pass) {
-			unassigned_log("Using Unraid api to open the 'crypto_LUKS' device.");
 			$o		= shell_exec("/usr/local/sbin/emcmd cmdCryptsetup=".escapeshellarg($cmd)." 2>&1");
 
 			/* Check for the mapper file existing. If it's not there, unraid did not open the luks disk. */
