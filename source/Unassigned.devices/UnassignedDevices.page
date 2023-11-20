@@ -75,7 +75,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	i.share{margin:5px 5px 0px 0px;}
 	i.mount-share{margin:5px 5px 0px 0px;}
 	i.partition-script{margin-left: 10px;}
-	i.partition-log{margin-left: 10px; margin-right: 10px;}
+	i.partition-log{margin-left: 10px; margin-right: 5px;}
 	i.samba-log{margin-left: 0px; margin-right: 10px;}
 	.exec{cursor: pointer;}
 	i.fa-append{margin:0px; font-size: 0.8em; position: relative; left:-0.3em; top:0.7em;}
