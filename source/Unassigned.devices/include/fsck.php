@@ -56,7 +56,6 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 		$pass	= decrypt_data(get_config($serial, "pass"));
 		write_log("Opening crypto_LUKS device '$luks'...<br />");
 		if (! $pass) {
-			unassigned_log("Using Unraid api to open the 'crypto_LUKS' device.");
 			$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
 			$luks_pass_file	= "";
 		} else {
@@ -81,7 +80,12 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 	}
 
 	/* If there was no error from the luks open command or the disk is not encrypted, go ahead with the file check. */
-	$file_system = part_fs_type($device, false);
+	$file_system = $rc ? part_fs_type($device, false) : "";
+
+	/* If this is a zfs device, and part_fs_type did not find the file system, use fs. */
+	if (! $file_system) {
+		$file_system = $fs;
+	}
 
 	/* A BTRFS file syste scrub is done on the mountpoint, not the physical device. */
 	if ($file_system == "btrfs") {
