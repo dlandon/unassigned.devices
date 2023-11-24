@@ -3834,21 +3834,64 @@ function upgrade_ZFS_pool($pool_name) {
 /* Setup a socket for nchan publish events. */
 function curl_socket($socket, $url, $postdata = NULL) {
 	$ch = curl_init($url);
+
+	/* Set cURL options. */
 	curl_setopt($ch, CURLOPT_UNIX_SOCKET_PATH, $socket);
 	if ($postdata !== NULL) {
 		curl_setopt($ch, CURLOPT_POST, 1);
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $postdata);
 	}
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+	/* Execute cURL session and get the result. */
 	curl_exec($ch);
+
+
+	/* Close cURL session. */
 	curl_close($ch);
 }
 
 /* Trigger an nchan event. */
 function publish($message = "rescan") {
-	if (isset($_COOKIE['ud_reload'])) {
-		$endpoint = $_COOKIE['ud_reload'];
-		curl_socket("/var/run/nginx.socket", "http://localhost/pub/$endpoint?buffer_length=1", $message);
+	/* Get the endpoint cookie */
+	$endpoint	= $_COOKIE['ud_reload'];
+	$socket		= "/var/run/nginx.socket";
+	$Url		= "http://localhost/pub/$endpoint?buffer_length=1";
+
+	/* If the endpoint is set and there are listeners send the message. */
+	if ((isset($endpoint)) && (numSubscribers($socket, $Url)) != 0) {
+		/* Send the message. */
+		curl_socket($socket, $Url, $message);
 	}
+}
+
+function numSubscribers($socket, $Url) {
+
+	/* Initialize the number of subscribers. */
+	$numSubscribers	= 0;
+
+	/* Initialize cURL session. */
+	$ch				= curl_init();
+
+	/* Set cURL options. */
+	curl_setopt($ch, CURLOPT_UNIX_SOCKET_PATH, $socket);
+	curl_setopt($ch, CURLOPT_URL, $Url);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+	/* Execute cURL session and get the result. */
+	$statusData		= curl_exec($ch);
+
+	/* Use preg_match to extract the number of subscribers. */
+	preg_match('/subscribers: (\d+)/', $statusData, $matches);
+
+	/* Check if there is a match. */
+	if (! empty($matches[1])) {
+		$numSubscribers = $matches[1];
+	}
+
+	/* Close cURL session. */
+	curl_close($ch);
+
+	return($numSubscribers);
 }
 ?>
