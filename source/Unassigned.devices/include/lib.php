@@ -967,42 +967,47 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 				/* Clear the $pass variable. */
 				unset($pass);
 
+				/* Clear any existing zfs pool information onthe disk. */
+				if (($fs != "zfs") && ($fs != "zfs-encrypted")) {
+					sleep(1);
+
+					/* See if there is a zpool signature on the disk. */
+					$old_pool_name	= (new MiscUD)->zfs_pool_name($dev);
+					if ($old_pool_name) {
+						/* Remove zpool label info. */
+						exec("/usr/sbin/zpool labelclear -f ".escapeshellarg($dev));
+
+						sleep(1);
+
+						unassigned_log("Format failed, zpool signature found on device '".$dev."'!  Clear the disk and try again.");
+						$rc		= false;
+					}
+
+					/* Get partition designation based on type of device. */
+					if ((new MiscUD)->is_device_nvme($dev)) {
+						$device	= $dev."p1";
+					} else {
+						$device	= $dev."1";
+					}
+
+					$old_pool_name	= (new MiscUD)->zfs_pool_name($device);
+					if ($old_pool_name) {
+						/* Remove zpool label info. */
+						exec("/usr/sbin/zpool labelclear -f ".escapeshellarg($device));
+
+						sleep(1);
+
+						unassigned_log("Format failed, zpool signature found on device partition '".$device."'!  Clear the disk and try again.");
+						$rc		= false;
+					}
+				}
+
 				/* Let things settle a bit. */
 				sleep(3);
 
 				/* Refresh partition information. */
 				exec("/usr/sbin/partprobe ".escapeshellarg($dev));
 			}
-		}
-	}
-
-	if ($fs != "zfs") {
-		sleep(1);
-		/* See if there is a zpool signature on the disk. */
-		$old_pool_name	= (new MiscUD)->zfs_pool_name($dev);
-		if ($old_pool_name) {
-			/* Remove zpool label info. */
-			exec("/usr/sbin/zpool labelclear -f ".escapeshellarg($dev));
-			sleep(1);
-			unassigned_log("Format failed, zpool signature found on device '".$dev."'!  Clear the disk and try again.");
-			$rc		= false;
-		}
-
-		/* Get partition designation based on type of device. */
-		if ((new MiscUD)->is_device_nvme($dev)) {
-			$device	= $dev."p1";
-		} else {
-			$device	= $dev."1";
-		}
-
-		$old_pool_name	= (new MiscUD)->zfs_pool_name($device);
-		if ($old_pool_name) {
-			/* Remove zpool label info. */
-			exec("/usr/sbin/zpool labelclear -f ".escapeshellarg($device));
-			sleep(1);
-
-			unassigned_log("Format failed, zpool signature found on device partition '".$device."'!  Clear the disk and try again.");
-			$rc		= false;
 		}
 	}
 
