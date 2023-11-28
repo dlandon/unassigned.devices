@@ -84,9 +84,9 @@ if (! isset($var)){
 	$var = @parse_ini_file($docroot."/state/var.ini");
 }
 
-/* Strip off any local tld reference and capitalize the server name.  Default local TLD is 'local'. */
+/* Capitalize the local.tld.  Default local TLD is 'LOCAL'. */
 $default_tld	= "LOCAL";
-$local_tld		= strtoupper($var['LOCAL_TLD']) ?: $default_tld;
+$local_tld		= isset($var['LOCAL_TLD']) ? strtoupper($var['LOCAL_TLD']) : $default_tld;
 
 /* See if the preclear plugin is installed. */
 if ( is_file( "plugins/preclear.disk/assets/lib.php" ) ) {
@@ -3837,8 +3837,8 @@ function upgrade_ZFS_pool($pool_name) {
 }
 
 /* Setup a socket for nchan publish events. */
-function curl_socket($socket, $url, $postdata = NULL) {
-	$ch = curl_init($url);
+function curl_socket($socket, $Url, $postdata = NULL) {
+	$ch		= curl_init($Url);
 
 	/* Set cURL options. */
 	curl_setopt($ch, CURLOPT_UNIX_SOCKET_PATH, $socket);
@@ -3871,7 +3871,6 @@ function publish($message = "rescan") {
 }
 
 function numSubscribers($socket, $Url) {
-
 	/* Initialize the number of subscribers. */
 	$numSubscribers	= 0;
 
