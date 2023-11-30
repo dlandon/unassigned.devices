@@ -545,13 +545,8 @@ switch ($_POST['action']) {
 				$clear_disk				= ((get_config("Config", "destructive_mode") == "enabled") && ($parted) && (! $mounted) && (! $disk['is_mounting']) && (! $disk['is_unmounting']) && (! $disk['is_formatting']) && (! $disk['pass_through']) && (! $disk['array_disk']) && (! $preclearing) && (($p) && (! $disk['partitions'][0]['pool']) && (! $disk['partitions'][0]['disable_mount'])) ) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
 
 				$disk_icon = $disk['ssd'] ? "icon-nvme" : "fa fa-hdd-o";
-				if (version_compare($version['version'],"6.9.9", ">")) {
-					/* Disk log in 6.10 and later. */
-					$hdd_serial = "<a class='info' href=\"#\" onclick=\"openTerminal('disklog', '{$disk_device}')\"><i class='".$disk_icon." icon'></i><span>"._("Disk Log Information")."</span></a>";
-				} else {
-					/* Disk log in 6.9. */
-					$hdd_serial = "<a class='info' href=\"#\" onclick=\"openBox('/webGui/scripts/disk_log&amp;arg1={$disk_device}','Disk Log Information',600,900,false);return false\"><i class='".$disk_icon." icon'></i><span>"._("Disk Log Information")."</span></a>";
-				}
+				/* Disk log. */
+				$hdd_serial = "<a class='info' href=\"#\" onclick=\"openTerminal('disklog', '{$disk_device}')\"><i class='".$disk_icon." icon'></i><span>"._("Disk Log Information")."</span></a>";
 				if ($p) {
 					$add_toggle = true;
 					if ($disk['pass_through']) {
