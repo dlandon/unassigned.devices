@@ -1166,7 +1166,7 @@ function timed_exec($timeout, $cmd) {
 function part_fs_type($dev, $luks = true) {
 
 	/* Get the file system type from lsblk. */
-	$o	= trim(shell_exec("/bin/lsblk -f | grep ".escapeshellarg(basename($dev)." ")." 2>/dev/null | grep -v 'crypto_LUKS' | /bin/awk '{print $2}'") ?? "");
+	$o	= trim(shell_exec("/bin/lsblk --output NAME,FSTYPE | grep ".escapeshellarg(basename($dev)." ")." 2>/dev/null | grep -v 'crypto_LUKS' | /bin/awk '{print $2}'") ?? "");
 
 	$rc	= ($o == "zfs_member") ? "zfs" : $o;
 
@@ -1662,7 +1662,7 @@ function do_mount($info) {
 
 /* Mount a disk device. */
 function do_mount_local($info) {
-	global $paths, $version;
+	global $paths;
 
 	$rc				= false;
 	$dev			= $info['device'];
@@ -1696,11 +1696,8 @@ function do_mount_local($info) {
 					$params		= get_mount_params($fs, $dev, $ro);
 					$cmd		= "/usr/sbin/zfs mount -o $params ".escapeshellarg($pool_name);
 				} else if ($fs == "zvol") {
-					if (version_compare($version['version'],"6.12.9", ">")) {
-						$z_fstype	= part_fs_type($dev, false);
-					} else {
-						$z_fstype	= zvol_fs_type($dev);
-					}
+					$z_fstype	= part_fs_type($dev, false);
+					$z_fstype	= ($z_fstype) ?: zvol_fs_type($dev);
 					$params		= get_mount_params($z_fstype, $dev, $ro);
 					$cmd		= "/sbin/mount -t ".escapeshellarg($z_fstype)." -o $params ".escapeshellarg($dev)." ".escapeshellarg($dir);
 				} else {
@@ -2571,7 +2568,7 @@ function get_samba_mounts() {
 
 /* Mount a remote samba or NFS share. */
 function do_mount_samba($info) {
-	global $paths, $var, $version;
+	global $paths, $var;
 
 	$rc				= false;
 
@@ -2603,11 +2600,7 @@ function do_mount_samba($info) {
 			if ($fs == "nfs") {
 				if ($var['shareNFSEnabled'] == "yes") {
 					$params	= get_mount_params($fs, $dev, $ro);
-					if (version_compare($version['version'],"6.9.9", ">")) {
-						$nfs	= (get_config("Config", "nfs_version") == "4") ? "nfs4" : "nfs";
-					} else {
-						$nfs	= "nfs";
-					}
+					$nfs	= (get_config("Config", "nfs_version") == "4") ? "nfs4" : "nfs";
 					$cmd	= "/sbin/mount -t ".escapeshellarg($nfs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 
 					unassigned_log("Mount NFS command: ".$cmd);
@@ -3403,7 +3396,6 @@ function get_partition_info($dev) {
 
 /* Get zfs volume info if the partition has any zvols. */
 function get_zvol_info($disk) {
-	global $version;
 
 	/* Get any zfs volumes. */
 	$zvol		= array();
@@ -3426,11 +3418,8 @@ function get_zvol_info($disk) {
 			$zvol[$vol]['is_mounting']		= (new MiscUD)->get_mounting_status(basename($zvol[$vol]['device']));
 			$zvol[$vol]['is_unmounting']	= (new MiscUD)->get_unmounting_status(basename($zvol[$vol]['device']));
 			$zvol[$vol]['fstype']			= "zvol";
-			if (version_compare($version['version'],"6.12.9", ">")) {
-				$zvol[$vol]['file_system']	= part_fs_type($zvol[$vol]['device'], false);
-			} else {
-				$zvol[$vol]['file_system']	= zvol_fs_type($zvol[$vol]['device']);
-			}
+			$zvol[$vol]['file_system']		= part_fs_type($zvol[$vol]['device'], false);
+			$zvol[$vol]['file_system']		= ($zvol[$vol]['file_system']) ?: zvol_fs_type($zvol[$vol]['device']);
 			$zvol[$vol]['zfs_read_only']	= is_mounted_read_only($zvol[$vol]['mountpoint']);
 			$stats							= get_device_stats($zvol[$vol]['mountpoint'], $zvol[$vol]['mounted']);
 			$zvol[$vol]['size']				= $stats[0]*1024;
