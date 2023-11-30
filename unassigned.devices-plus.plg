@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "unassigned.devices-plus">
 <!ENTITY author    "dlandon">
-<!ENTITY version   "2023.11.08">
+<!ENTITY version   "2023.11.30">
 <!ENTITY launch    "Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/unassigned.devices/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
@@ -17,11 +17,14 @@
 		pluginURL="&pluginURL;"
 		support="&supportURL;"
 		icon="unlink"
-		min="6.9.0">
+		min="6.11.0">
 
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Change Unraid minimum version to 6.11.
+
+###2023.11.08
 - Fix: Update apfs package to 20230312.
 
 ###2023.08.14
@@ -97,19 +100,9 @@ rm -rf /usr/local/emhttp/plugins/&name;/* 2>/dev/null
 </FILE>
 
 <!--
-parted-3.3-x86_64-1.txz
--->
-<FILE Name="&packages;/parted-3.3-x86_64-1.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/parted-3.3-x86_64-1.txz"</URL>
-<MD5>0f298896be48094a690a19cdc5e0c1e6</MD5>
-</FILE>
-
-
-
-<!--
 parted-3.6-x86_64-1.txz
 -->
-<FILE Min='6.11.0' Name="&packages;/parted-3.6-x86_64-1.txz" Run="upgradepkg --install-new">
+<FILE Name="&packages;/parted-3.6-x86_64-1.txz" Run="upgradepkg --install-new">
 <URL>"&gitURL;/packages/parted-3.6-x86_64-1.txz"</URL>
 <MD5>a0d226c87c2bbfda2100030f30bd38ef</MD5>
 </FILE>

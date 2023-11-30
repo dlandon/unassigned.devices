@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.11.25">
+<!ENTITY version	"2023.11.30">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"15693e3e31c26c189b16e1d29cc153f6">
+<!ENTITY MD5		"78d7f215fec2b8b18a5d0308ef981615">
 ]>
 
 <PLUGIN name="&name;"
@@ -17,12 +17,19 @@
 		pluginURL="&pluginURL;"
 		support="&supportURL;"
 		icon="unlink"
-		min="6.9.0">
+		min="6.11.0">
 
 <CHANGES>
 ##&name;
 ###&version;
-- Fix: Don't send nchan messages to refresh page if UD is not active and is unable to process the messages.  This prevents the nchan out of memory errors.
+- Fix: Change Unraid minimum version to 6.11.
+- Fix: Remove checks for Unraid versions pre 6.11.
+- Fix: Change zfs file type lookup to not use Unraid version check to decide to use 'lsblk' or 'blkid',
+- Fix: Php warnings on startup.
+- Fix: Parsing FSTYPE from 'lsblk' to give more consistent results.
+
+###2023.11.25
+- Fix: Don't send nchan messages to refresh page if UD is unable to process the messages.
 - Fix: Format disk changes to prevent some drives that show 'udev' after being formatted.
 
 ###2023.11.21

@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.11.08">
+<!ENTITY version	"2023.11.30">
 <!ENTITY launch		"Tools/Preclear">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/unassigned.devices/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"dcbde269d42aa4f0174776f8ad610788">
+<!ENTITY MD5		"25cee330b22cfc4a991636c6116d8439">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
@@ -16,11 +16,14 @@
 		pluginURL="&pluginURL;"
 		support="&supportURL;"
 		icon="icon-preclear"
-		min="6.9.0">
+		min="6.11.0">
 
 <CHANGES>
 ###&name;
 ###&version;
+- Fix: Change Unraid minimum version to 6.11.
+
+###2023.11.08
 - Add: Information on preclear page about a disk having to be cleared of all partitions before it can be precleared.
 
 ###2023.08.14
