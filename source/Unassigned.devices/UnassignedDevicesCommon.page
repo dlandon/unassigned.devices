@@ -203,7 +203,7 @@ _(Specify SMB Version when Mounting Remote Shares)_?
 :end
 
 _(NFS Version to use when Mounting Remote Shares)_:
-: <select name="nfs_version" size="1" <?if ((version_compare($version['version'],"6.9.9", "<")) || ($var['shareNFSEnabled']=="no")):?>disabled<?endif;?>>
+: <select name="nfs_version" size="1" <?if ($var['shareNFSEnabled']=="no"):?>disabled<?endif;?>>
   <?=mk_option($cfg["Config"]["nfs_version"], "0", "_(Auto)_");?>
   <?=mk_option($cfg["Config"]["nfs_version"], "4", "_(NFSv4)_");?>
 
