@@ -86,7 +86,7 @@ if (! isset($var)){
 
 /* Capitalize the local.tld.  Default local TLD is 'LOCAL'. */
 $default_tld	= "LOCAL";
-$local_tld		= isset($var['LOCAL_TLD']) ? strtoupper($var['LOCAL_TLD']) : $default_tld;
+$local_tld		= (isset($var['LOCAL_TLD']) && ($var['LOCAL_TLD']))? strtoupper($var['LOCAL_TLD']) : $default_tld;
 
 /* See if the preclear plugin is installed. */
 if ( is_file( "plugins/preclear.disk/assets/lib.php" ) ) {
