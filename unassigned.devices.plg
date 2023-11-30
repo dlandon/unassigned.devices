@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.11.30">
+<!ENTITY version	"2023.11.30a">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"78d7f215fec2b8b18a5d0308ef981615">
+<!ENTITY MD5		"bdfb55486f9f17484549d7442f63cb91">
 ]>
 
 <PLUGIN name="&name;"
@@ -27,6 +27,7 @@
 - Fix: Change zfs file type lookup to not use Unraid version check to decide to use 'lsblk' or 'blkid',
 - Fix: Php warnings on startup.
 - Fix: Parsing FSTYPE from 'lsblk' to give more consistent results.
+- Fix: Entering an IP address as a server would result in dots being removed from the IP address when the Local_TLD was blank.
 
 ###2023.11.25
 - Fix: Don't send nchan messages to refresh page if UD is unable to process the messages.
