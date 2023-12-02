@@ -1253,8 +1253,8 @@ switch ($_POST['action']) {
 		$network	= $_POST['network'];
 		$names		= [];
 		foreach ($network as $iface) {
-			$ip = $iface['ip'];
-			$netmask = $iface['netmask'];
+			$ip			= $iface['ip'];
+			$netmask 	= $iface['netmask'];
 			exec("plugins/".$plugin."/scripts/port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 445", $hosts);
 			foreach ($hosts as $host) {
 				/* Resolve name as a local server. */
@@ -1283,7 +1283,9 @@ switch ($_POST['action']) {
 		$ip			= strtoupper(stripslashes(trim($ip)));
 
 		/* Remove the 'local' and 'default' tld reference as they are unnecessary. */
-		$ip			= str_replace( array(".".$local_tld, ".".$default_tld), "", $ip);
+		if (! (new MiscUD)->is_ip($ip)) {
+			$ip		= str_replace( array(".".$local_tld, ".".$default_tld), "", $ip);
+		}
 
 		$user	= isset($_POST['USER']) ? $_POST['USER'] : "";
 		$pass	= isset($_POST['PASS']) ? $_POST['PASS'] : "";
@@ -1311,11 +1313,11 @@ switch ($_POST['action']) {
 	/*	NFS	*/
 	case 'list_nfs_hosts':
 		/* Get a list of nfs hosts. */
-		$names	= [];
-		$network = $_POST['network'];
+		$names		= [];
+		$network	= $_POST['network'];
 		foreach ($network as $iface) {
-			$ip = $iface['ip'];
-			$netmask = $iface['netmask'];
+			$ip			= $iface['ip'];
+			$netmask 	= $iface['netmask'];
 			exec("/usr/bin/timeout -s 13 5 plugins/".$plugin."/scripts/port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 2049 2>/dev/null | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4", $hosts);
 			foreach ($hosts as $host) {
 				/* Resolve name as a local server. */
@@ -1328,6 +1330,7 @@ switch ($_POST['action']) {
 				} else if ($host == $_SERVER['SERVER_ADDR']) {
 					$name		= strtoupper($var['NAME']);
 				}
+
 				$name			= str_replace( array(".".$local_tld, ".".$default_tld), "", $name);
 				$names[] 		= $name ? $name : $host;
 			}
@@ -1343,7 +1346,9 @@ switch ($_POST['action']) {
 		$ip			= strtoupper(stripslashes(trim($ip)));
 
 		/* Remove the 'local' and 'default' tld reference as they are unnecessary. */
-		$ip			= str_replace( array(".".$local_tld, ".".$default_tld), "", $ip);
+		if (! (new MiscUD)->is_ip($ip)) {
+			$ip		= str_replace( array(".".$local_tld, ".".$default_tld), "", $ip);
+		}
 
 		/* Update this server status before listing shares. */
 		exec("plugins/".$plugin."/scripts/get_ud_stats is_online ".escapeshellarg($ip));
@@ -1372,7 +1377,9 @@ switch ($_POST['action']) {
 		$share		= basename($path);
 
 		/* Remove the 'local' and 'default' tld reference as they are unnecessary. */
-		$ip			= str_replace( array(".".$local_tld, ".".$default_tld), "", $ip);
+		if (! (new MiscUD)->is_ip($ip)) {
+			$ip		= str_replace( array(".".$local_tld, ".".$default_tld), "", $ip);
+		}
 
 		/* See if there is another mount with a different protocol. */
 		foreach (get_samba_mounts() as $mount) {

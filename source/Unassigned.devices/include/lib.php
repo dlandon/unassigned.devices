@@ -2476,7 +2476,9 @@ function get_samba_mounts() {
 				$dev_check				= ($mount['fstype'] == "nfs") ? $mount['ip'].":".$mount['path'] : "//".$mount['ip'].(($mount['fstype'] == "cifs") ? "/" : "") .$mount['path'];
 
 				/* Remove the 'local' and 'default' tld reference as they are unnecessary. */
-				$dev_check				= str_replace( array(".".$local_tld, ".".$default_tld), "", $dev_check);
+				if (! (new MiscUD)->is_ip($mount['ip'])) {
+					$dev_check			= str_replace( array(".".$local_tld, ".".$default_tld), "", $dev_check);
+				}
 
 				/* Is the remote server on line? */
 				$mount['is_alive']		= is_samba_server_online($mount['ip']);
