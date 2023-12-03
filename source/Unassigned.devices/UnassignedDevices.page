@@ -182,9 +182,13 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	}
 
 	function disk_op(el, op, device) {
-		/* Add spinning and disable button. */
+		/* Add spinning icon to mount/unmount button and disable button. */
 		$("button[device='"+device+"']").html("<i class='fa fa-spinner fa-spin'></i> "+(op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
 		$("button[device='"+device+"']").prop("disabled", "true");
+
+		/* Update UD content and refresh page to . */
+		usb_disks();
+
 		$.post(UDURL, {'action' : op, 'device' : device}).done(function(data)
 		{
 			if (data == "false") {
@@ -209,6 +213,8 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		$.post(UDURL, {'action' : 'get_content', display:display}, function(data) {
 			maxWidth	= [];
 			var toggled	= $("tr.toggle-parts").filter(":visible").map(function(){return $(this).attr("name");}).get();
+
+			/* Fill the UD devices tabels. */
 			if (data) {
 				$('#disk-table-body').html(data.disks);
 				$('#remotes-table-body').html(data.remotes);
