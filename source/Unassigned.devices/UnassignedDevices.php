@@ -167,7 +167,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		/* Add change mount point or browse disk share icon if disk is mounted. */
 		if (($not_unmounted) || ($not_udev)) {
 			$mpoint .= "<i class='fa partition-hdd'></i>".$mount_point."</span>";
-		} else if (($mounted) && (! $is_unmounting)) {
+		} else if (($mounted) && (! $is_mounting) && (! $is_unmounting)) {
 			/* If the partition is mounted read only, indicate that on the mount point. */
 			$read_only		= $partition['part_read_only'] ? "<font color='red'> (RO)<font>" : "";
 
@@ -731,14 +731,14 @@ switch ($_POST['action']) {
 					$o_remotes		.= "<i class='fa fa-align-left samba-log'></i>";
 				}
 
-				if ((! $is_unmounting) && ($mounted) && ($is_alive) && ($is_available)) {
+				if (($mounted) && ($is_alive) && ($is_available) && (! $is_mounting) && (! $is_unmounting)) {
 					/* If the partition is mounted read only, indicate that on the mount point. */
 					$read_only	= $mount['remote_read_only'] ? "<font color='red'> (RO)<font>" : "";
 
 					$o_remotes	.= "<i class='fa fa-external-link mount-share'></i><a title='"._("Browse Remote SMB")."/"._("NFS Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a>".$read_only;
 				} else {
 					$o_remotes	.= "<i class='fa fa-pencil mount-share'></i>";
-					if ((! $is_mounting) && (! $is_unmounting) && (! $mount['invalid']) && ($is_alive) && ($is_available)) {
+					if (($is_alive) && ($is_available) && (! $is_mounting) && (! $is_unmounting) && (! $mount['invalid'])) {
 						$o_remotes	.= "<a title='"._("Change Remote SMB")."/"._("NFS Mount Point")."' class='exec' onclick='chg_samba_mountpoint(\"{$mount['name']}\",\"{$mount_point}\");'>{$mount_point}</a>";
 					} else {
 						$o_remotes	.= $mount_point;
@@ -846,11 +846,11 @@ switch ($_POST['action']) {
 					$o_remotes .= "<i class='fa fa-align-left samba-log' disabled></i>";
 				}
 
-				if ($mounted) {
+				if ((! $is_mounting) && (! $is_unmounting) && ($mounted)) {
 					$o_remotes .= "<i class='fa fa-external-link mount-share'></i><a title='"._("Browse ISO File Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a>";
 				} else {
 					$o_remotes	.= "<i class='fa fa-pencil mount-share'></i>";
-					if (! $is_mounting) {
+					if ((! $is_mounting) && (! $is_unmounting)) {
 						$o_remotes	.= "<a title='"._("Change ISO File Mount Point")."' class='exec' onclick='chg_iso_mountpoint(\"{$mount['device']}\",\"{$mount_point}\");'>{$mount_point}</a>";
 					} else {
 						$o_remotes	.= $mount_point;
