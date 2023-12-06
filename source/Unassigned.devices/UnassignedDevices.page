@@ -186,9 +186,6 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		$("button[device='"+device+"']").html("<i class='fa fa-spinner fa-spin'></i> "+(op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
 		$("button[device='"+device+"']").prop("disabled", "true");
 
-		/* Update UD content and refresh page to . */
-		usb_disks();
-
 		$.post(UDURL, {'action' : op, 'device' : device}).done(function(data)
 		{
 			if (data == "false") {
