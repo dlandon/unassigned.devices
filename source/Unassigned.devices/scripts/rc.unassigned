@@ -126,11 +126,7 @@ function unassigned_mount() {
 
 				if ($info['device']) {
 					/* Create the mounting status file for this device. */
-					if ($info['fstype'] != "crypto_LUKS") {
-						$device	= $info['device'];
-					} else {
-						$device	= $info['luks'];
-					}
+					$device	= ($info['fstype'] != "crypto_LUKS") ? $info['device'] : $info['luks'];
 
 					/* Create mounting status file. */
 					addFile(sprintf($paths['mounting'], basename($device)));
@@ -417,12 +413,11 @@ function unassigned_umount() {
 							}
 						}
 
-						/* Create unmounting status file for this device. */
-						if ($info['fstype'] != "crypto_LUKS") {
-							addFile(sprintf($paths['unmounting'], basename($info['device'])));
-						} else {
-							addFile(sprintf($paths['unmounting'], basename($info['luks'])));
-						}
+						/* Create the mounting status file for this device. */
+						$device	= ($info['fstype'] != "crypto_LUKS") ? $info['device'] : $info['luks'];
+
+						/* Create mounting status file. */
+						addFile(sprintf($paths['unmounting'], basename($device)));
 
 						unassigned_log("Unmounting partition '".$info['device']."' at mountpoint '{$info['mountpoint']}'...");
 
