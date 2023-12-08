@@ -27,11 +27,9 @@ $version = parse_ini_file("/etc/unraid-version");
 
 /* Adjustments for 6.12 UI changes. */
 if (version_compare($version['version'], '6.12.0-beta5', '>')) {
-	$title_classid	= "class='title'";
-	$new_model		= true;
+	$title_div		= "div.title";
 } else {
-	$title_classid	= "id='title'";
-	$new_model		= false;
+	$title_div		= "div#title";
 }
 ?>
 
@@ -80,11 +78,7 @@ if (version_compare($version['version'], '6.12.0-beta5', '>')) {
 
 	function get_tab_title_by_name(name) {
 		var tab		= $("input[name$=tabs] + label").filter(function(){return $(this).text() === name;}).prev();
-<?if ($new_model):?>
-		var title	= $("div.title > span.left").filter(function(){return $(this).text() === name;}).parent();
-<?else:?>
-		var title	= $("div#title > span.left").filter(function(){return $(this).text() === name;}).parent();
-<?endif;?>
+		var title	= $("<?=$title_div;?> > span.left").filter(function(){return $(this).text() === name;}).parent();
 		if (tab.length) {
 			return tab
 		} else if (title.length) {
@@ -170,7 +164,7 @@ if (version_compare($version['version'], '6.12.0-beta5', '>')) {
 </style>
 
 <?=$Preclear->html();?>
-<table class=' disk_status preclear custom_head '>
+<table class='disk_status preclear custom_head '>
 	<thead>
 		<tr>
 		<td><?=_('Device')?></td>

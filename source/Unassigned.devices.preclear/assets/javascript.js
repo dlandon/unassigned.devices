@@ -9,8 +9,8 @@
  * all copies or substantial portions of the Software.
  */
 
-var PreclearURL = '/plugins/'+preclear_plugin+'/Preclear.php'
-var PreclearData = {};
+var PreclearURL		= '/plugins/'+preclear_plugin+'/Preclear.php'
+var PreclearData	= {};
 
 if (typeof " ".formatUnicorn !== "function")
 {
