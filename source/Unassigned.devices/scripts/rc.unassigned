@@ -700,8 +700,8 @@ function unassigned_detach($device) {
 			exec("echo 'offline' > /sys/block/{$dev}/device/state");
 			sleep(1);
 			exec("echo '1' > /sys/block/".$dev."/device/delete");
-			$i	= 0;
 
+			$i	= 0;
 			/* Wait for the device to be removed. */
 			while (is_file("/sys/block/".$dev) && ($i < 25)) {
 				sleep(1);
@@ -710,10 +710,10 @@ function unassigned_detach($device) {
 
 			sleep(2);
 
-			if ($i >= 15) {
-				unassigned_log("Device '/dev/".$dev."' detach timed out.");
-			} else {
+			if ($i < 25) {
 				unassigned_log("Device '/dev/".$dev."' has been detached.");
+			} else {
+				unassigned_log("Device '/dev/".$dev."' detach timed out.");
 			}
 		}
 	}
