@@ -47,27 +47,47 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	div.title.ud{margin-top:0}
 	div#title.ud{margin-top:0}
 <?endif;?>
+
+<?if ($theme == 'black'):?>
+	table.disk_mounts thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;background-color:#262626}
+	table.disk_mounts tbody tr:nth-child(even){background-color:#212121}
+
+	table.usb_absent thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;background-color:#262626}
+	table.usb_absent tbody tr:nth-child(even){background-color:#212121}
+
+	table.samba_mounts thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;background-color:#262626}
+	table.samba_mounts tbody tr:nth-child(even){background-color:#212121}
+<?elseif ($theme == 'white'):?>
+	table.disk_mounts thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;background-color:#e8e8e8}
+	table.disk_mounts tbody tr:nth-child(even){background-color:#ededed}
+
+	table.usb_absent thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;background-color:#e8e8e8}
+	table.usb_absent tbody tr:nth-child(even){background-color:#ededed}
+
+	table.samba_mounts thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;background-color:#e8e8e8}
+	table.samba_mounts tbody tr:nth-child(even){background-color:#ededed}
+<?endif;?>
 	span.right.ud+span.status{display:none}
 
 	table.disk_mounts {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
 	table.disk_mounts thead tr>td{text-align:left;width:8%;}
-	table.disk_mounts tr>td+td{text-align:left;}
-	table.disk_mounts tr>td+td+td+td{text-align:center;}
-	table.disk_mounts tr>td+td+td+td+td+td{text-align:right;}
+	table.disk_mounts tr>td+td{text-align:left;padding-right:4px;}
+	table.disk_mounts tr>td+td+td{text-align:center;}
+	table.disk_mounts tr>td+td+td+td+td{text-align:right;}
 	table.disk_mounts tr>td+td+td+td+td+td+td{text-align:center;}
-	table.disk_mounts tr>td+td+td+td+td+td+td+td{text-align:right;}
-
-	table.usb_absent {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
-	table.usb_absent thead tr>td{text-align:left;width:8%;}
-	table.usb_absent tr>td+td{text-align:left;}
-	table.usb_absent tr>td+td+td+td{text-align:center;}
+	table.disk_mounts tr>td+td+td+td+td+td+td+td{text-align:right;padding-right:8px;}
 
 	table.samba_mounts {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
 	table.samba_mounts thead tr>td{text-align:left;width:8%;}
 	table.samba_mounts tr>td+td+td{text-align:left;}
 	table.samba_mounts tr>td+td+td+td{text-align:left;}
 	table.samba_mounts tr>td+td+td+td+td+td{text-align:center;}
-	table.samba_mounts tr>td+td+td+td+td+td+td+td+td{text-align:right;}
+	table.samba_mounts tr>td+td+td+td+td+td+td+td+td{text-align:right;padding-right:8px;}
+
+	table.usb_absent {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
+	table.usb_absent thead tr>td{text-align:left;width:8%;}
+	table.usb_absent tr>td+td{text-align:left;}
+	table.usb_absent tr>td+td+td+td{text-align:center;}
 
 	button.mount {user-drag:none;user-select:none;padding:2px 4px 3px 6px;margin:1px 0px 1px 0px;}
 	i.partition-hdd{margin:5px; 5px; 0px; 0px;}
@@ -573,7 +593,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		<span class='left'><img src='/plugins/<?=$plugin?>/icons/disk.png' class='icon'><?=_('Disk Devices')?></span>
 	</div>
 
-	<table id='usb_devices_list' class='disk_status wide disk_mounts'>
+	<table id='usb_devices_list' class='disk_mounts'>
 		<thead>
 			<tr>
 				<td><?=('Device')?></td>
@@ -591,7 +611,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		</thead>
 		<tbody id="disk-table-body">
 			<tr>
-				<td colspan='12'><div class='spinner'></div>
+				<td colspan='11'><div class='spinner'></div>
 				</td>
 			</tr>
 		</tbody>
@@ -618,7 +638,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			<img src='/plugins/<?=$plugin?>/icons/smbsettings.png' class='icon'><?=_('SMB Shares')?>&nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/nfssettings.png' class='icon'><?=_('NFS Shares')?>&nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/iso.png' class='icon' style='width:16px;'><?=_('ISO File Shares')?>
 		</span>
 	</div>
-	<table class='disk_status wide samba_mounts'>
+	<table class='samba_mounts'>
 		<thead>
 		<tr>
 			<td><?=_('Share Type')?></td>
@@ -629,8 +649,6 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			<td></td>
 			<td><?=_('Remove')?></td>
 			<td><?=_('Settings')?></td>
-			<td></td>
-			<td></td>
 			<td></td>
 			<td><?=_('Size')?></td>
 			<td><?=_('Used')?></td>
@@ -652,7 +670,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		<div id='title' class='title'>
 			<span class='left'><img src='/plugins/<?=$plugin?>/icons/historical.png' class='icon'><?=_('Historical Devices')?></span>
 		</div>
-		<table class='disk_status wide usb_absent'>
+		<table class='usb_absent'>
 			<thead>
 			<tr>
 				<td><?=_('Device')?></td>

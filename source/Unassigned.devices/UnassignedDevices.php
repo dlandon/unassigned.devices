@@ -797,7 +797,7 @@ switch ($_POST['action']) {
 				$o_remotes			.= "</td>";
 
 				/* Empty table elements. */
-				$o_remotes .= "<td></td><td></td><td></td>";
+				$o_remotes .= "<td></td>";
 
 				/* Size, used, and free table elements. */
 				$o_remotes .= "<td>".my_scale($mount['size'], $unit)." $unit</td>";
@@ -899,7 +899,7 @@ switch ($_POST['action']) {
 				$o_remotes			.= "</td>";
 
 				/* Empty table element. */
-				$o_remotes .= "<td></td><td></td><td></td>";
+				$o_remotes .= "<td></td>";
 
 				/* Size, used, and free table elements. */
 				$o_remotes .= "<td>".my_scale($mount['size'], $unit)." $unit</td>";
@@ -915,7 +915,7 @@ switch ($_POST['action']) {
 
 		/* If there are no remote or ISO mounts, show message. */
 		if (! count($samba_mounts) && ! count($iso_mounts)) {
-			$o_remotes .= "<tr><td colspan='14' style='text-align:center;'>"._('No Remote SMB')."/"._('NFS or ISO File Shares configured').".</td></tr>";
+			$o_remotes .= "<tr><td colspan='12' style='text-align:center;'>"._('No Remote SMB')."/"._('NFS or ISO File Shares configured').".</td></tr>";
 		}
 
 		unassigned_log("Debug: Update Historical Devices...", $UPDATE_DEBUG);
