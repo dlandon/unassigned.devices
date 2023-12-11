@@ -1389,7 +1389,7 @@ function execute_script($info, $action, $testing = false) {
 	putenv("UD_DEVICE=".$ud_dev);
 
 	/* Execute the common script if it is defined. */
-	if ($common_cmd		= escapeshellcmd(get_config("Config", "common_cmd"))) {
+	if ($common_cmd = trim(escapeshellcmd(get_config("Config", "common_cmd")))) {
 		if (is_file($common_cmd)) {
 			$common_script	= $paths['scripts'].basename($common_cmd);
 			copy($common_cmd, $common_script);
