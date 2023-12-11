@@ -1402,7 +1402,7 @@ function execute_script($info, $action, $testing = false) {
 				unassigned_log("Error: common script failed: '".$return."'");
 			}
 		} else {
-			unassigned_log("Common Script file '".$common_script."' is not a valid file!");
+			unassigned_log("Common Script file '".$common_cmd."' is not a valid file!");
 		}
 	}
 
