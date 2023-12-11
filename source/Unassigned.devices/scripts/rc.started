@@ -6,6 +6,7 @@ if [ -z ${DOCROOT} ];then
 fi
 
 logger "Mounting 'Auto Mount' Remote Shares..." -t"unassigned.devices"
+
 # Wait until network is ready
 SECONDS=0
 while [ $SECONDS -le 120 ]; do
