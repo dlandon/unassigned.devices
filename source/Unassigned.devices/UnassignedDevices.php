@@ -747,7 +747,7 @@ switch ($_POST['action']) {
 				$o_remotes			.= "</td>";
 
 				/* Empty table element. */
-				$o_remotes		.= "<td></td>";
+				$o_remotes			.= "<td></td>";
 
 				/* Mount button table element. */
 				$o_remotes			.= "<td>";
@@ -755,15 +755,15 @@ switch ($_POST['action']) {
 				$disabled	= (($mount['fstype'] == "root") && ($var['shareDisk'] == "yes" || $var['mdState'] != "STARTED")) ? "disabled" : (($is_alive || $mounted) ? "enabled" : "disabled");
 				$disabled	= ((isset($mount['disable_mount']) && ($mount['disable_mount'])) || ($mount['invalid'])) ? "disabled" : $disabled;
 				if ($mount['mounted'] && (is_script_running($mount['command']) || is_script_running($mount['user_command'], true))) {
-					$o_remotes .= "<button class='mount' disabled> <i class='fa fa-spinner fa-spin'></i>"." "._("Running")."</button>";
+					$o_remotes		.= "<button class='mount' disabled> <i class='fa fa-spinner fa-spin'></i>"." "._("Running")."</button>";
 				} else {
 					$class	= ( isset($mount['disable_mount']) && ($mount['disable_mount']) ) ? "fa fa-ban" : "";
 					if ($is_mounting) {
-						$o_remotes .= "<button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Mounting')."</button>";
+						$o_remotes	.= "<button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Mounting')."</button>";
 					} else if ($is_unmounting) {
-						$o_remotes .= "<button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Unmounting')."</button>";
+						$o_remotes	.= "<button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Unmounting')."</button>";
 					} else {
-						$o_remotes .= ($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\" {$disabled}><i class='$class'></i>"._('Unmount')."</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='$class'></i>"._('Mount')."</button>");
+						$o_remotes	.= ($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\" {$disabled}><i class='$class'></i>"._('Unmount')."</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='$class'></i>"._('Mount')."</button>");
 					}
 				}
 				$o_remotes			.= "</td>";
@@ -790,21 +790,21 @@ switch ($_POST['action']) {
 				/* Settings icon table element. */
 				$o_remotes			.= "<td>";
 				if (! $mount['invalid']) {
-					$o_remotes .= "<a class='info' href='/Main/EditDeviceSettings?d=".$mount['device']."&l=".$mount['mountpoint']."&j=".$mount['name']."&m=".json_encode($mount)."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a>";
+					$o_remotes		.= "<a class='info' href='/Main/EditDeviceSettings?d=".$mount['device']."&l=".$mount['mountpoint']."&j=".$mount['name']."&m=".json_encode($mount)."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a>";
 				} else {
-					$o_remotes .= "<i class='fa fa-gears grey-orb'></i><span style='text-align:left'></span>";
+					$o_remotes		.= "<i class='fa fa-gears grey-orb'></i><span style='text-align:left'></span>";
 				}
 				$o_remotes			.= "</td>";
 
 				/* Empty table elements. */
-				$o_remotes .= "<td></td>";
+				$o_remotes			.= "<td></td>";
 
 				/* Size, used, and free table elements. */
-				$o_remotes .= "<td>".my_scale($mount['size'], $unit)." $unit</td>";
-				$o_remotes .= render_used_and_free($mount);
+				$o_remotes			.= "<td>".my_scale($mount['size'], $unit)." $unit</td>";
+				$o_remotes			.= render_used_and_free($mount);
 
 				/* End of tabe row, */
-				$o_remotes .= "</tr>";
+				$o_remotes			.= "</tr>";
 
 				/* Add to the share names. */
 				$share_names[$mount['name']] = $mount_point;

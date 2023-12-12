@@ -611,8 +611,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		</thead>
 		<tbody id="disk-table-body">
 			<tr>
-				<td colspan='11'><div class='spinner'></div>
-				</td>
+				<td colspan='11'><div class='spinner'></div></td>
 			</tr>
 		</tbody>
 	</table>
@@ -646,9 +645,9 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			<td></td>
 			<td><?=_('Mount Point')?></td>
 			<td></td>
-			<td></td>
 			<td><?=_('Remove')?></td>
 			<td><?=_('Settings')?></td>
+			<td></td>
 			<td></td>
 			<td><?=_('Size')?></td>
 			<td><?=_('Used')?></td>
