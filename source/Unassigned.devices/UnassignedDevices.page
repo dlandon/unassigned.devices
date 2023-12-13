@@ -48,24 +48,42 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	div#title.ud{margin-top:0}
 <?endif;?>
 
-<?if ($theme == 'black'):?>
+<?if ($theme == 'azure'):?>
+	table.usb_mounts tbody tr:not(.tr_last):hover>td{background-color:rgba(0,0,0,0.05)}
+
+	table.samba_mounts tbody tr:not(.tr_last):hover>td{background-color:rgba(0,0,0,0.05)}
+
+	table.usb_absent tbody tr:not(.tr_last):hover>td{background-color:rgba(0,0,0,0.05)}
+<?elseif ($theme == 'black'):?>
 	table.usb_mounts thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;background-color:#262626}
 	table.usb_mounts tbody tr:nth-child(even){background-color:#212121}
-
-	table.usb_absent thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;background-color:#262626}
-	table.usb_absent tbody tr:nth-child(even){background-color:#212121}
+	table.usb_mounts tbody tr:not(.tr_last):hover>td{background-color:rgba(255,255,255,0.1)}
 
 	table.samba_mounts thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;background-color:#262626}
 	table.samba_mounts tbody tr:nth-child(even){background-color:#212121}
+	table.samba_mounts tbody tr:not(.tr_last):hover>td{background-color:rgba(255,255,255,0.1)}
+
+	table.usb_absent thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;background-color:#262626}
+	table.usb_absent tbody tr:nth-child(even){background-color:#212121}
+	table.usb_absent tbody tr:not(.tr_last):hover>td{background-color:rgba(255,255,255,0.1)}
+<?elseif ($theme == 'gray'):?>
+	table.usb_mounts tbody tr:not(.tr_last):hover>td{background-color:rgba(255,255,255,0.05)}
+
+	table.samba_mounts tbody tr:not(.tr_last):hover>td{background-color:rgba(255,255,255,0.05)}
+
+	table.usb_absent tbody tr:not(.tr_last):hover>td{background-color:rgba(255,255,255,0.05)}
 <?elseif ($theme == 'white'):?>
 	table.usb_mounts thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;background-color:#e8e8e8}
 	table.usb_mounts tbody tr:nth-child(even){background-color:#ededed}
-
-	table.usb_absent thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;background-color:#e8e8e8}
-	table.usb_absent tbody tr:nth-child(even){background-color:#ededed}
+	table.usb_mounts tbody tr:not(.tr_last):hover>td{background-color:rgba(0,0,0,0.1)}
 
 	table.samba_mounts thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;background-color:#e8e8e8}
 	table.samba_mounts tbody tr:nth-child(even){background-color:#ededed}
+	table.samba_mounts tbody tr:not(.tr_last):hover>td{background-color:rgba(0,0,0,0.1)}
+
+	table.usb_absent thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;background-color:#e8e8e8}
+	table.usb_absent tbody tr:nth-child(even){background-color:#ededed}
+	table.usb_absent tbody tr:not(.tr_last):hover>td{background-color:rgba(0,0,0,0.1)}
 <?endif;?>
 	span.right.ud+span.status{display:none}
 
