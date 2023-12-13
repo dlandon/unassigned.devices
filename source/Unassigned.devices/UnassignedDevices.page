@@ -49,8 +49,8 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 <?endif;?>
 
 <?if ($theme == 'black'):?>
-	table.disk_mounts thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;background-color:#262626}
-	table.disk_mounts tbody tr:nth-child(even){background-color:#212121}
+	table.usb_mounts thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;background-color:#262626}
+	table.usb_mounts tbody tr:nth-child(even){background-color:#212121}
 
 	table.usb_absent thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;background-color:#262626}
 	table.usb_absent tbody tr:nth-child(even){background-color:#212121}
@@ -58,8 +58,8 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	table.samba_mounts thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;background-color:#262626}
 	table.samba_mounts tbody tr:nth-child(even){background-color:#212121}
 <?elseif ($theme == 'white'):?>
-	table.disk_mounts thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;background-color:#e8e8e8}
-	table.disk_mounts tbody tr:nth-child(even){background-color:#ededed}
+	table.usb_mounts thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;background-color:#e8e8e8}
+	table.usb_mounts tbody tr:nth-child(even){background-color:#ededed}
 
 	table.usb_absent thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;background-color:#e8e8e8}
 	table.usb_absent tbody tr:nth-child(even){background-color:#ededed}
@@ -69,19 +69,18 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 <?endif;?>
 	span.right.ud+span.status{display:none}
 
-	table.disk_mounts {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
-	table.disk_mounts thead tr>td{text-align:left;width:8%;}
-	table.disk_mounts tr>td+td{text-align:left;padding-right:4px;}
-	table.disk_mounts tr>td+td+td{text-align:center;}
-	table.disk_mounts tr>td+td+td+td+td{text-align:right;}
-	table.disk_mounts tr>td+td+td+td+td+td+td{text-align:center;}
-	table.disk_mounts tr>td+td+td+td+td+td+td+td{text-align:right;padding-right:8px;}
+	table.usb_mounts {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
+	table.usb_mounts thead tr>td{text-align:left;width:8%;}
+	table.usb_mounts tr>td{text-align:left;padding-right:4px;}
+	table.usb_mounts tr>td+td+td{text-align:center;}
+	table.usb_mounts tr>td+td+td+td+td{text-align:right;}
+	table.usb_mounts tr>td+td+td+td+td+td+td{text-align:center;}
+	table.usb_mounts tr>td+td+td+td+td+td+td+td{text-align:right;padding-right:8px;}
 
 	table.samba_mounts {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
 	table.samba_mounts thead tr>td{text-align:left;width:8%;}
-	table.samba_mounts tr>td+td+td{text-align:left;}
-	table.samba_mounts tr>td+td+td+td{text-align:left;}
-	table.samba_mounts tr>td+td+td+td+td+td{text-align:center;}
+	table.samba_mounts tr>td+td{text-align:left;padding-right:8px;}
+	table.samba_mounts tr>td+td+td+td{text-align:center;}
 	table.samba_mounts tr>td+td+td+td+td+td+td+td+td{text-align:right;padding-right:8px;}
 
 	table.usb_absent {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
@@ -593,7 +592,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		<span class='left'><img src='/plugins/<?=$plugin?>/icons/disk.png' class='icon'><?=_('Disk Devices')?></span>
 	</div>
 
-	<table id='usb_devices_list' class='disk_mounts'>
+	<table id='usb_devices_list' class='usb_mounts'>
 		<thead>
 			<tr>
 				<td><?=('Device')?></td>
@@ -642,12 +641,11 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		<tr>
 			<td><?=_('Share Type')?></td>
 			<td><?=_('Source')?></td>
-			<td></td>
 			<td><?=_('Mount Point')?></td>
 			<td></td>
 			<td><?=_('Remove')?></td>
-			<td><?=_('Settings')?></td>
 			<td></td>
+			<td><?=_('Settings')?></td>
 			<td></td>
 			<td><?=_('Size')?></td>
 			<td><?=_('Used')?></td>
