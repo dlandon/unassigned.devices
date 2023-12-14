@@ -1,0 +1,1 @@
+table.preclear tbody tr:not(.tr_last):hover>td{background-color:rgba(255,255,255,0.05)}

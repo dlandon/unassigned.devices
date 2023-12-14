@@ -1,0 +1,3 @@
+table.preclear thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;background-color:#262626}
+table.preclear tbody tr:nth-child(even){background-color:#212121}
+table.preclear tbody tr:not(.tr_last):hover>td{background-color:rgba(255,255,255,0.1)}

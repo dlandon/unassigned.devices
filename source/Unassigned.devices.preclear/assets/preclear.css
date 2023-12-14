@@ -1,0 +1,13 @@
+table.preclear {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
+table.preclear thead tr>td{text-align:left;width:8%;}
+table.preclear tr>td{text-align:left;padding-right:4px;}
+table.preclear tr>td+td{text-align:left;width:38%;}
+table.preclear tr>td+td+td{text-align:right;}
+table.preclear tr td:last-child{min-width:450px;padding-right:10px}
+
+button[type=button] {margin:0px 14px 0 14px;}
+i.fa{margin:0px 0px 0 0px;}
+i.hdd{margin:0px 0px;font-size: 1.3em}
+i.partition{margin-left: 18px;}
+.exec{cursor: pointer;}
+i.fa-append{margin:0px;font-size: 0.8em;position: relative; left:-0.5em;top:0.6em;}
