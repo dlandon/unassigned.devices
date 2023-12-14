@@ -25,13 +25,17 @@ $zipFile			= sprintf("log/%s-%s-%s.zip", str_replace(' ','_',strtoupper($var['NA
 /* Get the version of Unraid we are running. */
 $version = parse_ini_file("/etc/unraid-version");
 
-/* Adjustments for 6.12 UI changes. */
+/* Adjustments for 6.12 GUI changes. */
 if (version_compare($version['version'], '6.12.0-beta5', '>')) {
 	$title_div		= "div.title";
 } else {
 	$title_div		= "div#title";
 }
 ?>
+<link type="text/css" rel="stylesheet" href="<?autov("/plugins/dynamix.docker.manager/styles/style-$theme.css")?>">
+
+<link type="text/css" rel="stylesheet" href="<?autov("/plugins/".$preclear_plugin."/assets/style-$theme.css")?>">
+<link type="text/css" rel="stylesheet" href="<?autov("/plugins/".$preclear_plugin."/assets/preclear.css")?>">
 
 <script type="text/javascript">
 
@@ -143,28 +147,8 @@ if (version_compare($version['version'], '6.12.0-beta5', '>')) {
 	});
 </script>
 
-<style>
-	table.preclear {padding:0px;border-collapse:collapse;white-space:nowrap;}
-	table.preclear thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;}
-	table.preclear thead tr:last-child{border-bottom:0px solid}
- 
-	table.disk_status tr>td+td+td+td+td+td{text-align:right;width:38%;}
-	table.disk_status tr td:last-child{min-width:375px;padding-right:10px}
-
-	table.preclear tbody tr>td{vertical-align:top;text-align:left;padding-left:12px;padding-right:0;white-space:nowrap;}
-	table.preclear tbody tr>td+td+td{text-align: center;}
-	table.preclear tbody tr>td+td+td+td{text-align:right;padding-left:15px;}
-
-	button[type=button] {margin:0px 14px 0 14px;}
-	i.fa{margin:0px 0px 0 0px;}
-	i.hdd{margin:0px 0px;font-size: 1.3em}
-	i.partition{margin-left: 18px;}
-	.exec{cursor: pointer;}
-	i.fa-append{margin:0px;font-size: 0.8em;position: relative; left:-0.5em;top:0.6em;}
-</style>
-
 <?=$Preclear->html();?>
-<table class='disk_status preclear custom_head '>
+<table class='preclear'>
 	<thead>
 		<tr>
 		<td><?=_('Device')?></td>
