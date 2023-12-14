@@ -35,8 +35,12 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.switchbutton.css')?>">
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.filetree.css')?>">
 
+<link type="text/css" rel="stylesheet" href="<?autov("/plugins/".$plugin."/assets/style-$theme.css")?>">
+<link type="text/css" rel="stylesheet" href="<?autov("/plugins/".$plugin."/assets/unassigned.css")?>">
+
 <script src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
 <script src="<?autov('/webGui/javascript/jquery.filetree.js')?>"></script>
+
 <script src="<?autov('/plugins/'.$plugin.'/assets/arrive.min.js')?>"></script>
 
 <style>
@@ -47,97 +51,6 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	div.title.ud{margin-top:0}
 	div#title.ud{margin-top:0}
 <?endif;?>
-
-<?if ($theme == 'azure'):?>
-	table.usb_mounts tbody tr:not(.tr_last):hover>td{background-color:rgba(0,0,0,0.05)}
-
-	table.samba_mounts tbody tr:not(.tr_last):hover>td{background-color:rgba(0,0,0,0.05)}
-
-	table.usb_absent tbody tr:not(.tr_last):hover>td{background-color:rgba(0,0,0,0.05)}
-<?elseif ($theme == 'black'):?>
-	table.usb_mounts thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;background-color:#262626}
-	table.usb_mounts tbody tr:nth-child(even){background-color:#212121}
-	table.usb_mounts tbody tr:not(.tr_last):hover>td{background-color:rgba(255,255,255,0.1)}
-
-	table.samba_mounts thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;background-color:#262626}
-	table.samba_mounts tbody tr:nth-child(even){background-color:#212121}
-	table.samba_mounts tbody tr:not(.tr_last):hover>td{background-color:rgba(255,255,255,0.1)}
-
-	table.usb_absent thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;background-color:#262626}
-	table.usb_absent tbody tr:nth-child(even){background-color:#212121}
-	table.usb_absent tbody tr:not(.tr_last):hover>td{background-color:rgba(255,255,255,0.1)}
-<?elseif ($theme == 'gray'):?>
-	table.usb_mounts tbody tr:not(.tr_last):hover>td{background-color:rgba(255,255,255,0.05)}
-
-	table.samba_mounts tbody tr:not(.tr_last):hover>td{background-color:rgba(255,255,255,0.05)}
-
-	table.usb_absent tbody tr:not(.tr_last):hover>td{background-color:rgba(255,255,255,0.05)}
-<?elseif ($theme == 'white'):?>
-	table.usb_mounts thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;background-color:#e8e8e8}
-	table.usb_mounts tbody tr:nth-child(even){background-color:#ededed}
-	table.usb_mounts tbody tr:not(.tr_last):hover>td{background-color:rgba(0,0,0,0.1)}
-
-	table.samba_mounts thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;background-color:#e8e8e8}
-	table.samba_mounts tbody tr:nth-child(even){background-color:#ededed}
-	table.samba_mounts tbody tr:not(.tr_last):hover>td{background-color:rgba(0,0,0,0.1)}
-
-	table.usb_absent thead tr:first-child td{font-size:1.1rem;text-transform:uppercase;letter-spacing:1px;background-color:#e8e8e8}
-	table.usb_absent tbody tr:nth-child(even){background-color:#ededed}
-	table.usb_absent tbody tr:not(.tr_last):hover>td{background-color:rgba(0,0,0,0.1)}
-<?endif;?>
-	span.right.ud+span.status{display:none}
-
-	table.usb_mounts {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
-	table.usb_mounts thead tr>td{text-align:left;width:8%;}
-	table.usb_mounts tr>td{text-align:left;padding-right:4px;}
-	table.usb_mounts tr>td+td+td{text-align:center;}
-	table.usb_mounts tr>td+td+td+td+td{text-align:right;}
-	table.usb_mounts tr>td+td+td+td+td+td+td{text-align:center;}
-	table.usb_mounts tr>td+td+td+td+td+td+td+td{text-align:right;padding-right:8px;}
-
-	table.samba_mounts {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
-	table.samba_mounts thead tr>td{text-align:left;width:8%;}
-	table.samba_mounts tr>td+td{text-align:left;padding-right:8px;}
-	table.samba_mounts tr>td+td+td+td{text-align:center;}
-	table.samba_mounts tr>td+td+td+td+td+td+td+td+td{text-align:right;padding-right:8px;}
-
-	table.usb_absent {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
-	table.usb_absent thead tr>td{text-align:left;width:8%;}
-	table.usb_absent tr>td+td{text-align:left;}
-	table.usb_absent tr>td+td+td+td{text-align:center;}
-
-	button.mount {user-drag:none;user-select:none;padding:2px 4px 3px 6px;margin:1px 0px 1px 0px;}
-	i.partition-hdd{margin:5px; 5px; 0px; 0px;}
-	i.hdd{margin:5px; 5px; 0px; 0px;}
-	i.share{margin:5px 5px 0px 0px;}
-	i.mount-share{margin:5px 5px 0px 0px;}
-	i.partition-script{margin-left: 10px;}
-	i.partition-log{margin-left: 10px; margin-right: 5px;}
-	i.samba-log{margin-left: 0px; margin-right: 10px;}
-	.exec{cursor: pointer;}
-	i.fa-append{margin:0px; font-size: 0.8em; position: relative; left:-0.3em; top:0.7em;}
-	i.fa-switch{margin:5px; 5px; 0px; 0px;}
-	.underline{text-decoration: underline;}
-
-	form.inline{display:inline;margin: 0px; padding: 0px;}
-
-	.fileTree {
-		width: 305px;
-		max-height: 150px;
-		overflow: scroll;
-		position: absolute;
-		z-index: 100;
-		display: none;
-		color:initial;
-	}
-
-	.image-radio input{margin:0;padding:0;-webkit-appearance:none;-moz-appearance:none;appearance:none;}
-	.image-radio input:active +.image-radio-label{opacity: .9;}
-	.image-radio input:checked +.image-radio-label{ -webkit-filter: none;-moz-filter: none;filter: none;}
-	.image-radio-label{cursor:pointer; background-size:contain; background-repeat:no-repeat;display:inline-block; width:100px;height:70px; -webkit-transition: all 100ms ease-in;-moz-transition: all 100ms ease-in;transition: all 100ms ease-in;-webkit-filter: brightness(1.8) grayscale(1) opacity(.7);-moz-filter: brightness(1.8) grayscale(1) opacity(.7);filter: brightness(1.8) grayscale(1) opacity(.7);}
-	.image-radio-label:hover{-webkit-filter: brightness(1.2) grayscale(.5) opacity(.9);-moz-filter: brightness(1.2) grayscale(.5) opacity(.9);filter: brightness(1.2) grayscale(.5) opacity(.9);}
-	.image-radio-linux{background-image: url(/plugins/unassigned.devices/icons/nfs-radio.png)}
-	.image-radio-windows{background-image: url(/plugins/unassigned.devices/icons/smb-radio.png)}
 </style>
 
 <script type="text/javascript">
@@ -579,7 +492,6 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			caPluginUpdateCheck("unassigned.devices.plg",{element:".pluginUpdate"});
 		}
 	});
-
 </script>
 
 <?=$Preclear ? $Preclear->html() : "";?>

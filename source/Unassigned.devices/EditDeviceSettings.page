@@ -105,7 +105,6 @@ if (isset($_GET['s'])) {
 	$usb				= ((isset($_GET['u'])) && ($_GET['u'] == "usb"));
 	$share				= config_shared($ud_device, $partition, $usb) ? "checked" : "";
 	$show_partitions	= (get_config($ud_device, "show_partitions") == "no" ) ? "" : "checked";
-	$width				= $mounted ? "57%" : "70%";
 	$automount_action	= "automount";
 	$name				= get_config($ud_device, "unassigned_dev");
 	$background_action	= "background";
@@ -276,22 +275,11 @@ EOT;
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.switchbutton.css')?>">
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.filetree.css')?>" >
 
+<link type="text/css" rel="stylesheet" href="<?autov("/plugins/".$plugin."/assets/unassigned.css")?>">
+
 <script src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
 <script src="<?autov('/webGui/javascript/jquery.filetree.js')?>"></script>
 <script src="<?autov('/plugins/'.$plugin.'/assets/arrive.min.js')?>"></script>
-
-<style type="text/css">
-	.fileTree {
-		border: solid 1px #BBB;
-		background: #FFF;
-		overflow: scroll;
-		padding: 5px;
-		position:absolute;
-		z-index:100;
-		display:none;
-		color:initial;
-	}
-</style>
 
 <form markdown="1" name="switch_settings" method="POST" action="/update.php" target="progressFrame">
 <input type="hidden" name="#include" value="/webGui/include/update.file.php">
@@ -306,7 +294,7 @@ EOT;
 <?endif;?>
 <p><strong>_(Mount Point)_: </strong><?=$mount_point;?></p>
 
-<table style='width: <?=$width;?>;' class='usb_disks'><thead><tr><td></td><td></td><td></td><td></td><td></td><td></td></tr></thead>
+<table style='width:<?=$width;?>;'><thead><tr><td></td><td></td><td></td><td></td><td></td><td></td></tr></thead>
 <tr>
 &nbsp;
 
