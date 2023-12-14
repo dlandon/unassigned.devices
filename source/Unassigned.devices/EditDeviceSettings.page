@@ -115,7 +115,7 @@ if (isset($_GET['s'])) {
 	if (! $_GET['t']) {
 		$show_device_switches	= false;
 	}
-	$width				= ($fstype == "zvol") ? ($mounted ? "27%" : "40%") : ($mounted ? "57%" : "70%");
+	$width				= ($fstype == "zvol") ? ($mounted ? "27%" : "40%") : ($mounted ? "60%" : "75%");
 	$volume				= ($fstype == "apfs") ? get_config($ud_device, "volume.{$partition}") : "0";
 	$is_preclearing		= shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg((new MiscUD)->base_device($device))." | /bin/grep -v 'grep'") != "";
 	$host				= (new MiscUD)->get_device_host($_GET['s']);
@@ -294,41 +294,36 @@ EOT;
 <?endif;?>
 <p><strong>_(Mount Point)_: </strong><?=$mount_point;?></p>
 
-<table style='width:<?=$width;?>;'><thead><tr><td></td><td></td><td></td><td></td><td></td><td></td></tr></thead>
-<tr>
-&nbsp;
-
+<div style='width:<?=$width;?>;'>
 <?if ($show_device_switches):?>
 <?if (isset($_GET['s'])):?>
 <?if (! $mounted):?>
-<td title='_(Mark this Device as passed through to a VM or Docker Container)_.'><a><input type='checkbox' class='passthrough-switch'></a></td>
+<span class='span-switches' title='_(Mark this Device as passed through to a VM or Docker Container)_.'><a><input type='checkbox' class='passthrough-switch'></a></span>
 <?endif;?>
-<td title='_(Disable Mount and Unmount Button)_.'><a><input type='checkbox' class='disable-mount-switch'></a></td>
-<td title='_(Mount Device Read only)_.'><a><input type='checkbox' class='readonly-switch'></a></td>
+<span class='span-switches' title='_(Disable Mount and Unmount Button)_.'><a><input type='checkbox' class='disable-mount-switch'></a></span>
+<span class='span-switches' title='_(Mount Device Read only)_.'><a><input type='checkbox' class='readonly-switch'></a></span>
 <?if ($fstype != "zvol"):?>
-<td title='_(Mount Device when Plugged in or Array is Started)_.'><a><input type='checkbox' class='automount-switch'></a></td>
+<span class='span-switches' title='_(Mount Device when Plugged in or Array is Started)_.'><a><input type='checkbox' class='automount-switch'></a></span>
 <?endif;?>
 <?endif;?>
 <?endif;?>
 
 <?if (isset($_GET['d'])):?>
-<td title='_(Disable Mount and Unmount Button)_.'><a><input type='checkbox' class='disable-mount-switch'></a></td>
-<td title='_(Mount Remote Share Read only)_.'><a><input type='checkbox' class='readonly-switch'></a></td>
-<td title='_(Mount Remote SMB or NFS Share when Array is Started)_.'><a><input type='checkbox' class='automount-switch'></a></td>
+<span class='span-switches' title='_(Disable Mount and Unmount Button)_.'><a><input type='checkbox' class='disable-mount-switch'></a></span>
+<span class='span-switches' title='_(Mount Remote Share Read only)_.'><a><input type='checkbox' class='readonly-switch'></a></span>
+<span class='span-switches' title='_(Mount Remote SMB or NFS Share when Array is Started)_.'><a><input type='checkbox' class='automount-switch'></a></span>
 <?endif;?>
 
 <?if (isset($_GET['i'])):?>
-<td title='_(Mount ISO File when Array is Started)_.'><a><input type='checkbox' class='automount-switch'></a></td>
+<span class='span-switches' title='_(Mount ISO File when Array is Started)_.'><a><input type='checkbox' class='automount-switch'></a></span>
 <?elseif ($fstype != "zvol"):?>
-<td title='_(Share Device with SMB and NFS)_.'><a><input type='checkbox' class='share-switch' info='<?=$info?>'></a></td>
+<span class='span-switches' title='_(Share Device with SMB and NFS)_.'><a><input type='checkbox' class='share-switch' info='<?=$info?>'></a></span>
 <?endif;?>
 
 <?if ((isset($_GET['s'])) && ($show_device_switches) && ($fstype != "zvol")):?>
-<td title='_(Show all partitions on this device by default)_.'><a><input type='checkbox' class='partitions-switch'></a></td>
+<span class='span-switches' title='_(Show all partitions on this device by default)_.'><a><input type='checkbox' class='partitions-switch'></a></span>
 <?endif;?>
-
-</tr>
-</table>
+</div>
 
 <?if ((! $shares_enabled) && (! isset($_GET['i'])) && ($fstype != "zvol")):?>
 <p style='font-weight:bold'>_(Note: Enable SMB Sharing or NFS Export in Unassigned Devices Settings to share this device)_.</p>

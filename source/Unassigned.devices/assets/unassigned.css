@@ -33,6 +33,11 @@ i.fa-switch{margin:5px; 5px; 0px; 0px;}
 .underline{text-decoration: underline;}
 .switch-button-background{margin-top:4px!important}
 
+.span-switches {
+    display: inline-flex;
+    margin-right: 10px;
+}
+
 form.inline{display:inline;margin: 0px; padding: 0px;}
 
 .fileTree {
