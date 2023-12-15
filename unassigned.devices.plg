@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.11.30a">
+<!ENTITY version	"2023.12.15">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"bdfb55486f9f17484549d7442f63cb91">
+<!ENTITY MD5		"5f121365f4728ab72c75a2d0b633d941">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,15 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Style changes for GUI compatibility with 6.13.
+- Fix: Put styles into .css files.
+- Fix: Rework remote shares and ISO files table.
+- Fix: Scrub not canceled on a zfs encrypted disk when unmounting.
+- Fix: Spaces in Common Command file designation causes an unneecessary log message.
+- Fix: Non existant Common Command file causing a php warning in log message.
+- Fix: Return "success" or "failure" when mounting or unmounting devices only with the rc.unassigned script.
+
+###2023.11.30a
 - Fix: Change Unraid minimum version to 6.11.
 - Fix: Remove checks for Unraid versions pre 6.11.
 - Fix: Change zfs file type lookup to not use Unraid version check to decide to use 'lsblk' or 'blkid',
