@@ -52,11 +52,14 @@ if (! $DEVNAME) {
 
 /* Create array for mount button status files. */
 $remove = array();
-$result	= "true";
+$result	= "";
 
 /* Mount devices. */
 function unassigned_mount() {
 	global $DEVNAME, $paths, $result;
+
+	/* Set as operation was successful. */
+	$result	= "success";
 
 	/* Mount local disks. */
 	foreach (get_unassigned_disks() as $name => $disk) {
@@ -120,7 +123,7 @@ function unassigned_mount() {
 					/* Execute device script with error mounting action. */
 					execute_script($info, "ERROR_MOUNT");
 
-					$result	= "false";
+					$result	= "failure";
 					continue;
 				}
 
@@ -140,7 +143,7 @@ function unassigned_mount() {
 						/* Execute device script with error mount action. */
 						execute_script($info, "ERROR_MOUNT");
 
-						$result	= "false";
+						$result	= "failure";
 					} else {
 						/* Mount the disk. */
 						if (do_mount($info)) 
@@ -173,7 +176,7 @@ function unassigned_mount() {
 							/* Execute device script with error mount action. */
 							execute_script($info, "ERROR_MOUNT");
 
-							$result	= "false";
+							$result	= "failure";
 						}
 					}
 				} else {
@@ -238,7 +241,7 @@ function unassigned_mount() {
 					/* Execute device script with error mounting action. */
 					execute_script($info, "ERROR_MOUNT");
 
-					$result	= "false";
+					$result	= "failure";
 					continue;
 				}
 
@@ -280,7 +283,7 @@ function unassigned_mount() {
 					/* Execute remote mount script with error mount action. */
 					execute_script($info, "ERROR_MOUNT");
 
-					$result	= "false";
+					$result	= "failure";
 				}
 			}
 		}
@@ -306,7 +309,7 @@ function unassigned_mount() {
 					/* Execute device script with error mounting action. */
 					execute_script($info, "ERROR_MOUNT");
 
-					$result	= "false";
+					$result	= "failure";
 					continue;
 				}
 
@@ -341,7 +344,7 @@ function unassigned_mount() {
 					/* Execute ios file script with error mount action. */
 					execute_script($info, "ERROR_MOUNT");
 
-					$result	= "false";
+					$result	= "failure";
 				}
 			}
 		}
@@ -360,6 +363,10 @@ function unassigned_mount() {
 function unassigned_umount() {
 	global $DEVNAME, $paths, $result;
 
+	/* Set as operation was successful. */
+	$result	= "success";
+
+	/* Set force if we are stopping the array. */
 	$force = ($DEVNAME == "all");
 
 	/* Unmount local disks. */
@@ -399,7 +406,7 @@ function unassigned_umount() {
 					/* Execute device script with error unmount action. */
 					execute_script($info, "ERROR_UNMOUNT");
 
-					$result		= "false";
+					$result		= "failure";
 				} else {
 					/* If the device is mounted, unmount it. */
 					$file_system	= part_fs_type($info['device'], ($info['fstype'] == "crypto_LUKS"));
@@ -485,7 +492,7 @@ function unassigned_umount() {
 							/* Execute device script with error unmount action. */
 							execute_script($info, "ERROR_UNMOUNT");
 
-							$result	= "false";
+							$result	= "failure";
 						}
 					}
 				}
@@ -562,7 +569,7 @@ function unassigned_umount() {
 						/* Execute remote mount script with error unmount action. */
 						execute_script($info, "ERROR_UNMOUNT");
 
-						$result	= "false";
+						$result	= "failure";
 					}
 				} else {
 					unassigned_log("Remote SMB/NFS share '{$info['device']}' is not mounted.");
@@ -606,7 +613,7 @@ function unassigned_umount() {
 						/* Execute the iso script with the error unmount action. */
 						execute_script($info, "ERROR_UNMOUNT");
 
-						$result	= "false";
+						$result	= "failure";
 					}
 				} else {
 					unassigned_log("Remote ISO File share '{$info['device']}' is not mounted.");
@@ -677,7 +684,7 @@ function unassigned_spin_down($device) {
 				@file_put_contents($tc, json_encode($run_status));
 
 				/* Spin down the disk. */
-				$result	= (new MiscUD)->spin_disk(true, $dev);
+				(new MiscUD)->spin_disk(true, $dev);
 
 				/* Wait for the disk to finish spinning down or time out. */
 				while (is_disk_spin($dev, true)) {
@@ -833,5 +840,8 @@ switch ($COMMAND) {
 /* Clear all the state files. */
 array_map(function($f){exec("/bin/rm -f ".escapeshellarg($f)." 2>/dev/null");}, $remove);
 
-echo($result);
+/* Return result if mounting or unmounting. */
+if ($result) {
+	echo($result."\n");
+}
 ?>

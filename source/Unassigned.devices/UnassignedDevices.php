@@ -1184,15 +1184,15 @@ switch ($_POST['action']) {
 	case 'mount':
 		/* Mount a disk device. */
 		$device	= urldecode($_POST['device']);
-		$return = shell_exec("plugins/".$plugin."/scripts/rc.unassigned mount ".escapeshellarg($device));
-		echo json_encode($return == "true");
+		$return = trim(shell_exec("plugins/".$plugin."/scripts/rc.unassigned mount ".escapeshellarg($device)));
+		echo json_encode($return == "success");
 		break;
 
 	case 'umount':
 		/* Unmount a disk device. */
 		$device	= urldecode($_POST['device']);
-		$return = shell_exec("plugins/".$plugin."/scripts/rc.unassigned umount ".escapeshellarg($device));
-		echo json_encode($return == "true");
+		$return = trim(shell_exec("plugins/".$plugin."/scripts/rc.unassigned umount ".escapeshellarg($device)));
+		echo json_encode($return == "success");
 		break;
 
 	case 'rescan_disks':
