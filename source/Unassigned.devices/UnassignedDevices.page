@@ -500,25 +500,15 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 <div id='title' class='title ud'>
 <span class='left'>_(Unassigned Disks)_/_(Remote Shares)_/_(Historical Devices)_</span>
-<span class='right ud'>
-<a class='hand tooltip' title="_(Unassigned Devices Settings)_" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a>
-</span>
-<span class='right ud'>
-<a class='hand tooltip' title="_(Refresh Disks and Configuration)_" onclick="rescan_disks()"><i class="fa fa-refresh"></i></a>
-</span>
-<span class='right ud'>
-<a class='hand tooltip' title="_(Show/Hide Historical Devices)_"><input type="checkbox" class="historical-switch"></a>
-</span>
-<span class='right ud'>
-<a class='hand tooltip' title="_(Show/Hide SMB/NFS/ISO Shares)_"><input type="checkbox" class="shares-switch"></a>
-</span>
-<span class='right ud'>
-<a class='hand tooltip' title="_(Show/Hide Disk Devices)_"><input type="checkbox" class="disks-switch"></a>
-</span>
+<span class='right ud'><a class='tooltip' title="_(Unassigned Devices Settings)_" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a></span>
+<span class='right ud'><a class='tooltip' title="_(Refresh Disks and Configuration)_" onclick="rescan_disks()"><i class="fa fa-refresh"></i></a></span>
+<span class='right ud'><a class='tooltip' title="_(Show/Hide Historical Devices)_"><input type="checkbox" class="historical-switch"></a></span>
+<span class='right ud'><a class='tooltip' title="_(Show/Hide SMB/NFS/ISO Shares)_"><input type="checkbox" class="shares-switch"></a></span>
+<span class='right ud'><a class='tooltip' title="_(Show/Hide Disk Devices)_"><input type="checkbox" class="disks-switch"></a></span>
 </div>
 
 <div class='show-disks'>
-	<div id='title' class='title'>
+	<div id='title' class='title shift'>
 		<span class='left'><img src='/plugins/<?=$plugin?>/icons/disk.png' class='icon'><?=_('Disk Devices')?></span>
 	</div>
 
@@ -544,6 +534,9 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			</tr>
 		</tbody>
 	</table>
+	<div class='show-shares'>
+		<br /><br />
+	</div>
 </div>
 
 :unassgned_devices_switches_plug:
@@ -561,11 +554,10 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 :end
 
 <div class='show-shares'>
-	<div id='title' class='title'>
-		<span class='left'>
-			<img src='/plugins/<?=$plugin?>/icons/smbsettings.png' class='icon'><?=_('SMB Shares')?>&nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/nfssettings.png' class='icon'><?=_('NFS Shares')?>&nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/iso.png' class='icon' style='width:16px;'><?=_('ISO File Shares')?>
-		</span>
+	<div id='title' class='title shift'>
+		<span class='left'><img src='/plugins/<?=$plugin?>/icons/smbsettings.png' class='icon'><?=_('SMB Shares')?>&nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/nfssettings.png' class='icon'><?=_('NFS Shares')?>&nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/iso.png' class='icon' style='width:16px;'><?=_('ISO File Shares')?></span>
 	</div>
+
 	<table class='samba_mounts'>
 		<thead>
 		<tr>
@@ -594,9 +586,11 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 <div class='show-disks'>
 	<div class='show-historical'>
-		<div id='title' class='title'>
+		<br /><br />
+		<div id='title' class='title shift'>
 			<span class='left'><img src='/plugins/<?=$plugin?>/icons/historical.png' class='icon'><?=_('Historical Devices')?></span>
 		</div>
+
 		<table class='usb_absent'>
 			<thead>
 			<tr>
