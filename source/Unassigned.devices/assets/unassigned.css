@@ -94,7 +94,7 @@ i.partition-script {
 }
 i.partition-log {
 	margin-left: 10px;
-	margin-right: 5px;
+	margin-right: 10px;
 }
 i.samba-log {
 	margin-left: 0px;
@@ -122,6 +122,11 @@ i.fa-switch {
 /* Toggle switch alignment with text. */
 .switch-button-background {
 	margin-top: 4px!important
+}
+
+/* Left align edit settings help text. */
+span.help-title {
+	text-align:left;
 }
 
 /* Line up switches on device settings page. */
