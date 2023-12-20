@@ -692,8 +692,8 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		if (isset($$_var) ) {
 			$iface		= $$_var;
 			$gateway	= array_values(array_flip(preg_grep("/GATEWAY:/", array_flip($iface))));
-			$ipaddr		= array_values(array_flip(preg_grep("/IPADDR:/",	array_flip($iface))));
-			$netmask	= array_values(array_flip(preg_grep("/NETMASK/",	array_flip($iface))));
+			$ipaddr		= array_values(array_flip(preg_grep("/IPADDR:/", array_flip($iface))));
+			$netmask	= array_values(array_flip(preg_grep("/NETMASK/", array_flip($iface))));
 			for ($z=0; $z < count($ipaddr); $z++) { 
 				echo "network.push({gateway:'{$ipaddr[$z]}', ip:'{$ipaddr[$z]}', netmask:'{$netmask[$z]}'});\n";
 			}
@@ -1171,7 +1171,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		<div data-question-content>
 			<input type="text" class="swal-content__input" name="IP" autocomplete="off" required placeholder="<?=_('Enter or Select Server');?>"><br/>
 			<button class="swal-button" onclick='load_hosts(this,"{0}")'><?=_('Search For Servers');?></button>
-			<p><?=_('Search for Servers, or enter the Server name/IP address manually');?>.</p>
+			<p><?=_('Search for Servers, or enter the Server name or IP address manually');?>.</p>
 			<p><?=_('If the IP address of the server shows in the list after searching, your DNS server is not resolving the name');?>.</p>
 			<p><?=_('Enter the server name and it will be added to the local DNS names and will then resolve by name');?>.</p>
 		</div>
