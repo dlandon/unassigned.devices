@@ -23,28 +23,6 @@ if (isset($_POST['display'])) {
 	$display = $_POST['display'];
 }
 
-function netmasks($netmask, $rev = false)
-{
-	$netmasks = [	"255.255.255.252"	=> "30",
-					"255.255.255.248"	=> "29",
-					"255.255.255.240"	=> "28",
-					"255.255.255.224"	=> "27",
-					"255.255.255.192"	=> "26",
-					"255.255.255.128"	=> "25",
-					"255.255.255.0"		=> "24",
-					"255.255.254.0"		=> "23",
-					"255.255.252.0"		=> "22",
-					"255.255.248.0"		=> "21",
-					"255.255.240.0" 	=> "20",
-					"255.255.224.0" 	=> "19",
-					"255.255.192.0" 	=> "18",
-					"255.255.128.0" 	=> "17",
-					"255.255.0.0"		=> "16",
-				];
-
-	return $rev ? array_flip($netmasks)[$netmask] : $netmasks[$netmask];
-}
-
 /* Get the diskio scale based on the current setting. */
 function my_diskio($data) {
 	return my_scale($data, $unit, 1)." $unit/s";
@@ -266,7 +244,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$serial				= $partition['serial'];
 		$id_bus				= $disk['id_bus'];
 		if (! $disk['array_disk']) {
-			$out[]			= "<td><a class='info' href='/Main/EditDeviceSettings?s=".$serial."&b=".$device."&f=".$fstype."&l=".$partition['mountpoint']."&n=".($mounted_disk || $mounting_disk || $unmounting_disk)."&p=".$partition['part']."&m=".json_encode($partition)."&t=".$disk_line."&u=".$id_bus."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+			$out[]			= "<td><a class='info' href='/Main/EditDeviceSettings?s=".$serial."&b=".$device."&f=".$fstype."&l=".$partition['mountpoint']."&n=".($mounted_disk || $mounting_disk || $unmounting_disk)."&p=".$partition['part']."&m=".json_encode($partition)."&t=".$disk_line."&u=".$id_bus."'><i class='fa fa-gears'></i><span class='help-title'>$title</span></a></td>";
 		} else {
 			$out[]			= "<td><i class='fa fa-gears' disabled></i></td>";
 		}
@@ -327,7 +305,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 					$id_bus			= "";
 
 					if (($z['active']) && ($fstype)) {
-						$out[]		= "<td><a class='info' href='/Main/EditDeviceSettings?s=".$serial."&b=".$volume."&f=".$z['fstype']."&l=".$z['mountpoint']."&n=".$z['mounted']."&p=".$volume."&m=".json_encode($z)."&t=false&u=".$id_bus."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a></td>";
+						$out[]		= "<td><a class='info' href='/Main/EditDeviceSettings?s=".$serial."&b=".$volume."&f=".$z['fstype']."&l=".$z['mountpoint']."&n=".$z['mounted']."&p=".$volume."&m=".json_encode($z)."&t=false&u=".$id_bus."'><i class='fa fa-gears'></i><span class='help-title'>$title</span></a></td>";
 						$out[]		= "<td>".$fstype."</td>";
 						$out[]		= "<td>".my_scale($z['size'], $unit)." $unit</td>";
 					} else {
@@ -787,9 +765,9 @@ switch ($_POST['action']) {
 				/* Settings icon table element. */
 				$o_remotes			.= "<td>";
 				if (! $mount['invalid']) {
-					$o_remotes		.= "<a class='info' href='/Main/EditDeviceSettings?d=".$mount['device']."&l=".$mount['mountpoint']."&j=".$mount['name']."&m=".json_encode($mount)."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a>";
+					$o_remotes		.= "<a class='info' href='/Main/EditDeviceSettings?d=".$mount['device']."&l=".$mount['mountpoint']."&j=".$mount['name']."&m=".json_encode($mount)."'><i class='fa fa-gears'></i><span class='help-title'>$title</span></a>";
 				} else {
-					$o_remotes		.= "<i class='fa fa-gears grey-orb'></i><span style='text-align:left'></span>";
+					$o_remotes		.= "<i class='fa fa-gears grey-orb'></i><span class='help-title'></span>";
 				}
 				$o_remotes			.= "</td>";
 
@@ -885,9 +863,9 @@ switch ($_POST['action']) {
 				/* Device settings table element. */
 				$o_remotes			.= "<td>";
 				if (! $mount['invalid']) {
-					$o_remotes		.= "<a class='info' href='/Main/EditDeviceSettings?i=".$device."&l=".$mount['mountpoint']."&j=".$mount['file']."'><i class='fa fa-gears'></i><span style='text-align:left'>$title</span></a>";
+					$o_remotes		.= "<a class='info' href='/Main/EditDeviceSettings?i=".$device."&l=".$mount['mountpoint']."&j=".$mount['file']."'><i class='fa fa-gears'></i><span class='help-title'>$title</span></a>";
 				} else {
-					$o_remotes		.= "<i class='fa fa-gears grey-orb'></i><span style='text-align:left'></span>";
+					$o_remotes		.= "<i class='fa fa-gears grey-orb'></i><span class='hslp-title'></span>";
 				}
 				$o_remotes			.= "</td>";
 
@@ -1248,7 +1226,7 @@ switch ($_POST['action']) {
 		foreach ($network as $iface) {
 			$ip			= $iface['ip'];
 			$netmask 	= $iface['netmask'];
-			exec("plugins/".$plugin."/scripts/port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 445", $hosts);
+			exec("plugins/".$plugin."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 445", $hosts);
 			foreach ($hosts as $host) {
 				/* Resolve name as a local server. */
 				$name	= trim(shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'") ?? "");
@@ -1311,7 +1289,7 @@ switch ($_POST['action']) {
 		foreach ($network as $iface) {
 			$ip			= $iface['ip'];
 			$netmask 	= $iface['netmask'];
-			exec("/usr/bin/timeout -s 13 5 plugins/".$plugin."/scripts/port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 2049 2>/dev/null | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4", $hosts);
+			exec("plugins/".$plugin."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 2049 2>/dev/null | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4", $hosts);
 			foreach ($hosts as $host) {
 				/* Resolve name as a local server. */
 				$name	= trim(shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'") ?? "");
