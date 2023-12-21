@@ -80,8 +80,9 @@ button.mount {
 i.partition-hdd {
 	margin: 5px 5px 0px 0px;
 }
-i.hdd {
+i.clear-hdd {
 	margin: 5px 5px 0px 0px;
+	padding-left: 5px;
 }
 i.share {
 	margin: 5px 5px 0px 0px;

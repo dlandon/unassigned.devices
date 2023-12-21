@@ -130,7 +130,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$is_preclearing 	= shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg((new MiscUD)->base_device($partition['device']))." | /bin/grep -v 'grep'") != "";
 		$preclearing		= $preclearing || $is_preclearing;
 		$parted				= file_exists("/usr/sbin/parted");
-		$rm_partition		= ((get_config("Config", "destructive_mode") == "enabled") && ($parted) && (! $is_mounting) && (! $is_unmounting) && (! $is_formatting) && (! $disk['pass_through']) && (! $disk['partitions'][0]['disable_mount']) && (! $disk['array_disk']) && (! $preclearing) && ($fstype) && ($fstype != "zfs")) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$partition['serial']}\",\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove hdd'></i><span>"._("Remove Partition")."</span></a>" : "";
+		$rm_partition		= ((get_config("Config", "destructive_mode") == "enabled") && ($parted) && (! $is_mounting) && (! $is_unmounting) && (! $is_formatting) && (! $disk['pass_through']) && (! $disk['partitions'][0]['disable_mount']) && (! $disk['array_disk']) && (! $preclearing) && ($fstype) && ($fstype != "zfs")) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$partition['serial']}\",\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove clear-hdd'></i><span>"._("Remove Partition")."</span></a>" : "";
 		$mpoint				= "<span>".$fscheck;
 
 		/* Add script log icon. */
@@ -144,7 +144,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 
 		/* Add change mount point or browse disk share icon if disk is mounted. */
 		if (($not_unmounted) || ($not_udev)) {
-			$mpoint .= "<i class='fa partition-hdd'></i>".$mount_point."</span>";
+			$mpoint .= $mount_point."</span>";
 		} else if (($mounted) && (! $is_mounting) && (! $is_unmounting)) {
 			/* If the partition is mounted read only, indicate that on the mount point. */
 			$read_only		= $partition['part_read_only'] ? "<font color='red'> (RO)<font>" : "";
@@ -520,7 +520,7 @@ switch ($_POST['action']) {
 
 				$partition['device']	= $partition['device'] ?? "";
 				$partition['serial']	= $partition['serial'] ?? "";
-				$clear_disk				= ((get_config("Config", "destructive_mode") == "enabled") && ($parted) && (! $mounted) && (! $disk['is_mounting']) && (! $disk['is_unmounting']) && (! $disk['is_formatting']) && (! $disk['pass_through']) && (! $disk['array_disk']) && (! $preclearing) && (($p) && (! $disk['partitions'][0]['pool']) && (! $disk['partitions'][0]['disable_mount'])) ) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
+				$clear_disk				= ((get_config("Config", "destructive_mode") == "enabled") && ($parted) && (! $mounted) && (! $disk['is_mounting']) && (! $disk['is_unmounting']) && (! $disk['is_formatting']) && (! $disk['pass_through']) && (! $disk['array_disk']) && (! $preclearing) && (($p) && (! $disk['partitions'][0]['pool']) && (! $disk['partitions'][0]['disable_mount'])) ) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove clear-hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
 
 				$disk_icon = $disk['ssd'] ? "icon-nvme" : "fa fa-hdd-o";
 				/* Disk log. */
@@ -744,7 +744,7 @@ switch ($_POST['action']) {
 
 				/* Remove SMB/NFS remote share table element. */
 				$o_remotes			.= "<td>";
-				$o_remotes			.= $mounted ? "<i class='fa fa-remove hdd'></i>" : "<a class='exec info' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount['name']}\", \"{$compressed_name}\", \"{$protocol}\");'><i class='fa fa-remove hdd'></i><span>"._("Remove Remote SMB")."/"._("NFS Share")."</span></a>";
+				$o_remotes			.= $mounted ? "<i class='fa fa-remove'></i>" : "<a class='exec info' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount['name']}\", \"{$compressed_name}\", \"{$protocol}\");'><i class='fa fa-remove'></i><span>"._("Remove Remote SMB")."/"._("NFS Share")."</span></a>";
 				$o_remotes			.= "</td>";
 
 				/* Empty table element. */
@@ -848,7 +848,7 @@ switch ($_POST['action']) {
 				$o_remotes			.= "</td>";
 
 				$compressed_device	= (new MiscUD)->compress_string($mount['device']);
-				$o_remotes .= $mounted ? "<td><i class='fa fa-remove hdd'></i></td>" : "<td><a class='exec info' style='color:#CC0000;font-weight:bold;' onclick='remove_iso_config(\"{$mount['device']}\", \"{$compressed_device}\");'> <i class='fa fa-remove hdd'></i><span>"._("Remove ISO File Share")."</span></a></td>";
+				$o_remotes .= $mounted ? "<td><i class='fa fa-remove'></i></td>" : "<td><a class='exec info' style='color:#CC0000;font-weight:bold;' onclick='remove_iso_config(\"{$mount['device']}\", \"{$compressed_device}\");'> <i class='fa fa-remove'></i><span>"._("Remove ISO File Share")."</span></a></td>";
 
 				$title				= _("Edit ISO File Settings and Script");
 				$title				.= "<br />"._("Automount").": ";
@@ -950,9 +950,9 @@ switch ($_POST['action']) {
 			$o_historical	.= "<td>";
 			if (! $is_standby) {
 				$compressed_serial	= (new MiscUD)->compress_string($historical[$disk_display]['serial']);
-				$o_historical .= "<a style='color:#CC0000;font-weight:bold;cursor:pointer;' class='exec info' onclick='remove_disk_config(\"{$historical[$disk_display]['serial']}\", \"{$compressed_serial}\")'><i class='fa fa-remove hdd' disabled></i><span>"._("Remove Device Configuration")."</span></a>";
+				$o_historical .= "<a style='color:#CC0000;font-weight:bold;cursor:pointer;' class='exec info' onclick='remove_disk_config(\"{$historical[$disk_display]['serial']}\", \"{$compressed_serial}\")'><i class='fa fa-remove' disabled></i><span>"._("Remove Device Configuration")."</span></a>";
 			} else {
-				$o_historical .= "<i class='fa fa-remove hdd' disabled></i>";
+				$o_historical .= "<i class='fa fa-remove' disabled></i>";
 			}
 			$o_historical	.= "</td>";
 
