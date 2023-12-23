@@ -815,12 +815,12 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	<div data-question data-question-title="<?=_('Root Share')?>" data-question-button-done="<?=_('Add');?>">
 		<div data-question-content>
 			<select name="PATH" class="swal-content__input">
-				<option value="/mnt/user0"><?=_('User Shares');?></option>
-				<option value="/mnt/user"><?=_('User and Pool Shares');?></option>
+				<option value="/mnt/user"><?=_('User Shares');?></option>
+				<option value="/mnt/user0"><?=_('User Shares without Pools');?></option>
 			</select>
 			<p><?=_('Select the Root Share');?>.</p>
-			<p><?=_('User Shares will allow access to User Shares, but the Root Share will not include Cache and Pool Device files');?>.</p>
-			<p><?=_('User and Pool Shares will include all files in User Shares, Cache and Pool Devices');?>.</p>
+			<p><?=_('User Shares - allow access to User Shares, including Cache and Pool files');?>.</p>
+			<p><?=_('User Shares without Pools - allow access to User Shares, but the Root Share will not include Cache and Pool files');?>.</p>
 			<p><?=_('Note');?>:&nbsp;<?= _('Exclusive Share files will not be accessible in a Root Share');?>.</p>
 		</div>
 	</div>
