@@ -80,6 +80,10 @@ button.mount {
 i.partition-hdd {
 	margin: 5px 5px 0px 0px;
 }
+i.zfs-volume-hdd {
+	margin: 5px 5px 0px 0px;
+	padding-left: 5px;
+}
 i.clear-hdd {
 	margin: 5px 5px 0px 0px;
 	padding-left: 5px;
