@@ -1,4 +1,4 @@
-Title="Edit Settings"
+Title="Unassigned Device Settings"
 Tag="unlink"
 ---
 <?php
@@ -443,14 +443,14 @@ _(User Script)_:
 <?if (! $mounted):?>
 <?if (! is_file($file)):?>
 <button type="button" title='_(Load the default Device Script)_.' onclick="setDefault(this.form)">_(Default)_</button>
-<input type="reset" title='_(Undo your changes since last Save)_.' value='_(Reset)_'/>
-<input type="submit" title='_(Save your Device Script File)_.' value='_(Save)_'/>
+<button type="button" id='clear-button' title='_(Clear the Device Script)_.' onclick="clearDefault(this.form)" disabled>_(Clear)_</button>
+<input type="submit" id='save-button' title='_(Save your Device Script)_.' value='_(Save)_' disabled/>
 <?else:?>
 <button type="button" title='_(Delete Device Script File)_.' onclick='rmfile();'>_(Delete)_</button>
+<input type="submit" id='apply-button' title='_(Save your Device Script File changes)_.' value='_(Apply)_'/>
 <?endif;?>
 <?endif;?>
-<input type="submit" title='_(Save your Device Script File changes)_.' value='_(Apply)_'>
-<input type="button" value="_(Done)_" onclick="done()">
+<input type="button" value="_(Done)_" onclick="done()"/>
 
 :ud_edit_script_buttons_plug:
 > Click **Default** to initialize the edit box with a default Device Script. You still need to click **Save** in order to commit the change.
@@ -566,6 +566,42 @@ _(User Script)_:
 		/* Set the default values. */
 		form.elements['text'].value		= <?=json_encode($default_text);?>;
 		form.elements['#file'].value	= <?=json_encode($default_file);?>;
+
+		/* Get the input element by its ID. */
+		var inputElement = document.getElementById('save-button');
+
+		/* Enable the 'Save' button. */
+		inputElement.disabled = false;
+
+		/* Get the input element by its ID. */
+		var inputElement = document.getElementById('clear-button');
+
+		/* Enable the 'Clear' button. */
+		inputElement.disabled = false;
+
+		/* Create a new 'change' event. */
+		var event = new Event('change');
+
+		/* Trigger a change event. */
+		form.dispatchEvent(event);
+	}
+
+	function clearDefault(form) {
+		/* Set the default values. */
+		form.elements['text'].value		= "";
+		form.elements['#file'].value	= "";
+
+		/* Get the input element by its ID. */
+		var inputElement = document.getElementById('save-button');
+
+		/* Disable the 'Save' button. */
+		inputElement.disabled = true;
+
+		/* Get the input element by its ID. */
+		var inputElement = document.getElementById('clear-button');
+
+		/* Disable the 'Clear' button. */
+		inputElement.disabled = true;
 
 		/* Create a new 'change' event. */
 		var event = new Event('change');
