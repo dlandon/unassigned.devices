@@ -198,7 +198,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		}
 
 		/* Set up the device settings and script settings tooltip. */
-		$title				= _("Edit Device Settings and Script");
+		$title				= _("Device Settings and Script");
 		if ($disk_line) {
 			$title			.= "<br />"._("Passed Through").": ";
 			$title			.= $partition['pass_through'] ? "Yes" : "No";
@@ -244,7 +244,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$serial				= $partition['serial'];
 		$id_bus				= $disk['id_bus'];
 		if (! $disk['array_disk']) {
-			$out[]			= "<td><a class='info' href='/Main/EditDeviceSettings?s=".$serial."&b=".$device."&f=".$fstype."&l=".$partition['mountpoint']."&n=".($mounted_disk || $mounting_disk || $unmounting_disk)."&p=".$partition['part']."&m=".json_encode($partition)."&t=".$disk_line."&u=".$id_bus."'><i class='fa fa-gears'></i><span class='help-title'>$title</span></a></td>";
+			$out[]			= "<td><a class='info' href='/Main/DeviceSettings?s=".$serial."&b=".$device."&f=".$fstype."&l=".$partition['mountpoint']."&n=".($mounted_disk || $mounting_disk || $unmounting_disk)."&p=".$partition['part']."&m=".json_encode($partition)."&t=".$disk_line."&u=".$id_bus."'><i class='fa fa-gears'></i><span class='help-title'>$title</span></a></td>";
 		} else {
 			$out[]			= "<td><i class='fa fa-gears' disabled></i></td>";
 		}
@@ -270,9 +270,9 @@ function render_partition($disk, $partition, $disk_line = false) {
 					/* Put together the file system check icon. */
 					if (((! $z['mounted']) && ($fstype) && ($fstype != "btrfs")) || (($z['mounted']) && ($fstype == "btrfs" || $fstype == "zfs"))) {
 						$file_system_check = (($fstype != "btrfs") && ($fstype != "zfs")) ? _('File System Check') : _('File System Scrub');
-						$fscheck	= "<a class='exec info' onclick='openWindow_fsck(\"/plugins/".$plugin."/include/fsck.php?device={$z['device']}&fs={$fstype}&luks={$z['device']}&serial={$z['volume']}&mountpoint={$z['mountpoint']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i><span>".$file_system_check."</span></a>";
+						$fscheck	= "<a class='exec info' onclick='openWindow_fsck(\"/plugins/".$plugin."/include/fsck.php?device={$z['device']}&fs={$fstype}&luks={$z['device']}&serial={$z['volume']}&mountpoint={$z['mountpoint']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check zfs-volume-hdd'></i><span>".$file_system_check."</span></a>";
 					} else {
-						$fscheck	= "<i class='fa fa-check partition-hdd'></i></a>";
+						$fscheck	= "<i class='fa fa-check zfs-volume-hdd'></i></a>";
 					}
 
 					if ($z['mounted']) {
@@ -291,7 +291,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 					$out[]			= "<td></td>";
 
 					/* Set up the device settings and script settings tooltip. */
-					$title			= _("Edit ZFS Volume Settings");
+					$title			= _("ZFS Volume Settings");
 					$title			.= "<br />"._("Passed Through").": ";
 					$title			.= $z['pass_through'] ? "Yes" : "No";
 					$title			.= "<br />"._("Disable Mount Button").": ";
@@ -305,7 +305,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 					$id_bus			= "";
 
 					if (($z['active']) && ($fstype)) {
-						$out[]		= "<td><a class='info' href='/Main/EditDeviceSettings?s=".$serial."&b=".$volume."&f=".$z['fstype']."&l=".$z['mountpoint']."&n=".$z['mounted']."&p=".$volume."&m=".json_encode($z)."&t=false&u=".$id_bus."'><i class='fa fa-gears'></i><span class='help-title'>$title</span></a></td>";
+						$out[]		= "<td><a class='info' href='/Main/DeviceSettings?s=".$serial."&b=".$volume."&f=".$z['fstype']."&l=".$z['mountpoint']."&n=".$z['mounted']."&p=".$volume."&m=".json_encode($z)."&t=false&u=".$id_bus."'><i class='fa fa-gears'></i><span class='help-title'>$title</span></a></td>";
 						$out[]		= "<td>".$fstype."</td>";
 						$out[]		= "<td>".my_scale($z['size'], $unit)." $unit</td>";
 					} else {
@@ -750,7 +750,7 @@ switch ($_POST['action']) {
 				/* Empty table element. */
 				$o_remotes			.= "<td></td>";
 
-				$title 				= _("Edit Remote SMB")."/".("NFS Settings and Script");
+				$title 				= _("Remote SMB")."/".("NFS Settings and Script");
 				$title 				.= "<br />"._("Disable Mount Button").": ";
 				$title 				.= ( isset($mount['disable_mount']) && ($mount['disable_mount']) ) ? "Yes" : "No";
 				$title 				.= "<br />"._("Read Only").": ";
@@ -765,7 +765,7 @@ switch ($_POST['action']) {
 				/* Settings icon table element. */
 				$o_remotes			.= "<td>";
 				if (! $mount['invalid']) {
-					$o_remotes		.= "<a class='info' href='/Main/EditDeviceSettings?d=".$mount['device']."&l=".$mount['mountpoint']."&j=".$mount['name']."&m=".json_encode($mount)."'><i class='fa fa-gears'></i><span class='help-title'>$title</span></a>";
+					$o_remotes		.= "<a class='info' href='/Main/DeviceSettings?d=".$mount['device']."&l=".$mount['mountpoint']."&j=".$mount['name']."&m=".json_encode($mount)."'><i class='fa fa-gears'></i><span class='help-title'>$title</span></a>";
 				} else {
 					$o_remotes		.= "<i class='fa fa-gears grey-orb'></i><span class='help-title'></span>";
 				}
@@ -850,7 +850,7 @@ switch ($_POST['action']) {
 				$compressed_device	= (new MiscUD)->compress_string($mount['device']);
 				$o_remotes .= $mounted ? "<td><i class='fa fa-remove'></i></td>" : "<td><a class='exec info' style='color:#CC0000;font-weight:bold;' onclick='remove_iso_config(\"{$mount['device']}\", \"{$compressed_device}\");'> <i class='fa fa-remove'></i><span>"._("Remove ISO File Share")."</span></a></td>";
 
-				$title				= _("Edit ISO File Settings and Script");
+				$title				= _("ISO File Settings and Script");
 				$title				.= "<br />"._("Automount").": ";
 				$title				.= $mount['automount'] ? "Yes" : "No";
 				$title				.= "<br />"._("Share").": Yes";
@@ -863,7 +863,7 @@ switch ($_POST['action']) {
 				/* Device settings table element. */
 				$o_remotes			.= "<td>";
 				if (! $mount['invalid']) {
-					$o_remotes		.= "<a class='info' href='/Main/EditDeviceSettings?i=".$device."&l=".$mount['mountpoint']."&j=".$mount['file']."'><i class='fa fa-gears'></i><span class='help-title'>$title</span></a>";
+					$o_remotes		.= "<a class='info' href='/Main/DeviceSettings?i=".$device."&l=".$mount['mountpoint']."&j=".$mount['file']."'><i class='fa fa-gears'></i><span class='help-title'>$title</span></a>";
 				} else {
 					$o_remotes		.= "<i class='fa fa-gears grey-orb'></i><span class='hslp-title'></span>";
 				}
@@ -958,7 +958,7 @@ switch ($_POST['action']) {
 
 			/* Device settings table element. */
 			$o_historical	.= "<td>";
-			$o_historical	.= "<a class='info' href='/Main/EditDeviceSettings?s=".$historical[$disk_display]['serial']."&l=".$historical[$disk_display]['mntpoint']."&p="."1"."&t=true'><i class='fa fa-gears'></i><span>"._("Edit Historical Device Settings and Script")."</span></a>";
+			$o_historical	.= "<a class='info' href='/Main/DeviceSettings?s=".$historical[$disk_display]['serial']."&l=".$historical[$disk_display]['mntpoint']."&p="."1"."&t=true'><i class='fa fa-gears'></i><span>"._("Historical Device Settings and Script")."</span></a>";
 			$o_historical	.= "</td>";
 
 
