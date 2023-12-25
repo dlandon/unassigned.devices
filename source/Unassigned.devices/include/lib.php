@@ -18,7 +18,9 @@ $paths = [	"smb_unassigned"	=> "/etc/samba/smb-unassigned.conf",
 			"usb_mountpoint"	=> "/mnt/disks",
 			"remote_mountpoint"	=> "/mnt/remotes",
 			"root_mountpoint"	=> "/mnt/rootshare",
-			"dev_state"			=> "/usr/local/emhttp/state/devs.ini",
+			"dev_state"			=> $docroot."/state/devs.ini",
+			"shares_state"		=> $docroot."/state/shares.ini",
+			"disks_state"		=> $docroot."/state/disks.ini",
 			"device_log"		=> "/tmp/".$plugin."/logs/",
 			"config_file"		=> "/tmp/".$plugin."/config/".$plugin.".cfg",
 			"samba_mount"		=> "/tmp/".$plugin."/config/samba_mount.cfg",
@@ -3495,7 +3497,7 @@ function check_for_duplicate_share($dev, $mountpoint) {
 	$rc = true;
 
 	/* Parse the shares state file. */
-	$smb_file		= "/usr/local/emhttp/state/shares.ini";
+	$smb_file		= $paths['shares_state'];
 	$smb_config		= @parse_ini_file($smb_file, true);
 
 	/* Get all share names from the state file. */
@@ -3505,7 +3507,7 @@ function check_for_duplicate_share($dev, $mountpoint) {
 	$smb_shares		= array_flip($smb_shares);
 
 	/* Parse the disks state file. */
-	$disks_file 	= "/usr/local/emhttp/state/disks.ini";
+	$disks_file 	= $paths['disks_state'];
 	$disks_config	= @parse_ini_file($disks_file, true);
 
 	/* Get all disk names from the disks state file. */
