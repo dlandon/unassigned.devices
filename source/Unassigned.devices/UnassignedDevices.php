@@ -342,16 +342,16 @@ function make_mount_button($device) {
 		$context		= "disk";
 
 		/* A pool disk can be part of a disk pool or a disk with a file system and no partition. */
-		$pool_disk		= isset($device['partitions'][0]['pool']) ? $device['partitions'][0]['pool'] : ($device['fstype']);
+		$pool_disk		= $device['partitions'][0]['pool'] ?? ($device['fstype']);
 
 		/* Find conditions to disable the 'Mount' button. */
-		$disable_mount	= isset($device['partitions'][0]['disable_mount']) ? $device['partitions'][0]['disable_mount'] : false;
+		$disable_mount	= $device['partitions'][0]['disable_mount'] ?? false;
 
 		/* Is the disk not unmounted properly? */
-		$not_unmounted	= isset($device['partitions'][0]['not_unmounted']) ? $device['partitions'][0]['not_unmounted'] : false;
+		$not_unmounted	= $device['partitions'][0]['not_unmounted'] ?? false;
 
 		/* Is the disk file system not matching udev file system? */
-		$not_udev		= isset($device['partitions'][0]['not_udev']) ? $device['partitions'][0]['not_udev'] : false;
+		$not_udev		= $device['partitions'][0]['not_udev'] ?? false;
 
 		$zvol_device	= false;
 
@@ -369,7 +369,7 @@ function make_mount_button($device) {
 		$pool_disk		= false;
 
 		/* Is the disk not unmounted properly? */
-		$not_unmounted	= isset($device['not_unmounted']) ? $device['not_unmounted'] : false;
+		$not_unmounted	= $device['not_unmounted'] ?? false;
 		$not_udev		= false;
 		$dev			= $device['fstype'] == "crypto_LUKS" ? $device['luks'] : $device['device'];
 

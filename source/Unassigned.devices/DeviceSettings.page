@@ -58,18 +58,18 @@ while ((! empty(glob("/tmp/".$plugin."/cfg_*.lock"))) && ($i < 8)) {
 if (isset($_GET['s'])) {
 	/* Disk devices. */
 	$serial				= $_GET['s'];
-	$device				= isset($_GET['b']) ? $_GET['b'] : $_GET['l'];
+	$device				= $_GET['b'] ?? $_GET['l'];
 	$partition			= $_GET['p'];
 	$mount_point		= $_GET['l'];
-	$mounted			= isset($_GET['n']) ? $_GET['n'] : false;
-	$info				= isset($_GET['m']) ? $_GET['m'] : "";
+	$mounted			= $_GET['n'] ?? false;
+	$info				= $_GET['m'] ?? "";
 	if (isset($_GET['m'])) {
 		$id_bus			= ($_GET['u'] == "usb") ? " - USB" : " - SATA";
 	} else {
 		$_GET['u']		= null;
 	}
 	$file				= get_config($serial, "command.{$partition}");
-	$fstype				= (isset($_GET['f'])) ? $_GET['f'] : "";
+	$fstype				= $_GET['f'] ?? "";
 	$ud_device			= $serial;
 
 	/* Do some configuration file work */
@@ -129,8 +129,8 @@ if (isset($_GET['s'])) {
 	$device				= $_GET['d'];
 	$mount_point		= $_GET['l'];
 	$source				= $_GET['j'];
-	$info				= isset($_GET['m']) ? $_GET['m'] : "";
-	$mounted			= isset($_GET['n']) ? $_GET['n'] : false;
+	$info				= $_GET['m'] ?? "";
+	$mounted			= $_GET['n'] ?? false;
 	$mount				= (array) json_decode($info);
 	$file				= get_samba_config($device, "command");
 

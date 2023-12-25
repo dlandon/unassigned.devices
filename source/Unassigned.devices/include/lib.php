@@ -21,6 +21,7 @@ $paths = [	"smb_unassigned"	=> "/etc/samba/smb-unassigned.conf",
 			"dev_state"			=> $docroot."/state/devs.ini",
 			"shares_state"		=> $docroot."/state/shares.ini",
 			"disks_state"		=> $docroot."/state/disks.ini",
+			"disk_load"			=> $docroot."/state/diskload.ini",
 			"device_log"		=> "/tmp/".$plugin."/logs/",
 			"config_file"		=> "/tmp/".$plugin."/config/".$plugin.".cfg",
 			"samba_mount"		=> "/tmp/".$plugin."/config/samba_mount.cfg",
@@ -336,7 +337,7 @@ class MiscUD
 				}
 
 				/* Get the pool name for this device. */
-				$rc		= isset($result[$dev]) ? $result[$dev] : "";
+				$rc		= $result[$dev] ?? "";
 			} else {
 				$rc	= shell_exec("/usr/sbin/zpool import -d ".escapeshellarg($dev)." 2>/dev/null | grep 'pool:'") ?? "";
 				$rc	= trim(str_replace("pool:", "", $rc));
@@ -497,9 +498,9 @@ function get_device_stats($mountpoint, $mounted, $active = true) {
 
 	/* Get the stats from the json file.  If the command timed out, convert to empty string. */
 	$stats		= preg_split('/\s+/', str_replace("command timed out", "", $rc));
-	$stats[0]	= (isset($stats[0])) ? intval($stats[0]) : 0;
-	$stats[1]	= (isset($stats[1])) ? intval($stats[1]) : 0;
-	$stats[2]	= (isset($stats[2])) ? intval($stats[2]) : 0;
+	$stats[0]	= intval($stats[0] ?? 0);
+	$stats[1]	= intval($stats[1] ?? 0);
+	$stats[2]	= intval($stats[2] ?? 0);
 
 	return $stats;
 }
@@ -568,7 +569,7 @@ function get_disk_reads_writes($ud_dev, $dev) {
 	$dev	= (new MiscUD)->base_device(basename($dev));
 
 	/* Get the disk_io for this device. */
-	$disk_io	= (is_file('state/diskload.ini')) ? @parse_ini_file('state/diskload.ini') : array();
+	$disk_io	= (is_file($paths['disk_load'])) ? @parse_ini_file($paths['disk_load']) : array();
 	$data		= explode(' ', $disk_io[$dev] ?? '0 0 0 0');
 
 	/* Read rate. */
@@ -604,8 +605,8 @@ function is_disk_running($ud_dev) {
 
 	if (isset($device)) {
 		/* Update the spin status. */
-		$spin		= isset($run_status[$device]['spin']) ? $run_status[$device]['spin'] : "";
-		$spin_time	= isset($run_status[$device]['spin_time']) ? $run_status[$device]['spin_time'] : 0;
+		$spin		= $run_status[$device]['spin'] ?? "";
+		$spin_time	= $run_status[$device]['spin_time'] ?? 0;
 		$run_status[$device] = array('timestamp' => $timestamp, 'running' => $rc ? 'yes' : 'no', 'spin_time' => $spin_time, 'spin' => $spin);
 		(new MiscUD)->save_json($tc, $run_status);
 	}
@@ -706,9 +707,7 @@ function get_temp($ud_dev, $dev, $running) {
 	/* Get temperature from the devs.ini file. */
 	if (is_file($sf)) {
 		$devs = @parse_ini_file($sf, true);
-		if (isset($devs[$ud_dev])) {
-			$rc	= $devs[$ud_dev]['temp'];
-		}
+		$rc	= $devs[$ud_dev]['temp'] ?? "*";
 	}
 
 	return $rc;
@@ -1200,7 +1199,7 @@ function zvol_fs_type($dev) {
 function get_config($serial, $variable) {
 	$config_file	= $GLOBALS["paths"]["config_file"];
 	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
-	return (isset($config[$serial][$variable])) ? $config[$serial][$variable] : "";
+	return $config[$serial][$variable] ?? "";
 }
 
 /* Set device configuration parameter. */
@@ -1220,7 +1219,7 @@ function set_config($serial, $variable, $value) {
 		/* Release the file lock. */
 		release_file_lock($lock_file);
 
-		$rc	= (isset($config[$serial][$variable])) ? $config[$serial][$variable] : "";
+		$rc	= $config[$serial][$variable] ?? "";
 	} else {
 		$rc	= false;
 	}
@@ -1542,9 +1541,9 @@ function get_mount_params($fs, $dev, $ro = false) {
 	if (($fs != "cifs") && ($fs != "nfs") && ($fs != "root")) {
 		$config_file	= $paths['config_file'];
 		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
-		$discard 	= ((isset($config['Config']['discard'])) && ($config['Config']['discard'] == "yes") && is_disk_ssd($dev)) ? ",discard" : "";
+		$discard 		= ((isset($config['Config']['discard'])) && ($config['Config']['discard'] == "yes") && is_disk_ssd($dev)) ? ",discard" : "";
 	}
-	$rw				= $ro ? "ro" : "rw";
+	$rw					= $ro ? "ro" : "rw";
 	switch ($fs) {
 		case 'hfsplus':
 			$rc = "force,{$rw},users,umask=000";
@@ -2038,7 +2037,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 	/* Get the current UD configuration. */
 	$config_file	= $paths['config_file'];
 	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
-	$config			= (isset($config["Config"])) ? $config["Config"] : array();
+	$config			= $config["Config"] ?? array();
 
 	/* Add mountpoint to samba shares. */
 	if ($var['shareSMBEnabled'] != "no") {
@@ -2351,7 +2350,7 @@ function reload_shares() {
 function get_samba_config($source, $variable) {
 	$config_file	= $GLOBALS["paths"]["samba_mount"];
 	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
-	return (isset($config[$source][$variable])) ? $config[$source][$variable] : "";
+	return $config[$source][$variable] ?? "";
 }
 
 /* Set samba mount configuration parameter. */
@@ -2471,7 +2470,7 @@ function get_samba_mounts() {
 					$path = $mount['mountpoint'] ? $mount['mountpoint'] : $root_type.".".$mount['share'];
 				} else {
 					$mount['fstype'] = "cifs";
-					$path = (isset($mount['share'])) ? $mount['share'] : "";
+					$path = $mount['share'] ?? "";
 				}
 
 				/* This is the mount device for checking for an invalid configuration. */
@@ -2866,7 +2865,7 @@ function remove_config_samba($source) {
 function get_iso_config($source, $variable) {
 	$config_file	= $GLOBALS["paths"]["iso_mount"];
 	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
-	return (isset($config[$source][$variable])) ? $config[$source][$variable] : "";
+	return $config[$source][$variable] ?? "";
 }
 
 /* Set an iso file configuration parameter. */
@@ -3241,11 +3240,11 @@ function get_disk_info($dev) {
 	/* Get all the disk information for this disk device. */
 	$disk						= array();
 	$attrs						= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
-	$disk['serial_short']		= isset($attrs['ID_SCSI_SERIAL']) ? $attrs['ID_SCSI_SERIAL'] : (isset($attrs['ID_SERIAL_SHORT']) ? $attrs['ID_SERIAL_SHORT'] : "");
+	$disk['serial_short']		= $attrs['ID_SCSI_SERIAL'] ?? ($attrs['ID_SERIAL_SHORT'] ?? "");
 	$disk['device']				= realpath($dev);
 	$disk['serial']				= get_disk_id($disk['device'], trim($attrs['ID_SERIAL']));
-	$disk['id_bus']				= isset($attrs['ID_BUS']) ? $attrs['ID_BUS'] : "";
-	$disk['fstype']				= isset($attrs['ID_FS_TYPE']) ? $attrs['ID_FS_TYPE'] : "";
+	$disk['id_bus']				= $attrs['ID_BUS'] ?? "";
+	$disk['fstype']				= $attrs['ID_FS_TYPE'] ?? "";
 	$disk['ud_dev']				= get_disk_dev($disk['device']);
 	$disk['ud_device']			= (strtoupper(substr($disk['ud_dev'], 0, 3)) == "DEV");
 	$disk['unassigned_dev']		= get_config($disk['serial'], "unassigned_dev");
@@ -3281,14 +3280,14 @@ function get_partition_info($dev) {
 	$disk	= array();
 	$attrs	= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
 	if ($attrs['DEVTYPE'] == "partition") {
-		$disk['serial_short']	= (isset($attrs['ID_SCSI_SERIAL'])) ? $attrs['ID_SCSI_SERIAL'] : (isset($attrs['ID_SERIAL_SHORT']) ? $attrs['ID_SERIAL_SHORT'] : "");
+		$disk['serial_short']	= $attrs['ID_SCSI_SERIAL'] ?? ($attrs['ID_SERIAL_SHORT'] ?? "");
 		$disk['device']			= realpath($dev);
 		$disk['serial']			= isset($attrs['ID_SERIAL']) ? get_disk_id($disk['device'], trim($attrs['ID_SERIAL'])) : "";
-		$disk['uuid']			= (isset($attrs['ID_FS_UUID'])) ? $attrs['ID_FS_UUID'] : "";
+		$disk['uuid']			= $attrs['ID_FS_UUID'] ?? "";
 
 		/* Get partition number */
 		preg_match_all("#(.*?)(\d+$)#", $disk['device'], $matches);
-		$disk['part']			= (isset($matches[2][0])) ? $matches[2][0] : "";
+		$disk['part']			= $matches[2][0] ?? "";
 		$disk['disk']			= (isset($matches[1][0])) ? (new MiscUD)->base_device($matches[1][0]) : "";
 
 		/* Get the physical disk label or generate one based on the vendor id and model or serial number. */
@@ -3312,7 +3311,7 @@ function get_partition_info($dev) {
 		}
 
 		/* Get the file system type. */
-		$disk['fstype']			= isset($attrs['ID_FS_TYPE']) ? safe_name($attrs['ID_FS_TYPE']) : "";
+		$disk['fstype']			= safe_name($attrs['ID_FS_TYPE'] ?? "");
 		$disk['fstype']			= ($disk['fstype'] == "zfs_member") ? "zfs" : $disk['fstype'];
 
 		/* Check for udev and lsblk file system type matching. If not then udev is not reporting the correct file system. */
