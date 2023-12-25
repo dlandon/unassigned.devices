@@ -765,7 +765,7 @@ switch ($_POST['action']) {
 				/* Settings icon table element. */
 				$o_remotes			.= "<td>";
 				if (! $mount['invalid']) {
-					$o_remotes		.= "<a class='info' href='/Main/DeviceSettings?d=".$mount['device']."&l=".$mount['mountpoint']."&j=".$mount['name']."&m=".json_encode($mount)."'><i class='fa fa-gears'></i><span class='help-title'>$title</span></a>";
+					$o_remotes		.= "<a class='info' href='/Main/DeviceSettings?d=".$mount['device']."&l=".$mount['mountpoint']."&n=".($mounted || $is_mounting || $is_unmounting)."&j=".$mount['name']."&m=".json_encode($mount)."'><i class='fa fa-gears'></i><span class='help-title'>$title</span></a>";
 				} else {
 					$o_remotes		.= "<i class='fa fa-gears grey-orb'></i><span class='help-title'></span>";
 				}
@@ -863,7 +863,7 @@ switch ($_POST['action']) {
 				/* Device settings table element. */
 				$o_remotes			.= "<td>";
 				if (! $mount['invalid']) {
-					$o_remotes		.= "<a class='info' href='/Main/DeviceSettings?i=".$device."&l=".$mount['mountpoint']."&j=".$mount['file']."'><i class='fa fa-gears'></i><span class='help-title'>$title</span></a>";
+					$o_remotes		.= "<a class='info' href='/Main/DeviceSettings?i=".$device."&l=".$mount['mountpoint']."&n=".($mounted || $is_mounting || $is_unmounting)."&j=".$mount['file']."'><i class='fa fa-gears'></i><span class='help-title'>$title</span></a>";
 				} else {
 					$o_remotes		.= "<i class='fa fa-gears grey-orb'></i><span class='hslp-title'></span>";
 				}

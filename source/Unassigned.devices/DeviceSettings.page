@@ -61,8 +61,8 @@ if (isset($_GET['s'])) {
 	$device				= isset($_GET['b']) ? $_GET['b'] : $_GET['l'];
 	$partition			= $_GET['p'];
 	$mount_point		= $_GET['l'];
-	$mounted			= isset($_GET['n']) ? $_GET['n'] : "";
-	$info				= (isset($_GET['m'])) ? $_GET['m'] : "";
+	$mounted			= isset($_GET['n']) ? $_GET['n'] : false;
+	$info				= isset($_GET['m']) ? $_GET['m'] : "";
 	if (isset($_GET['m'])) {
 		$id_bus			= ($_GET['u'] == "usb") ? " - USB" : " - SATA";
 	} else {
@@ -129,7 +129,8 @@ if (isset($_GET['s'])) {
 	$device				= $_GET['d'];
 	$mount_point		= $_GET['l'];
 	$source				= $_GET['j'];
-	$info				= (isset($_GET['m'])) ? $_GET['m'] : "";
+	$info				= isset($_GET['m']) ? $_GET['m'] : "";
+	$mounted			= isset($_GET['n']) ? $_GET['n'] : false;
 	$mount				= (array) json_decode($info);
 	$file				= get_samba_config($device, "command");
 
@@ -151,8 +152,6 @@ if (isset($_GET['s'])) {
 	$share				= (is_samba_share($device)) ? "checked" : "";
 	$read_only			= (is_samba_read_only($device)) ? "checked" : "";
 	$mount_device		= basename($mount['ip'])."_".basename($mount['path']);
-	$is_mounting		= (new MiscUD)->get_mounting_status($mount_device);
-	$mounted			= is_mounted($mount_point) || $is_mounting;
 	$width				= "45%";
 	$automount_action	= "samba_automount";
 	$ud_device			= $device;
@@ -166,6 +165,7 @@ if (isset($_GET['s'])) {
 	/* ISO files. */
 	$device				= $_GET['i'];
 	$mount_point		= $_GET['l'];
+	$mounted			= $_GET['n'];
 	$source				= $_GET['j'];
 	$info				= "";
 	$file				= get_iso_config($device, "command");
@@ -176,7 +176,6 @@ if (isset($_GET['s'])) {
 	$background			= (get_iso_config($device, "command_bg") != "false" ) ? "yes" : "no";
 	$enable_script		= (get_iso_config($device, "enable_script") != "false" ) ? "yes" : "no";
 	$automount			= (is_iso_automount($device)) ? "checked" : "";
-	$mounted			= is_mounted($mount_point);
 	$witdh				= "20%";
 	$automount_action	= "iso_automount";
 	$ud_device			= $device;
@@ -203,7 +202,7 @@ if ((! file_exists($file)) || (! is_dir("/boot/config/plugins/user.scripts/scrip
 /* Show that the device is currently mounted. */
 $mount_point		= basename($mount_point);
 if (is_mounted($mount_point)) {
-	$mount_point	.= " <strong>(mounted)</strong>";
+	$mount_point	.= " (mounted)";
 }
 
 $text			= (file_exists($file)) ? @file_get_contents($file) : "";
@@ -281,9 +280,6 @@ EOT;
 <script src="<?autov('/webGui/javascript/jquery.filetree.js')?>"></script>
 <script src="<?autov('/plugins/'.$plugin.'/assets/arrive.min.js')?>"></script>
 
-<form markdown="1" name="switch_settings" method="POST" action="/update.php" target="progressFrame">
-<input type="hidden" name="#include" value="/webGui/include/update.file.php">
-
 <?if ($disk_setting):?>
 <p><strong>_(Disk Serial)_: </strong><?=$serial;?></p>
 <?else:?>
@@ -354,7 +350,6 @@ EOT;
 > Click **Abort** to abort the device script.
 :end
 <?endif;?>
-</form>
 
 <form markdown="1" name="device_settings" method="POST" action="/update.php" target="progressFrame">
 <input type="hidden" name="#include" value="/webGui/include/update.file.php">
