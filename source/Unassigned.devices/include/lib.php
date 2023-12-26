@@ -3327,16 +3327,16 @@ function get_partition_info($dev) {
 		if ($disk['fstype'] == "crypto_LUKS") {
 			$disk['luks']		= $disk['device'];
 			$disk['device']		= "/dev/mapper/".safe_name(basename($disk['mountpoint']));
-			$dev				= $disk['luks'];
+			$dev				= basename($disk['luks']);
 		} else {
 			$disk['luks']		= "";
-			$dev				= $disk['device'];
+			$dev				= basename($disk['device']);
 		}
 
 		/* Get the patition mounting, unmounting, and formatting status. */
-		$disk['is_mounting']	= (new MiscUD)->get_mounting_status(basename($dev));
-		$disk['is_unmounting']	= (new MiscUD)->get_unmounting_status(basename($dev));
-		$disk['is_formatting']	= (new MiscUD)->get_formatting_status(basename($dev));
+		$disk['is_mounting']	= (new MiscUD)->get_mounting_status($dev);
+		$disk['is_unmounting']	= (new MiscUD)->get_unmounting_status($dev);
+		$disk['is_formatting']	= (new MiscUD)->get_formatting_status($dev);
 
 		/* Set up all disk parameters and status. */
 		$disk['pass_through']	= is_pass_through($disk['serial']);
