@@ -11,7 +11,7 @@
  */
 
 /* Set the level for debugging. */
-$DEBUG_LEVEL	= isset($argv[4]) ? (int) $argv[4] : 0;
+$DEBUG_LEVEL	= (int) ($argv[4] ?? 0);
 
 /* Get the comand to execute. */
 $COMMAND	= $argv[1];
@@ -161,7 +161,7 @@ function is_server_online($server, $log = false) {
 		$is_alive		= (trim(shell_exec("/bin/ping -c 1 -W 1 ".escapeshellarg($server)." >/dev/null 2>&1; echo $?")) == 0 );
 
 		/* Get the number of pings we've checked since it went offline. */
-		$no_pings		= isset($ping_status[$server]['no_pings']) ? $ping_status[$server]['no_pings'] : 0;
+		$no_pings		= $ping_status[$server]['no_pings'] ?? 0;
 
 		/* If it's not online and the server is not an ip address lookup the server and ping it. */
 		if ((! $is_alive) && (! (new MiscUD)->is_ip($server)))
@@ -237,7 +237,7 @@ function df_status($tc, $mountpoint) {
 	$df_status	= (new MiscUD)->get_json($tc);
 
 	/* Get the current stats if previously set. */
-	$rc	= (isset($df_status[$mountpoint])) ? $df_status[$mountpoint]['stats'] : "";
+	$rc	= $df_status[$mountpoint]['stats'] ?? "";
 
 	/* Save new time so the status will not be requested again in case it takes a while for df to work. */
 	$df_status[$mountpoint] = array('timestamp' => time(), 'stats' => $rc);

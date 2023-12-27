@@ -15,8 +15,8 @@ $plugin = "unassigned.devices";
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 require_once("$docroot/plugins/".$plugin."/include/lib.php");
 
-$COMMAND = isset($argv[1]) ? $argv[1] : "";
-$DEVNAME = (isset($_ENV['DEVNAME'])) ? $_ENV['DEVNAME'] : ( isset($argv[2]) ? $argv[2] : "" );
+$COMMAND = $argv[1] ?? "";
+$DEVNAME = $_ENV['DEVNAME'] ?? ( $argv[2] ?? "" );
 $DEVNAME = ((isset($DEVNAME)) && (file_exists($DEVNAME))) ? realpath($DEVNAME) : $DEVNAME;
 $dev_pos = (isset($DEVNAME)) ? strpos($DEVNAME, 'name=') : false;
 if ($dev_pos !== false) {
@@ -35,7 +35,7 @@ if ($dev_pos !== false) {
 	$sf = $paths['dev_state'];
 	if (is_file($sf) && (isset($DEVNAME)) && (strpos(basename($DEVNAME), 'dev') !== false)) {
 		$devs = @parse_ini_file($sf, true);
-		$DEVNAME = isset($devs[$DEVNAME]) ? $devs[$DEVNAME]['device'] : $DEVNAME;
+		$DEVNAME = $devs[$DEVNAME]['device'] ?? $DEVNAME;
 	}
 } else {
 	$sf = $paths['dev_state'];
@@ -823,7 +823,7 @@ switch ($COMMAND) {
 		break;
 
 	case 'abort':
-		$script = (isset($argv[2])) ? $argv[2] : "";
+		$script = $argv[2] ?? "";
 		unassigned_abort($script);
 		break;
 

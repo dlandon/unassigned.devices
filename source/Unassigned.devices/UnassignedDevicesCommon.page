@@ -20,16 +20,16 @@ require_once "plugins/$plugin/include/lib.php";
 
 $config_file = $paths['config_file'];
 $cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
-$cfg['Config']['common_cmd']		= $cfg['Config']['common_cmd'] ?? '';
-$cfg['Config']['destructive_mode']	= $cfg['Config']['destructive_mode'] ?? '';
-$cfg['Config']['automount_usb']		= $cfg['Config']['automount_usb'] ?? '';
-$cfg['Config']['discard']			= $cfg['Config']['discard'] ?? '';
-$cfg['Config']['symlinks']			= $cfg['Config']['symlinks'] ?? '';
-$cfg['Config']['zvols']				= $cfg['Config']['zvols'] ?? '';
-$cfg['Config']['remote_share_wait']	= $cfg['Config']['remote_share_wait'] ?? '';
-$cfg['Config']['smb_version']		= $cfg['Config']['smb_version'] ?? '';
-$cfg['Config']['nfs_version']		= $cfg['Config']['nfs_version'] ?? '';
-$cfg['Config']['debug_level']		= $cfg['Config']['debug_level'] ?? '';
+$cfg['Config']['common_cmd']		= $cfg['Config']['common_cmd'] ?? "";
+$cfg['Config']['destructive_mode']	= $cfg['Config']['destructive_mode'] ?? "";
+$cfg['Config']['automount_usb']		= $cfg['Config']['automount_usb'] ?? "";
+$cfg['Config']['discard']			= $cfg['Config']['discard'] ?? "";
+$cfg['Config']['symlinks']			= $cfg['Config']['symlinks'] ?? "";
+$cfg['Config']['zvols']				= $cfg['Config']['zvols'] ?? "";
+$cfg['Config']['remote_share_wait']	= $cfg['Config']['remote_share_wait'] ?? "";
+$cfg['Config']['smb_version']		= $cfg['Config']['smb_version'] ?? "";
+$cfg['Config']['nfs_version']		= $cfg['Config']['nfs_version'] ?? "";
+$cfg['Config']['debug_level']		= $cfg['Config']['debug_level'] ?? "";
 
 /* See if conditions are set for destructive mode to be enabled. */
 $parted = file_exists("/usr/sbin/parted");

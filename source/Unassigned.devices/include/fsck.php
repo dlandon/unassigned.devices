@@ -38,10 +38,10 @@ function write_log($string) {
 if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 	$device		= $_GET['device'];
 	$fs			= $_GET['fs'];
-	$check_type	= isset($_GET['check_type']) ? $_GET['check_type'] : 'ro';
+	$check_type	= $_GET['check_type'] ?? 'ro';
 	$luks		= $_GET['luks'];
 	$serial		= $_GET['serial'];
-	$mountpoint	= isset($_GET['mountpoint']) ? $_GET['mountpoint'] : "";
+	$mountpoint	= $_GET['mountpoint'] ?? "";
 	$mounted	= is_mounted($mountpoint);
 	$rc_check	= 0;
 	$rc			= true;

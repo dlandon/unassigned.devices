@@ -20,7 +20,7 @@ require_once "plugins/$plugin/include/lib.php";
 
 $config_file = $paths['config_file'];
 $cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
-$cfg['Config']['change_uuid']		= $cfg['Config']['change_uuid'] ?? '';
+$cfg['Config']['change_uuid']		= $cfg['Config']['change_uuid'] ?? "";
 
 /* Get array of devices that can have UUID changed - unmounted, xfs devices. */
 $uuid_devices = array();

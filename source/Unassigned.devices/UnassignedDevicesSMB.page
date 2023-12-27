@@ -19,9 +19,9 @@ require_once "plugins/$plugin/include/lib.php";
 
 $config_file 	= $paths['config_file'];
 $cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
-$cfg['Config']['smb_security']		= $cfg['Config']['smb_security'] ?? '';
-$cfg['Config']['case_names']		= $cfg['Config']['case_names'] ?? '';
-$cfg['Config']['force_user']		= $cfg['Config']['force_user'] ?? '';
+$cfg['Config']['smb_security']		= $cfg['Config']['smb_security'] ?? "";
+$cfg['Config']['case_names']		= $cfg['Config']['case_names'] ?? "";
+$cfg['Config']['force_user']		= $cfg['Config']['force_user'] ?? "";
 ?>
 
 <table class="tablesorter shift ups">
@@ -58,13 +58,13 @@ _(SMB Sharing)_:
 		<dt><?=$user['name'];?></dt>
 		<dd>
 			<select name="smb_<?=$user['name'];?>" size="1">
-			<?=mk_option($cfg["Config"]["smb_{$user['name']}"] ?? '', "no-access", "_(No Access)_");?>
-			<?=mk_option($cfg["Config"]["smb_{$user['name']}"] ?? '', "read-write", "_(Read/Write)_");?>
-			<?=mk_option($cfg["Config"]["smb_{$user['name']}"] ?? '', "read-only", "_(Read-only)_");?>
+			<?=mk_option($cfg["Config"]["smb_{$user['name']}"] ?? "", "no-access", "_(No Access)_");?>
+			<?=mk_option($cfg["Config"]["smb_{$user['name']}"] ?? "", "read-write", "_(Read/Write)_");?>
+			<?=mk_option($cfg["Config"]["smb_{$user['name']}"] ?? "", "read-only", "_(Read-only)_");?>
 			</select>
 		</dd>
 	</dl>
-	<?php endforeach; ?>
+	<?php endforeach;?>
 </div>
 
 _(Case-sensitive names)_:

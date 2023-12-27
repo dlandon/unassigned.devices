@@ -21,7 +21,7 @@ require_once "plugins/$plugin/include/lib.php";
 
 $config_file = $paths['config_file'];
 $cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
-$cfg['Config']['zfs_upgrade']		= $cfg['Config']['zfs_upgrade'] ?? '';
+$cfg['Config']['zfs_upgrade']		= $cfg['Config']['zfs_upgrade'] ?? "";
 
 /* Get array of ZFS devices that can be upgraded. */
 $zfs_devices = array();
