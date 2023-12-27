@@ -2069,7 +2069,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 						}
 					} else {
 						/* For fat and exfat file systems. */
-						$fruit_file_settings = array( "vfs objects = catia fruit streams_xattr", "fruit:resource = file", "fruit:metadata = netatalk", "fruit:encoding = native" );
+						$fruit_file_settings = array( "vfs objects = catia fruit", "fruit:resource = file", "fruit:metadata = netatalk", "fruit:encoding = native" );
 					}
 					/* Apply the fruit settings. */
 					foreach ($fruit_file_settings as $f) {
