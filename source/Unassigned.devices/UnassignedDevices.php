@@ -103,7 +103,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$is_mounting	= $partition['is_mounting'];
 		$is_unmounting	= $partition['is_unmounting'];
 		$is_formatting	= $partition['is_formatting'];
-		$disabled		= $is_mounting || $is_unmounting || is_script_running($cmd) || ! $partition['fstype'] || $disk['array_disk'];
+		$disabled		= ($is_mounting || $is_unmounting || is_script_running($cmd) || ! $partition['fstype'] || $disk['array_disk']);
 
 		/* Set up icons for file system check/scrub and script execution. */
 		$fstype = ($partition['fstype'] == "crypto_LUKS") ? part_fs_type($partition['device']) : $partition['fstype'];
@@ -343,6 +343,7 @@ function make_mount_button($device) {
 
 		/* A pool disk can be part of a disk pool or a disk with a file system and no partition. */
 		$pool_disk		= $device['partitions'][0]['pool'] ?? ($device['fstype']);
+		$no_partition	= ($pool_disk && $format);
 
 		/* Find conditions to disable the 'Mount' button. */
 		$disable_mount	= $device['partitions'][0]['disable_mount'] ?? false;
@@ -367,6 +368,7 @@ function make_mount_button($device) {
 		$format			= ((empty($device['fstype'])) && (! $pass_through));
 		$context		= "partition";
 		$pool_disk		= false;
+		$no_partition	= false;
 
 		/* Is the disk not unmounted properly? */
 		$not_unmounted	= $device['not_unmounted'] ?? false;
@@ -385,22 +387,24 @@ function make_mount_button($device) {
 	$preclearing	= $preclearing || $is_preclearing;
 
 	$disable		= ( ($pass_through) || ($disable_mount) || ($preclearing) || ($not_unmounted) || ($not_udev) ) ? "disabled" : $disable;
-	$class			= ( ($pass_through) || ($disable_mount) || ($not_unmounted) || ($not_udev) ) ? "fa fa-ban" : "";
+	$class			= ( ($pass_through) || ($disable_mount) || ($not_unmounted) || ($not_udev) || ($no_partition)) ? "fa fa-ban" : "";
 
-	if ($pool_disk) {
-		$button = sprintf($button, $context, 'mount', 'disabled', '', _('Pool'));
+	if ($no_partition) {
+		$button = sprintf($button, $context, 'mount', 'disabled', $class, _('Partition'));
+	} else if ($pool_disk) {
+		$button = sprintf($button, $context, 'mount', 'disabled', "", _('Pool'));
 	} else if (($device['size'] == 0) && (! $zvol_device)) {
-		$button = sprintf($button, $context, 'mount', 'disabled', '', _('Mount'));
+		$button = sprintf($button, $context, 'mount', 'disabled', "", _('Mount'));
 	} else if ($device['array_disk']) {
 		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-ban', _('Array'));
 	} else if ($not_udev) {
 		$button = sprintf($button, $context, 'umount', $disable, $class, _('Udev'));
 	} else if (($format) || ($preclearing)) {
 		if ($preclearing) {
-			$button = sprintf($button, $context, 'mount', 'disabled', '', " "._('Preclear'));
+			$button = sprintf($button, $context, 'mount', 'disabled', "", " "._('Preclear'));
 		} else {
 			$disable = $preclearing ? "disabled" : "";
-			$button = sprintf($button, $context, 'format', $disable, '', _('Format'));
+			$button = sprintf($button, $context, 'format', $disable, "", _('Format'));
 		}
 	} else if ($is_mounting) {
 		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-spinner fa-spin', ' '._('Mounting'));
@@ -432,7 +436,7 @@ function make_mount_button($device) {
 		}
 	} else {
 		if ($pass_through) {
-			$button = sprintf($button, $context, 'mount', $disable, '', _('Passed'));	
+			$button = sprintf($button, $context, 'mount', $disable, "", _('Passed'));	
 		} else {
 			$button = sprintf($button, $context, 'mount', $disable, $class, _('Mount'));
 		}
@@ -520,7 +524,7 @@ switch ($_POST['action']) {
 
 				$partition['device']	= $partition['device'] ?? "";
 				$partition['serial']	= $partition['serial'] ?? "";
-				$clear_disk				= ((get_config("Config", "destructive_mode") == "enabled") && ($parted) && (! $mounted) && (! $disk['is_mounting']) && (! $disk['is_unmounting']) && (! $disk['is_formatting']) && (! $disk['pass_through']) && (! $disk['array_disk']) && (! $preclearing) && (($p) && (! $disk['partitions'][0]['pool']) && (! $disk['partitions'][0]['disable_mount'])) ) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove clear-hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
+				$clear_disk				= ((get_config("Config", "destructive_mode") == "enabled") && ($parted) && (! $mounted) && (! $disk['is_mounting']) && (! $disk['is_unmounting']) && (! $disk['is_formatting']) && (! $disk['pass_through']) && (! $disk['array_disk']) && (! $preclearing) && (((! $p) && ($disk['fstype'])) || (($p) && (! $disk['partitions'][0]['pool']) && (! $disk['partitions'][0]['disable_mount']))) ) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove clear-hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
 
 				$disk_icon = $disk['ssd'] ? "icon-nvme" : "fa fa-hdd-o";
 				/* Disk log. */
@@ -605,22 +609,22 @@ switch ($_POST['action']) {
 				}
 
 				/* Reads. */
-				$o_disks		.= ($p)?$p[4] : "<td>".$reads."</td>";
+				$o_disks		.= ($p) ? $p[4] : "<td>".$reads."</td>";
 
 				/* Writes. */
-				$o_disks		.= ($p)?$p[5] : "<td>".$writes."</td>";
+				$o_disks		.= ($p) ? $p[5] : "<td>".$writes."</td>";
 
 				/* Settings. */
-				$o_disks		.= ($p)?$p[6] : "<td></td>";
+				$o_disks		.= ($p) ? $p[6] : "<td></td>";
 
 				/* File system. */
-				$o_disks		.= ($p)?$p[7] : "<td></td>";
+				$o_disks		.= ($p) ? $p[7] : "<td>".$disk['fstype']."</td>";
 
 				/* Disk size. */
 				$o_disks		.= "<td>".my_scale($disk['size'], $unit)." {$unit}</td>";
 
 				/* Disk used and free space. */
-				$o_disks		.= ($p)?$p[8] : "<td></td><td></td>";
+				$o_disks		.= ($p) ? $p[8] : "<td></td><td></td>";
 
 				$o_disks		.= "</tr>";
 
