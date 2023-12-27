@@ -1062,6 +1062,7 @@ function remove_all_partitions($dev) {
 	$disks	= get_all_disks_info();
 	foreach ($disks as $d) {
 		if ($d['device'] == $dev) {
+			$serial	= $d['serial'];
 			foreach ($d['partitions'] as $p) {
 				if ($p['target']) {
 					unassigned_log("Aborting clear: partition '".$p['part']."' is mounted.");
@@ -1125,6 +1126,9 @@ function remove_all_partitions($dev) {
 
 		/* Refresh partition information. */
 		exec("/usr/sbin/partprobe ".escapeshellarg($dev));
+
+		/* Remove this device from udev status. */
+		get_udev_info($serial, null, true);
 
 		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
 		sleep(1);
@@ -3161,7 +3165,7 @@ function get_all_disks_info() {
 }
 
 /* Get the udev disk information. */
-function get_udev_info($dev, $udev = null) {
+function get_udev_info($dev, $udev = null, $delete = false) {
 	global $paths;
 
 	$rc		= array();
@@ -3173,7 +3177,7 @@ function get_udev_info($dev, $udev = null) {
 	$device	= safe_name($dev);
 
 	/* If the udev is not null, save it to the unassigned.devices.ini file. */
-	if ($udev) {
+	if (isset($udev)) {
 		unassigned_log("Udev: Update udev info for ".$dev.".", $GLOBALS['UDEV_DEBUG']);
 
  		/* Save this entry unless the ACTION is remove. */
@@ -3202,14 +3206,22 @@ function get_udev_info($dev, $udev = null) {
 		release_file_lock($lock_file);
 
 		$rc	= $udev;
-	} else if (array_key_exists($device, $state)) {
+	} else if ((array_key_exists($device, $state)) && (! $delete)) {
 		$rc	= $state[$device];
 	} else {
 		unassigned_log("Udev: Refresh udev info for ".$dev.".", $GLOBALS['UDEV_DEBUG']);
 
 		$dev_state = @parse_ini_string(timed_exec(5, "/sbin/udevadm info --query=property --path $(/sbin/udevadm info -q path -n ".escapeshellarg($device)." 2>/dev/null) 2>/dev/null"), INI_SCANNER_RAW);
 		if (is_array($dev_state)) {
-			$state[$device] = $dev_state;
+			if (! $delete) {
+				$state[$device] = $dev_state;
+			} else {
+				foreach ($state as $key => $value) {
+					if (strpos($key, $serial) !== false) {
+						unset($state[$key]);
+					}
+				}
+			}
 
 			/* Get a lock so file changes can be made. */
 			$lock_file	= get_file_lock("udev");
@@ -3392,9 +3404,9 @@ function get_partition_info($dev) {
 		$disk['enable_script']	= $disk['command'] ? get_config($disk['serial'], "enable_script.{$disk['part']}") : "false";
 		$disk['prog_name']		= basename($disk['command'], ".sh");
 		$disk['logfile']		= ($disk['prog_name']) ? $paths['device_log'].$disk['prog_name'].".log" : "";
-
-		return $disk;
 	}
+
+	return $disk;
 }
 
 /* Get zfs volume info if the partition has any zvols. */
