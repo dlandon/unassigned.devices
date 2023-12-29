@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.12.15">
+<!ENTITY version	"2023.12.29">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"5f121365f4728ab72c75a2d0b633d941">
+<!ENTITY MD5		"e595871fd6dc1c398c66b851a6b06d4d">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,15 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Adjusments to remove some unneeded white space in GUI.
+- Fix: Minor GUI changes.
+- Fix: Change Root Share 'User Shares' default to be all shares including Pools.
+- Fix: Rework Device Settings script file buttons to be more intuitive.
+- Add: Checks to insure that the search for servers function only scans server ports on the LAN.
+- Add: Show 'Partition' with not sign on mount button for disks with a file system and no partition and allow clearing the disk on the GUI.
+- Add: Change udev rules to pick up all disk 'change events'; some disk operations were not being picked up by udev.
+
+###2023.12.15
 - Fix: Style changes for GUI compatibility with 6.13.
 - Fix: Put styles into .css files.
 - Fix: Rework remote shares and ISO files table.
