@@ -623,7 +623,7 @@ function unassigned_umount() {
 	}
 }
 
-/* Update udev disk info. */
+/* Update udev disk info on a disk or partition change. */
 function unassigned_reload() {
 	global $paths;
 

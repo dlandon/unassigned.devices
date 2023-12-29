@@ -1054,7 +1054,6 @@ function remove_partition($dev, $part) {
 
 /* Remove all disk partitions. */
 function remove_all_partitions($dev) {
-	global $paths;
 
 	$rc = true;
 
@@ -1122,17 +1121,10 @@ function remove_all_partitions($dev) {
 		/* Let things settle a bit. */
 		sleep(2);
 
-		unassigned_log("Debug: Remove all Disk partitions initiated a Hotplug event.", $GLOBALS['UDEV_DEBUG']);
+		unassigned_log("Debug: Remove all Disk partitions.", $GLOBALS['UDEV_DEBUG']);
 
 		/* Refresh partition information. */
 		exec("/usr/sbin/partprobe ".escapeshellarg($dev));
-
-		/* Remove this device from udev status. */
-		get_udev_info($serial, null, true);
-
-		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
-		sleep(1);
-		@file_put_contents($paths['hotplug_event'], "");
 	}
 
 	return $rc;
@@ -3165,7 +3157,7 @@ function get_all_disks_info() {
 }
 
 /* Get the udev disk information. */
-function get_udev_info($dev, $udev = null, $delete = false) {
+function get_udev_info($dev, $udev = null) {
 	global $paths;
 
 	$rc		= array();
@@ -3209,19 +3201,11 @@ function get_udev_info($dev, $udev = null, $delete = false) {
 	} else if ((array_key_exists($device, $state)) && (! $delete)) {
 		$rc	= $state[$device];
 	} else {
-		unassigned_log("Udev: Refresh udev info for ".$dev.".", $GLOBALS['UDEV_DEBUG']);
-
 		$dev_state = @parse_ini_string(timed_exec(5, "/sbin/udevadm info --query=property --path $(/sbin/udevadm info -q path -n ".escapeshellarg($device)." 2>/dev/null) 2>/dev/null"), INI_SCANNER_RAW);
 		if (is_array($dev_state)) {
-			if (! $delete) {
-				$state[$device] = $dev_state;
-			} else {
-				foreach ($state as $key => $value) {
-					if (strpos($key, $serial) !== false) {
-						unset($state[$key]);
-					}
-				}
-			}
+			unassigned_log("Udev: Refresh udev info for ".$dev.".", $GLOBALS['UDEV_DEBUG']);
+
+			$state[$device] = $dev_state;
 
 			/* Get a lock so file changes can be made. */
 			$lock_file	= get_file_lock("udev");
