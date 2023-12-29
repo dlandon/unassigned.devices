@@ -3198,7 +3198,7 @@ function get_udev_info($dev, $udev = null) {
 		release_file_lock($lock_file);
 
 		$rc	= $udev;
-	} else if ((array_key_exists($device, $state)) && (! $delete)) {
+	} else if (array_key_exists($device, $state)) {
 		$rc	= $state[$device];
 	} else {
 		$dev_state = @parse_ini_string(timed_exec(5, "/sbin/udevadm info --query=property --path $(/sbin/udevadm info -q path -n ".escapeshellarg($device)." 2>/dev/null) 2>/dev/null"), INI_SCANNER_RAW);
