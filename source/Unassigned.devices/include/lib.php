@@ -308,7 +308,7 @@ class MiscUD
 	}
 
 	/* Get the zpool name if this is a zfs disk file system. */
-	public function zfs_pool_name($dev, $mounted = false) {
+	public function zfs_pool_name($dev, $mount_point = "") {
 		/* Load zfs modules if they're not loaded. */
 		if (! is_file("/usr/sbin/zpool")) {
 			exec("/sbin/modprobe zfs");
@@ -316,7 +316,15 @@ class MiscUD
 
 		/* Only check for pool name if zfs is running. */
 		if (is_file("/usr/sbin/zpool")) {
-			if ($mounted) {
+			if ($dev) {
+				$rc	= shell_exec("/usr/sbin/zpool import -d ".escapeshellarg($dev)." 2>/dev/null | grep 'pool:'") ?? "";
+				$rc	= trim(str_replace("pool:", "", $rc));
+			} else {
+				$rc	= "";
+			}
+
+			/* The disk must be mouned if we cannot import the zpool. */
+			if ((! $rc) && ($mount_point)) {
 				$mount				= timed_exec(2, "/usr/bin/cat /proc/mounts | /bin/awk '{print $2 \",\" $1}'");
 				$escapeSequences	= array("\\040");
 				$replacementChars	= array(" ");
@@ -337,10 +345,7 @@ class MiscUD
 				}
 
 				/* Get the pool name for this device. */
-				$rc		= $result[$dev] ?? "";
-			} else {
-				$rc	= shell_exec("/usr/sbin/zpool import -d ".escapeshellarg($dev)." 2>/dev/null | grep 'pool:'") ?? "";
-				$rc	= trim(str_replace("pool:", "", $rc));
+				$rc		= $result[$mount_point] ?? "";
 			}
 		} else {
 			$rc	= "";
@@ -1614,7 +1619,7 @@ function do_mount($info) {
 	/* Mount a luks encrypted disk device. */
 	} else if ($info['fstype'] == "crypto_LUKS") {
 		$fstype		= part_fs_type($info['device']);
-		$pool_name	= (new MiscUD)->zfs_pool_name($info['mountpoint'], true);
+		$pool_name	= $info['pool_name'];
 		$mounted	= (($fstype == "zfs") && ($pool_name)) ? (is_mounted($pool_name) || is_mounted($info['mountpoint'])) : (is_mounted($info['device']) || is_mounted($info['mountpoint']));
 		if (! $mounted) {
 			$luks		= basename($info['device']);
@@ -1668,7 +1673,7 @@ function do_mount_local($info) {
 	$ro				= $info['read_only'];
 	$file_system	= "";
 
-	$pool_name	= ($info['fstype'] == "zfs") ? (new MiscUD)->zfs_pool_name($dir, true) : "";
+	$pool_name	= $info['pool_name'];
 	$mounted	= (($info['fstype'] == "zfs") && ($pool_name))? (is_mounted($pool_name) || is_mounted($dir)) : (is_mounted($dev) || is_mounted($dir));
 	if (! $mounted) {
 		if ($fs) {
@@ -1684,7 +1689,6 @@ function do_mount_local($info) {
 					$cmd		= "/usr/bin/apfs-fuse -o uid=99,gid=100,allow_other{$vol}{$recovery} ".escapeshellarg($dev)." ".escapeshellarg($dir);
 				} else if ($fs == "zfs") {
 					/* Mount a zfs pool device. */
-					$pool_name	= (new MiscUD)->zfs_pool_name($dev);
 					if ($pool_name) {
 						exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
 						exec("/usr/sbin/zpool import -N ".escapeshellarg($pool_name)." 2>/dev/null");
@@ -1719,6 +1723,7 @@ function do_mount_local($info) {
 					}
 				} else {
 					/* Mount a zfs pool device. */
+					/* After the luks device is opened, we can get the pool name. */
 					$pool_name	= (new MiscUD)->zfs_pool_name($dev);
 					if ($pool_name) {
 						exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
@@ -1926,7 +1931,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 	global $paths;
 
 	$rc = false;
-	$pool_name	= ($zfs) ? (new MiscUD)->zfs_pool_name($dir, true) : "";
+	$pool_name	= ($zfs) ? (new MiscUD)->zfs_pool_name("", $dir) : "";
 	$mounted	= (($zfs) && ($pool_name)) ? (is_mounted($pool_name) || is_mounted($dir)) : (is_mounted($dev) || is_mounted($dir));
 	$timeout	= ($smb || $nfs) ? ($force ? 30 : 10) : 90;
 	if ($mounted) {
@@ -3272,7 +3277,6 @@ function get_disk_info($dev) {
 /* Get partition information. */
 function get_partition_info($dev) {
 	global $paths;
-
 	$disk	= array();
 	$attrs	= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
 	if ($attrs['DEVTYPE'] == "partition") {
@@ -3320,40 +3324,30 @@ function get_partition_info($dev) {
 		}
 
 		/* crypto_LUKS file system. */
+		/* The device is /dev/mapper/... for all luks devices. */
 		if ($disk['fstype'] == "crypto_LUKS") {
 			$disk['luks']		= $disk['device'];
 			$disk['device']		= "/dev/mapper/".safe_name(basename($disk['mountpoint']));
-			$dev				= basename($disk['luks']);
+			$dev				= $disk['luks'];
 		} else {
 			$disk['luks']		= "";
-			$dev				= basename($disk['device']);
+			$dev				= $disk['device'];
 		}
 
 		/* Get the patition mounting, unmounting, and formatting status. */
-		$disk['is_mounting']	= (new MiscUD)->get_mounting_status($dev);
-		$disk['is_unmounting']	= (new MiscUD)->get_unmounting_status($dev);
-		$disk['is_formatting']	= (new MiscUD)->get_formatting_status($dev);
+		$disk['is_mounting']	= (new MiscUD)->get_mounting_status(basename($dev));
+		$disk['is_unmounting']	= (new MiscUD)->get_unmounting_status(basename($dev));
+		$disk['is_formatting']	= (new MiscUD)->get_formatting_status(basename($dev));
 
 		/* Set up all disk parameters and status. */
 		$disk['pass_through']	= is_pass_through($disk['serial']);
 
 		/* Is the disk mount point mounted? */
-		/* If the partition doesn't have a file system, it can't possibly be mounted. */
+		/* If the partition doesn't have a file system, it can't possibly be mounted by UD. */
 		$disk['mounted']		= ((! $disk['pass_through']) && ($disk['fstype'])) ? is_mounted($disk['mountpoint']) : false;
 
 		/* is the partition mounted read only. */
 		$disk['part_read_only']	= ($disk['mounted']) ? is_mounted_read_only($disk['mountpoint']) : false;
-
-		/* See if this is a zfs file system. */
-		$zfs					= (part_fs_type($disk['device'], ($disk['fstype'] == "crypto_LUKS")) == "zfs");
-
-		/* The device is /dev/mapper/... for all luks devices, but base name of the mount point is zfs zpool. */
-		$pool_name				= ($zfs) ? (new MiscUD)->zfs_pool_name($disk['mountpoint'], true) : "";
-		$dev_mounted			= is_mounted($disk['device']) || (($disk['fstype'] == "crypto_LUKS") && is_mounted(basename($disk['device']))) || (($zfs) && ($pool_name) && is_mounted($pool_name));
-
-		/* Not unmounted is a check that the disk is mounted by mount point but not by device. */
-		/* The idea is to catch the situation where a disk is removed before being unmounted. */
-		$disk['not_unmounted']	= (($disk['mounted']) && (! $dev_mounted));
 
 		/* Is this a btrfs pooled disk. */
 		if ($disk['mounted'] && $disk['fstype'] == "btrfs") {
@@ -3367,6 +3361,28 @@ function get_partition_info($dev) {
 			$disk['pool']		= in_array($disk['device'], $pool_devs);
 		} else {
 			$disk['pool']		= false;
+		}
+
+		/* See if this is a zfs file system. */
+		$zfs					= (part_fs_type($disk['device'], ($disk['fstype'] == "crypto_LUKS")) == "zfs");
+
+		/* Get the pool name for a zfs device whether or not it is mounted. */
+		$disk['pool_name']		= $zfs ? (new MiscUD)->zfs_pool_name($dev, $disk['mountpoint']) : "";
+
+		/* If the disk mount point is mounted, we need to verify it is also mounted by device. */
+		/* If it is not, then the disk was probably removed before being properly unmounted. */
+		/* Or the user has several disks with the same mount point. */
+		/* If the disk is part of a btrfs pool, ignore the not unmounted check. */
+		if (($disk['mounted']) && (! $disk['pool'])) {
+			/* Not unmounted is a check that the disk is mounted by mount point but not by device. */
+			/* The idea is to catch the situation where a disk is removed before being unmounted. */
+			if ($zfs) {
+				$disk['not_unmounted']	= $disk['pool_name'] ? (! is_mounted($disk['pool_name'])) : false;
+			} else {
+				$disk['not_unmounted']	= (! is_mounted($disk['device']));
+			}
+		} else {
+			$disk['not_unmounted']		= false;
 		}
 
 		$disk['disable_mount']	= is_disable_mount($disk['serial']);
@@ -3400,10 +3416,11 @@ function get_zvol_info($disk) {
 	$zvol		= array();
 	if ((get_config("Config", "zvols") == "yes") && ($disk['fstype'] == "zfs") && ($disk['mounted'])) {
 		$serial		= $disk['serial'];
-		$zpool_name	= (new MiscUD)->zfs_pool_name($disk['mountpoint'], true);
+		$zpool_name	= (new MiscUD)->zfs_pool_name("", $disk['mountpoint']);
 		foreach (glob("/dev/zvol/".$zpool_name."/*") as $n => $q) {
 			$vol							= basename($q);
 			$volume							= $zpool_name.".".basename($q);
+			$zvol[$vol]['pool_name']		= $zpool_name;
 			$zvol[$vol]['volume']			= $volume;
 			$zvol[$vol]['device']			= realpath($q);
 			if (strpos($q, "-part") !== false) {

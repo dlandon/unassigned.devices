@@ -227,13 +227,13 @@ function render_partition($disk, $partition, $disk_line = false) {
 		if ($disk_line) {
 			foreach ($disk['partitions'] as $part) {
 				if ($part['mounted']) {
-					$mounted_disk = $mounted_disk || true;
+					$mounted_disk = true;
 				}
 				if ($part['is_mounting']) {
-					$mounting_disk = $mounting_disk || true;
+					$mounting_disk = true;
 				}
 				if ($part['is_unmounting']) {
-					$unmounting_disk = $unmounting_disk || true;
+					$unmounting_disk = true;
 				}
 			}
 		} else {
@@ -252,10 +252,10 @@ function render_partition($disk, $partition, $disk_line = false) {
 		/* Show disk and partition usage. */
 		$out[] = "<td>".($fstype == "crypto_LUKS" ? part_fs_type($partition['device']) : $fstype)."</td>";
 		if ($disk_line) {
-			$out[] = render_used_and_free_disk($disk, $mounted_disk);
+			$out[]			= (! $not_unmounted) ? render_used_and_free_disk($disk, $mounted_disk) : "<td></td>";
 		} else {
-			$out[] = "<td>".my_scale($partition['size'], $unit)." $unit</td>";
-			$out[] = render_used_and_free($partition);
+			$out[]			= "<td>".my_scale($partition['size'], $unit)." $unit</td>";
+			$out[]			= (! $not_unmounted) ? render_used_and_free($partition) : "<td></td>";
 		}
 
 		/* Show any zvol devices. */
@@ -349,7 +349,7 @@ function make_mount_button($device) {
 		$disable_mount	= $device['partitions'][0]['disable_mount'] ?? false;
 
 		/* Is the disk not unmounted properly? */
-		$not_unmounted	= $device['partitions'][0]['not_unmounted'] ?? false;
+		$not_unmounted	= in_array(true, array_map(function($ar){return $ar['not_unmounted'];}, $device['partitions']), true);
 
 		/* Is the disk file system not matching udev file system? */
 		$not_udev		= $device['partitions'][0]['not_udev'] ?? false;
@@ -399,6 +399,8 @@ function make_mount_button($device) {
 		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-ban', _('Array'));
 	} else if ($not_udev) {
 		$button = sprintf($button, $context, 'umount', $disable, $class, _('Udev'));
+	} else if ($not_unmounted) {
+		$button = sprintf($button, $context, 'umount', $disable, $class, _('Reboot'));
 	} else if (($format) || ($preclearing)) {
 		if ($preclearing) {
 			$button = sprintf($button, $context, 'mount', 'disabled', "", " "._('Preclear'));
@@ -429,8 +431,6 @@ function make_mount_button($device) {
 		}
 		if ($script_running) {
 			$button = sprintf($button, $context, 'running', 'disabled', 'fa fa-spinner fa-spin', ' '._('Running'));
-		} else if ($not_unmounted) {
-			$button = sprintf($button, $context, 'umount', $disable, $class, _('Reboot'));
 		} else {
 			$button = sprintf($button, $context, 'umount', $disable, $class, _('Unmount'));
 		}
@@ -498,6 +498,9 @@ switch ($_POST['action']) {
 				/* See if any partitions are mounted. */
 				$mounted				= in_array(true, array_map(function($ar){return is_mounted($ar['mountpoint']);}, $disk['partitions']), true);
 
+				/* Was the disk unmounted properly? */
+				$not_unmounted			= in_array(true, array_map(function($ar){return $ar['not_unmounted'];}, $disk['partitions']), true);
+
 				/* See if any partitions have a file system. */
 				$file_system			= in_array(true, array_map(function($ar){return ! empty($ar['fstype']);}, $disk['partitions']), true);
 
@@ -509,8 +512,8 @@ switch ($_POST['action']) {
 				$temp					= my_temp($disk['temperature']);
 
 				/* Get the mounting, unmounting, and formatting state. */
-				$disk['is_mounting']	= (new MiscUD)->get_mounting_status(basename($disk['device']));
-				$disk['is_unmounting']	= (new MiscUD)->get_unmounting_status(basename($disk['device']));
+				$disk['is_mounting']	= (in_array(true, array_map(function($ar){return $ar['is_mounting'];}, $disk['partitions']), true) || in_array(true, array_map(function($zvol){return $zvol['is_mounting'];}, $disk['zvol']), true));
+				$disk['is_unmounting']	= (in_array(true, array_map(function($ar){return $ar['is_unmounting'];}, $disk['partitions']), true) || in_array(true, array_map(function($zvol){return $zvol['is_unmounting'];}, $disk['zvol']), true));
 				$disk['is_formatting']	= (new MiscUD)->get_formatting_status(basename($disk['device']));
 
 				/* Create the mount button. */
@@ -624,7 +627,7 @@ switch ($_POST['action']) {
 				$o_disks		.= "<td>".my_scale($disk['size'], $unit)." {$unit}</td>";
 
 				/* Disk used and free space. */
-				$o_disks		.= ($p) ? $p[8] : "<td></td><td></td>";
+				$o_disks		.= (($p) && (! $not_unmounted)) ? $p[8] : "<td></td><td></td>";
 
 				$o_disks		.= "</tr>";
 

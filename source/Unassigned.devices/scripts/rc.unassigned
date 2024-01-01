@@ -133,7 +133,6 @@ function unassigned_mount() {
 
 					/* Create mounting status file. */
 					addFile(sprintf($paths['mounting'], basename($device)));
-
 					unassigned_log("Mounting partition '".basename($device)."' at mountpoint '{$info['mountpoint']}'...");
 
 					/* Cannot mount disk with 'UNRAID' label. */
@@ -410,7 +409,7 @@ function unassigned_umount() {
 				} else {
 					/* If the device is mounted, unmount it. */
 					$file_system	= part_fs_type($info['device'], ($info['fstype'] == "crypto_LUKS"));
-					$pool_name		= ($file_system == "zfs") ? (new MiscUD)->zfs_pool_name($info['mountpoint'], true) : "";
+					$pool_name		= $info['pool_name'];
 					$mounted		= (($file_system == "zfs") && ($pool_name)) ? (is_mounted($pool_name) || is_mounted($info['mountpoint'])) : (is_mounted($info['device']) || is_mounted($info['mountpoint']));
 					if ($mounted) {
 						/* If forced shutdown, abort device script. */
@@ -768,6 +767,7 @@ function addFile($file) {
 	global $remove;
 
 	$file = safe_name($file);
+unassigned_log("*** add file ".$file);
 	@touch($file);
 	$remove[] = $file;
 }
