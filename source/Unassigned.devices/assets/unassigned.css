@@ -74,6 +74,7 @@ button.mount {
 	user-select: none;
 	padding: 2px 4px 3px 6px;
 	margin: 1px 0px 1px 0px;
+	opacity:1.0
 }
 
 /* Icons. */
