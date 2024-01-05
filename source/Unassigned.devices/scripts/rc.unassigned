@@ -423,7 +423,7 @@ function unassigned_umount() {
 						/* Create the mounting status file for this device. */
 						$device	= ($info['fstype'] != "crypto_LUKS") ? $info['device'] : $info['luks'];
 
-						/* Create mounting status file. */
+						/* Create unmounting status file. */
 						addFile(sprintf($paths['unmounting'], basename($device)));
 
 						unassigned_log("Unmounting partition '".$info['device']."' at mountpoint '{$info['mountpoint']}'...");
@@ -767,7 +767,6 @@ function addFile($file) {
 	global $remove;
 
 	$file = safe_name($file);
-unassigned_log("*** add file ".$file);
 	@touch($file);
 	$remove[] = $file;
 }
