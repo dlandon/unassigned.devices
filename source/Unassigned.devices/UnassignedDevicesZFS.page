@@ -44,7 +44,7 @@ foreach (get_all_disks_info() as $d) {
 		/* Collect all the candidates for a zfs upgrade. */
 		if (($file_system == "zfs") && ($d['partitions'][0]['mounted'])) {
 			/* See if the device needs an upgrade. */
-			$pool_name	= (new MiscUD)->zfs_pool_name($d['partitions'][0]['mountpoint'], true);
+			$pool_name	= (new MiscUD)->zfs_pool_name("", $d['partitions'][0]['mountpoint']);
 			if (($pool_name) && (! is_upgraded_ZFS_pool($pool_name))) {
 				$a = array();
 				$a['device']		= $d['device'];

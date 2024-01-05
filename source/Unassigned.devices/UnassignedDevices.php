@@ -512,8 +512,8 @@ switch ($_POST['action']) {
 				$temp					= my_temp($disk['temperature']);
 
 				/* Get the mounting, unmounting, and formatting state. */
-				$disk['is_mounting']	= (in_array(true, array_map(function($ar){return $ar['is_mounting'];}, $disk['partitions']), true) || in_array(true, array_map(function($zvol){return $zvol['is_mounting'];}, $disk['zvol']), true));
-				$disk['is_unmounting']	= (in_array(true, array_map(function($ar){return $ar['is_unmounting'];}, $disk['partitions']), true) || in_array(true, array_map(function($zvol){return $zvol['is_unmounting'];}, $disk['zvol']), true));
+				$disk['is_mounting']	= (in_array(true, array_map(function($partitions){return $partitions['is_mounting'];}, $disk['partitions']), true) || in_array(true, array_map(function($zvol){return $zvol['is_mounting'];}, $disk['zvol']), true));
+				$disk['is_unmounting']	= (in_array(true, array_map(function($partitions){return $partitions['is_unmounting'];}, $disk['partitions']), true) || in_array(true, array_map(function($zvol){return $zvol['is_unmounting'];}, $disk['zvol']), true));
 				$disk['is_formatting']	= (new MiscUD)->get_formatting_status(basename($disk['device']));
 
 				/* Create the mount button. */
@@ -530,6 +530,7 @@ switch ($_POST['action']) {
 				$clear_disk				= ((get_config("Config", "destructive_mode") == "enabled") && ($parted) && (! $mounted) && (! $disk['is_mounting']) && (! $disk['is_unmounting']) && (! $disk['is_formatting']) && (! $disk['pass_through']) && (! $disk['array_disk']) && (! $preclearing) && (((! $p) && ($disk['fstype'])) || (($p) && (! $disk['partitions'][0]['pool']) && (! $disk['partitions'][0]['disable_mount']))) ) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove clear-hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
 
 				$disk_icon = $disk['ssd'] ? "icon-nvme" : "fa fa-hdd-o";
+
 				/* Disk log. */
 				$hdd_serial = "<a class='info' href=\"#\" onclick=\"openTerminal('disklog', '{$disk_device}')\"><i class='".$disk_icon." icon'></i><span>"._("Disk Log Information")."</span></a>";
 				if ($p) {
@@ -985,11 +986,6 @@ switch ($_POST['action']) {
 		(new MiscUD)->save_json($paths['share_names'], $share_names);
 
 		echo json_encode(array( 'disks' => $o_disks, 'remotes' => $o_remotes, 'historical' => $o_historical ));
-		break;
-
-	case 'refresh_page':
-		/* Initiate a nchan event to update the UD webpage. */
-		publish();
 		break;
 
 	case 'update_ping':

@@ -107,7 +107,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 			/* Get the file system check command based on the file system. */
 			if ($file_system == "zfs") {
 				if ($mounted) {
-					$pool_name	= (new MiscUD)->zfs_pool_name($mountpoint, $mounted);
+					$pool_name	= (new MiscUD)->zfs_pool_name("", $mountpoint);
 					$command	= get_fsck_commands($file_system, escapeshellarg($pool_name), $check_type)." 2>&1";
 				} else {
 					$command	= "";
