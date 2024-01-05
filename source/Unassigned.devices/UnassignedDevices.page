@@ -24,9 +24,6 @@ parse_plugin('UnassignedDevices');
 /* Get the version of Unraid we are running. */
 $version = parse_ini_file("/etc/unraid-version");
 
-/* Set up name for nchan socket. */
-$ud_reload = "UD_reload";
-
 $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "no")) ? "disabled" : "";
 ?>
 
@@ -132,19 +129,50 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	}
 
 	function disk_op(el, op, device) {
-		/* Add spinning icon to mount/unmount button and disable button. */
-		$("button[device='"+device+"']").html("<i class='fa fa-spinner fa-spin'></i> "+(op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
-		$("button[device='"+device+"']").prop("disabled", "true");
+		if (isRefreshing) {
+			return;
+		}
 
-		$.post(UDURL, {'action' : op, 'device' : device}).done(function(data)
-		{
-			if (data == "false") {
-				swalShowMountUnmount(device, op);
-			}
-		},'json').fail(function(){swalShowResult(false);});
+	    refreshPage().then(function () {
+			/* Add spinning icon to mount/unmount button and disable button. */
+			$("button[device='"+device+"']").prop("disabled", true);
+			$("button[device='"+device+"']").html("<i class='fa fa-spinner fa-spin'></i> "+(op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
+
+			$.post(UDURL, {'action' : op, 'device' : device}).done(function(data)
+			{
+				if (data == "false") {
+					swalShowMountUnmount(device, op);
+				}
+			},'json').fail(function(){swalShowResult(false);});
+		});
 	}
 
-	function usb_disks() {
+	/* Detect a change in the diskio cookie and refresh the page to update diskio if it changes. */
+	var checkCookie = function() {
+		var lastCookie = $.cookie('diskio');
+		return function() {
+			var currentCookie = $.cookie('diskio');
+			if (currentCookie != lastCookie) {
+				lastCookie = currentCookie;
+				refreshPage();
+			}
+		};
+	}();
+
+	/* Poll remote servers and update ping status. */
+	function pingPoll() {
+		$.post(UDURL, {'action' : 'update_ping'});
+	}
+
+	/* Refresh UD page showing any updated information. */
+	function refreshPage() {
+		/* Clear the existing interval */
+		clearInterval(refreshTimer);
+
+		/* Set that we re refreshinfthe pge. */
+		isRefreshing = true;
+
+		/* Get the page table data and fill it in. */
 		/* Save table widths. */
 		if (! diskinfo) {
 			tableWidths = $("#usb_devices_list > table > thead > tr").children("td").map(function(i,v){return $(this).getHiddenDimensions().outerWidth;});
@@ -175,40 +203,16 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 				}
 			});
 		},'json');
+
+		return new Promise(function (resolve) {
+			/* We are done refreshingthe page. */
+			isRefreshing = false;
+
+			/* Start a new interval */
+			refreshTimer = window.setInterval(refreshPage, 3000);
+			resolve();
+		});
 	}
-
-	/* Detect a change in the diskio cookie and refresh the page to update diskio if it changes. */
-	var checkCookie = function() {
-		var lastCookie = $.cookie('diskio');
-		return function() {
-			var currentCookie = $.cookie('diskio');
-			if (currentCookie != lastCookie) {
-				lastCookie = currentCookie;
-				refreshPage();
-			}
-		};
-	}();
-
-	/* Poll remote servers and update ping status. */
-	function pingPoll() {
-		$.post(UDURL, {'action' : 'update_ping'});
-	}
-
-	/* Refresh UD page showing any updated information. */
-	function refreshPage() {
-		$.post(UDURL, {'action' : 'refresh_page'});
-	}
-
-	/* Process nchan events. */
-	var ud_Reload		= new NchanSubscriber("/sub/"+"<?=$ud_reload?>");
-
-	/* Handle incomming nchan messages. */
-	ud_Reload.on('message', function(data) {
-		if (data == "rescan") {
-			/* Update UD content and refresh page. */
-			usb_disks();
-		}
-	});
 
 	function load_hosts(el, action) {
 		var target	= $(el).parents("div").find("*[name='IP']");
@@ -674,6 +678,11 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	var display		= <?=json_encode($display);?>;
 	var network		= [];
 	var workgroup	= "";
+	var tab_usbdisks	= $('input[name$="tabs"]').length;
+	var UDURL			= '/plugins/<?=$plugin;?>/UnassignedDevices.php';
+	var diskinfo		= "";
+	var isRefreshing	= false;
+	var refreshTimer;
 
 	/* Reload page if browser back button was used. */
 	window.addEventListener( "pageshow", function ( event )
@@ -701,10 +710,6 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	}
 	?>
 
-	var tab_usbdisks	= $('input[name$="tabs"]').length;
-	var UDURL			= '/plugins/<?=$plugin;?>/UnassignedDevices.php';
-	var diskinfo		= "";
-
 	if (typeof swal2 === "undefined") {
 		$('head').append( $('<link rel="stylesheet" type="text/css" />').attr('href', '<?autov("/plugins/".$plugin."/assets/sweetalert2.css");?>') );
 		$.getScript( '/plugins/<?=$plugin;?>/assets/sweetalert2.js');
@@ -730,7 +735,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 	$(function() {
 		/* Set page refresh interval every 3 seconds. */
-		window.setInterval(refreshPage, 3000);
+		refreshTimer = window.setInterval(refreshPage, 3000);
 
 		/* Set ping poll interval every 15 seconds. */
 		window.setInterval(pingPoll, 15000);
@@ -787,12 +792,8 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			$('#tab'+tab_usbdisks).trigger("click");
 			$.removeCookie('one',{path:'/'});
 		}
-
-		/* Create cookie for the nchan socket. */
-		$.cookie("ud_reload", "<?=$ud_reload?>", { setMaxAge:0, path:"/;SameSite=Lax" });
-
 		pingPoll();
-		ud_Reload.start();
+		refreshPage();
 	});
 </script>
 
