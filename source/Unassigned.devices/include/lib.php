@@ -1059,7 +1059,6 @@ function remove_partition($dev, $part) {
 
 /* Remove all disk partitions. */
 function remove_all_partitions($dev) {
-
 	$rc = true;
 
 	/* Be sure there are no mounted partitions. */
@@ -1674,7 +1673,7 @@ function do_mount_local($info) {
 	$file_system	= "";
 
 	$pool_name	= $info['pool_name'];
-	$mounted	= (($info['fstype'] == "zfs") && ($pool_name))? (is_mounted($pool_name) || is_mounted($dir)) : (is_mounted($dev) || is_mounted($dir));
+	$mounted	= (($info['fstype'] == "zfs") && ($pool_name)) ? (is_mounted($pool_name) || is_mounted($dir)) : (is_mounted($dev) || is_mounted($dir));
 	if (! $mounted) {
 		if ($fs) {
 			$recovery = "";
@@ -1693,9 +1692,10 @@ function do_mount_local($info) {
 						exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
 						exec("/usr/sbin/zpool import -N ".escapeshellarg($pool_name)." 2>/dev/null");
 						exec("/usr/sbin/zfs set mountpoint=".escapeshellarg($dir)." ".escapeshellarg($pool_name)." 2>/dev/null");
+
+						$params		= get_mount_params($fs, $dev, $ro);
+						$cmd		= "/usr/sbin/zfs mount -o $params ".escapeshellarg($pool_name);
 					}
-					$params		= get_mount_params($fs, $dev, $ro);
-					$cmd		= "/usr/sbin/zfs mount -o $params ".escapeshellarg($pool_name);
 				} else if ($fs == "zvol") {
 					$z_fstype	= part_fs_type($dev, false);
 					$z_fstype	= ($z_fstype) ?: zvol_fs_type($dev);
@@ -1729,7 +1729,6 @@ function do_mount_local($info) {
 						exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
 						exec("/usr/sbin/zpool import -N ".escapeshellarg($pool_name)." 2>/dev/null");
 						exec("/usr/sbin/zfs set mountpoint=".escapeshellarg($dir)." ".escapeshellarg($pool_name)." 2>/dev/null");
-						/* Set as read only. */
 					}
 					$params		= get_mount_params($file_system, $device, $ro);
 					$cmd		= "/usr/sbin/zfs mount -o $params ".escapeshellarg($pool_name);
@@ -1769,7 +1768,8 @@ function do_mount_local($info) {
 
 			/* Check to see if the device really mounted. */
 			for ($i=0; $i < 5; $i++) {
-				if (is_mounted($dir)) {
+				$mounted	= (($info['fstype'] == "zfs") && ($pool_name)) ? (is_mounted($pool_name) || is_mounted($dir)) : (is_mounted($dev) || is_mounted($dir));
+				if ($mounted) {
 					if (! is_mounted_read_only($dir)) {
 						exec("/bin/chmod 0777 ".escapeshellarg($dir)." 2>/dev/null");
 						exec("/bin/chown 99 ".escapeshellarg($dir)." 2>/dev/null");
@@ -1799,6 +1799,11 @@ function do_mount_local($info) {
 
 				/* Remove the mount point. */
 				exec("/bin/rmdir ".escapeshellarg($dir)." 2>/dev/null");
+
+				if ($pool_name) {
+					/* Export the pool so it will mount later. */
+					exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
+				}
 			} else {
 				if ($info['fstype'] == "btrfs") {
 					/* Update the btrfs state file for single scan for pool devices. */
@@ -1836,13 +1841,25 @@ function do_mount_local($info) {
 									unassigned_log("Mount dataset cmd: ".$cmd);
 
 									/* Do the mount command. */
-									$o = shell_exec(escapeshellcmd($cmd)." 2>&1");
+									$o		= shell_exec(escapeshellcmd($cmd)." 2>&1");
+									$rc		= false;
+									if (! $o) {
+										/* Check to see if the dataset really mounted. */
+										for ($i=0; $i < 5; $i++) {
+											if (is_mounted($columns[1])) {
+												unassigned_log("Successfully mounted zfs dataset '".$columns[0]."' on '".$columns[1]."'.");
 
+												$rc = true;
+
+												break;
+											} else {
+												usleep(500 * 1000);
+											}
+										}
+									}
 									/* Was there an error? */
-									if ($o) {
+									if (! $rc) {
 										unassigned_log("Mount of zfs dataset '".$columns[0]."' failed: '".$o."'");
-									} else {
-										unassigned_log("Successfully mounted zfs dataset '".$columns[0]."' on '".$columns[1]."'.");
 									}
 								} else {
 									unassigned_log("Dataset '".$columns[0]."' already mounted");
@@ -1853,7 +1870,7 @@ function do_mount_local($info) {
 				}
 			}
 		} else {
-			unassigned_log("No filesystem detected on '".basename($dev)."'.");
+			unassigned_log("No file system detected on '".basename($dev)."'.");
 		}
 	} else {
 		unassigned_log("Partition '".basename($dev)."' is already mounted.");
@@ -1932,8 +1949,8 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 
 	$rc = false;
 	$pool_name	= ($zfs) ? (new MiscUD)->zfs_pool_name("", $dir) : "";
-	$mounted	= (($zfs) && ($pool_name)) ? (is_mounted($pool_name) || is_mounted($dir)) : (is_mounted($dev) || is_mounted($dir));
 	$timeout	= ($smb || $nfs) ? ($force ? 30 : 10) : 90;
+	$mounted	= (($zfs) && ($pool_name)) ? (is_mounted($pool_name) || (is_mounted($dir))) : ((is_mounted($dev)) || (is_mounted($dir)));
 	if ($mounted) {
 		if (((! $force) || (($force) && (! $smb) && (! $nfs))) && (! is_mounted_read_only($dir))) {
 			unassigned_log("Synching file system on '".$dir."'.");
@@ -2636,6 +2653,8 @@ function do_mount_samba($info) {
 
 					/* Mount the remote share. */
 					$o		= timed_exec(10, $cmd." 2>&1");
+				} else {
+					$o		= "";
 				}
 
 				/* If the remote share didn't mount, try SMB 3.1.1. */
@@ -3839,65 +3858,5 @@ function upgrade_ZFS_pool($pool_name) {
 	} else {
 		unassigned_log("ZFS pool '".$pool_name."' has already been upgraded");
 	}
-}
-
-/* Setup a socket for nchan publish events. */
-function curl_socket($socket, $url, $postData = null) {
-	$ch = curl_init($url);
-
-	/* Set cURL options. */
-	curl_setopt($ch, CURLOPT_UNIX_SOCKET_PATH, $socket);
-	if ($postData !== null) {
-		curl_setopt($ch, CURLOPT_POST, 1);
-		curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
-	}
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-	/* Execute cURL session and close it. */
-	curl_exec($ch);
-	curl_close($ch);
-}
-
-/* Trigger an nchan event. */
-function publish($message = "rescan") {
-	/* Get the endpoint cookie */
-	$endpoint	= $_COOKIE['ud_reload'];
-	$socket		= "/var/run/nginx.socket";
-	$url		= "http://localhost/pub/$endpoint?buffer_length=1";
-
-	/* If the endpoint is set and there are listeners, send the message. */
-	if (isset($endpoint) && numSubscribers($socket, $url) !== 0) {
-		/* Send the message. */
-		curl_socket($socket, $url, $message);
-	}
-}
-
-function numSubscribers($socket, $url) {
-	/* Initialize the number of subscribers. */
-	$numSubscribers = 0;
-
-	/* Initialize cURL session. */
-	$ch	= curl_init();
-
-	/* Set cURL options. */
-	curl_setopt($ch, CURLOPT_UNIX_SOCKET_PATH, $socket);
-	curl_setopt($ch, CURLOPT_URL, $url);
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-	/* Execute cURL session and get the result. */
-	$statusData = curl_exec($ch);
-
-	/* Use preg_match to extract the number of subscribers. */
-	preg_match('/subscribers: (\d+)/', $statusData, $matches);
-
-	/* Check if there is a match. */
-	if (!empty($matches[1])) {
-		$numSubscribers = $matches[1];
-	}
-
-	/* Close cURL session. */
-	curl_close($ch);
-
-	return $numSubscribers;
 }
 ?>
