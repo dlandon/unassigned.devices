@@ -76,6 +76,9 @@ button.mount {
 	margin: 1px 0px 1px 0px;
 	opacity:1.0
 }
+button.mount:disabled {
+	opacity:1.0
+}
 
 /* Icons. */
 i.partition-hdd {
@@ -127,7 +130,7 @@ i.fa-switch {
 
 /* Toggle switch alignment with text. */
 .switch-button-background {
-	margin-top: 4px!important
+	margin-top: 2px!important
 }
 
 /* Style for the disabled button */
