@@ -1734,7 +1734,7 @@ function do_mount_local($info) {
 					$cmd		= "/usr/sbin/zfs mount -o $params ".escapeshellarg($pool_name);
 				}
 			}
-			$cmd = str_replace($recovery, ", pass='*****'", $cmd);
+			$cmd = str_replace($recovery, ", pass='*****'", ($cmd ?? ""));
 
 			unassigned_log("Mount cmd: ".$cmd);
 
