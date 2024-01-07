@@ -129,32 +129,80 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	}
 
 	function disk_op(el, op, device) {
+		var mount_button = $(`button[device='${device}']`);
+		var currentDevice = device;
+
 		/* Clear the existing interval */
 		clearInterval(refreshTimer);
 
 		/* Add spinning icon to mount/unmount button and disable button. */
-		$("button[device='"+device+"']").prop("disabled", true);
-		$("button[device='"+device+"']").html("<i class='fa fa-spinner fa-spin'></i> "+(op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
+		mount_button.prop("disabled", true).html(`<i class='fa fa-spinner fa-spin'></i> ${op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"}`);
 
 		if (isRefreshing) {
 			return;
 		}
 
-	    refreshPage().then(function () {
+		refreshPage().then(() => {
+			var innerMountButton = $(`button[device='${currentDevice}']`);
+
 			/* Add spinning icon to mount/unmount button and disable button. */
-			$("button[device='"+device+"']").prop("disabled", true);
-			$("button[device='"+device+"']").html("<i class='fa fa-spinner fa-spin'></i> "+(op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
+			innerMountButton.prop("disabled", true).html(`<i class='fa fa-spinner fa-spin'></i> ${op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"}`);
 
-			$.post(UDURL, {'action' : op, 'device' : device}).done(function(data)
-			{
-				if (data == "false") {
-					swalShowMountUnmount(device, op);
-				}
-			},'json').fail(function(){swalShowResult(false);});
-
-			/* Restart the refresh timer. */
-			refreshTimer = window.setInterval(refreshPage, 3000);
+			$.post(UDURL, {'action': op, 'device': currentDevice})
+				.done(data => {
+					if (data == "false") {
+						swalShowMountUnmount(currentDevice, op);
+					}
+				})
+				.fail(() => {
+					swalShowResult(false);
+				})
+				.always(() => {
+					/* Refresh the page. */
+					refreshPage().then(() => {
+						/* Restart the refresh timer. */
+						refreshTimer = setInterval(refreshPage, 3000);
+					});
+				});
 		});
+	}
+
+	/* Refresh UD page showing any updated information. */
+	function refreshPage() {
+		/* Don't refresh if we re already refreshing. */
+		if (! isRefreshing) {
+			/* Set that we are refreshing the page. */
+			isRefreshing = true;
+
+			/* Get the UD devices table data and render the web page. */
+			return new Promise(function (resolve) {
+				$.post(UDURL, {'action': 'get_content', display: display}, function (data) {
+					var toggled = $("tr.toggle-parts").filter(":visible").map(function () {
+						return $(this).attr("name");
+					}).get();
+
+					/* Fill the UD devices tables. */
+					if (data) {
+						$('#disk-table-body').html(data.disks);
+						$('#remotes-table-body').html(data.remotes);
+						$('#historical-table-body').html(data.historical);
+					}
+
+					/* Show toggled disk partitions. */
+					$.each(toggled, function (k, v) {
+						if (v.length) {
+							$("tr[name='" + v + "']").css("display", "table-row");
+						}
+					});
+
+					/* We are done refreshing the page. */
+					isRefreshing = false;
+
+					/* Resolve the promise */
+					resolve();
+				}, 'json');
+			});
+		}
 	}
 
 	/* Detect a change in the diskio cookie and refresh the page to update diskio if it changes. */
@@ -172,41 +220,6 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	/* Poll remote servers and update ping status. */
 	function pingPoll() {
 		$.post(UDURL, {'action' : 'update_ping'});
-	}
-
-	/* Refresh UD page showing any updated information. */
-	function refreshPage() {
-		/* Set that we are refreshing the page. */
-		isRefreshing = true;
-
-		/* Get the UD devices table data and render the web page. */
-		return new Promise(function (resolve) {
-			$.post(UDURL, {'action': 'get_content', display: display}, function (data) {
-				var toggled = $("tr.toggle-parts").filter(":visible").map(function () {
-					return $(this).attr("name");
-				}).get();
-
-				/* Fill the UD devices tables. */
-				if (data) {
-					$('#disk-table-body').html(data.disks);
-					$('#remotes-table-body').html(data.remotes);
-					$('#historical-table-body').html(data.historical);
-				}
-
-				/* Show toggled disk partitions. */
-				$.each(toggled, function (k, v) {
-					if (v.length) {
-						$("tr[name='" + v + "']").css("display", "table-row");
-					}
-				});
-
-				/* We are done refreshing the page. */
-				isRefreshing = false;
-
-				/* Resolve the promise */
-				resolve();
-			}, 'json');
-		});
 	}
 
 	function load_hosts(el, action) {
@@ -708,20 +721,27 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	}
 
 	/* Bind Arrive events. */
-	$("#usb_devices_list").arrive("tr",{onceOnly:false},function() {
+	$("#usb_devices_list").arrive("tr", { onceOnly: false }, function () {
 		tr = $(this);
 
-		tr.find("span.toggle-hdd").click(function(e) {
-			$(this).disableSelection();disk = $(this).attr("hdd");el = $(this);
-			$(".toggle-"+disk).slideToggle(0);
+		/* Toggle partitions click. */
+		tr.find("span.toggle-hdd").click(function (e) {
+			$(this).disableSelection();
+			disk = $(this).attr("hdd");
+			el = $(this);
+			$(".toggle-" + disk).slideToggle(0);
 		});
 
-		tr.find( "button[role$=mount]" ).on( "click", function() {
-			disk_op(this, $(this).attr("role"), $(this).attr("device"));
+		/* Mount button click using event delegation. */
+		$('table').on('click', 'tr button[role$=mount]', function () {
+			var device = $(this).attr('device');
+			disk_op(this, $(this).attr('role'), device);
 		});
 
-		tr.find("button[role$=format]").on( "click", function() {
-			format_disk(this, $(this).attr("context"), $(this).attr("device"));
+		/* Format button click using event delegation. */
+		$('table').on('click', 'tr button[role$=format]', function () {
+			var device = $(this).attr('device');
+			format_disk(this, $(this).attr('context'), device);
 		});
 	});
 
