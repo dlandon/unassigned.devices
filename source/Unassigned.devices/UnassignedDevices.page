@@ -752,11 +752,15 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		/* Set ping poll interval every 15 seconds. */
 		window.setInterval(pingPoll, 15000);
 
-		/* Check for diskio cookie change every 100ms. */
-		window.setInterval(checkCookie, 100);
-
 		/* Add icons to Tab/Title bar. */
-		$('#tab4').bind({click:function() {$('i.toggle').show('slow');}});
+		$('#tab4').bind( {
+			click:function() {
+				$('i.toggle').show('slow');
+				checkCookie();
+			}
+		});
+
+		/* Show the current diskio icon based on the current diskio cookie value. */
 		if ($.cookie('diskio') === undefined) {
 			$('i.toggle').removeClass('fa-tachometer').addClass('fa-list');
 		} else {
