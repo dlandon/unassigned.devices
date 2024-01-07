@@ -72,8 +72,8 @@ table.usb_absent tr>td+td+td+td {
 button.mount {
 	user-drag: none;
 	user-select: none;
-	padding: 2px 4px 3px 6px;
-	margin: 1px 0px 1px 0px;
+	padding: 2px 4px 2px 4px;
+	margin: 2px 1px 2px 1px;
 	opacity:1.0
 }
 button.mount:disabled {
