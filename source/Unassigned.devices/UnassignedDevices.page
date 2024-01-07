@@ -129,6 +129,13 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	}
 
 	function disk_op(el, op, device) {
+		/* Clear the existing interval */
+		clearInterval(refreshTimer);
+
+		/* Add spinning icon to mount/unmount button and disable button. */
+		$("button[device='"+device+"']").prop("disabled", true);
+		$("button[device='"+device+"']").html("<i class='fa fa-spinner fa-spin'></i> "+(op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
+
 		if (isRefreshing) {
 			return;
 		}
@@ -144,6 +151,9 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 					swalShowMountUnmount(device, op);
 				}
 			},'json').fail(function(){swalShowResult(false);});
+
+			/* Restart the refresh timer. */
+			refreshTimer = window.setInterval(refreshPage, 3000);
 		});
 	}
 
@@ -166,51 +176,36 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 	/* Refresh UD page showing any updated information. */
 	function refreshPage() {
-		/* Clear the existing interval */
-		clearInterval(refreshTimer);
-
-		/* Set that we re refreshinfthe pge. */
+		/* Set that we are refreshing the page. */
 		isRefreshing = true;
 
-		/* Get the page table data and fill it in. */
-		/* Save table widths. */
-		if (! diskinfo) {
-			tableWidths = $("#usb_devices_list > table > thead > tr").children("td").map(function(i,v){return $(this).getHiddenDimensions().outerWidth;});
-
-			$("#usb_devices_list > table > thead > tr").children("td").each(function(i,v) {
-				if (i in tableWidths) {
-					$(this).css("width", tableWidths[i]);
-				}
-			});
-		}
-
-		/* Get the UD devices and render web page. */
-		$.post(UDURL, {'action' : 'get_content', display:display}, function(data) {
-			maxWidth	= [];
-			var toggled	= $("tr.toggle-parts").filter(":visible").map(function(){return $(this).attr("name");}).get();
-
-			/* Fill the UD devices tabels. */
-			if (data) {
-				$('#disk-table-body').html(data.disks);
-				$('#remotes-table-body').html(data.remotes);
-				$('#historical-table-body').html(data.historical);
-			}
-
-			/* Show toggled disk partitions. */
-			$.each(toggled, function(k,v) {
-				if (v.length) {
-					$("tr[name='"+v+"']").css("display", "table-row");
-				}
-			});
-		},'json');
-
+		/* Get the UD devices table data and render the web page. */
 		return new Promise(function (resolve) {
-			/* We are done refreshingthe page. */
-			isRefreshing = false;
+			$.post(UDURL, {'action': 'get_content', display: display}, function (data) {
+				var toggled = $("tr.toggle-parts").filter(":visible").map(function () {
+					return $(this).attr("name");
+				}).get();
 
-			/* Start a new interval */
-			refreshTimer = window.setInterval(refreshPage, 3000);
-			resolve();
+				/* Fill the UD devices tables. */
+				if (data) {
+					$('#disk-table-body').html(data.disks);
+					$('#remotes-table-body').html(data.remotes);
+					$('#historical-table-body').html(data.historical);
+				}
+
+				/* Show toggled disk partitions. */
+				$.each(toggled, function (k, v) {
+					if (v.length) {
+						$("tr[name='" + v + "']").css("display", "table-row");
+					}
+				});
+
+				/* We are done refreshing the page. */
+				isRefreshing = false;
+
+				/* Resolve the promise */
+				resolve();
+			}, 'json');
 		});
 	}
 
@@ -673,14 +668,11 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 :end
 
 <script type="text/javascript">
-	var maxWidth	= [];
-	var tableWidths = [];
-	var display		= <?=json_encode($display);?>;
-	var network		= [];
-	var workgroup	= "";
+	var display			= <?=json_encode($display);?>;
+	var network			= [];
+	var workgroup		= "";
 	var tab_usbdisks	= $('input[name$="tabs"]').length;
 	var UDURL			= '/plugins/<?=$plugin;?>/UnassignedDevices.php';
-	var diskinfo		= "";
 	var isRefreshing	= false;
 	var refreshTimer;
 
@@ -792,7 +784,8 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			$('#tab'+tab_usbdisks).trigger("click");
 			$.removeCookie('one',{path:'/'});
 		}
-		pingPoll();
+
+		/* Iniialize the web page. */
 		refreshPage();
 	});
 </script>
