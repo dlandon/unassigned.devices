@@ -1229,23 +1229,26 @@ switch ($_POST['action']) {
 		foreach ($network as $iface) {
 			$ip			= $iface['ip'];
 			$netmask 	= $iface['netmask'];
-			exec("plugins/".$plugin."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 445", $hosts);
-			foreach ($hosts as $host) {
-				/* Resolve name as a local server. */
-				$name	= trim(shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'") ?? "");
-				if ($name) {
-					$name		= strtoupper($name);
-					if ($name == "?") {
-						/* Look up the server name using nmblookup. */
-						$name		= trim(shell_exec("/usr/bin/nmblookup -A ".escapeshellarg($host)." 2>/dev/null | grep -v 'GROUP' | grep -Po '[^<]*(?=<00>)' | head -n 1") ?? "");
+			if (($ip) && ($netmask)) {
+				exec("plugins/".$plugin."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 445", $hosts);
+				foreach ($hosts as $host) {
+					/* Resolve name as a local server. */
+					$name	= trim(shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'") ?? "");
+					if ($name) {
+						$name		= strtoupper($name);
+						if ($name == "?") {
+							/* Look up the server name using nmblookup. */
+							$name		= trim(shell_exec("/usr/bin/nmblookup -A ".escapeshellarg($host)." 2>/dev/null | grep -v 'GROUP' | grep -Po '[^<]*(?=<00>)' | head -n 1") ?? "");
+						}
+					} else if ($host == $_SERVER['SERVER_ADDR']) {
+						$name		= strtoupper($var['NAME']);
 					}
-				} else if ($host == $_SERVER['SERVER_ADDR']) {
-					$name		= strtoupper($var['NAME']);
+					$name			= str_replace( array(".".$local_tld, ".".$default_tld), "", $name);
+					$names[] 		= $name ? $name : $host;
 				}
-				$name			= str_replace( array(".".$local_tld, ".".$default_tld), "", $name);
-				$names[] 		= $name ? $name : $host;
 			}
 		}
+		$names	= array_unique($names);
 		natsort($names);
 		echo implode(PHP_EOL, $names);
 		break;
@@ -1292,23 +1295,26 @@ switch ($_POST['action']) {
 		foreach ($network as $iface) {
 			$ip			= $iface['ip'];
 			$netmask 	= $iface['netmask'];
-			exec("plugins/".$plugin."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 2049 2>/dev/null | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4", $hosts);
-			foreach ($hosts as $host) {
-				/* Resolve name as a local server. */
-				$name	= trim(shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'") ?? "");
-				if ($name) {
-					$name		= strtoupper($name);
-					if ($name == "?") {
-						$name	= "";
+			if (($ip) && ($netmask)) {
+				exec("plugins/".$plugin."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 2049 2>/dev/null | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4", $hosts);
+				foreach ($hosts as $host) {
+					/* Resolve name as a local server. */
+					$name	= trim(shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'") ?? "");
+					if ($name) {
+						$name		= strtoupper($name);
+						if ($name == "?") {
+							$name	= "";
+						}
+					} else if ($host == $_SERVER['SERVER_ADDR']) {
+						$name		= strtoupper($var['NAME']);
 					}
-				} else if ($host == $_SERVER['SERVER_ADDR']) {
-					$name		= strtoupper($var['NAME']);
-				}
 
-				$name			= str_replace( array(".".$local_tld, ".".$default_tld), "", $name);
-				$names[] 		= $name ? $name : $host;
+					$name			= str_replace( array(".".$local_tld, ".".$default_tld), "", $name);
+					$names[] 		= $name ? $name : $host;
+				}
 			}
 		}
+		$names	= array_unique($names);
 		natsort($names);
 		echo implode(PHP_EOL, $names);
 		break;
