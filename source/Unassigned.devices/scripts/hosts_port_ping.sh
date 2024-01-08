@@ -8,7 +8,7 @@ ip_regex="^([0-9]{1,3}\.){3}[0-9]{1,3}$"
 zero_regex="^0\.0\.0\.[0-9]+$"
 
 # If the ip address and mask are specified, do the scan
-if [[ $ip =~ $ip_regex && ! $ip =~ $zero_regex && $mask =~ $regex && $port =~ ^[0-9]+$ ]]; then
+if [[ $ip =~ $ip_regex && ! $ip =~ $zero_regex && $mask =~ $ip_regex && ! $mask =~ $zero_regex && $port =~ ^[0-9]+$ ]]; then
 	IFS=. read -r i1 i2 i3 i4 <<< "$ip"
 	IFS=. read -r m1 m2 m3 m4 <<< "$mask"
 
