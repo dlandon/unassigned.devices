@@ -1229,7 +1229,7 @@ switch ($_POST['action']) {
 		foreach ($network as $iface) {
 			$ip			= $iface['ip'];
 			$netmask 	= $iface['netmask'];
-			if (($ip) && ($netmask)) {
+			if ((new MiscUD)->is_ip($ip) && (new MiscUD)->is_ip($netmask)) {
 				exec("plugins/".$plugin."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 445", $hosts);
 				foreach ($hosts as $host) {
 					/* Resolve name as a local server. */
@@ -1295,7 +1295,7 @@ switch ($_POST['action']) {
 		foreach ($network as $iface) {
 			$ip			= $iface['ip'];
 			$netmask 	= $iface['netmask'];
-			if (($ip) && ($netmask)) {
+			if ((new MiscUD)->is_ip($ip) && (new MiscUD)->is_ip($netmask)) {
 				exec("plugins/".$plugin."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 2049 2>/dev/null | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4", $hosts);
 				foreach ($hosts as $host) {
 					/* Resolve name as a local server. */
