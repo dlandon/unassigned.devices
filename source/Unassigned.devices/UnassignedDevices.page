@@ -51,27 +51,39 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 </style>
 
 <script type="text/javascript">
-	function spin_down_disk(dev) {
-		document.getElementById('disk_orb-'+dev).className = "fa fa-refresh fa-spin green-orb";
-		$.post(UDURL, {'action' : 'spin_down_disk', device:dev});
+	/*
+		Function to initiate spinning down a disk.
+		@param dev: The device identifier.
+	*/
+	function spinDownDisk(dev) {
+		document.getElementById('disk_orb-' + dev).className = "fa fa-refresh fa-spin green-orb";
+
+		/* Make an asynchronous POST request to UDURL to spin down the disk. */
+		$.post(UDURL, {'action': 'spin_down_disk', 'device': dev});
 	}
 
+	/*
+		Function to initiate spinning up a disk.
+		@param dev: The device identifier.
+	*/
 	function spin_up_disk(dev) {
 		document.getElementById('disk_orb-'+dev).className = "fa fa-refresh fa-spin grey-orb";
 		$.post(UDURL, {'action' : 'spin_up_disk', device:dev});
 	}
 
+	/* Check if the "formatUnicorn" function is not already defined on String.prototype. */
 	if (typeof " ".formatUnicorn !== "function") {
-		String.prototype.formatUnicorn = String.prototype.formatUnicorn ||
-		function () {
+		/* Define the "formatUnicorn" function on String.prototype. */
+		String.prototype.formatUnicorn = String.prototype.formatUnicorn || function () {
 			"use strict";
 
-			var str = this.toString();
+			let str = this.toString();
 			if (arguments.length) {
-				var t = typeof arguments[0];
-				var key;
-				var args = ("string" === t || "number" === t) ? Array.prototype.slice.call(arguments) : arguments[0];
+				const t = typeof arguments[0];
+				let key;
+				const args = ("string" === t || "number" === t) ? Array.prototype.slice.call(arguments) : arguments[0];
 
+				/* Replace placeholders in the string with corresponding values. */
 				for (key in args) {
 					str = str.replace(new RegExp("\\{" + key + "\\}", "gi"), args[key]);
 				}
@@ -120,14 +132,31 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		}
 	}(jQuery));
 
-	function openWindow_fsck(cmd,title, height, width) {
-		const run		= cmd;
-		const top		= (screen.height-height)/2;
-		const left	= (screen.width-width)/2;
-		const options	= 'resizeable=yes,scrollbars=yes,height='+height+',width='+width+',top='+top+',left='+left;
+	/*
+		Function to open a window for running fsck command.
+		@param cmd: The fsck command to run.
+		@param title: The title for the window.
+		@param height: The height of the window.
+		@param width: The width of the window.
+	*/
+	function openWindowFsck(cmd, title, height, width) {
+		const run = cmd;
+		const top = (screen.height - height) / 2;
+		const left = (screen.width - width) / 2;
+
+		/* Set up window options. */
+		const options = 'resizeable=yes,scrollbars=yes,height=' + height + ',width=' + width + ',top=' + top + ',left=' + left;
+
+		/* Open a new window for running the fsck command. */
 		window.open(run, 'log', options);
 	}
 
+	/*
+		Function to perform disk operations based on the specified parameters.
+		@param el: The element triggering the operation.
+		@param op: The disk operation (e.g., "mount" or "unmount").
+		@param device: The target device for the operation.
+	*/
 	function disk_op(el, op, device) {
 		/* If the page is refreshing, ignore this click. */
 		if (! isRefreshing) {
@@ -164,7 +193,9 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		}
 	}
 
-	/* Refresh UD page showing any updated information. */
+	/*
+		Refresh UD page showing any updated information.
+	*/
 	function refreshPage() {
 		/* Don't refresh if we re already refreshing. */
 		if (! isRefreshing) {
@@ -202,7 +233,9 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		}
 	}
 
-	/* Detect a change in the diskio cookie and refresh the page to update diskio if it changes. */
+	/*
+		Detect a change in the diskio cookie and refresh the page to update diskio if it changes.
+	*/
 	const checkCookie = (function() {
 		/* Get the initial value of the 'diskio' cookie. */
 		let lastCookie = $.cookie('diskio');
@@ -224,103 +257,167 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	})();
 
 
-	/* Poll remote servers and update ping status. */
+	/*
+		Poll remote servers and update ping status.
+	*/
 	function pingPoll() {
 		$.post(UDURL, {'action' : 'update_ping'});
 	}
 
-	function load_hosts(el, action) {
-		var target	= $(el).parents("div").find("*[name='IP']");
-		var old		= $(el).html();
+	/*
+		Function to load hosts based on the specified parameters.
+		@param el: The element triggering the action.
+		@param action: The action to perform.
+	 */
+	function loadHosts(el, action) {
+		/* Find the target element named 'IP' within the parent div of the given element. */
+		const target = $(el).parents("div").find("*[name='IP']");
+ 
+		/* Store the original content of the element for later restoration. */
+		const oldContent = $(el).html();
+ 
+		/* Display a loading spinner while the request is being processed. */
 		$(el).html("<i class='fa fa-spinner fa-spin'></i> <?=_('Searching');?>");
+
+		/* AJAX Request: Load hosts asynchronously. */
 		$.post(UDURL, {'action': action, 'network': network, 'workgroup': workgroup}).done(function(data) {
-			$(el).html(old);
+			/* Restore the original content of the element. */
+			$(el).html(oldContent);
+
+			/* Process the data if it is not empty. */
 			if (data) {
-				var hosts = data.split('\n');
+				/* Split the data into an array of hosts. */
+				const hosts = data.split('\n');
+
+				/* Check if there are any hosts. */
 				if (hosts.length) {
-					var add = "<select name='IP' class='swal-content__input' required>";
-					for (var i = 0;i < hosts.length;i++) {
+					/* Build a select dropdown with the available hosts. */
+					let dropdownOptions = "<select name='IP' class='swal-content__input' required>";
+					for (let i = 0; i < hosts.length; i++) {
 						if (hosts[i].length) {
-							add += "<option value='"+hosts[i].trim()+"'>"+hosts[i].trim()+"</option>";
+							dropdownOptions += "<option value='" + hosts[i].trim() + "'>" + hosts[i].trim() + "</option>";
 						}
 					}
-					target.replaceWith(add+"</select>")
+					/* Replace the target element with the new dropdown. */
+					target.replaceWith(dropdownOptions + "</select>");
 				} else {
+					/* If no hosts are found, replace the target element with a text input. */
 					target.replaceWith("<input type='text' name='IP' class='swal-content__input' autocomplete='off'>");
 				}
 			}
 		});
 	}
 
-	function load_shares(el, ip, user, pass, action) {
-		var old			= $(el).html();
-		var target		= $(el).parents("div").find("*[name='SHARE']");
+	/*
+		Function to load shares based on the specified parameters.
+		@param el: The element triggering the action.
+		@param ip: The IP address.
+		@param user: The username.
+		@param pass: The password.
+		@param action: The action to perform.
+	*/
+	function loadShares(el, ip, user, pass, action) {
+		/* Store the original content of the element for later restoration. */
+		const oldContent = $(el).html();
+ 
+		/* Find the target element named 'SHARE' within the parent div of the given element. */
+		const target = $(el).parents("div").find("*[name='SHARE']");
 
+		/* Display a loading spinner while the request is being processed. */
 		$(el).html("<i class='fa fa-spinner fa-spin'></i> <?=_('Loading');?>");
 
-		var opts		= new Object();
-		opts["action"]	= action;
-		opts["IP"]		= ip;
-		opts["USER"]	= user;
-		opts["PASS"]	= pass;
+		/* Set up options for the POST request. */
+		const opts = {
+			"action": action,
+			"IP": ip,
+			"USER": user,
+			"PASS": pass
+		};
 
+		/* Make an asynchronous POST request to UDURL with the specified options. */
 		$.post(UDURL, opts).done(function(data) {
-			$(el).html(old);
+			/* Restore the original content of the element. */
+			$(el).html(oldContent);
+
+			/* Process the data if it is not empty. */
 			if (data) {
-				var shares = data.split('\n');
+				/* Split the data into an array of shares. */
+				const shares = data.split('\n');
+
+				/* Check if there are any shares. */
 				if (shares.length) {
-					var add = "<select name='SHARE' class='swal-content__input' required>";
-					for (var i = 0;i < shares.length;i++) {
+					/* Build a select dropdown with the available shares. */
+					let dropdownOptions = "<select name='SHARE' class='swal-content__input' required>";
+					for (let i = 0; i < shares.length; i++) {
 						if (shares[i].length) {
-							add += "<option value='"+shares[i]+"'>"+shares[i]+"</option>";
+							dropdownOptions += "<option value='" + shares[i] + "'>" + shares[i] + "</option>";
 						}
 					}
-					target.replaceWith(add+"</select>");
+					/* Replace the target element with the new dropdown. */
+					target.replaceWith(dropdownOptions + "</select>");
 				} else {
+					/* If no shares are found, replace the target element with a text input. */
 					target.replaceWith("<input type='text' name='SHARE' class='swal-content__input' autocomplete='off' required>");
 				}
 			} else {
+				/* If no data is received, replace the target element with a text input. */
 				target.replaceWith("<input type='text' name='SHARE' class='swal-content__input' autocomplete='off' required>");
 			}
 		});
 	}
 
+	/*
+		Rescan UD devices to update udev and copy config files from the flash to ram to update them.
+	*/
 	function rescan_disks() {
 		$.post(UDURL, {'action' : 'rescan_disks'});
 		swalShowResult(true);
 	}
 
+	/*
+		Function to display a SweetAlert2 notification based on the result of an operation.
+		@param success: A boolean indicating whether the operation was successful.
+	*/
 	function swalShowResult(success) {
+		/* Check if the operation was successful. */
 		if (success) {
+			/* Display a success notification. */
 			swal2({
-				title:"<?=_('Success')?>!",
-				icon:"success",
-				text:" ",
+				title: "<?=_('Success')?>!",
+				icon: "success",
+				text: " ", /* Empty text as the message is not needed. */
 				buttons: {
-					confirm: { visible:false },
-					cancel: { visible:false }
+					confirm: { visible: false },
+					cancel: { visible: false }
 				},
-				timer:2000
+				timer: 2000
 			});
 		} else {
+			/* Display a failure notification. */
 			swal2({
-				title:"<?=_('Fail')?>!",
-				icon:"error",
-				text:"<?=_('Check the syslog for details');?>.",
+				title: "<?=_('Fail')?>!",
+				icon: "error",
+				text: "<?=_('Check the syslog for details');?>.",
 				buttons: {
-					confirm: { visible:false },
-					cancel: { visible:false }
+					confirm: { visible: false },
+					cancel: { visible: false }
 				},
-				timer:2000
+				timer: 2000
 			});
 		}
 	}
 
+	/*
+		Function to display a SweetAlert2 notification for mount/unmount failure.
+		@param device: The device that failed to mount/unmount.
+		@param op: The operation (mount/unmount) that failed.
+	*/
 	function swalShowMountUnmount(device, op) {
+		/* Display a failure notification for mount/unmount. */
 		swal2({
 			title: "<?=_('Fail')?>!",
 			icon: "error",
-			text: "<?=_('Device');?> '"+device+"' <?=('failed to');?> "+op+". <?=_('Check the syslog for details');?>.",
+			text: "<?=_('Device');?> '" + device + "' <?=('failed to');?> " + op + ". <?=_('Check the syslog for details');?>.",
 			buttons: {
 				confirm: { visible: false },
 				cancel: { visible: false }
@@ -502,10 +599,16 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		showSwal();
 	}
 
+	/*
+		Show the Unraid wave.
+	*/
 	$(function() {
 		$('div.spinner').html(unraid_logo);
 	});
 
+	/*
+		Check for a plugin update and show banner.
+	*/
 	$(function() {
 		if ( typeof caPluginUpdateCheck === "function" ) {
 			caPluginUpdateCheck("unassigned.devices.plg",{element:".pluginUpdate"});
@@ -697,7 +800,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	var refreshTimer;
 
 	/* Page refresh rae. */
-	const REFRESH_INTERVAL = 6000;
+	const REFRESH_INTERVAL = 3000;
 
 	/* Reload page if browser back button was used. */
 	window.addEventListener( "pageshow", function ( event )
@@ -708,49 +811,74 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			window.location.reload();
 		}
 	});
+	<?php
+	/* Check if WORKGROUP is set and initialize the workgroup variable in JavaScript. */
+	if (isset($var['WORKGROUP'])) {
+		echo "var workgroup = '{$var['WORKGROUP']}';\n";
+	}
 
-	<?
-	if (isset($var['WORKGROUP'])) echo "var workgroup = '{$var['WORKGROUP']}';\n";
-	for ($i=0; $i < 11; $i++) { 
+	/* Loop through network interfaces (eth0 to eth10). */
+	for ($i = 0; $i < 11; $i++) {
 		$_var = "eth{$i}";
-		if (isset($$_var) ) {
-			$iface		= $$_var;
-			$gateway	= array_values(array_flip(preg_grep("/GATEWAY:/", array_flip($iface))));
-			$ipaddr		= array_values(array_flip(preg_grep("/IPADDR:/", array_flip($iface))));
-			$netmask	= array_values(array_flip(preg_grep("/NETMASK/", array_flip($iface))));
-			for ($z=0; $z < count($ipaddr); $z++) { 
+
+		/* Check if the network interface variable is set. */
+		if (isset($$_var)) {
+			$iface = $$_var;
+
+			/* Extract gateway, IP address, and netmask information from the network interface. */
+			$gateway = array_values(array_flip(preg_grep("/GATEWAY:/", array_flip($iface))));
+			$ipaddr = array_values(array_flip(preg_grep("/IPADDR:/", array_flip($iface))));
+			$netmask = array_values(array_flip(preg_grep("/NETMASK/", array_flip($iface))));
+
+			/* Loop through IP addresses and add them to the network array in JavaScript. */
+			for ($z = 0; $z < count($ipaddr); $z++) {
 				echo "network.push({gateway:'{$ipaddr[$z]}', ip:'{$ipaddr[$z]}', netmask:'{$netmask[$z]}'});\n";
 			}
 		}
 	}
 	?>
 
+	/*
+		Check if SweetAlert2 library (swal2) is undefined.
+		If undefined, dynamically load the required stylesheets and scripts.
+	*/
 	if (typeof swal2 === "undefined") {
-		$('head').append( $('<link rel="stylesheet" type="text/css" />').attr('href', '<?autov("/plugins/".$plugin."/assets/sweetalert2.css");?>') );
-		$.getScript( '/plugins/<?=$plugin;?>/assets/sweetalert2.js');
+		/* Append the SweetAlert2 stylesheet to the head of the document. */
+		$('head').append($('<link rel="stylesheet" type="text/css" />').attr('href', '<?autov("/plugins/".$plugin."/assets/sweetalert2.css");?>'));
+
+		/* Load the SweetAlert2 script dynamically. */
+		$.getScript('/plugins/<?=$plugin;?>/assets/sweetalert2.js');
 	}
 
-	/* Bind Arrive events. */
+	/* Bind Arrive events for dynamically added 'tr' elements in the '#usb_devices_list' table. */
 	$("#usb_devices_list").arrive("tr", { onceOnly: false }, function () {
-		tr = $(this);
+		/* Get the current 'tr' element. */
+		const tr = $(this);
 
-		/* Toggle partitions click. */
+		/* Toggle partitions click event. */
 		tr.find("span.toggle-hdd").click(function (e) {
+			/* Disable text selection on the clicked span. */
 			$(this).disableSelection();
-			disk = $(this).attr("hdd");
-			el = $(this);
+
+			/* Get the disk identifier associated with the clicked span. */
+			const disk = $(this).attr("hdd");
+			const el = $(this);
+
+			/* Toggle the visibility of partitions related to the disk. */
 			$(".toggle-" + disk).slideToggle(0);
 		});
 
 		/* Mount button click using event delegation. */
 		$('table').on('click', 'tr button[role$=mount]', function () {
-			var device = $(this).attr('device');
+			/* Get the device and call the disk operation function. */
+			const device = $(this).attr('device');
 			disk_op(this, $(this).attr('role'), device);
 		});
 
 		/* Format button click using event delegation. */
 		$('table').on('click', 'tr button[role$=format]', function () {
-			var device = $(this).attr('device');
+			/* Get the device and call the format disk function. */
+			const device = $(this).attr('device');
 			format_disk(this, $(this).attr('context'), device);
 		});
 	});
