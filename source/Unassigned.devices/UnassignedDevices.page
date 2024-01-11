@@ -55,8 +55,8 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		Function to initiate spinning down a disk.
 		@param dev: The device identifier.
 	*/
-	function spinDownDisk(dev) {
-		document.getElementById('disk_orb-' + dev).className = "fa fa-refresh fa-spin green-orb";
+	function spin_down_disk(dev) {
+		document.getElementById('disk_orb-'+dev).className = "fa fa-refresh fa-spin green-orb";
 
 		/* Make an asynchronous POST request to UDURL to spin down the disk. */
 		$.post(UDURL, {'action': 'spin_down_disk', 'device': dev});
@@ -70,7 +70,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		document.getElementById('disk_orb-'+dev).className = "fa fa-refresh fa-spin grey-orb";
 
 		/* Make an asynchronous POST request to UDURL to spin up the disk. */
-		$.post(UDURL, {'action' : 'spin_up_disk', device:dev});
+		$.post(UDURL, {'action' : 'spin_up_disk', 'device': dev});
 	}
 
 	/* Check if the "formatUnicorn" function is not already defined on String.prototype. */
@@ -167,7 +167,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 			/* Get the UD devices table data and render the web page. */
 			return new Promise(function (resolve) {
-				$.post(UDURL, {'action': 'get_content', display: display}, function (data) {
+				$.post(UDURL, {'action': 'get_content', 'display': display}, function (data) {
 					const toggled = $("tr.toggle-parts").filter(":visible").map(function () {
 						return $(this).attr("name");
 					}).get();
@@ -224,7 +224,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		Poll remote servers and update ping status.
 	*/
 	function pingPoll() {
-		$.post(UDURL, {'action' : 'update_ping'});
+		$.post(UDURL, {'action': 'update_ping'});
 	}
 
 	/*
@@ -232,7 +232,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		@param el: The element triggering the action.
 		@param action: The action to perform.
 	 */
-	function loadHosts(el, action) {
+	function load_hosts(el, action) {
 		/* Find the target element named 'IP' within the parent div of the given element. */
 		const target = $(el).parents("div").find("*[name='IP']");
  
@@ -279,7 +279,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		@param pass: The password.
 		@param action: The action to perform.
 	*/
-	function loadShares(el, ip, user, pass, action) {
+	function load_shares(el, ip, user, pass, action) {
 		/* Store the original content of the element for later restoration. */
 		const oldContent = $(el).html();
  
@@ -333,7 +333,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		Rescan UD devices to update udev and copy config files from the flash to ram to update them.
 	*/
 	function rescan_disks() {
-		$.post(UDURL, {'action' : 'rescan_disks'});
+		$.post(UDURL, {'action': 'rescan_disks'});
 		swalShowResult(true);
 	}
 
@@ -948,7 +948,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	</div>
 
 	<div data-survey-done>
-		$.post(UDURL, {'action' : 'add_root_share', share:surveyData['SHARE'], path:surveyData['PATH']}).done(function(data)
+		$.post(UDURL, {'action': 'add_root_share', 'share': surveyData['SHARE'], 'path': surveyData['PATH']}).done(function(data)
 		{
 			swalShowResult(data == "true");
 		},'json').fail(function(){swalShowResult(false);});
@@ -1072,7 +1072,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	<div data-survey-done data-survey-done-wait="true">
 		$("button[device='"+surveyOption.device+"']").prop('disabled',true);
 		$("button[device='"+surveyOption.device+"']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Formatting');?>");
-		$.post(UDURL, {'action' : 'format_'+surveyOption.type, device:surveyOption.device, fs:surveyData["FS"], pass:surveyData["PASS"], pool_name:surveyData["POOL_NAME"]}, function(data)
+		$.post(UDURL, {'action': 'format_'+surveyOption.type, 'device': surveyOption.device, 'fs': surveyData["FS"], 'pass': surveyData["PASS"], 'pool_name': surveyData["POOL_NAME"]}, function(data)
 		{
 			$("button[device='"+surveyOption.device+"']").prop('disabled',true);
 			$("button[device='"+surveyOption.device+"']").html( data.status ? "<?=_('Formatted');?>" : "<?=_('Format failed');?>" );
@@ -1123,7 +1123,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	<div data-survey-done>
 		$("span[device='"+surveyOption.device+surveyOption.partition+"']").prop('disabled',true);
 		$("span[device='"+surveyOption.device+surveyOption.partition+"']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Removing');?>");
-		$.post(UDURL, {'action' : 'rm_partition', serial:surveyOption.serial, device:surveyOption.device, partition:surveyOption.partition}).done(function(data)
+		$.post(UDURL, {'action': 'rm_partition', 'serial': surveyOption.serial, 'device': surveyOption.device, 'partition': surveyOption.partition}).done(function(data)
 		{
 			swalShowResult(data == "true");
 		},'json').fail(function(){swalShowResult(false);});
@@ -1159,7 +1159,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	<div data-survey-done>
 		$("span[device='"+surveyOption.device+surveyOption.partition+"']").prop('disabled',true);
 		$("span[device='"+surveyOption.device+surveyOption.partition+"']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Removing');?>");
-		$.post(UDURL, {'action' : 'clr_disk', serial:surveyOption.serial, device:surveyOption.device}).done(function(data)
+		$.post(UDURL, {'action': 'clr_disk', 'serial': surveyOption.serial, 'device': surveyOption.device}).done(function(data)
 		{
 			swalShowResult(data == "true");
 		},'json').fail(function(){swalShowResult(false);});
@@ -1191,7 +1191,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		<div data-question-done></div>
 	</div>
 	<div data-survey-done>
-		$.post(UDURL, {'action' : 'remove_iso_config', device:surveyOption.device}).done(function(data)
+		$.post(UDURL, {'action': 'remove_iso_config', 'device': surveyOption.device}).done(function(data)
 		{
 			swalShowResult(data == "true");
 		},'json').fail(function(){swalShowResult(false);});
@@ -1223,7 +1223,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		<div data-question-done></div>
 	</div>
 	<div data-survey-done>
-		$.post(UDURL, {'action' : 'remove_config', serial:surveyOption.serial}).done(function(data)
+		$.post(UDURL, {'action': 'remove_config', 'serial': surveyOption.serial}).done(function(data)
 		{
 			swalShowResult(data == "true");
 		},'json').fail(function(){swalShowResult(false);});
@@ -1255,7 +1255,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		<div data-question-done></div>
 	</div>
 	<div data-survey-done>
-		$.post(UDURL, {'action' : 'remove_samba_config', device:surveyOption.device}).done(function(data)
+		$.post(UDURL, {'action': 'remove_samba_config', 'device': surveyOption.device}).done(function(data)
 		{
 			swalShowResult(data == "true");
 		},'json').fail(function(){swalShowResult(false);});
@@ -1385,7 +1385,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		<div data-question-load></div>
 	</div>
 	<div data-survey-done data-survey-done-wait="true">
-		$.post(UDURL, {'action' : 'chg_mountpoint', serial:surveyOption.serial, partition:surveyOption.partition, device:surveyOption.device, fstype:surveyOption.fstype, mountpoint:surveyData['MOUNTPOINT']}).done(function(data)
+		$.post(UDURL, {'action': 'chg_mountpoint', 'serial': surveyOption.serial, 'partition': surveyOption.partition, 'device': surveyOption.device, 'fstype': surveyOption.fstype, 'mountpoint': surveyData['MOUNTPOINT']}).done(function(data)
 		{
 			swalShowResult(data == "true");
 		},'json').fail(function(){swalShowResult(false);});
@@ -1413,7 +1413,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		</div>
 	</div>
 	<div data-survey-done data-survey-done-wait="true">
-		$.post(UDURL, {'action' : 'chg_samba_mountpoint', device:surveyOption.device,mountpoint:surveyData['MOUNTPOINT']}).done(function(data)
+		$.post(UDURL, {'action': 'chg_samba_mountpoint', 'device': surveyOption.device, 'mountpoint':surveyData['MOUNTPOINT']}).done(function(data)
 		{
 			swalShowResult(data == "true");
 		},'json').fail(function(){swalShowResult(false);});
@@ -1441,7 +1441,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		</div>
 	</div>
 	<div data-survey-done data-survey-done-wait="true">
-		$.post(UDURL, {'action' : 'chg_iso_mountpoint', device:surveyOption.device,mountpoint:surveyData['MOUNTPOINT']}).done(function(data)
+		$.post(UDURL, {'action': 'chg_iso_mountpoint', 'device': surveyOption.device, 'mountpoint': surveyData['MOUNTPOINT']}).done(function(data)
 		{
 			swalShowResult(data == "true");
 		},'json').fail(function(){swalShowResult(false);});
