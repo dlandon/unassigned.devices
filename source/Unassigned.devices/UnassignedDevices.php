@@ -752,7 +752,7 @@ switch ($_POST['action']) {
 
 				/* Remove SMB/NFS remote share table element. */
 				$o_remotes			.= "<td>";
-				$o_remotes			.= $mounted ? "<i class='fa fa-remove'></i>" : "<a class='exec info' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount['name']}\", \"{$compressed_name}\", \"{$protocol}\");'><i class='fa fa-remove'></i><span>"._("Remove Remote SMB")."/"._("NFS Share")."</span></a>";
+				$o_remotes			.= ($mounted || $is_mounting) ? "<i class='fa fa-remove'></i>" : "<a class='exec info' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount['name']}\", \"{$compressed_name}\", \"{$protocol}\");'><i class='fa fa-remove'></i><span>"._("Remove Remote SMB")."/"._("NFS Share")."</span></a>";
 				$o_remotes			.= "</td>";
 
 				/* Empty table element. */
