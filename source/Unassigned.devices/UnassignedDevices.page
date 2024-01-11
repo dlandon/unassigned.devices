@@ -121,47 +121,50 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	}(jQuery));
 
 	function openWindow_fsck(cmd,title, height, width) {
-		const run		= cmd;
-		const top		= (screen.height-height)/2;
-		const left	= (screen.width-width)/2;
-		const options	= 'resizeable=yes,scrollbars=yes,height='+height+',width='+width+',top='+top+',left='+left;
+		var run		= cmd;
+		var top		= (screen.height-height)/2;
+		var left	= (screen.width-width)/2;
+		var options	= 'resizeable=yes,scrollbars=yes,height='+height+',width='+width+',top='+top+',left='+left;
 		window.open(run, 'log', options);
 	}
 
 	function disk_op(el, op, device) {
-		/* If the page is refreshing, ignore this click. */
-		if (! isRefreshing) {
-			const mount_button = $(`button[device='${device}']`);
-			const currentDevice = device;
-			const currentOp = op;
+		var mount_button = $(`button[device='${device}']`);
+		var currentDevice = device;
 
-			/* Clear the existing interval */
-			clearInterval(refreshTimer);
+		/* Clear the existing interval */
+		clearInterval(refreshTimer);
+
+		/* Add spinning icon to mount/unmount button and disable button. */
+		mount_button.prop("disabled", true).html(`<i class='fa fa-spinner fa-spin'></i> ${op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"}`);
+
+		if (isRefreshing) {
+			return;
+		}
+
+		refreshPage().then(() => {
+			var innerMountButton = $(`button[device='${currentDevice}']`);
 
 			/* Add spinning icon to mount/unmount button and disable button. */
-			mount_button.prop("disabled", true).html(`<i class='fa fa-spinner fa-spin'></i> ${currentOp == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"}`);
+			innerMountButton.prop("disabled", true).html(`<i class='fa fa-spinner fa-spin'></i> ${op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"}`);
 
-			refreshPage().then(() => {
-				const innerMountButton = $(`button[device='${currentDevice}']`);
-
-				/* Add spinning icon to mount/unmount button and disable button. */
-				innerMountButton.prop("disabled", true).html(`<i class='fa fa-spinner fa-spin'></i> ${currentOp == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"}`);
-
-				$.post(UDURL, {'action': currentOp, 'device': currentDevice})
-					.done(data => {
-						if (data == "false") {
-							swalShowMountUnmount(currentDevice, currentOp);
-						}
-					})
-					.fail(() => {
-						swalShowResult(false);
-					})
-					.always(() => {
+			$.post(UDURL, {'action': op, 'device': currentDevice})
+				.done(data => {
+					if (data == "false") {
+						swalShowMountUnmount(currentDevice, op);
+					}
+				})
+				.fail(() => {
+					swalShowResult(false);
+				})
+				.always(() => {
+					/* Refresh the page. */
+					refreshPage().then(() => {
 						/* Restart the refresh timer. */
-						refreshTimer = setInterval(refreshPage, REFRESH_INTERVAL);
+						refreshTimer = setInterval(refreshPage, 3000);
 					});
-			});
-		}
+				});
+		});
 	}
 
 	/* Refresh UD page showing any updated information. */
@@ -174,7 +177,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			/* Get the UD devices table data and render the web page. */
 			return new Promise(function (resolve) {
 				$.post(UDURL, {'action': 'get_content', display: display}, function (data) {
-					const toggled = $("tr.toggle-parts").filter(":visible").map(function () {
+					var toggled = $("tr.toggle-parts").filter(":visible").map(function () {
 						return $(this).attr("name");
 					}).get();
 
@@ -203,26 +206,16 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	}
 
 	/* Detect a change in the diskio cookie and refresh the page to update diskio if it changes. */
-	const checkCookie = (function() {
-		/* Get the initial value of the 'diskio' cookie. */
-		let lastCookie = $.cookie('diskio');
-
-		/* Return a function to check for changes in the 'diskio' cookie and refresh the page. */
+	var checkCookie = function() {
+		var lastCookie = $.cookie('diskio');
 		return function() {
-			/* Get the current value of the 'diskio' cookie. */
-			const currentCookie = $.cookie('diskio');
-
-			/* Check if the current cookie value is different from the last one. */
-			if (currentCookie !== lastCookie) {
-				/* Update the last cookie value. */
+			var currentCookie = $.cookie('diskio');
+			if (currentCookie != lastCookie) {
 				lastCookie = currentCookie;
-
-				/* Refresh the page. */
 				refreshPage();
 			}
 		};
-	})();
-
+	}();
 
 	/* Poll remote servers and update ping status. */
 	function pingPoll() {
@@ -696,9 +689,6 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	var isRefreshing	= false;
 	var refreshTimer;
 
-	/* Page refresh rae. */
-	const REFRESH_INTERVAL = 6000;
-
 	/* Reload page if browser back button was used. */
 	window.addEventListener( "pageshow", function ( event )
 	{
@@ -757,18 +747,16 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 	$(function() {
 		/* Set page refresh interval every 3 seconds. */
-		refreshTimer = window.setInterval(refreshPage, REFRESH_INTERVAL);
+		refreshTimer = window.setInterval(refreshPage, 3000);
 
 		/* Set ping poll interval every 15 seconds. */
 		window.setInterval(pingPoll, 15000);
-
-		/* Check for diskio cookie change every 100ms. */
-		window.setInterval(checkCookie, 100);
 
 		/* Add icons to Tab/Title bar. */
 		$('#tab4').bind( {
 			click:function() {
 				$('i.toggle').show('slow');
+				checkCookie();
 			}
 		});
 
