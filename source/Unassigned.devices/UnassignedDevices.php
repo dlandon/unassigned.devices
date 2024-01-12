@@ -1183,6 +1183,12 @@ switch ($_POST['action']) {
 		/* Clear out any residual file locks. */
 		exec("/usr/bin/rm -f /tmp/".$plugin."/*.lock");
 
+		/* Cear the get_ud_status pid file so get_ud_stats does not get stuck. */
+		if (file_exists($pidFile)) {
+			/* Remove PID file when script is done. */
+			@unlink($pidFile);
+		}
+
 		$sf		= $paths['dev_state'];
 		if (is_file($sf)) {
 			$devs = @parse_ini_file($sf, true);
@@ -1230,7 +1236,7 @@ switch ($_POST['action']) {
 			$ip			= $iface['ip'];
 			$netmask 	= $iface['netmask'];
 			if ((new MiscUD)->is_ip($ip) && (new MiscUD)->is_ip($netmask)) {
-				exec("plugins/".$plugin."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 445", $hosts);
+				exec("plugins/".$plugin."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." ".SMB_PORT, $hosts);
 				foreach ($hosts as $host) {
 					/* Resolve name as a local server. */
 					$name	= trim(shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'") ?? "");
@@ -1274,7 +1280,7 @@ switch ($_POST['action']) {
 		@file_put_contents("{$paths['authentication']}", "domain=".$domain."\n", FILE_APPEND);
 
 		/* Update this server status before listing shares. */
-		exec("plugins/".$plugin."/scripts/get_ud_stats is_online ".escapeshellarg($ip));
+		exec("plugins/".$plugin."/scripts/get_ud_stats is_online ".escapeshellarg($ip)." ".SMB_PORT);
 
 		/* Get a list of samba shares on this server. */
 		$list	= shell_exec("/usr/bin/smbclient -t2 -g -L ".escapeshellarg($ip)." --authentication-file=".escapeshellarg($paths['authentication'])." 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}' | sort");
@@ -1296,7 +1302,7 @@ switch ($_POST['action']) {
 			$ip			= $iface['ip'];
 			$netmask 	= $iface['netmask'];
 			if ((new MiscUD)->is_ip($ip) && (new MiscUD)->is_ip($netmask)) {
-				exec("plugins/".$plugin."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." 2049 2>/dev/null | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4", $hosts);
+				exec("plugins/".$plugin."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." ".NFS_PORT." 2>/dev/null | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4", $hosts);
 				foreach ($hosts as $host) {
 					/* Resolve name as a local server. */
 					$name	= trim(shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'") ?? "");
@@ -1331,7 +1337,7 @@ switch ($_POST['action']) {
 		}
 
 		/* Update this server status before listing shares. */
-		exec("plugins/".$plugin."/scripts/get_ud_stats is_online ".escapeshellarg($ip));
+		exec("plugins/".$plugin."/scripts/get_ud_stats is_online ".escapeshellarg($ip)." ".NFS_PORT);
 
 		/* List the shares. */
 		$result		= timed_exec(10, "/usr/sbin/showmount --no-headers -e ".escapeshellarg($ip)." 2>/dev/null | rev | cut -d' ' -f2- | rev | sort");
