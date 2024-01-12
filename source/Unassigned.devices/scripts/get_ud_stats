@@ -10,6 +10,10 @@
  * all copies or substantial portions of the Software.
  */
 
+/* SMB and NFS ports. */
+define('SMB_PORT', '445');
+define('NFS_PORT', '2049');
+
 /* Set the level for debugging. */
 $DEBUG_LEVEL	= (int) ($argv[4] ?? 0);
 
@@ -75,7 +79,7 @@ function timed_exec($timeout, $cmd) {
 }
 
 /* Is the server currently on line. */
-function is_server_online($server, $log = false) {
+function is_server_online($server, $port = SMB_PORT, $log = false) {
 	global $tc, $local_tld, $default_tld;
 
 	/* The scheme here is to do name lookup using 'arp -a server'.  The problem is that the server name might not
@@ -158,7 +162,7 @@ function is_server_online($server, $log = false) {
 		$was_alive		= (isset($ping_status[$server]['online']) && ($ping_status[$server]['online'] == 'yes'));
 
 		/* Ping the server to see if it is currently offline. */
-		$is_alive		= (trim(shell_exec("/bin/ping -c 1 -W 1 ".escapeshellarg($server)." >/dev/null 2>&1; echo $?")) == 0 );
+		$is_alive		= (trim(shell_exec("timeout -s 5 1 bash -c '(echo >/dev/tcp/{$server}/{$port}) &>/dev/null'; echo $?")) == 0 );
 
 		/* Get the number of pings we've checked since it went offline. */
 		$no_pings		= $ping_status[$server]['no_pings'] ?? 0;
@@ -169,7 +173,7 @@ function is_server_online($server, $log = false) {
 			$ip			= trim(timed_exec(5, "/usr/bin/nmblookup ".escapeshellarg($server)." | /bin/head -n1 | /bin/awk '{print $1}' 2>/dev/null"));
 			if ((new MiscUD)->is_ip($ip))
 			{
-				$is_alive = (trim(shell_exec("/bin/ping -c 1 -W 1 ".escapeshellarg($ip)." >/dev/null 2>&1; echo $?")) == 0 );
+				$is_alive		= (trim(shell_exec("timeout -s 5 1 bash -c '(echo >/dev/tcp/{$ip}/{$port}) &>/dev/null'; echo $?")) == 0 );
 			}
 		}
 
@@ -189,7 +193,7 @@ function is_server_online($server, $log = false) {
 		/* When the server first goes offline, log a message. */
 		if ($was_alive != $is_alive) {
 			if (! $is_alive) {
-				unassigned_log("Remote server '".$server."' is not responding to a ping and appears to be offline.");
+				unassigned_log("Remote server '".$server."' port '".$port."'is not open; server apears to be offline.");
 			}
 
 			$changed = true;
@@ -215,17 +219,18 @@ function ping_servers() {
 		foreach ($samba_mounts as $device => $mount) {
 			if (isset($mount['ip'])) {
 				/* Strip off any local tld reference and capitalize the server name. */
-				$srvr[]	= str_replace(".".$default_tld, "", $mount['ip']);
+				$server			= str_replace(".".$default_tld, "", $mount['ip']);
+				$protocol		= $mount['protocol'];
+				$name			= $server.".".$protocol;
+				$port			= ($protocol == "NFS") ? NFS_PORT : SMB_PORT;
+				$srvr[$name]	= array('server' => $server, 'port' => $port);
 			}
 		}
 
-		/* Remove all duplicate servers.  There is no reason to ping the same server more than once. */
-		$srvr	= array_unique($srvr);
-
 		/* Now ping every server to check for it being on-line. */
-		foreach ($srvr as $device => $server) {
+		foreach ($srvr as $device => $ping) {
 			/* This updates the ping_status file with the current state of the remote server. */
-			is_server_online($server);
+			is_server_online($ping['server'], $ping['port']);
 		}
 	}
 }
@@ -275,7 +280,7 @@ switch ($COMMAND) {
 
 	case 'is_online':
 		/* Check that the remote server is online. */
-		is_server_online($argv[2], true);
+		is_server_online($argv[2], ($argv[3] ?? "445"), true);
 		break;
 
 	default:
