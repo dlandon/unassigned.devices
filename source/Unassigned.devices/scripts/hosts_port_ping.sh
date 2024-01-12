@@ -3,7 +3,7 @@
 # credits to https://www.cyberciti.biz/faq/ping-test-a-specific-port-of-machine-ip-address-using-linux-unix/
 # and to https://stackoverflow.com/questions/43876891/given-ip-address-and-netmask-how-can-i-calculate-the-subnet-range-using-bash
 
-ip=$1; mask=$2; port=$3; timeout=5
+ip=$1; mask=$2; port=$3; timeout=1
 ip_regex="^([0-9]{1,3}\.){3}[0-9]{1,3}$"
 zero_regex="^0\.0\.0\.[0-9]+$"
 
