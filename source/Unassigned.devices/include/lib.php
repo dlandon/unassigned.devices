@@ -47,6 +47,10 @@ $paths = [	"smb_unassigned"	=> "/etc/samba/smb-unassigned.conf",
 			"formatting"		=> "/var/state/".$plugin."/formatting_%s.state"
 		];
 
+/* SMB and NFS ports. */
+define('SMB_PORT', '445');
+define('NFS_PORT', '2049');
+
 /* Get the Unraid users. */
 $users			= @parse_ini_file($docroot."/state/users.ini", true);
 $users			= (is_array($users)) ? $users : array();
