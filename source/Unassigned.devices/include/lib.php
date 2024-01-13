@@ -2460,6 +2460,12 @@ function is_samba_read_only($serial) {
 	return ($smb_readonly == "yes");
 }
 
+/* Is the samba mount set to read only? */
+function is_samba_encrypted($serial) {
+	$smb_encrypt	= get_samba_config($serial, "encryption");
+	return ($smb_encrypt == "yes");
+}
+
 /* Get all defined samba and NFS remote shares. */
 function get_samba_mounts() {
 	global $paths, $default_tld, $local_tld;
@@ -2579,6 +2585,7 @@ function get_samba_mounts() {
 				$mount['command']		= get_samba_config($mount['device'],"command");
 				$mount['command_bg']	= get_samba_config($mount['device'],"command_bg");
 				$mount['enable_script']	= $mount['command'] ? get_samba_config($mount['device'],"enable_script") : "false";
+				$mount['encryption']	= is_samba_encrypted($mount['device']);
 				$mount['prog_name']		= basename($mount['command'], ".sh");
 				$mount['user_command']	= get_samba_config($mount['device'],"user_command");
 				$mount['logfile']		= ($mount['prog_name']) ? $paths['device_log'].$mount['prog_name'].".log" : "";
@@ -2646,11 +2653,15 @@ function do_mount_samba($info) {
 				@file_put_contents("$credentials_file", "password=".decrypt_data($info['pass'])."\n", FILE_APPEND);
 				@file_put_contents("$credentials_file", "domain=".$info['domain']."\n", FILE_APPEND);
 
+				/* Are we encrypting this mount? */
+				$encrypt	= $info['encryption'] ? ",seal" : "";
+
 				/* If the smb version is not required, just mount the remote share with no version. */
 				$smb_version = (get_config("Config", "smb_version") == "yes");
 				if (! $smb_version) {
-					$ver	= "";
-					$params	= sprintf(get_mount_params($fs, $dir, $ro), $ver);
+					$ver			= "";
+					$extra_params	=  $ver.$encrypt;
+					$params	= sprintf(get_mount_params($fs, $dir, $ro), $extra_params);
 					$cmd	= "/sbin/mount -t ".escapeshellarg($fs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 
 					unassigned_log("Mount SMB share '".$dev."' using SMB default protocol.");
@@ -2665,7 +2676,8 @@ function do_mount_samba($info) {
 				/* If the remote share didn't mount, try SMB 3.1.1. */
 				if (! is_mounted($dev) && (strpos($o, "Permission denied") === false) && (strpos($o, "Network is unreachable") === false)) {
 					$ver	= ",vers=3.1.1";
-					$params	= sprintf(get_mount_params($fs, $dir, $ro), $ver);
+					$extra_params	=  $ver.$encrypt;
+					$params	= sprintf(get_mount_params($fs, $dir, $ro), $extra_params);
 					$cmd	= "/sbin/mount -t $fs -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 
 					unassigned_log("Mount SMB share '".$dev."' using SMB 3.1.1 protocol.");
