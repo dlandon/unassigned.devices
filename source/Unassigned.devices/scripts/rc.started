@@ -17,10 +17,11 @@ while [ $SECONDS -le 120 ]; do
 	sleep 1.0
 done
 
-# If network check did not time out, mount remote shares
+# If network check did not time out then move on
 if [ $SECONDS -le 120 ]; then
-	logger "Using Gateway '${gateway}' to Ping Remote Shares." -t"unassigned.devices"
-	${DOCROOT}/plugins/unassigned.devices/scripts/rc.unassigned mount autoshares &>/dev/null &
+	logger "Using Gateway '${gateway}' for Remote Shares." -t"unassigned.devices"
 else
-	logger "Cannot 'Auto Mount' Remote Shares.  Network not available!" -t"unassigned.devices"
+	logger "Gateway not responding to a ping!  Mounting Remote Shares anyway." -t"unassigned.devices"
 fi
+
+${DOCROOT}/plugins/unassigned.devices/scripts/rc.unassigned mount autoshares &>/dev/null &
