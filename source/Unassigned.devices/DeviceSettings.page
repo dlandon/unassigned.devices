@@ -46,6 +46,8 @@ $share					= "";
 $share_action			= "";
 $source					= "";
 $zvol					= "";
+$protocol				= "";
+$enable_encrypt			= "";
 
 /* Wait for lock files release to be sure the cfg files are completely updated. */
 $i = 0;
@@ -147,10 +149,12 @@ if (isset($_GET['s'])) {
 	}
 	$background			= (get_samba_config($device, "command_bg") != "false" ) ? "yes" : "no";
 	$enable_script		= (get_samba_config($device, "enable_script") != "false" ) ? "yes" : "no";
+	$protocol			= get_samba_config($device, "protocol");
 	$disable_mount		= (is_samba_disable_mount($device)) ? "checked" : "";
 	$automount			= (is_samba_automount($device)) ? "checked" : "";
 	$share				= (is_samba_share($device)) ? "checked" : "";
 	$read_only			= (is_samba_read_only($device)) ? "checked" : "";
+	$enable_encrypt		= (is_samba_encrypted($device)) ? "yes" : "no";
 	$mount_device		= basename($mount['ip'])."_".basename($mount['path']);
 	$width				= "45%";
 	$automount_action	= "samba_automount";
@@ -184,9 +188,18 @@ if (isset($_GET['s'])) {
 	$disk_setting		= false;
 }
 
-/* If there is not file, then set the default file. */
-if (! $file) {
-	$file	= $default_file;
+/* If there is not file, or the file doesn't exist, then set as no file. */
+if (($file) && (file_exists($file))) {
+	/* Get the device script file text. */
+	$text				= @file_get_contents($file);
+} else {
+	/* There is no device script file. */
+	$file				= "";
+}
+
+/* If there is no device or user script file, then disable the user script field. */
+if ((! $file) || (($file) && (! file_exists($file))) || (! is_dir("/boot/config/plugins/user.scripts/scripts/"))) {
+	$user_disabled = "disabled";
 }
 
 /* If the disk is mounted, disable the device script file field. */
@@ -194,10 +207,6 @@ if (is_mounted($mount_point)) {
 	$script_disabled = "disabled";
 }
 
-/* If there is no device or user script file, then disable the user script field. */
-if ((! file_exists($file)) || (! is_dir("/boot/config/plugins/user.scripts/scripts/"))) {
-	$user_disabled = "disabled";
-}
 
 /* Show that the device is currently mounted. */
 $mount_point		= basename($mount_point);
@@ -205,7 +214,6 @@ if (is_mounted($mount_point)) {
 	$mount_point	.= " (mounted)";
 }
 
-$text			= (file_exists($file)) ? @file_get_contents($file) : "";
 
 $default_text	= <<<EOT
 #!/bin/bash
@@ -374,7 +382,21 @@ _(Volume)_:
 : <input type="text" name="#volume" class="narrow" style="width:2%" maxlength="1" value="<?=$volume;?>" placeholder="0">_(Enter the volume to mount on this apfs partition)_.
 <?endif;?>
 
-<?if (($disk_setting) && ($fstype != "zvol")):?>
+<?if ((isset($_GET['d'])) && ($protocol == "SMB")):?>
+_(Encrypt Connection)_?
+: <select name="#enable_encrypt" size="1" <?=$encrypt;?>>
+  <?=mk_option($enable_encrypt, "no", "_(No)_");?>
+  <?=mk_option($enable_encrypt, "yes", "_(Yes)_");?>
+  </select>
+<?endif;?>
+
+<?if ((isset($_GET['d'])) && ($protocol == "SMB")):?>
+:ud_encrypt_connection_plug:
+> Set to **Yes** to encrypt the CIFS mount.  This is best for off-site mounts because of the overhead of encryption.
+:end
+<?endif;?>
+
+<?if ((($disk_setting) && ($fstype != "zvol")) || ((isset($_GET['d'])) && ($protocol == "SMB"))):?>
 <input type="submit" value="_(Apply)_">
 <?endif;?>
 <input type="button" value="_(Done)_" onclick="done()">
@@ -417,7 +439,7 @@ _(Run Device Script File in the background)_?
 
 <? if (! isset($_GET['i'])):?>
 _(User Script)_:
-<?if (! $script_disabled):?>
+<?if (! $user_disabled):?>
 : <input type="text" title='_(Enter the User Script File Name)_.' name="#user_file" style="width:40%;" onclick="openFileBrowser(this, '/boot/config/plugins/user.scripts/scripts', '', false);" autocomplete="off" placeholder="_(Enter the User Script that will be using this device)_" value="<?=$user_file;?>">
 <?else:?>
 : <input type="text" title='_(Enter the User Script File Name)_.' name="#user_file" style="width:40%;" value="<?=$user_file;?>" readonly>
@@ -548,6 +570,9 @@ _(User Script)_:
 	<?else:?>
 		<?if (isset($_GET['d'])):?>
 			$.post(UDURL,{action:"set_samba_command",device:"<?=$device;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()}).done(function(){location.reload();});
+			<?if ($protocol == "SMB"):?>
+				$.post(UDURL,{action:"samba_enable_encryption",device:"<?=$ud_device;?>",status:$("select[name='#enable_encrypt']").val()}).done(function(){location.reload();});
+			<?endif;?>
 		<?endif;?>
 		<?if (isset($_GET['i'])):?>
 			$.post(UDURL,{action:"set_iso_command",device:"<?=$device;?>",command:$("input[name='#file']").val()}).done(function(){location.reload();});
@@ -605,19 +630,15 @@ _(User Script)_:
 		form.dispatchEvent(event);
 	}
 
-	function load(el) {
-		$.get($( el ).val(),function(data){ $( 'textarea' ).val(data);});
-	}
-
 	function openFileBrowser(el, root, filter = true, on_folders = true, on_files = true) {
-		if (! filter && ! on_files) {
+		if (! filter && ! on_files)	{
 			filter = 'HIDE_FILES_FILTER';
 		}
-		p = $(el);
+		var p = $(el);
 
 		/* Skip if fileTree is already open. */
-		if (! p.next().hasClass('fileTree') ) {
-			/* Create a random id. */
+		if (! p.next().hasClass('fileTree') ){
+			/* create a random id */
 			var r = Math.floor((Math.random()*1000)+1);
 
 			/* Add a new span and load fileTree. */
@@ -625,25 +646,32 @@ _(User Script)_:
 			var ft = $('#fileTree'+r);
 			ft.fileTree({
 					root: root,
-					top: root,
+					top:  root,
 					filter: filter,
 					allowBrowsing : true
 				},
-				function(file){if(on_files){p.val(file);$(ft).slideUp('fast',function (){$(ft).remove();});if(filter){load(p)};}},
-				function(folder){if(on_folders){p.val(folder);$(ft).slideUp('fast',function (){$(ft).remove();});}}
+				function(file){if(on_files){p.val(file);ft.slideUp('fast',function (){ft.remove();});};p.trigger('change');},
+				function(folder){if(on_folders){p.val(folder);$(ft).slideUp('fast',function (){$(ft).remove();});};p.trigger('change');}
 			);
 
-			/* Format fileTree according to parent position, height and width. */
-			ft.css({'left':p.position().left,'top':( p.position().top + p.outerHeight() ),'width':(p.width()+2) });
+			/* Format fileTree according to parent position, height and width */
+			ft.css({'left':p.position().left,'top':( p.position().top + p.outerHeight() ),'width':(p.width()) });
 
-			/* Close if click elsewhere. */
-			$(document).mouseup(function(e){if (! ft.is(e.target) && ft.has(e.target).length === 0){$(ft).slideUp('fast',function (){$(ft).remove();});}});
+			/* close if click elsewhere. */
+			$(document).mouseup(function(e){if (! ft.is(e.target) && ft.has(e.target).length === 0){ft.slideUp('fast',function (){$(ft).remove();});}});
 
-			/* Open fileTree. */
+			/* close if parent changed. */
+			p.bind('keydown',function(){ft.slideUp('fast',function (){$(ft).remove();});});
+
+			/* Open fileTree */
 			ft.slideDown('fast');
 		} else {
 			return null;
 		}
+	} 
+
+	function load(el) {
+		$.get($( el ).val(),function(data){ $( 'textarea' ).val(data);});
 	}
 
 	function rmfile() {
