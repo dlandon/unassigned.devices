@@ -1469,13 +1469,30 @@ switch ($_POST['action']) {
 		echo json_encode(array( 'result' => $result ));
 		break;
 
+	case 'samba_enable_encryption':
+		/* Set samba mount encryption configuration setting. */
+		$device		= urldecode($_POST['device']);
+		$status		= urldecode($_POST['status']);
+		$result		= set_samba_config($device, "encryption", $status);
+		echo json_encode(array( 'result' => $result ));
+		break;
+
 	case 'set_samba_command':
 		/* Set samba share user command configuration setting. */
 		$device		= urldecode($_POST['device']);
 		$cmd		= urldecode($_POST['command']);
-		set_samba_config($device, "user_command", urldecode($_POST['user_command']));
-		$result		= set_samba_config($device, "command", $cmd);
-		echo json_encode(array( 'result' => $result ));
+		$user_cmd	= urldecode($_POST['user_command']);
+		$file_path = pathinfo($cmd);
+		if ((isset($file_path['dirname'])) && ($file_path['dirname'] == "/boot/config/plugins/unassigned.devices") && ($file_path['filename'])) {
+			set_samba_config($device, "user_command", urldecode($_POST['user_command']));
+			$result		= set_samba_config($device, "command", $cmd);
+			echo json_encode(array( 'result' => $result ));
+		} else {
+			if ($cmd) {
+				unassigned_log("Warning: Cannot use '{$cmd}' as a device script file name.");
+			}
+			echo json_encode(array( 'result' => false ));
+		}
 		break;
 
 	/* ISO FILE SHARES */
@@ -1538,8 +1555,16 @@ switch ($_POST['action']) {
 		/* Set the iso command file configuration setting. */
 		$device		= urldecode($_POST['device']);
 		$cmd		= urldecode($_POST['command']);
+		$file_path = pathinfo($cmd);
+		if ((isset($file_path['dirname'])) && ($file_path['dirname'] == "/boot/config/plugins/unassigned.devices") && ($file_path['filename'])) {
 		$result		= set_iso_config($device, "command", $cmd);
-		echo json_encode(array( 'result' => $result ));
+			echo json_encode(array( 'result' => $result ));
+		} else {
+			if ($cmd) {
+				unassigned_log("Warning: Cannot use '{$cmd}' as a device script file name.");
+			}
+			echo json_encode(array( 'result' => false ));
+		}
 		break;
 
 	/* ROOT SHARES */
