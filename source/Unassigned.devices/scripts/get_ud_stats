@@ -79,7 +79,7 @@ function timed_exec($timeout, $cmd) {
 }
 
 /* Is the server currently on line. */
-function is_server_online($server, $port = SMB_PORT, $log = false) {
+function is_server_online($server, $protocol, $log = false) {
 	global $tc, $local_tld, $default_tld;
 
 	/* The scheme here is to do name lookup using 'arp -a server'.  The problem is that the server name might not
@@ -94,6 +94,10 @@ function is_server_online($server, $port = SMB_PORT, $log = false) {
 		- Lookups seem to be much faster.
 	*/
 
+	/* Determine the port number from the protocol. */
+	$port		= ($protocol == "NFS") ? NFS_PORT : SMB_PORT;
+
+	/* Set as ping status has not changed. */
 	$changed	= false;
 
 	/* Keep the original server with TLD reference in case the server is not on the LAN. */
@@ -193,14 +197,15 @@ function is_server_online($server, $port = SMB_PORT, $log = false) {
 		/* When the server first goes offline, log a message. */
 		if ($was_alive != $is_alive) {
 			if (! $is_alive) {
-				unassigned_log("Remote server '".$server."' port '".$port."'is not open; server apears to be offline.");
+				unassigned_log("Remote server '".$server."' port '".$port."' is not open; server apears to be offline.");
 			}
 
 			$changed = true;
 		}
 
 		/* Update the server status file. */
-		$ping_status[$server] = array('no_pings' => $no_pings, 'online' => $is_alive ? 'yes' : 'no', 'changed' => $changed ? 'yes' : 'no');
+		$name	= $server.".".$protocol;
+		$ping_status[$name] = array('no_pings' => $no_pings, 'online' => $is_alive ? 'yes' : 'no', 'changed' => $changed ? 'yes' : 'no');
 		(new MiscUD)->save_json($tc, $ping_status);
 	}
 
@@ -222,15 +227,14 @@ function ping_servers() {
 				$server			= str_replace(".".$default_tld, "", $mount['ip']);
 				$protocol		= $mount['protocol'];
 				$name			= $server.".".$protocol;
-				$port			= ($protocol == "NFS") ? NFS_PORT : SMB_PORT;
-				$srvr[$name]	= array('server' => $server, 'port' => $port);
+				$srvr[$name]	= array('server' => $server, 'protocol' => $protocol);
 			}
 		}
 
 		/* Now ping every server to check for it being on-line. */
 		foreach ($srvr as $device => $ping) {
 			/* This updates the ping_status file with the current state of the remote server. */
-			is_server_online($ping['server'], $ping['port']);
+			is_server_online($ping['server'], $ping['protocol']);
 		}
 	}
 }
@@ -280,7 +284,7 @@ switch ($COMMAND) {
 
 	case 'is_online':
 		/* Check that the remote server is online. */
-		is_server_online($argv[2], ($argv[3] ?? "445"), true);
+		is_server_online($argv[2], ($argv[3] ?? "SMB"), true);
 		break;
 
 	default:

@@ -663,7 +663,7 @@ function is_disk_spin($ud_dev, $running) {
 }
 
 /* Check to see if a remote server is online by chccking the ping status. */
-function is_samba_server_online($ip) {
+function is_samba_server_online($ip, $protocol) {
 	global $paths, $default_tld;
 
 	$is_alive		= false;
@@ -674,8 +674,9 @@ function is_samba_server_online($ip) {
 	/* Get the updated ping status. */
 	$tc				= $paths['ping_status'];
 	$ping_status	= (new MiscUD)->get_json($tc);
-	if (isset($ping_status[$server])) {
-		$is_alive = ($ping_status[$server]['online'] == "yes");
+	$name			= $server.".".$protocol;
+	if (isset($ping_status[$name])) {
+		$is_alive = ($ping_status[$name]['online'] == "yes");
 	}
 
 	return $is_alive;
@@ -1892,7 +1893,7 @@ function do_mount_root($info) {
 	/* A rootshare device is treated similar to a CIFS mount. */
 	if ($var['shareDisk'] != "yes") {
 		/* Be sure the server online status is current. */
-		$is_alive = is_samba_server_online($info['ip']);
+		$is_alive = is_samba_server_online($info['ip'], $info['protocol']);
 
 		/* If the root server is not online, run the ping update and see if ping status needs to be refreshed. */
 		if (! $is_alive) {
@@ -1900,7 +1901,7 @@ function do_mount_root($info) {
 			exec("plugins/unassigned.devices/scripts/get_ud_stats ping");
 
 			/* See if the root share server is online now. */
-			$is_alive = is_samba_server_online($info['ip']);
+			$is_alive = is_samba_server_online($info['ip'], $info['protocol']);
 		}
 	
 		/* If server shows as being on-line, we can mount the rootshare. */
@@ -2504,7 +2505,7 @@ function get_samba_mounts() {
 				}
 
 				/* Is the remote server on line? */
-				$mount['is_alive']		= is_samba_server_online($mount['ip']);
+				$mount['is_alive']		= is_samba_server_online($mount['ip'], $mount['protocol']);
 
 				/* Is read only enabled? */
 				$mount['read_only']		= is_samba_read_only($mount['name']);
@@ -2564,7 +2565,7 @@ function get_samba_mounts() {
 				$mount['invalid']		= (($safe_device != $device) || ($safe_device != $check_device));
 
 				/* Get the disk size, used, and free stats. */
-				$stats					= get_device_stats($mount['mountpoint'], $mount['mounted'], $mount['is_alive']);
+				$stats					= get_device_stats($mount['mountpoint'], ($mount['mounted'] && $mount['is_alive']), $mount['is_alive']);
 				$mount['size']			= $stats[0]*1024;
 				$mount['used']			= $stats[1]*1024;
 				$mount['avail']			= $stats[2]*1024;
@@ -2598,7 +2599,7 @@ function do_mount_samba($info) {
 	$rc				= false;
 
 	/* Be sure the server online status is current. */
-	$is_alive = is_samba_server_online($info['ip']);
+	$is_alive = is_samba_server_online($info['ip'], $info['protocol']);
 
 	/* If the remote server is not online, run the ping update and see if ping status needs to be refreshed. */
 	if (! $is_alive) {
@@ -2606,7 +2607,7 @@ function do_mount_samba($info) {
 		exec("plugins/unassigned.devices/scripts/get_ud_stats ping");
 
 		/* See if the server is online now. */
-		$is_alive = is_samba_server_online($info['ip']);
+		$is_alive = is_samba_server_online($info['ip'], $info['protocol']);
 	}
 	
 	if ($is_alive) {
