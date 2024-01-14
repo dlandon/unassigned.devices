@@ -486,7 +486,7 @@ _(User Script)_:
 </form>
 
 <script>
-	var UDURL		= '/plugins/<?=$plugin;?>/UnassignedDevices.php';
+	const UDURL		= '/plugins/<?=$plugin;?>/UnassignedDevices.php';
 
 <? if (! $mounted):?>
 	$('.passthrough-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Passed Through');?>", off_label: "<?=_('Passed Through');?>", checked:"<?=$pass_through;?>" });
@@ -582,154 +582,253 @@ _(User Script)_:
 	<?endif;?>
 	});
 
+	/*
+		Function to set default values for form elements.
+		Parameters:
+			- form: The form element
+	*/
 	function setDefault(form) {
 		/* Set the default values. */
-		form.elements['text'].value		= <?=json_encode($default_text);?>;
-		form.elements['#file'].value	= <?=json_encode($default_file);?>;
-
-		/* Get the input element by its ID. */
-		var inputElement = document.getElementById('save-button');
+		form.elements['text'].value = <?= json_encode($default_text); ?>;
+		form.elements['#file'].value = <?= json_encode($default_file); ?>;
 
 		/* Enable the 'Save' button. */
-		inputElement.disabled = false;
-
-		/* Get the input element by its ID. */
-		var inputElement = document.getElementById('clear-button');
+		document.getElementById('save-button').disabled = false;
 
 		/* Enable the 'Clear' button. */
-		inputElement.disabled = false;
-
-		/* Create a new 'change' event. */
-		var event = new Event('change');
+		document.getElementById('clear-button').disabled = false;
 
 		/* Trigger a change event. */
-		form.dispatchEvent(event);
+		form.dispatchEvent(new Event('change'));
 	}
 
+	/*
+		Function to clear default values for form elements.
+		Parameters:
+			- form: The form element
+	*/
 	function clearDefault(form) {
-		/* Set the default values. */
-		form.elements['text'].value		= "";
-		form.elements['#file'].value	= "";
-
-		/* Get the input element by its ID. */
-		var inputElement = document.getElementById('save-button');
+		/* Set the default values to empty. */
+		form.elements['text'].value = "";
+		form.elements['#file'].value = "";
 
 		/* Disable the 'Save' button. */
-		inputElement.disabled = true;
-
-		/* Get the input element by its ID. */
-		var inputElement = document.getElementById('clear-button');
+		document.getElementById('save-button').disabled = true;
 
 		/* Disable the 'Clear' button. */
-		inputElement.disabled = true;
-
-		/* Create a new 'change' event. */
-		var event = new Event('change');
+		document.getElementById('clear-button').disabled = true;
 
 		/* Trigger a change event. */
-		form.dispatchEvent(event);
+		form.dispatchEvent(new Event('change'));
 	}
 
+	/*
+		Function to open a file browser for device script files.
+		Parameters:
+			- el: Element selector
+			- root: Root directory
+			- filter: Optional filter flag
+			- on_folders: Flag to handle folders
+			- on_files: Flag to handle files
+	*/
 	function openFileBrowserDevice(el, root, filter = true, on_folders = true, on_files = true) {
-		if (! filter && ! on_files) {
+		if (!filter && !on_files) {
+			/* Set a default filter if none specified */
 			filter = 'HIDE_FILES_FILTER';
 		}
-		p = $(el);
+		const p = $(el);
 
 		/* Skip if fileTree is already open. */
-		if (! p.next().hasClass('fileTree') ) {
+		if (!p.next().hasClass('fileTree')) {
 			/* Create a random id. */
-			var r = Math.floor((Math.random()*1000)+1);
+			const r = Math.floor((Math.random() * 1000) + 1);
 
 			/* Add a new span and load fileTree. */
-			p.after("<span id='fileTree"+r+"' class='textarea fileTree'></span>");
-			var ft = $('#fileTree'+r);
-			ft.fileTree({
+			p.after("<span id='fileTree" + r + "' class='textarea fileTree'></span>");
+			const ft = $('#fileTree' + r);
+
+			ft.fileTree(
+				{
 					root: root,
 					top: root,
 					filter: filter,
-					allowBrowsing : true
+					allowBrowsing: true
 				},
-				function(file){if(on_files){p.val(file);$(ft).slideUp('fast',function (){$(ft).remove();});if(filter){load(p)};}},
-				function(folder){if(on_folders){p.val(folder);$(ft).slideUp('fast',function (){$(ft).remove();});}}
+				function (file) {
+					if (on_files) {
+						p.val(file);
+						$(ft).slideUp('fast', function () {
+							$(ft).remove();
+						});
+						if (filter) {
+							load(p);
+						}
+					}
+				},
+				function (folder) {
+					if (on_folders) {
+						p.val(folder);
+						$(ft).slideUp('fast', function () {
+							$(ft).remove();
+						});
+					}
+				}
 			);
 
-			/* Format fileTree according to parent position, height and width. */
-			ft.css({'left':p.position().left,'top':( p.position().top + p.outerHeight() ),'width':(p.width()+2) });
+			/* Format fileTree according to parent position, height, and width. */
+			ft.css({
+				'left': p.position().left,
+				'top': (p.position().top + p.outerHeight()),
+				'width': (p.width() + 2)
+			});
 
 			/* Close if click elsewhere. */
-			$(document).mouseup(function(e){if (! ft.is(e.target) && ft.has(e.target).length === 0){$(ft).slideUp('fast',function (){$(ft).remove();});}});
+			$(document).mouseup(function (e) {
+				if (!ft.is(e.target) && ft.has(e.target).length === 0) {
+					$(ft).slideUp('fast', function () {
+						$(ft).remove();
+					});
+				}
+			});
 
 			/* Open fileTree. */
 			ft.slideDown('fast');
 
 			setDefault(el.form);
 		} else {
+			/* FileTree already open */
 			return null;
 		}
 	}
 
+	/*
+		Function to open a file browser for User Script file.
+		Parameters:
+			- el: Element selector
+			- root: Root directory
+			- filter: Optional filter flag
+			- on_folders: Flag to handle folders
+			- on_files: Flag to handle files
+	*/
 	function openFileBrowserUser(el, root, filter = true, on_folders = true, on_files = true) {
-		if (! filter && ! on_files)	{
+		if (!filter && !on_files) {
+			/* Set a default filter if none specified */
 			filter = 'HIDE_FILES_FILTER';
 		}
-		var p = $(el);
+
+		const p = $(el);
 
 		/* Skip if fileTree is already open. */
-		if (! p.next().hasClass('fileTree') ){
-			/* create a random id */
-			var r = Math.floor((Math.random()*1000)+1);
+		if (!p.next().hasClass('fileTree')) {
+			/* Create a random id */
+			const r = Math.floor((Math.random() * 1000) + 1);
 
 			/* Add a new span and load fileTree. */
-			p.after("<span id='fileTree"+r+"' class='textarea fileTree'></span>");
-			var ft = $('#fileTree'+r);
-			ft.fileTree({
+			p.after("<span id='fileTree" + r + "' class='textarea fileTree'></span>");
+			const ft = $('#fileTree' + r);
+
+			ft.fileTree(
+				{
 					root: root,
-					top:  root,
+					top: root,
 					filter: filter,
-					allowBrowsing : true
+					allowBrowsing: true
 				},
-				function(file){if(on_files){p.val(file);ft.slideUp('fast',function (){ft.remove();});};p.trigger('change');},
-				function(folder){if(on_folders){p.val(folder);$(ft).slideUp('fast',function (){$(ft).remove();});};p.trigger('change');}
+				function (file) {
+					if (on_files) {
+						p.val(file);
+						ft.slideUp('fast', function () {
+							ft.remove();
+						});
+					}
+					p.trigger('change');
+				},
+				function (folder) {
+					if (on_folders) {
+						p.val(folder);
+						$(ft).slideUp('fast', function () {
+							$(ft).remove();
+						});
+					}
+					p.trigger('change');
+				}
 			);
 
-			/* Format fileTree according to parent position, height and width */
-			ft.css({'left':p.position().left,'top':( p.position().top + p.outerHeight() ),'width':(p.width()) });
+			/* Format fileTree according to parent position, height, and width */
+			ft.css({
+				'left': p.position().left,
+				'top': (p.position().top + p.outerHeight()),
+				'width': (p.width())
+			});
 
-			/* close if click elsewhere. */
-			$(document).mouseup(function(e){if (! ft.is(e.target) && ft.has(e.target).length === 0){ft.slideUp('fast',function (){$(ft).remove();});}});
+			/* Close if click elsewhere. */
+			$(document).mouseup(function (e) {
+				if (!ft.is(e.target) && ft.has(e.target).length === 0) {
+					ft.slideUp('fast', function () {
+						$(ft).remove();
+					});
+				}
+			});
 
-			/* close if parent changed. */
-			p.bind('keydown',function(){ft.slideUp('fast',function (){$(ft).remove();});});
+			/* Close if parent changed. */
+			p.bind('keydown', function () {
+				ft.slideUp('fast', function () {
+					$(ft).remove();
+				});
+			});
 
 			/* Open fileTree */
 			ft.slideDown('fast');
 		} else {
+			/* FileTree already open */
 			return null;
 		}
-	} 
-
-	function load(el) {
-		$.get($( el ).val(),function(data){ $( 'textarea' ).val(data);});
 	}
 
+	/* Remove a device script file. */
 	function rmfile() {
-		$.post("/update.php",{"#command":"/plugins/unassigned.devices/scripts/rm","#arg[1]":$("input[name='#file']").val()}).done(function(){location.reload();});
+		$.post("/update.php", {
+			"#command": "/plugins/unassigned.devices/scripts/rm",
+			"#arg[1]": $("input[name='#file']").val()
+		}).done(function () {
+			location.reload();
+		});
 	}
 
+	/* Detach a disk device. */
 	function detach_disk(device) {
-		$("button[id='detach']").prop("disabled", "true");
+		$("button[id='detach']").prop("disabled", true);
 		$("button[id='detach']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Detaching');?>");
-		$.post("/update.php",{"#command":"/plugins/unassigned.devices/scripts/rc.unassigned","#arg[1]":"detach","#arg[2]":device}).done(function(){location.reload();});
+		$.post("/update.php", {
+			"#command": "/plugins/unassigned.devices/scripts/rc.unassigned",
+			"#arg[1]": "detach",
+			"#arg[2]": device
+		}).done(function () {
+			location.reload();
+		});
 	}
 
+	/* Attach a disk device. */
 	function attach_disk(serial) {
-		$("button[id='attach']").prop("disabled", "true");
+		$("button[id='attach']").prop("disabled", true);
 		$("button[id='attach']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Attaching');?>");
-		$.post("/update.php",{"#command":"/plugins/unassigned.devices/scripts/rc.unassigned","#arg[1]":"attach","#arg[2]":serial}).done(function(){location.reload();});
+		$.post("/update.php", {
+			"#command": "/plugins/unassigned.devices/scripts/rc.unassigned",
+			"#arg[1]": "attach",
+			"#arg[2]": serial
+		}).done(function () {
+			location.reload();
+		});
 	}
 
+	/* Abort a running device script. */
 	function abort_script(script) {
-		$.post("/update.php",{"#command":"/plugins/unassigned.devices/scripts/rc.unassigned","#arg[1]":"abort","#arg[2]":script}).done(function(){location.reload();});
+		$.post("/update.php", {
+			"#command": "/plugins/unassigned.devices/scripts/rc.unassigned",
+			"#arg[1]": "abort",
+			"#arg[2]": script
+		}).done(function () {
+			location.reload();
+		});
 	}
 </script>

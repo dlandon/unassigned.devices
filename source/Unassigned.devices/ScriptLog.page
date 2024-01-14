@@ -41,21 +41,38 @@ echo `{$cmd}`;
 echo "</pre>";
 ?>
 <script>
-function cleanUp() {
-	if (document.hasFocus()) {
-		$('input[value="Downloading..."]').val('Download').prop('disabled',false);
-		$.post('/webGui/include/Download.php',{cmd:'delete',file:'<?=$zip;?>'});
-	} else {
-		setTimeout(cleanUp,4000);
+	/* Function to clean up after downloading */
+	function cleanUp() {
+		/* Check if the document has focus */
+		if (document.hasFocus()) {
+			/* Get the download input element */
+			const downloadInput = $("input[id='download']");
+        
+			/* Set the button text and enable it */
+			downloadInput.val('Download').prop('disabled', false);
+        
+			/* Send a POST request to delete the downloaded file */
+			$.post('/webGui/include/Download.php', { cmd: 'delete', file: '<?=$zip;?>' });
+		} else {
+			/* If the document doesn't have focus, retry cleanup after 4000 milliseconds (4 seconds) */
+			setTimeout(cleanUp, 4000);
+		}
 	}
-}	
-function getlog() {
-	$('input[value="Download"]').val('Downloading...').prop('disabled', true);
-	$.post('/webGui/include/Download.php', {cmd:'save', source:'<?=$file;?>', file:'<?=$zip;?>'}, function(zip) {
-		location = zip;
-		setTimeout(cleanUp,4000);
-	});
-}
+
+	/* Function to initiate the download process */
+	function getlog() {
+		/* Get the download input element */
+		const downloadInput = $("input[id='download']");
+    
+		/* Set the button text to indicate downloading and disable it */
+		downloadInput.val('Downloading...').prop('disabled', true);
+    
+		/* Send a POST request to save the file, then initiate cleanup after 4000 milliseconds (4 seconds) */
+		$.post('/webGui/include/Download.php', { cmd: 'save', source: '<?=$file;?>', file: '<?=$zip;?>' }, function (zip) {
+			location = zip; /* Redirect to the downloaded file */
+			setTimeout(cleanUp, 4000); /* Initiate cleanup after 4 seconds */
+		});
+	}
 <?if ($display['resize']):?>
 $(function() {
 	$('pre.up').css('height',Math.max(window.innerHeight-280,370)).show();
@@ -64,7 +81,7 @@ $(function() {
 </script>
 
 <?if (is_file($file)):?>
-	<input type="button" value=_(Download)_ onclick="getlog()">
+	<input type="button" id='download' value=_(Download)_ onclick="getlog()">
 <?else:?>
 	<input type="button" value=_(Download)_ disabled>
 <?endif;?>
