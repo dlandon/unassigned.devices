@@ -38,105 +38,151 @@ if (version_compare($version['version'], '6.12.0-beta5', '>')) {
 <link type="text/css" rel="stylesheet" href="<?autov("/plugins/".$preclear_plugin."/assets/preclear.css")?>">
 
 <script type="text/javascript">
-
-	function cleanUp()
-	{
+	/* Function to clean up after downloading */
+	function cleanUp() {
 		if (document.hasFocus()) {
-			$('input[value="Downloading..."]').val('Download').prop('disabled',false);
-			$.post('/webGui/include/Download.php',{cmd:'delete',file:'<?=$zipFile;?>'});
+			/* If the document has focus, reset the button text and enable it */
+			$('input[value="Downloading..."]').val('Download').prop('disabled', false);
+        
+			/* Send a POST request to delete the downloaded file */
+			$.post('/webGui/include/Download.php', { cmd: 'delete', file: '<?=$zipFile;?>' });
 		} else {
-			setTimeout(cleanUp,4000);
+			/* If the document doesn't have focus, retry cleanup after 4000 milliseconds (4 seconds) */
+			setTimeout(cleanUp, 4000);
 		}
 	}
 
-	function getlog()
-	{
-		$('input[value="Download"]').val('Downloading...').prop('disabled',true);
-		$.post('/plugins/<?=$preclear_plugin;?>/Preclear.php',{action:'download',file:'<?=$zipFile;?>'},function(zip)
-		{
+	/* Function to initiate the download process */
+	function getlog() {
+		/* Set the button text to indicate downloading and disable it */
+		$('input[value="Download"]').val('Downloading...').prop('disabled', true);
+    
+		/* Send a POST request to trigger the download process */
+		$.post('/plugins/<?=$preclear_plugin;?>/Preclear.php', { action: 'download', file: '<?=$zipFile;?>' }, function (zip) {
+			/* Redirect to the downloaded file */
 			location = zip;
-			setTimeout(cleanUp,4000);
+        
+			/* Initiate cleanup after 4000 milliseconds (4 seconds) */
+			setTimeout(cleanUp, 4000);
 		});
 	}
 
-	function addTooltip(target)
-	{
-		$(target).tooltipster({delay:100, trigger:'custom', triggerOpen:{mouseenter: true}, triggerClose:{click:false,scroll:true,mouseleave:true}});
+	/* Function to add a tooltip using Tooltipster */
+	function addTooltip(target) {
+		$(target).tooltipster({
+			delay: 100,
+			trigger: 'custom',
+			triggerOpen: { mouseenter: true },
+			triggerClose: { click: false, scroll: true, mouseleave: true }
+		});
 	}
 
-	function preclearFixHelp()
-	{ 
-		$.each($("table.preclear"), function(i,v)
-		{
-			$(this).find('tr:first,dt:last').css("cursor","default").unbind();
-			help = $(this).next('.inline_help').attr("id");
-			$.each($(this).find('tr:first > td,dt:last > dd').not( ":first" ), function(i,v){
-				$(this).css("cursor","help").bind("click", function(){$("#"+help).toggle('slow');})
+	/* Function to modify the styling and behavior of preclear-related help elements */
+	function preclearFixHelp() {
+		$.each($("table.preclear"), function (i, v) {
+			/* Disable cursor and unbind events for the first row and last dt element */
+			$(this).find('tr:first, dt:last').css("cursor", "default").unbind();
+
+			/* Get the ID of the inline help element */
+			const help = $(this).next('.inline_help').attr("id");
+
+			/* Bind click event to toggle visibility of inline help when clicking on certain cells */
+			$.each($(this).find('tr:first > td, dt:last > dd').not(":first"), function (i, v) {
+				$(this).css("cursor", "help").bind("click", function () {
+					$("#" + help).toggle('slow');
+				});
 			});
 		});
 	}
 
+	/* Set the content of div.spinner to the value of unraid_logo on page load */
 	$(function() {
 		$('div.spinner').html(unraid_logo);
 	});
 
+	/* Function to get a tab or title element by name */
 	function get_tab_title_by_name(name) {
-		var tab		= $("input[name$=tabs] + label").filter(function(){return $(this).text() === name;}).prev();
-		var title	= $("<?=$title_div;?> > span.left").filter(function(){return $(this).text() === name;}).parent();
+		/* Find the tab element by filtering input names and labels */
+		const tab = $("input[name$=tabs] + label").filter(function() {
+			return $(this).text() === name;
+		}).prev();
+
+		/* Find the title element by filtering the specified title_div */
+		const title = $("<?=$title_div;?> > span.left").filter(function() {
+			return $(this).text() === name;
+		}).parent();
+
+		/* Determine and return the appropriate element or default to the document */
+		let result;
+
 		if (tab.length) {
-			return tab
+			result = tab;
 		} else if (title.length) {
-			return title
+			result = title;
 		} else {
-			return $(document)
+			result = $(document);
 		}
+
+		return result;
 	}
 
-	function addButtonTab(Button, Name, autoHide = true, Append = true)
-	{
-		var Target		= get_tab_title_by_name(Name);
-		var elementId = 'event-' + new Date().getTime() * Math.floor(Math.random()*100000);
-		var element	 = $("<span id='"+elementId+"' class='status' style='padding-left:5px;'>"+Button+"</span>");
-	
-		if (element.find("input[type='button']").length ) {
+	/* Function to add a button to a tab */
+	function addButtonTab(Button, Name, autoHide = true, Append = true) {
+		/* Get the target tab or title element by name */
+		const Target = get_tab_title_by_name(Name);
+    
+		/* Generate a unique ID for the new element */
+		const elementId = 'event-' + new Date().getTime() * Math.floor(Math.random() * 100000);
+
+		/* Create the new element with the provided button and styling */
+		const element = $("<span id='" + elementId + "' class='status' style='padding-left:5px;'>" + Button + "</span>");
+
+		/* Adjust styling for buttons inside the element */
+		if (element.find("input[type='button']").length) {
 			element.addClass("vhshift");
-			element.find("input[type='button']").prop("style","padding-top: 5px; padding-bottom: 5px; margin-top:-3px; margin-bottom:0;");
+			element.find("input[type='button']").prop("style", "padding-top: 5px; padding-bottom: 5px; margin-top:-3px; margin-bottom:0;");
 		}
+
+		/* Check the type of the target element */
+		let shouldReturn = false;
 
 		if (Target.prop('nodeName') === "DIV") {
 			element.addClass("vhshift");
-			if (Append)
-			{
+			/* Append or prepend the new element based on the Append parameter */
+			if (Append) {
 				Target.append(element);
-			}
-			else
-			{
+			} else {
 				Target.prepend(element);
 			}
 		} else if (Target.prop('nodeName') === "INPUT") {
-			element.css("display","none");
+			element.css("display", "none");
 
+			/* Append or prepend the new element based on the Append parameter */
 			if (Append) {
 				$('.tabs').append(element);
 			} else {
 				$('.tabs').prepend(element);
 			}
 
-			Target.bind({click:function(){$('#'+elementId).fadeIn('slow');}});
+			/* Bind click event to show the new element when the target is clicked */
+			Target.bind({ click: function () { $('#' + elementId).fadeIn('slow'); } });
 
-			if (Target.is(':checked') || ! autoHide) {
-				$('#'+elementId).fadeIn('slow');
+			/* Show the new element immediately if the target is checked or autoHide is disabled */
+			if (Target.is(':checked') || !autoHide) {
+				$('#' + elementId).fadeIn('slow');
 			}
 
-			$("input[name$=tabs]").each(function()
-			{
-				if (! $(this).is(Target) && autoHide ) {
-					$(this).bind({click:function(){$('#'+elementId).fadeOut('slow');}});
+			/* Bind click events for hiding the new element when other tabs are clicked */
+			$("input[name$=tabs]").each(function () {
+				if (!$(this).is(Target) && autoHide) {
+					$(this).bind({ click: function () { $('#' + elementId).fadeOut('slow'); } });
 				}
 			});
 		} else {
-			return false;
+			shouldReturn = true;
 		}
+
+		return shouldReturn;
 	}
 
 	/* Check for updated version and show banner if there is an update. */
@@ -184,7 +230,7 @@ if (version_compare($version['version'], '6.12.0-beta5', '>')) {
 >
 > + Clear Disk - The disk is cleared and the Unraid signature is written to the disk.  This will create an empty partition on the disk.
 > + Erase Disk - Erase the entire disk by writing all zeros.  The preclear signature is removed.
-> + Erase and Clear Disk - random patterns are written to the disk and then zeroes are written.  This is a good choice for a disk to be discard to ensure all traces of files are removed.
+> + Erase and Clear Disk - random patterns are written to the disk and then zeroes are written.  This is a good choice for a disk to be discarded to ensure all traces of files are removed.
 > + Verify Signature - The disk signature is checked.
 > + Verify Disk - The disk signature is checked and the disk is verified to be zeroed.
 > + Post-read Verify - Perform a post read verify to check the disk.
