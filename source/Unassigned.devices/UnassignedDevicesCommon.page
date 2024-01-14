@@ -56,48 +56,88 @@ if ((! $parted) && ($cfg['Config']['destructive_mode'] == "enabled")) {
 </style>
 
 <script type="text/javascript">
+	/*
+		Function to open a file browser.
+		Parameters:
+			- el: Element selector
+			- root: Root directory
+			- filter: Optional filter flag
+			- on_folders: Flag to handle folders
+			- on_files: Flag to handle files
+	*/
 	function openFileBrowser(el, root, filter = true, on_folders = true, on_files = true) {
-		if (! filter && ! on_files)	{
+		if (!filter && !on_files) {
+			/* Set a default filter if none specified */
 			filter = 'HIDE_FILES_FILTER';
 		}
-		var p = $(el);
+
+		const p = $(el);
 
 		/* Skip if fileTree is already open. */
-		if (! p.next().hasClass('fileTree') ){
-			/* create a random id */
-			var r = Math.floor((Math.random()*1000)+1);
+		if (!p.next().hasClass('fileTree')) {
+			/* Create a random id */
+			const r = Math.floor((Math.random() * 1000) + 1);
 
 			/* Add a new span and load fileTree. */
-			p.after("<span id='fileTree"+r+"' class='textarea fileTree'></span>");
-			var ft = $('#fileTree'+r);
-			ft.fileTree({
+			p.after("<span id='fileTree" + r + "' class='textarea fileTree'></span>");
+			const ft = $('#fileTree' + r);
+
+			ft.fileTree(
+				{
 					root: root,
-					top:  root,
+					top: root,
 					filter: filter,
-					allowBrowsing : true
+					allowBrowsing: true
 				},
-				function(file){if(on_files){p.val(file);ft.slideUp('fast',function (){ft.remove();});};p.trigger('change');},
-				function(folder){if(on_folders){p.val(folder);$(ft).slideUp('fast',function (){$(ft).remove();});};p.trigger('change');}
+				function (file) {
+					if (on_files) {
+						p.val(file);
+						ft.slideUp('fast', function () {
+							ft.remove();
+						});
+					}
+					p.trigger('change');
+				},
+				function (folder) {
+					if (on_folders) {
+						p.val(folder);
+						$(ft).slideUp('fast', function () {
+							$(ft).remove();
+						});
+					}
+					p.trigger('change');
+				}
 			);
 
-			/* Format fileTree according to parent position, height and width */
-			ft.css({'left':p.position().left,'top':( p.position().top + p.outerHeight() ),'width':(p.width()) });
+			/* Format fileTree according to parent position, height, and width */
+			ft.css({
+				'left': p.position().left,
+				'top': (p.position().top + p.outerHeight()),
+				'width': (p.width())
+			});
 
-			/* close if click elsewhere. */
-			$(document).mouseup(function(e){if (! ft.is(e.target) && ft.has(e.target).length === 0){ft.slideUp('fast',function (){$(ft).remove();});}});
+			/* Close if click elsewhere. */
+			$(document).mouseup(function (e) {
+				if (!ft.is(e.target) && ft.has(e.target).length === 0) {
+					ft.slideUp('fast', function () {
+						$(ft).remove();
+					});
+				}
+			});
 
-			/* close if parent changed. */
-			p.bind('keydown',function(){ft.slideUp('fast',function (){$(ft).remove();});});
+			/* Close if parent changed. */
+			p.bind('keydown', function () {
+				ft.slideUp('fast', function () {
+					$(ft).remove();
+				});
+			});
 
 			/* Open fileTree */
 			ft.slideDown('fast');
 		} else {
+			/* FileTree already open */
 			return null;
 		}
-	} 
-
-	function prepareSecurity(el) {
-		$("#smb_security").css("display", ( $(el).val() == "no" || $(el).val() == "public" ? "none" : "block") );
 	}
 </script>
 
