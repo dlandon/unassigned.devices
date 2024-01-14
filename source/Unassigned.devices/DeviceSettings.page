@@ -383,7 +383,7 @@ _(Volume)_:
 <?endif;?>
 
 <?if ((isset($_GET['d'])) && ($protocol == "SMB")):?>
-_(Encrypt Connection)_?
+_(Encrypt CIFS Mount)_?
 : <select name="#enable_encrypt" size="1" <?=$encrypt;?>>
   <?=mk_option($enable_encrypt, "no", "_(No)_");?>
   <?=mk_option($enable_encrypt, "yes", "_(Yes)_");?>
