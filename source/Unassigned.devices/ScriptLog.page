@@ -45,11 +45,9 @@ echo "</pre>";
 	function cleanUp() {
 		/* Check if the document has focus */
 		if (document.hasFocus()) {
-			/* Get the download input element */
-			const downloadInput = $("input[id='download']");
-        
 			/* Set the button text and enable it */
-			downloadInput.val('Download').prop('disabled', false);
+			$("button[id='download']").prop("disabled", false);
+			$("button[id='download']").html("<?=_('Download');?>");
         
 			/* Send a POST request to delete the downloaded file */
 			$.post('/webGui/include/Download.php', { cmd: 'delete', file: '<?=$zip;?>' });
@@ -61,11 +59,9 @@ echo "</pre>";
 
 	/* Function to initiate the download process */
 	function getlog() {
-		/* Get the download input element */
-		const downloadInput = $("input[id='download']");
-    
 		/* Set the button text to indicate downloading and disable it */
-		downloadInput.val('Downloading...').prop('disabled', true);
+		$("button[id='download']").prop("disabled", true);
+		$("button[id='download']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Downloading');?>");
     
 		/* Send a POST request to save the file, then initiate cleanup after 4000 milliseconds (4 seconds) */
 		$.post('/webGui/include/Download.php', { cmd: 'save', source: '<?=$file;?>', file: '<?=$zip;?>' }, function (zip) {
@@ -81,9 +77,9 @@ $(function() {
 </script>
 
 <?if (is_file($file)):?>
-	<input type="button" id='download' value=_(Download)_ onclick="getlog()">
+	<button type="button" id='download' onclick="getlog()">_(Download)_</button>
 <?else:?>
-	<input type="button" value=_(Download)_ disabled>
+	<button type="button" disabled>_(Download)_</button>
 <?endif;?>
 <input type="button" value=_(Refresh)_ onclick="refresh()">
 <input type="button" value=_(Done)_ onclick="done()">
