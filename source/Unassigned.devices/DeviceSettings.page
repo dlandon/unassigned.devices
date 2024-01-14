@@ -408,7 +408,7 @@ _(Encrypt Connection)_?
 <?if ($fstype != "zvol"):?>
 _(Device Script)_:
 <?if (! $script_disabled):?>
-: <input type="text" title='_(Enter Device Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowser(this, '/boot/config/plugins/<?=$plugin;?>', 'sh');" autocomplete="off" value="<?=$file;?>" placeholder="_(Click to select file or click 'Default' button for the Device Script File)_">
+: <input type="text" title='_(Enter Device Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowserDevice(this, '/boot/config/plugins/<?=$plugin;?>', 'sh');" autocomplete="off" value="<?=$file;?>" placeholder="_(Click here to select a Script File or 'Default' button for a Default Script)_">
 <?else:?>
 : <input type="text" title='_(Enter Device Script File Name)_.' name="#file" style="width:40%;" value="<?=$file;?>" readonly>
 <?endif;?>
@@ -440,7 +440,7 @@ _(Run Device Script File in the background)_?
 <? if (! isset($_GET['i'])):?>
 _(User Script)_:
 <?if (! $user_disabled):?>
-: <input type="text" title='_(Enter the User Script File Name)_.' name="#user_file" style="width:40%;" onclick="openFileBrowser(this, '/boot/config/plugins/user.scripts/scripts', '', false);" autocomplete="off" placeholder="_(Enter the User Script that will be using this device)_" value="<?=$user_file;?>">
+: <input type="text" title='_(Enter the User Script File Name)_.' name="#user_file" style="width:40%;" onclick="openFileBrowserUser(this, '/boot/config/plugins/user.scripts/scripts', '', false);" autocomplete="off" placeholder="_(Enter the User Script that will be using this device)_" value="<?=$user_file;?>">
 <?else:?>
 : <input type="text" title='_(Enter the User Script File Name)_.' name="#user_file" style="width:40%;" value="<?=$user_file;?>" readonly>
 <?endif;?>
@@ -630,7 +630,46 @@ _(User Script)_:
 		form.dispatchEvent(event);
 	}
 
-	function openFileBrowser(el, root, filter = true, on_folders = true, on_files = true) {
+	function openFileBrowserDevice(el, root, filter = true, on_folders = true, on_files = true) {
+		if (! filter && ! on_files) {
+			filter = 'HIDE_FILES_FILTER';
+		}
+		p = $(el);
+
+		/* Skip if fileTree is already open. */
+		if (! p.next().hasClass('fileTree') ) {
+			/* Create a random id. */
+			var r = Math.floor((Math.random()*1000)+1);
+
+			/* Add a new span and load fileTree. */
+			p.after("<span id='fileTree"+r+"' class='textarea fileTree'></span>");
+			var ft = $('#fileTree'+r);
+			ft.fileTree({
+					root: root,
+					top: root,
+					filter: filter,
+					allowBrowsing : true
+				},
+				function(file){if(on_files){p.val(file);$(ft).slideUp('fast',function (){$(ft).remove();});if(filter){load(p)};}},
+				function(folder){if(on_folders){p.val(folder);$(ft).slideUp('fast',function (){$(ft).remove();});}}
+			);
+
+			/* Format fileTree according to parent position, height and width. */
+			ft.css({'left':p.position().left,'top':( p.position().top + p.outerHeight() ),'width':(p.width()+2) });
+
+			/* Close if click elsewhere. */
+			$(document).mouseup(function(e){if (! ft.is(e.target) && ft.has(e.target).length === 0){$(ft).slideUp('fast',function (){$(ft).remove();});}});
+
+			/* Open fileTree. */
+			ft.slideDown('fast');
+
+			setDefault(el.form);
+		} else {
+			return null;
+		}
+	}
+
+	function openFileBrowserUser(el, root, filter = true, on_folders = true, on_files = true) {
 		if (! filter && ! on_files)	{
 			filter = 'HIDE_FILES_FILTER';
 		}
