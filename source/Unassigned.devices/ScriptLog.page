@@ -76,7 +76,7 @@ $(function() {
 <?endif;?>
 </script>
 
-<?if (is_file($file)):?>
+<?if ((is_file($file)) && (file_get_contents($file))):?>
 	<button type="button" id='download' onclick="getlog()">_(Download)_</button>
 <?else:?>
 	<button type="button" disabled>_(Download)_</button>
