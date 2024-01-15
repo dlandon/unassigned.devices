@@ -56,10 +56,13 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		@param dev: The device identifier.
 	*/
 	function spin_down_disk(dev) {
-		document.getElementById('disk_orb-'+dev).className = "fa fa-refresh fa-spin green-orb";
+		document.getElementById('disk_orb-' + dev).className = "fa fa-refresh fa-spin green-orb";
 
 		/* Make an asynchronous POST request to UDURL to spin down the disk. */
-		$.post(UDURL, {'action': 'spin_down_disk', 'device': dev});
+		$.post(UDURL, {
+			'action': 'spin_down_disk',
+			'device': dev
+		});
 	}
 
 	/*
@@ -67,10 +70,13 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		@param dev: The device identifier.
 	*/
 	function spin_up_disk(dev) {
-		document.getElementById('disk_orb-'+dev).className = "fa fa-refresh fa-spin grey-orb";
+		document.getElementById('disk_orb-' + dev).className = "fa fa-refresh fa-spin grey-orb";
 
 		/* Make an asynchronous POST request to UDURL to spin up the disk. */
-		$.post(UDURL, {'action' : 'spin_up_disk', 'device': dev});
+		$.post(UDURL, {
+			'action': 'spin_up_disk',
+			'device': dev
+		});
 	}
 
 	/* Check if the "formatUnicorn" function is not already defined on String.prototype. */
@@ -102,13 +108,13 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		@param height: The height of the window.
 		@param width: The width of the window.
 	*/
-	function openWindow_fsck(cmd,title, height, width) {
-		var run		= cmd;
-		var top		= (screen.height-height)/2;
-		var left	= (screen.width-width)/2;
+	function openWindow_fsck(cmd, title, height, width) {
+		const run		= cmd;
+		const top		= (screen.height-height)/2;
+		const left	= (screen.width-width)/2;
 
 		/* Set up window options. */
-		var options	= 'resizeable=yes,scrollbars=yes,height='+height+',width='+width+',top='+top+',left='+left;
+		let options	= 'resizeable=yes,scrollbars=yes,height='+height+',width='+width+',top='+top+',left='+left;
 
 		/* Open a new window for running the fsck command. */
 		window.open(run, 'log', options);
@@ -139,19 +145,22 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 				/* Add spinning icon to mount/unmount button and disable button. */
 				innerMountButton.prop("disabled", true).html(`<i class='fa fa-spinner fa-spin'></i> ${currentOp == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"}`);
 
-				$.post(UDURL, {'action': currentOp, 'device': currentDevice})
-					.done(data => {
-						if (data == "false") {
-							swalShowMountUnmount(currentDevice, currentOp);
-						}
-					})
-					.fail(() => {
-						swalShowResult(false);
-					})
-					.always(() => {
-						/* Restart the refresh timer. */
-						refreshTimer = setInterval(refreshPage, REFRESH_INTERVAL);
-					});
+				$.post(UDURL, {
+					'action': currentOp,
+					'device': currentDevice
+				})
+				.done(data => {
+					if (data === "false") {
+						swalShowMountUnmount(currentDevice, currentOp);
+					}
+				})
+				.fail(() => {
+					swalShowResult(false);
+				})
+				.always(() => {
+					/* Restart the refresh timer. */
+					refreshTimer = setInterval(refreshPage, REFRESH_INTERVAL);
+				});
 			});
 		}
 	}
@@ -167,7 +176,10 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 			/* Get the UD devices table data and render the web page. */
 			return new Promise(function (resolve) {
-				$.post(UDURL, {'action': 'get_content', 'display': display}, function (data) {
+				$.post(UDURL, {
+					'action': 'get_content',
+					'display': display
+				}, function (data) {
 					const toggled = $("tr.toggle-parts").filter(":visible").map(function () {
 						return $(this).attr("name");
 					}).get();
@@ -224,7 +236,9 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		Poll remote servers and update ping status.
 	*/
 	function pingPoll() {
-		$.post(UDURL, {'action': 'update_ping'});
+		$.post(UDURL, {
+			'action': 'update_ping'
+		});
 	}
 
 	/*
@@ -243,7 +257,11 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		$(el).html("<i class='fa fa-spinner fa-spin'></i> <?=_('Searching');?>");
 
 		/* AJAX Request: Load hosts asynchronously. */
-		$.post(UDURL, {'action': action, 'network': network, 'workgroup': workgroup}).done(function(data) {
+		$.post(UDURL, {
+			'action': action,
+			'network': network
+		})
+		.done(function(data) {
 			/* Restore the original content of the element. */
 			$(el).html(oldContent);
 
@@ -298,43 +316,49 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		};
 
 		/* Make an asynchronous POST request to UDURL with the specified options. */
-		$.post(UDURL, opts).done(function(data) {
-			/* Restore the original content of the element. */
-			$(el).html(oldContent);
+		$.post(UDURL, opts)
+			.done(function(data) {
+				/* Restore the original content of the element. */
+				$(el).html(oldContent);
 
-			/* Process the data if it is not empty. */
-			if (data) {
-				/* Split the data into an array of shares. */
-				const shares = data.split('\n');
+				/* Process the data if it is not empty. */
+				if (data) {
+					/* Split the data into an array of shares. */
+					const shares = data.split('\n');
 
-				/* Check if there are any shares. */
-				if (shares.length) {
-					/* Build a select dropdown with the available shares. */
-					let dropdownOptions = "<select name='SHARE' class='swal-content__input' required>";
-					for (let i = 0; i < shares.length; i++) {
-						if (shares[i].length) {
-							dropdownOptions += "<option value='" + shares[i] + "'>" + shares[i] + "</option>";
+					/* Check if there are any shares. */
+					if (shares.length) {
+						/* Build a select dropdown with the available shares. */
+						let dropdownOptions = "<select name='SHARE' class='swal-content__input' required>";
+						for (let i = 0; i < shares.length; i++) {
+							if (shares[i].length) {
+								dropdownOptions += "<option value='" + shares[i] + "'>" + shares[i] + "</option>";
+							}
 						}
+						/* Replace the target element with the new dropdown. */
+						target.replaceWith(dropdownOptions + "</select>");
+					} else {
+						/* If no shares are found, replace the target element with a text input. */
+						target.replaceWith("<input type='text' name='SHARE' class='swal-content__input' autocomplete='off' required>");
 					}
-					/* Replace the target element with the new dropdown. */
-					target.replaceWith(dropdownOptions + "</select>");
 				} else {
-					/* If no shares are found, replace the target element with a text input. */
+					/* If no data is received, replace the target element with a text input. */
 					target.replaceWith("<input type='text' name='SHARE' class='swal-content__input' autocomplete='off' required>");
 				}
-			} else {
-				/* If no data is received, replace the target element with a text input. */
-				target.replaceWith("<input type='text' name='SHARE' class='swal-content__input' autocomplete='off' required>");
-			}
-		});
+			});
 	}
 
 	/*
 		Rescan UD devices to update udev and copy config files from the flash to ram to update them.
 	*/
 	function rescan_disks() {
-		$.post(UDURL, {'action': 'rescan_disks'});
-		swalShowResult(true);
+		$.post(UDURL, {'action': 'rescan_disks'})
+			.done(function(data) {
+				swalShowResult(true);
+			})
+			.fail(function() {
+				swalShowResult(false);
+			});
 	}
 
 	/*
@@ -843,22 +867,17 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	});
 
 	<?php
-	/* Check if WORKGROUP is set and initialize the workgroup variable in JavaScript. */
-	if (isset($var['WORKGROUP'])) {
-		echo "var workgroup = '{$var['WORKGROUP']}';\n";
-	}
-
 	/* Loop through network interfaces (eth0 to eth10). */
 	for ($i = 0; $i < 11; $i++) {
-		$_var = "eth{$i}";
+		$interfaceVariable = "eth{$i}";
 
 		/* Check if the network interface variable is set. */
-		if (isset($$_var)) {
-			$iface = $$_var;
+		if (isset($$interfaceVariable)) {
+			$iface = $$interfaceVariable;
 
 			/* Extract gateway, IP address, and netmask information from the network interface. */
 			$gateway = array_values(array_flip(preg_grep("/GATEWAY:/", array_flip($iface))));
-			$ipaddr = array_values(array_flip(preg_grep("/IPADDR:/", array_flip($iface))));
+			$ipaddr  = array_values(array_flip(preg_grep("/IPADDR:/", array_flip($iface))));
 			$netmask = array_values(array_flip(preg_grep("/NETMASK/", array_flip($iface))));
 
 			/* Loop through IP addresses and add them to the network array in JavaScript. */
@@ -1030,10 +1049,17 @@ $(function() {
 	</div>
 
 	<div data-survey-done>
-		$.post(UDURL, {'action': 'add_root_share', 'share': surveyData['SHARE'], 'path': surveyData['PATH']}).done(function(data)
-		{
-			swalShowResult(data == "true");
-		},'json').fail(function(){swalShowResult(false);});
+		$.post(UDURL, {
+			'action': 'add_root_share',
+			'share': surveyData['SHARE'],
+			'path': surveyData['PATH']
+		})
+		.done(function(data) {
+			swalShowResult(data === "true");
+		}, 'json')
+		.fail(function() {
+			swalShowResult(false);
+		});
 	</div>
 
 	<div>
@@ -1063,12 +1089,19 @@ $(function() {
 		</div>
 	</div>
 	<div data-survey-done>
-		var opts = {action:"add_iso_share",ISO_FILE:surveyData["ISO_FILE"]};
+		const opts = {
+			action: "add_iso_share",
+			ISO_FILE: surveyData["ISO_FILE"]
+		};
+
 		if (opts.ISO_FILE) {
-			$.post(UDURL, opts).done(function(data)
-			{
-				swalShowResult(data == "true");
-			},'json').fail(function(){swalShowResult(false);});
+			$.post(UDURL, opts)
+				.done(function (data) {
+					swalShowResult(data === "true");
+				})
+				.fail(function () {
+					swalShowResult(false);
+				});
 		}
 	</div>
 	<div>
@@ -1172,14 +1205,23 @@ $(function() {
 	</div>
 
 	<div data-survey-done data-survey-done-wait="true">
-		$("button[device='"+surveyOption.device+"']").prop('disabled',true);
-		$("button[device='"+surveyOption.device+"']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Formatting');?>");
-		$.post(UDURL, {'action': 'format_'+surveyOption.type, 'device': surveyOption.device, 'fs': surveyData["FS"], 'pass': surveyData["PASS"], 'pool_name': surveyData["POOL_NAME"]}, function(data)
-		{
-			$("button[device='"+surveyOption.device+"']").prop('disabled',true);
-			$("button[device='"+surveyOption.device+"']").html( data.status ? "<?=_('Formatted');?>" : "<?=_('Format failed');?>" );
+		const targetButton = $("button[device='" + surveyOption.device + "']");
+		targetButton.prop('disabled', true);
+		targetButton.html("<i class='fa fa-spinner fa-spin'></i> <?=_('Formatting');?>");
+
+		$.post(UDURL, {
+			'action': 'format_' + surveyOption.type,
+			'device': surveyOption.device,
+			'fs': surveyData["FS"],
+			'pass': surveyData["PASS"],
+			'pool_name': surveyData["POOL_NAME"]
+		}, function (data) {
+			targetButton.prop('disabled', true);
+			targetButton.html(data.status ? "<?=_('Formatted');?>" : "<?=_('Format failed');?>");
 			swalShowResult(data.status);
-		},'json').fail(function(){swalShowResult(false);});
+		}, 'json').fail(function () {
+			swalShowResult(false);
+		});
 	</div>
 	<div>
 		<script type="text/javascript">
@@ -1228,12 +1270,22 @@ $(function() {
 		</div>
 	</div>
 	<div data-survey-done>
-		$("span[device='"+surveyOption.device+surveyOption.partition+"']").prop('disabled',true);
-		$("span[device='"+surveyOption.device+surveyOption.partition+"']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Removing');?>");
-		$.post(UDURL, {'action': 'rm_partition', 'serial': surveyOption.serial, 'device': surveyOption.device, 'partition': surveyOption.partition}).done(function(data)
-		{
-			swalShowResult(data == "true");
-		},'json').fail(function(){swalShowResult(false);});
+		const targetSpan = $("span[device='" + surveyOption.device + surveyOption.partition + "']");
+		targetSpan.prop('disabled', true);
+		targetSpan.html("<i class='fa fa-spinner fa-spin'></i> <?=_('Removing');?>");
+
+		$.post(UDURL, {
+			'action': 'rm_partition',
+			'serial': surveyOption.serial,
+			'device': surveyOption.device,
+			'partition': surveyOption.partition
+		})
+		.done(function(data) {
+			swalShowResult(data === "true");
+		}, 'json')
+		.fail(function() {
+			swalShowResult(false);
+		});
 	</div>
 	<div>
 		<script type="text/javascript">
@@ -1269,12 +1321,21 @@ $(function() {
 		</div>
 	</div>
 	<div data-survey-done>
-		$("span[device='"+surveyOption.device+surveyOption.partition+"']").prop('disabled',true);
-		$("span[device='"+surveyOption.device+surveyOption.partition+"']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Removing');?>");
-		$.post(UDURL, {'action': 'clr_disk', 'serial': surveyOption.serial, 'device': surveyOption.device}).done(function(data)
-		{
-			swalShowResult(data == "true");
-		},'json').fail(function(){swalShowResult(false);});
+		const targetSpan = $("span[device='" + surveyOption.device + surveyOption.partition + "']");
+		targetSpan.prop('disabled', true);
+		targetSpan.html("<i class='fa fa-spinner fa-spin'></i> <?=_('Removing');?>");
+
+		$.post(UDURL, {
+			'action': 'clr_disk',
+			'serial': surveyOption.serial,
+			'device': surveyOption.device
+		})
+		.done(function(data) {
+			swalShowResult(data === "true");
+		}, 'json')
+		.fail(function() {
+			swalShowResult(false);
+		});
 	</div>
 	<div>
 		<script type="text/javascript">
@@ -1308,10 +1369,16 @@ $(function() {
 		<div data-question-done></div>
 	</div>
 	<div data-survey-done>
-		$.post(UDURL, {'action': 'remove_iso_config', 'device': surveyOption.device}).done(function(data)
-		{
-			swalShowResult(data == "true");
-		},'json').fail(function(){swalShowResult(false);});
+		$.post(UDURL, {
+			'action': 'remove_iso_config',
+			'device': surveyOption.device
+		})
+		.done(function(data) {
+			swalShowResult(data === "true");
+		}, 'json')
+		.fail(function() {
+			swalShowResult(false);
+		});
 	</div>
 	<div>
 		<script type="text/javascript">
@@ -1345,10 +1412,16 @@ $(function() {
 		<div data-question-done></div>
 	</div>
 	<div data-survey-done>
-		$.post(UDURL, {'action': 'remove_config', 'serial': surveyOption.serial}).done(function(data)
-		{
-			swalShowResult(data == "true");
-		},'json').fail(function(){swalShowResult(false);});
+		$.post(UDURL, {
+			'action': 'remove_config',
+			'serial': surveyOption.serial
+		})
+		.done(function(data) {
+			swalShowResult(data === "true");
+		}, 'json')
+		.fail(function() {
+			swalShowResult(false);
+		});
 	</div>
 	<div>
 		<script type="text/javascript">
@@ -1382,10 +1455,16 @@ $(function() {
 		<div data-question-done></div>
 	</div>
 	<div data-survey-done>
-		$.post(UDURL, {'action': 'remove_samba_config', 'device': surveyOption.device}).done(function(data)
-		{
-			swalShowResult(data == "true");
-		},'json').fail(function(){swalShowResult(false);});
+		$.post(UDURL, {
+			'action': 'remove_samba_config',
+			'device': surveyOption.device
+		})
+		.done(function(data) {
+			swalShowResult(data === "true");
+		}, 'json')
+		.fail(function() {
+			swalShowResult(false);
+		});
 	</div>
 	<div>
 		<script type="text/javascript">
@@ -1480,19 +1559,24 @@ $(function() {
 		</div>
 	</div>
 	<div data-survey-done>
-		var opts			= new Object();
-		opts["action"]		= "add_samba_share";
-		opts["PROTOCOL"]	= surveyData['PROTOCOL'];
-		opts["IP"]			= surveyData['IP'];
-		opts["USER"]		= surveyData['USER'];
-		opts["DOMAIN"]		= surveyData['DOMAIN'];
-		opts["PASS"]		= surveyData['PASS'];
-		opts["SHARE"]		= surveyData['SHARE'];
+		const opts = {
+			action: "add_samba_share",
+			PROTOCOL: surveyData['PROTOCOL'],
+			IP: surveyData['IP'],
+			USER: surveyData['USER'],
+			DOMAIN: surveyData['DOMAIN'],
+			PASS: surveyData['PASS'],
+			SHARE: surveyData['SHARE']
+		};
+
 		if (opts.SHARE && opts.IP) {
-			$.post(UDURL, opts).done(function(data)
-			{
-				swalShowResult(data == "true");
-			},'json').fail(function(){swalShowResult(false);});
+			$.post(UDURL, opts)
+				.done(function (data) {
+					swalShowResult(data === "true");
+				})
+				.fail(function () {
+					swalShowResult(false);
+				});
 		}
 	</div>
 	<div>
@@ -1522,10 +1606,20 @@ $(function() {
 		<div data-question-load></div>
 	</div>
 	<div data-survey-done data-survey-done-wait="true">
-		$.post(UDURL, {'action': 'chg_mountpoint', 'serial': surveyOption.serial, 'partition': surveyOption.partition, 'device': surveyOption.device, 'fstype': surveyOption.fstype, 'mountpoint': surveyData['MOUNTPOINT']}).done(function(data)
-		{
-			swalShowResult(data == "true");
-		},'json').fail(function(){swalShowResult(false);});
+		$.post(UDURL, {
+			'action': 'chg_mountpoint',
+			'serial': surveyOption.serial,
+			'partition': surveyOption.partition,
+			'device': surveyOption.device,
+			'fstype': surveyOption.fstype,
+			'mountpoint': surveyData['MOUNTPOINT']
+		})
+		.done(function(data) {
+			swalShowResult(data === "true");
+		}, 'json')
+		.fail(function() {
+			swalShowResult(false);
+		});
 	</div>
 	<div>
 		<script type="text/javascript">
@@ -1562,10 +1656,17 @@ $(function() {
 		</div>
 	</div>
 	<div data-survey-done data-survey-done-wait="true">
-		$.post(UDURL, {'action': 'chg_samba_mountpoint', 'device': surveyOption.device, 'mountpoint':surveyData['MOUNTPOINT']}).done(function(data)
-		{
-			swalShowResult(data == "true");
-		},'json').fail(function(){swalShowResult(false);});
+		$.post(UDURL, {
+			'action': 'chg_samba_mountpoint',
+			'device': surveyOption.device,
+			'mountpoint': surveyData['MOUNTPOINT']
+		})
+		.done(function(data) {
+			swalShowResult(data === "true");
+		}, 'json')
+		.fail(function() {
+			swalShowResult(false);
+		});
 	</div>
 	<div>
 		<script type="text/javascript">
@@ -1598,10 +1699,17 @@ $(function() {
 		</div>
 	</div>
 	<div data-survey-done data-survey-done-wait="true">
-		$.post(UDURL, {'action': 'chg_iso_mountpoint', 'device': surveyOption.device, 'mountpoint': surveyData['MOUNTPOINT']}).done(function(data)
-		{
-			swalShowResult(data == "true");
-		},'json').fail(function(){swalShowResult(false);});
+		$.post(UDURL, {
+			'action': 'chg_iso_mountpoint',
+			'device': surveyOption.device,
+			'mountpoint': surveyData['MOUNTPOINT']
+		})
+		.done(function(data) {
+			swalShowResult(data === "true");
+		}, 'json')
+		.fail(function() {
+			swalShowResult(false);
+		});
 	</div>
 	<div>
 		<script type="text/javascript">
