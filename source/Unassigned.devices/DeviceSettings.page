@@ -378,11 +378,17 @@ _(Disk Name)_:
 <?endif;?>
 
 <?if (($fstype == "apfs") && (! $mounted)):?>
-_(Volume)_:
-: <input type="text" name="#volume" class="narrow" style="width:2%" maxlength="1" value="<?=$volume;?>" placeholder="0">_(Enter the volume to mount on this apfs partition)_.
+_(APFS Volume)_:
+: <input type="text" name="#volume" class="narrow" style="width:2%" maxlength="1" value="<?=$volume;?>" placeholder="0">
 <?endif;?>
 
-<?if ((isset($_GET['d'])) && ($protocol == "SMB")):?>
+<?if (($fstype == "apfs") && (! $mounted)):?>
+:ud_apfs_volume_plug:
+> Enter the volume to mount on this APFS partition.
+:end
+<?endif;?>
+
+<?if ((isset($_GET['d'])) && ($protocol == "SMB") && (! $mounted)):?>
 _(Encrypt CIFS Mount)_?
 : <select name="#enable_encrypt" size="1" <?=$encrypt;?>>
   <?=mk_option($enable_encrypt, "no", "_(No)_");?>
@@ -390,7 +396,7 @@ _(Encrypt CIFS Mount)_?
   </select>
 <?endif;?>
 
-<?if ((isset($_GET['d'])) && ($protocol == "SMB")):?>
+<?if ((isset($_GET['d'])) && ($protocol == "SMB") && (! $mounted)):?>
 :ud_encrypt_connection_plug:
 > Set to **Yes** to encrypt the CIFS mount.  This is best for off-site mounts because of the overhead of encryption.
 :end
