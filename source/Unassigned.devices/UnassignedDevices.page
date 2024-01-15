@@ -390,29 +390,39 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	}
 
 	function doUnassignedDevicesSurvey(surveyName, surveyOption) {
-		var survey			= $("div[data-survey-name="+ surveyName +"]");
-		var numQuestions	= survey.find("div[data-question]").length;
-		var surveyData		= new Array
-		var index			= 0;
-		var evalCondition	= function(obj, selector){
+		/* Get the survey element by name */
+		const survey = $("div[data-survey-name=" + surveyName + "]");
 
-		rc = null;
-		if (obj.find(selector).length) {
-			evaled = $.trim(obj.find(selector).eq(0).text())
-				if (evaled.length ) {
+		/* Initialize the number of questions */
+		let numQuestions = survey.find("div[data-question]").length;
+
+		/* Initialize an array to store survey data */
+		let surveyData = [];
+
+		/* Initialize the index for question tracking */
+		let index = 0;
+
+		/* Function to evaluate a condition based on selector */
+		const evalCondition = function (obj, selector) {
+			let rc = null;
+			if (obj.find(selector).length) {
+				const evaled = $.trim(obj.find(selector).eq(0).text());
+				if (evaled.length) {
 					rc = eval(evaled);
 				}
 			}
-
 			return rc;
-		}
+		};
 
-		var getAttr = function(obj, name, defaultValue) {
+		/* Function to get attribute with a default value */
+		const getAttr = function (obj, name, defaultValue) {
+			/* Check if the attribute exists in the object */
 			return (typeof obj.attr(name) !== "undefined") ? obj.attr(name) : defaultValue;
-		}
+		};
 
+		/* Function to display a Swal (SweetAlert) dialog for surveys */
 		function showSwal(direction = "=") {
-			switch(direction) {
+			switch (direction) {
 				case '>':
 					index++;
 					break;
@@ -426,64 +436,110 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 				return false;
 			}
 
-			question	= survey.find("div[data-question]").eq(index);
-			condition	= question.find("div[data-question-condition]").eq(0);
+			/* Retrieve the current question and its condition */
+			question = survey.find("div[data-question]").eq(index);
+			condition = question.find("div[data-question-condition]").eq(0);
 
-			if (condition.length && ! eval($.trim(condition.text())) ) {
+			/* Check if the condition is met, and recursively call showSwal if not */
+			if (condition.length && !eval($.trim(condition.text()))) {
 				showSwal(direction);
 			}
 
+			/* Get question content and format if necessary */
 			content = question.find("div[data-question-content]").html();
 			format = question.find("div[data-question-format]");
 
-			if (format.length) { 
+			if (format.length) {
 				eval("formatOpts = " + $.trim(format.text()));
 				content = content.formatUnicorn(formatOpts);
 			}
 
-			has_checked = ["checkbox","radio","option"];
+			/* Update checked inputs based on surveyData */
+			has_checked = ["checkbox", "radio", "option"];
 			restore_content = $("<div></div>").html(content);
-			restore_content.find(":input").each(function(i,v) {
+			restore_content.find(":input").each(function (i, v) {
 				name = $(this).prop("name");
 				if (name in surveyData) {
-					if ($.inArray($(this).prop("type"), has_checked) != -1 ) {
-						if ($(this).val() == surveyData[name]) { 
+					if ($.inArray($(this).prop("type"), has_checked) != -1) {
+						if ($(this).val() == surveyData[name]) {
 							$(this).attr("checked", true);
 						}
 					} else {
 						if ($(this).prop("type") == "select-one") {
-							$(this).find("option[value="+ surveyData[name] +"]").attr("selected",true);
-						} else { 
-							$(this).attr("value",surveyData[name]);
+							$(this).find("option[value=" + surveyData[name] + "]").attr("selected", true);
+						} else {
+							$(this).attr("value", surveyData[name]);
 						}
 					}
 				}
 			});
 
 			content = restore_content[0].outerHTML;
-			button = {back:getAttr(question, "data-question-button-back", "<?=_('Back')?>"), cancel:getAttr(question, "data-question-button-cancel", "<?=_('Cancel')?>"),
-					  done:getAttr(question, "data-question-button-done", "<?=_('Done')?>"), next:getAttr(question, "data-question-button-next", "<?=_('Next')?>")};
+			button = {
+				back: getAttr(question, "data-question-button-back", "<?=_('Back')?>"),
+				cancel: getAttr(question, "data-question-button-cancel", "<?=_('Cancel')?>"),
+				done: getAttr(question, "data-question-button-done", "<?=_('Done')?>"),
+				next: getAttr(question, "data-question-button-next", "<?=_('Next')?>")
+			};
 
-			swalOpts					= new Object;
-			swalOpts.title				= question.attr("data-question-title");
-			swalOpts.content			= {element:"div", attributes:{innerHTML:content}};
-			swalOpts.icon				= getAttr(question, "data-question-icon", "info");
+			/* Define SweetAlert options */
+			swalOpts = new Object;
+			swalOpts.title = question.attr("data-question-title");
+			swalOpts.content = {element: "div", attributes: {innerHTML: content}};
+			swalOpts.icon = getAttr(question, "data-question-icon", "info");
 			swalOpts.closeOnClickOutside = false;
-			swalOpts.buttons			= new Object;
-			swalOpts.buttons.confirm	= (index > 0) ? {text: button.cancel, value: null, visible: true, className: "", closeModal: true} :
-														{text: "", value: null, visible: false, className: "", closeModal: true};
-			swalOpts.buttons.cancel		= (index > 0) ? {text: button.back,  value: false, visible: true, className: "", closeModal: false} :
-														{text: button.cancel, value: null, visible: true, className: "", closeModal: true};
-			swalOpts.buttons.next		= (index == numQuestions - 1 ) ? {text:button.done, value: true, visible: true, className: "", closeModal: false} : {text:button.next, value: true, visible: true, className: "", closeModal: false};
-			swal2(swalOpts).then( (response) => {
-				emptyInputs = $.grep($(".swal-modal").find(":input"), function (e,v){ e = $(e);
+			swalOpts.buttons = new Object;
+			swalOpts.buttons.confirm = (index > 0) ? {
+				text: button.cancel,
+				value: null,
+				visible: true,
+				className: "",
+				closeModal: true
+			} : {
+				text: "",
+				value: null,
+				visible: false,
+				className: "",
+				closeModal: true
+			};
+			swalOpts.buttons.cancel = (index > 0) ? {
+				text: button.back,
+				value: false,
+				visible: true,
+				className: "",
+				closeModal: false
+			} : {
+				text: button.cancel,
+				value: null,
+				visible: true,
+				className: "",
+				closeModal: true
+			};
+			swalOpts.buttons.next = (index == numQuestions - 1) ? {
+				text: button.done,
+				value: true,
+				visible: true,
+				className: "",
+				closeModal: false
+			} : {
+				text: button.next,
+				value: true,
+				visible: true,
+				className: "",
+				closeModal: false
+			};
+
+			/* Display SweetAlert and handle responses */
+			swal2(swalOpts).then((response) => {
+				emptyInputs = $.grep($(".swal-modal").find(":input"), function (e, v) {
+					e = $(e);
 					switch (e.prop('type')) {
 						case 'radio':
 							if (e.is(":checked")) {
 								surveyData[e.prop("name")] = e.val();
 							}
-							n = $(":input[name="+e.prop("name")+"]");
-							return (n.is("[required]") && ! n.is(":checked"));
+							n = $(":input[name=" + e.prop("name") + "]");
+							return (n.is("[required]") && !n.is(":checked"));
 							break;
 
 						case 'option':
@@ -491,22 +547,22 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 							if (e.is(":checked")) {
 								surveyData[e.prop("name")] = e.val()
 							}
-							return (e.is("[required]") && ! e.is(":checked"));
+							return (e.is("[required]") && !e.is(":checked"));
 							break;
 
 						case 'select-one':
 							if (e.has(":checked")) {
 								surveyData[e.prop("name")] = e.find(":checked").val();
 							}
-							n = $(":input[name="+e.prop("name")+"]");
-							return (n.is("[required]") && ! n.has(":checked"));
+							n = $(":input[name=" + e.prop("name") + "]");
+							return (n.is("[required]") && !n.has(":checked"));
 							break;
 
 						default:
 							if (e.val() || e.prop("name")) {
 								surveyData[e.prop("name")] = e.val()
 							}
-							return (e.is("[required]") && ! e.val());
+							return (e.is("[required]") && !e.val());
 							break;
 					}
 				});
@@ -514,7 +570,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 				if (response) {
 					if (emptyInputs.length) {
 						return "=";
-					} else if (! emptyInputs.length && index <= numQuestions - 1) {
+					} else if (!emptyInputs.length && index <= numQuestions - 1) {
 						evaled = evalCondition(question, "div[data-question-done]");
 						if (index < numQuestions - 1) {
 							if (evaled !== null && evaled === true) {
@@ -526,15 +582,17 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 							} else {
 								return ">";
 							}
-						} else if(index == numQuestions - 1) {
+						} else if (index == numQuestions - 1) {
 							if (evaled !== null && evaled === false) {
 								return "=";
 							} else {
-								$(".swal-button--cancel").prop("disabled",true);
-								$(".swal-button--confirm").prop("disabled",true);
-								evalCondition(survey,"div[data-survey-done]");
-								if (getAttr(survey.find("div[data-survey-done]").eq(0),"data-survey-done-wait", "true") == "false" ) {
-									setTimeout(() => { swal2({buttons:{confirm:{visible:false},cancel:{visible:false}},timer:100}) }, 1500)
+								$(".swal-button--cancel").prop("disabled", true);
+								$(".swal-button--confirm").prop("disabled", true);
+								evalCondition(survey, "div[data-survey-done]");
+								if (getAttr(survey.find("div[data-survey-done]").eq(0), "data-survey-done-wait", "true") == "false") {
+									setTimeout(() => {
+										swal2({buttons: {confirm: {visible: false}, cancel: {visible: false}}, timer: 100})
+									}, 1500)
 								}
 
 								return true;
@@ -543,14 +601,14 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 					} else {
 						return "=";
 					}
-				} else if ( response === false && index <= numQuestions ) {
+				} else if (response === false && index <= numQuestions) {
 					return "<";
-				} else if  (response === null) { 
+				} else if (response === null) {
 					return true;
 				}
 
 				return "=";
-			}).then( (response2) => {
+			}).then((response2) => {
 				if (typeof response2 !== "boolean") {
 					return showSwal(response2);
 				} else {
@@ -754,22 +812,31 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 :end
 
 <script type="text/javascript">
-	var display			= <?=json_encode($display);?>;
-	var network			= [];
-	var workgroup		= "";
-	var tab_usbdisks	= $('input[name$="tabs"]').length;
-	var UDURL			= '/plugins/<?=$plugin;?>/UnassignedDevices.php';
-	var isRefreshing	= false;
-	var refreshTimer;
+	/* Display information from PHP on the client side. */
+	const display = <?=json_encode($display);?>;
 
-	/* Page refresh rae. */
+	/* Array to store network information. */
+	let network = [];
+
+	/* Number of tabs with names ending in 'usbdisks'. */
+	const tab_usbdisks = $('input[name$="tabs"]').length;
+
+	/* URL for Unassigned Devices PHP file. */
+	const UDURL = '/plugins/<?=$plugin;?>/UnassignedDevices.php';
+
+	/* Flag to track whether page is currently being refreshed. */
+	let isRefreshing = false;
+
+	/* Timer for refreshing the page at regular intervals. */
+	let refreshTimer;
+
+	/* Page refresh rate in milliseconds. */
 	const REFRESH_INTERVAL = 3000;
 
 	/* Reload page if browser back button was used. */
-	window.addEventListener( "pageshow", function ( event )
-	{
-		var historyTraversal = event.persisted || ( typeof window.performance != "undefined" && window.performance.navigation.type === 2 );
-		if ( historyTraversal ) {
+	window.addEventListener("pageshow", function (event) {
+		const historyTraversal = event.persisted || (typeof window.performance != "undefined" && window.performance.navigation.type === 2);
+		if (historyTraversal) {
 			/* Handle page restore. */
 			window.location.reload();
 		}
@@ -847,75 +914,90 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		});
 	});
 
-	$(function() {
-		/* Set page refresh interval every 3 seconds. */
-		refreshTimer = window.setInterval(refreshPage, REFRESH_INTERVAL);
+$(function() {
+    /* Set page refresh interval every 3 seconds. */
+    refreshTimer = window.setInterval(refreshPage, REFRESH_INTERVAL);
 
-		/* Set ping poll interval every 15 seconds. */
-		window.setInterval(pingPoll, 15000);
+    /* Set ping poll interval every 15 seconds. */
+    window.setInterval(pingPoll, 15000);
 
-		/* Check for diskio cookie change every 100ms. */
-		window.setInterval(checkCookie, 100);
+    /* Check for diskio cookie change every 100ms. */
+    window.setInterval(checkCookie, 100);
 
-		/* Add icons to Tab/Title bar. */
-		$('#tab4').bind( {
-			click:function() {
-				$('i.toggle').show('slow');
-			}
-		});
+    /* Add icons to Tab/Title bar. */
+    $('#tab4').bind({
+        click: function() {
+            $('i.toggle').show('slow');
+        }
+    });
 
-		/* Show the current diskio icon based on the current diskio cookie value. */
-		if ($.cookie('diskio') === undefined) {
-			$('i.toggle').removeClass('fa-tachometer').addClass('fa-list');
-		} else {
-			$('i.toggle').removeClass('fa-list').addClass('fa-tachometer');
-		}
+    /* Show the current diskio icon based on the current diskio cookie value. */
+    if ($.cookie('diskio') === undefined) {
+        $('i.toggle').removeClass('fa-tachometer').addClass('fa-list');
+    } else {
+        $('i.toggle').removeClass('fa-list').addClass('fa-tachometer');
+    }
 
-		/* Update the show-disks status. */
-		if ($.cookie('unassigned-disks-view') == 'false') {
-			$('.show-disks').slideToggle('slow');
-		}
+    /* Update the show-disks status. */
+    if ($.cookie('unassigned-disks-view') == 'false') {
+        $('.show-disks').slideToggle('slow');
+    }
 
-		/* Update the show-shares status. */
-		if ($.cookie('unassigned-shares-view') == 'false') {
-			$('.show-shares').slideToggle('slow');
-		}
+    /* Update the show-shares status. */
+    if ($.cookie('unassigned-shares-view') == 'false') {
+        $('.show-shares').slideToggle('slow');
+    }
 
-		/* Update the show-historical status. */
-		if ($.cookie('unassigned-historical-view') == 'false') {
-			$('.show-historical').slideToggle('slow');
-		}
+    /* Update the show-historical status. */
+    if ($.cookie('unassigned-historical-view') == 'false') {
+        $('.show-historical').slideToggle('slow');
+    }
 
-		$('.tooltip').tooltipster({delay:100, trigger:'custom', triggerOpen:{mouseenter:true}, triggerClose:{click:false, scroll:true, mouseleave:true}});
+    $('.tooltip').tooltipster({ delay: 100, trigger: 'custom', triggerOpen: { mouseenter: true }, triggerClose: { click: false, scroll: true, mouseleave: true } });
 
-		/* Add switchButton to Tab/Title bar. */
-		$('.disks-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Disks');?>", off_label: "<?=_('Disks');?>", checked: $.cookie('unassigned-disks-view') != 'false'});
-		$('.disks-switch').change(function() {
-			$('.show-disks').slideToggle('slow');
-			$.cookie('unassigned-disks-view', $('.disks-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path:'/' });
-		});
+    /* Add switchButton to Tab/Title bar. */
+    $('.disks-switch').switchButton({
+        labels_placement: "left",
+        on_label: "<?=_('Disks');?>",
+        off_label: "<?=_('Disks');?>",
+        checked: $.cookie('unassigned-disks-view') != 'false'
+    });
+    $('.disks-switch').change(function() {
+        $('.show-disks').slideToggle('slow');
+        $.cookie('unassigned-disks-view', $('.disks-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path: '/' });
+    });
 
-		$('.shares-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Shares');?>", off_label: "<?=_('Shares');?>", checked: $.cookie('unassigned-shares-view') != 'false'});
-		$('.shares-switch').change(function() {
-			$('.show-shares').slideToggle('slow');
-			$.cookie('unassigned-shares-view', $('.shares-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path:'/' });
-		});
+    $('.shares-switch').switchButton({
+        labels_placement: "left",
+        on_label: "<?=_('Shares');?>",
+        off_label: "<?=_('Shares');?>",
+        checked: $.cookie('unassigned-shares-view') != 'false'
+    });
+    $('.shares-switch').change(function() {
+        $('.show-shares').slideToggle('slow');
+        $.cookie('unassigned-shares-view', $('.shares-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path: '/' });
+    });
 
-		$('.historical-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Historical');?>", off_label: "<?=_('Historical');?>", checked: $.cookie('unassigned-historical-view') != 'false'});
-		$('.historical-switch').change(function() {
-			$('.show-historical').slideToggle('slow');
-			$.cookie('unassigned-historical-view', $('.historical-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path:'/' });
-		});
+    $('.historical-switch').switchButton({
+        labels_placement: "left",
+        on_label: "<?=_('Historical');?>",
+        off_label: "<?=_('Historical');?>",
+        checked: $.cookie('unassigned-historical-view') != 'false'
+    });
+    $('.historical-switch').change(function() {
+        $('.show-historical').slideToggle('slow');
+        $.cookie('unassigned-historical-view', $('.historical-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path: '/' });
+    });
 
-		/* Load contents if tab is checked. */
-		if ($('#tab'+tab_usbdisks).is(':checked')) {
-			$('#tab'+tab_usbdisks).trigger("click");
-			$.removeCookie('one',{path:'/'});
-		}
+    /* Load contents if tab is checked. */
+    if ($('#tab'+tab_usbdisks).is(':checked')) {
+        $('#tab'+tab_usbdisks).trigger("click");
+        $.removeCookie('one', { path: '/' });
+    }
 
-		/* Iniialize the web page. */
-		refreshPage();
-	});
+    /* Iniialize the web page. */
+    refreshPage();
+});
 </script>
 
 <div style="display:none;" data-survey-name="add_root_share" data-survey-title="<?=_('Add Root Share');?>">
@@ -957,8 +1039,12 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	<div>
 		<script type="text/javascript">
 			$(function() {
-				window.add_root_share = function(){doUnassignedDevicesSurvey("add_root_share")}
-			})
+				/* Define a function add_root_share and attach it to the window object */
+				window.add_root_share = function() {
+					/* Call the doUnassignedDevicesSurvey function with the argument "add_root_share" */
+					doUnassignedDevicesSurvey("add_root_share");
+				};
+			});
 		</script>
 	</div>
 </div>
@@ -987,16 +1073,32 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	</div>
 	<div>
 		<script type="text/javascript">
-			$(document).on("click","input[name=ISO_FILE]",function() {
-				if (! $(this).siblings("div.fileTree").length) {
+			/* Attach a click event to the input element with the name "ISO_FILE" within the document */
+			$(document).on("click", "input[name=ISO_FILE]", function() {
+				/* Check if the input element has no sibling with the class "fileTree" */
+				if (!$(this).siblings("div.fileTree").length) {
+					/* Attach the fileTree to the input element */
 					$(this).fileTreeAttach();
+					/* Trigger a click event on the input element */
 					$(this).trigger("click");
 				}
-				$(this).next("div.fileTree").css("text-align","left").css("z-index","10001").css("left","20px").css("width",$(this).width()+13)
+				/* Adjust styling for the next sibling div with the class "fileTree" */
+				$(this)
+					.next("div.fileTree")
+					.css("text-align", "left")
+					.css("z-index", "10001")
+					.css("left", "20px")
+					.css("width", $(this).width() + 13);
 			});
+
+			/* Execute a function when the document is ready */
 			$(function() {
-				window.add_iso_share = function(){doUnassignedDevicesSurvey("add_iso_share")}
-			})
+				/* Define a function add_iso_share and attach it to the window object */
+				window.add_iso_share = function() {
+					/* Call the doUnassignedDevicesSurvey function with the argument "add_iso_share" */
+					doUnassignedDevicesSurvey("add_iso_share");
+				};
+			});
 		</script>
 	</div>
 </div>
@@ -1097,8 +1199,13 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	<?endif;?>
 	<div>
 		<script type="text/javascript">
+			/* Execute a function when the document is ready */
 			$(function() {
-				window.format_disk = function(bt, type, device){doUnassignedDevicesSurvey("format_disk", {el:bt, type:type, device:device});}
+				/* Define a function format_disk and attach it to the window object */
+				window.format_disk = function(bt, type, device) {
+					/* Call the doUnassignedDevicesSurvey function with the arguments "format_disk", {el:bt, type:type, device:device} */
+					doUnassignedDevicesSurvey("format_disk", {el: bt, type: type, device: device});
+				};
 			});
 		</script>
 	</div>
@@ -1130,8 +1237,13 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	</div>
 	<div>
 		<script type="text/javascript">
+			/* Execute a function when the document is ready */
 			$(function() {
-				window.rm_partition = function(bt, serial, device, partition){doUnassignedDevicesSurvey("remove_partiton", {el:bt, serial:serial, device:device, partition:partition});}
+				/* Define a function rm_partition and attach it to the window object */
+				window.rm_partition = function(bt, serial, device, partition) {
+					/* Call the doUnassignedDevicesSurvey function with the arguments "remove_partiton", {el:bt, serial:serial, device:device, partition:partition} */
+					doUnassignedDevicesSurvey("remove_partiton", {el: bt, serial: serial, device: device, partition: partition});
+				};
 			});
 		</script>
 	</div>
@@ -1166,8 +1278,13 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	</div>
 	<div>
 		<script type="text/javascript">
+			/* Execute a function when the document is ready */
 			$(function() {
-				window.clr_disk = function(bt, serial, device){doUnassignedDevicesSurvey("clear_disk", {el:bt, serial:serial, device:device});}
+				/* Define a function clr_disk and attach it to the window object */
+				window.clr_disk = function(bt, serial, device) {
+					/* Call the doUnassignedDevicesSurvey function with the arguments "clear_disk", {el:bt, serial:serial, device:device} */
+					doUnassignedDevicesSurvey("clear_disk", {el: bt, serial: serial, device: device});
+				};
 			});
 		</script>
 	</div>
@@ -1198,10 +1315,15 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	</div>
 	<div>
 		<script type="text/javascript">
+			/* Execute a function when the document is ready */
 			$(function() {
-				window.remove_iso_config = function(device, compressed){doUnassignedDevicesSurvey("remove_iso_share", {device:device, compressed:compressed});}
-		});
-	</script>
+				/* Define a function remove_iso_config and attach it to the window object */
+				window.remove_iso_config = function(device, compressed) {
+					/* Call the doUnassignedDevicesSurvey function with the arguments "remove_iso_share", {device:device, compressed:compressed} */
+					doUnassignedDevicesSurvey("remove_iso_share", {device: device, compressed: compressed});
+				};
+			});
+		</script>
 	</div>
 </div>
 
@@ -1230,8 +1352,13 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	</div>
 	<div>
 		<script type="text/javascript">
+			/* Execute a function when the document is ready */
 			$(function(){
-				window.remove_disk_config = function(serial, compressed){doUnassignedDevicesSurvey("remove_disk_config",{serial:serial, compressed:compressed});}
+				/* Define a function remove_disk_config and attach it to the window object */
+				window.remove_disk_config = function(serial, compressed) {
+					/* Call the doUnassignedDevicesSurvey function with the arguments "remove_disk_config", {serial:serial, compressed:compressed} */
+					doUnassignedDevicesSurvey("remove_disk_config", {serial: serial, compressed: compressed});
+				};
 			});
 		</script>
 	</div>
@@ -1262,8 +1389,13 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	</div>
 	<div>
 		<script type="text/javascript">
+			/* Execute a function when the document is ready */
 			$(function(){
-				window.remove_samba_config = function(device, compressed, type){doUnassignedDevicesSurvey("remove_remote_share",{device:device, compressed:compressed, type:type});}
+				/* Define a function remove_samba_config and attach it to the window object */
+				window.remove_samba_config = function(device, compressed, type) {
+					/* Call the doUnassignedDevicesSurvey function with the arguments "remove_remote_share", {device:device, compressed:compressed, type:type} */
+					doUnassignedDevicesSurvey("remove_remote_share", {device: device, compressed: compressed, type: type});
+				};
 			});
 		</script>
 	</div>
@@ -1365,8 +1497,13 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	</div>
 	<div>
 		<script type="text/javascript">
+			/* Execute a function when the document is ready */
 			$(function(){
-				window.add_samba_share = function(i){doUnassignedDevicesSurvey("add_remote_share",i);}
+				/* Define a function add_samba_share and attach it to the window object */
+				window.add_samba_share = function(i) {
+					/* Call the doUnassignedDevicesSurvey function with the arguments "add_remote_share", i */
+					doUnassignedDevicesSurvey("add_remote_share", i);
+				};
 			});
 		</script>
 	</div>
@@ -1392,8 +1529,20 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	</div>
 	<div>
 		<script type="text/javascript">
+			/* Execute a function when the document is ready */
 			$(function() {
-				window.chg_mountpoint = function(serial, partition, device, fstype, mountpoint, disklabel){doUnassignedDevicesSurvey("change_mountpoint",{serial:serial,partition:partition,device:device,fstype:fstype,mountpoint:mountpoint,disklabel:disklabel});}
+				/* Define a function chg_mountpoint and attach it to the window object */
+				window.chg_mountpoint = function(serial, partition, device, fstype, mountpoint, disklabel) {
+					/* Call the doUnassignedDevicesSurvey function with the arguments "change_mountpoint" and an object containing the specified parameters */
+					doUnassignedDevicesSurvey("change_mountpoint", {
+						serial: serial,
+						partition: partition,
+						device: device,
+						fstype: fstype,
+						mountpoint: mountpoint,
+						disklabel: disklabel
+					});
+				};
 			});
 		</script>
 	</div>
@@ -1420,8 +1569,16 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	</div>
 	<div>
 		<script type="text/javascript">
+			/* Execute a function when the document is ready */
 			$(function() {
-				window.chg_samba_mountpoint = function(device, mountpoint){doUnassignedDevicesSurvey("change_samba_mountpoint",{device:device,mountpoint:mountpoint});}
+				/* Define a function chg_samba_mountpoint and attach it to the window object */
+				window.chg_samba_mountpoint = function(device, mountpoint) {
+					/* Call the doUnassignedDevicesSurvey function with the arguments "change_samba_mountpoint" and an object containing the specified parameters */
+					doUnassignedDevicesSurvey("change_samba_mountpoint", {
+						device: device,
+						mountpoint: mountpoint
+					});
+				};
 			});
 		</script>
 	</div>
@@ -1448,8 +1605,16 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	</div>
 	<div>
 		<script type="text/javascript">
+			/* Execute a function when the document is ready */
 			$(function() {
-				window.chg_iso_mountpoint = function(device, mountpoint){doUnassignedDevicesSurvey("change_iso_mountpoint",{device:device,mountpoint:mountpoint});}
+				/* Define a function chg_iso_mountpoint and attach it to the window object */
+				window.chg_iso_mountpoint = function(device, mountpoint) {
+					/* Call the doUnassignedDevicesSurvey function with the arguments "change_iso_mountpoint" and an object containing the specified parameters */
+					doUnassignedDevicesSurvey("change_iso_mountpoint", {
+						device: device,
+						mountpoint: mountpoint
+					});
+				};
 			});
 		</script>
 	</div>
