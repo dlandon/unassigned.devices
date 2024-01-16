@@ -2552,6 +2552,7 @@ function get_samba_mounts() {
 
 				/* Check for mounting/unmounting state. */
 				$mount_device			= basename($mount['ip'])."_".basename($mount['path']);
+
 				$mount['is_mounting']	= (new MiscUD)->get_mounting_status($mount_device);
 				$mount['is_unmounting']	= (new MiscUD)->get_unmounting_status($mount_device);
 
