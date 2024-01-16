@@ -691,7 +691,6 @@ switch ($_POST['action']) {
 				/* Is the device mounting or unmounting. */
 				$is_mounting	= $mount['is_mounting'] ?? false;
 				$is_unmounting	= $mount['is_unmounting'] ?? false;
-
 				/* Populate the table row for this device. */
 				$o_remotes		.= "<tr>";
 
@@ -719,13 +718,11 @@ switch ($_POST['action']) {
 					$read_only	= $mount['remote_read_only'] ? "<font color='red'> (RO)<font>" : "";
 
 					$o_remotes	.= "<i class='fa fa-external-link mount-share'></i><a title='"._("Browse Remote SMB")."/"._("NFS Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a>".$read_only;
-				} else {
+				} else if (($is_alive) && ($is_available) && (! $is_mounting) && (! $is_unmounting) && (! $mount['invalid'])) {
 					$o_remotes	.= "<i class='fa fa-pencil mount-share'></i>";
-					if (($is_alive) && ($is_available) && (! $is_mounting) && (! $is_unmounting) && (! $mount['invalid'])) {
-						$o_remotes	.= "<a title='"._("Change Remote SMB")."/"._("NFS Mount Point")."' class='exec' onclick='chg_samba_mountpoint(\"{$mount['name']}\",\"{$mount_point}\");'>{$mount_point}</a>";
-					} else {
-						$o_remotes	.= $mount_point;
-					}
+					$o_remotes	.= "<a title='"._("Change Remote SMB")."/"._("NFS Mount Point")."' class='exec' onclick='chg_samba_mountpoint(\"{$mount['name']}\",\"{$mount_point}\");'>{$mount_point}</a>";
+				} else {
+					$o_remotes	.= $mount_point;
 				}
 				$o_remotes			.= "</td>";
 
@@ -752,7 +749,7 @@ switch ($_POST['action']) {
 
 				/* Remove SMB/NFS remote share table element. */
 				$o_remotes			.= "<td>";
-				$o_remotes			.= ($mounted || $is_mounting) ? "<i class='fa fa-remove'></i>" : "<a class='exec info' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount['name']}\", \"{$compressed_name}\", \"{$protocol}\");'><i class='fa fa-remove'></i><span>"._("Remove Remote SMB")."/"._("NFS Share")."</span></a>";
+				$o_remotes			.= ($mounted || $is_mounting || $is_unmounting) ? "<i class='fa fa-remove'></i>" : "<a class='exec info' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount['name']}\", \"{$compressed_name}\", \"{$protocol}\");'><i class='fa fa-remove'></i><span>"._("Remove Remote SMB")."/"._("NFS Share")."</span></a>";
 				$o_remotes			.= "</td>";
 
 				/* Empty table element. */

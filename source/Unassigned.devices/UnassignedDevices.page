@@ -145,6 +145,9 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 				/* Add spinning icon to mount/unmount button and disable button. */
 				innerMountButton.prop("disabled", true).html(`<i class='fa fa-spinner fa-spin'></i> ${currentOp == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"}`);
 
+				/* Restart the refresh timer to refresh the page in 1/6 of normal refresh. */
+				refreshTimer = setTimeout(refreshPage, (REFRESH_INTERVAL / 6));
+
 				$.post(UDURL, {
 					'action': currentOp,
 					'device': currentDevice
@@ -158,6 +161,9 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 					swalShowResult(false);
 				})
 				.always(() => {
+					/* Clear the existing interval */
+					clearInterval(refreshTimer);
+
 					/* Restart the refresh timer. */
 					refreshTimer = setInterval(refreshPage, REFRESH_INTERVAL);
 				});
