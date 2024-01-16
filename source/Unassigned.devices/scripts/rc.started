@@ -1,27 +1,32 @@
 #!/bin/bash
-#
-DOCROOT=`grep -Po '^chdir = \K.*' /etc/php-fpm.d/www.conf 2>/dev/null`
-if [ -z ${DOCROOT} ];then
-	DOCROOT="/usr/local/emhttp"
+
+docroot=$(grep -Po '^chdir = \K.*' /etc/php-fpm.d/www.conf 2>/dev/null)
+if [ -z "$docroot" ]; then
+	docroot="/usr/local/emhttp"
 fi
 
-logger "Mounting 'Auto Mount' Remote Shares..." -t"unassigned.devices"
+logger "Mounting 'Auto Mount' Remote Shares..." -t "unassigned.devices"
 
-# Wait until network is ready
-SECONDS=0
-while [ $SECONDS -le 120 ]; do
+# Wait until the network is ready
+seconds=0
+while [ $seconds -le 120 ]; do
 	gateway=$(route -n | awk '/^0.0.0.0/ {print $2; exit}')
-	if [ -n "$gateway" ] && [ $(ping -q -n -c 1 -W 1 $gateway | awk -F, '/received/ {print $2}' | awk '{print $1}') -eq 1 ]; then
+	if [ -n "$gateway" ] && [ "$(ping -q -n -c 1 -W 1 "$gateway" | awk -F, '/received/ {print $2}' | awk '{print $1}')" -eq 1 ]; then
 		break
 	fi
 	sleep 1.0
 done
 
-# If network check did not time out then move on
-if [ $SECONDS -le 120 ]; then
-	logger "Using Gateway '${gateway}' for Remote Shares." -t"unassigned.devices"
+# If the gateway is not found, we can't mount remote shares
+if [ -z "$gateway" ]; then
+	logger "Cannot 'Auto Mount' Remote Shares. Network not available!" -t "unassigned.devices"
 else
-	logger "Gateway not responding to a ping!  Mounting Remote Shares anyway." -t"unassigned.devices"
-fi
+	# If the network check did not time out, then move on
+	if [ $seconds -le 120 ]; then
+		logger "Using Gateway '$gateway' for Remote Shares." -t "unassigned.devices"
+	else
+		logger "Gateway '$gateway' is not responding to a ping!" -t "unassigned.devices"
+	fi
 
-${DOCROOT}/plugins/unassigned.devices/scripts/rc.unassigned mount autoshares &>/dev/null &
+	"$docroot"/plugins/unassigned.devices/scripts/rc.unassigned mount autoshares &>/dev/null &
+fi
