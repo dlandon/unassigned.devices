@@ -92,6 +92,7 @@ function unassigned_mount() {
 		foreach ($disk['partitions'] as $partition)
 		{
 			if ( (preg_match("#".$DEVNAME."#i", realpath($partition))) || $DEVNAME == "auto" || $DEVNAME == "autodevices" ) {
+				/* Get partition info. */
 				$info = get_partition_info($partition);
 
 				/* If partition info is non-existent, skip this partition. */
@@ -107,6 +108,12 @@ function unassigned_mount() {
 					}
 					continue;
 				}
+
+				/* Create the mounting status file for this device. */
+				$device	= ($info['fstype'] != "crypto_LUKS") ? $info['device'] : $info['luks'];
+
+				/* Create mounting status file. */
+				addFile(sprintf($paths['mounting'], basename($device)));
 
 				unassigned_log("Partition found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) && (strpos($k, "pass_through") === false)? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
 
@@ -128,11 +135,6 @@ function unassigned_mount() {
 				}
 
 				if ($info['device']) {
-					/* Create the mounting status file for this device. */
-					$device	= ($info['fstype'] != "crypto_LUKS") ? $info['device'] : $info['luks'];
-
-					/* Create mounting status file. */
-					addFile(sprintf($paths['mounting'], basename($device)));
 					unassigned_log("Mounting partition '".basename($device)."' at mountpoint '{$info['mountpoint']}'...");
 
 					/* Cannot mount disk with 'UNRAID' label. */
@@ -225,13 +227,18 @@ function unassigned_mount() {
 
 		foreach (get_samba_mounts() as $info) {
 			$device = $info['device'];
-			if ( $DEVNAME == $device || $DEVNAME == "auto" || $DEVNAME == "autoshares" ) {
-
+			if ( ($DEVNAME == $device) || ($DEVNAME == "auto") || ($DEVNAME == "autoshares") ) {
 				/* if remote mount is not set to auto mount, go to the next one. */
 				if (! $info['automount'] && ($DEVNAME == "auto" || $DEVNAME == "autoshares")) {
 					unassigned_log("Remote Share '".$info['device']."' is not set to auto mount.");
 					continue;
 				}
+
+				/* Remove any special characters. */
+				$mount_device = basename($info['ip'])."_".basename($info['path']);
+
+				/* Create mounting status file. */
+				addFile(sprintf($paths['mounting'], $mount_device));
 
 				/* See if the mountpoint is a duplicate reserved, share, or UD name. Don't mount if a duplicate.*/
 				if (! check_for_duplicate_share($info['device'], basename($info['mountpoint']))) {
@@ -245,12 +252,6 @@ function unassigned_mount() {
 				}
 
 				unassigned_log("Remote Share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = ((strpos($k, "pass") !== false) || ((strpos($k, "user") !== false) && (strpos($k, "user_command") === false))) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
-
-				/* Remove any special characters. */
-				$mount_device = basename($info['ip'])."_".basename($info['path']);
-
-				/* Create mounting status file. */
-				addFile(sprintf($paths['mounting'], $mount_device));
 
 				unassigned_log("Mounting Remote Share '{$info['device']}'...");
 
@@ -285,6 +286,11 @@ function unassigned_mount() {
 					$result	= "failure";
 				}
 			}
+
+			/* If we are mounting a single device, we are done now. */
+			if ($DEVNAME == $device) {
+				break;
+			}
 		}
 	}
 
@@ -294,12 +300,17 @@ function unassigned_mount() {
 			$device = $info['device'];
 
 			if ( $DEVNAME == $device || $DEVNAME == "auto" || $DEVNAME == "autodevices" ) {
-
 				/* If iso mount is not set to auto mount, skip to the next one. */
 				if (! $info['automount'] && ($DEVNAME == "auto" || $DEVNAME == "autodevices")) {
 					unassigned_log("ISO File '".$info['device']."' is not set to auto mount.");
 					continue;
 				}
+
+				/* Remove any special characters. */
+				$mount_device = basename($info['device']);
+
+				/* Create mounting status file. */
+				addFile(sprintf($paths['mounting'], $mount_device));
 
 				/* See if the mountpoint is a duplicate reserved, share, or UD name. Don't mount if a duplicate.*/
 				if (! check_for_duplicate_share($info['device'], basename($info['mountpoint']))) {
@@ -313,12 +324,6 @@ function unassigned_mount() {
 				}
 
 				unassigned_log("ISO File share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
-
-				/* Remove any special characters. */
-				$mount_device = basename($info['device']);
-
-				/* Create mounting status file. */
-				addFile(sprintf($paths['mounting'], $mount_device));
 
 				unassigned_log("Mounting ISO File '{$info['device']}'...");
 
@@ -345,6 +350,11 @@ function unassigned_mount() {
 
 					$result	= "failure";
 				}
+			}
+
+			/* If we are mounting a single ISO file, we are done now. */
+			if ($DEVNAME == $device) {
+				break;
 			}
 		}
 	}
@@ -538,16 +548,16 @@ function unassigned_umount() {
 				/* Unmount the remote share if it is mounted. */
 				$dev	= $info['fstype'] == "root" ? $info['mountpoint'] : $info['device'];
 				if ( is_mounted($info['mountpoint']) ) {
-					/* Execute the remote mount script file with unmount action. */
-					execute_script($info, "UNMOUNT");
-
-					unassigned_log("Unmounting Remote SMB/NFS Share '{$info['device']}'...");
-
 					/* Remove special characters. */
 					$mount_device = basename($info['ip'])."_".basename($info['path']);
 
 					/* Create unmounting status file. */
 					addFile(sprintf($paths['unmounting'], $mount_device));
+
+					/* Execute the remote mount script file with unmount action. */
+					execute_script($info, "UNMOUNT");
+
+					unassigned_log("Unmounting Remote SMB/NFS Share '{$info['device']}'...");
 
 					/* See if we are force unmounting this device. */
 					$force_unmount = $info['fstype'] == "root" ? false : ($info['is_alive'] && $info['is_available'] ? $force : true);
@@ -574,6 +584,11 @@ function unassigned_umount() {
 					unassigned_log("Remote SMB/NFS share '{$info['device']}' is not mounted.");
 				}
 			}
+
+			/* If we are unmounting a single device, we are done now. */
+			if ($DEVNAME == $device) {
+				break;
+			}
 		}
 	}
 
@@ -594,7 +609,7 @@ function unassigned_umount() {
 
 					unassigned_log("Removing ISO File share '{$info['device']}'...");
 
-					/* Execute iso script file with actyion unmount. */
+					/* Execute iso script file with action unmount. */
 					execute_script($info, "UNMOUNT");
 
 					unassigned_log("Unmounting ISO File '{$info['device']}'...");
@@ -617,6 +632,11 @@ function unassigned_umount() {
 				} else {
 					unassigned_log("Remote ISO File share '{$info['device']}' is not mounted.");
 				}
+			}
+
+			/* If we are unmounting a single ISO file, we are done now. */
+			if ($DEVNAME == $device) {
+				break;
 			}
 		}
 	}
