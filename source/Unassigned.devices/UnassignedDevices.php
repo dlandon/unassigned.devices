@@ -331,7 +331,9 @@ function make_mount_button($device) {
 	$button = "<span><button device='{$device['device']}' class='mount' context='%s' role='%s' %s><i class='%s'></i>%s</button></span>";
 
 	if (isset($device['partitions'])) {
-		$mounted		= in_array(true, array_map(function($ar){return $ar['mounted'];}, $device['partitions']), true);
+		$mounted = in_array(true, array_map(function($partition) {
+			return $partition['mounted'];
+		}, $device['partitions']), true);
 		if (isset($device['partitions'][0]['pass_through'])) {
 			$pass_through	= $device['partitions'][0]['pass_through'];
 		} else {
@@ -349,7 +351,9 @@ function make_mount_button($device) {
 		$disable_mount	= $device['partitions'][0]['disable_mount'] ?? false;
 
 		/* Is the disk not unmounted properly? */
-		$not_unmounted	= in_array(true, array_map(function($ar){return $ar['not_unmounted'];}, $device['partitions']), true);
+		$not_unmounted = in_array(true, array_map(function($partition) {
+			return $partition['not_unmounted'];
+		}, $device['partitions']), true);
 
 		/* Is the disk file system not matching udev file system? */
 		$not_udev		= $device['partitions'][0]['not_udev'] ?? false;
@@ -496,13 +500,19 @@ switch ($_POST['action']) {
 		if ( count($all_disks) ) {
 			foreach ($all_disks as $disk) {
 				/* See if any partitions are mounted. */
-				$mounted				= in_array(true, array_map(function($ar){return is_mounted($ar['mountpoint']);}, $disk['partitions']), true);
+				$mounted = in_array(true, array_map(function($partition) {
+					return is_mounted($partition['mountpoint']);
+				}, $disk['partitions']), true);
 
 				/* Was the disk unmounted properly? */
-				$not_unmounted			= in_array(true, array_map(function($ar){return $ar['not_unmounted'];}, $disk['partitions']), true);
+				$not_unmounted = in_array(true, array_map(function($partition) {
+					return $partition['not_unmounted'];
+				}, $disk['partitions']), true);
 
 				/* See if any partitions have a file system. */
-				$file_system			= in_array(true, array_map(function($ar){return ! empty($ar['fstype']);}, $disk['partitions']), true);
+				$file_system = in_array(true, array_map(function($partition) {
+					return !empty($partition['fstype']);
+				}, $disk['partitions']), true);
 
 				$disk_device			= basename($disk['device']);
 				$disk_dev				= $disk['ud_dev'];
@@ -512,8 +522,23 @@ switch ($_POST['action']) {
 				$temp					= my_temp($disk['temperature']);
 
 				/* Get the mounting, unmounting, and formatting state. */
-				$disk['is_mounting']	= (in_array(true, array_map(function($partitions){return $partitions['is_mounting'];}, $disk['partitions']), true) || in_array(true, array_map(function($zvol){return $zvol['is_mounting'];}, $disk['zvol']), true));
-				$disk['is_unmounting']	= (in_array(true, array_map(function($partitions){return $partitions['is_unmounting'];}, $disk['partitions']), true) || in_array(true, array_map(function($zvol){return $zvol['is_unmounting'];}, $disk['zvol']), true));
+				$disk['is_mounting'] = (
+					in_array(true, array_map(function($partition) {
+						return $partition['is_mounting'];
+					}, $disk['partitions']), true) ||
+					in_array(true, array_map(function($zvol) {
+						return $zvol['is_mounting'];
+					}, $disk['zvol']), true)
+				);
+
+				$disk['is_unmounting'] = (
+					in_array(true, array_map(function($partition) {
+						return $partition['is_unmounting'];
+					}, $disk['partitions']), true) ||
+					in_array(true, array_map(function($zvol) {
+						return $zvol['is_unmounting'];
+					}, $disk['zvol']), true)
+				);
 				$disk['is_formatting']	= (new MiscUD)->get_formatting_status(basename($disk['device']));
 
 				/* Create the mount button. */
