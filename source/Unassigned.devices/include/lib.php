@@ -1893,7 +1893,7 @@ function do_mount_root($info) {
 	/* A rootshare device is treated similar to a CIFS mount. */
 	if ($var['shareDisk'] != "yes") {
 		/* Be sure the server online status is current. */
-		$is_alive = is_samba_server_online($info['ip'], $info['protocol']);
+		$is_alive = $info['is_alive'];
 
 		/* If the root server is not online, run the ping update and see if ping status needs to be refreshed. */
 		if (! $is_alive) {
@@ -2607,7 +2607,7 @@ function do_mount_samba($info) {
 	$rc				= false;
 
 	/* Be sure the server online status is current. */
-	$is_alive = is_samba_server_online($info['ip'], $info['protocol']);
+	$is_alive = $info['is_alive'];
 
 	/* If the remote server is not online, run the ping update and see if ping status needs to be refreshed. */
 	if (! $is_alive) {
