@@ -206,6 +206,9 @@ function unassigned_mount() {
 							/* Create mounting status file. */
 							addFile(sprintf($paths['mounting'], basename($zvol['device'])));
 
+							/* Give things a chance to settle.  This gives the pageRefresh a chance to catch up. */
+							sleep(1);
+
 							$rc = do_mount($zvol);
 							if (! $rc) {
 								unassigned_log("ZFS Volume '".$k."' cannot be mounted.");
@@ -472,6 +475,9 @@ function unassigned_umount() {
 									/* Create unmounting status file. */
 									addFile(sprintf($paths['unmounting'], basename($zvol['device'])));
 
+									/* Give things a chance to settle.  This gives the pageRefresh a chance to catch up. */
+									sleep(1);
+
 									$rc = do_unmount($zvol['device'], $zvol['mountpoint'], $force, false, false, false);
 									if (! $rc) {
 										unassigned_log("ZFS Volume '".$k."' cannot be unmounted.");
@@ -544,6 +550,9 @@ function unassigned_umount() {
 							if ($zvol['mounted']) {
 								/* Create unmounting status file. */
 								addFile(sprintf($paths['unmounting'], basename($zvol['device'])));
+
+								/* Give things a chance to settle.  This gives the pageRefresh a chance to catch up. */
+								sleep(1);
 
 								$rc = do_unmount($zvol['device'], $zvol['mountpoint'], $force, false, false, false);
 								if (! $rc) {
@@ -893,7 +902,9 @@ switch ($COMMAND) {
 }
 
 /* Clear all the state files. */
-array_map(function($f){exec("/bin/rm -f ".escapeshellarg($f)." 2>/dev/null");}, $remove);
+array_map(function($file) {
+    exec("/bin/rm -f " . escapeshellarg($file) . " 2>/dev/null");
+}, $remove);
 
 /* Return result if mounting or unmounting. */
 if ($result) {
