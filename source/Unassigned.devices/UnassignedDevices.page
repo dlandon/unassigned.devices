@@ -129,12 +129,12 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	function disk_op(el, op, device) {
 		/* If the page is refreshing, ignore this click. */
 		if (! isRefreshing) {
-			const mount_button = $(`button[device='${device}']`);
+			const mountButton = $(`button[device='${device}']`);
 			const currentDevice = device;
 			const currentOp = op;
 
 			/* Add spinning icon to mount/unmount button and disable button. */
-			mount_button.prop("disabled", true).html(`<i class='fa fa-spinner fa-spin'></i> ${currentOp == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"}`);
+			mountButton.prop("disabled", true).html(`<i class='fa fa-spinner fa-spin'></i> ${currentOp == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"}`);
 
 			refreshPage().then(() => {
 				const innerMountButton = $(`button[device='${currentDevice}']`);
@@ -142,7 +142,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 				/* Add spinning icon to mount/unmount button and disable button. */
 				innerMountButton.prop("disabled", true).html(`<i class='fa fa-spinner fa-spin'></i> ${currentOp == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"}`);
 
-				/* Start the refresh timer to refresh the page in 1/6 of normal refresh. */
+				/* Start the refresh timer to refresh the page after the mount/unmount script starts. */
 				setTimeout(refreshPage, (REFRESH_INTERVAL / 6));
 
 				$.post(UDURL, {
