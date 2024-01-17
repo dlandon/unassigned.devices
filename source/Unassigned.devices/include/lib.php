@@ -1608,6 +1608,7 @@ function do_mount($info) {
 	global $var, $paths;
 
 	$rc = false;
+
 	/* Mount a CIFS or NFS remote mount. */
 	if ($info['fstype'] == "cifs" || $info['fstype'] == "nfs") {
 		$rc = do_mount_samba($info);
@@ -1623,8 +1624,7 @@ function do_mount($info) {
 	/* Mount a luks encrypted disk device. */
 	} else if ($info['fstype'] == "crypto_LUKS") {
 		$fstype		= part_fs_type($info['device']);
-		$pool_name	= $info['pool_name'];
-		$mounted	= (($fstype == "zfs") && ($pool_name)) ? (is_mounted($pool_name) || is_mounted($info['mountpoint'])) : (is_mounted($info['device']) || is_mounted($info['mountpoint']));
+		$mounted	= $info['mounted'];
 		if (! $mounted) {
 			$luks		= basename($info['device']);
 			$discard	= is_disk_ssd($info['luks']) ? "--allow-discards" : "";
@@ -1678,7 +1678,7 @@ function do_mount_local($info) {
 	$file_system	= "";
 
 	$pool_name	= $info['pool_name'];
-	$mounted	= (($info['fstype'] == "zfs") && ($pool_name)) ? (is_mounted($pool_name) || is_mounted($dir)) : (is_mounted($dev) || is_mounted($dir));
+	$mounted	= $info['mounted'];
 	if (! $mounted) {
 		if ($fs) {
 			$recovery = "";
@@ -1910,7 +1910,7 @@ function do_mount_root($info) {
 			$fs			= $info['fstype'];
 			$ro			= $info['read_only'];
 			$dev		= str_replace("//".$info['ip'], "", $info['path']);
-			if (! is_mounted($dir)) {
+			if (! $info['mounted']) {
 				/* Create the mount point and set permissions. */
 				@mkdir($dir, 0777, true);
 				@chown($dir, 99);
@@ -2623,7 +2623,7 @@ function do_mount_samba($info) {
 		$fs			= $info['fstype'];
 		$ro			= $info['read_only'];
 		$dev		= $info['mount_dev'];
-		if ((! is_mounted($dev)) && (! is_mounted($dir))) {
+		if (! $info['mounted']) {
 			/* Create the mount point and set permissions. */
 			if (! is_dir($dir)) {
 				@mkdir($dir, 0777, true);
@@ -3013,7 +3013,7 @@ function do_mount_iso($info) {
 	$file	= $info['file'];
 	$dir	= $info['mountpoint'];
 	if (is_file($file)) {
-		if (! is_mounted($dir)) {
+		if (! $info['mounted']) {
 			@mkdir($dir, 0777, true);
 
 			$cmd = "/sbin/mount -ro loop ".escapeshellarg($file)." ".escapeshellarg($dir);
