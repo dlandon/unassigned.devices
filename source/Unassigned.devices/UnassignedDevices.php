@@ -691,6 +691,7 @@ switch ($_POST['action']) {
 				/* Is the device mounting or unmounting. */
 				$is_mounting	= $mount['is_mounting'] ?? false;
 				$is_unmounting	= $mount['is_unmounting'] ?? false;
+
 				/* Populate the table row for this device. */
 				$o_remotes		.= "<tr>";
 
