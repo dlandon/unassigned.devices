@@ -133,9 +133,6 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			const currentDevice = device;
 			const currentOp = op;
 
-			/* Clear the existing interval */
-			clearInterval(refreshTimer);
-
 			/* Add spinning icon to mount/unmount button and disable button. */
 			mount_button.prop("disabled", true).html(`<i class='fa fa-spinner fa-spin'></i> ${currentOp == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"}`);
 
@@ -145,8 +142,8 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 				/* Add spinning icon to mount/unmount button and disable button. */
 				innerMountButton.prop("disabled", true).html(`<i class='fa fa-spinner fa-spin'></i> ${currentOp == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"}`);
 
-				/* Restart the refresh timer to refresh the page in 1/6 of normal refresh. */
-				refreshTimer = setTimeout(refreshPage, (REFRESH_INTERVAL / 6));
+				/* Start the refresh timer to refresh the page in 1/6 of normal refresh. */
+				setTimeout(refreshPage, (REFRESH_INTERVAL / 6));
 
 				$.post(UDURL, {
 					'action': currentOp,
@@ -160,13 +157,6 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 				.fail(() => {
 					swalShowResult(false);
 				})
-				.always(() => {
-					/* Clear the existing interval */
-					clearInterval(refreshTimer);
-
-					/* Restart the refresh timer. */
-					refreshTimer = setInterval(refreshPage, REFRESH_INTERVAL);
-				});
 			});
 		}
 	}
@@ -857,9 +847,6 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	/* Flag to track whether page is currently being refreshed. */
 	let isRefreshing = false;
 
-	/* Timer for refreshing the page at regular intervals. */
-	let refreshTimer;
-
 	/* Page refresh rate in milliseconds. */
 	const REFRESH_INTERVAL = 3000;
 
@@ -941,7 +928,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 $(function() {
     /* Set page refresh interval every 3 seconds. */
-    refreshTimer = window.setInterval(refreshPage, REFRESH_INTERVAL);
+	window.setInterval(refreshPage, REFRESH_INTERVAL);
 
     /* Set ping poll interval every 15 seconds. */
     window.setInterval(pingPoll, 15000);
