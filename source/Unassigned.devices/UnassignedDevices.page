@@ -56,7 +56,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		@param dev: The device identifier.
 	*/
 	function spin_down_disk(dev) {
-		document.getElementById('disk_orb-' + dev).className = "fa fa-refresh fa-spin green-orb";
+		document.getElementById('disk_orb-' + dev).className = "fa fa-refresh fa-spin green-orb orb";
 
 		/* Make an asynchronous POST request to UDURL to spin down the disk. */
 		$.post(UDURL, {
@@ -70,7 +70,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		@param dev: The device identifier.
 	*/
 	function spin_up_disk(dev) {
-		document.getElementById('disk_orb-' + dev).className = "fa fa-refresh fa-spin grey-orb";
+		document.getElementById('disk_orb-' + dev).className = "fa fa-refresh fa-spin grey-orb orb";
 
 		/* Make an asynchronous POST request to UDURL to spin up the disk. */
 		$.post(UDURL, {
