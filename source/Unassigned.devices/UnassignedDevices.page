@@ -870,7 +870,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 			/* Extract gateway, IP address, and netmask information from the network interface. */
 			$gateway = array_values(array_flip(preg_grep("/GATEWAY:/", array_flip($iface))));
-			$ipaddr  = array_values(array_flip(preg_grep("/IPADDR:/", array_flip($iface))));
+			$ipaddr	= array_values(array_flip(preg_grep("/IPADDR:/", array_flip($iface))));
 			$netmask = array_values(array_flip(preg_grep("/NETMASK/", array_flip($iface))));
 
 			/* Loop through IP addresses and add them to the network array in JavaScript. */
@@ -927,88 +927,88 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	});
 
 $(function() {
-    /* Set page refresh interval every 3 seconds. */
+	/* Set page refresh interval every 3 seconds. */
 	window.setInterval(refreshPage, REFRESH_INTERVAL);
 
-    /* Set ping poll interval every 15 seconds. */
-    window.setInterval(pingPoll, 15000);
+	/* Set ping poll interval every 15 seconds. */
+	window.setInterval(pingPoll, 15000);
 
-    /* Check for diskio cookie change every 100ms. */
-    window.setInterval(checkCookie, 100);
+	/* Check for diskio cookie change every 100ms. */
+	window.setInterval(checkCookie, 100);
 
-    /* Add icons to Tab/Title bar. */
-    $('#tab4').bind({
-        click: function() {
-            $('i.toggle').show('slow');
-        }
-    });
+	/* Add icons to Tab/Title bar. */
+	$('#tab4').bind({
+		click: function() {
+			$('i.toggle').show('slow');
+		}
+	});
 
-    /* Show the current diskio icon based on the current diskio cookie value. */
-    if ($.cookie('diskio') === undefined) {
-        $('i.toggle').removeClass('fa-tachometer').addClass('fa-list');
-    } else {
-        $('i.toggle').removeClass('fa-list').addClass('fa-tachometer');
-    }
+	/* Show the current diskio icon based on the current diskio cookie value. */
+	if ($.cookie('diskio') === undefined) {
+		$('i.toggle').removeClass('fa-tachometer').addClass('fa-list');
+	} else {
+		$('i.toggle').removeClass('fa-list').addClass('fa-tachometer');
+	}
 
-    /* Update the show-disks status. */
-    if ($.cookie('unassigned-disks-view') == 'false') {
-        $('.show-disks').slideToggle('slow');
-    }
+	/* Update the show-disks status. */
+	if ($.cookie('unassigned-disks-view') == 'false') {
+		$('.show-disks').slideToggle('slow');
+	}
 
-    /* Update the show-shares status. */
-    if ($.cookie('unassigned-shares-view') == 'false') {
-        $('.show-shares').slideToggle('slow');
-    }
+	/* Update the show-shares status. */
+	if ($.cookie('unassigned-shares-view') == 'false') {
+		$('.show-shares').slideToggle('slow');
+	}
 
-    /* Update the show-historical status. */
-    if ($.cookie('unassigned-historical-view') == 'false') {
-        $('.show-historical').slideToggle('slow');
-    }
+	/* Update the show-historical status. */
+	if ($.cookie('unassigned-historical-view') == 'false') {
+		$('.show-historical').slideToggle('slow');
+	}
 
-    $('.tooltip').tooltipster({ delay: 100, trigger: 'custom', triggerOpen: { mouseenter: true }, triggerClose: { click: false, scroll: true, mouseleave: true } });
+	$('.tooltip').tooltipster({ delay: 100, trigger: 'custom', triggerOpen: { mouseenter: true }, triggerClose: { click: false, scroll: true, mouseleave: true } });
 
-    /* Add switchButton to Tab/Title bar. */
-    $('.disks-switch').switchButton({
-        labels_placement: "left",
-        on_label: "<?=_('Disks');?>",
-        off_label: "<?=_('Disks');?>",
-        checked: $.cookie('unassigned-disks-view') != 'false'
-    });
-    $('.disks-switch').change(function() {
-        $('.show-disks').slideToggle('slow');
-        $.cookie('unassigned-disks-view', $('.disks-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path: '/' });
-    });
+	/* Add switchButton to Tab/Title bar. */
+	$('.disks-switch').switchButton({
+		labels_placement: "left",
+		on_label: "<?=_('Disks');?>",
+		off_label: "<?=_('Disks');?>",
+		checked: $.cookie('unassigned-disks-view') != 'false'
+	});
+	$('.disks-switch').change(function() {
+		$('.show-disks').slideToggle('slow');
+		$.cookie('unassigned-disks-view', $('.disks-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path: '/' });
+	});
 
-    $('.shares-switch').switchButton({
-        labels_placement: "left",
-        on_label: "<?=_('Shares');?>",
-        off_label: "<?=_('Shares');?>",
-        checked: $.cookie('unassigned-shares-view') != 'false'
-    });
-    $('.shares-switch').change(function() {
-        $('.show-shares').slideToggle('slow');
-        $.cookie('unassigned-shares-view', $('.shares-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path: '/' });
-    });
+	$('.shares-switch').switchButton({
+		labels_placement: "left",
+		on_label: "<?=_('Shares');?>",
+		off_label: "<?=_('Shares');?>",
+		checked: $.cookie('unassigned-shares-view') != 'false'
+	});
+	$('.shares-switch').change(function() {
+		$('.show-shares').slideToggle('slow');
+		$.cookie('unassigned-shares-view', $('.shares-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path: '/' });
+	});
 
-    $('.historical-switch').switchButton({
-        labels_placement: "left",
-        on_label: "<?=_('Historical');?>",
-        off_label: "<?=_('Historical');?>",
-        checked: $.cookie('unassigned-historical-view') != 'false'
-    });
-    $('.historical-switch').change(function() {
-        $('.show-historical').slideToggle('slow');
-        $.cookie('unassigned-historical-view', $('.historical-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path: '/' });
-    });
+	$('.historical-switch').switchButton({
+		labels_placement: "left",
+		on_label: "<?=_('Historical');?>",
+		off_label: "<?=_('Historical');?>",
+		checked: $.cookie('unassigned-historical-view') != 'false'
+	});
+	$('.historical-switch').change(function() {
+		$('.show-historical').slideToggle('slow');
+		$.cookie('unassigned-historical-view', $('.historical-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path: '/' });
+	});
 
-    /* Load contents if tab is checked. */
-    if ($('#tab'+tab_usbdisks).is(':checked')) {
-        $('#tab'+tab_usbdisks).trigger("click");
-        $.removeCookie('one', { path: '/' });
-    }
+	/* Load contents if tab is checked. */
+	if ($('#tab'+tab_usbdisks).is(':checked')) {
+		$('#tab'+tab_usbdisks).trigger("click");
+		$.removeCookie('one', { path: '/' });
+	}
 
-    /* Iniialize the web page. */
-    refreshPage();
+	/* Iniialize the web page. */
+	refreshPage();
 });
 </script>
 

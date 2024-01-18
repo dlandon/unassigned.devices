@@ -391,9 +391,9 @@ _(APFS Volume)_:
 <?if ((isset($_GET['d'])) && ($protocol == "SMB") && (! $mounted)):?>
 _(Encrypt CIFS Mount)_?
 : <select name="#enable_encrypt" size="1" <?=$encrypt;?>>
-  <?=mk_option($enable_encrypt, "no", "_(No)_");?>
-  <?=mk_option($enable_encrypt, "yes", "_(Yes)_");?>
-  </select>
+	<?=mk_option($enable_encrypt, "no", "_(No)_");?>
+	<?=mk_option($enable_encrypt, "yes", "_(Yes)_");?>
+	</select>
 <?endif;?>
 
 <?if ((isset($_GET['d'])) && ($protocol == "SMB") && (! $mounted)):?>
@@ -425,9 +425,9 @@ _(Device Script)_:
 
 _(Enable Device Script)_?
 : <select name="#enable_script" size="1" <?=$script_disabled;?>>
-  <?=mk_option($enable_script, "yes", "_(Yes)_");?>
-  <?=mk_option($enable_script, "no", "_(No)_");?>
-  </select>
+	<?=mk_option($enable_script, "yes", "_(Yes)_");?>
+	<?=mk_option($enable_script, "no", "_(No)_");?>
+	</select>
 
 :ud_edit_script_enable_script_plug:
 > Set to **Yes** to have the Device Script run on any UD event.
@@ -435,9 +435,9 @@ _(Enable Device Script)_?
 
 _(Run Device Script File in the background)_?
 : <select name="#background" size="1" <?=$script_disabled;?>>
-  <?=mk_option($background, "yes", "_(Yes)_");?>
-  <?=mk_option($background, "no", "_(No)_");?>
-  </select>
+	<?=mk_option($background, "yes", "_(Yes)_");?>
+	<?=mk_option($background, "no", "_(No)_");?>
+	</select>
 
 :ud_edit_script_run_background_plug:
 > Set to **Yes** to have the Device Script run as a background task.  This can keep the Unassigned Devices UI from hanging when the script is run from the UI.

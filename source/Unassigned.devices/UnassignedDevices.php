@@ -672,7 +672,7 @@ switch ($_POST['action']) {
 				/* Add to share names and disk names. */
 				for ($i = 0; $i < count($disk['partitions']); $i++) {
 					if (($disk['unassigned_dev']) && (! in_array($disk['unassigned_dev'], $disk_names))) {
-						$disk_names[$disk_device] =  $disk['unassigned_dev'];
+						$disk_names[$disk_device] = $disk['unassigned_dev'];
 					}
 					if ($disk['partitions'][$i]['fstype']) {
 						$dev	= (isset($disk['partition'][$i]['fstype']) && basename(($disk['partition'][$i]['fstype'] == "crypto_LUKS")) ? $disk['luks'] : $disk['device']);
@@ -1106,7 +1106,7 @@ switch ($_POST['action']) {
 						$name	= $dev_name;
 					}
 					$ser		= $serial;
-					$ser		.= $dev ?  " (".$dev.")" : "";	
+					$ser		.= $dev ? " (".$dev.")" : "";	
 					$old_name	= get_config($serial, "unassigned_dev");
 					if (($old_name) != ($name)) {
 						unassigned_log("Set Disk Name on '".$ser."' to '".$name."'");
