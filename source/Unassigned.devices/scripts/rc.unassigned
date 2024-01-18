@@ -130,7 +130,7 @@ function unassigned_mount() {
 				}
 
 				/* See if the mountpoint is a duplicate reserved, share, or UD name. Don't mount if a duplicate.*/
-				if (! check_for_duplicate_share(($info['fstype'] == "crypto_LUKS" ? $info['luks'] :  $info['device']), basename($info['mountpoint']))) {
+				if (! check_for_duplicate_share(($info['fstype'] == "crypto_LUKS" ? $info['luks'] : $info['device']), basename($info['mountpoint']))) {
 					unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' cannot be mounted.");
 
 					/* Execute device script with error mounting action. */
@@ -831,8 +831,13 @@ function unassigned_abort($script) {
 function addFile($file) {
 	global $remove;
 
-	$file = safe_name($file);
+	/* The file name has to have all special characters removed. */
+	$file = safe_name($file, true, true);
+
+	/* Create the status file. */
 	@touch($file);
+
+	/* Add this file to the array of files to remove when operation is done. */
 	$remove[] = $file;
 }
 
@@ -903,7 +908,7 @@ switch ($COMMAND) {
 
 /* Clear all the state files. */
 array_map(function($file) {
-    exec("/bin/rm -f " . escapeshellarg($file) . " 2>/dev/null");
+	exec("/bin/rm -f " . escapeshellarg($file) . " 2>/dev/null");
 }, $remove);
 
 /* Return result if mounting or unmounting. */

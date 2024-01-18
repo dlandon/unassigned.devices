@@ -288,7 +288,7 @@ class MiscUD
 	public function get_mounting_status($device) {
 		global $paths;
 
-		$mounting		= array_values(preg_grep("@/mounting_".safe_name($device)."@i", listDir(dirname($paths['mounting']))))[0] ?? '';
+		$mounting		= array_values(preg_grep("@/mounting_".safe_name($device, true, true)."@i", listDir(dirname($paths['mounting']))))[0] ?? '';
 		$is_mounting	= (isset($mounting) && (time() - @filemtime($mounting) < 300));
 		return $is_mounting;
 	}
@@ -297,7 +297,7 @@ class MiscUD
 	public function get_unmounting_status($device) {
 		global $paths;
 
-		$unmounting		= array_values(preg_grep("@/unmounting_".safe_name($device)."@i", listDir(dirname($paths['unmounting']))))[0] ?? '';
+		$unmounting		= array_values(preg_grep("@/unmounting_".safe_name($device, true, true)."@i", listDir(dirname($paths['unmounting']))))[0] ?? '';
 		$is_unmounting	= (isset($unmounting) && (time() - @filemtime($unmounting)) < 300);
 		return $is_unmounting;
 	}
@@ -459,7 +459,7 @@ function listDir($root) {
 }
 
 /* Remove characters that will cause issues with php in names. */
-function safe_name($name, $convert_spaces = true) {
+function safe_name($name, $convert_spaces = true, $convert_extra = false) {
 
 	/* UTF8 characters only and not escaped. Decode html entities. */
 	$string				= html_entity_decode($name, ENT_QUOTES, 'UTF-8');
@@ -468,6 +468,12 @@ function safe_name($name, $convert_spaces = true) {
 	/* Convert reserved php characters and invalid file name characters to underscore. */
 	$escapeSequences	= array("'", '"', "?", "#", "&", "!", "<", ">", "|", "+", "@");
 	$replacementChars	= "_";
+
+	/* Convert parentheses to underscore. */
+	if ($convert_extra) {
+		$extraSequences		= array("(", ")");
+		$escapeSequences	= array_merge($escapeSequences, $extraSequences);
+	}
 
 	/* Convert spaces to underscore. */
 	if ($convert_spaces) {
@@ -1146,7 +1152,7 @@ function benchmark() {
 	array_shift($params);
 	$time		= -microtime(true); 
 	$out		= call_user_func_array($function, $params);
-	$time	   += microtime(true); 
+	$time		+= microtime(true); 
 	$type		= ($time > 10) ? 0 : 1;
 	unassigned_log("benchmark: $function(".implode(",", $params).") took ".sprintf('%f', $time)."s.", $type);
 
@@ -1452,7 +1458,7 @@ function execute_script($info, $action, $testing = false) {
 			} else {
 				unassigned_log("Script file '".$command_script."' is not a valid file!");
 			}
-		} else if ($action == "ADD")  {
+		} else if ($action == "ADD") {
 			unassigned_log("Device script '".basename($cmd)."' is not enabled!");
 		}
 	}
@@ -2661,7 +2667,7 @@ function do_mount_samba($info) {
 				$smb_version = (get_config("Config", "smb_version") == "yes");
 				if (! $smb_version) {
 					$ver			= "";
-					$extra_params	=  $ver.$encrypt;
+					$extra_params	= $ver.$encrypt;
 					$params	= sprintf(get_mount_params($fs, $dir, $ro), $extra_params);
 					$cmd	= "/sbin/mount -t ".escapeshellarg($fs)." -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 
@@ -2677,7 +2683,7 @@ function do_mount_samba($info) {
 				/* If the remote share didn't mount, try SMB 3.1.1. */
 				if (! is_mounted($dev) && (strpos($o, "Permission denied") === false) && (strpos($o, "Network is unreachable") === false)) {
 					$ver	= ",vers=3.1.1";
-					$extra_params	=  $ver.$encrypt;
+					$extra_params	= $ver.$encrypt;
 					$params	= sprintf(get_mount_params($fs, $dir, $ro), $extra_params);
 					$cmd	= "/sbin/mount -t $fs -o ".$params." ".escapeshellarg($dev)." ".escapeshellarg($dir);
 
@@ -2964,7 +2970,7 @@ function get_iso_mounts() {
 				}
 
 				/* Remove special characters. */
-				$mount_device			= safe_name(basename($mount['device']));
+				$mount_device			= safe_name(basename($mount['device']), true, true);
 
 				/* Check mounting and unmounting status. */
 				$mount['is_mounting']	= (new MiscUD)->get_mounting_status($mount_device);
