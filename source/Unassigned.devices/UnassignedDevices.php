@@ -126,11 +126,8 @@ function render_partition($disk, $partition, $disk_line = false) {
 		}
 
 		/* Add remove partition icon if destructive mode is enabled. */
-		$preclearing		= $Preclear ? $Preclear->isRunning(basename((new MiscUD)->base_device($partition['device']))) : false;
-		$is_preclearing 	= shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg((new MiscUD)->base_device($partition['device']))." | /bin/grep -v 'grep'") != "";
-		$preclearing		= $preclearing || $is_preclearing;
 		$parted				= file_exists("/usr/sbin/parted");
-		$rm_partition		= ((get_config("Config", "destructive_mode") == "enabled") && ($parted) && (! $is_mounting) && (! $is_unmounting) && (! $is_formatting) && (! $disk['pass_through']) && (! $disk['partitions'][0]['disable_mount']) && (! $disk['array_disk']) && (! $preclearing) && ($fstype) && ($fstype != "zfs")) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$partition['serial']}\",\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove clear-hdd'></i><span>"._("Remove Partition")."</span></a>" : "";
+		$rm_partition		= ((get_config("Config", "destructive_mode") == "enabled") && ($parted) && (! $is_mounting) && (! $is_unmounting) && (! $is_formatting) && (! $disk['pass_through']) && (! $disk['partitions'][0]['disable_mount']) && (! $disk['array_disk']) && ($fstype) && ($fstype != "zfs")) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$partition['serial']}\",\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove clear-hdd'></i><span>"._("Remove Partition")."</span></a>" : "";
 		$mpoint				= "<span>".$fscheck;
 
 		/* Add script log icon. */
@@ -391,33 +388,34 @@ function make_mount_button($device) {
 	$preclearing	= $preclearing || $is_preclearing;
 
 	$disable		= ( ($pass_through) || ($disable_mount) || ($preclearing) || ($not_unmounted) || ($not_udev) ) ? "disabled" : $disable;
-	$class			= ( ($pass_through) || ($disable_mount) || ($not_unmounted) || ($not_udev) || ($no_partition)) ? "fa fa-ban" : "";
+	$class_ban		= ( ($pass_through) || ($disable_mount) || ($not_unmounted) || ($not_udev) || ($no_partition) || ($device['array_disk'])) ? "fa fa-ban" : "";
+	$class_disk_op	= "fa fa-spinner fa-spin";
 
 	if ($no_partition) {
 		$button = sprintf($button, $context, 'mount', 'disabled', $class, _('Partition'));
 	} else if ($pool_disk) {
-		$button = sprintf($button, $context, 'mount', 'disabled', "", _('Pool'));
+		$button = sprintf($button, $context, 'mount', 'disabled', '', _('Pool'));
 	} else if (($device['size'] == 0) && (! $zvol_device)) {
-		$button = sprintf($button, $context, 'mount', 'disabled', "", _('Mount'));
+		$button = sprintf($button, $context, 'mount', 'disabled', '', _('Mount'));
 	} else if ($device['array_disk']) {
-		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-ban', _('Array'));
+		$button = sprintf($button, $context, 'mount', 'disabled', $class_ban, _('Array'));
 	} else if ($not_udev) {
-		$button = sprintf($button, $context, 'umount', $disable, $class, _('Udev'));
+		$button = sprintf($button, $context, 'umount', $disable, $class_ban, _('Udev'));
 	} else if ($not_unmounted) {
-		$button = sprintf($button, $context, 'umount', $disable, $class, _('Reboot'));
+		$button = sprintf($button, $context, 'umount', $disable, $class_ban, _('Reboot'));
 	} else if (($format) || ($preclearing)) {
 		if ($preclearing) {
-			$button = sprintf($button, $context, 'mount', 'disabled', "", " "._('Preclear'));
+			$button = sprintf($button, $context, 'mount', 'disabled', '', _('Preclear'));
 		} else {
 			$disable = $preclearing ? "disabled" : "";
-			$button = sprintf($button, $context, 'format', $disable, "", _('Format'));
+			$button = sprintf($button, $context, 'format', $disable, '', _('Format'));
 		}
 	} else if ($is_mounting) {
-		$button = sprintf($button, $context, 'mount', 'disabled', 'fa fa-spinner fa-spin', ' '._('Mounting'));
+		$button = sprintf($button, $context, 'mount', 'disabled', $class_disk_op, _('Mounting'));
 	} else if ($is_unmounting) {
-		$button = sprintf($button, $context, 'umount', 'disabled', 'fa fa-spinner fa-spin', ' '._('Unmounting'));
+		$button = sprintf($button, $context, 'umount', 'disabled', $class_disk_op, _('Unmounting'));
 	} else if ($is_formatting) {
-		$button = sprintf($button, $context, 'format', 'disabled', 'fa fa-spinner fa-spin', ' '._('Formatting'));
+		$button = sprintf($button, $context, 'format', 'disabled', $class_disk_op, _('Formatting'));
 	} else if ($mounted) {
 		if (! isset($device['partitions'])) {
 			$cmd = $device['command'];
@@ -434,13 +432,13 @@ function make_mount_button($device) {
 			}
 		}
 		if ($script_running) {
-			$button = sprintf($button, $context, 'running', 'disabled', 'fa fa-spinner fa-spin', ' '._('Running'));
+			$button = sprintf($button, $context, 'running', 'disabled', $class_disk_op, ' '._('Running'));
 		} else {
 			$button = sprintf($button, $context, 'umount', $disable, $class, _('Unmount'));
 		}
 	} else {
 		if ($pass_through) {
-			$button = sprintf($button, $context, 'mount', $disable, "", _('Passed'));	
+			$button = sprintf($button, $context, 'mount', $disable, $class, _('Passed'));	
 		} else {
 			$button = sprintf($button, $context, 'mount', $disable, $class, _('Mount'));
 		}
@@ -545,15 +543,16 @@ switch ($_POST['action']) {
 				$mbutton				= make_mount_button($disk);
 
 				/* Set up the preclear link for preclearing a disk. */
-				$preclear_link			= (($disk['size'] !== 0) && (! $file_system) && (! $mounted) && (! $disk['is_formatting']) && ($Preclear) && (! $preclearing) && (! $disk['array_disk']) && (! $disk['pass_through']) && (! $disk['fstype'])) ? "&nbsp;&nbsp;".$Preclear->Link($disk_device, "icon") : "";
+				$preclear_link			= (($Preclear) && ($disk['size'] !== 0) && (! $file_system) && (! $mounted) && (! $disk['is_formatting']) && (! $preclearing) && (! $disk['array_disk']) && (! $disk['pass_through']) && (! $disk['fstype'])) ? "&nbsp;&nbsp;".$Preclear->Link($disk_device, "icon") : "";
 
 				/* Add the clear disk icon. */
 				$parted					= file_exists("/usr/sbin/parted");
 
 				$partition['device']	= $partition['device'] ?? "";
 				$partition['serial']	= $partition['serial'] ?? "";
-				$clear_disk				= ((get_config("Config", "destructive_mode") == "enabled") && ($parted) && (! $mounted) && (! $disk['is_mounting']) && (! $disk['is_unmounting']) && (! $disk['is_formatting']) && (! $disk['pass_through']) && (! $disk['array_disk']) && (! $preclearing) && (((! $p) && ($disk['fstype'])) || (($p) && (! $disk['partitions'][0]['pool']) && (! $disk['partitions'][0]['disable_mount']))) ) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove clear-hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
+				$clear_disk				= (($parted) && (get_config("Config", "destructive_mode") == "enabled") && (! $mounted) && (! $disk['is_mounting']) && (! $disk['is_unmounting']) && (! $disk['is_formatting']) && (! $disk['pass_through']) && (! $disk['array_disk']) && (! $preclearing) && (((! $p) && ($disk['fstype'])) || (($p) && (! $disk['partitions'][0]['pool']) && (! $disk['partitions'][0]['disable_mount']))) ) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove clear-hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
 
+				/* Show disk icon based on SSD or spinner disk. */
 				$disk_icon = $disk['ssd'] ? "icon-nvme" : "fa fa-hdd-o";
 
 				/* Disk log. */
@@ -561,11 +560,11 @@ switch ($_POST['action']) {
 				if ($p) {
 					$add_toggle = true;
 					if ($disk['pass_through']) {
-						$hdd_serial		.="<span><i class='fa fa-plus-square fa-append grey-orb'></i></span>";
+						$hdd_serial		.="<span><i class='fa fa-plus-square fa-append grey-orb orb'></i></span>";
 					} else if (! $disk['show_partitions']) {
 						$hdd_serial		.="<span title ='"._("Click to view/hide partitions and mount points")."'class='exec toggle-hdd' hdd='".$disk_device."'><i class='fa fa-plus-square fa-append'></i></span>";
 					} else {
-						$hdd_serial		.="<span><i class='fa fa-minus-square fa-append grey-orb'></i></span>";
+						$hdd_serial		.="<span><i class='fa fa-minus-square fa-append grey-orb orb'></i></span>";
 					}
 				} else {
 					$add_toggle	= false;
@@ -590,30 +589,25 @@ switch ($_POST['action']) {
 				/* Device table element. */
 				$o_disks .= "<td>";
 				if (! $disk['ud_device']) {
-					$str = "New?name";
-					$o_disks .= "<i class='fa fa-circle ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>";
+					$str		= "New?name";
+					$o_disks	.= "<i class='fa fa-circle ".($disk['running'] ? "green-orb" : "grey-orb" )." orb'></i>";
 				} else {
-					$str	= "Device?name";
+					$str		= "Device?name";
+					$orb		= (($disk['running']) ? "green-orb" : "grey-orb")." orb";
 					if (! $preclearing) {
 						if (! is_disk_spin($disk['ud_dev'], $disk['running'])) {
-							if ($disk['running']) {
-								$o_disks .= "<a style='cursor:pointer' class='exec info' onclick='spin_down_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle green-orb'></i><span>"._("Click to spin down device")."</span></a>";
-							} else {
-								$o_disks .= "<a style='cursor:pointer' class='exec info' onclick='spin_up_disk(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle grey-orb'></i><span>"._("Click to spin up device")."</span></a>";
-							}
+							$spin			= ($disk['running']) ? "spin_down_disk" : "spin_up_disk";
+							$tool_tip		= ($disk['running']) ? _("Click to spin down device") : _("Click to spin up device");
+							$o_disks		.= "<a style='cursor:pointer' class='exec info' onclick='{$spin}(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle {$orb}'></i><span>{$tool_tip}</span></a>";
 						} else {
-							if ($disk['running']) {
-								$o_disks .= "<i class='fa fa-refresh fa-spin green-orb'></i>";
-							} else {
-								$o_disks .= "<i class='fa fa-refresh fa-spin grey-orb'></i>";
-							}
+							$o_disks		.= "<i class='fa fa-refresh fa-spin {$orb}'></i>";
 						}
 					} else {
-						$o_disks .= "<i class='fa fa-circle ".($disk['running'] ? "green-orb" : "grey-orb" )."'></i>";
+						$o_disks .= "<i class='fa fa-circle {$orb}'></i>";
 					}
 				}
-				$luks_lock		= $mounted ? "<i class='fa fa-unlock-alt green-orb orb'></i>" : "<i class='fa fa-lock grey-orb orb'></i>";
-				$o_disks		.= ((isset($disk['partitions'][0]['fstype']) && ($disk['partitions'][0]['fstype'] == "crypto_LUKS"))) ? "$luks_lock" : "&nbsp;&nbsp;";
+				$luks_lock		= $mounted ? "<i class='fa fa-unlock-alt fa-append green-orb'></i>" : "<i class='fa fa-lock fa-append grey-orb'></i>";
+				$o_disks		.=  ((isset($disk['partitions'][0]['fstype']) && ($disk['partitions'][0]['fstype'] == "crypto_LUKS"))) ? "{$luks_lock}" : "";
 				$o_disks		.= "<a href='/Main/".$str."=".$disk_dev."'>".$disk_display."</a>";
 				$o_disks		.= "</td>";
 
@@ -720,10 +714,11 @@ switch ($_POST['action']) {
 				/* Populate the table row for this device. */
 				$o_remotes		.= "<tr>";
 
+				/* What type of mount is this? */
 				$protocol		= $mount['protocol'];
 
 				/* Orb and Protocol table element. */
-				$o_remotes		.= sprintf( "<td><a class='info'><i class='fa fa-circle orb %s'></i><span>"._("Remote Server is")." %s</span></a>%s</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ), $protocol);
+				$o_remotes		.= sprintf( "<td><a class='info'><i class='fa fa-circle %s orb'></i><span>"._("Remote Server is")." %s</span></a>%s</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ), $protocol);
 
 				/* Source table element. */
 				$o_remotes		.= "<td>{$mount['name']}</td>";
@@ -766,7 +761,7 @@ switch ($_POST['action']) {
 					} else if ($is_unmounting) {
 						$o_remotes	.= "<button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Unmounting')."</button>";
 					} else {
-						$o_remotes	.= ($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\" {$disabled}><i class='$class'></i>"._('Unmount')."</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='$class'></i>"._('Mount')."</button>");
+						$o_remotes	.= ($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount', '{$mount['device']}');\" {$disabled}><i class='$class'></i>"._('Unmount')."</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount', '{$mount['device']}');\" {$disabled}><i class='$class'></i>"._('Mount')."</button>");
 					}
 				}
 				$o_remotes			.= "</td>";
@@ -798,7 +793,7 @@ switch ($_POST['action']) {
 				if (! $mount['invalid']) {
 					$o_remotes		.= "<a class='info' href='/Main/DeviceSettings?d=".$mount['device']."&l=".$mount['mountpoint']."&n=".($mounted || $is_mounting || $is_unmounting)."&j=".$mount['name']."&m=".json_encode($mount)."'><i class='fa fa-gears'></i><span class='help-title'>$title</span></a>";
 				} else {
-					$o_remotes		.= "<i class='fa fa-gears grey-orb'></i><span class='help-title'></span>";
+					$o_remotes		.= "<i class='fa fa-gears disabled'>";
 				}
 				$o_remotes			.= "</td>";
 
@@ -809,7 +804,7 @@ switch ($_POST['action']) {
 				$o_remotes			.= "<td>".my_scale($mount['size'], $unit)." $unit</td>";
 				$o_remotes			.= render_used_and_free($mount);
 
-				/* End of tabe row, */
+				/* End of table row, */
 				$o_remotes			.= "</tr>";
 
 				/* Add to the share names. */
@@ -836,7 +831,7 @@ switch ($_POST['action']) {
 				$o_remotes		.= "<tr>";
 
 				/* Device table element. */
-				$o_remotes		.= sprintf( "<td><a class='info'><i class='fa fa-circle orb %s'></i><span>"._("ISO File is")." %s</span></a>ISO</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ));
+				$o_remotes		.= sprintf( "<td><a class='info'><i class='fa fa-circle %s orb'></i><span>"._("ISO File is")." %s</span></a>ISO</td>", ( $is_alive ? "green-orb" : "grey-orb" ), ( $is_alive ? _("online") : _("offline") ));
 				$o_remotes		.= "<td>{$mount['device']}</td>";
 				
 				/* Mount point table element. */
@@ -896,7 +891,7 @@ switch ($_POST['action']) {
 				if (! $mount['invalid']) {
 					$o_remotes		.= "<a class='info' href='/Main/DeviceSettings?i=".$device."&l=".$mount['mountpoint']."&n=".($mounted || $is_mounting || $is_unmounting)."&j=".$mount['file']."'><i class='fa fa-gears'></i><span class='help-title'>$title</span></a>";
 				} else {
-					$o_remotes		.= "<i class='fa fa-gears grey-orb'></i><span class='hslp-title'></span>";
+					$o_remotes		.= "<i class='fa fa-gears' disabled></i>";
 				}
 				$o_remotes			.= "</td>";
 
@@ -968,7 +963,7 @@ switch ($_POST['action']) {
 			/* Start of taable row for this device. */
 			$o_historical	.= "<tr>";
 
-			$o_historical	.= sprintf( "<td><a class='info'><i class='fa fa-minus-circle orb %s'></i><span>"._("Historical Device is")." %s</span></a>".$historical[$disk_display]['device']."</td>", ( $is_standby ? "green-orb" : "grey-orb" ), ( $is_standby ? _("in standby") : _("offline") ));
+			$o_historical	.= sprintf( "<td><a class='info'><i class='fa fa-minus-circle %s orb'></i><span>"._("Historical Device is")." %s</span></a>".$historical[$disk_display]['device']."</td>", ( $is_standby ? "green-orb" : "grey-orb" ), ( $is_standby ? _("in standby") : _("offline") ));
 
 			$o_historical	.= "<td>";
 			$o_historical	.= $historical[$disk_display]['serial'].$historical[$disk_display]['mountpoint'];

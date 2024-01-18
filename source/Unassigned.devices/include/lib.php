@@ -2476,7 +2476,7 @@ function is_samba_encrypted($serial) {
 function get_samba_mounts() {
 	global $paths, $default_tld, $local_tld;
 
-	$o = array();
+	$return			= array();
 	$config_file	= $paths['samba_mount'];
 	$samba_mounts	= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
 	if (is_array($samba_mounts)) {
@@ -2571,14 +2571,14 @@ function get_samba_mounts() {
 				/* Check that the device built from the ip and path is consistent with the config file device. */
 				$check_device			= safe_name($dev_check, false);
 
-				/* Remove dollar signs in device. */
+				/* Remove dollar signs in device.  Windows uses a '$' to indicate a hidden folder. */
 				$check_device			= str_replace("$", "", $check_device);
 
 				/* If this is a legacy samba mount or is misconfigured, indicate that it should be removed and added back. */
 				$mount['invalid']		= (($safe_device != $device) || ($safe_device != $check_device));
 
 				/* Get the disk size, used, and free stats. */
-				$stats					= get_device_stats($mount['mountpoint'], ($mount['mounted'] && $mount['is_alive']), $mount['is_alive']);
+				$stats					= get_device_stats($mount['mountpoint'], $mount['mounted'], $mount['is_alive']);
 				$mount['size']			= $stats[0]*1024;
 				$mount['used']			= $stats[1]*1024;
 				$mount['avail']			= $stats[2]*1024;
@@ -2596,14 +2596,16 @@ function get_samba_mounts() {
 				$mount['prog_name']		= basename($mount['command'], ".sh");
 				$mount['user_command']	= get_samba_config($mount['device'],"user_command");
 				$mount['logfile']		= ($mount['prog_name']) ? $paths['device_log'].$mount['prog_name'].".log" : "";
-				$o[] = $mount;
+
+				/* Return array. */
+				$return[]				= $mount;
 			}
 		}
 	} else {
 		unassigned_log("Error: unable to get the samba mounts.");
 	}
 
-	return $o;
+	return $return;
 }
 
 /* Mount a remote samba or NFS share. */
@@ -2990,7 +2992,7 @@ function get_iso_mounts() {
 				$mount['target']		= $mount['mounted'] ? $mount['mountpoint'] : "";
 
 				$mount['is_alive']		= is_file($mount['file']);
-				$stats					= get_device_stats($mount['mountpoint'], $mount['mounted']);
+				$stats					= get_device_stats($mount['mountpoint'], $mount['mounted'], $mount['is_alive']);
 				$mount['size']			= $stats[0]*1024;
 				$mount['used']			= $stats[1]*1024;
 				$mount['avail']			= $stats[2]*1024;
@@ -3150,10 +3152,13 @@ function get_all_disks_info() {
 	if (is_array($ud_disks)) {
 		foreach ($ud_disks as $key => $disk) {
 			/* Get the device size. */
-			$disk['size']	= intval(trim(timed_exec(0.5, "/bin/lsblk -nb -o size ".escapeshellarg(realpath($key))." 2>/dev/null")));
+			$disk_size		= intval(trim(timed_exec(0.5, "/bin/lsblk -nb -o size ".escapeshellarg(realpath($key))." 2>/dev/null")));
 
 			/* If the device size is not zero, then add as a UD device. */
-			if ($disk['size'] > 0) {
+			if ($disk_size > 0) {
+				/* Set the disk size. */
+				$disk['size']	= $disk_size;
+
 				/* Get all the disk partitions. */
 				$disk			= array_merge($disk, get_disk_info($key));
 				$disk['zvol']	= array();
@@ -3162,10 +3167,13 @@ function get_all_disks_info() {
 						$disk['partitions'][$k]					= get_partition_info($p);
 						$disk['partitions'][$k]['array_disk']	= $disk['partitions'][$k]['array_disk'] ?? false;
 						$disk['array_disk']						= $disk['array_disk'] || $disk['partitions'][$k]['array_disk'];
-					}
 
-					/* Get any zfs volumes. */
-					$disk['zvol']	= array_merge($disk['zvol'], get_zvol_info($disk['partitions'][$k]));
+						/* If this is a zfs disk, see if there are any zfs volumes. */
+						if ($disk['partitions'][$k]['fstype'] == "zfs") {
+							/* Get any zfs volumes. */
+							$disk['zvol']	= array_merge($disk['zvol'], get_zvol_info($disk['partitions'][$k]));
+						}
+					}
 				}
 
 				/* Remove the original UD entry and add the new UD reference. */
@@ -3187,9 +3195,6 @@ function get_all_disks_info() {
 
 				/* Add this device as a UD device. */
 				$ud_disks[$unassigned_dev] = $disk;
-			} else {
-				/* Remove this disk from the list of UD disks because it's size is zero. */
-				unset($ud_disks[$key]);
 			}
 		}
 	} else {
@@ -3320,6 +3325,7 @@ function get_disk_info($dev) {
 /* Get partition information. */
 function get_partition_info($dev) {
 	global $paths;
+
 	$disk	= array();
 	$attrs	= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
 	if ($attrs['DEVTYPE'] == "partition") {
@@ -3377,7 +3383,7 @@ function get_partition_info($dev) {
 			$dev				= $disk['device'];
 		}
 
-		/* Get the patition mounting, unmounting, and formatting status. */
+		/* Get the partition mounting, unmounting, and formatting status. */
 		$disk['is_mounting']	= (new MiscUD)->get_mounting_status(basename($dev));
 		$disk['is_unmounting']	= (new MiscUD)->get_unmounting_status(basename($dev));
 		$disk['is_formatting']	= (new MiscUD)->get_formatting_status(basename($dev));
@@ -3480,7 +3486,7 @@ function get_zvol_info($disk) {
 			$zvol[$vol]['file_system']		= part_fs_type($zvol[$vol]['device'], false);
 			$zvol[$vol]['file_system']		= ($zvol[$vol]['file_system']) ?: zvol_fs_type($zvol[$vol]['device']);
 			$zvol[$vol]['zfs_read_only']	= is_mounted_read_only($zvol[$vol]['mountpoint']);
-			$stats							= get_device_stats($zvol[$vol]['mountpoint'], $zvol[$vol]['mounted']);
+			$stats							= get_device_stats($zvol[$vol]['mountpoint'], $zvol[$vol]['mounted'], $zvol[$vol]['active']);
 			$zvol[$vol]['size']				= $stats[0]*1024;
 			$zvol[$vol]['used']				= $stats[1]*1024;
 			$zvol[$vol]['avail']			= $stats[2]*1024;
