@@ -126,21 +126,22 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		@param op: The disk operation (e.g., "mount" or "unmount").
 		@param device: The target device for the operation.
 	*/
+
 	function disk_op(el, op, device) {
 		/* If the page is refreshing, ignore this click. */
-		if (! isRefreshing) {
+		if (!isRefreshing) {
 			const mountButton = $(`button[device='${device}']`);
 			const currentDevice = device;
 			const currentOp = op;
 
 			/* Add spinning icon to mount/unmount button and disable button. */
-			mountButton.prop("disabled", true).html(`<i class='fa fa-spinner fa-spin'></i> ${currentOp == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"}`);
+			mountButton.prop("disabled", true).html("<i class='fa fa-spinner fa-spin'></i> <?= ($currentOp == 'mount') ? _('Mounting') : _('Unmounting'); ?>");
 
 			refreshPage().then(() => {
 				const innerMountButton = $(`button[device='${currentDevice}']`);
 
 				/* Add spinning icon to mount/unmount button and disable button. */
-				innerMountButton.prop("disabled", true).html(`<i class='fa fa-spinner fa-spin'></i> ${currentOp == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"}`);
+				innerMountButton.prop("disabled", true).html("<i class='fa fa-spinner fa-spin'></i> <?= ($currentOp == 'mount') ? _('Mounting') : _('Unmounting'); ?>");
 
 				/* Start the refresh timer to refresh the page after the mount/unmount script starts. */
 				setTimeout(refreshPage, (REFRESH_INTERVAL / 6));
@@ -156,7 +157,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 				})
 				.fail(() => {
 					swalShowResult(false);
-				})
+				});
 			});
 		}
 	}
@@ -165,8 +166,8 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		Refresh UD page showing any updated information.
 	*/
 	function refreshPage() {
-		/* Don't refresh if we re already refreshing. */
-		if (! isRefreshing) {
+		/* Don't refresh if we're already refreshing. */
+		if (!isRefreshing) {
 			/* Set that we are refreshing the page. */
 			isRefreshing = true;
 
@@ -176,7 +177,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 					'action': 'get_content',
 					'display': display
 				}, function (data) {
-					const toggled = $("tr.toggle-parts").filter(":visible").map(function () {
+					const toggled = $("tr.toggle-parts:visible").map(function () {
 						return $(this).attr("name");
 					}).get();
 
@@ -189,9 +190,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 					/* Show toggled disk partitions. */
 					$.each(toggled, function (k, v) {
-						if (v.length) {
-							$("tr[name='" + v + "']").css("display", "table-row");
-						}
+						$("tr[name='" + v + "']").css("display", "table-row");
 					});
 
 					/* We are done refreshing the page. */
