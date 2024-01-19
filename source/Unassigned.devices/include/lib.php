@@ -3154,48 +3154,46 @@ function get_all_disks_info() {
 			/* Get the device size. */
 			$disk_size		= intval(trim(timed_exec(0.5, "/bin/lsblk -nb -o size ".escapeshellarg(realpath($key))." 2>/dev/null")));
 
-			/* If the device size is not zero, then add as a UD device. */
-			if ($disk_size > 0) {
-				/* Set the disk size. */
-				$disk['size']	= $disk_size;
+			/* Add as a UD device. */
+			/* Set the disk size. */
+			$disk['size']	= $disk_size;
 
-				/* Get all the disk partitions. */
-				$disk			= array_merge($disk, get_disk_info($key));
-				$disk['zvol']	= array();
-				foreach ($disk['partitions'] as $k => $p) {
-					if ($p) {
-						$disk['partitions'][$k]					= get_partition_info($p);
-						$disk['partitions'][$k]['array_disk']	= $disk['partitions'][$k]['array_disk'] ?? false;
-						$disk['array_disk']						= $disk['array_disk'] || $disk['partitions'][$k]['array_disk'];
+			/* Get all the disk partitions. */
+			$disk			= array_merge($disk, get_disk_info($key));
+			$disk['zvol']	= array();
+			foreach ($disk['partitions'] as $k => $p) {
+				if ($p) {
+					$disk['partitions'][$k]					= get_partition_info($p);
+					$disk['partitions'][$k]['array_disk']	= $disk['partitions'][$k]['array_disk'] ?? false;
+					$disk['array_disk']						= $disk['array_disk'] || $disk['partitions'][$k]['array_disk'];
 
-						/* If this is a zfs disk, see if there are any zfs volumes. */
-						if ($disk['partitions'][$k]['fstype'] == "zfs") {
-							/* Get any zfs volumes. */
-							$disk['zvol']	= array_merge($disk['zvol'], get_zvol_info($disk['partitions'][$k]));
-						}
+					/* If this is a zfs disk, see if there are any zfs volumes. */
+					if ($disk['partitions'][$k]['fstype'] == "zfs") {
+						/* Get any zfs volumes. */
+						$disk['zvol']	= array_merge($disk['zvol'], get_zvol_info($disk['partitions'][$k]));
 					}
 				}
-
-				/* Remove the original UD entry and add the new UD reference. */
-				unset($ud_disks[$key]);
-				$disk['path'] = $key;
-
-				/* Use the devX designation of the sdX if there is no devX designation. */
-				$unassigned_dev = $disk['unassigned_dev'] ? $disk['unassigned_dev'] : $disk['ud_dev'];
-				$unassigned_dev	= $unassigned_dev ? $unassigned_dev : basename($disk['device']);
-
-				/* If there is already a devX that is the same, use the disk device sdX designation. */
-				if (isset($ud_disks[$unassigned_dev]) && (strtoupper(substr($unassigned_dev, 0, 3)) == "DEV")) {
-					/* Get the sdX device designation. */
-					$unassigned_dev = basename($disk['device']);
-
-					/* Set the ud_dev to the current value in the devs.ini file. */
-					$disk['ud_dev'] = get_disk_dev($disk['device']);
-				}
-
-				/* Add this device as a UD device. */
-				$ud_disks[$unassigned_dev] = $disk;
 			}
+
+			/* Remove the original UD entry and add the new UD reference. */
+			unset($ud_disks[$key]);
+			$disk['path'] = $key;
+
+			/* Use the devX designation of the sdX if there is no devX designation. */
+			$unassigned_dev = $disk['unassigned_dev'] ? $disk['unassigned_dev'] : $disk['ud_dev'];
+			$unassigned_dev	= $unassigned_dev ? $unassigned_dev : basename($disk['device']);
+
+			/* If there is already a devX that is the same, use the disk device sdX designation. */
+			if (isset($ud_disks[$unassigned_dev]) && (strtoupper(substr($unassigned_dev, 0, 3)) == "DEV")) {
+				/* Get the sdX device designation. */
+				$unassigned_dev = basename($disk['device']);
+
+				/* Set the ud_dev to the current value in the devs.ini file. */
+				$disk['ud_dev'] = get_disk_dev($disk['device']);
+			}
+
+			/* Add this device as a UD device. */
+			$ud_disks[$unassigned_dev] = $disk;
 		}
 	} else {
 		/* There was a problem getting the unassigned disks array. */
