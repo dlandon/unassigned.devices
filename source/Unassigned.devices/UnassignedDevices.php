@@ -358,9 +358,9 @@ function make_mount_button($device) {
 		$zvol_device	= false;
 
 		/* Check the state of mounting, unmounting, and formatting. */
-		$is_mounting	= ($device['is_mounting'] ?? false) || ($device['partitions'][0]['is_mounting'] ?? false);
-		$is_unmounting	= ($device['is_unmounting'] ?? false) || ($device['partitions'][0]['is_unmounting'] ?? false);
-		$is_formatting	= ($device['is_formatting'] ?? false) || ($device['partitions'][0]['is_formatting'] ?? false);
+		$is_mounting	= (($device['is_mounting']) || ($device['partitions'][0]['is_mounting']));
+		$is_unmounting	= (($device['is_unmounting']) || ($device['partitions'][0]['is_unmounting']));
+		$is_formatting	= (($device['is_formatting'] ?? false) || ($device['partitions'][0]['is_formatting'] ?? false));
 	} else {
 		$mounted		= $device['mounted'];
 		$disable		= (! empty($device['fstype']) && $device['fstype'] != "crypto_LUKS") ? false : true;
@@ -377,8 +377,8 @@ function make_mount_button($device) {
 		$dev			= $device['fstype'] == "crypto_LUKS" ? $device['luks'] : $device['device'];
 
 		/* Check the state of mounting, unmounting, and formatting. */
-		$is_mounting	= $device['is_mounting'] ?? false;
-		$is_unmounting	= $device['is_unmounting'] ?? false;
+		$is_mounting	= $device['is_mounting'];
+		$is_unmounting	= $device['is_unmounting'];
 		$is_formatting	= $device['is_formatting'] ?? false;
 		$zvol_device	= (isset($device['file_system']) && $device['file_system']);
 	}
@@ -400,53 +400,49 @@ function make_mount_button($device) {
 	switch (true) {
 		case ($pass_through):
 			$class		= $ban_class;
-			$role		= 'mount';
 			$disable	= true;
 			$text		= _('Passed');
 			break;
 		case ($no_partition):
-			$class		= ban_clss;
-			$role		= '';
+			$class		= ban_class;
 			$disable	= true;
 			$text		= _('Partition');
 			break;
 		case ($pool_disk):
-			$role		= '';
 			$disable	= true;
 			$text		= _('Pool');
 			break;
 		case (($device['size'] == 0) && (! $zvol_device)):
-			$role		= '';
 			$disable	= true;
 			$text		= _('Mount');
 			break;
 		case ($device['array_disk']):
 			$class		= $ban_class;
-			$role		= '';
 			$disable	= true;
 			$text		= _('Array');
 			break;
 		case ($not_udev):
-			$class		= $ban_clss;
-			$role		= '';
+			$class		= $ban_class;
 			$disable	= true;
 			$text		= _('Udev');
 			break;
 		case ($not_unmounted):
 			$class		= $ban_class;
-			$role		= 'umount';
 			$disable	= true;
 			$text		= _('Reboot');
 			break;
 		case ($preclearing):
-			$role		= '';
 			$disable	= true;
 			$text		= _('Preclear');
 			break;
-		case ($format):
+		case ($is_formatting):
 			$class		= $spinner_class;
-			$role		= 'format';
 			$disable	= true;
+			$text		= _('Formatting');
+			break;
+		case ($format):
+			$role		= 'format';
+			$disable 	= false;
 			$text		= _('Format');
 			break;
 		case ($is_mounting):
@@ -460,12 +456,6 @@ function make_mount_button($device) {
 			$role		= 'umount';
 			$disable	= true;
 			$text		= _('Unmounting');
-			break;
-		case ($is_formatting):
-			$class		= $spinner_class;
-			$role		= 'format';
-			$disable	= true;
-			$text		= _('Formatting');
 			break;
 		case ($mounted):
 			if (!isset($device['partitions'])) {
@@ -484,11 +474,13 @@ function make_mount_button($device) {
 			}
 			if ($script_running) {
 				$class		= $spinner_class;
-				$role		= '';
+				$role		= 'mount';
 				$disable	= true;
 				$text		= _('Running');
 			} else {
+				$class		= $disable_mount ? $ban_class : "";
 				$role		= 'umount';
+				$disable 	= $disable_mount ? true : $disable;
 				$text		= _('Unmount');
 			}
 			break;
