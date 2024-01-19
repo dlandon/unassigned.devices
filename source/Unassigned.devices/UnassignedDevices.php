@@ -389,7 +389,7 @@ function make_mount_button($device) {
 
 	$disable		= ( ($pass_through) || ($disable_mount) || ($preclearing) || ($not_unmounted) || ($not_udev) ) ? "disabled" : $disable;
 	$class_ban		= ( ($pass_through) || ($disable_mount) || ($not_unmounted) || ($not_udev) || ($no_partition) || ($device['array_disk'])) ? "fa fa-ban" : "";
-	$class_disk_op	= "fa fa-spinner fa-spin";
+	$class_disk_op	= "fa fa-spinner fa-spin orb";
 
 	if ($no_partition) {
 		$button = sprintf($button, $context, 'mount', 'disabled', $class, _('Partition'));
@@ -432,7 +432,7 @@ function make_mount_button($device) {
 			}
 		}
 		if ($script_running) {
-			$button = sprintf($button, $context, 'running', 'disabled', $class_disk_op, ' '._('Running'));
+			$button = sprintf($button, $context, 'running', 'disabled', $class_disk_op, _('Running'));
 		} else {
 			$button = sprintf($button, $context, 'umount', $disable, $class, _('Unmount'));
 		}
