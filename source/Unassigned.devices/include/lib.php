@@ -306,7 +306,7 @@ class MiscUD
 	public function get_formatting_status($device) {
 		global $paths;
 
-		$formatting		= array_values(preg_grep("@/formatting_".(new MiscUD)->base_device($device)."@i", listDir(dirname($paths['formatting']))))[0] ?? '';
+		$formatting		= array_values(preg_grep("@/formatting_".basename($device)."@i", listDir(dirname($paths['formatting']))))[0] ?? '';
 		$is_formatting	= (isset($formatting) && (time() - @filemtime($formatting) < 300));
 		return $is_formatting;
 	}
@@ -1426,12 +1426,14 @@ function execute_script($info, $action, $testing = false) {
 		$command_script = $paths['scripts'].basename($cmd);
 		if ($enable_script) {
 			if (is_file($cmd)) {
-				copy($cmd, $command_script);
-				@chmod($command_script, 0755);
-
 				unassigned_log("Running device script: '".basename($cmd)."' with action '".$action."'.");
 
 				$script_running = is_script_running($cmd);
+				if (! $script_running){
+					copy($cmd, $command_script);
+					@chmod($command_script, 0755);
+				}
+
 				if ((! $script_running) || (($script_running) && ($action != "ADD"))) {
 					if (! $testing) {
 						if (($action == "REMOVE") || ($action == "ERROR_MOUNT") || ($action == "ERROR_UNMOUNT")) {
@@ -1453,7 +1455,7 @@ function execute_script($info, $action, $testing = false) {
 						$rc			= $command_script;
 					}
 				} else {
-					unassigned_log("Device script '".basename($cmd)."' aleady running!");
+					unassigned_log("Device script '".basename($cmd)."' is aleady running!");
 				}
 			} else {
 				unassigned_log("Script file '".$command_script."' is not a valid file!");
@@ -3313,6 +3315,7 @@ function get_disk_info($dev) {
 	$disk['show_partitions']	= (get_config($disk['serial'], "show_partitions") == "no") ? false : true;
 	$disk['pass_through']		= is_pass_through($disk['serial']);
 	$disk['array_disk']			= in_array($disk['device'], $unraid_disks);
+	$disk['is_formatting']		= (new MiscUD)->get_formatting_status(basename($disk['device']));
 
 	/* Get the hostX from the DEVPATH so we can re-attach a disk. */
 	(new MiscUD)->save_device_host($disk['serial'], $attrs['DEVPATH']);
