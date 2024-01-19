@@ -4,7 +4,7 @@ Tag="unlink"
 ---
 <?php
 /* Copyright 2015, Guilherme Jardim
- * Copyright 2016-2024, Dan Landon
+ * Copyright 2016-2023, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -126,81 +126,80 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		@param op: The disk operation (e.g., "mount" or "unmount").
 		@param device: The target device for the operation.
 	*/
-
 	function disk_op(el, op, device) {
-		/* If the page is refreshing, ignore this click. */
-		if (!isRefreshing) {
-			const mountButton = $(`button[device='${device}']`);
-			const currentDevice = device;
-			const currentOp = op;
+		const mountButton = $(`button[device='${device}']`);
+		const currentDevice = device;
+		const currentOp = op;
+
+		/* Add spinning icon to mount/unmount button and disable button. */
+		mountButton.prop("disabled", true).html("<i class='fa fa-spinner fa-spin orb'></i>"+(op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
+
+		refreshPage().then(() => {
+			const innerMountButton = $(`button[device='${currentDevice}']`);
 
 			/* Add spinning icon to mount/unmount button and disable button. */
-			mountButton.prop("disabled", true).html("<i class='fa fa-spinner fa-spin'></i> <?= ($currentOp == 'mount') ? _('Mounting') : _('Unmounting'); ?>");
+			innerMountButton.prop("disabled", true).html("<i class='fa fa-spinner fa-spin orb'></i>"+(op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
 
-			refreshPage().then(() => {
-				const innerMountButton = $(`button[device='${currentDevice}']`);
+			/* Start the refresh timer to refresh the page after the mount/unmount script starts. */
+			setTimeout(refreshPage, 250);
 
-				/* Add spinning icon to mount/unmount button and disable button. */
-				innerMountButton.prop("disabled", true).html("<i class='fa fa-spinner fa-spin'></i> <?= ($currentOp == 'mount') ? _('Mounting') : _('Unmounting'); ?>");
-
-				/* Start the refresh timer to refresh the page after the mount/unmount script starts. */
-				setTimeout(refreshPage, (REFRESH_INTERVAL / 6));
-
-				$.post(UDURL, {
-					'action': currentOp,
-					'device': currentDevice
-				})
-				.done(data => {
-					if (data === "false") {
-						swalShowMountUnmount(currentDevice, currentOp);
-					}
-				})
-				.fail(() => {
-					swalShowResult(false);
-				});
+			$.post(UDURL, {
+				'action': currentOp,
+				'device': currentDevice
+			})
+			.done(data => {
+				if (data === "false") {
+					swalShowMountUnmount(currentDevice, currentOp);
+				}
+			})
+			.fail(() => {
+				swalShowResult(false);
 			});
-		}
+		});
 	}
 
 	/*
 		Refresh UD page showing any updated information.
 	*/
 	function refreshPage() {
-		/* Don't refresh if we're already refreshing. */
-		if (!isRefreshing) {
-			/* Set that we are refreshing the page. */
-			isRefreshing = true;
-
-			/* Get the UD devices table data and render the web page. */
-			return new Promise(function (resolve) {
-				$.post(UDURL, {
-					'action': 'get_content',
-					'display': display
-				}, function (data) {
-					const toggled = $("tr.toggle-parts:visible").map(function () {
-						return $(this).attr("name");
-					}).get();
-
-					/* Fill the UD devices tables. */
-					if (data) {
-						$('#disk-table-body').html(data.disks);
-						$('#remotes-table-body').html(data.remotes);
-						$('#historical-table-body').html(data.historical);
-					}
-
-					/* Show toggled disk partitions. */
-					$.each(toggled, function (k, v) {
-						$("tr[name='" + v + "']").css("display", "table-row");
-					});
-
-					/* We are done refreshing the page. */
-					isRefreshing = false;
-
-					/* Resolve the promise */
-					resolve();
-				}, 'json');
-			});
+		/* Check if we're already refreshing. */
+		if (isRefreshing) {
+ 			/* Resolve the promise immediately. */
+ 			return Promise.resolve();
 		}
+
+		/* Set that we are refreshing the page. */
+		isRefreshing = true;
+
+		/* Get the UD devices table data and render the web page. */
+		return new Promise(function (resolve) {
+			$.post(UDURL, {
+				'action': 'get_content',
+				'display': display
+			}, function (data) {
+				const toggled = $("tr.toggle-parts:visible").map(function () {
+					return $(this).attr("name");
+				}).get();
+
+				/* Fill the UD devices tables. */
+				if (data) {
+					$('#disk-table-body').html(data.disks);
+					$('#remotes-table-body').html(data.remotes);
+					$('#historical-table-body').html(data.historical);
+				}
+
+				/* Show toggled disk partitions. */
+				$.each(toggled, function (k, v) {
+					$("tr[name='" + v + "']").css("display", "table-row");
+				});
+
+				/* We are done refreshing the page. */
+				isRefreshing = false;
+
+				/* Resolve the promise */
+				resolve();
+			}, 'json');
+		});
 	}
 
 	/*
@@ -225,7 +224,6 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			}
 		};
 	})();
-
 
 	/*
 		Poll remote servers and update ping status.
@@ -849,6 +847,9 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	/* Page refresh rate in milliseconds. */
 	const REFRESH_INTERVAL = 3000;
 
+	/* Ping poll intervl. */
+	const PING_INTERVAL = 15000;
+
 	/* Reload page if browser back button was used. */
 	window.addEventListener("pageshow", function (event) {
 		const historyTraversal = event.persisted || (typeof window.performance != "undefined" && window.performance.navigation.type === 2);
@@ -893,35 +894,20 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	}
 
 	/* Bind Arrive events for dynamically added 'tr' elements in the '#usb_devices_list' table. */
-	$("#usb_devices_list").arrive("tr", { onceOnly: false }, function () {
-		/* Get the current 'tr' element. */
-		const tr = $(this);
+	$("#usb_devices_list").arrive("tr",{onceOnly:false},function() {
+		tr = $(this);
 
-		/* Toggle partitions click event. */
-		tr.find("span.toggle-hdd").click(function (e) {
-			/* Disable text selection on the clicked span. */
-			$(this).disableSelection();
-
-			/* Get the disk identifier associated with the clicked span. */
-			const disk = $(this).attr("hdd");
-			const el = $(this);
-
-			/* Toggle the visibility of partitions related to the disk. */
-			$(".toggle-" + disk).slideToggle(0);
+		tr.find("span.toggle-hdd").click(function(e) {
+			$(this).disableSelection();disk = $(this).attr("hdd");el = $(this);
+			$(".toggle-"+disk).slideToggle(0);
 		});
 
-		/* Mount button click using event delegation. */
-		$('table').on('click', 'tr button[role$=mount]', function () {
-			/* Get the device and call the disk operation function. */
-			const device = $(this).attr('device');
-			disk_op(this, $(this).attr('role'), device);
+		tr.find( "button[role$=mount]" ).on( "click", function() {
+			disk_op(this, $(this).attr("role"), $(this).attr("device"));
 		});
 
-		/* Format button click using event delegation. */
-		$('table').on('click', 'tr button[role$=format]', function () {
-			/* Get the device and call the format disk function. */
-			const device = $(this).attr('device');
-			format_disk(this, $(this).attr('context'), device);
+		tr.find("button[role$=format]").on( "click", function() {
+			format_disk(this, $(this).attr("context"), $(this).attr("device"));
 		});
 	});
 
@@ -930,7 +916,7 @@ $(function() {
 	window.setInterval(refreshPage, REFRESH_INTERVAL);
 
 	/* Set ping poll interval every 15 seconds. */
-	window.setInterval(pingPoll, 15000);
+	window.setInterval(pingPoll, PING_INTERVAL);
 
 	/* Check for diskio cookie change every 100ms. */
 	window.setInterval(checkCookie, 100);
@@ -1005,8 +991,6 @@ $(function() {
 		$('#tab'+tab_usbdisks).trigger("click");
 		$.removeCookie('one', { path: '/' });
 	}
-
-	/* Iniialize the web page. */
 	refreshPage();
 });
 </script>
