@@ -128,41 +128,53 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	*/
 	function disk_op(el, op, device) {
 		const mountButton = $(`button[device='${device}']`);
-		const currentDevice = device;
-		const currentOp = op;
 
 		/* Clear the existing page refresh timer */
 		window.clearInterval(refreshTimer);
 
 		/* Add spinning icon to mount/unmount button and disable button. */
-		mountButton.prop("disabled", true).html("<i class='fa fa-spinner fa-spin orb'></i>"+(op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
+		mountButton.prop("disabled", true).html("<i class='fa fa-spinner fa-spin orb'></i>" + (op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
 
-		/* Refresh the page and wait for it to complete. */
-		refreshPage().then(() => {
-			const innerMountButton = $(`button[device='${currentDevice}']`);
+		/* Check if refreshPage is already in progress */
+		if (isRefreshing) {
+			/* Wait for the current refreshPage to complete before proceeding */
+			return refreshPage().then(() => {
+				executePostRequest(op, device);
+			});
+		} else {
+			/* Initiate the post request immediately */
+			executePostRequest(op, device);
+		}
+	}
 
-			/* Add spinning icon to mount/unmount button and disable button. */
-			innerMountButton.prop("disabled", true).html("<i class='fa fa-spinner fa-spin orb'></i>"+(op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
+	/* Perform the disk opertion. */
+	function executePostRequest(op, device) {
+		const innerMountButton = $(`button[device='${device}']`);
+
+		/* Add spinning icon to mount/unmount button and disable button. */
+		innerMountButton.prop("disabled", true).html("<i class='fa fa-spinner fa-spin orb'></i>" + (op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
+
+		/* Start the refresh timer to refresh the page after the mount/unmount script starts. */
+		window.setTimeout(refreshPage, (REFRESH_INTERVAL / 12));
+
+		$.post(UDURL, {
+			'action': op,
+			'device': device
+		})
+		.done(data => {
+			if (data === "false") {
+				swalShowMountUnmount(device, op);
+			}
 
 			/* Start the refresh timer to refresh the page after the mount/unmount script starts. */
 			window.setTimeout(refreshPage, (REFRESH_INTERVAL / 6));
-
-			$.post(UDURL, {
-				'action': currentOp,
-				'device': currentDevice
-			})
-			.done(data => {
-				if (data === "false") {
-					swalShowMountUnmount(currentDevice, currentOp);
-				}
-			})
-			.fail(() => {
-				swalShowResult(false);
-			})
-			.always(() => {
-				/* Start the refresh timer after the post request is complete. */
-				refreshTimer = window.setInterval(refreshPage, REFRESH_INTERVAL);
-			});
+		})
+		.fail(() => {
+			swalShowResult(false);
+		})
+		.always(() => {
+			/* Start the refresh timer after the post request is complete. */
+			refreshTimer = window.setInterval(refreshPage, REFRESH_INTERVAL);
 		});
 	}
 
