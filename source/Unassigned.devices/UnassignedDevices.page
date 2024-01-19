@@ -129,8 +129,9 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	function disk_op(el, op, device) {
 		const mountButton = $(`button[device='${device}']`);
 
-		/* Clear the existing page refresh timer */
+		/* Retart the page refresh timer. */
 		window.clearInterval(refreshTimer);
+		refreshTimer = window.setInterval(refreshPage, REFRESH_INTERVAL);
 
 		/* Add spinning icon to mount/unmount button and disable button. */
 		mountButton.prop("disabled", true).html("<i class='fa fa-spinner fa-spin orb'></i>" + (op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
@@ -155,7 +156,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		innerMountButton.prop("disabled", true).html("<i class='fa fa-spinner fa-spin orb'></i>" + (op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
 
 		/* Start the refresh timer to refresh the page after the mount/unmount script starts. */
-		window.setTimeout(refreshPage, (REFRESH_INTERVAL / 12));
+		window.setTimeout(refreshPage, (REFRESH_INTERVAL / 6));
 
 		$.post(UDURL, {
 			'action': op,
@@ -166,15 +167,11 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 				swalShowMountUnmount(device, op);
 			}
 
-			/* Start the refresh timer to refresh the page after the mount/unmount script starts. */
+			/* Start the refresh timer to refresh the page after the mount/unmount is complete. */
 			window.setTimeout(refreshPage, (REFRESH_INTERVAL / 6));
 		})
 		.fail(() => {
 			swalShowResult(false);
-		})
-		.always(() => {
-			/* Start the refresh timer after the post request is complete. */
-			refreshTimer = window.setInterval(refreshPage, REFRESH_INTERVAL);
 		});
 	}
 
@@ -1205,9 +1202,16 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	</div>
 
 	<div data-survey-done data-survey-done-wait="true">
-		const targetButton = $("button[device='" + surveyOption.device + "']");
+		const targetButton = $("button[device='"+surveyOption.device+"']");
 		targetButton.prop('disabled', true);
-		targetButton.html("<i class='fa fa-spinner fa-spin'></i> <?=_('Formatting');?>");
+		targetButton.html("<i class='fa fa-spinner fa-spin'></i>" + "<?=_('Formatting');?>");
+
+		/* Retart the page refresh timer. */
+		window.clearInterval(refreshTimer);
+		refreshTimer = window.setInterval(refreshPage, REFRESH_INTERVAL);
+
+		/* Start the refresh timer to refresh the page after the mount/unmount script starts. */
+		window.setTimeout(refreshPage, (REFRESH_INTERVAL / 6));
 
 		$.post(UDURL, {
 			'action': 'format_' + surveyOption.type,
