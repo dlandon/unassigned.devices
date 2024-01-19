@@ -325,8 +325,6 @@ function render_partition($disk, $partition, $disk_line = false) {
 function make_mount_button($device) {
 	global $paths, $Preclear;
 
-	$button = "<span><button device='{$device['device']}' class='mount' context='%s' role='%s' %s><i class='%s'></i>%s</button></span>";
-
 	if (isset($device['partitions'])) {
 		$mounted = in_array(true, array_map(function($partition) {
 			return $partition['mounted'];
@@ -337,7 +335,9 @@ function make_mount_button($device) {
 			$pass_through	= is_pass_through($device['serial']);
 		}
 		$format			= ((! count($device['partitions'])) && (! $pass_through));
-		$disable		= count(array_filter($device['partitions'], function($p){ if (! empty($p['fstype'])) return true;})) ? "" : "disabled";
+		$disable = array_reduce($device['partitions'], function ($carry, $partition) {
+			return $carry || !empty($partition['fstype']);
+		}, false) ? false : true;
 		$context		= "disk";
 
 		/* A pool disk can be part of a disk pool or a disk with a file system and no partition. */
@@ -363,7 +363,7 @@ function make_mount_button($device) {
 		$is_formatting	= ($device['is_formatting'] ?? false) || ($device['partitions'][0]['is_formatting'] ?? false);
 	} else {
 		$mounted		= $device['mounted'];
-		$disable		= (! empty($device['fstype']) && $device['fstype'] != "crypto_LUKS") ? "" : "disabled";
+		$disable		= (! empty($device['fstype']) && $device['fstype'] != "crypto_LUKS") ? false : true;
 		$pass_through	= $device['pass_through'];
 		$disable_mount	= $device['disable_mount'];
 		$format			= ((empty($device['fstype'])) && (! $pass_through));
@@ -383,66 +383,124 @@ function make_mount_button($device) {
 		$zvol_device	= (isset($device['file_system']) && $device['file_system']);
 	}
 
-	$preclearing	= $Preclear ? $Preclear->isRunning(basename($device['device'])) : false;
-	$is_preclearing = shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg($device['device'])." | /bin/grep -v 'grep'") != "";
-	$preclearing	= $preclearing || $is_preclearing;
+	/* Set up the mount button operation and text. */
+	$buttonFormat = "<span><button device='{$device['device']}' class='mount' context='%s' role='%s' %s><i class='%s'></i>%s</button></span>";
 
-	$disable		= ( ($pass_through) || ($disable_mount) || ($preclearing) || ($not_unmounted) || ($not_udev) ) ? "disabled" : $disable;
-	$class_ban		= ( ($pass_through) || ($disable_mount) || ($not_unmounted) || ($not_udev) || ($no_partition) || ($device['array_disk'])) ? "fa fa-ban" : "";
-	$class_disk_op	= "fa fa-spinner fa-spin orb";
+	$preclearing    = $Preclear ? $Preclear->isRunning(basename($device['device'])) : false;
+	$is_preclearing = shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep " . escapeshellarg($device['device']) . " | /bin/grep -v 'grep'") != "";
+	$preclearing    = $preclearing || $is_preclearing;
 
-	if ($no_partition) {
-		$button = sprintf($button, $context, 'mount', 'disabled', $class, _('Partition'));
-	} else if ($pool_disk) {
-		$button = sprintf($button, $context, 'mount', 'disabled', '', _('Pool'));
-	} else if (($device['size'] == 0) && (! $zvol_device)) {
-		$button = sprintf($button, $context, 'mount', 'disabled', '', _('Mount'));
-	} else if ($device['array_disk']) {
-		$button = sprintf($button, $context, 'mount', 'disabled', $class_ban, _('Array'));
-	} else if ($not_udev) {
-		$button = sprintf($button, $context, 'umount', $disable, $class_ban, _('Udev'));
-	} else if ($not_unmounted) {
-		$button = sprintf($button, $context, 'umount', $disable, $class_ban, _('Reboot'));
-	} else if (($format) || ($preclearing)) {
-		if ($preclearing) {
-			$button = sprintf($button, $context, 'mount', 'disabled', '', _('Preclear'));
-		} else {
-			$disable = $preclearing ? "disabled" : "";
-			$button = sprintf($button, $context, 'format', $disable, '', _('Format'));
-		}
-	} else if ($is_mounting) {
-		$button = sprintf($button, $context, 'mount', 'disabled', $class_disk_op, _('Mounting'));
-	} else if ($is_unmounting) {
-		$button = sprintf($button, $context, 'umount', 'disabled', $class_disk_op, _('Unmounting'));
-	} else if ($is_formatting) {
-		$button = sprintf($button, $context, 'format', 'disabled', $class_disk_op, _('Formatting'));
-	} else if ($mounted) {
-		if (! isset($device['partitions'])) {
-			$cmd = $device['command'];
-			$user_cmd = $device['user_command'];
-			$script_running = ((is_script_running($cmd)) || (is_script_running($user_cmd, true)));;
-		} else {
-			foreach ($device['partitions'] as $part) {
-				$cmd = $part['command'];
-				$user_cmd		= $part['user_command'];
-				$script_running	= ((is_script_running($cmd)) || (is_script_running($user_cmd, true)));;
-				if ($script_running) {
-					break;
+	/* Initilize variables. */
+	$role			= "";
+	$text			= "";
+	$class			= "";
+	$spinner_class	= "fa fa-spinner fa-spin orb";
+	$ban_class		= "fa fa-ban orb";
+
+	switch (true) {
+		case ($pass_through):
+			$class		= $ban_class;
+			$role		= 'mount';
+			$disable	= true;
+			$text		= _('Passed');
+			break;
+		case ($no_partition):
+			$class		= ban_clss;
+			$role		= '';
+			$disable	= true;
+			$text		= _('Partition');
+			break;
+		case ($pool_disk):
+			$role		= '';
+			$disable	= true;
+			$text		= _('Pool');
+			break;
+		case (($device['size'] == 0) && (! $zvol_device)):
+			$role		= '';
+			$disable	= true;
+			$text		= _('Mount');
+			break;
+		case ($device['array_disk']):
+			$class		= $ban_class;
+			$role		= '';
+			$disable	= true;
+			$text		= _('Array');
+			break;
+		case ($not_udev):
+			$class		= $ban_clss;
+			$role		= '';
+			$disable	= true;
+			$text		= _('Udev');
+			break;
+		case ($not_unmounted):
+			$class		= $ban_class;
+			$role		= 'umount';
+			$disable	= true;
+			$text		= _('Reboot');
+			break;
+		case ($preclearing):
+			$role		= '';
+			$disable	= true;
+			$text		= _('Preclear');
+			break;
+		case ($format):
+			$class		= $spinner_class;
+			$role		= 'format';
+			$disable	= true;
+			$text		= _('Format');
+			break;
+		case ($is_mounting):
+			$class		= $spinner_class;
+			$role		= 'mount';
+			$disable	= true;
+			$text		= _('Mounting');
+			break;
+		case ($is_unmounting):
+			$class		= $spinner_class;
+			$role		= 'umount';
+			$disable	= true;
+			$text		= _('Unmounting');
+			break;
+		case ($is_formatting):
+			$class		= $spinner_class;
+			$role		= 'format';
+			$disable	= true;
+			$text		= _('Formatting');
+			break;
+		case ($mounted):
+			if (!isset($device['partitions'])) {
+				$cmd			= $device['command'];
+				$user_cmd		= $device['user_command'];
+				$script_running	= ((is_script_running($cmd)) || (is_script_running($user_cmd, true)));
+			} else {
+				foreach ($device['partitions'] as $part) {
+					$cmd		= $part['command'];
+					$user_cmd 	= $part['user_command'];
+					$script_running = ((is_script_running($cmd)) || (is_script_running($user_cmd, true)));
+					if ($script_running) {
+						break;
+					}
 				}
 			}
-		}
-		if ($script_running) {
-			$button = sprintf($button, $context, 'running', 'disabled', $class_disk_op, _('Running'));
-		} else {
-			$button = sprintf($button, $context, 'umount', $disable, $class, _('Unmount'));
-		}
-	} else {
-		if ($pass_through) {
-			$button = sprintf($button, $context, 'mount', $disable, $class, _('Passed'));	
-		} else {
-			$button = sprintf($button, $context, 'mount', $disable, $class, _('Mount'));
-		}
+			if ($script_running) {
+				$class		= $spinner_class;
+				$role		= '';
+				$disable	= true;
+				$text		= _('Running');
+			} else {
+				$role		= 'umount';
+				$text		= _('Unmount');
+			}
+			break;
+		default:
+			$class		= $disable_mount ? $ban_class : "";
+			$role		= 'mount';
+			$disable 	= $disable_mount ? true : $disable;
+			$text = _('Mount');
+			break;
 	}
+
+	$button = sprintf($buttonFormat, $context, $role, ($disable ? "disabled" : ""), $class, $text);
 
 	return $button;
 }
