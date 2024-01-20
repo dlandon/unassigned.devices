@@ -48,6 +48,9 @@ $source					= "";
 $zvol					= "";
 $protocol				= "";
 $enable_encrypt			= "";
+$disk_device			= false;
+$samba_device			= false;
+$iso_device				= false;
 
 /* Wait for lock files release to be sure the cfg files are completely updated. */
 $i = 0;
@@ -59,13 +62,14 @@ while ((! empty(glob("/tmp/".$plugin."/cfg_*.lock"))) && ($i < 8)) {
 /* Main entry point. */
 if (isset($_GET['s'])) {
 	/* Disk devices. */
+	$disk_device		= true;
 	$serial				= $_GET['s'];
 	$device				= $_GET['b'] ?? $_GET['l'];
 	$partition			= $_GET['p'];
 	$mount_point		= $_GET['l'];
 	$mounted			= $_GET['n'] ?? false;
 	$info				= $_GET['m'] ?? "";
-	if (isset($_GET['m'])) {
+	if (isset($info)) {
 		$id_bus			= ($_GET['u'] == "usb") ? " - USB" : " - SATA";
 	} else {
 		$_GET['u']		= null;
@@ -120,14 +124,15 @@ if (isset($_GET['s'])) {
 	$width				= ($fstype == "zvol") ? ($mounted ? "27%" : "40%") : ($mounted ? "60%" : "75%");
 	$volume				= ($fstype == "apfs") ? get_config($ud_device, "volume.{$partition}") : "0";
 	$is_preclearing		= shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep ".escapeshellarg((new MiscUD)->base_device($device))." | /bin/grep -v 'grep'") != "";
-	$host				= (new MiscUD)->get_device_host($_GET['s']);
+	$host				= (new MiscUD)->get_device_host($ud_device);
 	if ($host) {
-		$connected		= (! empty(glob("/dev/disk/by-id/*-".$_GET['s']."*")));
+		$connected		= (! empty(glob("/dev/disk/by-id/*-".$ud_device."*")));
 	} else {
 		$connected		= false;
 	}
 } else if (isset($_GET['d'])) {
 	/* Remote shares. */
+	$samba_device		= true;
 	$device				= $_GET['d'];
 	$mount_point		= $_GET['l'];
 	$source				= $_GET['j'];
@@ -167,6 +172,7 @@ if (isset($_GET['s'])) {
 	$disk_setting		= false;
 } else if (isset($_GET['i'])) {
 	/* ISO files. */
+	$iso_device			= true;
 	$device				= $_GET['i'];
 	$mount_point		= $_GET['l'];
 	$mounted			= $_GET['n'];
@@ -300,7 +306,7 @@ EOT;
 
 <div style='width:<?=$width;?>;'>
 <?if ($show_device_switches):?>
-<?if (isset($_GET['s'])):?>
+<?if ($disk_device):?>
 <?if (! $mounted):?>
 <span class='span-switches' title='_(Mark this Device as passed through to a VM or Docker Container)_.'><a><input type='checkbox' class='passthrough-switch'></a></span>
 <?endif;?>
@@ -312,24 +318,24 @@ EOT;
 <?endif;?>
 <?endif;?>
 
-<?if (isset($_GET['d'])):?>
+<?if ($samba_device):?>
 <span class='span-switches' title='_(Disable Mount and Unmount Button)_.'><a><input type='checkbox' class='disable-mount-switch'></a></span>
 <span class='span-switches' title='_(Mount Remote Share Read only)_.'><a><input type='checkbox' class='readonly-switch'></a></span>
 <span class='span-switches' title='_(Mount Remote SMB or NFS Share when Array is Started)_.'><a><input type='checkbox' class='automount-switch'></a></span>
 <?endif;?>
 
-<?if (isset($_GET['i'])):?>
+<?if ($iso_device):?>
 <span class='span-switches' title='_(Mount ISO File when Array is Started)_.'><a><input type='checkbox' class='automount-switch'></a></span>
 <?elseif ($fstype != "zvol"):?>
 <span class='span-switches' title='_(Share Device with SMB and NFS)_.'><a><input type='checkbox' class='share-switch' info='<?=$info?>'></a></span>
 <?endif;?>
 
-<?if ((isset($_GET['s'])) && ($show_device_switches) && ($fstype != "zvol")):?>
+<?if (($disk_device) && ($show_device_switches) && ($fstype != "zvol")):?>
 <span class='span-switches' title='_(Show all partitions on this device by default)_.'><a><input type='checkbox' class='partitions-switch'></a></span>
 <?endif;?>
 </div>
 
-<?if ((! $shares_enabled) && (! isset($_GET['i'])) && ($fstype != "zvol")):?>
+<?if ((! $shares_enabled) && (! $iso_device) && ($fstype != "zvol")):?>
 <p style='font-weight:bold'>_(Note: Enable SMB Sharing or NFS Export in Unassigned Devices Settings to share this device)_.</p>
 <?endif;?>
 
@@ -337,21 +343,21 @@ EOT;
 > Select the options for this device and mount point.
 :end
 
-<?if (($show_device_switches) && ($fstype != "zvol") && (isset($_GET['s'])) && (isset($_GET['m'])) && (! $mounted) && (! $is_preclearing) && (! is_pass_through($_GET['s'])) && ($host) && ($connected)):?>
+<?if (($show_device_switches) && ($fstype != "zvol") && ($disk_device) && ($info) && (! $mounted) && (! $is_preclearing) && (! is_pass_through($ud_device)) && ($host) && ($connected)):?>
 <button type="button" id="detach" title='_(Detach This Disk)_.' onclick='detach_disk("<?=$device;?>");'>_(Detach)_</button>
 
 :ud_edit_script_detach_plug:
 > Click **Detach** to detach the device.  The device will then show in Historical Devices and can be Attached from the device settings there.
 :end
 <?endif;?>
-<?if (isset($_GET['s']) && (! isset($_GET['m'])) && ($host) && (! $connected)):?>
-<button type="button" id="attach" title='_(Attach This Disk)_.' onclick='attach_disk("<?=$_GET['s'];?>");'>_(Attach)_</button>
+<?if ($disk_device && (! $info) && ($host) && (! $connected)):?>
+<button type="button" id="attach" title='_(Attach This Disk)_.' onclick='attach_disk("<?=$ud_device;?>");'>_(Attach)_</button>
 
 :ud_edit_script_attach_plug:
 > Click **Attach** to attach a device that has been detached.  This will act like the device was just installed and will auto mount if 'Auto Mount' is on.  It will take a while for the device to show up in UD.
 :end
 <?endif;?>
-<?if ((is_script_running($file)) && (isset($_GET['m']))):?>
+<?if ((is_script_running($file)) && ($info)):?>
 <button type="button" title='_(Abort Device Script)_.' onclick='abort_script("<?=$file;?>");'>_(Abort)_</button>
 
 :ud_edit_script_abort_plug:
@@ -388,7 +394,7 @@ _(APFS Volume)_:
 :end
 <?endif;?>
 
-<?if ((isset($_GET['d'])) && ($protocol == "SMB") && (! $mounted)):?>
+<?if (($samba_device) && ($protocol == "SMB") && (! $mounted)):?>
 _(Encrypt CIFS Mount)_?
 : <select name="#enable_encrypt" size="1" <?=$encrypt;?>>
 	<?=mk_option($enable_encrypt, "no", "_(No)_");?>
@@ -396,13 +402,13 @@ _(Encrypt CIFS Mount)_?
 	</select>
 <?endif;?>
 
-<?if ((isset($_GET['d'])) && ($protocol == "SMB") && (! $mounted)):?>
+<?if (($samba_device) && ($protocol == "SMB") && (! $mounted)):?>
 :ud_encrypt_connection_plug:
 > Set to **Yes** to encrypt the CIFS mount.  This is best for off-site mounts because of the overhead of encryption.
 :end
 <?endif;?>
 
-<?if ((($disk_setting) && ($fstype != "zvol")) || ((isset($_GET['d'])) && ($protocol == "SMB"))):?>
+<?if ((($disk_setting) && ($fstype != "zvol")) || (($samba_device) && ($protocol == "SMB"))):?>
 <input type="submit" value="_(Apply)_">
 <?endif;?>
 <input type="button" value="_(Done)_" onclick="done()">
@@ -443,7 +449,7 @@ _(Run Device Script File in the background)_?
 > Set to **Yes** to have the Device Script run as a background task.  This can keep the Unassigned Devices UI from hanging when the script is run from the UI.
 :end
 
-<? if (! isset($_GET['i'])):?>
+<? if (! $iso_device):?>
 _(User Script)_:
 <?if (! $user_disabled):?>
 : <input type="text" title='_(Enter the User Script File Name)_.' name="#user_file" style="width:40%;" onclick="openFileBrowserUser(this, '/boot/config/plugins/user.scripts/scripts', '', false);" autocomplete="off" placeholder="_(Enter the User Script that will be using this device)_" value="<?=$user_file;?>">
@@ -452,7 +458,7 @@ _(User Script)_:
 <?endif;?>
 <?endif;?>
 
-<? if (! isset($_GET['i'])):?>
+<? if (! $iso_device):?>
 :ud_edit_user_script_choose_name_plug:
 > If you have the User Scripts plugin installed, you can have Unassigned Devices show the running status of the User Script that will be using this device.  This field will only be enabled when a Device Script File exists.
 :end
@@ -463,7 +469,7 @@ _(User Script)_:
 
 <textarea spellcheck="false" cols="80" rows="22" name="text" title='_(Enter and Edit the Device Script that runs when a udev or operator event occurs)_.' style="width:80%"><?=$text;?></textarea>
 
-<?if (! $mounted):?>
+<?if ((! is_script_running($file)) && (! is_script_running($user_file))):?>
 <?if (! is_file($file)):?>
 <button type="button" title='_(Load the default Device Script)_.' onclick="setDefault(this.form)">_(Default)_</button>
 <button type="button" id='clear-button' title='_(Clear the Device Script)_.' onclick="clearDefault(this.form)" disabled>_(Clear)_</button>
@@ -563,7 +569,7 @@ _(User Script)_:
 	});
 
 	$( "form" ).submit(function( event ) {
-	<?if (isset($_GET['s'])):?>
+	<?if ($disk_device):?>
 			$.post(UDURL,{action:"set_command",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()}).done(function(){location.reload();});
 		<?if ($disk_setting):?>
 			$.post(UDURL,{action:"set_name",serial:"<?=$ud_device;?>",device:"<?=$device;?>",name:$("input[name='#name']").val()}).done(function(){location.reload();});
@@ -574,13 +580,13 @@ _(User Script)_:
 			$.post(UDURL,{action:"set_volume",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",volume:$("input[name='#volume']").val()}).done(function(){location.reload();});
 		<?endif;?>
 	<?else:?>
-		<?if (isset($_GET['d'])):?>
+		<?if ($samba_device):?>
 			$.post(UDURL,{action:"set_samba_command",device:"<?=$device;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()}).done(function(){location.reload();});
 			<?if ($protocol == "SMB"):?>
 				$.post(UDURL,{action:"samba_enable_encryption",device:"<?=$ud_device;?>",status:$("select[name='#enable_encrypt']").val()}).done(function(){location.reload();});
 			<?endif;?>
 		<?endif;?>
-		<?if (isset($_GET['i'])):?>
+		<?if ($iso_device):?>
 			$.post(UDURL,{action:"set_iso_command",device:"<?=$device;?>",command:$("input[name='#file']").val()}).done(function(){location.reload();});
 		<?endif;?>
 			$.post(UDURL,{action:"<?=$script_action;?>",device:"<?=$ud_device;?>",part:"<?=$partition;?>",status:$("select[name='#enable_script']").val()}).done(function(){location.reload();});
