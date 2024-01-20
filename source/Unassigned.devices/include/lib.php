@@ -2077,7 +2077,11 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 			$share_name = str_replace( array("(", ")"), "", basename($dir));
 
 			$vfs_objects = "";
+
+			/* Is the Mac OS interoperability setting on? */
 			$enable_fruit = ($var['enableFruit'] == "yes");
+
+			/* Add the recycle bin and the Mac OS stuff if enabled. */
 			if (($recycle_bin) || ($enable_fruit)) {
 				if ($enable_fruit) {
 					if (! $fat_fruit) {
@@ -2098,6 +2102,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 						/* For fat and exfat file systems. */
 						$fruit_file_settings = array( "vfs objects = catia fruit", "fruit:resource = file", "fruit:metadata = netatalk", "fruit:encoding = native" );
 					}
+
 					/* Apply the fruit settings. */
 					foreach ($fruit_file_settings as $f) {
 						/* Remove comment lines. */
@@ -2106,6 +2111,13 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 						}
 					}
 				}
+			}
+
+			/* Add the dirsort vfs object for faster directory ccess. */
+			if ($vfs_objects) {
+				$vfs_objects	.= " dirsort";
+			} else {
+				$vfs_objects	= "\n\tvfs objects = dirsort";
 			}
 
 			if ((isset($config['smb_security'])) && (($config['smb_security'] == "yes") || ($config['smb_security'] == "hidden"))) {
