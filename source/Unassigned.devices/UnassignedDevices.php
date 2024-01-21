@@ -1229,27 +1229,25 @@ switch ($_POST['action']) {
 		echo json_encode(array( 'result' => $result ));
 		break;
 
-	/*	DISK	*/
+	/* ALL DEVICES */
 	case 'mount':
 		/* Mount a disk device. */
 		$device	= urldecode($_POST['device']);
-		$return = trim(shell_exec("plugins/".$plugin."/scripts/rc.unassigned mount ".escapeshellarg($device)));
+		$return = trim(shell_exec("plugins/".$plugin."/scripts/rc.unassigned mount ".escapeshellarg($device)." & 2>/dev/null"));
 		echo json_encode($return == "success");
 		break;
 
 	case 'umount':
 		/* Unmount a disk device. */
 		$device	= urldecode($_POST['device']);
-		$return = trim(shell_exec("plugins/".$plugin."/scripts/rc.unassigned umount ".escapeshellarg($device)));
+		$return = trim(shell_exec("plugins/".$plugin."/scripts/rc.unassigned umount ".escapeshellarg($device)." & 2>/dev/null"));
 		echo json_encode($return == "success");
 		break;
 
+	/* DISK */
 	case 'rescan_disks':
 		/* Refresh all disk partition information, update config files from flash, and clear status files. */
 		exec("plugins/".$plugin."/scripts/copy_config.sh");
-
-		/* Clear out any residual file locks. */
-		exec("/usr/bin/rm -f /tmp/".$plugin."/*.lock");
 
 		/* Cear the get_ud_status pid file so get_ud_stats does not get stuck. */
 		if (file_exists($pidFile)) {
