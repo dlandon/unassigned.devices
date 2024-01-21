@@ -752,6 +752,9 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		</tr>
 		</thead>
 		<tbody id="remotes-table-body">
+			<tr>
+				<td colspan='11'><div class='spinner'></div></td>
+			</tr>
 		</tbody>
 	</table>
 	<div id='remotes-buttons'>
