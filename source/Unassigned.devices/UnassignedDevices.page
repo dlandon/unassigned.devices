@@ -156,7 +156,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		innerMountButton.prop("disabled", true).html("<i class='fa fa-spinner fa-spin orb'></i>" + (op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
 
 		/* Start the refresh timer to refresh the page after the mount/unmount script starts. */
-		window.setTimeout(refreshPage, (REFRESH_INTERVAL / 6));
+		window.setTimeout(refreshPage, 250);
 
 		$.post(UDURL, {
 			'action': op,
@@ -166,10 +166,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			if (data === "false") {
 				swalShowMountUnmount(device, op);
 			}
-
-			/* Start the refresh timer to refresh the page after the mount/unmount is complete. */
-			window.setTimeout(refreshPage, (REFRESH_INTERVAL / 6));
-		})
+	})
 		.fail(() => {
 			swalShowResult(false);
 		});
@@ -921,12 +918,28 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		tr = $(this);
 
 		tr.find("span.toggle-hdd").click(function(e) {
-			$(this).disableSelection();disk = $(this).attr("hdd");el = $(this);
+			$(this).disableSelection();
+			disk = $(this).attr("hdd");
+			el = $(this);
 			$(".toggle-"+disk).slideToggle(0);
 		});
 
-		tr.find( "button[role$=mount]" ).on( "click", function() {
-			disk_op(this, $(this).attr("role"), $(this).attr("device"));
+		tr.find("button[role$=mount]").on("click", function () {
+			const button = $(this);
+
+			/* Disable the mount button. */
+			button.prop("disabled", true);
+
+			/* Call disk_op only after the button is visually disabled. */
+			setTimeout(function () {
+				if (!button.prop("disabled")) {
+					/* Do nothing if the button is not disabled (to handle race condition). */
+ 					return;
+				}
+
+				/* Perform the disk operation. */
+				disk_op(button.get(0), button.attr("role"), button.attr("device"));
+			}, 0);
 		});
 
 		tr.find("button[role$=format]").on( "click", function() {
