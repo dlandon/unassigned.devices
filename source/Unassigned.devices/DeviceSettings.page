@@ -504,98 +504,244 @@ _(User Script)_:
 <script>
 	const UDURL		= '/plugins/<?=$plugin;?>/UnassignedDevices.php';
 
-<? if (! $mounted):?>
-	$('.passthrough-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Passed Through');?>", off_label: "<?=_('Passed Through');?>", checked:"<?=$pass_through;?>" });
-	$('.passthrough-switch').change(function()
-	{
-		$.post(UDURL,{action:"toggle_pass_through",serial:"<?=$ud_device;?>",part:"<?=$zvol;?>",status:$(this).is(":checked")},function(data)
-		{
-			$(this).prop("checked",data.result);
+<? if (($disk_device) && (! $mounted)):?>
+	/* Passthrough switch. */
+	$('.passthrough-switch').switchButton({
+		labels_placement: "left",
+		on_label: "<?=_('Passed Through');?>",
+		off_label: "<?=_('Passed Through');?>",
+		checked: "<?=$pass_through;?>"
+	});
+	$('.passthrough-switch').change(function() {
+		let switchElement = $(this);
+		$.post(UDURL, {
+			action: "toggle_pass_through",
+			serial: "<?=$ud_device;?>",
+			part: "<?=$zvol;?>",
+			status: switchElement.is(":checked")
+		}, function(data) {
+			switchElement.prop("checked", data.result);
 			location.reload();
 		}, 'json');
 	});
 <?endif;?>
-
-	$('.disable-mount-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Disable Mount Button');?>", off_label: "<?=_('Disable Mount Button');?>", checked:"<?=$disable_mount;?>" });
-	$('.disable-mount-switch').change(function()
-	{
-		$.post(UDURL,{action:"<?=$disable_action?>",device:"<?=$ud_device;?>",part:"<?=$zvol;?>",status:$(this).is(":checked")},function(data)
-		{
-			$(this).prop("checked",data.result);
+	/* Disable mount switch. */
+	$('.disable-mount-switch').switchButton({
+		labels_placement: "left",
+		on_label: "<?=_('Disable Mount Button');?>",
+		off_label: "<?=_('Disable Mount Button');?>",
+		checked: "<?=$disable_mount;?>"
+	});
+	$('.disable-mount-switch').change(function() {
+		let switchElement = $(this);
+		$.post(UDURL, {
+			action: "<?=$disable_action?>",
+			device: "<?=$ud_device;?>",
+			part: "<?=$zvol;?>",
+			status: switchElement.is(":checked")
+		}, function(data) {
+			switchElement.prop("checked", data.result);
 		}, 'json');
 	});
 
-	$('.readonly-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Read Only');?>", off_label: "<?=_('Read Only');?>", checked:"<?=$read_only;?>" });
-	$('.readonly-switch').change(function()
-	{
-		$.post(UDURL,{action:"<?=$readonly_action?>",serial:"<?=$ud_device;?>",part:"<?=$zvol;?>",status:$(this).is(":checked")},function(data)
-		{
-			$(this).prop("checked",data.result);
+	/* Read only switch. */
+	$('.readonly-switch').switchButton({
+		labels_placement: "left",
+		on_label: "<?=_('Read Only');?>",
+		off_label: "<?=_('Read Only');?>",
+		checked: "<?=$read_only;?>"
+	});
+	$('.readonly-switch').change(function() {
+		let switchElement = $(this);
+		$.post(UDURL, {
+			action: "<?=$readonly_action?>",
+			serial: "<?=$ud_device;?>",
+			part: "<?=$zvol;?>",
+			status: switchElement.is(":checked")
+		}, function(data) {
+			switchElement.prop("checked", data.result);
 		}, 'json');
 	});
 
-	$('.automount-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Automount');?>", off_label: "<?=_('Automount');?>", checked:"<?=$automount;?>" });
-	$('.automount-switch').change(function()
-	{
-		$.post(UDURL,{action:"<?=$automount_action?>",device:"<?=$ud_device;?>",status:$(this).is(":checked")},function(data)
-		{
-			$(this).prop("checked",data.result);
+	/* Auto mount switch. */
+	$('.automount-switch').switchButton({
+		labels_placement: "left",
+		on_label: "<?=_('Automount');?>",
+		off_label: "<?=_('Automount');?>",
+		checked: "<?=$automount;?>"
+	});
+	$('.automount-switch').change(function() {
+		let switchElement = $(this);
+		$.post(UDURL, {
+			action: "<?=$automount_action?>",
+			device: "<?=$ud_device;?>",
+			status: switchElement.is(":checked")
+		}, function(data) {
+			switchElement.prop("checked", data.result);
 		}, 'json');
 	});
 
 <?if ($info):?>
-	$('.share-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Share');?>", off_label: "<?=_('Share');?>", checked:"<?=$share;?>" });
-	$('.share-switch').change(function()
-	{
-		$.post(UDURL,{action:"<?=$share_action;?>",info:$(this).attr("info"),status:$(this).is(":checked")},function(data)
-		{
-			$(this).prop("checked",data.result);
+	/* Share switch. */
+	$('.share-switch').switchButton({
+		labels_placement: "left",
+		on_label: "<?=_('Share');?>",
+		off_label: "<?=_('Share');?>",
+		checked: "<?=$share;?>"
+	});
+	$('.share-switch').change(function() {
+		let switchElement = $(this);
+		$.post(UDURL, {
+			action: "<?=$share_action;?>",
+			info: switchElement.attr("info"),
+			status: switchElement.is(":checked")
+		}, function(data) {
+			switchElement.prop("checked", data.result);
 		}, 'json');
 	});
 <?else:?>
-	$('.share-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Share');?>", off_label: "<?=_('Share');?>", checked:"<?=$share;?>" });
-	$('.share-switch').change(function()
-	{
-		$.post(UDURL,{action:"<?=$share_action;?>",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",status:$(this).is(":checked")},function(data)
-		{
-			$(this).prop("checked",data.result);
+	/* Share switch. */
+	$('.share-switch').switchButton({
+		labels_placement: "left",
+		on_label: "<?=_('Share');?>",
+		off_label: "<?=_('Share');?>",
+		checked: "<?=$share;?>"
+	});
+	$('.share-switch').change(function() {
+		let switchElement = $(this);
+		$.post(UDURL, {
+			action: "<?=$share_action;?>",
+			serial: "<?=$ud_device;?>",
+			part: "<?=$partition;?>",
+			status: switchElement.is(":checked")
+		}, function(data) {
+			switchElement.prop("checked", data.result);
 		}, 'json');
 	});
 <?endif;?>
 
-	$('.partitions-switch').switchButton({ labels_placement: "left", on_label: "<?=_('Show Partitions');?>", off_label: "<?=_('Show Partitions');?>", checked:"<?=$show_partitions;?>" });
-	$('.partitions-switch').change(function()
-	{
-		$.post(UDURL,{action:"show_partitions",serial:"<?=$ud_device;?>",status:$(this).is(":checked")},function(data)
-		{
-			$(this).prop("checked",data.result);
+	/* Show partitions switch. */
+	$('.partitions-switch').switchButton({
+		labels_placement: "left",
+		on_label: "<?=_('Show Partitions');?>",
+		off_label: "<?=_('Show Partitions');?>",
+		checked: "<?=$show_partitions;?>"
+	});
+	$('.partitions-switch').change(function() {
+		let switchElement = $(this);
+		$.post(UDURL, {
+			action: "show_partitions",
+			serial: "<?=$ud_device;?>",
+			status: switchElement.is(":checked")
+		}, function(data) {
+			switchElement.prop("checked", data.result);
 		}, 'json');
 	});
 
-	$( "form" ).submit(function( event ) {
-	<?if ($disk_device):?>
-			$.post(UDURL,{action:"set_command",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()}).done(function(){location.reload();});
-		<?if ($disk_setting):?>
-			$.post(UDURL,{action:"set_name",serial:"<?=$ud_device;?>",device:"<?=$device;?>",name:$("input[name='#name']").val()}).done(function(){location.reload();});
-		<?endif;?>
-			$.post(UDURL,{action:"<?=$script_action;?>",device:"<?=$ud_device;?>",part:"<?=$partition;?>",status:$("select[name='#enable_script']").val()}).done(function(){location.reload();});
-			$.post(UDURL,{action:"<?=$background_action;?>",device:"<?=$ud_device;?>",part:"<?=$partition;?>",status:$("select[name='#background']").val()}).done(function(){location.reload();});
-		<?if ($fstype == "apfs"):?>
-			$.post(UDURL,{action:"set_volume",serial:"<?=$ud_device;?>",part:"<?=$partition;?>",volume:$("input[name='#volume']").val()}).done(function(){location.reload();});
-		<?endif;?>
-	<?else:?>
-		<?if ($samba_device):?>
-			$.post(UDURL,{action:"set_samba_command",device:"<?=$device;?>",command:$("input[name='#file']").val(),user_command:$("input[name='#user_file']").val()}).done(function(){location.reload();});
-			<?if ($protocol == "SMB"):?>
-				$.post(UDURL,{action:"samba_enable_encryption",device:"<?=$ud_device;?>",status:$("select[name='#enable_encrypt']").val()}).done(function(){location.reload();});
-			<?endif;?>
-		<?endif;?>
-		<?if ($iso_device):?>
-			$.post(UDURL,{action:"set_iso_command",device:"<?=$device;?>",command:$("input[name='#file']").val()}).done(function(){location.reload();});
-		<?endif;?>
-			$.post(UDURL,{action:"<?=$script_action;?>",device:"<?=$ud_device;?>",part:"<?=$partition;?>",status:$("select[name='#enable_script']").val()}).done(function(){location.reload();});
-			$.post(UDURL,{action:"<?=$background_action;?>",device:"<?=$ud_device;?>",status:$("select[name='#background']").val()}).done(function(){location.reload();});
-	<?endif;?>
+	$("form").submit(function(event) {
+		<?php if ($disk_device): ?>
+			$.post(UDURL, {
+				action: "set_command",
+				serial: "<?=$ud_device;?>",
+				part: "<?=$partition;?>",
+				command: $("input[name='#file']").val(),
+				user_command: $("input[name='#user_file']").val()
+			}).done(function() {
+				location.reload();
+			});
+
+			<?php if ($disk_setting): ?>
+				$.post(UDURL, {
+					action: "set_name",
+					serial: "<?=$ud_device;?>",
+					device: "<?=$device;?>",
+					name: $("input[name='#name']").val()
+				}).done(function() {
+					location.reload();
+				});
+			<?php endif; ?>
+
+			$.post(UDURL, {
+				action: "<?=$script_action;?>",
+				device: "<?=$ud_device;?>",
+				part: "<?=$partition;?>",
+				status: $("select[name='#enable_script']").val()
+			}).done(function() {
+				location.reload();
+			});
+
+			$.post(UDURL, {
+				action: "<?=$background_action;?>",
+				device: "<?=$ud_device;?>",
+				part: "<?=$partition;?>",
+				status: $("select[name='#background']").val()
+			}).done(function() {
+				location.reload();
+			});
+
+			<?php if ($fstype == "apfs"): ?>
+				$.post(UDURL, {
+					action: "set_volume",
+					serial: "<?=$ud_device;?>",
+					part: "<?=$partition;?>",
+					volume: $("input[name='#volume']").val()
+				}).done(function() {
+					location.reload();
+				});
+			<?php endif; ?>
+
+		<?php else: ?>
+
+			<?php if ($samba_device): ?>
+				$.post(UDURL, {
+					action: "set_samba_command",
+					device: "<?=$device;?>",
+					command: $("input[name='#file']").val(),
+					user_command: $("input[name='#user_file']").val()
+				}).done(function() {
+					location.reload();
+				});
+
+				<?php if ($protocol == "SMB"): ?>
+					$.post(UDURL, {
+						action: "samba_enable_encryption",
+						device: "<?=$ud_device;?>",
+						status: $("select[name='#enable_encrypt']").val()
+					}).done(function() {
+						location.reload();
+					});
+				<?php endif; ?>
+
+			<?php endif; ?>
+
+			<?php if ($iso_device): ?>
+				$.post(UDURL, {
+					action: "set_iso_command",
+					device: "<?=$device;?>",
+					command: $("input[name='#file']").val()
+				}).done(function() {
+					location.reload();
+				});
+			<?php endif; ?>
+
+			$.post(UDURL, {
+				action: "<?=$script_action;?>",
+				device: "<?=$ud_device;?>",
+				part: "<?=$partition;?>",
+				status: $("select[name='#enable_script']").val()
+			}).done(function() {
+				location.reload();
+			});
+
+			$.post(UDURL, {
+				action: "<?=$background_action;?>",
+				device: "<?=$ud_device;?>",
+				status: $("select[name='#background']").val()
+			}).done(function() {
+				location.reload();
+			});
+
+		<?php endif; ?>
 	});
 
 	/*
