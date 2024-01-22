@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.01.17">
+<!ENTITY version	"2024.01.22">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"f22f89152463ea19379414fa2dd4d2f8">
+<!ENTITY MD5		"a3f23bcaeb6767d725e2cefed77db1f7">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Additional work to make 'Mount' buttons more responsive.
+- Add: 'vfs = dirsort' SMB configuration for every UD share.
+
+###2024.01.17
 - Fix: Change ping check for server to be online to port scan on SMB and NFS ports for remote server.
 - Fix: Device Script file handling and GUI improvements.
 - Fix: Lots more Java Script code cleanup.
