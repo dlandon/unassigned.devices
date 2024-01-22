@@ -115,12 +115,6 @@ function unassigned_mount() {
 				/* Create mounting status file. */
 				addFile(sprintf($paths['mounting'], basename($device)));
 
-				/* If this is a single device mount, it probably came from the GUI. */
-				if (preg_match("#".$DEVNAME."#i", realpath($partition))) {
-					/* Give things a chance to settle.  This gives the pageRefresh a chance to catch up. */
-					sleep(1);
-				}
-
 				unassigned_log("Partition found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) && (strpos($k, "pass_through") === false)? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
 
 				/* If partition does not have a file system it cannot be mounted. */
@@ -206,9 +200,6 @@ function unassigned_mount() {
 							/* Create mounting status file. */
 							addFile(sprintf($paths['mounting'], basename($zvol['device'])));
 
-							/* Give things a chance to settle.  This gives the pageRefresh a chance to catch up. */
-							sleep(1);
-
 							$rc = do_mount($zvol);
 							if (! $rc) {
 								unassigned_log("ZFS Volume '".$k."' cannot be mounted.");
@@ -248,12 +239,6 @@ function unassigned_mount() {
 
 				/* Create mounting status file. */
 				addFile(sprintf($paths['mounting'], $mount_device));
-
-				/* If this is a single device mount, it probably came from the GUI. */
-				if ($DEVNAME == $device) {
-					/* Give things a chance to settle.  This gives the pageRefresh a chance to catch up. */
-					sleep(1);
-				}
 
 				/* See if the mountpoint is a duplicate reserved, share, or UD name. Don't mount if a duplicate.*/
 				if (! check_for_duplicate_share($info['device'], basename($info['mountpoint']))) {
@@ -326,12 +311,6 @@ function unassigned_mount() {
 
 				/* Create mounting status file. */
 				addFile(sprintf($paths['mounting'], $mount_device));
-
-				/* If this is a single device mount, it probably came from the GUI. */
-				if ($DEVNAME == $device) {
-					/* Give things a chance to settle.  This gives the pageRefresh a chance to catch up. */
-					sleep(1);
-				}
 
 				/* See if the mountpoint is a duplicate reserved, share, or UD name. Don't mount if a duplicate.*/
 				if (! check_for_duplicate_share($info['device'], basename($info['mountpoint']))) {
@@ -457,11 +436,6 @@ function unassigned_umount() {
 						/* Create unmounting status file. */
 						addFile(sprintf($paths['unmounting'], basename($device)));
 
-						/* If this is a single device mount, it probably came from the GUI. */
-						if (preg_match("#".$DEVNAME."#i", realpath($partition))) {
-							/* Give things a chance to settle.  This gives the pageRefresh a chance to catch up. */
-							sleep(1);
-						}
 						unassigned_log("Unmounting partition '".$info['device']."' at mountpoint '{$info['mountpoint']}'...");
 
 						/* Execute device script with unmount action. */
@@ -474,9 +448,6 @@ function unassigned_umount() {
 								if ($zvol['mounted']) {
 									/* Create unmounting status file. */
 									addFile(sprintf($paths['unmounting'], basename($zvol['device'])));
-
-									/* Give things a chance to settle.  This gives the pageRefresh a chance to catch up. */
-									sleep(1);
 
 									$rc = do_unmount($zvol['device'], $zvol['mountpoint'], $force, false, false, false);
 									if (! $rc) {
@@ -551,9 +522,6 @@ function unassigned_umount() {
 								/* Create unmounting status file. */
 								addFile(sprintf($paths['unmounting'], basename($zvol['device'])));
 
-								/* Give things a chance to settle.  This gives the pageRefresh a chance to catch up. */
-								sleep(1);
-
 								$rc = do_unmount($zvol['device'], $zvol['mountpoint'], $force, false, false, false);
 								if (! $rc) {
 									unassigned_log("ZFS Volume '".$k."' cannot be unmounted.");
@@ -585,12 +553,6 @@ function unassigned_umount() {
 
 					/* Create unmounting status file. */
 					addFile(sprintf($paths['unmounting'], $mount_device));
-
-					/* If this is a single device mount, it probably came from the GUI. */
-					if ($DEVNAME == $device) {
-						/* Give things a chance to settle.  This gives the pageRefresh a chance to catch up. */
-						sleep(1);
-					}
 
 					/* Execute the remote mount script file with unmount action. */
 					execute_script($info, "UNMOUNT");
@@ -644,12 +606,6 @@ function unassigned_umount() {
 				if ( is_mounted($info['mountpoint']) ) {
 					/* Create mounting status file. */
 					addFile(sprintf($paths['unmounting'], basename($info['device'])));
-
-					/* If this is a single device mount, it probably came from the GUI. */
-					if ($DEVNAME == $device) {
-						/* Give things a chance to settle.  This gives the pageRefresh a chance to catch up. */
-						sleep(1);
-					}
 
 					unassigned_log("Removing ISO File share '{$info['device']}'...");
 
@@ -839,6 +795,10 @@ function addFile($file) {
 
 	/* Add this file to the array of files to remove when operation is done. */
 	$remove[] = $file;
+
+	/* Give things a chance to settle.  This gives the pageRefresh a chance to catch up. */
+	usleep(500 * 1000);
+
 }
 
 /* Update json mounted disk status. */
