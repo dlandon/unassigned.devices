@@ -55,10 +55,10 @@ $iso_device				= false;
 /* Wait for lock files release to be sure the cfg and smb  files are completely updated. */
 $i = 0;
 $l = 0;
-while (((! empty(glob("/tmp/".$plugin."/cfg_*.lock"))) || (! empty(glob("/tmp/".$plugin."/smb_*.lock")))) && ($i < 8) && ($l < 2)) {
+while (((! empty(glob("/tmp/".$plugin."/cfg_*.lock"))) || (! empty(glob("/tmp/".$plugin."/smb_*.lock"))) || (! empty(glob("/tmp/".$plugin."/iso_*.lock")))) && ($i < 8) && ($l < 2)) {
 	usleep(250 * 1000);
 	$i++;
-	if ((empty(glob("/tmp/".$plugin."/cfg_*.lock"))) && (empty(glob("/tmp/".$plugin."/smb_*.lock")))) {
+	if ((empty(glob("/tmp/".$plugin."/cfg_*.lock"))) && (empty(glob("/tmp/".$plugin."/smb_*.lock"))) && (empty(glob("/tmp/".$plugin."/iso_*.lock")))) {
 		$l++;
 	}
 }
