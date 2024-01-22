@@ -2095,12 +2095,12 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 							if (file_exists($fruit_file)) {
 								$fruit_file_settings = explode("\n", file_get_contents($fruit_file));
 							} else {
-								$fruit_file_settings = array( "vfs objects = catia fruit streams_xattr" );
+								$fruit_file_settings = array( "vfs objects = catia fruit streams_xattr dirsort" );
 							}
 						}
 					} else {
 						/* For fat and exfat file systems. */
-						$fruit_file_settings = array( "vfs objects = catia fruit", "fruit:resource = file", "fruit:metadata = netatalk", "fruit:encoding = native" );
+						$fruit_file_settings = array( "vfs objects = catia fruit dirsort", "fruit:resource = file", "fruit:metadata = netatalk", "fruit:encoding = native" );
 					}
 
 					/* Apply the fruit settings. */
@@ -2111,11 +2111,6 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 						}
 					}
 				}
-			}
-
-			/* Add the dirsort vfs object for faster directory ccess. */
-			if ($vfs_objects) {
-				$vfs_objects	.= " dirsort";
 			} else {
 				$vfs_objects	= "\n\tvfs objects = dirsort";
 			}
