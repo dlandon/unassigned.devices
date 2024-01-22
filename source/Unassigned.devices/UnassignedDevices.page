@@ -126,37 +126,47 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		@param op: The disk operation (e.g., "mount" or "unmount").
 		@param device: The target device for the operation.
 	*/
-	function disk_op(el, op, device) {
+	async function disk_op(el, op, device) {
 		const mountButton = $(`button[device='${device}']`);
 
-		/* Retart the page refresh timer. */
+		/* Clear the page refresh timer. */
 		window.clearInterval(refreshTimer);
-		refreshTimer = window.setInterval(refreshPage, REFRESH_INTERVAL);
 
 		/* Add spinning icon to mount/unmount button and disable button. */
 		mountButton.prop("disabled", true).html("<i class='fa fa-spinner fa-spin orb'></i>" + (op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
 
-		/* Check if refreshPage is already in progress */
+		/* Check if refreshPage is already in progress. */
 		if (isRefreshing) {
-			/* Wait for the current refreshPage to complete before proceeding */
-			return refreshPage().then(() => {
-				executePostRequest(op, device);
-			});
-		} else {
-			/* Initiate the post request immediately */
-			executePostRequest(op, device);
+			try {
+				/* Wait for the current refreshPage to complete before proceeding. */
+				await refreshPage();
+			} catch (error) {
+				/*
+					Ignore the error and initiate the post request anyway.
+					This will occur if refreshPage() has completed and just returns without a resolved promise.
+				*/
+			}
 		}
+
+		/*
+			Once the refresh is completed, the mount button status needs to be refreshed in case the refreshPage() cleared it.
+			After the mount/unmount post is strted, the mount status flag files will be set nd the mount button status will be up to date.
+		*/
+
+		/* Refresh the mount/unmount button and disable button if the refreshPage() happened to change the status. */
+		mountButton.prop("disabled", true).html("<i class='fa fa-spinner fa-spin orb'></i>" + (op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
+
+		/* Initiate the post request immediately. */
+		await mountPostRequest(op, device);
+
+		/* Restart the page refresh timer. */
+		refreshTimer = window.setInterval(refreshPage, REFRESH_INTERVAL);
 	}
 
 	/* Perform the disk opertion. */
-	function executePostRequest(op, device) {
-		const innerMountButton = $(`button[device='${device}']`);
-
-		/* Add spinning icon to mount/unmount button and disable button. */
-		innerMountButton.prop("disabled", true).html("<i class='fa fa-spinner fa-spin orb'></i>" + (op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
-
+	async function mountPostRequest(op, device) {
 		/* Start the refresh timer to refresh the page after the mount/unmount script starts. */
-		window.setTimeout(refreshPage, 250);
+		window.setTimeout(refreshPage, 500);
 
 		$.post(UDURL, {
 			'action': op,
@@ -166,9 +176,13 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			if (data === "false") {
 				swalShowMountUnmount(device, op);
 			}
-	})
+		})
 		.fail(() => {
 			swalShowResult(false);
+		})
+		.always(() => {
+			/* Start the refresh timer to refresh the page if it's not currently refreshing. */
+			window.setTimeout(refreshPage, 500);
 		});
 	}
 
@@ -177,43 +191,40 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	*/
 	function refreshPage() {
 		/* Check if we're already refreshing. */
-		if (isRefreshing) {
- 			/* Resolve the promise immediately. */
- 			return Promise.resolve();
+		if (! isRefreshing) {
+			/* Set that we are refreshing the page. */
+			isRefreshing = true;
+
+			/* Get the UD devices table data and render the web page. */
+			return new Promise(function (resolve) {
+				$.post(UDURL, {
+					'action': 'get_content',
+					'display': display
+				}, function (data) {
+					const toggled = $("tr.toggle-parts:visible").map(function () {
+						return $(this).attr("name");
+					}).get();
+
+					/* Fill the UD devices tables. */
+					if (data) {
+						$('#disk-table-body').html(data.disks);
+						$('#remotes-table-body').html(data.remotes);
+						$('#historical-table-body').html(data.historical);
+					}
+
+					/* Show toggled disk partitions. */
+					$.each(toggled, function (k, v) {
+						$("tr[name='" + v + "']").css("display", "table-row");
+					});
+
+					/* Resolve the promise */
+					resolve();
+
+					/* We are done refreshing the page. */
+					isRefreshing = false;
+				}, 'json');
+			});
 		}
-
-		/* Set that we are refreshing the page. */
-		isRefreshing = true;
-
-		/* Get the UD devices table data and render the web page. */
-		return new Promise(function (resolve) {
-			$.post(UDURL, {
-				'action': 'get_content',
-				'display': display
-			}, function (data) {
-				const toggled = $("tr.toggle-parts:visible").map(function () {
-					return $(this).attr("name");
-				}).get();
-
-				/* Fill the UD devices tables. */
-				if (data) {
-					$('#disk-table-body').html(data.disks);
-					$('#remotes-table-body').html(data.remotes);
-					$('#historical-table-body').html(data.historical);
-				}
-
-				/* Show toggled disk partitions. */
-				$.each(toggled, function (k, v) {
-					$("tr[name='" + v + "']").css("display", "table-row");
-				});
-
-				/* We are done refreshing the page. */
-				isRefreshing = false;
-
-				/* Resolve the promise */
-				resolve();
-			}, 'json');
-		});
 	}
 
 	/*
@@ -918,32 +929,26 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		tr = $(this);
 
 		tr.find("span.toggle-hdd").click(function(e) {
-			$(this).disableSelection();
-			disk = $(this).attr("hdd");
-			el = $(this);
+			const button = $(this);
+
+			button.disableSelection();
+			disk = button.attr("hdd");
+			el = button;
 			$(".toggle-"+disk).slideToggle(0);
 		});
 
 		tr.find("button[role$=mount]").on("click", function () {
 			const button = $(this);
 
-			/* Disable the mount button. */
-			button.prop("disabled", true);
-
-			/* Call disk_op only after the button is visually disabled. */
-			setTimeout(function () {
-				if (!button.prop("disabled")) {
-					/* Do nothing if the button is not disabled (to handle race condition). */
- 					return;
-				}
-
-				/* Perform the disk operation. */
-				disk_op(button.get(0), button.attr("role"), button.attr("device"));
-			}, 0);
+			/* Perform the disk operation. */
+			disk_op(button.get(0), button.attr("role"), button.attr("device"));
 		});
 
 		tr.find("button[role$=format]").on( "click", function() {
-			format_disk(this, $(this).attr("context"), $(this).attr("device"));
+			const button = $(this);
+
+			/* Perform the format operation. */
+			format_disk(this, $(this).attr("context"), button.attr("device"));
 		});
 	});
 
