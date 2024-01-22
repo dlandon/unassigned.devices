@@ -78,7 +78,6 @@ button.mount {
 }
 button.mount:disabled {
 	opacity:1.0
-    pointer-events: none;
 }
 
 /* Icons. */
