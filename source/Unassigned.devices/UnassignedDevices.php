@@ -606,7 +606,7 @@ switch ($_POST['action']) {
 				$disk_icon = $disk['ssd'] ? "icon-nvme" : "fa fa-hdd-o";
 
 				/* Disk log. */
-				$hdd_serial = "<a class='info' href=\"#\" onclick=\"openTerminal('disklog', '{$disk_device}')\"><i class='".$disk_icon." icon'></i><span>"._("Disk Log Information")."</span></a>";
+				$hdd_serial = "<a class='info' href=\"#\" onclick=\"openTerminal('disklog', '{$disk_device}')\"><i class='".$disk_icon." icon partition-log'></i><span>"._("Disk Log Information")."</span></a>";
 				if ($p) {
 					$add_toggle = true;
 					if ($disk['pass_through']) {
@@ -1233,14 +1233,14 @@ switch ($_POST['action']) {
 	case 'mount':
 		/* Mount a disk device. */
 		$device	= urldecode($_POST['device']);
-		$return = trim(shell_exec("plugins/".$plugin."/scripts/rc.unassigned mount ".escapeshellarg($device)." & 2>/dev/null"));
+		$return = trim(shell_exec("/usr/bin/nice plugins/".$plugin."/scripts/rc.unassigned mount ".escapeshellarg($device)." & 2>/dev/null"));
 		echo json_encode($return == "success");
 		break;
 
 	case 'umount':
 		/* Unmount a disk device. */
 		$device	= urldecode($_POST['device']);
-		$return = trim(shell_exec("plugins/".$plugin."/scripts/rc.unassigned umount ".escapeshellarg($device)." & 2>/dev/null"));
+		$return = trim(shell_exec("/usr/bin/nice plugins/".$plugin."/scripts/rc.unassigned umount ".escapeshellarg($device)." & 2>/dev/null"));
 		echo json_encode($return == "success");
 		break;
 
