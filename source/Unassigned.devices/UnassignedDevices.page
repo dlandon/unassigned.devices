@@ -367,19 +367,6 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	}
 
 	/*
-		Rescan UD devices to update udev and copy config files from the flash to ram to update them.
-	*/
-	function rescan_disks() {
-		$.post(UDURL, {'action': 'rescan_disks'})
-			.done(function(data) {
-				swalShowResult(true);
-			})
-			.fail(function() {
-				swalShowResult(false);
-			});
-	}
-
-	/*
 		Function to display a SweetAlert2 notification based on the result of an operation.
 		@param success: A boolean indicating whether the operation was successful.
 	*/
@@ -1763,6 +1750,44 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 						device: device,
 						mountpoint: mountpoint
 					});
+				};
+			});
+		</script>
+	</div>
+</div>
+
+<div style="display:none;" data-survey-name="rescan_disks" data-survey-title="">
+	<div data-question data-question-title="" data-question-button-done="<?=_('Proceed');?>" data-question-icon="warning">
+		<div data-question-content>
+			<p><?=_('Refresh Disks and Configuration');?>?</p>
+			<ul>
+			<li style="text-align:left;"><?=_('All disks will be refreshed');?>.</li>
+			<li style="text-align:left;"><?=_('Remote Shares online status will be reset');?>.</li>
+			<li style="text-align:left;"><?=_('Unassigned Devices configuration will be updated');?>.</li>
+			</ul>
+		</div>
+		<div data-question-load></div>
+		<div data-question-done></div>
+	</div>
+	<div data-survey-done>
+		$.post(UDURL, {
+			'action': 'rescan_disks',
+		})
+		.done(function(data) {
+			swalShowResult(data === "true");
+		}, 'json')
+		.fail(function() {
+			swalShowResult(false);
+		});
+	</div>
+	<div>
+		<script type="text/javascript">
+			/* Execute a function when the document is ready */
+			$(function() {
+				/* Define a function rescan_disks and attach it to the window object */
+				window.rescan_disks = function() {
+					/* Call the doUnassignedDevicesSurvey function with the arguments "rescan_disks"} */
+					doUnassignedDevicesSurvey("rescan_disks");
 				};
 			});
 		</script>
