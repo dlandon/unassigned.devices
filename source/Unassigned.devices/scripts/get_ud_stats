@@ -103,6 +103,9 @@ function is_server_online($server, $protocol, $log = false) {
 	/* Keep the original server with TLD reference in case the server is not on the LAN. */
 	$orig_srvr	= $server;
 
+	/* Ping staus file key for this server. */
+	$name	= $server.".".$protocol;
+
 	/* Strip off any local tld reference and capitalize the server name.  Default local TLD is 'local'. */
 	$server	= str_replace( array(".".$local_tld, ".".$default_tld), "", strtoupper($server));
 	$ip_arp	= "";
@@ -163,13 +166,13 @@ function is_server_online($server, $protocol, $log = false) {
 		$ping_status	= (new MiscUD)->get_json($tc);
 
 		/* See if the server was last seen as being online. */
-		$was_alive		= (isset($ping_status[$server]['online']) && ($ping_status[$server]['online'] == 'yes'));
+		$was_alive		= (isset($ping_status[$name]['online']) && ($ping_status[$name]['online'] == 'yes'));
 
 		/* Ping the server to see if it is currently offline. */
-		$is_alive		= (trim(shell_exec("timeout -s 5 1 bash -c '(echo >/dev/tcp/{$server}/{$port}) &>/dev/null'; echo $?")) == 0 );
+		$is_alive		= (trim(shell_exec("/usr/bin/nice /usr/bin/timeout -s 5 1 bash -c '(echo >/dev/tcp/{$server}/{$port}) &>/dev/null'; echo $?")) == 0 );
 
 		/* Get the number of pings we've checked since it went offline. */
-		$no_pings		= $ping_status[$server]['no_pings'] ?? 0;
+		$no_pings		= $ping_status[$name]['no_pings'] ?? 0;
 
 		/* If it's not online and the server is not an ip address lookup the server and ping it. */
 		if ((! $is_alive) && (! (new MiscUD)->is_ip($server)))
@@ -177,7 +180,7 @@ function is_server_online($server, $protocol, $log = false) {
 			$ip			= trim(timed_exec(5, "/usr/bin/nmblookup ".escapeshellarg($server)." | /bin/head -n1 | /bin/awk '{print $1}' 2>/dev/null"));
 			if ((new MiscUD)->is_ip($ip))
 			{
-				$is_alive		= (trim(shell_exec("timeout -s 5 1 bash -c '(echo >/dev/tcp/{$ip}/{$port}) &>/dev/null'; echo $?")) == 0 );
+				$is_alive		= (trim(shell_exec("/usr/bin/nice /usr/bin/timeout -s 5 1 bash -c '(echo >/dev/tcp/{$ip}/{$port}) &>/dev/null'; echo $?")) == 0 );
 			}
 		}
 
@@ -185,7 +188,7 @@ function is_server_online($server, $protocol, $log = false) {
 		if (! $is_alive) {
 			/* Check for three consecutive negative pings before declaring it is off-line. */
 			$no_pings++;
-			if (($no_pings <= 3) && (isset($ping_status[$server]['online'])) && ($ping_status[$server]['online'] == 'yes')) {
+			if (($no_pings <= 3) && (isset($ping_status[$name]['online'])) && ($ping_status[$name]['online'] == 'yes')) {
 				$is_alive = true;
 			} else if ($no_pings > 3){
 				$no_pings = 0;
@@ -204,7 +207,6 @@ function is_server_online($server, $protocol, $log = false) {
 		}
 
 		/* Update the server status file. */
-		$name	= $server.".".$protocol;
 		$ping_status[$name] = array('no_pings' => $no_pings, 'online' => $is_alive ? 'yes' : 'no', 'changed' => $changed ? 'yes' : 'no');
 		(new MiscUD)->save_json($tc, $ping_status);
 	}
