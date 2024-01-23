@@ -1270,7 +1270,10 @@ switch ($_POST['action']) {
 		unassigned_log("Debug: Rescan Disks: initiated a Hotplug event.", $UDEV_DEBUG);
 
 		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
+		sleep(1);
 		@file_put_contents($paths['hotplug_event'], "");
+
+		echo json_encode(true);
 		break;
 
 	case 'format_disk':
