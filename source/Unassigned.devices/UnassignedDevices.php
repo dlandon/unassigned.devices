@@ -1244,6 +1244,17 @@ switch ($_POST['action']) {
 		echo json_encode($return == "success");
 		break;
 
+	case 'get_device_script':
+		/* Get the contents of the device script file. */
+		$file			= urldecode($_POST['file']);
+		if ($file) {
+			$result			= file_get_contents($file);
+		} else {
+			$result = "";
+		}
+		echo json_encode($result);
+		break;
+
 	/* DISK */
 	case 'rescan_disks':
 		/* Refresh all disk partition information, update config files from flash, and clear status files. */
