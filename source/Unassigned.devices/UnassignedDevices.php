@@ -1249,7 +1249,7 @@ switch ($_POST['action']) {
 		/* Refresh all disk partition information, update config files from flash, and clear status files. */
 		exec("plugins/".$plugin."/scripts/copy_config.sh");
 
-		/* Cear the get_ud_status pid file so get_ud_stats does not get stuck. */
+		/* Clear the get_ud_status pid file so get_ud_stats does not get stuck. */
 		if (file_exists($pidFile)) {
 			/* Remove PID file when script is done. */
 			@unlink($pidFile);
@@ -1270,7 +1270,6 @@ switch ($_POST['action']) {
 		unassigned_log("Debug: Rescan Disks: initiated a Hotplug event.", $UDEV_DEBUG);
 
 		/* Set flag to tell Unraid to update devs.ini file of unassigned devices. */
-		sleep(1);
 		@file_put_contents($paths['hotplug_event'], "");
 		break;
 
@@ -1284,6 +1283,9 @@ switch ($_POST['action']) {
 
 		/* Create the state file. */
 		@touch(sprintf($paths['formatting'], basename($device)));
+
+		/* Give things a chance to settle.  This gives the pageRefresh a chance to catch up. */
+		usleep(500 * 1000);
 
 		/* Format the disk. */
 		$result		= format_disk($device, $fs, $pass, $pool_name);
