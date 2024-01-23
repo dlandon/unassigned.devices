@@ -964,7 +964,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			const button = $(this);
 
 			/* Perform the format operation. */
-			format_disk(this, $(this).attr("context"), button.attr("device"));
+			format_disk(this, button.attr("context"), button.attr("device"));
 		});
 	});
 
