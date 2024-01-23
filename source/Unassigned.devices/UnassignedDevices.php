@@ -91,7 +91,7 @@ function render_used_and_free_disk($disk, $mounted) {
 
 /* Get the partition information and render for html. */
 function render_partition($disk, $partition, $disk_line = false) {
-	global $paths, $plugin, $Preclear, $shares_enabled;
+	global $paths, $plugin, $shares_enabled;
 
 	$out = array();
 	if (isset($partition['device'])) {
@@ -404,7 +404,7 @@ function make_mount_button($device) {
 			$text		= _('Passed');
 			break;
 		case ($no_partition):
-			$class		= ban_class;
+			$class		= $ban_class;
 			$disable	= true;
 			$text		= _('Partition');
 			break;
