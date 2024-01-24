@@ -475,11 +475,11 @@ _(User Script)_:
 
 <?if ((! is_script_running($file)) && (! is_script_running($user_file))):?>
 <?if (! is_file($file)):?>
-<button type="button" title='_(Load the default Device Script)_.' onclick="setDefault(this.form)">_(Default)_</button>
+<button type="button" id='default-button' title='_(Load the default Device Script)_.' onclick="setDefault(this.form)">_(Default)_</button>
 <button type="button" id='clear-button' title='_(Clear the Device Script)_.' onclick="clearDefault(this.form)" disabled>_(Clear)_</button>
 <input type="submit" id='save-button' title='_(Save your Device Script)_.' value='_(Save)_' disabled/>
 <?else:?>
-<button type="button" id='delete-button' title='_(Delete Device Script File)_.' onclick='rmfile();'>_(Delete)_</button>
+<button type="button" id='delete-button' title='_(Delete Device Script File)_.' onclick='rmfile();' <?=$script_disabled;?>>_(Delete)_</button>
 <input type="submit" id='apply-button' title='_(Save your Device Script File changes)_.' value='_(Apply)_'/>
 <?endif;?>
 <?endif;?>
@@ -761,21 +761,30 @@ _(User Script)_:
 	/* Set up the buttons after a file has been loaded. */
 	function setFileButtons(form) {
 		/* Enable the 'Save' button. */
-		let saveButton = document.getElementById('save-button');
+		const saveButton = document.getElementById('save-button');
 
-		/* Check if the button element exists before attempting to disable it */
+		/* Check if the button element exists before attempting to enable it */
 		if (saveButton) {
 			/* Disable the button */
 			saveButton.disabled = false;
 		}
 
 		/* Enable the 'Clear' button. */
-		let clearButton = document.getElementById('clear-button');
+		const clearButton = document.getElementById('clear-button');
 
-		/* Check if the button element exists before attempting to disable it */
+		/* Check if the button element exists before attempting to enable it */
 		if (clearButton) {
 			/* Disable the button */
 			clearButton.disabled = false;
+		}
+
+		/* Disable the 'Default' button. */
+		const defaultButton = document.getElementById('default-button');
+
+		/* Check if the button element exists before attempting to disable it */
+		if (defaultButton) {
+			/* Disable the button */
+			defaultButton.disabled = true;
 		}
 
 		/* Trigger a change event. */
@@ -799,7 +808,7 @@ _(User Script)_:
 		/* Clear file buttons after the file is cleared. */
 	function clearFileButtons(form) {
 		/* Disable the 'Save' button. */
-		let saveButton = document.getElementById('save-button');
+		const saveButton = document.getElementById('save-button');
 
 		/* Check if the button element exists before attempting to disable it */
 		if (saveButton) {
@@ -808,12 +817,21 @@ _(User Script)_:
 		}
 
 		/* Disable the 'Clear' button. */
-		let clearButton = document.getElementById('clear-button');
+		const clearButton = document.getElementById('clear-button');
 
 		/* Check if the button element exists before attempting to disable it */
 		if (clearButton) {
 			/* Disable the button */
 			clearButton.disabled = true;
+		}
+
+		/* Enable the 'Default' button. */
+		const defaultButton = document.getElementById('default-button');
+
+		/* Check if the button element exists before attempting to enable it */
+		if (defaultButton) {
+			/* Disable the button */
+			defaultButton.disabled = false;
 		}
 
 		/* Trigger a change event. */
@@ -858,13 +876,33 @@ _(User Script)_:
 						inputElement.val(file);
 						fileTreeElement.slideUp('fast', function () {
 							fileTreeElement.remove();
-							/* Get the script from the file. */
-							$.post(UDURL, {
-								action: "get_device_script",
-								file: file,
-							}, function(data) {
-								el.form.elements['text'].value = JSON.parse(data);
-							});
+
+							/* If a file was selected, then setup buttons and load the file. */
+							if (file != "") {
+								/* Disable the delete button. The newly selected file cannot be deleted. */
+								const deleteButton = document.getElementById('delete-button');
+
+								/* Check if the button element exists before attempting to disable it */
+								if (deleteButton) {
+									/* Disable the button */
+									deleteButton.disabled = true;
+								}
+
+								/* Set up the file buttons. */
+								setFileButtons(el.form);
+
+								/* Check if the file field has a value before executing the post request */
+								if (inputElement.val() !== "") {
+									/* Get the script from the file. */
+									$.post(UDURL, {
+										action: "get_device_script",
+										file: inputElement.val(),
+									}, function(data) {
+										el.form.elements['text'].value = JSON.parse(data);
+									});
+								}
+							}
+
 							/* Trigger the 'change' event outside the condition */
 							inputElement.trigger('change');
 						});
@@ -907,18 +945,6 @@ _(User Script)_:
 
 			/* Open fileTree. */
 			fileTreeElement.slideDown('fast');
-
-			/* Disable the delete button. The newly selected file cannot be deleted. */
-			let deleteButton = document.getElementById('delete-button');
-
-			/* Check if the button element exists before attempting to disable it */
-			if (deleteButton) {
-				/* Disable the button */
-				deleteButton.disabled = true;
-			}
-
-			/* Set up the file buttons. */
-			setFileButtons(el.form);
 		} else {
 			/* FileTree already open. */
 			return null;

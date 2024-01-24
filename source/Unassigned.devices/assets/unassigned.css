@@ -143,6 +143,10 @@ i.fa-switch {
 	opacity:0.5
 }
 
+/* Style for the disabled default button */
+#default-button[disabled] {
+	opacity:0.5
+}
 
 /* Left align edit settings help text. */
 span.help-title {
