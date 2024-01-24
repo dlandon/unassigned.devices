@@ -754,6 +754,12 @@ _(User Script)_:
 		form.elements['text'].value = <?= json_encode($default_text); ?>;
 		form.elements['#file'].value = <?= json_encode($default_file); ?>;
 
+		/* Set up the buttons when a file has been loaded. */
+		setFileButtons(form);
+	}
+
+	/* Set up the buttons after a file has been loaded. */
+	function setFileButtons(form) {
 		/* Enable the 'Save' button. */
 		document.getElementById('save-button').disabled = false;
 
@@ -774,6 +780,12 @@ _(User Script)_:
 		form.elements['text'].value = "";
 		form.elements['#file'].value = "";
 
+		/* Clear file buttons after the file is cleared. */
+		clearFileButtons(form);
+	}
+
+		/* Clear file buttons after the file is cleared. */
+	function clearFileButtons(form) {
 		/* Disable the 'Save' button. */
 		document.getElementById('save-button').disabled = true;
 
@@ -793,23 +805,24 @@ _(User Script)_:
 			- on_folders: Flag to handle folders
 			- on_files: Flag to handle files
 	*/
-	function openFileBrowserDevice(el, root, filter = true, on_folders = true, on_files = true) {
-		if (!filter && !on_files) {
-			/* Set a default filter if none specified */
+	function openFileBrowserDevice(el, root, filter = true, onFolders = true, onFiles = true) {
+		/* Set a default filter if none specified */
+		if (!filter && !onFiles) {
 			filter = 'HIDE_FILES_FILTER';
 		}
-		const p = $(el);
+
+		const inputElement = $(el);
 
 		/* Skip if fileTree is already open. */
-		if (!p.next().hasClass('fileTree')) {
+		if (!inputElement.next().hasClass('fileTree')) {
 			/* Create a random id. */
-			const r = Math.floor((Math.random() * 1000) + 1);
+			const randomId = Math.floor((Math.random() * 1000) + 1);
 
 			/* Add a new span and load fileTree. */
-			p.after("<span id='fileTree" + r + "' class='textarea fileTree'></span>");
-			const ft = $('#fileTree' + r);
+			inputElement.after("<span id='fileTree" + randomId + "' class='textarea fileTree'></span>");
+			const fileTreeElement = $('#fileTree' + randomId);
 
-			ft.fileTree(
+			fileTreeElement.fileTree(
 				{
 					root: root,
 					top: root,
@@ -817,48 +830,64 @@ _(User Script)_:
 					allowBrowsing: true
 				},
 				function (file) {
-					if (on_files) {
-						p.val(file);
-						$(ft).slideUp('fast', function () {
-							$(ft).remove();
+					if (onFiles) {
+						inputElement.val(file);
+						fileTreeElement.slideUp('fast', function () {
+							fileTreeElement.remove();
+							/* Get the script from the file. */
+							$.post(UDURL, {
+								action: "get_device_script",
+								file: file,
+							}, function(data) {
+								el.form.elements['text'].value = JSON.parse(data);
+							});
+							/* Trigger the 'change' event outside the condition */
+							inputElement.trigger('change');
 						});
-						if (filter) {
-							load(p);
-						}
 					}
 				},
 				function (folder) {
-					if (on_folders) {
-						p.val(folder);
-						$(ft).slideUp('fast', function () {
-							$(ft).remove();
+					if (onFolders) {
+						inputElement.val(folder);
+						fileTreeElement.slideUp('fast', function () {
+							fileTreeElement.remove();
+							/* Trigger the 'change' event outside the condition */
+							inputElement.trigger('change');
 						});
 					}
 				}
 			);
 
 			/* Format fileTree according to parent position, height, and width. */
-			ft.css({
-				'left': p.position().left,
-				'top': (p.position().top + p.outerHeight()),
-				'width': (p.width() + 2)
+			fileTreeElement.css({
+				'left': inputElement.position().left,
+				'top': (inputElement.position().top + inputElement.outerHeight()),
+				'width': (inputElement.width())
 			});
 
 			/* Close if click elsewhere. */
 			$(document).mouseup(function (e) {
-				if (!ft.is(e.target) && ft.has(e.target).length === 0) {
-					$(ft).slideUp('fast', function () {
-						$(ft).remove();
+				if (!fileTreeElement.is(e.target) && fileTreeElement.has(e.target).length === 0) {
+					fileTreeElement.slideUp('fast', function () {
+						fileTreeElement.remove();
 					});
 				}
 			});
 
-			/* Open fileTree. */
-			ft.slideDown('fast');
+			/* Close if parent changed. */
+			inputElement.bind('keydown', function () {
+				fileTreeElement.slideUp('fast', function () {
+					fileTreeElement.remove();
+				});
+			});
 
-			setDefault(el.form);
+			/* Open fileTree. */
+			fileTreeElement.slideDown('fast');
+
+			/* Set up the file buttons. */
+			setFileButtons(el.form);
 		} else {
-			/* FileTree already open */
+			/* FileTree already open. */
 			return null;
 		}
 	}
@@ -872,24 +901,24 @@ _(User Script)_:
 			- on_folders: Flag to handle folders
 			- on_files: Flag to handle files
 	*/
-	function openFileBrowserUser(el, root, filter = true, on_folders = true, on_files = true) {
-		if (!filter && !on_files) {
-			/* Set a default filter if none specified */
+	function openFileBrowserUser(el, root, filter = true, onFolders = true, onFiles = true) {
+		/* Set a default filter if none specified */
+		if (!filter && !onFiles) {
 			filter = 'HIDE_FILES_FILTER';
 		}
 
-		const p = $(el);
+		const inputElement = $(el);
 
 		/* Skip if fileTree is already open. */
-		if (!p.next().hasClass('fileTree')) {
-			/* Create a random id */
-			const r = Math.floor((Math.random() * 1000) + 1);
+		if (!inputElement.next().hasClass('fileTree')) {
+			/* Create a random id. */
+			const randomId = Math.floor((Math.random() * 1000) + 1);
 
 			/* Add a new span and load fileTree. */
-			p.after("<span id='fileTree" + r + "' class='textarea fileTree'></span>");
-			const ft = $('#fileTree' + r);
+			inputElement.after("<span id='fileTree" + randomId + "' class='textarea fileTree'></span>");
+			const fileTreeElement = $('#fileTree' + randomId);
 
-			ft.fileTree(
+			fileTreeElement.fileTree(
 				{
 					root: root,
 					top: root,
@@ -897,50 +926,50 @@ _(User Script)_:
 					allowBrowsing: true
 				},
 				function (file) {
-					if (on_files) {
-						p.val(file);
-						ft.slideUp('fast', function () {
-							ft.remove();
+					if (onFiles) {
+						inputElement.val(file);
+						fileTreeElement.slideUp('fast', function () {
+							fileTreeElement.remove();
 						});
 					}
-					p.trigger('change');
+					inputElement.trigger('change');
 				},
 				function (folder) {
-					if (on_folders) {
-						p.val(folder);
-						$(ft).slideUp('fast', function () {
-							$(ft).remove();
+					if (onFolders) {
+						inputElement.val(folder);
+						fileTreeElement.slideUp('fast', function () {
+							fileTreeElement.remove();
 						});
 					}
-					p.trigger('change');
+					inputElement.trigger('change');
 				}
 			);
 
-			/* Format fileTree according to parent position, height, and width */
-			ft.css({
-				'left': p.position().left,
-				'top': (p.position().top + p.outerHeight()),
-				'width': (p.width())
+			/* Format fileTree according to parent position, height, and width. */
+			fileTreeElement.css({
+				'left': inputElement.position().left,
+				'top': (inputElement.position().top + inputElement.outerHeight()),
+				'width': (inputElement.width())
 			});
 
 			/* Close if click elsewhere. */
 			$(document).mouseup(function (e) {
-				if (!ft.is(e.target) && ft.has(e.target).length === 0) {
-					ft.slideUp('fast', function () {
-						$(ft).remove();
+				if (!fileTreeElement.is(e.target) && fileTreeElement.has(e.target).length === 0) {
+					fileTreeElement.slideUp('fast', function () {
+						fileTreeElement.remove();
 					});
 				}
 			});
 
 			/* Close if parent changed. */
-			p.bind('keydown', function () {
-				ft.slideUp('fast', function () {
-					$(ft).remove();
+			inputElement.bind('keydown', function () {
+				fileTreeElement.slideUp('fast', function () {
+					fileTreeElement.remove();
 				});
 			});
 
-			/* Open fileTree */
-			ft.slideDown('fast');
+			/* Open fileTree. */
+			fileTreeElement.slideDown('fast');
 		} else {
 			/* FileTree already open */
 			return null;
