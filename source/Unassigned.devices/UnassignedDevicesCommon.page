@@ -65,24 +65,19 @@ if ((! $parted) && ($cfg['Config']['destructive_mode'] == "enabled")) {
 			- on_folders: Flag to handle folders
 			- on_files: Flag to handle files
 	*/
-	function openFileBrowser(el, root, filter = true, on_folders = true, on_files = true) {
-		if (!filter && !on_files) {
-			/* Set a default filter if none specified */
+	function openFileBrowser(el, root, filter = true, onFolders = true, onFiles = true, apiUrl) {
+		/* Set a default filter if none specified. */
+		if (!filter && !onFiles) {
 			filter = 'HIDE_FILES_FILTER';
 		}
 
-		const p = $(el);
+		const inputElement = $(el);
 
-		/* Skip if fileTree is already open. */
-		if (!p.next().hasClass('fileTree')) {
-			/* Create a random id */
-			const r = Math.floor((Math.random() * 1000) + 1);
+		if (!inputElement.next().hasClass('fileTree')) {
+			const randomId = Math.floor((Math.random() * 1000) + 1);
+			const fileTreeElement = createFileTreeElement(inputElement, randomId);
 
-			/* Add a new span and load fileTree. */
-			p.after("<span id='fileTree" + r + "' class='textarea fileTree'></span>");
-			const ft = $('#fileTree' + r);
-
-			ft.fileTree(
+			fileTreeElement.fileTree(
 				{
 					root: root,
 					top: root,
@@ -90,54 +85,81 @@ if ((! $parted) && ($cfg['Config']['destructive_mode'] == "enabled")) {
 					allowBrowsing: true
 				},
 				function (file) {
-					if (on_files) {
-						p.val(file);
-						ft.slideUp('fast', function () {
-							ft.remove();
-						});
-					}
-					p.trigger('change');
+					handleFileSelection(inputElement, fileTreeElement, file, onFiles, apiUrl);
 				},
 				function (folder) {
-					if (on_folders) {
-						p.val(folder);
-						$(ft).slideUp('fast', function () {
-							$(ft).remove();
-						});
-					}
-					p.trigger('change');
+					handleFolderSelection(inputElement, fileTreeElement, folder, onFolders);
 				}
 			);
 
-			/* Format fileTree according to parent position, height, and width */
-			ft.css({
-				'left': p.position().left,
-				'top': (p.position().top + p.outerHeight()),
-				'width': (p.width())
-			});
+			formatFileTree(fileTreeElement, inputElement);
 
-			/* Close if click elsewhere. */
-			$(document).mouseup(function (e) {
-				if (!ft.is(e.target) && ft.has(e.target).length === 0) {
-					ft.slideUp('fast', function () {
-						$(ft).remove();
-					});
-				}
-			});
+			setCloseHandlers(fileTreeElement, inputElement);
 
-			/* Close if parent changed. */
-			p.bind('keydown', function () {
-				ft.slideUp('fast', function () {
-					$(ft).remove();
-				});
-			});
-
-			/* Open fileTree */
-			ft.slideDown('fast');
+			fileTreeElement.slideDown('fast');
 		} else {
-			/* FileTree already open */
 			return null;
 		}
+	}
+
+	function createFileTreeElement(inputElement, randomId) {
+		const fileTreeElement = $(`<span id='fileTree${randomId}' class='textarea fileTree'></span>`);
+		inputElement.after(fileTreeElement);
+		return fileTreeElement;
+	}
+
+	function handleFileSelection(inputElement, fileTreeElement, file, onFiles, apiUrl) {
+		if (onFiles) {
+			inputElement.val(file);
+			fileTreeElement.slideUp('fast', function () {
+				fileTreeElement.remove();
+				getFileScript(apiUrl, inputElement, file);
+			});
+		}
+		inputElement.trigger('change');
+	}
+
+	function handleFolderSelection(inputElement, fileTreeElement, folder, onFolders) {
+		if (onFolders) {
+			inputElement.val(folder);
+			fileTreeElement.slideUp('fast', function () {
+				fileTreeElement.remove();
+			});
+		}
+		inputElement.trigger('change');
+	}
+
+	function getFileScript(apiUrl, inputElement, file) {
+		$.post(apiUrl, {
+			action: "get_device_script",
+			file: file,
+		}, function(data) {
+			inputElement.form.elements['text'].value = JSON.parse(data);
+		});
+	}
+
+	function formatFileTree(fileTreeElement, inputElement) {
+		fileTreeElement.css({
+			'left': inputElement.position().left,
+			'top': (inputElement.position().top + inputElement.outerHeight()),
+			'width': (inputElement.width())
+		});
+	}
+
+	function setCloseHandlers(fileTreeElement, inputElement) {
+		$(document).mouseup(function (e) {
+			if (!fileTreeElement.is(e.target) && fileTreeElement.has(e.target).length === 0) {
+				fileTreeElement.slideUp('fast', function () {
+					fileTreeElement.remove();
+				});
+			}
+		});
+
+		inputElement.bind('keydown', function () {
+			fileTreeElement.slideUp('fast', function () {
+				fileTreeElement.remove();
+			});
+		});
 	}
 </script>
 
