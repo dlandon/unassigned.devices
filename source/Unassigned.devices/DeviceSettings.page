@@ -479,7 +479,7 @@ _(User Script)_:
 <button type="button" id='clear-button' title='_(Clear the Device Script)_.' onclick="clearDefault(this.form)" disabled>_(Clear)_</button>
 <input type="submit" id='save-button' title='_(Save your Device Script)_.' value='_(Save)_' disabled/>
 <?else:?>
-<button type="button" title='_(Delete Device Script File)_.' onclick='rmfile();'>_(Delete)_</button>
+<button type="button" id='delete-button' title='_(Delete Device Script File)_.' onclick='rmfile();'>_(Delete)_</button>
 <input type="submit" id='apply-button' title='_(Save your Device Script File changes)_.' value='_(Apply)_'/>
 <?endif;?>
 <?endif;?>
@@ -761,10 +761,22 @@ _(User Script)_:
 	/* Set up the buttons after a file has been loaded. */
 	function setFileButtons(form) {
 		/* Enable the 'Save' button. */
-		document.getElementById('save-button').disabled = false;
+		let saveButton = document.getElementById('save-button');
+
+		/* Check if the button element exists before attempting to disable it */
+		if (saveButton) {
+			/* Disable the button */
+			saveButton.disabled = false;
+		}
 
 		/* Enable the 'Clear' button. */
-		document.getElementById('clear-button').disabled = false;
+		let clearButton = document.getElementById('clear-button');
+
+		/* Check if the button element exists before attempting to disable it */
+		if (clearButton) {
+			/* Disable the button */
+			clearButton.disabled = false;
+		}
 
 		/* Trigger a change event. */
 		form.dispatchEvent(new Event('change'));
@@ -787,10 +799,22 @@ _(User Script)_:
 		/* Clear file buttons after the file is cleared. */
 	function clearFileButtons(form) {
 		/* Disable the 'Save' button. */
-		document.getElementById('save-button').disabled = true;
+		let saveButton = document.getElementById('save-button');
+
+		/* Check if the button element exists before attempting to disable it */
+		if (saveButton) {
+			/* Disable the button */
+			saveButton.disabled = true;
+		}
 
 		/* Disable the 'Clear' button. */
-		document.getElementById('clear-button').disabled = true;
+		let clearButton = document.getElementById('clear-button');
+
+		/* Check if the button element exists before attempting to disable it */
+		if (clearButton) {
+			/* Disable the button */
+			clearButton.disabled = true;
+		}
 
 		/* Trigger a change event. */
 		form.dispatchEvent(new Event('change'));
@@ -883,6 +907,15 @@ _(User Script)_:
 
 			/* Open fileTree. */
 			fileTreeElement.slideDown('fast');
+
+			/* Disable the delete button. The newly selected file cannot be deleted. */
+			let deleteButton = document.getElementById('delete-button');
+
+			/* Check if the button element exists before attempting to disable it */
+			if (deleteButton) {
+				/* Disable the button */
+				deleteButton.disabled = true;
+			}
 
 			/* Set up the file buttons. */
 			setFileButtons(el.form);
