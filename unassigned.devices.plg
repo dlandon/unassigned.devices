@@ -34,7 +34,7 @@
 - Fix: Additional work on 'Mounting' and 'Unmounting' status on 'Mount' button.
 - Add: Encrypt CIFS setting in Device Settings to optionally encrypt CIFS remote share mounts.  This is best for offsite servers and not on LAN servers because of the encryption overhead.
 
-#2024.01.12
+###2024.01.12
 - Fix: Rework detection of a disk not being unmounted before being removed and re-installed.
 - Fix: Remove nchan messaging and use a Java Script page refresh timer.
 - Fix: Resolved the long standing issue of the 'Mounting' and 'Unmounting' status on the 'Mount' button not showing correctly.
