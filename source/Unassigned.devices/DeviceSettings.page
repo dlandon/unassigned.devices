@@ -203,27 +203,23 @@ if (($file) && (file_exists($file))) {
 	/* Get the device script file text. */
 	$text				= @file_get_contents($file);
 } else {
-	/* There is no device script file. */
+	/* The device script file does not exist. */
 	$file				= "";
+}
+
+/* If the disk is mounted, disable the device script file field. */
+if ($mounted) {
+	/* Disable script operations. */
+	$script_disabled = "disabled";
+
+	/* Show that the device is mounted. */
+	$mount_point	.= " (mounted)";
 }
 
 /* If there is no device or user script file, then disable the user script field. */
 if ((! $file) || (($file) && (! file_exists($file))) || (! is_dir("/boot/config/plugins/user.scripts/scripts/"))) {
 	$user_disabled = "disabled";
 }
-
-/* If the disk is mounted, disable the device script file field. */
-if (is_mounted($mount_point)) {
-	$script_disabled = "disabled";
-}
-
-
-/* Show that the device is currently mounted. */
-$mount_point		= basename($mount_point);
-if (is_mounted($mount_point)) {
-	$mount_point	.= " (mounted)";
-}
-
 
 $default_text	= <<<EOT
 #!/bin/bash
@@ -398,15 +394,15 @@ _(APFS Volume)_:
 :end
 <?endif;?>
 
-<?if (($samba_device) && ($protocol == "SMB") && (! $mounted)):?>
+<?if (($samba_device) && ($protocol == "SMB")):?>
 _(Encrypt CIFS Mount)_?
-: <select name="#enable_encrypt" size="1" <?=$encrypt;?>>
+: <select name="#enable_encrypt" size="1">
 	<?=mk_option($enable_encrypt, "no", "_(No)_");?>
 	<?=mk_option($enable_encrypt, "yes", "_(Yes)_");?>
 	</select>
 <?endif;?>
 
-<?if (($samba_device) && ($protocol == "SMB") && (! $mounted)):?>
+<?if (($samba_device) && ($protocol == "SMB")):?>
 :ud_encrypt_connection_plug:
 > Set to **Yes** to encrypt the CIFS mount.  This is best for off-site mounts because of the overhead of encryption.
 :end
@@ -424,9 +420,9 @@ _(Encrypt CIFS Mount)_?
 <?if ($fstype != "zvol"):?>
 _(Device Script)_:
 <?if (! $script_disabled):?>
-: <input type="text" title='_(Enter Device Script File Name)_.' name="#file" style="width:40%;" onclick="openFileBrowserDevice(this, '/boot/config/plugins/<?=$plugin;?>', 'sh');" autocomplete="off" value="<?=$file;?>" placeholder="_(Click here to select a Script File or 'Default' button for a Default Script)_">
+: <input type="text" title='_(Enter Device Script File Name)_.' name="#file" style="width:46%;" onclick="openFileBrowserDevice(this, '/boot/config/plugins/<?=$plugin;?>', 'sh');" autocomplete="off" value="<?=$file;?>" placeholder="_(Click here to select a Script File or 'Default' button for a Default Script)_">
 <?else:?>
-: <input type="text" title='_(Enter Device Script File Name)_.' name="#file" style="width:40%;" value="<?=$file;?>" readonly>
+: <input type="text" title='_(Enter Device Script File Name)_.' name="#file" style="width:46%;" value="<?=$file;?>" readonly>
 <?endif;?>
 
 :ud_edit_script_choose_name_plug:
@@ -455,11 +451,7 @@ _(Run Device Script File in the background)_?
 
 <? if (! $iso_device):?>
 _(User Script)_:
-<?if (! $user_disabled):?>
-: <input type="text" title='_(Enter the User Script File Name)_.' name="#user_file" style="width:40%;" onclick="openFileBrowserUser(this, '/boot/config/plugins/user.scripts/scripts', '', false);" autocomplete="off" placeholder="_(Enter the User Script that will be using this device)_" value="<?=$user_file;?>">
-<?else:?>
-: <input type="text" title='_(Enter the User Script File Name)_.' name="#user_file" style="width:40%;" value="<?=$user_file;?>" readonly>
-<?endif;?>
+: <input type="text" title='_(Enter the User Script File Name)_.' name="#user_file" style="width:46%;" onclick="openFileBrowserUser(this, '/boot/config/plugins/user.scripts/scripts', '', false);" autocomplete="off" placeholder="_(Enter the User Script that will be using this device)_" value="<?=$user_file;?>" <?echo $user_disabled;?>>
 <?endif;?>
 
 <? if (! $iso_device):?>
