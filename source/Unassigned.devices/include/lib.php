@@ -113,7 +113,7 @@ $shares_enabled		= ((get_config("Config", "smb_security") && (get_config("Config
 class MiscUD
 {
 	/* Save content to a json file. */
-	public function save_json($file, $content) {
+	public static function save_json($file, $content) {
 		global $paths;
 
 		/* Write to temp file and then move to destination file. */
@@ -123,17 +123,17 @@ class MiscUD
 	}
 
 	/* Get content from a json file. */
-	public function get_json($file) {
+	public static function get_json($file) {
 		return file_exists($file) ? @json_decode(file_get_contents($file), true) : array();
 	}
 
 	/* Check for a valid IP address. */
-	public function is_ip($str) {
+	public static function is_ip($str) {
 		return filter_var($str, FILTER_VALIDATE_IP);
 	}
 
 	/* Check for text in a file. */
-	public function exist_in_file($file, $text) {
+	public static function exist_in_file($file, $text) {
 
 		$rc	= false;
 		$fileContent = file_get_contents($file);
@@ -148,17 +148,17 @@ class MiscUD
 	}
 
 	/* Is the device an nvme disk? */
-	public function is_device_nvme($dev) {
+	public static function is_device_nvme($dev) {
 		return (strpos($dev, "nvme") !== false);
 	}
 
 	/* Remove the partition number from $dev and return the base device. */
-	public function base_device($dev) {
+	public static function base_device($dev) {
 		return (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev);
 	}
 
 	/* Shorten a string to $truncate size. */
-	public function compress_string($str) {
+	public static function compress_string($str) {
 		$rc			= $str;
 
 		$truncate	= 32;
@@ -171,7 +171,7 @@ class MiscUD
 	}
 	
 	/* Spin disk up or down using Unraid api. */
-	public function spin_disk($down, $dev) {
+	public static function spin_disk($down, $dev) {
 		if ($down) {
 			exec("/usr/local/sbin/emcmd cmdSpindown=".escapeshellarg($dev));
 		} else {
@@ -180,13 +180,13 @@ class MiscUD
 	}
 
 	/* Get array of pool devices on a mount point. */
-	public function get_pool_devices($mountpoint, $remove = false) {
+	public static function get_pool_devices($mountpoint, $remove = false) {
 		global $paths;
 
 		$rc = array();
 
 		/* Get the current pool status. */
-		$pool_state	= (new MiscUD)->get_json($paths['pool_state']);
+		$pool_state	= MiscUD::get_json($paths['pool_state']);
 
 		/* If this mount point is not defined, set it as an empty array. */
 		if (in_array($mountpoint, $pool_state)) {
@@ -197,7 +197,7 @@ class MiscUD
 			if ($remove) {
 				/* Remove this from the pool devices if unmounting. */
 				unset($pool_state[$mountpoint]);
-				(new MiscUD)->save_json($paths['pool_state'], $pool_state);
+				MiscUD::save_json($paths['pool_state'], $pool_state);
 			} else if (is_array($pool_state[$mountpoint]) && (! count($pool_state[$mountpoint]))) {
 				/* Get the pool parameters if they are not already defined. */
 				unassigned_log("Debug: Get Disk Pool members on mountpoint '".$mountpoint."'.", $GLOBALS['UDEV_DEBUG']);
@@ -206,7 +206,7 @@ class MiscUD
 				$s	= shell_exec("/sbin/btrfs fi show ".escapeshellarg($mountpoint)." | /bin/grep 'path' | /bin/awk '{print $8}'");
 				$rc	= explode("\n", $s);
 				$pool_state[$mountpoint] = array_filter($rc);
-				(new MiscUD)->save_json($paths['pool_state'], $pool_state);
+				MiscUD::save_json($paths['pool_state'], $pool_state);
 			} else {
 				/* Get the pool status from the pool_state. */
 				$rc = $pool_state[$mountpoint];
@@ -217,7 +217,7 @@ class MiscUD
 	}
 
 	/* Save the hostX from the DEVPATH so we can re-attach a disk device. */
-	public function save_device_host($serial, $devpath) {
+	public static function save_device_host($serial, $devpath) {
 		global $paths;
 
 		/* Find the hostX in the DEVPATH and parse it from the DEVPATH. */
@@ -227,20 +227,20 @@ class MiscUD
 
 		if (($host) && ($serial)) {
 			/* Get the current hostX status. */
-			$device_hosts	= (new MiscUD)->get_json($paths['device_hosts']);
+			$device_hosts	= MiscUD::get_json($paths['device_hosts']);
 
 			if ((! isset($device_hosts[$serial])) || ($device_hosts[$serial] != $host)) {
 				/* Get a lock so file changes can be made. */
 				$lock_file		= get_file_lock("hosts");
 
 				/* Get the current hostX status. */
-				$device_hosts	= (new MiscUD)->get_json($paths['device_hosts']);
+				$device_hosts	= MiscUD::get_json($paths['device_hosts']);
 
 				/* Add new entry or replace existing entry. */
 				$device_hosts[$serial]	= $host;
 
 				/* Save the new hosts array. */
-				(new MiscUD)->save_json($paths['device_hosts'], $device_hosts);
+				MiscUD::save_json($paths['device_hosts'], $device_hosts);
 
 				/* Release the file lock. */
 				release_file_lock($lock_file);
@@ -249,13 +249,13 @@ class MiscUD
 	}
 
 	/* Get the device hostX. */
-	public function get_device_host($serial, $delete = false) {
+	public static function get_device_host($serial, $delete = false) {
 		global $paths;
 
 		$rc	= "";
 
 		/* Get the current hostX status. */
-		$device_hosts	= (new MiscUD)->get_json($paths['device_hosts']);
+		$device_hosts	= MiscUD::get_json($paths['device_hosts']);
 
 		if (isset($device_hosts[$serial])) {
 			if (is_file("/sys/class/scsi_host/".$device_hosts[$serial]."/scan")) {
@@ -268,13 +268,13 @@ class MiscUD
 				$lock_file		= get_file_lock("hosts");
 
 				/* Get the current hostX status. */
-				$device_hosts	= (new MiscUD)->get_json($paths['device_hosts']);
+				$device_hosts	= MiscUD::get_json($paths['device_hosts']);
 
 				/* Delete this host entry.  If the device is actually connected, the host entry will be restored when it is recognized. */
 				unset($device_hosts[$serial]);
 
 				/* Save the new hosts array. */
-				(new MiscUD)->save_json($paths['device_hosts'], $device_hosts);
+				MiscUD::save_json($paths['device_hosts'], $device_hosts);
 
 				/* Release the file lock. */
 				release_file_lock($lock_file);
@@ -285,7 +285,7 @@ class MiscUD
 	}
 
 	/* Get disk mounting status. */
-	public function get_mounting_status($device) {
+	public static function get_mounting_status($device) {
 		global $paths;
 
 		$mounting		= array_values(preg_grep("@/mounting_".safe_name($device, true, true)."@i", listDir(dirname($paths['mounting']))))[0] ?? '';
@@ -294,7 +294,7 @@ class MiscUD
 	}
 
 	/* Get the unmounting status. */
-	public function get_unmounting_status($device) {
+	public static function get_unmounting_status($device) {
 		global $paths;
 
 		$unmounting		= array_values(preg_grep("@/unmounting_".safe_name($device, true, true)."@i", listDir(dirname($paths['unmounting']))))[0] ?? '';
@@ -303,7 +303,7 @@ class MiscUD
 	}
 
 	/* Get the formatting status. */
-	public function get_formatting_status($device) {
+	public static function get_formatting_status($device) {
 		global $paths;
 
 		$formatting		= array_values(preg_grep("@/formatting_".basename($device)."@i", listDir(dirname($paths['formatting']))))[0] ?? '';
@@ -312,7 +312,7 @@ class MiscUD
 	}
 
 	/* Get the zpool name if this is a zfs disk file system. */
-	public function zfs_pool_name($dev, $mount_point = "") {
+	public static function zfs_pool_name($dev, $mount_point = "") {
 		/* Load zfs modules if they're not loaded. */
 		if (! is_file("/usr/sbin/zpool")) {
 			exec("/sbin/modprobe zfs");
@@ -495,7 +495,7 @@ function get_device_stats($mountpoint, $mounted, $active = true) {
 
 	/* Get the device stats if device is mounted. */
 	if ($mounted) {
-		$df_status	= (new MiscUD)->get_json($tc);
+		$df_status	= MiscUD::get_json($tc);
 		/* Run the stats script to update the state file. */
 		$df_status[$mountpoint]['timestamp']	= $df_status[$mountpoint]['timestamp'] ?? 0;
 
@@ -505,7 +505,7 @@ function get_device_stats($mountpoint, $mounted, $active = true) {
 		}
 
 		/* Get the device stats. */
-		$df_status	= (new MiscUD)->get_json($tc);
+		$df_status	= MiscUD::get_json($tc);
 		if (isset($df_status[$mountpoint])) {
 			$rc = $df_status[$mountpoint]['stats'];
 		}
@@ -546,7 +546,7 @@ function get_disk_id($dev, $udev_id) {
 	global $paths;
 
 	$rc		= $udev_id;
-	$device	= (new MiscUD)->base_device(basename($dev));
+	$device	= MiscUD::base_device(basename($dev));
 
 	$sf		= $paths['dev_state'];
 
@@ -581,7 +581,7 @@ function get_disk_reads_writes($ud_dev, $dev) {
 	}
 
 	/* Get the base device - remove the partition number. */
-	$dev	= (new MiscUD)->base_device(basename($dev));
+	$dev	= MiscUD::base_device(basename($dev));
 
 	/* Get the disk_io for this device. */
 	$disk_io	= (is_file($paths['disk_load'])) ? @parse_ini_file($paths['disk_load']) : array();
@@ -616,14 +616,14 @@ function is_disk_running($ud_dev) {
 	}
 
 	/* Get the current run status. */
-	$run_status	= (new MiscUD)->get_json($tc);
+	$run_status	= MiscUD::get_json($tc);
 
 	if (isset($device)) {
 		/* Update the spin status. */
 		$spin		= $run_status[$device]['spin'] ?? "";
 		$spin_time	= $run_status[$device]['spin_time'] ?? 0;
 		$run_status[$device] = array('timestamp' => $timestamp, 'running' => $rc ? 'yes' : 'no', 'spin_time' => $spin_time, 'spin' => $spin);
-		(new MiscUD)->save_json($tc, $run_status);
+		MiscUD::save_json($tc, $run_status);
 	}
 
 	return $rc;
@@ -635,7 +635,7 @@ function is_disk_spin($ud_dev, $running) {
 
 	$rc			= false;
 	$tc			= $paths['run_status'];
-	$run_status	= (new MiscUD)->get_json($tc);
+	$run_status	= MiscUD::get_json($tc);
 
 	/* Is disk spinning up or down? */
 	if (isset($run_status[$ud_dev]['spin'])) {
@@ -661,7 +661,7 @@ function is_disk_spin($ud_dev, $running) {
 		if ((! $rc) && ($run_status[$ud_dev]['spin'])) {
 			$run_status[$ud_dev]['spin']		= "";
 			$run_status[$ud_dev]['spin_time']	= 0;
-			(new MiscUD)->save_json($tc, $run_status);
+			MiscUD::save_json($tc, $run_status);
 		}
 	}
 
@@ -679,7 +679,7 @@ function is_samba_server_online($ip, $protocol) {
 
 	/* Get the updated ping status. */
 	$tc				= $paths['ping_status'];
-	$ping_status	= (new MiscUD)->get_json($tc);
+	$ping_status	= MiscUD::get_json($tc);
 	$name			= $server.".".$protocol;
 	if (isset($ping_status[$name])) {
 		$is_alive = ($ping_status[$name]['online'] == "yes");
@@ -809,7 +809,7 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 		}
 
 		/* Get partition designation based on type of device. */
-		if ((new MiscUD)->is_device_nvme($dev)) {
+		if (MiscUD::is_device_nvme($dev)) {
 			$device	= $dev."p1";
 		} else {
 			$device	= $dev."1";
@@ -875,7 +875,7 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 		/* Format the disk. */
 		if (strpos($fs, "-encrypted") !== false) {
 			/* nvme partition designations are 'p1', not '1'. */
-			if ((new MiscUD)->is_device_nvme($dev)) {
+			if (MiscUD::is_device_nvme($dev)) {
 				$cmd = "luksFormat ".$dev."p1";
 			} else {
 				$cmd = "luksFormat ".$dev."1";
@@ -989,7 +989,7 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 					sleep(1);
 
 					/* See if there is a zpool signature on the disk. */
-					$old_pool_name	= (new MiscUD)->zfs_pool_name($dev);
+					$old_pool_name	= MiscUD::zfs_pool_name($dev);
 					if ($old_pool_name) {
 						/* Remove zpool label info. */
 						exec("/usr/sbin/zpool labelclear -f ".escapeshellarg($dev));
@@ -1001,13 +1001,13 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 					}
 
 					/* Get partition designation based on type of device. */
-					if ((new MiscUD)->is_device_nvme($dev)) {
+					if (MiscUD::is_device_nvme($dev)) {
 						$device	= $dev."p1";
 					} else {
 						$device	= $dev."1";
 					}
 
-					$old_pool_name	= (new MiscUD)->zfs_pool_name($device);
+					$old_pool_name	= MiscUD::zfs_pool_name($device);
 					if ($old_pool_name) {
 						/* Remove zpool label info. */
 						exec("/usr/sbin/zpool labelclear -f ".escapeshellarg($device));
@@ -1087,11 +1087,11 @@ function remove_all_partitions($dev) {
 	}
 
 	if ($rc) {
-		$device	= (new MiscUD)->base_device($dev);
+		$device	= MiscUD::base_device($dev);
 
 		unassigned_log("Removing all partitions from disk '".$device."'.");
 
-		$pool_name	= (new MiscUD)->zfs_pool_name($dev);
+		$pool_name	= MiscUD::zfs_pool_name($dev);
 		if ($pool_name) {
 			/* Remove zpool label info. */
 			exec("/usr/sbin/zpool labelclear -f ".escapeshellarg($dev));
@@ -1107,13 +1107,13 @@ function remove_all_partitions($dev) {
 			if ($d['device'] == $dev) {
 				foreach ($d['partitions'] as $p) {
 					/* Get partition designation based on type of device. */
-					if ((new MiscUD)->is_device_nvme($device)) {
+					if (MiscUD::is_device_nvme($device)) {
 						$zfs_device	= $dev."p".$p['part'];
 					} else {
 						$zfs_device	= $dev.$p['part'];
 					}
 
-					$pool_name	= (new MiscUD)->zfs_pool_name($zfs_device);
+					$pool_name	= MiscUD::zfs_pool_name($zfs_device);
 					if ($pool_name) {
 						/* Remove zpool label info. */
 						exec("/usr/sbin/zpool labelclear -f ".escapeshellarg($zfs_device));
@@ -1397,7 +1397,7 @@ function execute_script($info, $action, $testing = false) {
 
 	/* Set the device devX designation. */
 	$device	= $info['fstype'] != "crypto_LUKS" ? $info['device'] : $info['luks'];
-	$ud_dev = get_disk_dev((new MiscUD)->base_device(basename($device)));
+	$ud_dev = get_disk_dev(MiscUD::base_device(basename($device)));
 	putenv("UD_DEVICE=".$ud_dev);
 
 	/* Execute the common script if it is defined. */
@@ -1500,8 +1500,8 @@ function is_disk_ssd($dev) {
 	$rc		= false;
 
 	/* Get the base device - remove the partition number. */
-	$device	= (new MiscUD)->base_device(basename($dev));
-	if (! (new MiscUD)->is_device_nvme($device)) {
+	$device	= MiscUD::base_device(basename($dev));
+	if (! MiscUD::is_device_nvme($device)) {
 		$file = "/sys/block/".basename($device)."/queue/rotational";
 		$rc = (exec("/bin/cat ".escapeshellarg($file)." 2>/dev/null") == 0);
 	} else {
@@ -1737,7 +1737,7 @@ function do_mount_local($info) {
 				} else {
 					/* Mount a zfs pool device. */
 					/* After the luks device is opened, we can get the pool name. */
-					$pool_name	= (new MiscUD)->zfs_pool_name($dev);
+					$pool_name	= MiscUD::zfs_pool_name($dev);
 					if ($pool_name) {
 						exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
 						exec("/usr/sbin/zpool import -N ".escapeshellarg($pool_name)." 2>/dev/null");
@@ -1820,9 +1820,9 @@ function do_mount_local($info) {
 			} else {
 				if ($info['fstype'] == "btrfs") {
 					/* Update the btrfs state file for single scan for pool devices. */
-					$pool_state			= (new MiscUD)->get_json($paths['pool_state']);
+					$pool_state			= MiscUD::get_json($paths['pool_state']);
 					$pool_state[$dir]	= array();
-					(new MiscUD)->save_json($paths['pool_state'], $pool_state);
+					MiscUD::save_json($paths['pool_state'], $pool_state);
 				}
 
 				/* Ntfs is mounted but is most likely mounted r/o. Display the mount command warning. */
@@ -1961,7 +1961,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 	global $paths;
 
 	$rc = false;
-	$pool_name	= ($zfs) ? (new MiscUD)->zfs_pool_name("", $dir) : "";
+	$pool_name	= ($zfs) ? MiscUD::zfs_pool_name("", $dir) : "";
 	$timeout	= ($smb || $nfs) ? ($force ? 30 : 10) : 90;
 	$mounted	= (($zfs) && ($pool_name)) ? (is_mounted($pool_name) || (is_mounted($dir))) : ((is_mounted($dev)) || (is_mounted($dir)));
 	if ($mounted) {
@@ -2020,7 +2020,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 					unassigned_log("Successfully unmounted '".$dev."'");
 
 					/* Remove saved pool devices if this is a btrfs pooled device. */
-					(new MiscUD)->get_pool_devices($dir, true);
+					MiscUD::get_pool_devices($dir, true);
 
 					$rc = true;
 					break;
@@ -2165,7 +2165,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 
 			unassigned_log("Adding SMB share '{$share_name}'.");
 			@file_put_contents($share_conf, $share_cont);
-			if (! (new MiscUD)->exist_in_file($paths['smb_unassigned'], $share_conf)) {
+			if (! MiscUD::exist_in_file($paths['smb_unassigned'], $share_conf)) {
 				$c		= (is_file($paths['smb_unassigned'])) ? @file($paths['smb_unassigned'], FILE_IGNORE_NEW_LINES) : array();
 				$c[]	= "include = $share_conf";
 
@@ -2223,7 +2223,7 @@ function rm_smb_share($dir) {
 		unassigned_log("Removing SMB share '".$share_name."'.");
 		@unlink($share_conf);
 	}
-	if ((new MiscUD)->exist_in_file($paths['smb_unassigned'], $share_conf)) {
+	if (MiscUD::exist_in_file($paths['smb_unassigned'], $share_conf)) {
 		$c = (is_file($paths['smb_unassigned'])) ? @file($paths['smb_unassigned'], FILE_IGNORE_NEW_LINES) : array();
 
 		/* Do some cleanup. */
@@ -2252,7 +2252,7 @@ function add_nfs_share($dir) {
 		if (get_config("Config", "nfs_export") == "yes") {
 			$reload = false;
 			foreach (array("/etc/exports","/etc/exports-") as $file) {
-				if (! (new MiscUD)->exist_in_file($file, $dir)) {
+				if (! MiscUD::exist_in_file($file, $dir)) {
 					$c			= (is_file($file)) ? @file($file, FILE_IGNORE_NEW_LINES) : array();
 					$fsid		= 200 + count(preg_grep("@^\"@", $c));
 					$nfs_sec	= get_config("Config", "nfs_security");
@@ -2289,7 +2289,7 @@ function rm_nfs_share($dir) {
 	/* Remove this disk from the exports file. */
 	$reload = false;
 	foreach (array("/etc/exports","/etc/exports-") as $file) {
-		if ( (new MiscUD)->exist_in_file($file, $dir) && strlen($dir)) {
+		if ( MiscUD::exist_in_file($file, $dir) && strlen($dir)) {
 
 			/* Read the contents of the file into an array. */
 			$fileLines	= file($file, FILE_IGNORE_NEW_LINES);
@@ -2521,7 +2521,7 @@ function get_samba_mounts() {
 				$dev_check				= ($mount['fstype'] == "nfs") ? $mount['ip'].":".$mount['path'] : "//".$mount['ip'].(($mount['fstype'] == "cifs") ? "/" : "") .$mount['path'];
 
 				/* Remove the 'local' and 'default' tld reference as they are unnecessary. */
-				if (! (new MiscUD)->is_ip($mount['ip'])) {
+				if (! MiscUD::is_ip($mount['ip'])) {
 					$dev_check			= str_replace( array(".".$local_tld, ".".$default_tld), "", $dev_check);
 				}
 
@@ -2568,8 +2568,8 @@ function get_samba_mounts() {
 				/* Check for mounting/unmounting state. */
 				$mount_device			= basename($mount['ip'])."_".basename($mount['path']);
 
-				$mount['is_mounting']	= (new MiscUD)->get_mounting_status($mount_device);
-				$mount['is_unmounting']	= (new MiscUD)->get_unmounting_status($mount_device);
+				$mount['is_mounting']	= MiscUD::get_mounting_status($mount_device);
+				$mount['is_unmounting']	= MiscUD::get_unmounting_status($mount_device);
 
 				/* Is remote share mounted? */
 				$mount['mounted']		= (is_mounted($mount['mountpoint']) && is_mounted($mount['mount_dev']));
@@ -2984,8 +2984,8 @@ function get_iso_mounts() {
 				$mount_device			= safe_name(basename($mount['device']), true, true);
 
 				/* Check mounting and unmounting status. */
-				$mount['is_mounting']	= (new MiscUD)->get_mounting_status($mount_device);
-				$mount['is_unmounting']	= (new MiscUD)->get_unmounting_status($mount_device);
+				$mount['is_mounting']	= MiscUD::get_mounting_status($mount_device);
+				$mount['is_unmounting']	= MiscUD::get_unmounting_status($mount_device);
 
 				/* Is the ios file mounted? */
 				$mount['mounted']		= is_mounted($mount['mountpoint']);
@@ -3322,10 +3322,10 @@ function get_disk_info($dev) {
 	$disk['show_partitions']	= (get_config($disk['serial'], "show_partitions") == "no") ? false : true;
 	$disk['pass_through']		= is_pass_through($disk['serial']);
 	$disk['array_disk']			= in_array($disk['device'], $unraid_disks);
-	$disk['is_formatting']		= (new MiscUD)->get_formatting_status(basename($disk['device']));
+	$disk['is_formatting']		= MiscUD::get_formatting_status(basename($disk['device']));
 
 	/* Get the hostX from the DEVPATH so we can re-attach a disk. */
-	(new MiscUD)->save_device_host($disk['serial'], $attrs['DEVPATH']);
+	MiscUD::save_device_host($disk['serial'], $attrs['DEVPATH']);
 
 	return $disk;
 }
@@ -3334,136 +3334,135 @@ function get_disk_info($dev) {
 function get_partition_info($dev) {
 	global $paths;
 
-	$disk	= array();
+	$partition	= array();
 	$attrs	= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
 	if ($attrs['DEVTYPE'] == "partition") {
-		$disk['serial_short']	= $attrs['ID_SCSI_SERIAL'] ?? ($attrs['ID_SERIAL_SHORT'] ?? "");
-		$disk['device']			= realpath($dev);
-		$disk['serial']			= isset($attrs['ID_SERIAL']) ? get_disk_id($disk['device'], trim($attrs['ID_SERIAL'])) : "";
-		$disk['uuid']			= $attrs['ID_FS_UUID'] ?? "";
+		$partition['serial_short']	= $attrs['ID_SCSI_SERIAL'] ?? ($attrs['ID_SERIAL_SHORT'] ?? "");
+		$partition['device']			= realpath($dev);
+		$partition['serial']			= isset($attrs['ID_SERIAL']) ? get_disk_id($partition['device'], trim($attrs['ID_SERIAL'])) : "";
+		$partition['uuid']			= $attrs['ID_FS_UUID'] ?? "";
 
 		/* Get partition number */
-		preg_match_all("#(.*?)(\d+$)#", $disk['device'], $matches);
-		$disk['part']			= $matches[2][0] ?? "";
-		$disk['disk']			= (isset($matches[1][0])) ? (new MiscUD)->base_device($matches[1][0]) : "";
+		preg_match_all("#(.*?)(\d+$)#", $partition['device'], $matches);
+		$partition['part']			= $matches[2][0] ?? "";
+		$partition['disk']			= (isset($matches[1][0])) ? MiscUD::base_device($matches[1][0]) : "";
 
 		/* Get the physical disk label or generate one based on the vendor id and model or serial number. */
 		if (isset($attrs['ID_FS_LABEL'])){
-			$disk['label']		= safe_name($attrs['ID_FS_LABEL']);
-			$disk['disk_label']	= $disk['label'];
+			$partition['label']		= safe_name($attrs['ID_FS_LABEL']);
+			$partition['disk_label']	= $partition['label'];
 		} else {
 			if (isset($attrs['ID_VENDOR']) && isset($attrs['ID_MODEL'])){
-				$disk['label']	= sprintf("%s %s", safe_name($attrs['ID_VENDOR']), safe_name($attrs['ID_MODEL']));
+				$partition['label']	= sprintf("%s %s", safe_name($attrs['ID_VENDOR']), safe_name($attrs['ID_MODEL']));
 			} else {
-				$disk['label']	= safe_name($attrs['ID_SERIAL_SHORT']);
+				$partition['label']	= safe_name($attrs['ID_SERIAL_SHORT']);
 			}
 			$all_disks			= array_unique(array_map(function($ar){return realpath($ar);}, listDir("/dev/disk/by-id")));
-			$disk['label']		= (isset($disk['label']) && (isset($matches[1][0])) && (count(preg_grep("%".$matches[1][0]."%i", $all_disks)) > 2)) ? $disk['label']."-part".$matches[2][0] : $disk['label'];
-			$disk['disk_label']	= "";
+			$partition['label']		= (isset($partition['label']) && (isset($matches[1][0])) && (count(preg_grep("%".$matches[1][0]."%i", $all_disks)) > 2)) ? $partition['label']."-part".$matches[2][0] : $partition['label'];
+			$partition['disk_label']	= "";
 		}
 
 		/* Any partition with an 'UNRAID' label is an array disk. */
-		if ($disk['label'] == "UNRAID") {
-			$disk['array_disk'] = true;
+		if ($partition['label'] == "UNRAID") {
+			$partition['array_disk'] = true;
 		}
 
 		/* Get the file system type. */
-		$disk['fstype']			= safe_name($attrs['ID_FS_TYPE'] ?? "");
-		$disk['fstype']			= ($disk['fstype'] == "zfs_member") ? "zfs" : $disk['fstype'];
+		$partition['fstype']			= safe_name($attrs['ID_FS_TYPE'] ?? "");
+		$partition['fstype']			= ($partition['fstype'] == "zfs_member") ? "zfs" : $partition['fstype'];
 
 		/* Check for udev and lsblk file system type matching. If not then udev is not reporting the correct file system. */
-		$disk['not_udev']		= ($disk['fstype'] != "crypto_LUKS") ? ($disk['fstype'] != part_fs_type($disk['device'], false)) : false;
+		$partition['not_udev']		= ($partition['fstype'] != "crypto_LUKS") ? ($partition['fstype'] != part_fs_type($partition['device'], false)) : false;
 
 		/* Get the mount point from the configuration and if not set create a default mount point. */
-		$disk['mountpoint']		= get_config($disk['serial'], "mountpoint.{$disk['part']}");
-		if (! $disk['mountpoint']) { 
-			$disk['mountpoint']	= preg_replace("%\s+%", "_", sprintf("%s/%s", $paths['usb_mountpoint'], $disk['label']));
+		$partition['mountpoint']		= get_config($partition['serial'], "mountpoint.{$partition['part']}");
+		if (! $partition['mountpoint']) { 
+			$partition['mountpoint']	= preg_replace("%\s+%", "_", sprintf("%s/%s", $paths['usb_mountpoint'], $partition['label']));
 		}
 
 		/* crypto_LUKS file system. */
 		/* The device is /dev/mapper/... for all luks devices. */
-		if ($disk['fstype'] == "crypto_LUKS") {
-			$disk['luks']		= $disk['device'];
-			$disk['device']		= "/dev/mapper/".safe_name(basename($disk['mountpoint']));
-			$dev				= $disk['luks'];
+		if ($partition['fstype'] == "crypto_LUKS") {
+			$partition['luks']		= $partition['device'];
+			$partition['device']		= "/dev/mapper/".safe_name(basename($partition['mountpoint']));
+			$dev				= $partition['luks'];
 		} else {
-			$disk['luks']		= "";
-			$dev				= $disk['device'];
+			$partition['luks']		= "";
+			$dev				= $partition['device'];
 		}
 
 		/* Get the partition mounting, unmounting, and formatting status. */
-		$disk['is_mounting']	= (new MiscUD)->get_mounting_status(basename($dev));
-		$disk['is_unmounting']	= (new MiscUD)->get_unmounting_status(basename($dev));
-		$disk['is_formatting']	= (new MiscUD)->get_formatting_status(basename($dev));
+		$partition['is_mounting']	= MiscUD::get_mounting_status(basename($dev));
+		$partition['is_unmounting']	= MiscUD::get_unmounting_status(basename($dev));
 
 		/* Set up all disk parameters and status. */
-		$disk['pass_through']	= is_pass_through($disk['serial']);
+		$partition['pass_through']	= is_pass_through($partition['serial']);
 
 		/* Is the disk mount point mounted? */
 		/* If the partition doesn't have a file system, it can't possibly be mounted by UD. */
-		$disk['mounted']		= ((! $disk['pass_through']) && ($disk['fstype'])) ? is_mounted($disk['mountpoint']) : false;
+		$partition['mounted']		= ((! $partition['pass_through']) && ($partition['fstype'])) ? is_mounted($partition['mountpoint']) : false;
 
 		/* is the partition mounted read only. */
-		$disk['part_read_only']	= ($disk['mounted']) ? is_mounted_read_only($disk['mountpoint']) : false;
+		$partition['part_read_only']	= ($partition['mounted']) ? is_mounted_read_only($partition['mountpoint']) : false;
 
 		/* Is this a btrfs pooled disk. */
-		if ($disk['mounted'] && $disk['fstype'] == "btrfs") {
+		if ($partition['mounted'] && $partition['fstype'] == "btrfs") {
 			/* Get the members of a pool if this is a pooled disk. */
-			$pool_devs			= (new MiscUD)->get_pool_devices($disk['mountpoint']);
+			$pool_devs			= MiscUD::get_pool_devices($partition['mountpoint']);
 
 			/* First pooled device is the primary member. */
 			unset($pool_devs[0]);
 
 			/* This is a secondary pooled member if not the primary member. */
-			$disk['pool']		= in_array($disk['device'], $pool_devs);
+			$partition['pool']		= in_array($partition['device'], $pool_devs);
 		} else {
-			$disk['pool']		= false;
+			$partition['pool']		= false;
 		}
 
 		/* See if this is a zfs file system. */
-		$zfs					= (part_fs_type($disk['device'], ($disk['fstype'] == "crypto_LUKS")) == "zfs");
+		$zfs					= (part_fs_type($partition['device'], ($partition['fstype'] == "crypto_LUKS")) == "zfs");
 
 		/* Get the pool name for a zfs device whether or not it is mounted. */
-		$disk['pool_name']		= $zfs ? (new MiscUD)->zfs_pool_name($dev, $disk['mountpoint']) : "";
+		$partition['pool_name']		= $zfs ? MiscUD::zfs_pool_name($dev, $partition['mountpoint']) : "";
 
 		/* If the disk mount point is mounted, we need to verify it is also mounted by device. */
 		/* If it is not, then the disk was probably removed before being properly unmounted. */
 		/* Or the user has several disks with the same mount point. */
 		/* If the disk is part of a btrfs pool, ignore the not unmounted check. */
-		if (($disk['mounted']) && (! $disk['pool'])) {
+		if (($partition['mounted']) && (! $partition['pool'])) {
 			/* Not unmounted is a check that the disk is mounted by mount point but not by device. */
 			/* The idea is to catch the situation where a disk is removed before being unmounted. */
 			if ($zfs) {
-				$disk['not_unmounted']	= $disk['pool_name'] ? (! is_mounted($disk['pool_name'])) : false;
+				$partition['not_unmounted']	= $partition['pool_name'] ? (! is_mounted($partition['pool_name'])) : false;
 			} else {
-				$disk['not_unmounted']	= (! is_mounted($disk['device']));
+				$partition['not_unmounted']	= (! is_mounted($partition['device']));
 			}
 		} else {
-			$disk['not_unmounted']		= false;
+			$partition['not_unmounted']		= false;
 		}
 
-		$disk['disable_mount']	= is_disable_mount($disk['serial']);
+		$partition['disable_mount']	= is_disable_mount($partition['serial']);
 
 		/* Target is set to the mount point when the device is mounted. */
-		$disk['target']			= $disk['mounted'] ? $disk['mountpoint'] : "";
+		$partition['target']			= $partition['mounted'] ? $partition['mountpoint'] : "";
 
-		$stats					= get_device_stats($disk['mountpoint'], $disk['mounted']);
-		$disk['size']			= $stats[0]*1024;
-		$disk['used']			= $stats[1]*1024;
-		$disk['avail']			= $stats[2]*1024;
-		$disk['owner']			= (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
-		$disk['read_only']		= is_read_only($disk['serial']);
+		$stats					= get_device_stats($partition['mountpoint'], $partition['mounted']);
+		$partition['size']			= $stats[0]*1024;
+		$partition['used']			= $stats[1]*1024;
+		$partition['avail']			= $stats[2]*1024;
+		$partition['owner']			= (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
+		$partition['read_only']		= is_read_only($partition['serial']);
 		$usb					= (isset($attrs['ID_BUS']) && ($attrs['ID_BUS'] == "usb"));
-		$disk['shared']			= config_shared($disk['serial'], $disk['part'], $usb);
-		$disk['command']		= get_config($disk['serial'], "command.{$disk['part']}");
-		$disk['user_command']	= get_config($disk['serial'], "user_command.{$disk['part']}");
-		$disk['command_bg']		= get_config($disk['serial'], "command_bg.{$disk['part']}");
-		$disk['enable_script']	= $disk['command'] ? get_config($disk['serial'], "enable_script.{$disk['part']}") : "false";
-		$disk['prog_name']		= basename($disk['command'], ".sh");
-		$disk['logfile']		= ($disk['prog_name']) ? $paths['device_log'].$disk['prog_name'].".log" : "";
+		$partition['shared']			= config_shared($partition['serial'], $partition['part'], $usb);
+		$partition['command']		= get_config($partition['serial'], "command.{$partition['part']}");
+		$partition['user_command']	= get_config($partition['serial'], "user_command.{$partition['part']}");
+		$partition['command_bg']		= get_config($partition['serial'], "command_bg.{$partition['part']}");
+		$partition['enable_script']	= $partition['command'] ? get_config($partition['serial'], "enable_script.{$partition['part']}") : "false";
+		$partition['prog_name']		= basename($partition['command'], ".sh");
+		$partition['logfile']		= ($partition['prog_name']) ? $paths['device_log'].$partition['prog_name'].".log" : "";
 	}
 
-	return $disk;
+	return $partition;
 }
 
 /* Get zfs volume info if the partition has any zvols. */
@@ -3473,7 +3472,7 @@ function get_zvol_info($disk) {
 	$zvol		= array();
 	if ((get_config("Config", "zvols") == "yes") && ($disk['fstype'] == "zfs") && ($disk['mounted'])) {
 		$serial		= $disk['serial'];
-		$zpool_name	= (new MiscUD)->zfs_pool_name("", $disk['mountpoint']);
+		$zpool_name	= MiscUD::zfs_pool_name("", $disk['mountpoint']);
 		foreach (glob("/dev/zvol/".$zpool_name."/*") as $n => $q) {
 			$vol							= basename($q);
 			$volume							= $zpool_name.".".basename($q);
@@ -3488,8 +3487,8 @@ function get_zvol_info($disk) {
 
 			$zvol[$vol]['mountpoint']		= $disk['mountpoint'].".".basename($q);
 			$zvol[$vol]['mounted']			= is_mounted($zvol[$vol]['mountpoint']);
-			$zvol[$vol]['is_mounting']		= (new MiscUD)->get_mounting_status(basename($zvol[$vol]['device']));
-			$zvol[$vol]['is_unmounting']	= (new MiscUD)->get_unmounting_status(basename($zvol[$vol]['device']));
+			$zvol[$vol]['is_mounting']		= MiscUD::get_mounting_status(basename($zvol[$vol]['device']));
+			$zvol[$vol]['is_unmounting']	= MiscUD::get_unmounting_status(basename($zvol[$vol]['device']));
 			$zvol[$vol]['fstype']			= "zvol";
 			$zvol[$vol]['file_system']		= part_fs_type($zvol[$vol]['device'], false);
 			$zvol[$vol]['file_system']		= ($zvol[$vol]['file_system']) ?: zvol_fs_type($zvol[$vol]['device']);
@@ -3599,7 +3598,7 @@ function check_for_duplicate_share($dev, $mountpoint) {
 	$ud_shares		= array();
 
 	/* Get an array of all ud shares. */
-	$share_names	= (new MiscUD)->get_json($paths['share_names']);
+	$share_names	= MiscUD::get_json($paths['share_names']);
 	foreach ($share_names as $device => $name) {
 		$devs		= explode(",", $device);
 		$keep		= true;
@@ -3652,7 +3651,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 
 				case 'zfs';
 					/* Change the pool name. */
-					$pool_name	= (new MiscUD)->zfs_pool_name($dev);
+					$pool_name	= MiscUD::zfs_pool_name($dev);
 					shell_exec("/usr/sbin/zpool export ".escapeshellarg($pool_name));
 					sleep(1);
 
@@ -3717,7 +3716,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 
 							case "zfs":
 								/* Change the pool name. */
-								$pool_name	= (new MiscUD)->zfs_pool_name($dev);
+								$pool_name	= MiscUD::zfs_pool_name($dev);
 								shell_exec("/usr/sbin/zpool export ".escapeshellarg($pool_name));
 								sleep(1);
 
@@ -3813,8 +3812,7 @@ function change_UUID($dev) {
 	$device	= $dev;
 
 	/* nvme disk partitions are 'p1', not '1'. */
-	$device	.=((new MiscUD)->
-	is_device_nvme($dev)) ? "p1" : "1";
+	$device	.=(MiscUD::is_device_nvme($dev)) ? "p1" : "1";
 
 	/* Deal with crypto_LUKS disks. */
 	if ($fs_type == "crypto_LUKS") {

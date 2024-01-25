@@ -35,18 +35,18 @@ $local_tld		= strtoupper($var['LOCAL_TLD']) ?: $default_tld;
 class MiscUD
 {
 	/* Get content from a json file. */
-	public function get_json($file) {
+	public static function get_json($file) {
 		return file_exists($file) ? @json_decode(file_get_contents($file), true) : array();
 	}
 
 	/* Save content to a json file. */
-	public function save_json($file, $content) {
+	public static function save_json($file, $content) {
 		@file_put_contents($file."-", json_encode($content, JSON_PRETTY_PRINT));
 		@rename($file."-", $file);
 	}
 
 	/* Confirm we have a good ip address. */
-	public function is_ip($str) {
+	public static function is_ip($str) {
 		return filter_var($str, FILTER_VALIDATE_IP);
 	}
 }
@@ -110,7 +110,7 @@ function is_server_online($server, $protocol, $log = false) {
 	$server	= str_replace( array(".".$local_tld, ".".$default_tld), "", strtoupper($server));
 	$ip_arp	= "";
 	if ($server) {
-		if (! (new MiscUD)->is_ip($server)) {
+		if (! MiscUD::is_ip($server)) {
 			$ip_arp			= shell_exec("/sbin/arp -a ".escapeshellarg($server)." 2>&1");
 			$ip_array		= explode(" ", $ip_arp);
 			$ip_array[0]	= strtoupper($ip_array[0]);
@@ -120,7 +120,7 @@ function is_server_online($server, $protocol, $log = false) {
 			$srvr			= (strpos($ip_arp, "Unknown server error") === false) ? $ip_array[0] : "";
 
 			/* Get the IP address from the arp response. */
-			$ip				= ((($ip_array[0] == $server) || ($srvr == $server)) && ((new MiscUD)->is_ip($ip))) ? $ip : "";
+			$ip				= ((($ip_array[0] == $server) || ($srvr == $server)) && (MiscUD::is_ip($ip))) ? $ip : "";
 
 			/* If arp did not return a valid IP address, look up the IP address using 'Local'. */
 			if (strpos($ip_arp, "no match found") === false) {
@@ -128,15 +128,15 @@ function is_server_online($server, $protocol, $log = false) {
 				$ip_arp		= shell_exec("/sbin/arp -a ".escapeshellarg($srvr)." 2>&1");
 				$ip_array	= explode(" ", $ip_arp);
 				$ip_local	= str_replace(array("(", ")"), "", $ip_array[1]);
-				$ip_local	= (new MiscUD)->is_ip($ip_local) ?: "";
+				$ip_local	= MiscUD::is_ip($ip_local) ?: "";
 
 				/* If arp did not return a valid IP address, look up the IP address using 'Local TLD'. */
-				if ((! (new MiscUD)->is_ip($ip_local) && ($default_tld != $local_tld))) {
+				if ((! MiscUD::is_ip($ip_local) && ($default_tld != $local_tld))) {
 					$srvr		= $server.".".$local_tld;
 					$ip_arp		= shell_exec("/sbin/arp -a ".escapeshellarg($srvr)." 2>&1");
 					$ip_array	= explode(" ", $ip_arp);
 					$ip_local	= str_replace(array("(", ")"), "", $ip_array[1]);
-					$ip_local	= (new MiscUD)->is_ip($ip_local) ?: "";
+					$ip_local	= MiscUD::is_ip($ip_local) ?: "";
 				}
 
 				/* If the ip cannot be found on the local LAN, then the server is probably off-site and we just ping the server. */
@@ -151,7 +151,7 @@ function is_server_online($server, $protocol, $log = false) {
 			/* If the 'Local TLD' ip address changed, update the hosts file with the new 'Local TLD' ip address. */
 			/* After the server is put into the hosts file, arp will be able to find the host on the first lookup. */
 			/* If this is not done, the server cannot be found unless specified by 'server.Local TLD'. */
-			if ((new MiscUD)->is_ip($ip_local)) {
+			if (MiscUD::is_ip($ip_local)) {
 				if ($ip != $ip_local) {
 					timed_exec(5, "/bin/sed -i '/".escapeshellarg($server)."/d' /etc/hosts");
 					timed_exec(5, "/bin/echo -e '".escapeshellarg($ip_local)."''\t''".escapeshellarg($server)."' >> /etc/hosts" );
@@ -163,7 +163,7 @@ function is_server_online($server, $protocol, $log = false) {
 
 		/* Check the last ping status. */
 		/* Get the ping status json file. */
-		$ping_status	= (new MiscUD)->get_json($tc);
+		$ping_status	= MiscUD::get_json($tc);
 
 		/* See if the server was last seen as being online. */
 		$was_alive		= (isset($ping_status[$name]['online']) && ($ping_status[$name]['online'] == 'yes'));
@@ -175,10 +175,10 @@ function is_server_online($server, $protocol, $log = false) {
 		$no_pings		= $ping_status[$name]['no_pings'] ?? 0;
 
 		/* If it's not online and the server is not an ip address lookup the server and ping it. */
-		if ((! $is_alive) && (! (new MiscUD)->is_ip($server)))
+		if ((! $is_alive) && (! MiscUD::is_ip($server)))
 		{
 			$ip			= trim(timed_exec(5, "/usr/bin/nmblookup ".escapeshellarg($server)." | /bin/head -n1 | /bin/awk '{print $1}' 2>/dev/null"));
-			if ((new MiscUD)->is_ip($ip))
+			if (MiscUD::is_ip($ip))
 			{
 				$is_alive		= (trim(shell_exec("/usr/bin/nice /usr/bin/timeout -s 5 1 bash -c '(echo >/dev/tcp/{$ip}/{$port}) &>/dev/null'; echo $?")) == 0 );
 			}
@@ -208,7 +208,7 @@ function is_server_online($server, $protocol, $log = false) {
 
 		/* Update the server status file. */
 		$ping_status[$name] = array('no_pings' => $no_pings, 'online' => $is_alive ? 'yes' : 'no', 'changed' => $changed ? 'yes' : 'no');
-		(new MiscUD)->save_json($tc, $ping_status);
+		MiscUD::save_json($tc, $ping_status);
 	}
 
 	return;
@@ -245,14 +245,14 @@ function ping_servers() {
 function df_status($tc, $mountpoint) {
 
 	/* Get the status of the mounted device. */
-	$df_status	= (new MiscUD)->get_json($tc);
+	$df_status	= MiscUD::get_json($tc);
 
 	/* Get the current stats if previously set. */
 	$rc	= $df_status[$mountpoint]['stats'] ?? "";
 
 	/* Save new time so the status will not be requested again in case it takes a while for df to work. */
 	$df_status[$mountpoint] = array('timestamp' => time(), 'stats' => $rc);
-	(new MiscUD)->save_json($tc, $df_status);
+	MiscUD::save_json($tc, $df_status);
 
 	/* Get the new stats from df. */
 	$rc			= trim(timed_exec(10, "/bin/df ".escapeshellarg($mountpoint)." --output=size,used,avail | /bin/grep -v '1K-blocks' 2>/dev/null"));
@@ -260,7 +260,7 @@ function df_status($tc, $mountpoint) {
 	/* Save the new stats if df doesn't time out. */
 	if ($rc) {
 		$df_status[$mountpoint] = array('timestamp' => time(), 'stats' => $rc);
-		(new MiscUD)->save_json($tc, $df_status);
+		MiscUD::save_json($tc, $df_status);
 	}
 }
 

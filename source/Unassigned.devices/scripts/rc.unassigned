@@ -40,7 +40,7 @@ if ($dev_pos !== false) {
 } else {
 	$sf = $paths['dev_state'];
 	if (is_file($sf) && (strpos(basename($DEVNAME), 'dev') === false)) {
-		$DEVNAME = get_disk_dev((new MiscUD)->base_device(basename($DEVNAME)));
+		$DEVNAME = get_disk_dev(MiscUD::base_device(basename($DEVNAME)));
 	}
 }
 
@@ -78,12 +78,12 @@ function unassigned_mount() {
 		}
 
 		/* If disk is formatting, skip to the next one. */
-		if ((new MiscUD)->get_formatting_status(basename($device))) {
+		if (MiscUD::get_formatting_status(basename($device))) {
 			continue;
 		}
 
 		/* If disk is already mounting, skip to the next one. */
-		if ((new MiscUD)->get_mounting_status(basename($device))) {
+		if (MiscUD::get_mounting_status(basename($device))) {
 			continue;
 		}
 
@@ -389,7 +389,7 @@ function unassigned_umount() {
 		}
 
 		/* If disk is already unmounting, skip to the next one. */
-		if ((new MiscUD)->get_unmounting_status(basename($device))) {
+		if (MiscUD::get_unmounting_status(basename($device))) {
 			continue;
 		}
 
@@ -704,7 +704,7 @@ function unassigned_spin_down($device) {
 				@file_put_contents($tc, json_encode($run_status));
 
 				/* Spin down the disk. */
-				(new MiscUD)->spin_disk(true, $dev);
+				MiscUD::spin_disk(true, $dev);
 
 				/* Wait for the disk to finish spinning down or time out. */
 				while (is_disk_spin($dev, true)) {
@@ -718,7 +718,7 @@ function unassigned_spin_down($device) {
 /* Detach the disk device. */
 function unassigned_detach($device) {
 
-	$dev = (new MiscUD)->base_device(basename($device));
+	$dev = MiscUD::base_device(basename($device));
 
 	if (! is_file("/tmp/unassigned.devices/shut_down")) {
 		if (is_dir("/sys/block/".$dev."/")) {
@@ -748,7 +748,7 @@ function unassigned_detach($device) {
 function unassigned_attach($device) {
 
 	/* Get this device's hostX and delete the hosts entry in case the device has been removed. */
-	$host	= (new MiscUD)->get_device_host($device, true);
+	$host	= MiscUD::get_device_host($device, true);
 
 	/* Initiate a rescan of the scsi devices. */
 	if ($host) {
@@ -805,7 +805,7 @@ function addFile($file) {
 function export_disk($disk, $add) {
 	global $paths;
 
-	$info	= (new MiscUD)->get_json($paths['mounted']);
+	$info	= MiscUD::get_json($paths['mounted']);
 	$dev	= $disk['device'];
 	if ($add)
 	{
@@ -819,7 +819,7 @@ function export_disk($disk, $add) {
 		unset($info[$dev]);
 	}
 
-	(new MiscUD)->save_json($paths['mounted'], $info);	
+	MiscUD::save_json($paths['mounted'], $info);	
 }
 
 switch ($COMMAND) {

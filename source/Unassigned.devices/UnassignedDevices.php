@@ -237,7 +237,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 			$out[] = "<td></td>";
 		}
 
-		$device				= (new MiscUD)->base_device(basename($device)) ;
+		$device				= MiscUD::base_device(basename($device)) ;
 		$serial				= $partition['serial'];
 		$id_bus				= $disk['id_bus'];
 		if (! $disk['array_disk']) {
@@ -358,9 +358,9 @@ function make_mount_button($device) {
 		$zvol_device	= false;
 
 		/* Check the state of mounting, unmounting, and formatting. */
-		$is_mounting	= (($device['is_mounting']) || ($device['partitions'][0]['is_mounting']));
-		$is_unmounting	= (($device['is_unmounting']) || ($device['partitions'][0]['is_unmounting']));
-		$is_formatting	= (($device['is_formatting'] ?? false) || ($device['partitions'][0]['is_formatting'] ?? false));
+		$is_mounting	= $device['is_mounting'];
+		$is_unmounting	= $device['is_unmounting'];
+		$is_formatting	= $device['is_formatting'];
 	} else {
 		$mounted		= $device['mounted'];
 		$disable		= (! empty($device['fstype']) && $device['fstype'] != "crypto_LUKS") ? false : true;
@@ -379,13 +379,14 @@ function make_mount_button($device) {
 		/* Check the state of mounting, unmounting, and formatting. */
 		$is_mounting	= $device['is_mounting'];
 		$is_unmounting	= $device['is_unmounting'];
-		$is_formatting	= $device['is_formatting'] ?? false;
+		$is_formatting	= $device['is_formatting'];
 		$zvol_device	= (isset($device['file_system']) && $device['file_system']);
 	}
 
 	/* Set up the mount button operation and text. */
 	$buttonFormat = "<span><button device='{$device['device']}' class='mount' context='%s' role='%s' %s><i class='%s'></i>%s</button></span>";
 
+	/* Are there any preclearing operations going on? */
 	$preclearing    = $Preclear ? $Preclear->isRunning(basename($device['device'])) : false;
 	$is_preclearing = shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep " . escapeshellarg($device['device']) . " | /bin/grep -v 'grep'") != "";
 	$preclearing    = $preclearing || $is_preclearing;
@@ -537,10 +538,10 @@ switch ($_POST['action']) {
 		$disk_uuid		= array();
 
 		/* Create array of disk names. */
-		$disk_names	= array();
+		$disk_names		= array();
 
 		/* Disk devices. */
-		$o_disks	= "";
+		$o_disks		= "";
 
 		unassigned_log("Debug: Update disk devices...", $UPDATE_DEBUG);
 
@@ -565,12 +566,12 @@ switch ($_POST['action']) {
 				$disk_device			= basename($disk['device']);
 				$disk_dev				= $disk['ud_dev'];
 				$disk_name				= $disk['unassigned_dev'] ? $disk['unassigned_dev'] : $disk['ud_dev'];
-				$p						= (count($disk['partitions']) > 0) ? render_partition($disk, $disk['partitions'][0], true) : false;
+				$parts					= (count($disk['partitions']) > 0) ? render_partition($disk, $disk['partitions'][0], true) : false;
 				$preclearing			= $Preclear ? $Preclear->isRunning($disk_device) : false;
 				$temp					= my_temp($disk['temperature']);
 
-				/* Get the mounting, unmounting, and formatting state. */
-				$disk['is_mounting'] = (
+				/* Get the mounting and unmounting states of disks and all partitions. */
+				$disk['is_mounting'] = $disk['is_mounting'] || (
 					in_array(true, array_map(function($partition) {
 						return $partition['is_mounting'];
 					}, $disk['partitions']), true) ||
@@ -579,7 +580,7 @@ switch ($_POST['action']) {
 					}, $disk['zvol']), true)
 				);
 
-				$disk['is_unmounting'] = (
+				$disk['is_unmounting'] = $disk['is_unmounting'] || (
 					in_array(true, array_map(function($partition) {
 						return $partition['is_unmounting'];
 					}, $disk['partitions']), true) ||
@@ -587,7 +588,6 @@ switch ($_POST['action']) {
 						return $zvol['is_unmounting'];
 					}, $disk['zvol']), true)
 				);
-				$disk['is_formatting']	= (new MiscUD)->get_formatting_status(basename($disk['device']));
 
 				/* Create the mount button. */
 				$mbutton				= make_mount_button($disk);
@@ -600,14 +600,14 @@ switch ($_POST['action']) {
 
 				$partition['device']	= $partition['device'] ?? "";
 				$partition['serial']	= $partition['serial'] ?? "";
-				$clear_disk				= (($parted) && (get_config("Config", "destructive_mode") == "enabled") && (! $mounted) && (! $disk['is_mounting']) && (! $disk['is_unmounting']) && (! $disk['is_formatting']) && (! $disk['pass_through']) && (! $disk['array_disk']) && (! $preclearing) && (((! $p) && ($disk['fstype'])) || (($p) && (! $disk['partitions'][0]['pool']) && (! $disk['partitions'][0]['disable_mount']))) ) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove clear-hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
+				$clear_disk				= (($parted) && (get_config("Config", "destructive_mode") == "enabled") && (! $mounted) && (! $disk['is_mounting']) && (! $disk['is_unmounting']) && (! $disk['is_formatting']) && (! $disk['pass_through']) && (! $disk['array_disk']) && (! $preclearing) && (((! $parts) && ($disk['fstype'])) || (($parts) && (! $disk['partitions'][0]['pool']) && (! $disk['partitions'][0]['disable_mount']))) ) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove clear-hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
 
 				/* Show disk icon based on SSD or spinner disk. */
 				$disk_icon = $disk['ssd'] ? "icon-nvme" : "fa fa-hdd-o";
 
 				/* Disk log. */
 				$hdd_serial = "<a class='info' href=\"#\" onclick=\"openTerminal('disklog', '{$disk_device}')\"><i class='".$disk_icon." icon partition-log'></i><span>"._("Disk Log Information")."</span></a>";
-				if ($p) {
+				if ($parts) {
 					$add_toggle = true;
 					if ($disk['pass_through']) {
 						$hdd_serial		.="<span><i class='fa fa-plus-square fa-append grey-orb orb'></i></span>";
@@ -621,7 +621,7 @@ switch ($_POST['action']) {
 					$hdd_serial			.= "<span class='toggle-hdd' hdd='".$disk_device."'></span>";
 				}
 
-				$device		= $disk['ud_device'] ? " ({$disk_device})" : "";
+				$device		= $disk['ud_device'] ? " (".$disk_device.")" : "";
 				$hdd_serial .= $disk['serial'].$device.$preclear_link.$clear_disk."<span id='preclear_".$disk['serial_short']."' style='display:block;'></span>";
 
 				$o_disks .= "<tr class='toggle-disk'>";
@@ -670,7 +670,7 @@ switch ($_POST['action']) {
 				/* Disk temperature. */
 				$o_disks		.= "<td>{$temp}</td>";
 
-				if (! $p) {
+				if (! $parts) {
 					$rw = get_disk_reads_writes($disk['ud_dev'], $disk['device']);
 					if (! isset($_COOKIE['diskio'])) {
 						$reads	= my_number($rw[0]);
@@ -682,22 +682,22 @@ switch ($_POST['action']) {
 				}
 
 				/* Reads. */
-				$o_disks		.= ($p) ? $p[4] : "<td>".$reads."</td>";
+				$o_disks		.= ($parts) ? $parts[4] : "<td>".$reads."</td>";
 
 				/* Writes. */
-				$o_disks		.= ($p) ? $p[5] : "<td>".$writes."</td>";
+				$o_disks		.= ($parts) ? $parts[5] : "<td>".$writes."</td>";
 
 				/* Settings. */
-				$o_disks		.= ($p) ? $p[6] : "<td></td>";
+				$o_disks		.= ($parts) ? $parts[6] : "<td></td>";
 
 				/* File system. */
-				$o_disks		.= ($p) ? $p[7] : "<td>".$disk['fstype']."</td>";
+				$o_disks		.= ($parts) ? $parts[7] : "<td>".$disk['fstype']."</td>";
 
 				/* Disk size. */
 				$o_disks		.= "<td>".my_scale($disk['size'], $unit)." {$unit}</td>";
 
 				/* Disk used and free space. */
-				$o_disks		.= (($p) && (! $not_unmounted)) ? $p[8] : "<td></td><td></td>";
+				$o_disks		.= (($parts) && (! $not_unmounted)) ? $parts[8] : "<td></td><td></td>";
 
 				$o_disks		.= "</tr>";
 
@@ -720,7 +720,7 @@ switch ($_POST['action']) {
 					}
 					if ($disk['partitions'][$i]['fstype']) {
 						$dev	= (isset($disk['partition'][$i]['fstype']) && basename(($disk['partition'][$i]['fstype'] == "crypto_LUKS")) ? $disk['luks'] : $disk['device']);
-						if ((new MiscUD)->is_device_nvme($dev)) {
+						if (MiscUD::is_device_nvme($dev)) {
 							$dev .= "p";
 						}
 
@@ -758,8 +758,8 @@ switch ($_POST['action']) {
 				$mounted		= $mount['mounted'];
 
 				/* Is the device mounting or unmounting. */
-				$is_mounting	= $mount['is_mounting'] ?? false;
-				$is_unmounting	= $mount['is_unmounting'] ?? false;
+				$is_mounting	= $mount['is_mounting'];
+				$is_unmounting	= $mount['is_unmounting'];
 
 				/* Populate the table row for this device. */
 				$o_remotes		.= "<tr>";
@@ -816,7 +816,7 @@ switch ($_POST['action']) {
 				}
 				$o_remotes			.= "</td>";
 
-				$compressed_name	= (new MiscUD)->compress_string($mount['name']);
+				$compressed_name	= MiscUD::compress_string($mount['name']);
 
 				/* Remove SMB/NFS remote share table element. */
 				$o_remotes			.= "<td>";
@@ -923,7 +923,7 @@ switch ($_POST['action']) {
 				}
 				$o_remotes			.= "</td>";
 
-				$compressed_device	= (new MiscUD)->compress_string($mount['device']);
+				$compressed_device	= MiscUD::compress_string($mount['device']);
 				$o_remotes .= $mounted ? "<td><i class='fa fa-remove'></i></td>" : "<td><a class='exec info' style='color:#CC0000;font-weight:bold;' onclick='remove_iso_config(\"{$mount['device']}\", \"{$compressed_device}\");'> <i class='fa fa-remove'></i><span>"._("Remove ISO File Share")."</span></a></td>";
 
 				$title				= _("ISO File Settings and Script");
@@ -1006,7 +1006,7 @@ switch ($_POST['action']) {
 		/* Display the historical devices. */
 		foreach ($historical as $disk_display => $value) {
 			/* See if the disk is in standby and can be attached. */
-			$is_standby		= ((new MiscUD)->get_device_host($historical[$disk_display]['serial']) && (empty(glob("/dev/disk/by-id/*-".$historical[$disk_display]['serial']."*"))));
+			$is_standby		= (MiscUD::get_device_host($historical[$disk_display]['serial']) && (empty(glob("/dev/disk/by-id/*-".$historical[$disk_display]['serial']."*"))));
 	
 			/* Add to the historical devices. */
 
@@ -1025,7 +1025,7 @@ switch ($_POST['action']) {
 			/* Remove device table element. */
 			$o_historical	.= "<td>";
 			if (! $is_standby) {
-				$compressed_serial	= (new MiscUD)->compress_string($historical[$disk_display]['serial']);
+				$compressed_serial	= MiscUD::compress_string($historical[$disk_display]['serial']);
 				$o_historical .= "<a style='color:#CC0000;font-weight:bold;cursor:pointer;' class='exec info' onclick='remove_disk_config(\"{$historical[$disk_display]['serial']}\", \"{$compressed_serial}\")'><i class='fa fa-remove' disabled></i><span>"._("Remove Device Configuration")."</span></a>";
 			} else {
 				$o_historical .= "<i class='fa fa-remove' disabled></i>";
@@ -1048,10 +1048,10 @@ switch ($_POST['action']) {
 		unassigned_log("Debug: End - Update status files...", $UPDATE_DEBUG);
 
 		/* Save the current disk names for a duplicate check. */
-		(new MiscUD)->save_json($paths['disk_names'], $disk_names);
+		MiscUD::save_json($paths['disk_names'], $disk_names);
 
 		/* Save the UD share names for duplicate check. */
-		(new MiscUD)->save_json($paths['share_names'], $share_names);
+		MiscUD::save_json($paths['share_names'], $share_names);
 
 		echo json_encode(array( 'disks' => $o_disks, 'remotes' => $o_remotes, 'historical' => $o_historical ));
 		break;
@@ -1135,7 +1135,7 @@ switch ($_POST['action']) {
 		$serial		= urldecode($_POST['serial']);
 		$dev		= urldecode($_POST['device']);
 		$name		= safe_name(urldecode($_POST['name']));
-		$disk_names = (new MiscUD)->get_json($paths['disk_names']);
+		$disk_names = MiscUD::get_json($paths['disk_names']);
 
 		/* Remove our disk name. */
 		unset($disk_names[$dev]);
@@ -1317,7 +1317,7 @@ switch ($_POST['action']) {
 		foreach ($network as $iface) {
 			$ip			= $iface['ip'];
 			$netmask 	= $iface['netmask'];
-			if ((new MiscUD)->is_ip($ip) && (new MiscUD)->is_ip($netmask)) {
+			if (MiscUD::is_ip($ip) && MiscUD::is_ip($netmask)) {
 				exec("plugins/".$plugin."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." ".SMB_PORT, $hosts);
 				foreach ($hosts as $host) {
 					/* Resolve name as a local server. */
@@ -1348,7 +1348,7 @@ switch ($_POST['action']) {
 		$ip			= strtoupper(stripslashes(trim($ip)));
 
 		/* Remove the 'local' and 'default' tld reference as they are unnecessary. */
-		if (! (new MiscUD)->is_ip($ip)) {
+		if (! MiscUD::is_ip($ip)) {
 			$ip		= str_replace( array(".".$local_tld, ".".$default_tld), "", $ip);
 		}
 
@@ -1383,7 +1383,7 @@ switch ($_POST['action']) {
 		foreach ($network as $iface) {
 			$ip			= $iface['ip'];
 			$netmask 	= $iface['netmask'];
-			if ((new MiscUD)->is_ip($ip) && (new MiscUD)->is_ip($netmask)) {
+			if (MiscUD::is_ip($ip) && MiscUD::is_ip($netmask)) {
 				exec("plugins/".$plugin."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." ".NFS_PORT." 2>/dev/null | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4", $hosts);
 				foreach ($hosts as $host) {
 					/* Resolve name as a local server. */
@@ -1414,7 +1414,7 @@ switch ($_POST['action']) {
 		$ip			= strtoupper(stripslashes(trim($ip)));
 
 		/* Remove the 'local' and 'default' tld reference as they are unnecessary. */
-		if (! (new MiscUD)->is_ip($ip)) {
+		if (! MiscUD::is_ip($ip)) {
 			$ip		= str_replace( array(".".$local_tld, ".".$default_tld), "", $ip);
 		}
 
@@ -1445,7 +1445,7 @@ switch ($_POST['action']) {
 		$share		= basename($path);
 
 		/* Remove the 'local' and 'default' tld reference as they are unnecessary. */
-		if (! (new MiscUD)->is_ip($ip)) {
+		if (! MiscUD::is_ip($ip)) {
 			$ip		= str_replace( array(".".$local_tld, ".".$default_tld), "", $ip);
 		}
 
@@ -1469,7 +1469,7 @@ switch ($_POST['action']) {
 
 				/* Set this configuration. */
 				set_samba_config($device, "protocol", $protocol);
-				set_samba_config($device, "ip", ((new MiscUD)->is_ip($ip) ? $ip : strtoupper($ip)));
+				set_samba_config($device, "ip", (MiscUD::is_ip($ip) ? $ip : strtoupper($ip)));
 				set_samba_config($device, "path", $path);
 
 				if ($protocol == "SMB") {
@@ -1716,7 +1716,7 @@ switch ($_POST['action']) {
 			$run_status[$device]['spin_time']	= time();
 			$run_status[$device]['spin']		= "down";
 			@file_put_contents($tc, json_encode($run_status));
-			$result	= (new MiscUD)->spin_disk(true, $device);
+			$result	= MiscUD::spin_disk(true, $device);
 			echo json_encode($result);
 		}
 		break;
@@ -1732,7 +1732,7 @@ switch ($_POST['action']) {
 			$run_status[$device]['spin_time']	= time();
 			$run_status[$device]['spin']		= "up";
 			@file_put_contents($tc, json_encode($run_status));
-			$result	= (new MiscUD)->spin_disk(false, $device);
+			$result	= MiscUD::spin_disk(false, $device);
 			echo json_encode($result);
 		}
 		break;

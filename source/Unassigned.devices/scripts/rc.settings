@@ -86,7 +86,7 @@ function zfs_upgrade() {
 	$mountpoint		= substr($mountpoint, $first, $last);
 
 	/* Upgrade the ZFS on the device. */
-	$pool_name	= (new MiscUD)->zfs_pool_name("", $mountpoint);
+	$pool_name	= MiscUD::zfs_pool_name("", $mountpoint);
 	upgrade_ZFS_pool($pool_name);
 
 	/* Now clear the setting from the tmp file. */
