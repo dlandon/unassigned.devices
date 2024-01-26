@@ -1515,14 +1515,14 @@ function is_disk_ssd($dev) {
 function cache_mounts() {
 global $mounts;
 
-	$mount				= timed_exec(1, "/usr/bin/awk -F'[, ]' '{print $1 \",\" $2 \",\" $4}' /proc/mounts");
+	$mount				= timed_exec(1, "/usr/bin/awk -F'[, ]' '{print $1 \",\" $2 \",\" $4}' /proc/mounts 2>/dev/null");
 	$escapeSequences	= array("\\040","\n");
 	$replacementChars	= array(" ",",");
 	$mounts				= str_replace($escapeSequences, $replacementChars, $mount);
 }
 
 /* Is a device mounted? */
-function is_mounted($dev, $dir="", $update=true) {
+function is_mounted($dev, $dir = "", $update = true) {
 global $mounts;
 
 	$rc		= false;
@@ -2363,7 +2363,7 @@ function reload_shares() {
 			$info = get_partition_info($p);
 			if ( $info['mounted'] && $info['shared'] ) {
 				$fat_fruit = (($info['fstype'] == "vfat") || ($info['fstype'] == "exfat"));
-				add_smb_share($info['mountpoint'], true, $fat_fruit);
+				add_smb_share($info['mountpoint'], (! $info['read_only']), $fat_fruit);
 				add_nfs_share($info['mountpoint']);
 			}
 		}
