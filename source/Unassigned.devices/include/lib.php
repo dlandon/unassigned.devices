@@ -1799,7 +1799,7 @@ function do_mount_local($info) {
 			/* If the device did not mount, close the luks disk if the FS is luks, and show an error. */
 			if (! $rc) {
 				if ($fs == "crypto_LUKS" ) {
-					exec("/sbin/cryptsetup luksClose ".escapeshellarg(basename($info['device']))." 2>/dev/null");
+					exec("/sbin/cryptsetup luksClose ".escapeshellarg($info['device'])." 2>/dev/null");
 				}
 				unassigned_log("Mount of '".basename($dev)."' failed: '".$o."'");
 
