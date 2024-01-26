@@ -332,7 +332,7 @@ class MiscUD
 
 			/* The disk must be mouned if we cannot import the zpool. */
 			if ((! $rc) && ($mount_point)) {
-				$mount				= timed_exec(2, "/usr/bin/cat /proc/mounts | /bin/awk '{print $2 \",\" $1}'");
+				$mount				= timed_exec(0.5, "/bin/awk '{print $2 \",\" $1}' /proc/mounts 2>/dev/null");
 				$escapeSequences	= array("\\040");
 				$replacementChars	= array(" ");
 				$mount				= str_replace($escapeSequences, $replacementChars, $mount);
@@ -1181,7 +1181,7 @@ function timed_exec($timeout, $cmd) {
 function part_fs_type($dev, $luks = true) {
 
 	/* Get the file system type from lsblk. */
-	$o	= trim(shell_exec("/bin/lsblk -o FSTYPE -n -p -l ".escapeshellarg($dev)." 2>/dev/null | grep -v 'crypto_LUKS'") ?? "");
+	$o	= trim(shell_exec("/bin/lsblk -o FSTYPE -n -p -l ".escapeshellarg($dev)." 2>/dev/null | /usr/bin/grep -v 'crypto_LUKS'") ?? "");
 
 	$rc	= ($o == "zfs_member") ? "zfs" : $o;
 
@@ -1511,18 +1511,31 @@ function is_disk_ssd($dev) {
 #########################################################
 ############		MOUNT FUNCTIONS			#############
 #########################################################
+/* Read the /proc//mounts file and cache it for further lookups mounted and read only checks. */
+function cache_mounts() {
+global $mounts;
+
+	$mount				= timed_exec(1, "/usr/bin/awk -F'[, ]' '{print $1 \",\" $2 \",\" $4}' /proc/mounts");
+	$escapeSequences	= array("\\040","\n");
+	$replacementChars	= array(" ",",");
+	$mounts				= str_replace($escapeSequences, $replacementChars, $mount);
+}
+
 /* Is a device mounted? */
-function is_mounted($dev, $dir="") {
+function is_mounted($dev, $dir="", $update=true) {
 global $mounts;
 
 	$rc		= false;
 	$rc_dev	= false;
 	$rc_dir	= true;
+
+	/* Read the /proc/mounts file and cache it. */
+	if ((! $mounts) || ($update)) {
+		cache_mounts();
+	}
+
+	/* Check for mounted status. */
 	if ($dev) {
-		$mount				= timed_exec(1, "/usr/bin/awk -F'[, ]' '{print $1 \",\" $2 \",\" $4}' /proc/mounts");
-		$escapeSequences	= array("\\040","\n");
-		$replacementChars	= array(" ",",");
-		$mounts				= str_replace($escapeSequences, $replacementChars, $mount);
 		$rc_dev				= (strpos($mounts, $dev.",") !== false);
 		if ($rc_dir) {
 			$rc_dir			= (strpos($mounts, $dir.",") !== false);
@@ -2483,6 +2496,8 @@ function get_samba_mounts() {
 	$samba_mounts	= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
 	if (is_array($samba_mounts)) {
 		ksort($samba_mounts, SORT_NATURAL);
+
+		/* Get all the samba mounts. */
 		foreach ($samba_mounts as $device => $mount) {
 			/* Convert the device to a safe name samba device. */
 			$safe_device				= safe_name($device, false);
@@ -2565,7 +2580,7 @@ function get_samba_mounts() {
 				$mount['is_unmounting']	= MiscUD::get_unmounting_status($mount_device);
 
 				/* Is remote share mounted? */
-				$mount['mounted']		= is_mounted($mount['mountpoint'], $mount['mount_dev']);
+				$mount['mounted']		= is_mounted($mount['mountpoint'], $mount['mount_dev'], false);
 
 				/* Is the remote share mounted read only? */
 				$mount['remote_read_only']	= is_mounted_read_only($mount['mountpoint']);
@@ -2981,7 +2996,7 @@ function get_iso_mounts() {
 				$mount['is_unmounting']	= MiscUD::get_unmounting_status($mount_device);
 
 				/* Is the ios file mounted? */
-				$mount['mounted']		= is_mounted($mount['mountpoint']);
+				$mount['mounted']		= is_mounted($mount['mountpoint'], "", false);
 
 				/* If this is a legacy iso mount indicate that it should be removed. */
 				$mount['invalid']		= false;
@@ -3152,13 +3167,29 @@ function get_all_disks_info() {
 
 	$ud_disks = get_unassigned_disks();
 	if (is_array($ud_disks)) {
-		foreach ($ud_disks as $key => $disk) {
-			/* Get the device size. */
-			$disk_size		= intval(trim(timed_exec(0.5, "/bin/lsblk -b -n -o SIZE --nodeps ".escapeshellarg(realpath($key))." 2>/dev/null")));
+		/* Read the disk sizes into an array so we only call lsblk once. */
+		$lsblkOutput	= timed_exec(0.5, "/bin/lsblk -b -n -o NAME,SIZE,TYPE | /usr/bin/awk '$3 == \"disk\" {print $1 \",\" $2}' 2</dev/null");
 
+		/* Explode the output into an array based on newline character. */
+		$lines = explode("\n", trim($lsblkOutput));
+
+		/* Initialize an empty array to store the results. */
+		$disk_sizes = [];
+
+		/* Iterate through each line and split by comma to create key-value pairs. */
+		foreach ($lines as $line) {
+			$parts = explode(",", $line);
+			if (count($parts) == 2) {
+				$disk_sizes[$parts[0]] = $parts[1];
+			}
+		}
+
+		foreach ($ud_disks as $key => $disk) {
 			/* Add as a UD device. */
-			/* Set the disk size. */
-			$disk['size']	= $disk_size;
+			$dev			= basename(realpath($key));
+
+			/* Set the disk size from the lsblk array. */
+			$disk['size']	= intval($disk_sizes[$dev]);
 
 			/* Get all the disk partitions. */
 			$disk			= array_merge($disk, get_disk_info($key));
@@ -3393,7 +3424,7 @@ function get_partition_info($dev) {
 
 		/* Is the disk mount point mounted? */
 		/* If the partition doesn't have a file system, it can't possibly be mounted by UD. */
-		$partition['mounted']		= ((! $partition['pass_through']) && ($partition['fstype'])) ? is_mounted($partition['mountpoint']) : false;
+		$partition['mounted']		= ((! $partition['pass_through']) && ($partition['fstype'])) ? is_mounted($partition['mountpoint'], "", false) : false;
 
 		/* is the partition mounted read only. */
 		$partition['part_read_only']	= ($partition['mounted']) ? is_mounted_read_only($partition['mountpoint']) : false;
@@ -3426,9 +3457,9 @@ function get_partition_info($dev) {
 			/* Not unmounted is a check that the disk is mounted by mount point but not by device. */
 			/* The idea is to catch the situation where a disk is removed before being unmounted. */
 			if ($zfs) {
-				$partition['not_unmounted']	= $partition['pool_name'] ? (! is_mounted($partition['pool_name'])) : false;
+				$partition['not_unmounted']	= $partition['pool_name'] ? (! is_mounted($partition['pool_name'], "", false)) : false;
 			} else {
-				$partition['not_unmounted']	= (! is_mounted($partition['device']));
+				$partition['not_unmounted']	= (! is_mounted($partition['device'], "", false));
 			}
 		} else {
 			$partition['not_unmounted']		= false;
@@ -3466,6 +3497,7 @@ function get_zvol_info($disk) {
 	if ((get_config("Config", "zvols") == "yes") && ($disk['fstype'] == "zfs") && ($disk['mounted'])) {
 		$serial		= $disk['serial'];
 		$zpool_name	= MiscUD::zfs_pool_name("", $disk['mountpoint']);
+
 		foreach (glob("/dev/zvol/".$zpool_name."/*") as $n => $q) {
 			$vol							= basename($q);
 			$volume							= $zpool_name.".".basename($q);
@@ -3479,7 +3511,7 @@ function get_zvol_info($disk) {
 			}
 
 			$zvol[$vol]['mountpoint']		= $disk['mountpoint'].".".basename($q);
-			$zvol[$vol]['mounted']			= is_mounted($zvol[$vol]['mountpoint']);
+			$zvol[$vol]['mounted']			= is_mounted($zvol[$vol]['mountpoint'], "", false);
 			$zvol[$vol]['is_mounting']		= MiscUD::get_mounting_status(basename($zvol[$vol]['device']));
 			$zvol[$vol]['is_unmounting']	= MiscUD::get_unmounting_status(basename($zvol[$vol]['device']));
 			$zvol[$vol]['fstype']			= "zvol";

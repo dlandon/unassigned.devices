@@ -50,6 +50,9 @@ if (! $DEVNAME) {
 	die("Fail: device not defined.\n");
 }
 
+/* Cache the mounts file so it does not have to be read for every is_mounted() and is_mounted_read_only() check. */
+cache_mounts();
+
 /* Create array for mount button status files. */
 $remove = array();
 $result	= "";
@@ -152,7 +155,7 @@ function unassigned_mount() {
 							/* Add smb and nfs shares for this device. */
 							if ($info['shared']) {
 								/* If the disk is mounted read only, don't enable recycle bin. */
-								$mounted_read_only	= is_mounted_read_only($info['mountpoint']);
+								$mounted_read_only	= $info['read_only'];
 
 								/* If the device is vfat file system, enable fat fruit. */
 								$fat_fruit	= (($info['fstype'] == "vfat") || ($info['fstype'] == "exfat"));
@@ -170,7 +173,7 @@ function unassigned_mount() {
 							/* Update the partition info. */
 							$info = get_partition_info($partition);
 							export_disk($info, true);
-						} else if (! is_mounted($info['mountpoint'])) {
+						} else if (! $info['mounted']) {
 							/* There was an error mounting the disk. */
 							unassigned_log("Partition '".$info['label']."' cannot be mounted.");
 
@@ -420,7 +423,7 @@ function unassigned_umount() {
 					/* If the device is mounted, unmount it. */
 					$file_system	= part_fs_type($info['device'], ($info['fstype'] == "crypto_LUKS"));
 					$pool_name		= $info['pool_name'];
-					$mounted		= (($file_system == "zfs") && ($pool_name)) ? (is_mounted($pool_name) || is_mounted($info['mountpoint'])) : (is_mounted($info['device']) || is_mounted($info['mountpoint']));
+					$mounted		= $info['mounted'];
 					if ($mounted) {
 						/* If forced shutdown, abort device script. */
 						if ($force) {
@@ -547,7 +550,7 @@ function unassigned_umount() {
 
 				/* Unmount the remote share if it is mounted. */
 				$dev	= $info['fstype'] == "root" ? $info['mountpoint'] : $info['device'];
-				if ( is_mounted($info['mountpoint']) ) {
+				if ( $info['mounted'] ) {
 					/* Remove special characters. */
 					$mount_device = basename($info['ip'])."_".basename($info['path']);
 
@@ -603,7 +606,7 @@ function unassigned_umount() {
 				unassigned_log("ISO File share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
 
 				/* If iso file is mounted, unmount it. */
-				if ( is_mounted($info['mountpoint']) ) {
+				if ( $info['mounted'] ) {
 					/* Create mounting status file. */
 					addFile(sprintf($paths['unmounting'], basename($info['device'])));
 

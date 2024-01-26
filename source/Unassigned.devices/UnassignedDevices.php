@@ -504,6 +504,9 @@ switch ($_POST['action']) {
 
 		unassigned_log("Debug: Begin - Refreshing content...", $UPDATE_DEBUG);
 
+		/* Cache the mounts file so it does not have to be read for every is_mounted() and is_mounted_read_only() check. */
+		cache_mounts();
+
 		/* Check for a recent hot plug event. */
 		if (file_exists($paths['hotplug_event'])) {
 			exec("rm -f ".$paths['hotplug_event']);
@@ -1053,8 +1056,6 @@ switch ($_POST['action']) {
 		/* Save the UD share names for duplicate check. */
 		MiscUD::save_json($paths['share_names'], $share_names);
 
-		unassigned_log("Debug: End...", $UPDATE_DEBUG);
-
 		echo json_encode(array( 'disks' => $o_disks, 'remotes' => $o_remotes, 'historical' => $o_historical ));
 		break;
 
@@ -1250,9 +1251,9 @@ switch ($_POST['action']) {
 		/* Get the contents of the device script file. */
 		$file			= urldecode($_POST['file']);
 		if ($file) {
-			$result			= file_get_contents($file);
+			$result		= file_get_contents($file);
 		} else {
-			$result = "";
+			$result		= "";
 		}
 		echo json_encode($result);
 		break;
