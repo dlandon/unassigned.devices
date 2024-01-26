@@ -1181,7 +1181,7 @@ function timed_exec($timeout, $cmd) {
 function part_fs_type($dev, $luks = true) {
 
 	/* Get the file system type from lsblk. */
-	$o	= trim(shell_exec("/bin/lsblk --output NAME,FSTYPE | grep ".escapeshellarg(basename($dev)." ")." 2>/dev/null | grep -v 'crypto_LUKS' | /bin/awk '{print $2}'") ?? "");
+	$o	= trim(shell_exec("/bin/lsblk -o FSTYPE -n -p -l ".escapeshellarg($dev)." 2>/dev/null | grep -v 'crypto_LUKS'") ?? "");
 
 	$rc	= ($o == "zfs_member") ? "zfs" : $o;
 
@@ -1194,13 +1194,7 @@ function zvol_fs_type($dev) {
 	$rc	= "";
 
 	/* Get the file system type from blkid for a zfs volume. */
-	$o	= trim(shell_exec("/sbin/blkid ".escapeshellarg($dev)." 2>/dev/null") ?? "");
-	$l	= strpos($o, 'TYPE="');
-	if ($l !== false) {
-		$l	= $l+6;
-		$n	= strpos(substr($o, $l), '"');
-		$rc	= substr($o, $l, $n);
-	}
+	$rc	= trim(shell_exec("/sbin/blkid -s TYPE -o value ".escapeshellarg($dev)." 2>/dev/null") ?? "");
 
 	return $rc;
 }
@@ -3160,7 +3154,7 @@ function get_all_disks_info() {
 	if (is_array($ud_disks)) {
 		foreach ($ud_disks as $key => $disk) {
 			/* Get the device size. */
-			$disk_size		= intval(trim(timed_exec(0.5, "/bin/lsblk -nb -o size ".escapeshellarg(realpath($key))." 2>/dev/null")));
+			$disk_size		= intval(trim(timed_exec(0.5, "/bin/lsblk -b -n -o SIZE --nodeps ".escapeshellarg(realpath($key))." 2>/dev/null")));
 
 			/* Add as a UD device. */
 			/* Set the disk size. */
