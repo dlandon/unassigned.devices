@@ -893,7 +893,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		}
 	});
 
-	<?php
+	<?
 	/* Loop through network interfaces (eth0 to eth10). */
 	for ($i = 0; $i < 11; $i++) {
 		$interfaceVariable = "eth{$i}";
