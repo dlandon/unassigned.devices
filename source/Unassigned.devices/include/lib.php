@@ -95,6 +95,9 @@ if (! isset($var)){
 $default_tld	= "LOCAL";
 $local_tld		= (isset($var['LOCAL_TLD']) && ($var['LOCAL_TLD']))? strtoupper($var['LOCAL_TLD']) : $default_tld;
 
+/* Keep a copy of the output of the /proc/mounts status for checking red only status. */
+$mounts			= "";
+
 /* See if the preclear plugin is installed. */
 if ( is_file( "plugins/preclear.disk/assets/lib.php" ) ) {
 	require_once( "plugins/preclear.disk/assets/lib.php" );
@@ -1514,36 +1517,32 @@ function is_disk_ssd($dev) {
 #########################################################
 ############		MOUNT FUNCTIONS			#############
 #########################################################
-
 /* Is a device mounted? */
-function is_mounted($dev) {
+function is_mounted($dev, $dir="") {
+global $mounts;
 
-	$rc = false;
+	$rc		= false;
+	$rc_dev	= false;
+	$rc_dir	= true;
 	if ($dev) {
-		$mount				= timed_exec(2, "/usr/bin/cat /proc/mounts | awk '{print $1 \",\" $2}'");
+		$mount				= timed_exec(1, "/usr/bin/awk -F'[, ]' '{print $1 \",\" $2 \",\" $4}' /proc/mounts");
 		$escapeSequences	= array("\\040","\n");
 		$replacementChars	= array(" ",",");
-		$mount				= str_replace($escapeSequences, $replacementChars, $mount);
-		$rc					= (strpos($mount, $dev.",") !== false);
+		$mounts				= str_replace($escapeSequences, $replacementChars, $mount);
+		$rc_dev				= (strpos($mounts, $dev.",") !== false);
+		if ($rc_dir) {
+			$rc_dir			= (strpos($mounts, $dir.",") !== false);
+		}
 	}
 
-	return $rc;
+	return ($rc_dev && $rc_dir);
 }
 
 /* Is a device mounted read only? */
 function is_mounted_read_only($dev) {
+global $mounts;
 
-	$rc = false;
-	if ($dev) {
-		$dev_lookup			= (strpos($dev, "/dev/mapper") !== false) ? basename($dev) : $dev;
-		$mount				= timed_exec(2, "/usr/bin/cat /proc/mounts | awk '{print $2 \",\" toupper(substr($4,0,2))}'");
-		$escapeSequences	= array("\\040","\n");
-		$replacementChars	= array(" ",",");
-		$mount				= str_replace($escapeSequences, $replacementChars, $mount);
-		$rc					= (strpos($mount, $dev_lookup.",RO,") !== false);
-	}
-
-	return $rc;
+	return (strpos($mounts, $dev.",ro,") !== false);
 }
 
 /* Get the mount parameters based on the file system. */
@@ -1781,7 +1780,7 @@ function do_mount_local($info) {
 
 			/* Check to see if the device really mounted. */
 			for ($i=0; $i < 5; $i++) {
-				$mounted	= (($info['fstype'] == "zfs") && ($pool_name)) ? (is_mounted($pool_name) || is_mounted($dir)) : (is_mounted($dev) || is_mounted($dir));
+				$mounted	= (($info['fstype'] == "zfs") && ($pool_name)) ? (is_mounted($pool_name, $dir)) : (is_mounted($dev, $dir));
 				if ($mounted) {
 					if (! is_mounted_read_only($dir)) {
 						exec("/bin/chmod 0777 ".escapeshellarg($dir)." 2>/dev/null");
@@ -1963,7 +1962,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 	$rc = false;
 	$pool_name	= ($zfs) ? MiscUD::zfs_pool_name("", $dir) : "";
 	$timeout	= ($smb || $nfs) ? ($force ? 30 : 10) : 90;
-	$mounted	= (($zfs) && ($pool_name)) ? (is_mounted($pool_name) || (is_mounted($dir))) : ((is_mounted($dev)) || (is_mounted($dir)));
+	$mounted	= (($zfs) && ($pool_name)) ? (is_mounted($pool_name, $dir)) : (is_mounted($dev, $dir));
 	if ($mounted) {
 		if (((! $force) || (($force) && (! $smb) && (! $nfs))) && (! is_mounted_read_only($dir))) {
 			unassigned_log("Synching file system on '".$dir."'.");
@@ -2004,7 +2003,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 
 			/* Check to see if the device really unmounted. */
 			for ($i=0; $i < 5; $i++) {
-				$mounted	= (($zfs) && ($pool_name)) ? (is_mounted($pool_name) || (is_mounted($dir))) : ((is_mounted($dev)) || (is_mounted($dir)));
+				$mounted	= (($zfs) && ($pool_name)) ? (is_mounted($pool_name, $dir)) : (is_mounted($dev, $dir));
 				if (! $mounted) {
 					if (is_dir($dir)) {
 						/* Remove the mount point. */
@@ -2543,7 +2542,7 @@ function get_samba_mounts() {
 				/* Determine the mountpoint for this remote share. */
 				if (! $mount['mountpoint']) {
 					$mount['mountpoint'] = $paths['usb_mountpoint']."/".$mount['ip']."_".$path;
-					if (! is_mounted($mount['mountpoint']) || is_link($mount['mountpoint'])) {
+					if (is_link($mount['mountpoint'])) {
 						if ($mount['fstype'] != "root") {
 							$mount['mountpoint'] = $paths['remote_mountpoint']."/".$mount['ip']."_".$path;
 						} else {
@@ -2553,7 +2552,7 @@ function get_samba_mounts() {
 				} else {
 					$path = basename($mount['mountpoint']);
 					$mount['mountpoint'] = $paths['usb_mountpoint']."/".$path;
-					if (! is_mounted($mount['mountpoint']) || is_link($mount['mountpoint'])) {
+					if (is_link($mount['mountpoint'])) {
 						if ($mount['fstype'] != "root") {
 							$mount['mountpoint'] = $paths['remote_mountpoint']."/".$path;
 						} else {
@@ -2572,7 +2571,7 @@ function get_samba_mounts() {
 				$mount['is_unmounting']	= MiscUD::get_unmounting_status($mount_device);
 
 				/* Is remote share mounted? */
-				$mount['mounted']		= (is_mounted($mount['mountpoint']) && is_mounted($mount['mount_dev']));
+				$mount['mounted']		= is_mounted($mount['mountpoint'], $mount['mount_dev']);
 
 				/* Is the remote share mounted read only? */
 				$mount['remote_read_only']	= is_mounted_read_only($mount['mountpoint']);
@@ -2756,7 +2755,7 @@ function do_mount_samba($info) {
 			}
 
 			/* Did the share successfully mount? */
-			if (is_mounted($dev) && is_mounted($dir)) {
+			if (is_mounted($dev, $dir)) {
 				$link = $paths['usb_mountpoint']."/";
 				if ((get_config("Config", "symlinks") == "yes" ) && (dirname($dir) == $paths['remote_mountpoint'])) {
 					$dir .= "/".
@@ -3444,19 +3443,19 @@ function get_partition_info($dev) {
 		$partition['disable_mount']	= is_disable_mount($partition['serial']);
 
 		/* Target is set to the mount point when the device is mounted. */
-		$partition['target']			= $partition['mounted'] ? $partition['mountpoint'] : "";
+		$partition['target']		= $partition['mounted'] ? $partition['mountpoint'] : "";
 
-		$stats					= get_device_stats($partition['mountpoint'], $partition['mounted']);
+		$stats						= get_device_stats($partition['mountpoint'], $partition['mounted']);
 		$partition['size']			= $stats[0]*1024;
 		$partition['used']			= $stats[1]*1024;
 		$partition['avail']			= $stats[2]*1024;
 		$partition['owner']			= (isset($_ENV['DEVTYPE'])) ? "udev" : "user";
 		$partition['read_only']		= is_read_only($partition['serial']);
-		$usb					= (isset($attrs['ID_BUS']) && ($attrs['ID_BUS'] == "usb"));
-		$partition['shared']			= config_shared($partition['serial'], $partition['part'], $usb);
+		$usb						= (isset($attrs['ID_BUS']) && ($attrs['ID_BUS'] == "usb"));
+		$partition['shared']		= config_shared($partition['serial'], $partition['part'], $usb);
 		$partition['command']		= get_config($partition['serial'], "command.{$partition['part']}");
 		$partition['user_command']	= get_config($partition['serial'], "user_command.{$partition['part']}");
-		$partition['command_bg']		= get_config($partition['serial'], "command_bg.{$partition['part']}");
+		$partition['command_bg']	= get_config($partition['serial'], "command_bg.{$partition['part']}");
 		$partition['enable_script']	= $partition['command'] ? get_config($partition['serial'], "enable_script.{$partition['part']}") : "false";
 		$partition['prog_name']		= basename($partition['command'], ".sh");
 		$partition['logfile']		= ($partition['prog_name']) ? $paths['device_log'].$partition['prog_name'].".log" : "";

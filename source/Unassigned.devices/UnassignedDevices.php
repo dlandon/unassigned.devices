@@ -550,7 +550,7 @@ switch ($_POST['action']) {
 			foreach ($all_disks as $disk) {
 				/* See if any partitions are mounted. */
 				$mounted = in_array(true, array_map(function($partition) {
-					return is_mounted($partition['mountpoint']);
+					return $partition['mounted'];
 				}, $disk['partitions']), true);
 
 				/* Was the disk unmounted properly? */
@@ -1052,6 +1052,8 @@ switch ($_POST['action']) {
 
 		/* Save the UD share names for duplicate check. */
 		MiscUD::save_json($paths['share_names'], $share_names);
+
+		unassigned_log("Debug: End...", $UPDATE_DEBUG);
 
 		echo json_encode(array( 'disks' => $o_disks, 'remotes' => $o_remotes, 'historical' => $o_historical ));
 		break;
