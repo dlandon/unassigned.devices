@@ -105,8 +105,11 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$is_formatting	= $partition['is_formatting'];
 		$disabled		= ($is_mounting || $is_unmounting || is_script_running($cmd) || ! $partition['fstype'] || $disk['array_disk']);
 
+		/* Get the lsblk file system to compare to udev. */
+		$crypto_fs_type	= part_fs_type($partition['device']);
+
 		/* Set up icons for file system check/scrub and script execution. */
-		$fstype = ($partition['fstype'] == "crypto_LUKS") ? part_fs_type($partition['device']) : $partition['fstype'];
+		$fstype = ($partition['fstype'] == "crypto_LUKS") ? $crypto_fs_type : $partition['fstype'];
 		if (((! $disabled) && (! $mounted) && ($fstype != "apfs") && ($fstype != "btrfs") && ($fstype != "zfs")) || ((! $disabled) && ($mounted) && ($fstype == "btrfs" || $fstype == "zfs"))) {
 			$file_system_check = (($fstype != "btrfs") && ($fstype != "zfs")) ? _('File System Check') : _('File System Scrub');
 			$fscheck = "<a class='exec info' onclick='openWindow_fsck(\"/plugins/".$plugin."/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&mountpoint={$partition['mountpoint']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i><span>".$file_system_check."</span></a>";
@@ -247,7 +250,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		}
 
 		/* Show disk and partition usage. */
-		$out[] = "<td>".($fstype == "crypto_LUKS" ? part_fs_type($partition['device']) : $fstype)."</td>";
+		$out[] = "<td>".($fstype == "crypto_LUKS" ? $crypto_fs_type : $fstype)."</td>";
 		if ($disk_line) {
 			$out[]			= (! $not_unmounted) ? render_used_and_free_disk($disk, $mounted_disk) : "<td></td>";
 		} else {
@@ -873,7 +876,7 @@ switch ($_POST['action']) {
 		}
 
 		$time		+= microtime(true);
-		unassigned_log("Updte Remote Mounts took ".sprintf('%f', $time)."s!", $UPDATE_DEBUG);
+		unassigned_log("Upadte Remote Mounts took ".sprintf('%f', $time)."s!", $UPDATE_DEBUG);
 
 		unassigned_log("Debug: Update ISO mounts...", $UPDATE_DEBUG);
 
@@ -983,11 +986,14 @@ switch ($_POST['action']) {
 		}
 
 		$time		+= microtime(true);
-		unassigned_log("Updte ISO Files took ".sprintf('%f', $time)."s!", $UPDATE_DEBUG);
+		unassigned_log("Update ISO Files took ".sprintf('%f', $time)."s!", $UPDATE_DEBUG);
 
 		unassigned_log("Debug: Update Historical Devices...", $UPDATE_DEBUG);
 
 		/* Historical devices. */
+		/* Start time for Historical Devices ops. */
+		$time = -microtime(true);
+
 		$o_historical = "";
 		$config_file	= $paths["config_file"];
 		$config			= is_file($config_file) ? @parse_ini_file($config_file, true) : array();
@@ -1065,7 +1071,10 @@ switch ($_POST['action']) {
 			$o_historical	.= "</tr>";
 		}
 
-		unassigned_log("Debug: End - Update status files...", $UPDATE_DEBUG);
+		$time		+= microtime(true);
+		unassigned_log("Update Historical Devices took ".sprintf('%f', $time)."s!", $UPDATE_DEBUG);
+
+		unassigned_log("Debug: End", $UPDATE_DEBUG);
 
 		/* Save the current disk names for a duplicate check. */
 		MiscUD::save_json($paths['disk_names'], $disk_names);

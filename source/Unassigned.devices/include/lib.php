@@ -98,6 +98,9 @@ $local_tld		= (isset($var['LOCAL_TLD']) && ($var['LOCAL_TLD']))? strtoupper($var
 /* Keep a copy of the output of the /proc/mounts status for checking read only status. */
 $mounts			= "";
 
+/* Keep a copy of the lsblk and blkid check for file type. */
+$lsblkOutput	= "";
+
 /* See if the preclear plugin is installed. */
 if ( is_file( "plugins/preclear.disk/assets/lib.php" ) ) {
 	require_once( "plugins/preclear.disk/assets/lib.php" );
@@ -1177,23 +1180,43 @@ function timed_exec($timeout, $cmd) {
 }
 
 /* Find the file system type of a partition. */
-function part_fs_type($dev, $luks = true) {
+function part_fs_type($dev) {
+    global $lsblkOutput;
 
-	/* Get the file system type from lsblk. */
-	$o	= trim(shell_exec("/bin/lsblk -o FSTYPE -n -p -l ".escapeshellarg($dev)." 2>/dev/null | /usr/bin/grep -v 'crypto_LUKS'") ?? "");
+	$luks		= (strpos($dev, "/dev/mapper/") !== false);
 
-	$rc	= ($o == "zfs_member") ? "zfs" : $o;
+    /* Get the file system types from lsblk and cache for later use. */
+    if ((! $lsblkOutput) || ($luks)) {
+        $lsblkOutput = timed_exec(0.5, "/bin/lsblk -o NAME,FSTYPE -n -l -p -e 7,11 2>/dev/null | /usr/bin/grep -v 'crypto_LUKS'");
+    }
 
-	return ($rc ? $rc : ($luks ? "luks" : ""));
+    $lines = explode(PHP_EOL, trim($lsblkOutput));
+    $lsblk_file_types = [];
+
+	/* Get the devices and file types into an array. */
+    foreach ($lines as $line) {
+        $parts = preg_split('/\s+/', $line, -1, PREG_SPLIT_NO_EMPTY);
+        if (count($parts) == 2) {
+            $device						= $parts[0];
+            $fileType					= $parts[1];
+            $lsblk_file_types[$device]	= $fileType;
+       }
+    }
+
+	/* Check if the device exists in the array. */
+	$file_type = isset($lsblk_file_types[$dev]) ? $lsblk_file_types[$dev] : "";
+
+	/* Set $rc to the file system type or "luks" if not found. */
+    $rc = $file_type === "zfs_member" ? "zfs" : ($file_type ? $file_type : ($luks ? "luks" : ""));
+
+	return $rc;
 }
 
 /* Find the file system of a zvol device. */
 function zvol_fs_type($dev) {
 
-	$rc	= "";
-
 	/* Get the file system type from blkid for a zfs volume. */
-	$rc	= trim(shell_exec("/sbin/blkid -s TYPE -o value ".escapeshellarg($dev)." 2>/dev/null") ?? "");
+	$rc	= trim(timed_exec(0.5, "/sbin/blkid -s TYPE -o value ".escapeshellarg($dev)." 2>/dev/null") ?? "");
 
 	return $rc;
 }
@@ -1712,7 +1735,7 @@ function do_mount_local($info) {
 						return false;
 					}
 				} else if ($fs == "zvol") {
-					$z_fstype	= part_fs_type($dev, false);
+					$z_fstype	= part_fs_type($dev);
 					$z_fstype	= ($z_fstype) ?: zvol_fs_type($dev);
 					$params		= get_mount_params($z_fstype, $dev, $ro);
 					$cmd		= "/sbin/mount -t ".escapeshellarg($z_fstype)." -o $params ".escapeshellarg($dev)." ".escapeshellarg($dir);
@@ -3393,7 +3416,7 @@ function get_partition_info($dev) {
 			} else {
 				$partition['label']	= safe_name($attrs['ID_SERIAL_SHORT']);
 			}
-			$all_disks			= array_unique(array_map(function($ar){return realpath($ar);}, listDir("/dev/disk/by-id")));
+			$all_disks				= array_unique(array_map(function($ar){return realpath($ar);}, listDir("/dev/disk/by-id")));
 			$partition['label']		= (isset($partition['label']) && (isset($matches[1][0])) && (count(preg_grep("%".$matches[1][0]."%i", $all_disks)) > 2)) ? $partition['label']."-part".$matches[2][0] : $partition['label'];
 			$partition['disk_label']	= "";
 		}
@@ -3408,7 +3431,7 @@ function get_partition_info($dev) {
 		$partition['fstype']			= ($partition['fstype'] == "zfs_member") ? "zfs" : $partition['fstype'];
 
 		/* Check for udev and lsblk file system type matching. If not then udev is not reporting the correct file system. */
-		$partition['not_udev']		= ($partition['fstype'] != "crypto_LUKS") ? ($partition['fstype'] != part_fs_type($partition['device'], false)) : false;
+		$partition['not_udev']		= ($partition['fstype'] != "crypto_LUKS") ? ($partition['fstype'] != part_fs_type($partition['device'])) : false;
 
 		/* Get the mount point from the configuration and if not set create a default mount point. */
 		$partition['mountpoint']		= get_config($partition['serial'], "mountpoint.{$partition['part']}");
@@ -3420,11 +3443,11 @@ function get_partition_info($dev) {
 		/* The device is /dev/mapper/... for all luks devices. */
 		if ($partition['fstype'] == "crypto_LUKS") {
 			$partition['luks']		= $partition['device'];
-			$partition['device']		= "/dev/mapper/".safe_name(basename($partition['mountpoint']));
-			$dev				= $partition['luks'];
+			$partition['device']	= "/dev/mapper/".safe_name(basename($partition['mountpoint']));
+			$dev					= $partition['luks'];
 		} else {
 			$partition['luks']		= "";
-			$dev				= $partition['device'];
+			$dev					= $partition['device'];
 		}
 
 		/* Get the partition mounting, unmounting, and formatting status. */
@@ -3456,7 +3479,7 @@ function get_partition_info($dev) {
 		}
 
 		/* See if this is a zfs file system. */
-		$zfs					= (part_fs_type($partition['device'], ($partition['fstype'] == "crypto_LUKS")) == "zfs");
+		$zfs					= (part_fs_type($partition['device']) == "zfs");
 
 		/* Get the pool name for a zfs device whether or not it is mounted. */
 		$partition['pool_name']		= $zfs ? MiscUD::zfs_pool_name($dev, $partition['mountpoint']) : "";
@@ -3527,7 +3550,7 @@ function get_zvol_info($disk) {
 			$zvol[$vol]['is_mounting']		= MiscUD::get_mounting_status(basename($zvol[$vol]['device']));
 			$zvol[$vol]['is_unmounting']	= MiscUD::get_unmounting_status(basename($zvol[$vol]['device']));
 			$zvol[$vol]['fstype']			= "zvol";
-			$zvol[$vol]['file_system']		= part_fs_type($zvol[$vol]['device'], false);
+			$zvol[$vol]['file_system']		= part_fs_type($zvol[$vol]['device']);
 			$zvol[$vol]['file_system']		= ($zvol[$vol]['file_system']) ?: zvol_fs_type($zvol[$vol]['device']);
 			$zvol[$vol]['zfs_read_only']	= is_mounted_read_only($zvol[$vol]['mountpoint']);
 			$stats							= get_device_stats($zvol[$vol]['mountpoint'], $zvol[$vol]['mounted'], $zvol[$vol]['active']);
