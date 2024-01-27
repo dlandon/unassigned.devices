@@ -316,6 +316,8 @@ class MiscUD
 
 	/* Get the zpool name if this is a zfs disk file system. */
 	public static function zfs_pool_name($dev, $mount_point = "") {
+		global $mounts;
+
 		/* Load zfs modules if they're not loaded. */
 		if (! is_file("/usr/sbin/zpool")) {
 			exec("/sbin/modprobe zfs");
@@ -332,21 +334,18 @@ class MiscUD
 
 			/* The disk must be mouned if we cannot import the zpool. */
 			if ((! $rc) && ($mount_point)) {
-				$mount				= timed_exec(0.5, "/bin/awk '{print $2 \",\" $1}' /proc/mounts 2>/dev/null");
-				$escapeSequences	= array("\\040");
-				$replacementChars	= array(" ");
-				$mount				= str_replace($escapeSequences, $replacementChars, $mount);
-
 				/* Create a two element array of the values. */
-				$lines	= explode("\n", $mount);
+
+				/* Get the cached mounts. */
+				$lines	= explode("\n", $mounts);
 				$result	= [];
 
 				/* Break down each line into the key (device) and value (pool name). */
 				foreach ($lines as $line) {
-					$parts = explode(',', $line, 2);
-					if (count($parts) === 2) {
-						$key			= trim($parts[0]);
-						$value			= trim($parts[1]);
+					$parts = explode(',', $line, 3);
+					if (count($parts) === 3) {
+						$key			= trim($parts[1]);
+						$value			= trim($parts[0]);
 						$result[$key]	= $value;
 					}
 				}
@@ -1511,13 +1510,13 @@ function is_disk_ssd($dev) {
 #########################################################
 ############		MOUNT FUNCTIONS			#############
 #########################################################
-/* Read the /proc//mounts file and cache it for further lookups mounted and read only checks. */
+/* Read the /proc/mounts file and cache it for further lookups mounted and read only checks. */
 function cache_mounts() {
 global $mounts;
 
-	$mount				= timed_exec(1, "/usr/bin/awk -F'[, ]' '{print $1 \",\" $2 \",\" $4}' /proc/mounts 2>/dev/null");
-	$escapeSequences	= array("\\040","\n");
-	$replacementChars	= array(" ",",");
+	$mount				= timed_exec(1, "/bin/awk -F'[, ]' '{print $1 \",\" $2 \",\" $4}' /proc/mounts 2>/dev/null");
+	$escapeSequences	= array("\\040");
+	$replacementChars	= array(" ");
 	$mounts				= str_replace($escapeSequences, $replacementChars, $mount);
 }
 
@@ -1537,7 +1536,7 @@ global $mounts;
 	/* Check for mounted status. */
 	if ($dev) {
 		$rc_dev				= (strpos($mounts, $dev.",") !== false);
-		if ($rc_dir) {
+		if ($dir) {
 			$rc_dir			= (strpos($mounts, $dir.",") !== false);
 		}
 	}
@@ -1689,7 +1688,7 @@ function do_mount_local($info) {
 	$dir			= $info['mountpoint'];
 	$fs				= $info['fstype'];
 	$ro				= $info['read_only'];
-	$file_system	= "";
+	$file_system	= $fs;
 
 	$pool_name	= $info['pool_name'];
 	$mounted	= $info['mounted'];
@@ -1787,7 +1786,7 @@ function do_mount_local($info) {
 
 			/* Check to see if the device really mounted. */
 			for ($i=0; $i < 5; $i++) {
-				$mounted	= (($info['fstype'] == "zfs") && ($pool_name)) ? (is_mounted($pool_name, $dir)) : (is_mounted($dev, $dir));
+				$mounted	= (($file_system == "zfs") && ($pool_name)) ? (is_mounted($pool_name, $dir)) : (is_mounted($dev, $dir));
 				if ($mounted) {
 					if (! is_mounted_read_only($dir)) {
 						exec("/bin/chmod 0777 ".escapeshellarg($dir)." 2>/dev/null");
@@ -1799,7 +1798,7 @@ function do_mount_local($info) {
 					$rc = true;
 
 					/* Set zfs readonly flag based on device read only setting. */
-					if (($fs == "zfs") || ($file_system == "zfs")) {
+					if ($file_system == "zfs") {
 						exec("/usr/sbin/zfs set readonly=".($ro ? 'on' : 'off')." ".escapeshellarg($pool_name)." 2>/dev/null");
 					}
 
@@ -1807,6 +1806,11 @@ function do_mount_local($info) {
 				} else {
 					usleep(500 * 1000);
 				}
+			}
+
+			/* If we timed out waiting for the mount to be successful set timed out error. */
+			if ($i == 5) {
+				$o	= "mount wait timeout";
 			}
 
 			/* If the device did not mount, close the luks disk if the FS is luks, and show an error. */
@@ -1876,6 +1880,12 @@ function do_mount_local($info) {
 											}
 										}
 									}
+
+									/* If we timed out waiting for the mount to be successful set timed out error. */
+									if ($i == 5) {
+										$o	= "mount wait timeout";
+									}
+
 									/* Was there an error? */
 									if (! $rc) {
 										unassigned_log("Mount of zfs dataset '".$columns[0]."' failed: '".$o."'");
@@ -2033,6 +2043,11 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 				} else {
 					usleep(500 * 1000);
 				}
+			}
+
+			/* If we timed out waiting for the mount to be successful set timed out error. */
+			if ($i == 5) {
+				$o	= "mount wait timeout";
 			}
 		}
 
@@ -3168,7 +3183,7 @@ function get_all_disks_info() {
 	$ud_disks = get_unassigned_disks();
 	if (is_array($ud_disks)) {
 		/* Read the disk sizes into an array so we only call lsblk once. */
-		$lsblkOutput	= timed_exec(0.5, "/bin/lsblk -b -n -o NAME,SIZE,TYPE | /usr/bin/awk '$3 == \"disk\" {print $1 \",\" $2}' 2</dev/null");
+		$lsblkOutput	= timed_exec(0.5, "/bin/lsblk -b -n -o NAME,SIZE,TYPE | /bin/awk '$3 == \"disk\" {print $1 \",\" $2}' 2</dev/null");
 
 		/* Explode the output into an array based on newline character. */
 		$lines = explode("\n", trim($lsblkOutput));
