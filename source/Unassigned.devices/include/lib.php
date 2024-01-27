@@ -95,7 +95,7 @@ if (! isset($var)){
 $default_tld	= "LOCAL";
 $local_tld		= (isset($var['LOCAL_TLD']) && ($var['LOCAL_TLD']))? strtoupper($var['LOCAL_TLD']) : $default_tld;
 
-/* Keep a copy of the output of the /proc/mounts status for checking red only status. */
+/* Keep a copy of the output of the /proc/mounts status for checking read only status. */
 $mounts			= "";
 
 /* See if the preclear plugin is installed. */
@@ -292,7 +292,7 @@ class MiscUD
 		global $paths;
 
 		$mounting		= array_values(preg_grep("@/mounting_".safe_name($device, true, true)."@i", listDir(dirname($paths['mounting']))))[0] ?? '';
-		$is_mounting	= (isset($mounting) && (time() - @filemtime($mounting) < 300));
+		$is_mounting	= (isset($mounting) && (time() - filemtime($mounting) < 300));
 		return $is_mounting;
 	}
 
@@ -301,7 +301,7 @@ class MiscUD
 		global $paths;
 
 		$unmounting		= array_values(preg_grep("@/unmounting_".safe_name($device, true, true)."@i", listDir(dirname($paths['unmounting']))))[0] ?? '';
-		$is_unmounting	= (isset($unmounting) && (time() - @filemtime($unmounting)) < 300);
+		$is_unmounting	= (isset($unmounting) && (time() - filemtime($unmounting)) < 300);
 		return $is_unmounting;
 	}
 
@@ -310,7 +310,7 @@ class MiscUD
 		global $paths;
 
 		$formatting		= array_values(preg_grep("@/formatting_".basename($device)."@i", listDir(dirname($paths['formatting']))))[0] ?? '';
-		$is_formatting	= (isset($formatting) && (time() - @filemtime($formatting) < 300));
+		$is_formatting	= (isset($formatting) && (time() - filemtime($formatting) < 300));
 		return $is_formatting;
 	}
 
@@ -332,7 +332,7 @@ class MiscUD
 				$rc	= "";
 			}
 
-			/* The disk must be mouned if we cannot import the zpool. */
+			/* The disk must be moutned if we cannot import the zpool. */
 			if ((! $rc) && ($mount_point)) {
 				/* Create a two element array of the values. */
 
@@ -1510,27 +1510,21 @@ function is_disk_ssd($dev) {
 #########################################################
 ############		MOUNT FUNCTIONS			#############
 #########################################################
-/* Read the /proc/mounts file and cache it for further lookups mounted and read only checks. */
-function cache_mounts() {
-global $mounts;
-
-	$mount				= timed_exec(1, "/bin/awk -F'[, ]' '{print $1 \",\" $2 \",\" $4}' /proc/mounts 2>/dev/null");
-	$escapeSequences	= array("\\040");
-	$replacementChars	= array(" ");
-	$mounts				= str_replace($escapeSequences, $replacementChars, $mount);
-}
-
 /* Is a device mounted? */
 function is_mounted($dev, $dir = "", $update = true) {
 global $mounts;
 
+	/* A copy of /proc/mounts file is kept in memory so the 'cat' command does not need to be executed when not necessary. */
 	$rc		= false;
 	$rc_dev	= false;
 	$rc_dir	= true;
 
-	/* Read the /proc/mounts file and cache it. */
+	/* See if we need to load the /proc/mounts file to memory. */
 	if ((! $mounts) || ($update)) {
-		cache_mounts();
+		$mount				= timed_exec(1, "/bin/awk -F'[, ]' '{print $1 \",\" $2 \",\" $4}' /proc/mounts 2>/dev/null");
+		$escapeSequences	= array("\\040");
+		$replacementChars	= array(" ");
+		$mounts				= str_replace($escapeSequences, $replacementChars, $mount);
 	}
 
 	/* Check for mounted status. */
@@ -1713,6 +1707,9 @@ function do_mount_local($info) {
 
 						$params		= get_mount_params($fs, $dev, $ro);
 						$cmd		= "/usr/sbin/zfs mount -o $params ".escapeshellarg($pool_name);
+					} else {
+						unassigned_log("Cannot determine Pool Name of '".$dev."'");
+						return false;
 					}
 				} else if ($fs == "zvol") {
 					$z_fstype	= part_fs_type($dev, false);
@@ -1759,7 +1756,7 @@ function do_mount_local($info) {
 			/* apfs file system requires UD+ to be installed. */
 			if (($fs == "apfs") && (! is_file("/usr/bin/apfs-fuse"))) {
 				$o = "Install Unassigned Devices Plus to mount an apfs file system";
-			} else if ((($fs == "zfs") || ($file_system == "zfs")) && (! is_file("/usr/sbin/zfs"))) {
+			} else if (($file_system == "zfs") && (! is_file("/usr/sbin/zfs"))) {
 				$o = "Unraid 6.12 or later is needed to mount a zfs file system";
 			} else {
 				/* Create mount point and set permissions. */
@@ -1768,7 +1765,7 @@ function do_mount_local($info) {
 				}
 
 				/* If the pool name cannot be found, we cannot mount the pool. */
-				if ((($fs == "zfs") || ($file_system == "zfs")) && (! $pool_name)) {
+				if (($file_system == "zfs") && (! $pool_name)) {
 					$o = "Cannot determine Pool Name of '".$dev."'";
 				} else {
 					/* Do the mount command. */
@@ -1841,7 +1838,7 @@ function do_mount_local($info) {
 				}
 
 				/* If file system is zfs, mount any datasets. */
-				if (($fs == "zfs") || ($file_system == "zfs")) {
+				if ($file_system == "zfs") {
 					$data	= shell_exec("/usr/sbin/zfs list -H -o name,mountpoint | /usr/bin/grep ".escapeshellarg($pool_name)." | /bin/awk -F'\t' '$2 != \"-\" && $2 != \"legacy\" {print $1 \",\" $2}'");
 
 					$rows	= explode("\n", $data);
