@@ -50,9 +50,6 @@ if (! $DEVNAME) {
 	die("Fail: device not defined.\n");
 }
 
-/* Cache the mounts file so it does not have to be read for every is_mounted() and is_mounted_read_only() check. */
-cache_mounts();
-
 /* Create array for mount button status files. */
 $remove = array();
 $result	= "";

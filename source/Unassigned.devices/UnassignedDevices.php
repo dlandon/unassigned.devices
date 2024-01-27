@@ -502,10 +502,10 @@ switch ($_POST['action']) {
 	case 'get_content':
 		/* Update the UD webpage content. */
 
-		unassigned_log("Debug: Begin - Refreshing content...", $UPDATE_DEBUG);
+		/* Start time for disk ops. */
+		$time		= -microtime(true); 
 
-		/* Cache the mounts file so it does not have to be read for every is_mounted() and is_mounted_read_only() check. */
-		cache_mounts();
+		unassigned_log("Debug: Begin - Refreshing content...", $UPDATE_DEBUG);
 
 		/* Check for a recent hot plug event. */
 		if (file_exists($paths['hotplug_event'])) {
@@ -747,11 +747,18 @@ switch ($_POST['action']) {
 			$o_disks .= "<tr><td colspan='11' style='text-align:center;'>"._('No Unassigned Disks available').".</td></tr>";
 		}
 
+		$time		+= microtime(true);
+		unassigned_log("Update Disks took ".sprintf('%f', $time)."s!", $UPDATE_DEBUG);
+
 		unassigned_log("Debug: Update Remote Mounts...", $UPDATE_DEBUG);
 
 		/* SAMBA Mounts. */
 		$o_remotes = "";
-		$ds1 = -microtime(true);
+
+		/* Start time for remote shares ops. */
+		$time = -microtime(true);
+
+		/* Get all the samba mounts. */
 		$samba_mounts = get_samba_mounts();
 		if (count($samba_mounts)) {
 			foreach ($samba_mounts as $mount)
@@ -865,9 +872,16 @@ switch ($_POST['action']) {
 			}
 		}
 
+		$time		+= microtime(true);
+		unassigned_log("Updte Remote Mounts took ".sprintf('%f', $time)."s!", $UPDATE_DEBUG);
+
 		unassigned_log("Debug: Update ISO mounts...", $UPDATE_DEBUG);
 
 		/* ISO file Mounts. */
+
+		/* Start time for ISO file ops. */
+		$time = -microtime(true);
+
 		$iso_mounts = get_iso_mounts();
 		if (count($iso_mounts)) {
 			foreach ($iso_mounts as $mount) {
@@ -967,6 +981,9 @@ switch ($_POST['action']) {
 		if (! count($samba_mounts) && ! count($iso_mounts)) {
 			$o_remotes .= "<tr><td colspan='11' style='text-align:center;'>"._('No Remote SMB')."/"._('NFS or ISO File Shares configured').".</td></tr>";
 		}
+
+		$time		+= microtime(true);
+		unassigned_log("Updte ISO Files took ".sprintf('%f', $time)."s!", $UPDATE_DEBUG);
 
 		unassigned_log("Debug: Update Historical Devices...", $UPDATE_DEBUG);
 
