@@ -1750,6 +1750,7 @@ function do_mount_local($info) {
 				/* Find the file system type on the luks device to use the proper mount options. */
 				$mapper			= $info['device'];
 
+				/* Now that the luks device is opened, we can get the file system. */
 				$file_system	= part_fs_type($mapper);
 
 				if ($file_system != "zfs") {
@@ -3430,9 +3431,6 @@ function get_partition_info($dev) {
 		$partition['fstype']			= safe_name($attrs['ID_FS_TYPE'] ?? "");
 		$partition['fstype']			= ($partition['fstype'] == "zfs_member") ? "zfs" : $partition['fstype'];
 
-		/* Check for udev and lsblk file system type matching. If not then udev is not reporting the correct file system. */
-		$partition['not_udev']		= ($partition['fstype'] != "crypto_LUKS") ? ($partition['fstype'] != part_fs_type($partition['device'])) : false;
-
 		/* Get the mount point from the configuration and if not set create a default mount point. */
 		$partition['mountpoint']		= get_config($partition['serial'], "mountpoint.{$partition['part']}");
 		if (! $partition['mountpoint']) { 
@@ -3442,13 +3440,19 @@ function get_partition_info($dev) {
 		/* crypto_LUKS file system. */
 		/* The device is /dev/mapper/... for all luks devices. */
 		if ($partition['fstype'] == "crypto_LUKS") {
-			$partition['luks']		= $partition['device'];
-			$partition['device']	= "/dev/mapper/".safe_name(basename($partition['mountpoint']));
-			$dev					= $partition['luks'];
+			$partition['luks']			= $partition['device'];
+			$partition['device']		= "/dev/mapper/".safe_name(basename($partition['mountpoint']));
+			$dev						= $partition['luks'];
 		} else {
-			$partition['luks']		= "";
-			$dev					= $partition['device'];
+			$partition['luks']			= "";
+			$dev						= $partition['device'];
 		}
+
+		/* This is the file system reorted by lsblk. */
+		$partition['file_system']		= part_fs_type($partition['device']);
+
+		/* Check for udev and lsblk file system type matching. If not then udev is not reporting the correct file system. */
+		$partition['not_udev']			= ($partition['fstype'] != "crypto_LUKS") ? ($partition['fstype'] != $partition['file_system']) : false;
 
 		/* Get the partition mounting, unmounting, and formatting status. */
 		$partition['is_mounting']	= MiscUD::get_mounting_status(basename($dev));
@@ -3479,7 +3483,7 @@ function get_partition_info($dev) {
 		}
 
 		/* See if this is a zfs file system. */
-		$zfs					= (part_fs_type($partition['device']) == "zfs");
+		$zfs					= ($partition['file_system'] == "zfs");
 
 		/* Get the pool name for a zfs device whether or not it is mounted. */
 		$partition['pool_name']		= $zfs ? MiscUD::zfs_pool_name($dev, $partition['mountpoint']) : "";

@@ -418,7 +418,7 @@ function unassigned_umount() {
 					$result		= "failure";
 				} else {
 					/* If the device is mounted, unmount it. */
-					$file_system	= ($info['fstype'] != "crypto_LUKS") ? $info['fstype'] : part_fs_type($info['device']);
+					$file_system	= $info['file_system'];
 					$pool_name		= $info['pool_name'];
 					$mounted		= $info['mounted'];
 					if ($mounted) {
