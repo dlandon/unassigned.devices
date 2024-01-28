@@ -729,7 +729,6 @@ switch ($_POST['action']) {
 						if (MiscUD::is_device_nvme($dev)) {
 							$dev .= "p";
 						}
-
 						/* Check if this disk uuid has already been entered in the share_names array. */
 						$mountpoint					= basename($disk['partitions'][$i]['mountpoint']);
 						$dev						.= $disk['partitions'][$i]['part'];

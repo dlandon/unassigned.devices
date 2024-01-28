@@ -1530,7 +1530,7 @@ function is_disk_ssd($dev) {
 function is_mounted($dev, $dir = "", $update = true) {
 	global $mounts;
 
-	/* A copy of /proc/mounts file is kept in memory so the /-proc/mounts file does not need to be read when not necessary. */
+	/* Create a global array of device, mount point, and read only status from /-proc/mounts. */
 	$rc_dev		= false;
 	$rc_dir		= true;
 
@@ -2026,8 +2026,6 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 	$rc = false;
 	$pool_name	= ($zfs) ? MiscUD::zfs_pool_name("", $dir) : "";
 	$timeout	= ($smb || $nfs) ? ($force ? 30 : 10) : 90;
-unassigned_log("*** zfs ".($zfs ? "true" : "false"));
-unassigned_log("*** pool name ".$pool_name." dir ".$dir);
 	$mounted	= (($zfs) && ($pool_name)) ? (is_mounted($pool_name, $dir)) : (is_mounted($dev, $dir));
 	if ($mounted) {
 		if (((! $force) || (($force) && (! $smb) && (! $nfs))) && (! is_mounted_read_only($dir))) {
@@ -3420,8 +3418,8 @@ function get_partition_info($dev) {
 	$attrs	= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
 	if ($attrs['DEVTYPE'] == "partition") {
 		$partition['serial_short']	= $attrs['ID_SCSI_SERIAL'] ?? ($attrs['ID_SERIAL_SHORT'] ?? "");
-		$partition['device']			= realpath($dev);
-		$partition['serial']			= isset($attrs['ID_SERIAL']) ? get_disk_id($partition['device'], trim($attrs['ID_SERIAL'])) : "";
+		$partition['device']		= realpath($dev);
+		$partition['serial']		= isset($attrs['ID_SERIAL']) ? get_disk_id($partition['device'], trim($attrs['ID_SERIAL'])) : "";
 		$partition['uuid']			= $attrs['ID_FS_UUID'] ?? "";
 
 		/* Get partition number */
