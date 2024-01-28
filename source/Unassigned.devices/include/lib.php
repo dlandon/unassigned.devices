@@ -95,11 +95,11 @@ if (! isset($var)){
 $default_tld	= "LOCAL";
 $local_tld		= (isset($var['LOCAL_TLD']) && ($var['LOCAL_TLD']))? strtoupper($var['LOCAL_TLD']) : $default_tld;
 
-/* Keep a copy of the output of the /proc/mounts status for checking read only status. */
-$mounts			= "";
+/* Array of devices, mount points, and read only status taken from the /proc/mounts file. */
+$mounts				= array();
 
-/* Keep a copy of the lsblk and blkid check for file type. */
-$lsblkOutput	= "";
+/* Array of devices and file system type taken from lsblk. */
+$lsblk_file_types	= array();
 
 /* See if the preclear plugin is installed. */
 if ( is_file( "plugins/preclear.disk/assets/lib.php" ) ) {
@@ -335,31 +335,19 @@ class MiscUD
 				$rc	= "";
 			}
 
-			/* The disk must be moutned if we cannot import the zpool. */
+			/* The disk must be mounted if we cannot import the zpool. */
 			if ((! $rc) && ($mount_point)) {
-				/* Create a two element array of the values. */
-				/* Get the cached mounts. */
-				$lines	= explode("\n", $mounts);
-				$result	= [];
-
-				/* Break down each line into the key (device) and value (pool name). */
-				foreach ($lines as $line) {
-					$parts = explode(',', $line, 3);
-					if (count($parts) === 3) {
-						$key			= trim($parts[1]);
-						$value			= trim($parts[0]);
-						$result[$key]	= $value;
+				foreach ($mounts as $k => $v) {
+					if ($v['mountpoint'] === $mount_point) {
+						$rc		= $k;
+						break;
 					}
 				}
-
-				/* Get the pool name for this device. */
-				$rc		= $result[$mount_point] ?? "";
 			}
 		} else {
 			$rc	= "";
 		}
-
-		return trim($rc);
+		return ($rc);
 	}
 }
 
@@ -1180,27 +1168,33 @@ function timed_exec($timeout, $cmd) {
 
 /* Find the file system type of a partition. */
 function part_fs_type($dev) {
-    global $lsblkOutput;
+    global $lsblk_file_types;
 
 	$luks		= (strpos($dev, "/dev/mapper/") !== false);
 
+	if (($luks) && ((! is_mounted($dev)) || (! isset($lsblk_file_types[$dev])))) {
+		$refresh	= true;
+	} else {
+		$refresh	= false;
+	}
+
     /* Get the file system types from lsblk and cache for later use. */
-    if ((! $lsblkOutput) || ($luks)) {
+    if ((! $lsblk_file_types) || ($refresh)) {
         $lsblkOutput = timed_exec(0.5, "/bin/lsblk -o NAME,FSTYPE -n -l -p -e 7,11 2>/dev/null | /usr/bin/grep -v 'crypto_LUKS'");
-    }
 
-    $lines = explode(PHP_EOL, trim($lsblkOutput));
-    $lsblk_file_types = [];
+		$lines = explode(PHP_EOL, trim($lsblkOutput));
+		$lsblk_file_types = [];
 
-	/* Get the devices and file types into an array. */
-    foreach ($lines as $line) {
-        $parts = preg_split('/\s+/', $line, -1, PREG_SPLIT_NO_EMPTY);
-        if (count($parts) == 2) {
-            $device						= $parts[0];
-            $fileType					= $parts[1];
-            $lsblk_file_types[$device]	= $fileType;
-       }
-    }
+		/* Get the devices and file types into an array. */
+		foreach ($lines as $line) {
+			$parts = preg_split('/\s+/', $line, -1, PREG_SPLIT_NO_EMPTY);
+			if (count($parts) == 2) {
+				$device						= $parts[0];
+				$fileType					= $parts[1];
+				$lsblk_file_types[$device]	= $fileType;
+		   }
+		}
+	}
 
 	/* Check if the device exists in the array. */
 	$file_type = isset($lsblk_file_types[$dev]) ? $lsblk_file_types[$dev] : "";
@@ -1534,7 +1528,7 @@ function is_disk_ssd($dev) {
 #########################################################
 /* Is a device mounted? */
 function is_mounted($dev, $dir = "", $update = true) {
-global $mounts;
+	global $mounts;
 
 	/* A copy of /proc/mounts file is kept in memory so the /-proc/mounts file does not need to be read when not necessary. */
 	$rc_dev		= false;
@@ -1546,34 +1540,37 @@ global $mounts;
 		$escapeSequences	= array("\\040");
 		$replacementChars	= array(" ");
 		$mounts				= str_replace($escapeSequences, $replacementChars, $mount);
-	}
 
-	/* Create a two element array of the values. */
-	/* Get the cached mounts. */
-	$lines	= explode("\n", $mounts);
-	$result	= [];
+		/* Create a two element array of the values. */
+		/* Get the cached mounts. */
+		$lines	= explode("\n", $mounts);
+		$mounts		= [];
 
-	/* Break down each line into the key (device) and value (read only). */
-	foreach ($lines as $line) {
-		$parts = explode(',', $line, 3);
-		if (count($parts) === 3) {
-			$key			= trim($parts[0]);
-			$value			= trim($parts[1]);
-			$result[$key]	= $value;
+		/* Break down each line into the key (device) and value (read only). */
+		foreach ($lines as $line) {
+			$parts = explode(',', $line, 3);
+			if (count($parts) === 3) {
+				$device							= trim($parts[0]);
+				$mount_point					= trim($parts[1]);
+				$read_only						= trim($parts[2]);
+				$mounts[$device]['mountpoint']	= $mount_point;
+				$mounts[$device]['read_only']	= ($read_only == "ro");
+			}
 		}
 	}
 
 	/* Check for mounted status. */
 	if ($dev) {
-		$rc_dev			= isset($result[$dev]);
+		$rc_dev			= isset($mounts[$dev]);
 	}
 	if ($dir) {
 		if ($dev) {
-			$rc_dir		= (isset($result[$dev]) && ($result[$dev] == $dir));
+			$rc_dir		= (isset($mounts[$dev]) && ($mounts[$dev]['mountpoint'] == $dir));
 		} else {
-			foreach ($result as $k => $v) {
-				if ($v === $dir) {
+			foreach ($mounts as $k => $v) {
+				if ($v['mountpoint'] === $dir) {
 					$rc_dev	= true;
+					break;
 				}
 			}
 		}
@@ -1583,25 +1580,18 @@ global $mounts;
 }
 
 /* Is a device mounted read only? */
-function is_mounted_read_only($dev) {
-global $mounts;
+function is_mounted_read_only($dir) {
+	global $mounts;
 
-	/* Create a two element array of the values. */
-	/* Get the cached mounts. */
-	$lines	= explode("\n", $mounts);
-	$result	= [];
-
-	/* Break down each line into the key (device) and value (read only). */
-	foreach ($lines as $line) {
-		$parts = explode(',', $line, 3);
-		if (count($parts) === 3) {
-			$key			= trim($parts[1]);
-			$value			= trim($parts[2]);
-			$result[$key]	= $value;
+	$rc		= false;
+	foreach ($mounts as $k => $v) {
+		if ($v['mountpoint'] === $dir) {
+			$rc		= $v['read_only'];
+			break;
 		}
 	}
 
-	return ((isset($result[$dev]) && $result[$dev] == "ro"));
+	return ($rc);
 }
 
 /* Get the mount parameters based on the file system. */
@@ -2036,6 +2026,8 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 	$rc = false;
 	$pool_name	= ($zfs) ? MiscUD::zfs_pool_name("", $dir) : "";
 	$timeout	= ($smb || $nfs) ? ($force ? 30 : 10) : 90;
+unassigned_log("*** zfs ".($zfs ? "true" : "false"));
+unassigned_log("*** pool name ".$pool_name." dir ".$dir);
 	$mounted	= (($zfs) && ($pool_name)) ? (is_mounted($pool_name, $dir)) : (is_mounted($dev, $dir));
 	if ($mounted) {
 		if (((! $force) || (($force) && (! $smb) && (! $nfs))) && (! is_mounted_read_only($dir))) {
@@ -2620,25 +2612,15 @@ function get_samba_mounts() {
 				/* Is the mount button set disabled? */
 				$mount['disable_mount']	= is_samba_disable_mount($mount['name']);
 
-				/* Determine the mountpoint for this remote share. */
-				if (! $mount['mountpoint']) {
-					$mount['mountpoint'] = $paths['usb_mountpoint']."/".$mount['ip']."_".$path;
-					if (is_link($mount['mountpoint'])) {
-						if ($mount['fstype'] != "root") {
-							$mount['mountpoint'] = $paths['remote_mountpoint']."/".$mount['ip']."_".$path;
-						} else {
-							$mount['mountpoint'] = $paths['root_mountpoint']."/".$path;
-						}
-					}
+				if ($mount['fstype'] == "root") {
+					$mount['mountpoint'] = $paths['root_mountpoint']."/".$path;
 				} else {
-					$path = basename($mount['mountpoint']);
-					$mount['mountpoint'] = $paths['usb_mountpoint']."/".$path;
-					if (is_link($mount['mountpoint'])) {
-						if ($mount['fstype'] != "root") {
-							$mount['mountpoint'] = $paths['remote_mountpoint']."/".$path;
-						} else {
-							$mount['mountpoint'] = $paths['root_mountpoint']."/".$path;
-						}
+					/* Determine the mountpoint for this remote share. */
+					if (! $mount['mountpoint']) {
+						$mount['mountpoint'] = $paths['remote_mountpoint']."/".$mount['ip']."_".$path;
+					} else {
+						$path = basename($mount['mountpoint']);
+						$mount['mountpoint'] = $paths['remote_mountpoint']."/".$path;
 					}
 				}
 
