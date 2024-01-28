@@ -234,7 +234,7 @@ function unassigned_mount() {
 					continue;
 				}
 
-				/* Remove any special characters. */
+				/* Create the mounting status file. */
 				$mount_device = basename($info['ip'])."_".basename($info['path']);
 
 				/* Create mounting status file. */
@@ -567,7 +567,8 @@ function unassigned_umount() {
 					$nfs = ($info['fstype'] == "nfs");
 
 					/* Unmount the remote share. */
-					if ( do_unmount($info['mount_dev'], $info['mountpoint'], $force_unmount, $smb, $nfs) ) {
+					$mounted_dev	= $info['fstype'] != "root" ? $info['mount_dev'] : "";
+					if ( do_unmount($mounted_dev, $info['mountpoint'], $force_unmount, $smb, $nfs) ) {
 						rm_smb_share($info['mountpoint']);
 						rm_nfs_share($info['mountpoint']);
 
@@ -616,7 +617,7 @@ function unassigned_umount() {
 
 
 					/* Unmount the iso file. */
-					if ( do_unmount($info['mountpoint'], $info['mountpoint'], $force) ) {
+					if ( do_unmount("", $info['mountpoint'], $force) ) {
 						/* Remove the smb and nfs shares. */
 						rm_smb_share($info['mountpoint']);
 						rm_nfs_share($info['mountpoint']);

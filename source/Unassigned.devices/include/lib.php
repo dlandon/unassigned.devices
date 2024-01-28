@@ -338,7 +338,6 @@ class MiscUD
 			/* The disk must be moutned if we cannot import the zpool. */
 			if ((! $rc) && ($mount_point)) {
 				/* Create a two element array of the values. */
-
 				/* Get the cached mounts. */
 				$lines	= explode("\n", $mounts);
 				$result	= [];
@@ -1537,10 +1536,9 @@ function is_disk_ssd($dev) {
 function is_mounted($dev, $dir = "", $update = true) {
 global $mounts;
 
-	/* A copy of /proc/mounts file is kept in memory so the 'cat' command does not need to be executed when not necessary. */
-	$rc		= false;
-	$rc_dev	= false;
-	$rc_dir	= true;
+	/* A copy of /proc/mounts file is kept in memory so the /-proc/mounts file does not need to be read when not necessary. */
+	$rc_dev		= false;
+	$rc_dir		= true;
 
 	/* See if we need to load the /proc/mounts file to memory. */
 	if ((! $mounts) || ($update)) {
@@ -1550,11 +1548,34 @@ global $mounts;
 		$mounts				= str_replace($escapeSequences, $replacementChars, $mount);
 	}
 
+	/* Create a two element array of the values. */
+	/* Get the cached mounts. */
+	$lines	= explode("\n", $mounts);
+	$result	= [];
+
+	/* Break down each line into the key (device) and value (read only). */
+	foreach ($lines as $line) {
+		$parts = explode(',', $line, 3);
+		if (count($parts) === 3) {
+			$key			= trim($parts[0]);
+			$value			= trim($parts[1]);
+			$result[$key]	= $value;
+		}
+	}
+
 	/* Check for mounted status. */
 	if ($dev) {
-		$rc_dev				= (strpos($mounts, $dev.",") !== false);
-		if ($dir) {
-			$rc_dir			= (strpos($mounts, $dir.",") !== false);
+		$rc_dev			= isset($result[$dev]);
+	}
+	if ($dir) {
+		if ($dev) {
+			$rc_dir		= (isset($result[$dev]) && ($result[$dev] == $dir));
+		} else {
+			foreach ($result as $k => $v) {
+				if ($v === $dir) {
+					$rc_dev	= true;
+				}
+			}
 		}
 	}
 
@@ -1565,7 +1586,22 @@ global $mounts;
 function is_mounted_read_only($dev) {
 global $mounts;
 
-	return (strpos($mounts, $dev.",ro,") !== false);
+	/* Create a two element array of the values. */
+	/* Get the cached mounts. */
+	$lines	= explode("\n", $mounts);
+	$result	= [];
+
+	/* Break down each line into the key (device) and value (read only). */
+	foreach ($lines as $line) {
+		$parts = explode(',', $line, 3);
+		if (count($parts) === 3) {
+			$key			= trim($parts[1]);
+			$value			= trim($parts[2]);
+			$result[$key]	= $value;
+		}
+	}
+
+	return ((isset($result[$dev]) && $result[$dev] == "ro"));
 }
 
 /* Get the mount parameters based on the file system. */
@@ -1731,7 +1767,7 @@ function do_mount_local($info) {
 						$params		= get_mount_params($fs, $dev, $ro);
 						$cmd		= "/usr/sbin/zfs mount -o $params ".escapeshellarg($pool_name);
 					} else {
-						unassigned_log("Cannot determine Pool Name of '".$dev."'");
+						unassigned_log("Warning: Cannot determine Pool Name of '".$dev."'");
 						return false;
 					}
 				} else if ($fs == "zvol") {
@@ -1790,7 +1826,7 @@ function do_mount_local($info) {
 
 				/* If the pool name cannot be found, we cannot mount the pool. */
 				if (($file_system == "zfs") && (! $pool_name)) {
-					$o = "Cannot determine Pool Name of '".$dev."'";
+					$o = "Warning: Cannot determine Pool Name of '".$dev."'";
 				} else {
 					/* Do the mount command. */
 					$o = shell_exec(escapeshellcmd($cmd)." 2>&1");
@@ -1877,7 +1913,7 @@ function do_mount_local($info) {
 
 							/* The dataset (folder) must exist before it can be mounted. */
 							if ((count($columns) == 2) && ($columns[0] != $pool_name)) {
-								if (! is_mounted($columns[1])) {
+								if (! is_mounted($columns[0], $columns[1])) {
 									/* Mount the dataset. */
 									$params	= get_mount_params($file_system, $pool_name, $ro);
 									$cmd = "/usr/sbin/zfs mount -o ".$params." ".escapeshellarg($columns[0]);
@@ -1890,7 +1926,7 @@ function do_mount_local($info) {
 									if (! $o) {
 										/* Check to see if the dataset really mounted. */
 										for ($i=0; $i < 5; $i++) {
-											if (is_mounted($columns[1])) {
+											if (is_mounted($columns[0], $columns[1])) {
 												unassigned_log("Successfully mounted zfs dataset '".$columns[0]."' on '".$columns[1]."'.");
 
 												$rc = true;
@@ -1973,7 +2009,7 @@ function do_mount_root($info) {
 				}
 
 				/* Did the root share successfully mount? */
-				if (is_mounted($dir)) {
+				if (is_mounted("", $dir)) {
 					unassigned_log("Successfully mounted '".$dev."' on '".$dir."'.");
 
 					$rc = true;
@@ -2034,7 +2070,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 		unassigned_log("Unmount cmd: ".$cmd);
 
 		if (($zfs) && (! $pool_name)) {
-			$o = "Cannot determine Pool Name of '".$dev."'";
+			$o = "Warning: Cannot determine Pool Name of '".$dev."'";
 		} else {
 			/* Execute the unmount command. */
 			$o = timed_exec($timeout, $cmd);
@@ -2616,7 +2652,11 @@ function get_samba_mounts() {
 				$mount['is_unmounting']	= MiscUD::get_unmounting_status($mount_device);
 
 				/* Is remote share mounted? */
-				$mount['mounted']		= is_mounted($mount['mountpoint'], $mount['mount_dev'], false);
+				if ($mount['fstype'] != "root") {
+					$mount['mounted']		= is_mounted($mount['mount_dev'], $mount['mountpoint'], false);
+				} else {
+					$mount['mounted']		= is_mounted("", $mount['mount_dev'], false);
+				}
 
 				/* Is the remote share mounted read only? */
 				$mount['remote_read_only']	= is_mounted_read_only($mount['mountpoint']);
@@ -3032,7 +3072,7 @@ function get_iso_mounts() {
 				$mount['is_unmounting']	= MiscUD::get_unmounting_status($mount_device);
 
 				/* Is the ios file mounted? */
-				$mount['mounted']		= is_mounted($mount['mountpoint'], "", false);
+				$mount['mounted']		= is_mounted("", $mount['mountpoint'], "", false);
 
 				/* If this is a legacy iso mount indicate that it should be removed. */
 				$mount['invalid']		= false;
@@ -3080,7 +3120,7 @@ function do_mount_iso($info) {
 			$cmd = "/sbin/mount -ro loop ".escapeshellarg($file)." ".escapeshellarg($dir);
 			unassigned_log("Mount iso command: mount -ro loop '".$file."' '".$dir."'");
 			$o = timed_exec(15, $cmd." 2>&1");
-			if (is_mounted($dir)) {
+			if (is_mounted("", $dir)) {
 				unassigned_log("Successfully mounted '".$file."' on '".$dir."'.");
 
 				$rc = true;
@@ -3463,7 +3503,7 @@ function get_partition_info($dev) {
 
 		/* Is the disk mount point mounted? */
 		/* If the partition doesn't have a file system, it can't possibly be mounted by UD. */
-		$partition['mounted']		= ((! $partition['pass_through']) && ($partition['fstype'])) ? is_mounted($partition['mountpoint'], "", false) : false;
+		$partition['mounted']		= ((! $partition['pass_through']) && ($partition['fstype'])) ? is_mounted("", $partition['mountpoint'], false) : false;
 
 		/* is the partition mounted read only. */
 		$partition['part_read_only']	= ($partition['mounted']) ? is_mounted_read_only($partition['mountpoint']) : false;
@@ -3550,7 +3590,7 @@ function get_zvol_info($disk) {
 			}
 
 			$zvol[$vol]['mountpoint']		= $disk['mountpoint'].".".basename($q);
-			$zvol[$vol]['mounted']			= is_mounted($zvol[$vol]['mountpoint'], "", false);
+			$zvol[$vol]['mounted']			= is_mounted("", $zvol[$vol]['mountpoint'], false);
 			$zvol[$vol]['is_mounting']		= MiscUD::get_mounting_status(basename($zvol[$vol]['device']));
 			$zvol[$vol]['is_unmounting']	= MiscUD::get_unmounting_status(basename($zvol[$vol]['device']));
 			$zvol[$vol]['fstype']			= "zvol";
