@@ -2158,43 +2158,41 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 			/* Remove special characters from share name. */
 			$share_name = str_replace( array("(", ")"), "", basename($dir));
 
-			$vfs_objects = "";
+			$vfs_objects	= "\n\tvfs objects = dirsort";
 
 			/* Is the Mac OS interoperability setting on? */
 			$enable_fruit = ($var['enableFruit'] == "yes");
 
-			/* Add the recycle bin and the Mac OS stuff if enabled. */
-			if (($recycle_bin) || ($enable_fruit)) {
-				if ($enable_fruit) {
-					if (! $fat_fruit) {
-						/* See if the smb-fruit.conf from the /boot/config/ folder. */
-						$fruit_file = "/boot/config/smb-fruit.conf";
+			/* Add the Mac OS stuff if enabled. */
+			if ($enable_fruit) {
+				if (! $fat_fruit) {
+					/* See if the smb-fruit.conf from the /boot/config/ folder. */
+					$fruit_file = "/boot/config/smb-fruit.conf";
+					if (file_exists($fruit_file)) {
+						$fruit_file_settings = explode("\n", file_get_contents($fruit_file));
+					} else {
+						/* Use the smb-fruit.conf from the /etc/samba/ folder. */
+						$fruit_file = "/etc/samba/smb-fruit.conf";
 						if (file_exists($fruit_file)) {
 							$fruit_file_settings = explode("\n", file_get_contents($fruit_file));
 						} else {
-							/* Use the smb-fruit.conf from the /etc/samba/ folder. */
-							$fruit_file = "/etc/samba/smb-fruit.conf";
-							if (file_exists($fruit_file)) {
-								$fruit_file_settings = explode("\n", file_get_contents($fruit_file));
-							} else {
-								$fruit_file_settings = array( "vfs objects = catia fruit streams_xattr dirsort" );
-							}
+							$vfs_objects	.= " catia fruit streams_xattr";
+							$fruit_file_settings = array( $vfs_objects );
 						}
-					} else {
-						/* For fat and exfat file systems. */
-						$fruit_file_settings = array( "vfs objects = catia fruit dirsort", "fruit:resource = file", "fruit:metadata = netatalk", "fruit:encoding = native" );
 					}
+				} else {
+					/* For fat and exfat file systems. */
+					$vfs_objects	.= " catia fruit";
+					$fruit_file_settings = array( $vfsobjects, "fruit:resource = file", "fruit:metadata = netatalk", "fruit:encoding = native" );
+				}
 
-					/* Apply the fruit settings. */
-					foreach ($fruit_file_settings as $f) {
-						/* Remove comment lines. */
-						if (($f) && (strpos($f, "#") === false)) {
-							$vfs_objects .= "\n\t".$f;
-						}
+				/* Apply the fruit settings. */
+				foreach ($fruit_file_settings as $f) {
+					/* Remove comment lines. */
+					if (($f) && (strpos($f, "#") === false)) {
+						$vfs_objects .= "\n\t".$f;
 					}
 				}
-			} else {
-				$vfs_objects	= "\n\tvfs objects = dirsort";
 			}
 
 			if ((isset($config['smb_security'])) && (($config['smb_security'] == "yes") || ($config['smb_security'] == "hidden"))) {
