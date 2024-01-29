@@ -1183,7 +1183,7 @@ function part_fs_type($dev) {
         $lsblkOutput = timed_exec(0.5, "/bin/lsblk -o NAME,FSTYPE -n -l -p -e 7,11 2>/dev/null | /usr/bin/grep -v 'crypto_LUKS'");
 
 		$lines = explode(PHP_EOL, trim($lsblkOutput));
-		$lsblk_file_types = [];
+		$new_file_types = [];
 
 		/* Get the devices and file types into an array. */
 		foreach ($lines as $line) {
@@ -1191,9 +1191,12 @@ function part_fs_type($dev) {
 			if (count($parts) == 2) {
 				$device						= $parts[0];
 				$fileType					= $parts[1];
-				$lsblk_file_types[$device]	= $fileType;
+				$new_file_types[$device]	= $fileType;
 		   }
 		}
+
+		/* Update the lsblk array. */
+		$lsblk_file_types	= $new_file_types;
 	}
 
 	/* Check if the device exists in the array. */
@@ -1539,24 +1542,32 @@ function is_mounted($dev, $dir = "", $update = true) {
 		$mount				= timed_exec(1, "/bin/awk -F'[, ]' '{print $1 \",\" $2 \",\" $4}' /proc/mounts 2>/dev/null");
 		$escapeSequences	= array("\\040");
 		$replacementChars	= array(" ");
-		$mounts				= str_replace($escapeSequences, $replacementChars, $mount);
+		$mount				= str_replace($escapeSequences, $replacementChars, $mount);
 
 		/* Create a two element array of the values. */
 		/* Get the cached mounts. */
-		$lines	= explode("\n", $mounts);
-		$mounts		= [];
+		$lines	= explode("\n", $mount);
+		$new_mounts		= [];
 
-		/* Break down each line into the key (device) and value (read only). */
+		/* Break down each line into the key (device) and values (mount point and read only). */
 		foreach ($lines as $line) {
 			$parts = explode(',', $line, 3);
 			if (count($parts) === 3) {
 				$device							= trim($parts[0]);
 				$mount_point					= trim($parts[1]);
 				$read_only						= trim($parts[2]);
-				$mounts[$device]['mountpoint']	= $mount_point;
-				$mounts[$device]['read_only']	= ($read_only == "ro");
+
+				/* Be sure every root share is unique. */
+				if ($device == "shfs") {
+					$device	= $mount_point;
+				}
+				$new_mounts[$device]['mountpoint']	= $mount_point;
+				$new_mounts[$device]['read_only']	= ($read_only == "ro");
 			}
 		}
+
+		/* Updte the global mounts array. */
+		$mounts		= $new_mounts;
 	}
 
 	/* Check for mounted status. */
@@ -2104,6 +2115,9 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 			exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
 		}
 	} else {
+		if ((zfs) && (! $pool_name)) {
+			unassigned_log("Warning: Cannot determine Pool Name of '".$dev."'");
+		}
 		unassigned_log("Cannot unmount '".$dev."'. UD did not mount the device or it was not properly unmounted.");
 	}
 
