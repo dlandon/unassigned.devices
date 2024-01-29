@@ -461,6 +461,9 @@ function safe_name($name, $convert_spaces = true, $convert_extra = false) {
 	$escapeSequences	= array("'", '"', "?", "#", "&", "!", "<", ">", "|", "+", "@");
 	$replacementChars	= "_";
 
+	/* Convert troublesome non-english multi byte characters to underscore. */
+	$escapeSequences[]	= "\xE7\xA9\xBA";
+
 	/* Convert parentheses to underscore. */
 	if ($convert_extra) {
 		$extraSequences		= array("(", ")");
