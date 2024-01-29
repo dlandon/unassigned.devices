@@ -461,8 +461,8 @@ function safe_name($name, $convert_spaces = true, $convert_extra = false) {
 	$escapeSequences	= array("'", '"', "?", "#", "&", "!", "<", ">", "|", "+", "@");
 	$replacementChars	= "_";
 
-	/* Convert troublesome non-english multi byte characters to underscore. */
-	$escapeSequences[]	= "\xE7\xA9\xBA";
+	/* Convert troublesome Chinese multi-byte characters to underscore. */
+	$escapeSequences[]	= "空";
 
 	/* Convert parentheses to underscore. */
 	if ($convert_extra) {
@@ -2578,10 +2578,9 @@ function get_samba_mounts() {
 		foreach ($samba_mounts as $device => $mount) {
 			/* Convert the device to a safe name samba device. */
 			$safe_device				= safe_name($device, false);
-
-			$mount['device']			= $safe_device;
+			$mount['device']			= $device;
 			if ($device) {
-				$mount['name']			= $device;
+				$mount['name']			= $safe_device;
 				$mount['mountpoint']	= $mount['mountpoint'] ?? "";
 				$mount['ip']			= $mount['ip'] ?? "";
 				$mount['protocol']		= $mount['protocol'] ?? "";
