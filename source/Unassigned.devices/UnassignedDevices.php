@@ -103,7 +103,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$is_mounting	= $partition['is_mounting'];
 		$is_unmounting	= $partition['is_unmounting'];
 		$is_formatting	= $partition['is_formatting'];
-		$disabled		= ($is_mounting || $is_unmounting || is_script_running($cmd) || ! $partition['fstype'] || $disk['array_disk']);
+		$disabled		= ($is_mounting || $is_unmounting || $partition['running'] || ! $partition['fstype'] || $disk['array_disk']);
 
 		/* Get the lsblk file system to compare to udev. */
 		$crypto_fs_type	= part_fs_type($partition['device']);
@@ -119,7 +119,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$fscheck .= $partition['part'];
 
 		if ($mounted && is_file($cmd)) {
-			if ((! $disabled && ! is_script_running($cmd)) && (! is_script_running($partition['user_command'], true))) {
+			if (! $disabled) {
 				$fscheck .= "<a class='exec info' onclick='openWindow_fsck(\"/plugins/".$plugin."/include/script.php?device={$device}&type="._('Done')."\",\"Execute Script\",600,900);'><i class='fa fa-flash partition-script'></i><span>"._("Execute Script as udev simulating a device being installed")."</span></a>";
 			} else {
 				$fscheck .= "<i class='fa fa-flash partition-script'></i>";
@@ -265,7 +265,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 					$mbutton		= $z['active'] ? make_mount_button($z) : "";
 					$fstype			= $z['file_system'];
 					$out[]			= "<tr class='toggle-parts toggle-".basename($disk['device'])."' name='toggle-".basename($disk['device'])."' $style>";
-					$out[]			= "<td></td><td><span>"._("ZFS Volume").":</span>";
+					$out[]			= "<td></td><td>"._("ZFS Volume").":";
 
 					/* Put together the file system check icon. */
 					if (((! $z['mounted']) && ($fstype) && ($fstype != "btrfs")) || (($z['mounted']) && ($fstype == "btrfs" || $fstype == "zfs"))) {
@@ -387,7 +387,7 @@ function make_mount_button($device) {
 	}
 
 	/* Set up the mount button operation and text. */
-	$buttonFormat = "<span><button device='{$device['device']}' class='mount' context='%s' role='%s' %s><i class='%s'></i>%s</button></span>";
+	$buttonFormat = "<button device='{$device['device']}' class='mount' context='%s' role='%s' %s><i class='%s'></i>%s</button>";
 
 	/* Are there any preclearing operations going on? */
 	$preclearing    = $Preclear ? $Preclear->isRunning(basename($device['device'])) : false;
@@ -465,18 +465,18 @@ function make_mount_button($device) {
 			if (!isset($device['partitions'])) {
 				$cmd			= $device['command'];
 				$user_cmd		= $device['user_command'];
-				$script_running	= ((is_script_running($cmd)) || (is_script_running($user_cmd, true)));
+				$running		= $device['running'];
 			} else {
 				foreach ($device['partitions'] as $part) {
 					$cmd		= $part['command'];
 					$user_cmd 	= $part['user_command'];
-					$script_running = ((is_script_running($cmd)) || (is_script_running($user_cmd, true)));
-					if ($script_running) {
+					$running	= $part['running'];
+					if ($running) {
 						break;
 					}
 				}
 			}
-			if ($script_running) {
+			if ($running) {
 				$class		= $spinner_class;
 				$role		= 'mount';
 				$disable	= true;
@@ -496,6 +496,7 @@ function make_mount_button($device) {
 			break;
 	}
 
+	/* Build the mount button. */
 	$button = sprintf($buttonFormat, $context, $role, ($disable ? "disabled" : ""), $class, $text);
 
 	return $button;
@@ -810,23 +811,55 @@ switch ($_POST['action']) {
 				$o_remotes			.= "</td>";
 
 				/* Mount button table element. */
-				$o_remotes			.= "<td>";
+				/* Make the mount button. */
+				$disable	= (($mount['fstype'] == "root") && ($var['shareDisk'] == "yes" || $var['mdState'] != "STARTED")) ? "disabled" : (($is_alive || $mounted) ? "enabled" : "disabled");
+				$disable	= ((isset($mount['disable_mount']) && ($mount['disable_mount'])) || ($mount['invalid'])) ? "disabled" : $disabled;
+				
+				/* Set up the mount button operation and text. */
+				$buttonFormat	= "<td><button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, '%s', '{$mount['device']}');\" %s><i class='%s'></i>%s</button></td>";
 
-				$disabled	= (($mount['fstype'] == "root") && ($var['shareDisk'] == "yes" || $var['mdState'] != "STARTED")) ? "disabled" : (($is_alive || $mounted) ? "enabled" : "disabled");
-				$disabled	= ((isset($mount['disable_mount']) && ($mount['disable_mount'])) || ($mount['invalid'])) ? "disabled" : $disabled;
-				if ($mount['mounted'] && (is_script_running($mount['command']) || is_script_running($mount['user_command'], true))) {
-					$o_remotes		.= "<button class='mount' disabled> <i class='fa fa-spinner fa-spin'></i>"." "._("Running")."</button>";
-				} else {
-					$class	= ( isset($mount['disable_mount']) && ($mount['disable_mount']) ) ? "fa fa-ban" : "";
-					if ($is_mounting) {
-						$o_remotes	.= "<button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Mounting')."</button>";
-					} else if ($is_unmounting) {
-						$o_remotes	.= "<button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Unmounting')."</button>";
-					} else {
-						$o_remotes	.= ($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount', '{$mount['device']}');\" {$disabled}><i class='$class'></i>"._('Unmount')."</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount', '{$mount['device']}');\" {$disabled}><i class='$class'></i>"._('Mount')."</button>");
-					}
+				/* Initilize variables. */
+				$operation		= "";
+				$text			= "";
+				$class			= "";
+				$spinner_class	= "fa fa-spinner fa-spin orb";
+
+				switch (true) {
+					case ($mount['running']):
+						$disable	= true;
+						$class		= $spinner_class;
+						$text		= _('Running');
+						break;
+
+					case ($is_mounting):
+						$disable	= true;
+						$class		= $spinner_class;
+						$text		= _('Mounting');
+						break;
+
+					case ($is_unmounting):
+						$disable	= true;
+						$class		= $spinner_class;
+						$text		= _('Unmounting');
+						break;
+
+					default:
+						if ($mounted) {
+							$operation	= "umount";
+							$class		= "mount";
+							$text		= _('Unmount');
+						} else {
+							$operation	= "mount";
+							$class		= "mount";
+							$text		= _('Mount');
+						}
+						break;
 				}
-				$o_remotes			.= "</td>";
+
+				/* Build the mount button. */
+				$button = sprintf($buttonFormat, $operation, ($disable ? "disabled" : ""), $class, $text);
+
+				$o_remotes			.= $button;
 
 				$compressed_name	= MiscUD::compress_string($mount['name']);
 
@@ -926,21 +959,53 @@ switch ($_POST['action']) {
 				$o_remotes			.= "</td>";
 
 				/* Remove ISO mount table element. */
-				$o_remotes			.= "<td>";
+				$disable = $is_alive ? "" : "disabled";
 
-				$disabled = $is_alive ? "enabled" : "disabled";
-				if ($mount['mounted'] && (is_script_running($mount['command']) || is_script_running($mount['user_command'], true))) {
-					$o_remotes .= "<button class='mount' disabled> <i class='fa fa-spinner fa-spin'></i> "._('Running')."</button>";
-				} else {
-					if ($is_mounting) {
-						$o_remotes .= "<button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Mounting')."</button>";
-					} else if ($is_unmounting) {
-						$o_remotes .= "<button class='mount' disabled><i class='fa fa-spinner fa-spin'></i> "._('Unmounting')."</button>";
-					} else {
-						$o_remotes .= ($mounted ? "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'umount','{$mount['device']}');\"><i class='fa fa-export'></i>"._('Unmount')."</button>" : "<button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, 'mount','{$mount['device']}');\" {$disabled}><i class='fa fa-import'></i>"._('Mount')."</button>");
-					}
+				/* Set up the mount button operation and text. */
+				$buttonFormat	= "<td><button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, '%s', '{$mount['device']}');\" %s><i class='%s'></i>%s</button></td>";
+
+				/* Initilize variables. */
+				$operation		= "";
+				$text			= "";
+				$class			= "";
+				$spinner_class	= "fa fa-spinner fa-spin orb";
+
+				switch (true) {
+					case ($mount['running']):
+						$disable	= true;
+						$class		= $spinner_class;
+						$text		= _('Running');
+						break;
+
+					case ($is_mounting):
+						$disable	= true;
+						$class		= $spinner_class;
+						$text		= _('Mounting');
+						break;
+
+					case ($is_unmounting):
+						$disable	= true;
+						$class		= $spinner_class;
+						$text		= _('Unmounting');
+						break;
+
+					default:
+						if ($mounted) {
+							$operation	= "umount";
+							$class		= "mount";
+							$text		= _('Unmount');
+						} else {
+							$operation	= "mount";
+							$class		= "mount";
+							$text		= _('Mount');
+						}
+						break;
 				}
-				$o_remotes			.= "</td>";
+
+				/* Build the mount button. */
+				$button = sprintf($buttonFormat, $operation, ($disable ? "disabled" : ""), $class, $text);
+
+				$o_remotes			.= $button;
 
 				$compressed_device	= MiscUD::compress_string($mount['device']);
 				$o_remotes .= $mounted ? "<td><i class='fa fa-remove'></i></td>" : "<td><a class='exec info' style='color:#CC0000;font-weight:bold;' onclick='remove_iso_config(\"{$mount['device']}\", \"{$compressed_device}\");'> <i class='fa fa-remove'></i><span>"._("Remove ISO File Share")."</span></a></td>";
