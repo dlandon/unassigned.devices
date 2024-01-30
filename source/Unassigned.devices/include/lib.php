@@ -1446,7 +1446,7 @@ function execute_script($info, $action, $testing = false) {
 			if (is_file($cmd)) {
 				unassigned_log("Running device script: '".basename($cmd)."' with action '".$action."'.");
 
-				$script_running = is_script_running($cmd);
+				$script_running = $info['running'];
 				if (! $script_running){
 					copy($cmd, $command_script);
 					@chmod($command_script, 0755);
@@ -2591,17 +2591,23 @@ function get_samba_mounts() {
 				$mount['share']			= $mount['share'] ?? "";
 				$mount['share']			= safe_name($mount['share'], false);
 
-				/* Set the mount protocol. */
-				if ($mount['protocol'] == "NFS") {
-					$mount['fstype'] = "nfs";
-					$path = basename($mount['share']);
-				} else if ($mount['protocol'] == "ROOT") {
-					$mount['fstype'] = "root";
-					$root_type = basename($mount['path']) == "user" ? "Shares-Pools" : "Shares-NoPools";
-					$path = $mount['mountpoint'] ? $mount['mountpoint'] : $root_type;
-				} else {
-					$mount['fstype'] = "cifs";
-					$path = $mount['share'] ?? "";
+				/* Set the mount file system. */
+				switch ($mount['protocol']) {
+					case "NFS":
+						$mount['fstype']	= "nfs";
+						$path				= basename($mount['share']);
+						break;
+        
+					case "ROOT":
+						$mount['fstype']	= "root";
+						$root_type			= basename($mount['path']) == "user" ? "Shares-Pools" : "Shares-NoPools";
+						$path				= $mount['mountpoint'] ? $mount['mountpoint'] : $root_type;
+						break;
+
+					default:
+						$mount['fstype']	= "cifs";
+						$path				= $mount['share'] ?? "";
+						break;
 				}
 
 				/* This is the mount device for checking for an invalid configuration. */
@@ -2686,8 +2692,9 @@ function get_samba_mounts() {
 				$mount['prog_name']		= basename($mount['command'], ".sh");
 				$mount['user_command']	= get_samba_config($mount['device'],"user_command");
 				$mount['logfile']		= ($mount['prog_name']) ? $paths['device_log'].$mount['prog_name'].".log" : "";
+				$mount['running']		= ((is_script_running($mount['command'])) || (is_script_running($mount['user_command'], true)));
 
-				/* Return array. */
+				/* Add to return array. */
 				$return[]				= $mount;
 			}
 		}
@@ -3092,6 +3099,9 @@ function get_iso_mounts() {
 				$mount['prog_name']		= basename($mount['command'], ".sh");
 				$mount['user_command']	= get_iso_config($mount['device'],"user_command");
 				$mount['logfile']		= ($mount['prog_name']) ? $paths['device_log'].$mount['prog_name'].".log" : "";
+				$mount['running']		= ((is_script_running($mount['command'])) || (is_script_running($mount['user_command'], true)));
+
+				/* Add to the iso mounts array. */
 				$rc[] = $mount;
 			}
 
@@ -3560,6 +3570,8 @@ function get_partition_info($dev) {
 		$partition['enable_script']	= $partition['command'] ? get_config($partition['serial'], "enable_script.{$partition['part']}") : "false";
 		$partition['prog_name']		= basename($partition['command'], ".sh");
 		$partition['logfile']		= ($partition['prog_name']) ? $paths['device_log'].$partition['prog_name'].".log" : "";
+		$partition['running']		= ((is_script_running($partition['command'])) || (is_script_running($partition['user_command'], true)));
+
 	}
 
 	return $partition;
