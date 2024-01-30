@@ -1043,7 +1043,6 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 <div style="display:none;" data-survey-name="add_root_share" data-survey-title="<?=_('Add Root Share');?>">
 	<div data-question data-question-title="<?=_('Root Share')?>" data-question-button-done="<?=_('Add');?>">
 		<div data-question-content>
-			<input type="text" class="swal-content__input" name="SHARE" autocomplete="off" required placeholder="<?=_('Enter Root Share Name');?>" <?=($var['shareDisk']=="yes") ? "disabled" : "";?>>
 			<p><?=_('This is a way to gather Unraid shares into one Root Share');?>.</p>
 			<?if ($var['shareDisk'] != "yes"):?>
 			<p><span style="font-weight:bold;"><?=_('Note');?>:</span> <?=_('Use caution when gathering shares into one Root Share');?>. <?=_('Do not put files or folders into the /mnt/rootshare/ folder');?>.
@@ -1072,7 +1071,6 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	<div data-survey-done>
 		$.post(UDURL, {
 			'action': 'add_root_share',
-			'share': surveyData['SHARE'],
 			'path': surveyData['PATH']
 		})
 		.done(function(data) {
