@@ -1564,12 +1564,15 @@ function is_mounted($dev, $dir = "", $update = true) {
 				if ($device == "shfs") {
 					$device	= $mount_point;
 				}
+
 				$new_mounts[$device]['mountpoint']	= $mount_point;
 				$new_mounts[$device]['read_only']	= ($read_only == "ro");
 			}
+
 		}
 
-		/* Updte the global mounts array. */
+MiscUD::save_json("/mnt/mounts", $new_mounts);
+		/* Update the global mounts array. */
 		$mounts		= $new_mounts;
 	}
 
@@ -2594,8 +2597,8 @@ function get_samba_mounts() {
 					$path = basename($mount['share']);
 				} else if ($mount['protocol'] == "ROOT") {
 					$mount['fstype'] = "root";
-					$root_type = basename($mount['path']) == "user" ? "user-pool" : "user";
-					$path = $mount['mountpoint'] ? $mount['mountpoint'] : $root_type.".".$mount['share'];
+					$root_type = basename($mount['path']) == "user" ? "Shares-Pools" : "Shares-NoPools";
+					$path = $mount['mountpoint'] ? $mount['mountpoint'] : $root_type;
 				} else {
 					$mount['fstype'] = "cifs";
 					$path = $mount['share'] ?? "";
