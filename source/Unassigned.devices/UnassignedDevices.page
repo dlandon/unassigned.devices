@@ -166,7 +166,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	/* Perform the disk opertion. */
 	async function mountPostRequest(op, device) {
 		/* Start the refresh timer to refresh the page after the mount/unmount script starts. */
-		window.setTimeout(refreshPage, 500);
+		window.setTimeout(refreshPage, 100);
 
 		$.post(UDURL, {
 			'action': op,
@@ -182,7 +182,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		})
 		.always(() => {
 			/* Start the refresh timer to refresh the page if it's not currently refreshing. */
-			window.setTimeout(refreshPage, 500);
+			window.setTimeout(refreshPage, 100);
 		});
 	}
 
