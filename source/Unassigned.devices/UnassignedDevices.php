@@ -1680,22 +1680,29 @@ switch ($_POST['action']) {
 	/* ROOT SHARES */
 	case 'add_root_share':
 		/* Add root file share. */
-		$share		= urldecode($_POST['share']);
-		$path		= urldecode($_POST['path']);
 		$ip			= strtoupper($var['NAME']);
+		$path		= urldecode($_POST['path']);
 		$device		= "//".$ip.$path;
+		$share		= basename($path);
 
-		if (! get_samba_config("{$device}", "protocol")) {
+		$rc			= true;
+
+		/* See if there is already a rootshare mount. */
+		foreach (get_samba_mounts() as $mount) {
+			if (($mount['path'] != $path) && ($mount['protocol'] == "ROOT")) {
+				$rc	= false;
+			}
+		}
+		if ($rc) {
 			set_samba_config("{$device}", "protocol", "ROOT");
 			set_samba_config("{$device}", "ip", $ip);
 			set_samba_config("{$device}", "path", $path);
 			set_samba_config("{$device}", "share", safe_name($share, false));
-
-			echo json_encode(true);
 		} else {
-			unassigned_log("Warning: Root Share already assigned to '".$path."'!");
-			echo json_encode(false);
+			unassigned_log("Warning: Root Share is already assigned!");
 		}
+
+		echo json_encode($rc);
 		break;
 
 	case 'remove_root_config':
