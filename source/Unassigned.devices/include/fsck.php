@@ -42,7 +42,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 	$luks		= $_GET['luks'];
 	$serial		= $_GET['serial'];
 	$mountpoint	= $_GET['mountpoint'] ?? "";
-	$mounted	= is_mounted($mountpoint);
+	$mounted	= is_mounted("", $mountpoint);
 	$rc_check	= 0;
 	$rc			= true;
 
