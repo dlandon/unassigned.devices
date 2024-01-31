@@ -96,10 +96,10 @@ $default_tld	= "LOCAL";
 $local_tld		= (isset($var['LOCAL_TLD']) && ($var['LOCAL_TLD']))? strtoupper($var['LOCAL_TLD']) : $default_tld;
 
 /* Array of devices, mount points, and read only status taken from the /proc/mounts file. */
-$mounts				= array();
+$mounts				= null;
 
 /* Array of devices and file system type taken from lsblk. */
-$lsblk_file_types	= array();
+$lsblk_file_types	= null;
 
 /* See if the preclear plugin is installed. */
 if ( is_file( "plugins/preclear.disk/assets/lib.php" ) ) {
@@ -1182,7 +1182,7 @@ function part_fs_type($dev) {
 	}
 
     /* Get the file system types from lsblk and cache for later use. */
-    if ((! $lsblk_file_types) || ($refresh)) {
+    if ((! isset($lsblk_file_types)) || ($refresh)) {
         $lsblkOutput = timed_exec(0.5, "/bin/lsblk -o NAME,FSTYPE -n -l -p -e 7,11 2>/dev/null | /usr/bin/grep -v 'crypto_LUKS'");
 
 		$lines = explode(PHP_EOL, trim($lsblkOutput));
@@ -1541,7 +1541,7 @@ function is_mounted($dev, $dir = "", $update = true) {
 	$rc_dir		= true;
 
 	/* See if we need to load the /proc/mounts file to memory. */
-	if ((! $mounts) || ($update)) {
+	if ((! isset($mounts)) || ($update)) {
 		$mount				= timed_exec(1, "/bin/awk -F'[, ]' '{print $1 \",\" $2 \",\" $4}' /proc/mounts 2>/dev/null");
 		$escapeSequences	= array("\\040");
 		$replacementChars	= array(" ");
@@ -1749,9 +1749,9 @@ function do_mount_local($info) {
 	$fs				= $info['fstype'];
 	$ro				= $info['read_only'];
 	$file_system	= $fs;
+	$pool_name		= $info['pool_name'];
+	$mounted		= $info['mounted'];
 
-	$pool_name	= $info['pool_name'];
-	$mounted	= $info['mounted'];
 	if (! $mounted) {
 		if ($fs) {
 			$recovery = "";
@@ -1848,33 +1848,38 @@ function do_mount_local($info) {
 				unset($cmd);
 			}
 
-			/* Check to see if the device really mounted. */
-			for ($i=0; $i < 5; $i++) {
-				$mounted	= (($file_system == "zfs") && ($pool_name)) ? (is_mounted($pool_name, $dir)) : (is_mounted($dev, $dir));
-				if ($mounted) {
-					if (! is_mounted_read_only($dir)) {
-						exec("/bin/chmod 0777 ".escapeshellarg($dir)." 2>/dev/null");
-						exec("/bin/chown 99 ".escapeshellarg($dir)." 2>/dev/null");
-						exec("/bin/chgrp 100 ".escapeshellarg($dir)." 2>/dev/null");
+			if (($file_system == "zfs") && (! $pool_name)) {
+				$o = "Warning: Cannot determine Pool Name of '".$dev."'";
+			} else {
+				/* Check to see if the device really mounted. */
+				for ($i=0; $i < 5; $i++) {
+					/* The device or mount point need to be mounted. */
+					$mounted	= ((is_mounted("", $dir) || ((($file_system == "zfs") && ($pool_name)) ? is_mounted($pool_name, "", false) : is_mounted($dev, "", false))));
+					if ($mounted) {
+						if (! is_mounted_read_only($dir)) {
+							exec("/bin/chmod 0777 ".escapeshellarg($dir)." 2>/dev/null");
+							exec("/bin/chown 99 ".escapeshellarg($dir)." 2>/dev/null");
+							exec("/bin/chgrp 100 ".escapeshellarg($dir)." 2>/dev/null");
+						}
+						unassigned_log("Successfully mounted '".$dev."' on '".$dir."'.");
+
+						$rc = true;
+
+						/* Set zfs readonly flag based on device read only setting. */
+						if ($file_system == "zfs") {
+							exec("/usr/sbin/zfs set readonly=".($ro ? 'on' : 'off')." ".escapeshellarg($pool_name)." 2>/dev/null");
+						}
+
+						break;
+					} else {
+						usleep(500 * 1000);
 					}
-					unassigned_log("Successfully mounted '".$dev."' on '".$dir."'.");
-
-					$rc = true;
-
-					/* Set zfs readonly flag based on device read only setting. */
-					if ($file_system == "zfs") {
-						exec("/usr/sbin/zfs set readonly=".($ro ? 'on' : 'off')." ".escapeshellarg($pool_name)." 2>/dev/null");
-					}
-
-					break;
-				} else {
-					usleep(500 * 1000);
 				}
-			}
 
-			/* If we timed out waiting for the mount to be successful set timed out error. */
-			if ($i == 5) {
-				$o	= "mount wait timeout";
+				/* If we timed out waiting for the mount to be successful set timed out error. */
+				if ($i == 5) {
+					$o	= "mount wait timeout";
+				}
 			}
 
 			/* If the device did not mount, close the luks disk if the FS is luks, and show an error. */
@@ -1920,6 +1925,7 @@ function do_mount_local($info) {
 
 							/* The dataset (folder) must exist before it can be mounted. */
 							if ((count($columns) == 2) && ($columns[0] != $pool_name)) {
+								/* Mount the dataset if it did not automount. */
 								if (! is_mounted($columns[0], $columns[1])) {
 									/* Mount the dataset. */
 									$params	= get_mount_params($file_system, $pool_name, $ro);
@@ -1933,7 +1939,8 @@ function do_mount_local($info) {
 									if (! $o) {
 										/* Check to see if the dataset really mounted. */
 										for ($i=0; $i < 5; $i++) {
-											if (is_mounted($columns[0], $columns[1])) {
+											/* The device or mount point need to be mounted. */
+											if ((is_mounted($columns[0])) || (is_mounted("", $columns[1], false))) {
 												unassigned_log("Successfully mounted zfs dataset '".$columns[0]."' on '".$columns[1]."'.");
 
 												$rc = true;
@@ -2084,7 +2091,8 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 
 			/* Check to see if the device really unmounted. */
 			for ($i=0; $i < 5; $i++) {
-				$mounted	= (($zfs) && ($pool_name)) ? (is_mounted($pool_name, $dir)) : (is_mounted($dev, $dir));
+				/* The device and mount point both need to be unmounted. */
+				$mounted	= ((is_mounted("", $dir) && ((($file_system == "zfs") && ($pool_name)) ? is_mounted($pool_name, "", false) : is_mounted($dev, "", false))));
 				if (! $mounted) {
 					if (is_dir($dir)) {
 						/* Remove the mount point. */
@@ -2111,7 +2119,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 
 			/* If we timed out waiting for the mount to be successful set timed out error. */
 			if ($i == 5) {
-				$o	= "mount wait timeout";
+				$o	= "unmount wait timeout";
 			}
 		}
 
