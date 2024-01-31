@@ -798,7 +798,7 @@ function addFile($file) {
 	$remove[] = $file;
 
 	/* Give things a chance to settle.  This gives the pageRefresh a chance to catch up. */
-	usleep(500 * 1000);
+	usleep(250 * 1000);
 }
 
 /* Update json mounted disk status. */
