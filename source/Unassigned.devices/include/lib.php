@@ -1872,7 +1872,7 @@ function do_mount_local($info) {
 
 						break;
 					} else {
-						usleep(500 * 1000);
+						usleep(100 * 1000);
 					}
 				}
 
@@ -1947,7 +1947,7 @@ function do_mount_local($info) {
 
 												break;
 											} else {
-												usleep(500 * 1000);
+												usleep(100 * 1000);
 											}
 										}
 									}
@@ -2113,7 +2113,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 					$rc = true;
 					break;
 				} else {
-					usleep(500 * 1000);
+					usleep(100 * 1000);
 				}
 			}
 
