@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.01.22b">
+<!ENTITY version	"2024.02.02">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"39f4cf44cf6c50c2efe568becfa65ffc">
+<!ENTITY MD5		"7322cd5d918d013ed1eed12776489cda">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,8 +22,23 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Remote server online status check not detecting changes in online status properly when the remote server goes offline.
+- Fix: Device Script file selector drop down always sets the default file and file name; user cannot select a different file.
+- Fix: The 'Delete' button on device settings deletes the wrong file after a new file is selected.
+- Fix: Rework the mounted status checks to put mounted status in an array and refresh the array when appropriate.
+- Fix: Certain Chinese character causing php to choke and hang UD.  The charcter is converted to an underscore.
+- Fix: Remove remote share configuration not deleting 'invalid' remote share configurations.
+- Fix: 'vfs object = dirsort' not always added to SMB configuration.
+- Fix: Adding a rootshare does not prompt for the mount point, the default is now created when the rootshare is added.
+- Fix: Manual Device Script execution from GUI failing.
+- Add: Prompt for 'Refresh Disks and Configuration' before performing the operation.
+- Add: Cache the '/proc/mounts' status for some 'mounted' and 'unmounted' checks to improve responsiveness.
+- Add: Cache the '/proc/mounts' status for the device 'read only' check to improve responsiveness.
+- Add: Get the file system type for disk devices from lsblk by only running once per page refresh.
+
+###2024.01.22b
 - Fix: Additional work to make 'Mount' buttons more responsive.
-- Add: 'vfs = dirsort' SMB configuration for every UD share.
+- Add: 'vfs object = dirsort' SMB configuration for every UD share.
 - Add: Help text explaining the device icons.
 
 ###2024.01.17
