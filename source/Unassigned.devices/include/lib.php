@@ -1567,7 +1567,6 @@ function is_mounted($dev, $dir = "", $update = true) {
 
 		}
 
-MiscUD::save_json("/mnt/mounts", $new_mounts);
 		/* Update the global mounts array. */
 		$mounts		= $new_mounts;
 	}
