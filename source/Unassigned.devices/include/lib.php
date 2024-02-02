@@ -1173,13 +1173,9 @@ function timed_exec($timeout, $cmd) {
 function part_fs_type($dev) {
     global $lsblk_file_types;
 
+	/* If the device is a luks device, we have to be sure we have the updated file system from lsblk. */
 	$luks		= (strpos($dev, "/dev/mapper/") !== false);
-
-	if (($luks) && ((! is_mounted($dev)) || (! isset($lsblk_file_types[$dev])))) {
-		$refresh	= true;
-	} else {
-		$refresh	= false;
-	}
+	$refresh	= (($luks) && ((! is_mounted($dev)) || (! isset($lsblk_file_types[$dev]))));
 
     /* Get the file system types from lsblk and cache for later use. */
     if ((! isset($lsblk_file_types)) || ($refresh)) {
@@ -1188,7 +1184,7 @@ function part_fs_type($dev) {
 		$lines = explode(PHP_EOL, trim($lsblkOutput));
 		$new_file_types = [];
 
-		/* Get the devices and file types into an array. */
+		/* Get the devices and file types into a global array. */
 		foreach ($lines as $line) {
 			$parts = preg_split('/\s+/', $line, -1, PREG_SPLIT_NO_EMPTY);
 			if (count($parts) == 2) {
@@ -1851,6 +1847,9 @@ function do_mount_local($info) {
 			if (($file_system == "zfs") && (! $pool_name)) {
 				$o = "Warning: Cannot determine Pool Name of '".$dev."'";
 			} else {
+				/* Let the mount settle. */
+				usleep(250 * 1000);
+
 				/* Check to see if the device really mounted. */
 				for ($i=0; $i < 5; $i++) {
 					/* The device or mount point need to be mounted. */
@@ -1937,6 +1936,9 @@ function do_mount_local($info) {
 									$o		= shell_exec(escapeshellcmd($cmd)." 2>&1");
 									$rc		= false;
 									if (! $o) {
+										/* Let the mount settle. */
+										usleep(250 * 1000);
+
 										/* Check to see if the dataset really mounted. */
 										for ($i=0; $i < 5; $i++) {
 											/* The device or mount point need to be mounted. */
@@ -2088,6 +2090,9 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 		} else {
 			/* Execute the unmount command. */
 			$o = timed_exec($timeout, $cmd);
+
+			/* Let the unmount settle. */
+			usleep(250 * 1000);
 
 			/* Check to see if the device really unmounted. */
 			for ($i=0; $i < 5; $i++) {
