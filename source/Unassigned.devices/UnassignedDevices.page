@@ -102,7 +102,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	}
 
 	/*
-		Function to open a window for running fsck command.
+		Function to open a window for running fsck and script commands.
 		@param cmd: The fsck command to run.
 		@param title: The title for the window.
 		@param height: The height of the window.
