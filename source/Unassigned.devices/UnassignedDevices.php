@@ -326,7 +326,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 
 /* Format the mount button based on status of the device. */
 function make_mount_button($device) {
-	global $paths, $Preclear;
+	global $paths;
 
 	if (isset($device['partitions'])) {
 		$mounted = in_array(true, array_map(function($partition) {
@@ -364,6 +364,7 @@ function make_mount_button($device) {
 		$is_mounting	= $device['is_mounting'];
 		$is_unmounting	= $device['is_unmounting'];
 		$is_formatting	= $device['is_formatting'];
+		$preclearing	= $device['preclearing'];
 	} else {
 		$mounted		= $device['mounted'];
 		$disable		= (! empty($device['fstype']) && $device['fstype'] != "crypto_LUKS") ? false : true;
@@ -383,18 +384,14 @@ function make_mount_button($device) {
 		$is_mounting	= $device['is_mounting'];
 		$is_unmounting	= $device['is_unmounting'];
 		$is_formatting	= $device['is_formatting'];
-		$zvol_device	= (isset($device['file_system']) && $device['file_system']);
+		$zvol_device	= $device['file_system'];
+		$preclearing	= false;
 	}
 
 	/* Set up the mount button operation and text. */
 	$buttonFormat = "<button device='{$device['device']}' class='mount' context='%s' role='%s' %s><i class='%s'></i>%s</button>";
 
-	/* Are there any preclearing operations going on? */
-	$preclearing    = $Preclear ? $Preclear->isRunning(basename($device['device'])) : false;
-	$is_preclearing = shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep " . escapeshellarg($device['device']) . " | /bin/grep -v 'grep'") != "";
-	$preclearing    = $preclearing || $is_preclearing;
-
-	/* Initilize variables. */
+	/* Initialize variables. */
 	$role			= "";
 	$text			= "";
 	$class			= "";
@@ -552,6 +549,9 @@ switch ($_POST['action']) {
 
 		unassigned_log("Debug: Update disk devices...", $UPDATE_DEBUG);
 
+		/* Is parted installed? */
+		$parted					= file_exists("/usr/sbin/parted");
+
 		/* Get updated disks info in case devices have been hot plugged. */
 		if ( count($all_disks) ) {
 			foreach ($all_disks as $disk) {
@@ -574,7 +574,7 @@ switch ($_POST['action']) {
 				$disk_dev				= $disk['ud_dev'];
 				$disk_name				= $disk['unassigned_dev'] ? $disk['unassigned_dev'] : $disk['ud_dev'];
 				$parts					= (count($disk['partitions']) > 0) ? render_partition($disk, $disk['partitions'][0], true) : false;
-				$preclearing			= $Preclear ? $Preclear->isRunning($disk_device) : false;
+				$preclearing			= $disk['preclearing'];
 				$temp					= my_temp($disk['temperature']);
 
 				/* Get the mounting and unmounting states of disks and all partitions. */
@@ -582,6 +582,7 @@ switch ($_POST['action']) {
 					in_array(true, array_map(function($partition) {
 						return $partition['is_mounting'];
 					}, $disk['partitions']), true) ||
+
 					in_array(true, array_map(function($zvol) {
 						return $zvol['is_mounting'];
 					}, $disk['zvol']), true)
@@ -591,6 +592,7 @@ switch ($_POST['action']) {
 					in_array(true, array_map(function($partition) {
 						return $partition['is_unmounting'];
 					}, $disk['partitions']), true) ||
+
 					in_array(true, array_map(function($zvol) {
 						return $zvol['is_unmounting'];
 					}, $disk['zvol']), true)
@@ -603,8 +605,6 @@ switch ($_POST['action']) {
 				$preclear_link			= (($Preclear) && ($disk['size'] !== 0) && (! $file_system) && (! $mounted) && (! $disk['is_formatting']) && (! $preclearing) && (! $disk['array_disk']) && (! $disk['pass_through']) && (! $disk['fstype'])) ? "&nbsp;&nbsp;".$Preclear->Link($disk_device, "icon") : "";
 
 				/* Add the clear disk icon. */
-				$parted					= file_exists("/usr/sbin/parted");
-
 				$partition['device']	= $partition['device'] ?? "";
 				$partition['serial']	= $partition['serial'] ?? "";
 				$clear_disk				= (($parted) && (get_config("Config", "destructive_mode") == "enabled") && (! $mounted) && (! $disk['is_mounting']) && (! $disk['is_unmounting']) && (! $disk['is_formatting']) && (! $disk['pass_through']) && (! $disk['array_disk']) && (! $preclearing) && (((! $parts) && ($disk['fstype'])) || (($parts) && (! $disk['partitions'][0]['pool']) && (! $disk['partitions'][0]['disable_mount']))) ) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove clear-hdd'></i><span>"._("Clear Disk")."</span></a>" : "";

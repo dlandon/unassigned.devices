@@ -3410,7 +3410,7 @@ function get_udev_info($dev, $udev = null) {
 
 /* Get information on specific disk device. */
 function get_disk_info($dev) {
-	global $unraid_disks;
+	global $unraid_disks, $Preclear;
 
 	/* Get all the disk information for this disk device. */
 	$disk						= array();
@@ -3442,6 +3442,13 @@ function get_disk_info($dev) {
 	$disk['pass_through']		= is_pass_through($disk['serial']);
 	$disk['array_disk']			= in_array($disk['device'], $unraid_disks);
 	$disk['is_formatting']		= MiscUD::get_formatting_status(basename($disk['device']));
+
+	/* Are there any preclearing operations going on? */
+	if ((! $disk['fstype']) && ($Preclear)) {
+		$disk['ipreclearing']	= (($Preclear->isRunning(basename($disk['device']))) || (shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep " . escapeshellarg($disk['device']) . " | /bin/grep -v 'grep'") != ""));
+	} else {
+		$disk['ipreclearing']	= false;
+	}
 
 	/* Get the hostX from the DEVPATH so we can re-attach a disk. */
 	MiscUD::save_device_host($disk['serial'], $attrs['DEVPATH']);
@@ -3514,15 +3521,15 @@ function get_partition_info($dev) {
 		$partition['not_udev']			= ($partition['fstype'] != "crypto_LUKS") ? ($partition['fstype'] != $partition['file_system']) : false;
 
 		/* Get the partition mounting, unmounting, and formatting status. */
-		$partition['is_mounting']	= MiscUD::get_mounting_status(basename($dev));
-		$partition['is_unmounting']	= MiscUD::get_unmounting_status(basename($dev));
+		$partition['is_mounting']		= MiscUD::get_mounting_status(basename($dev));
+		$partition['is_unmounting']		= MiscUD::get_unmounting_status(basename($dev));
 
 		/* Set up all disk parameters and status. */
-		$partition['pass_through']	= is_pass_through($partition['serial']);
+		$partition['pass_through']		= is_pass_through($partition['serial']);
 
 		/* Is the disk mount point mounted? */
 		/* If the partition doesn't have a file system, it can't possibly be mounted by UD. */
-		$partition['mounted']		= ((! $partition['pass_through']) && ($partition['fstype'])) ? is_mounted("", $partition['mountpoint'], false) : false;
+		$partition['mounted']			= ((! $partition['pass_through']) && ($partition['fstype'])) ? is_mounted("", $partition['mountpoint'], false) : false;
 
 		/* is the partition mounted read only. */
 		$partition['part_read_only']	= ($partition['mounted']) ? is_mounted_read_only($partition['mountpoint']) : false;
@@ -3530,22 +3537,22 @@ function get_partition_info($dev) {
 		/* Is this a btrfs pooled disk. */
 		if ($partition['mounted'] && $partition['fstype'] == "btrfs") {
 			/* Get the members of a pool if this is a pooled disk. */
-			$pool_devs			= MiscUD::get_pool_devices($partition['mountpoint']);
+			$pool_devs					= MiscUD::get_pool_devices($partition['mountpoint']);
 
 			/* First pooled device is the primary member. */
 			unset($pool_devs[0]);
 
 			/* This is a secondary pooled member if not the primary member. */
-			$partition['pool']		= in_array($partition['device'], $pool_devs);
+			$partition['pool']			= in_array($partition['device'], $pool_devs);
 		} else {
-			$partition['pool']		= false;
+			$partition['pool']			= false;
 		}
 
 		/* See if this is a zfs file system. */
-		$zfs					= ($partition['file_system'] == "zfs");
+		$zfs							= ($partition['file_system'] == "zfs");
 
 		/* Get the pool name for a zfs device whether or not it is mounted. */
-		$partition['pool_name']		= $zfs ? MiscUD::zfs_pool_name($dev, $partition['mountpoint']) : "";
+		$partition['pool_name']			= $zfs ? MiscUD::zfs_pool_name($dev, $partition['mountpoint']) : "";
 
 		/* If the disk mount point is mounted, we need to verify it is also mounted by device. */
 		/* If it is not, then the disk was probably removed before being properly unmounted. */
