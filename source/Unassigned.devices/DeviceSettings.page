@@ -73,15 +73,12 @@ if (isset($_GET['s'])) {
 	$mount_point		= $_GET['l'];
 	$mounted			= $_GET['n'] ?? false;
 	$info				= $_GET['m'] ?? "";
-	if (isset($info)) {
-		$id_bus			= ($_GET['u'] == "usb") ? " - USB" : " - SATA";
-	} else {
-		$_GET['u']		= null;
-	}
+	$id_bus				= (isset($_GET['u'])) ? (($_GET['u'] == "usb") ? " - USB" : " - SATA") : "";
 	$file				= get_config($serial, "command.{$partition}");
 	$fstype				= $_GET['f'] ?? "";
 	$ud_device			= $serial;
 
+unassigned_log("*** serial ".$serial);
 	/* Do some configuration file work */
 	/* If the script file does not exist, reset the command script file. */
 	if (($file) && (! file_exists($file))) {
