@@ -81,6 +81,18 @@ $UPDATE_DEBUG	= 2;
 /* 8 - command time outs. */
 $CMD_DEBUG	= 8;
 
+/* Read in the UD configuration file. */
+$config_ini		= @parse_ini_file($paths['config_file'], true, INI_SCANNER_RAW);
+$ud_config		= ($config_ini !== false) ? $config_ini : array();
+
+/* Read in the Samba configuration file. */
+$config_ini		= @parse_ini_file($paths['samba_mount'], true, INI_SCANNER_RAW);
+$samba_config	= ($config_ini !== false) ? $config_ini : array();
+
+/* Read in the ISO configuration file. */
+$config_ini		= @parse_ini_file($paths['iso_mount'], true, INI_SCANNER_RAW);
+$iso_config		= ($config_ini !== false) ? $config_ini : array();
+
 $DEBUG_LEVEL	= (int) get_config("Config", "debug_level");
 
 /* Read Unraid variables file. Used to determine disks not assigned to the array and other array parameters. */
@@ -1219,13 +1231,14 @@ function zvol_fs_type($dev) {
 
 /* Get device configuration parameter. */
 function get_config($serial, $variable) {
-	$config_file	= $GLOBALS["paths"]["config_file"];
-	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
-	return $config[$serial][$variable] ?? "";
+	global $ud_config;
+
+	return $ud_config[$serial][$variable] ?? "";
 }
 
 /* Set device configuration parameter. */
 function set_config($serial, $variable, $value) {
+	global $paths;
 
 	/* Verify we have a serial number. */
 	if ($serial) {
@@ -1233,8 +1246,10 @@ function set_config($serial, $variable, $value) {
 		$lock_file		= get_file_lock("cfg");
 
 		/* Make file changes. */
-		$config_file				= $GLOBALS["paths"]["config_file"];
-		$config						= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
+		$config_file	= $paths["config_file"];
+		$config_ini		= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
+		$config			= ($config_ini !== false) ? $config_ini : array();
+
 		$config[$serial][$variable] = $value;
 		save_ini_file($config_file, $config);
 
@@ -1280,6 +1295,7 @@ function is_disable_mount($serial, $part = "") {
 
 /* Toggle auto mount on/off. */
 function toggle_automount($serial, $status) {
+	global $paths;
 
 	/* Verify we have a serial number. */
 	if ($serial) {
@@ -1287,8 +1303,10 @@ function toggle_automount($serial, $status) {
 		$lock_file		= get_file_lock("cfg");
 
 		/* Make file changes. */
-		$config_file	= $GLOBALS["paths"]["config_file"];
-		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
+		$config_file	= $paths["config_file"];
+		$config_ini		= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
+		$config			= ($config_ini !== false) ? $config_ini : array();
+
 		$config[$serial]["automount"] = ($status == "true") ? "yes" : "no";
 		save_ini_file($config_file, $config);
 
@@ -1305,6 +1323,7 @@ function toggle_automount($serial, $status) {
 
 /* Toggle read only on/off. */
 function toggle_read_only($serial, $status, $part = "") {
+	global $paths;
 
 	/* Verify we have a serial number. */
 	if ($serial) {
@@ -1312,8 +1331,10 @@ function toggle_read_only($serial, $status, $part = "") {
 		$lock_file		= get_file_lock("cfg");
 
 		/* Make file changes. */
-		$config_file	= $GLOBALS["paths"]["config_file"];
-		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
+		$config_file	= $paths["config_file"];
+		$config_ini		= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
+		$config			= ($config_ini !== false) ? $config_ini : array();
+
 		$read_only		= "read_only".($part ? ".$part" : "");
 		$config[$serial][$read_only] = ($status == "true") ? "yes" : "no";
 		save_ini_file($config_file, $config);
@@ -1331,6 +1352,7 @@ function toggle_read_only($serial, $status, $part = "") {
 
 /* Toggle pass through on/off. */
 function toggle_pass_through($serial, $status, $part = "") {
+	global $paths;
 
 	/* Verify we have a serial number. */
 	if ($serial) {
@@ -1338,8 +1360,10 @@ function toggle_pass_through($serial, $status, $part = "") {
 		$lock_file		= get_file_lock("cfg");
 
 		/* Make file changes. */
-		$config_file	= $GLOBALS["paths"]["config_file"];
-		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
+		$config_file	= $paths["config_file"];
+		$config_ini		= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
+		$config			= ($config_ini !== false) ? $config_ini : array();
+
 		$pass_through	= "pass_through".($part ? ".$part" : "");
 		$config[$serial][$pass_through] = ($status == "true") ? "yes" : "no";
 		save_ini_file($config_file, $config);
@@ -1357,6 +1381,7 @@ function toggle_pass_through($serial, $status, $part = "") {
 
 /* Toggle hide mount button on/off. */
 function toggle_disable_mount($serial, $status, $part = "") {
+	global $paths;
 
 	/* Verify we have a serial number. */
 	if ($serial) {
@@ -1364,8 +1389,10 @@ function toggle_disable_mount($serial, $status, $part = "") {
 		$lock_file		= get_file_lock("cfg");
 
 		/* Make file changes. */
-		$config_file	= $GLOBALS["paths"]["config_file"];
-		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
+		$config_file	= $paths["config_file"];
+		$config_ini		= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
+		$config			= ($config_ini !== false) ? $config_ini : array();
+
 		$disable_mount	= "disable_mount".($part ? ".$part" : "");
 		$config[$serial][$disable_mount] = ($status == "true") ? "yes" : "no";
 		save_ini_file($config_file, $config);
@@ -1481,14 +1508,17 @@ function execute_script($info, $action, $testing = false) {
 
 /* Remove a historical disk configuration. */
 function remove_config_disk($serial) {
+	global $paths;
 
 	/* Get the all disk configurations. */
 	/* Get a lock so file changes can be made. */
 	$lock_file		= get_file_lock("cfg");
 
 	/* Make file changes. */
-	$config_file	= $GLOBALS["paths"]["config_file"];
-	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
+	$config_file	= $paths["config_file"];
+	$config_ini		= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
+	$config			= ($config_ini !== false) ? $config_ini : array();
+
 	if ( isset($config[$serial]) ) {
 		unassigned_log("Removing configuration '".$serial."'.");
 	}
@@ -1609,9 +1639,7 @@ function get_mount_params($fs, $dev, $ro = false) {
 
 	$rc				= "";
 	if (($fs != "cifs") && ($fs != "nfs") && ($fs != "root")) {
-		$config_file	= $paths['config_file'];
-		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
-		$discard 		= ((isset($config['Config']['discard'])) && ($config['Config']['discard'] == "yes") && is_disk_ssd($dev)) ? ",discard" : "";
+		$discard 		= ((get_config("Config", "discard") == "yes") && (is_disk_ssd($dev))) ? ",discard" : "";
 	}
 	$rw					= $ro ? "ro" : "rw";
 	switch ($fs) {
@@ -2160,12 +2188,10 @@ function toggle_share($serial, $part, $status) {
 
 /* Add mountpoint to samba shares. */
 function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
-	global $paths, $var, $users;
+	global $paths, $ud_config, $var, $users;
 
 	/* Get the current UD configuration. */
-	$config_file	= $paths['config_file'];
-	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
-	$config			= $config["Config"] ?? array();
+	$config			= $ud_config;
 
 	/* Add mountpoint to samba shares. */
 	if ($var['shareSMBEnabled'] != "no") {
@@ -2481,13 +2507,14 @@ function reload_shares() {
 
 /* Get samba mount configuration parameter. */
 function get_samba_config($source, $variable) {
-	$config_file	= $GLOBALS["paths"]["samba_mount"];
-	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
-	return $config[$source][$variable] ?? "";
+	global $samba_config;
+
+	return $samba_config[$source][$variable] ?? "";
 }
 
 /* Set samba mount configuration parameter. */
 function set_samba_config($source, $variable, $value) {
+	global $paths;
 
 	/* Verify we have a serial number. */
 	if ($source) {
@@ -2495,8 +2522,10 @@ function set_samba_config($source, $variable, $value) {
 		$lock_file		= get_file_lock("smb");
 
 		/* Make file changes. */
-		$config_file	= $GLOBALS["paths"]["samba_mount"];
-		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
+		$config_file				= $paths["samba_mount"];
+		$config_ini					= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
+		$config						= ($config_ini !== false) ? $config_ini : array();
+
 		$config[$source][$variable] = $value;
 		save_ini_file($config_file, $config);
 
@@ -2578,11 +2607,12 @@ function is_samba_encrypted($serial) {
 
 /* Get all defined samba and NFS remote shares. */
 function get_samba_mounts() {
-	global $paths, $default_tld, $local_tld;
+	global $paths, $samba_config, $default_tld, $local_tld;
 
 	$return			= array();
-	$config_file	= $paths['samba_mount'];
-	$samba_mounts	= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
+
+	/* Get all the samba devices from the configuration. */
+	$samba_mounts	= $samba_config;
 	if (is_array($samba_mounts)) {
 		ksort($samba_mounts, SORT_NATURAL);
 
@@ -2882,6 +2912,7 @@ function do_mount_samba($info) {
 
 /* Toggle samba auto mount on/off. */
 function toggle_samba_automount($source, $status) {
+	global $paths;
 
 	/* Verify we have a source. */
 	if ($source) {
@@ -2889,8 +2920,10 @@ function toggle_samba_automount($source, $status) {
 		$lock_file		= get_file_lock("smb");
 
 		/* Make file changes. */
-		$config_file	= $GLOBALS["paths"]["samba_mount"];
-		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
+		$config_file	= $paths["samba_mount"];
+		$config_ini		= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
+		$config			= ($config_ini !== false) ? $config_ini : array();
+
 		$config[$source]["automount"] = ($status == "true") ? "yes" : "no";
 		save_ini_file($config_file, $config);
 
@@ -2907,6 +2940,7 @@ function toggle_samba_automount($source, $status) {
 
 /* Toggle samba share on/off. */
 function toggle_samba_share($source, $status) {
+	global $paths;
 
 	/* Verify we have a source. */
 	if ($source) {
@@ -2914,8 +2948,10 @@ function toggle_samba_share($source, $status) {
 		$lock_file		= get_file_lock("smb");
 
 		/* Make file changes. */
-		$config_file	= $GLOBALS["paths"]["samba_mount"];
-		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
+		$config_file	= $paths["samba_mount"];
+		$config_ini		= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
+		$config			= ($config_ini !== false) ? $config_ini : array();
+
 		$config[$source]["smb_share"] = ($status == "true") ? "yes" : "no";
 		save_ini_file($config_file, $config);
 
@@ -2932,6 +2968,7 @@ function toggle_samba_share($source, $status) {
 
 /* Toggle hide mount on/off. */
 function toggle_samba_disable_mount($source, $status) {
+	global $paths;
 
 	/* Verify we have a source. */
 	if ($source) {
@@ -2939,8 +2976,10 @@ function toggle_samba_disable_mount($source, $status) {
 		$lock_file		= get_file_lock("smb");
 
 		/* Make file changes. */
-		$config_file	= $GLOBALS["paths"]["samba_mount"];
-		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
+		$config_file	= $paths["samba_mount"];
+		$config_ini		= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
+		$config			= ($config_ini !== false) ? $config_ini : array();
+
 		$config[$source]["disable_mount"] = ($status == "true") ? "yes" : "no";
 		save_ini_file($config_file, $config);
 
@@ -2957,6 +2996,7 @@ function toggle_samba_disable_mount($source, $status) {
 
 /* Toggle samba read only on/off. */
 function toggle_samba_readonly($source, $status) {
+	global $paths;
 
 	/* Verify we have a source. */
 	if ($source) {
@@ -2964,8 +3004,10 @@ function toggle_samba_readonly($source, $status) {
 		$lock_file		= get_file_lock("smb");
 
 		/* Make file changes. */
-		$config_file	= $GLOBALS["paths"]["samba_mount"];
-		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
+		$config_file	= $paths["samba_mount"];
+		$config_ini		= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
+		$config			= ($config_ini !== false) ? $config_ini : array();
+
 		$config[$source]['read_only'] = ($status == "true") ? "yes" : "no";
 		save_ini_file($config_file, $config);
 
@@ -2982,12 +3024,16 @@ function toggle_samba_readonly($source, $status) {
 
 /* Remove the samba remote mount configuration. */
 function remove_config_samba($source) {
+	global $paths;
+
 	/* Get a lock so file changes can be made. */
 	$lock_file		= get_file_lock("smb");
 
 	/* Make file changes. */
-	$config_file	= $GLOBALS["paths"]["samba_mount"];
-	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
+	$config_file	= $paths["samba_mount"];
+	$config_ini		= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
+	$config			= ($config_ini !== false) ? $config_ini : array();
+
 	if ( isset($config[$source]) ) {
 		unassigned_log("Removing configuration '".$source."'.");
 		if (isset($config[$source]['command'])) {
@@ -3015,13 +3061,14 @@ function remove_config_samba($source) {
 
 /* Get the iso file configuration parameter. */
 function get_iso_config($source, $variable) {
-	$config_file	= $GLOBALS["paths"]["iso_mount"];
-	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
-	return $config[$source][$variable] ?? "";
+	global $iso_config;
+
+	return $iso_config[$source][$variable] ?? "";
 }
 
 /* Set an iso file configuration parameter. */
 function set_iso_config($source, $variable, $value) {
+	global $paths;
 
 	/* Verify we have a serial number. */
 	if ($source) {
@@ -3029,8 +3076,10 @@ function set_iso_config($source, $variable, $value) {
 		$lock_file		= get_file_lock("iso");
 
 		/* Make file changes. */
-		$config_file	= $GLOBALS["paths"]["iso_mount"];
-		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
+		$config_file	= $paths["iso_mount"];
+		$config_ini		= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
+		$config			= ($config_ini !== false) ? $config_ini : array();
+
 		$config[$source][$variable] = $value;
 		save_ini_file($config_file, $config);
 
@@ -3053,12 +3102,12 @@ function is_iso_automount($serial) {
 
 /* Get all ISO moints. */
 function get_iso_mounts() {
-	global $paths;
+	global $paths, $iso_config;
 
 	/* Create an array of iso file mounts and set paramaters. */
 	$return			= array();
-	$config_file	= $paths['iso_mount'];
-	$iso_mounts		= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
+
+	$iso_mounts		= $iso_config;
 
 	/* Sort the iso mounts. */
 	ksort($iso_mounts, SORT_NATURAL);
@@ -3153,6 +3202,7 @@ function do_mount_iso($info) {
 
 /* Toggle iso file automount on/off. */
 function toggle_iso_automount($source, $status) {
+	global $paths;
 
 	/* Verify we have a serial number. */
 	if ($source) {
@@ -3160,8 +3210,10 @@ function toggle_iso_automount($source, $status) {
 		$lock_file		= get_file_lock("iso");
 
 		/* Make file changes. */
-		$config_file	= $GLOBALS["paths"]["iso_mount"];
-		$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
+		$config_file	= $paths["iso_mount"];
+		$config_ini		= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
+		$config			= ($config_ini !== false) ? $config_ini : array();
+
 		$config[$source]["automount"] = ($status == "true") ? "yes" : "no";
 		save_ini_file($config_file, $config);
 
@@ -3178,12 +3230,16 @@ function toggle_iso_automount($source, $status) {
 
 /* Remove ISO configuration. */
 function remove_config_iso($source) {
+	global $paths;
+
 	/* Get a lock so file changes can be made. */
 	$lock_file		= get_file_lock("iso");
 
 	/* Make file changes. */
-	$config_file	= $GLOBALS["paths"]["iso_mount"];
-	$config			= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
+	$config_file	= $paths["iso_mount"];
+	$config_ini		= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
+	$config			= ($config_ini !== false) ? $config_ini : array();
+
 	if ( isset($config[$source]) ) {
 		unassigned_log("Removing ISO configuration '".$source."'.");
 		if (isset($config[$source]['command'])) {
