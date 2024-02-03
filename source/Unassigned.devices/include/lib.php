@@ -1173,12 +1173,8 @@ function timed_exec($timeout, $cmd) {
 function part_fs_type($dev) {
     global $lsblk_file_types;
 
-	/* If the device is a luks device, we have to be sure we have the updated file system from lsblk. */
-	$luks		= (strpos($dev, "/dev/mapper/") !== false);
-	$refresh	= (($luks) && ((! is_mounted($dev)) || (! isset($lsblk_file_types[$dev]))));
-
     /* Get the file system types from lsblk and cache for later use. */
-    if ((! isset($lsblk_file_types)) || ($refresh)) {
+    if (! isset($lsblk_file_types[$dev])) {
         $lsblkOutput = timed_exec(0.5, "/bin/lsblk -o NAME,FSTYPE -n -l -p -e 7,11 2>/dev/null | /usr/bin/grep -v 'crypto_LUKS'");
 
 		$lines = explode(PHP_EOL, trim($lsblkOutput));
@@ -1202,6 +1198,7 @@ function part_fs_type($dev) {
 	$file_type = isset($lsblk_file_types[$dev]) ? $lsblk_file_types[$dev] : "";
 
 	/* Set $rc to the file system type or "luks" if not found. */
+	$luks		= (strpos($dev, "/dev/mapper/") !== false);
     $rc = $file_type === "zfs_member" ? "zfs" : ($file_type ? $file_type : ($luks ? "luks" : ""));
 
 	return $rc;
@@ -3514,8 +3511,8 @@ function get_partition_info($dev) {
 			$dev						= $partition['device'];
 		}
 
-		/* This is the file system reorted by lsblk. */
-		$partition['file_system']		= part_fs_type($partition['device']);
+		/* This is the file system reported by lsblk. */
+		$partition['file_system']		= ($partition['fstype']) ? part_fs_type($partition['device']) : "";
 
 		/* Check for udev and lsblk file system type matching. If not then udev is not reporting the correct file system. */
 		$partition['not_udev']			= ($partition['fstype'] != "crypto_LUKS") ? ($partition['fstype'] != $partition['file_system']) : false;
