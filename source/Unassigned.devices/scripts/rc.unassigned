@@ -78,12 +78,17 @@ function unassigned_mount() {
 		}
 
 		/* If disk is formatting, skip to the next one. */
-		if (MiscUD::get_formatting_status(basename($device))) {
+		if ($disk_info['is_formatting']) {
 			continue;
 		}
 
 		/* If disk is already mounting, skip to the next one. */
 		if (MiscUD::get_mounting_status(basename($device))) {
+			continue;
+		}
+
+		/* If disk is unmounting, skip to the next one. */
+		if (MiscUD::get_unmounting_status(basename($device))) {
 			continue;
 		}
 
@@ -234,6 +239,16 @@ function unassigned_mount() {
 					continue;
 				}
 
+				/* If disk is already mounting, skip to the next one. */
+				if ($info['is_mounting']) {
+					continue;
+				}
+
+				/* If disk is unmounting, skip to the next one. */
+				if ($info['is_unmounting']) {
+					continue;
+				}
+
 				/* Create the mounting status file. */
 				$mount_device = basename($info['ip'])."_".basename($info['path']);
 
@@ -303,6 +318,16 @@ function unassigned_mount() {
 				/* If iso mount is not set to auto mount, skip to the next one. */
 				if (! $info['automount'] && ($DEVNAME == "auto" || $DEVNAME == "autodevices")) {
 					unassigned_log("ISO File '".$info['device']."' is not set to auto mount.");
+					continue;
+				}
+
+				/* If disk is already unmounting, skip to the next one. */
+				if ($info['is_unmounting']) {
+					continue;
+				}
+
+				/* If disk is mounting, skip to the next one. */
+				if ($info['is_mounting']) {
 					continue;
 				}
 
@@ -390,6 +415,11 @@ function unassigned_umount() {
 
 		/* If disk is already unmounting, skip to the next one. */
 		if (MiscUD::get_unmounting_status(basename($device))) {
+			continue;
+		}
+
+		/* If disk is mounting, skip to the next one. */
+		if (MiscUD::get_mounting_status(basename($device))) {
 			continue;
 		}
 
@@ -545,6 +575,16 @@ function unassigned_umount() {
 				}
 				unassigned_log("Remote SMB/NFS share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
 
+				/* If disk is already unmounting, skip to the next one. */
+				if ($info['is_unmounting']) {
+					continue;
+				}
+
+				/* If disk is mounting, skip to the next one. */
+				if ($info['is_mounting']) {
+					continue;
+				}
+
 				/* Unmount the remote share if it is mounted. */
 				$dev	= $info['fstype'] == "root" ? $info['mountpoint'] : $info['device'];
 				if ( $info['mounted'] ) {
@@ -602,6 +642,16 @@ function unassigned_umount() {
 					continue;
 				}
 				unassigned_log("ISO File share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
+
+				/* If disk is already unmounting, skip to the next one. */
+				if ($info['is_unmounting']) {
+					continue;
+				}
+
+				/* If disk is mounting, skip to the next one. */
+				if ($info['is_mounting']) {
+					continue;
+				}
 
 				/* If iso file is mounted, unmount it. */
 				if ( $info['mounted'] ) {
