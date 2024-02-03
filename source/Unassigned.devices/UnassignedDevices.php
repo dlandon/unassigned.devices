@@ -106,7 +106,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$disabled		= ($is_mounting || $is_unmounting || $partition['running'] || ! $partition['fstype'] || $disk['array_disk']);
 
 		/* Get the lsblk file system to compare to udev. */
-		$crypto_fs_type	= part_fs_type($partition['device']);
+		$crypto_fs_type	= $partition['file_system'];
 
 		/* Set up icons for file system check/scrub and script execution. */
 		$fstype = ($partition['fstype'] == "crypto_LUKS") ? $crypto_fs_type : $partition['fstype'];
@@ -605,8 +605,6 @@ switch ($_POST['action']) {
 				$preclear_link			= (($Preclear) && ($disk['size'] !== 0) && (! $file_system) && (! $mounted) && (! $disk['is_formatting']) && (! $preclearing) && (! $disk['array_disk']) && (! $disk['pass_through']) && (! $disk['fstype'])) ? "&nbsp;&nbsp;".$Preclear->Link($disk_device, "icon") : "";
 
 				/* Add the clear disk icon. */
-				$partition['device']	= $partition['device'] ?? "";
-				$partition['serial']	= $partition['serial'] ?? "";
 				$clear_disk				= (($parted) && (get_config("Config", "destructive_mode") == "enabled") && (! $mounted) && (! $disk['is_mounting']) && (! $disk['is_unmounting']) && (! $disk['is_formatting']) && (! $disk['pass_through']) && (! $disk['array_disk']) && (! $preclearing) && (((! $parts) && ($disk['fstype'])) || (($parts) && (! $disk['partitions'][0]['pool']) && (! $disk['partitions'][0]['disable_mount']))) ) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove clear-hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
 
 				/* Show disk icon based on SSD or spinner disk. */
