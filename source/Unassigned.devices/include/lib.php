@@ -1035,7 +1035,7 @@ function remove_partition($dev, $part) {
 	foreach (get_all_disks_info() as $d) {
 		if ($d['device'] == $dev) {
 			foreach ($d['partitions'] as $p) {
-				if ($p['part'] == $part && $p['target']) {
+				if (($p['part'] == $part) && ($p['target'])) {
 					unassigned_log("Aborting removal: partition '".$part."' is mounted.");
 					$rc = false;
 				}
@@ -1195,7 +1195,7 @@ function part_fs_type($dev) {
 	}
 
 	/* Check if the device exists in the array. */
-	$file_type = isset($lsblk_file_types[$dev]) ? $lsblk_file_types[$dev] : "";
+	$file_type = $lsblk_file_types[$dev] ?? "";
 
 	/* Set $rc to the file system type or "luks" if not found. */
 	$luks		= (strpos($dev, "/dev/mapper/") !== false);
@@ -2600,22 +2600,22 @@ function get_samba_mounts() {
 				$mount['share']			= $mount['share'] ?? "";
 				$mount['share']			= safe_name($mount['share'], false);
 
-				/* Set the mount file system. */
+				/* Set the mount point and file system. */
 				switch ($mount['protocol']) {
 					case "NFS":
 						$mount['fstype']	= "nfs";
-						$path				= basename($mount['share']);
+						$path				= $mount['share'];
 						break;
         
 					case "ROOT":
 						$mount['fstype']	= "root";
-						$root_type			= basename($mount['path']) == "user" ? "Shares-Pools" : "Shares-NoPools";
+						$root_type			= $mount['share'] == "user" ? "Shares-Pools" : "Shares-NoPools";
 						$path				= $mount['mountpoint'] ? $mount['mountpoint'] : $root_type;
 						break;
 
 					default:
 						$mount['fstype']	= "cifs";
-						$path				= $mount['share'] ?? "";
+						$path				= $mount['share'];
 						break;
 				}
 
@@ -3056,7 +3056,7 @@ function get_iso_mounts() {
 	global $paths;
 
 	/* Create an array of iso file mounts and set paramaters. */
-	$rc				= array();
+	$return			= array();
 	$config_file	= $paths['iso_mount'];
 	$iso_mounts		= (file_exists($config_file)) ? @parse_ini_file($config_file, true, INI_SCANNER_RAW) : array();
 
@@ -3088,11 +3088,8 @@ function get_iso_mounts() {
 				$mount['mounted']		= is_mounted("", $mount['mountpoint'], "", false);
 
 				/* If this is a legacy iso mount indicate that it should be removed. */
-				$mount['invalid']		= false;
 				$safe_device			= safe_name($mount['file']);
-				if (basename($safe_device) != $device) {
-					$mount['invalid']	= true;
-				}
+				$mount['invalid']		= (basename($safe_device) != $device);
 	
 				/* Target is set to the mount point when the device is mounted. */
 				$mount['target']		= $mount['mounted'] ? $mount['mountpoint'] : "";
@@ -3111,7 +3108,7 @@ function get_iso_mounts() {
 				$mount['running']		= ((is_script_running($mount['command'])) || (is_script_running($mount['user_command'], true)));
 
 				/* Add to the iso mounts array. */
-				$rc[] = $mount;
+				$return[] = $mount;
 			}
 
 		}
@@ -3119,7 +3116,7 @@ function get_iso_mounts() {
 		unassigned_log("Error: unable to get the ISO mounts.");
 	}
 
-	return $rc;
+	return $return;
 }
 
 /* Mount ISO file. */
@@ -3231,21 +3228,36 @@ function get_unassigned_disks() {
 	/* Get all devices by id and eliminate any duplicates. */
 	foreach (array_unique(listDir("/dev/disk/by-id/")) as $p) {
 		$r = realpath($p);
+
 		/* Only /dev/sd*, /dev/hd*, and /dev/nvme* devices. */
-		if ((! is_bool(strpos($r, "/dev/sd"))) || (! is_bool(strpos($r, "/dev/hd"))) || (! is_bool(strpos($r, "/dev/nvme")))) {
+		if (array_reduce(["/dev/sd", "/dev/hd", "/dev/nvme"], function ($carry, $substring) use ($r) {
+			return $carry || strpos($r, $substring) !== false;
+		}, false)) {
 			$paths[$r] = $p;
 		}
 	}
 	ksort($paths, SORT_NATURAL);
 
 	/* Create the array of unassigned devices. */
-	foreach ($paths as $path => $d) {
-		if ($d && (preg_match("#^(.(?!part))*$#", $d))) {
-			if (! in_array($path, $unraid_disks, true)) {
-				if (! in_array($path, array_map(function($ar){return $ar['device'];}, $ud_disks), true)) {
-					$m = array_values(preg_grep("|$d.*-part\d+|", $paths));
-					natsort($m);
-					$ud_disks[$d] = array("device" => $path, "partitions" => $m);
+	foreach ($paths as $path => $device) {
+		/* Check if $device is not empty and doesn't contain "part" in its name */
+		if ($device && (preg_match("#^(.(?!part))*$#", $device))) {
+
+			/* Check if $path is not in $unraid_disks */
+			if (!in_array($path, $unraid_disks, true)) {
+
+				/* Check if $path is not in the 'device' field of any array in $ud_disks */
+				if (!in_array($path, array_map(function ($ar) {
+					return $ar['device'];
+				}, $ud_disks), true)) {
+					/* Get partitions matching the pattern "$device.*-part\d+" */
+					$partitions = array_values(preg_grep("|$device.*-part\d+|", $paths));
+
+					/* Sort partitions using natural order */
+					natsort($partitions);
+
+					/* Add entry to $ud_disks */
+					$ud_disks[$device] = array("device" => $path, "partitions" => $partitions);
 				}
 			}
 		}
@@ -3288,14 +3300,13 @@ function get_all_disks_info() {
 			$disk['zvol']	= array();
 			foreach ($disk['partitions'] as $k => $p) {
 				if ($p) {
-					$disk['partitions'][$k]					= get_partition_info($p);
-					$disk['partitions'][$k]['array_disk']	= $disk['partitions'][$k]['array_disk'] ?? false;
-					$disk['array_disk']						= $disk['array_disk'] || $disk['partitions'][$k]['array_disk'];
+					$disk['partitions'][$k]	= get_partition_info($p);
+					$disk['array_disk']		= ($disk['array_disk'] || $disk['partitions'][$k]['array_disk']);
 
 					/* If this is a zfs disk, see if there are any zfs volumes. */
 					if ($disk['partitions'][$k]['fstype'] == "zfs") {
 						/* Get any zfs volumes. */
-						$disk['zvol']	= array_merge($disk['zvol'], get_zvol_info($disk['partitions'][$k]));
+						$disk['zvol']		= array_merge($disk['zvol'], get_zvol_info($disk['partitions'][$k]));
 					}
 				}
 			}
@@ -3305,11 +3316,11 @@ function get_all_disks_info() {
 			$disk['path'] = $key;
 
 			/* Use the devX designation of the sdX if there is no devX designation. */
-			$unassigned_dev = $disk['unassigned_dev'] ? $disk['unassigned_dev'] : $disk['ud_dev'];
-			$unassigned_dev	= $unassigned_dev ? $unassigned_dev : basename($disk['device']);
+			$unassigned_dev = $disk['unassigned_dev'] ?? $disk['ud_dev'];
+			$unassigned_dev	= $unassigned_dev ?? basename($disk['device']);
 
 			/* If there is already a devX that is the same, use the disk device sdX designation. */
-			if (isset($ud_disks[$unassigned_dev]) && (strtoupper(substr($unassigned_dev, 0, 3)) == "DEV")) {
+			if (strtoupper(substr($unassigned_dev, 0, 3)) == "DEV") {
 				/* Get the sdX device designation. */
 				$unassigned_dev = basename($disk['device']);
 
@@ -3397,8 +3408,6 @@ function get_udev_info($dev, $udev = null) {
 			release_file_lock($lock_file);
 
 			$rc	= $state[$device];
-		} else {
-			$rc = array();
 		}
 	}
 
@@ -3460,35 +3469,33 @@ function get_partition_info($dev) {
 	$partition	= array();
 	$attrs	= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
 	if ($attrs['DEVTYPE'] == "partition") {
-		$partition['serial_short']	= $attrs['ID_SCSI_SERIAL'] ?? ($attrs['ID_SERIAL_SHORT'] ?? "");
-		$partition['device']		= realpath($dev);
-		$partition['serial']		= isset($attrs['ID_SERIAL']) ? get_disk_id($partition['device'], trim($attrs['ID_SERIAL'])) : "";
-		$partition['uuid']			= $attrs['ID_FS_UUID'] ?? "";
+		$partition['serial_short']		= $attrs['ID_SCSI_SERIAL'] ?? ($attrs['ID_SERIAL_SHORT'] ?? "");
+		$partition['device']			= realpath($dev);
+		$partition['serial']			= isset($attrs['ID_SERIAL']) ? get_disk_id($partition['device'], trim($attrs['ID_SERIAL'])) : "";
+		$partition['uuid']				= $attrs['ID_FS_UUID'] ?? "";
 
 		/* Get partition number */
 		preg_match_all("#(.*?)(\d+$)#", $partition['device'], $matches);
-		$partition['part']			= $matches[2][0] ?? "";
-		$partition['disk']			= (isset($matches[1][0])) ? MiscUD::base_device($matches[1][0]) : "";
+		$partition['part']				= $matches[2][0] ?? "";
+		$partition['disk']				= (isset($matches[1][0])) ? MiscUD::base_device($matches[1][0]) : "";
 
 		/* Get the physical disk label or generate one based on the vendor id and model or serial number. */
 		if (isset($attrs['ID_FS_LABEL'])){
-			$partition['label']		= safe_name($attrs['ID_FS_LABEL']);
+			$partition['label']			= safe_name($attrs['ID_FS_LABEL']);
 			$partition['disk_label']	= $partition['label'];
 		} else {
 			if (isset($attrs['ID_VENDOR']) && isset($attrs['ID_MODEL'])){
-				$partition['label']	= sprintf("%s %s", safe_name($attrs['ID_VENDOR']), safe_name($attrs['ID_MODEL']));
+				$partition['label']		= sprintf("%s %s", safe_name($attrs['ID_VENDOR']), safe_name($attrs['ID_MODEL']));
 			} else {
-				$partition['label']	= safe_name($attrs['ID_SERIAL_SHORT']);
+				$partition['label']		= safe_name($attrs['ID_SERIAL_SHORT']);
 			}
-			$all_disks				= array_unique(array_map(function($ar){return realpath($ar);}, listDir("/dev/disk/by-id")));
-			$partition['label']		= (isset($partition['label']) && (isset($matches[1][0])) && (count(preg_grep("%".$matches[1][0]."%i", $all_disks)) > 2)) ? $partition['label']."-part".$matches[2][0] : $partition['label'];
+			$all_disks					= array_unique(array_map(function($ar){return realpath($ar);}, listDir("/dev/disk/by-id")));
+			$partition['label']			= (isset($partition['label']) && (isset($matches[1][0])) && (count(preg_grep("%".$matches[1][0]."%i", $all_disks)) > 2)) ? $partition['label']."-part".$matches[2][0] : $partition['label'];
 			$partition['disk_label']	= "";
 		}
 
 		/* Any partition with an 'UNRAID' label is an array disk. */
-		if ($partition['label'] == "UNRAID") {
-			$partition['array_disk'] = true;
-		}
+		$partition['array_disk']		= ($partition['label'] == "UNRAID");
 
 		/* Get the file system type. */
 		$partition['fstype']			= safe_name($attrs['ID_FS_TYPE'] ?? "");
@@ -3608,12 +3615,7 @@ function get_zvol_info($disk) {
 			$zvol[$vol]['pool_name']		= $zpool_name;
 			$zvol[$vol]['volume']			= $volume;
 			$zvol[$vol]['device']			= realpath($q);
-			if (strpos($q, "-part") !== false) {
-				$zvol[$vol]['active']		= true;
-			} else {
-				$zvol[$vol]['active']		= empty(glob($q."-part*"));
-			}
-
+			$zvol[$vol]['active']			= (strpos($q, "-part") !== false) ? true : empty(glob($q."-part*"));
 			$zvol[$vol]['mountpoint']		= $disk['mountpoint'].".".basename($q);
 			$zvol[$vol]['mounted']			= is_mounted("", $zvol[$vol]['mountpoint'], false);
 			$zvol[$vol]['is_mounting']		= MiscUD::get_mounting_status(basename($zvol[$vol]['device']));
@@ -3888,6 +3890,7 @@ function change_samba_mountpoint($dev, $mountpoint) {
 	global $paths;
 
 	$rc = true;
+
 	if ($mountpoint) {
 		$rc = check_for_duplicate_share($dev, $mountpoint);
 		if ($rc) {
@@ -3907,6 +3910,7 @@ function change_iso_mountpoint($dev, $mountpoint) {
 	global $paths;
 
 	$rc = true;
+
 	if ($mountpoint) {
 		$rc = check_for_duplicate_share($dev, $mountpoint);
 		if ($rc) {

@@ -332,11 +332,8 @@ function make_mount_button($device) {
 		$mounted = in_array(true, array_map(function($partition) {
 			return $partition['mounted'];
 		}, $device['partitions']), true);
-		if (isset($device['partitions'][0]['pass_through'])) {
-			$pass_through	= $device['partitions'][0]['pass_through'];
-		} else {
-			$pass_through	= is_pass_through($device['serial']);
-		}
+
+		$pass_through	= is_pass_through($device['serial']);
 		$format			= ((! count($device['partitions'])) && (! $pass_through));
 		$disable = array_reduce($device['partitions'], function ($carry, $partition) {
 			return $carry || !empty($partition['fstype']);
@@ -662,7 +659,7 @@ switch ($_POST['action']) {
 					}
 				}
 				$luks_lock		= $mounted ? "<i class='fa fa-unlock-alt fa-append green-orb'></i>" : "<i class='fa fa-lock fa-append grey-orb'></i>";
-				$o_disks		.=  ((isset($disk['partitions'][0]['fstype']) && ($disk['partitions'][0]['fstype'] == "crypto_LUKS"))) ? "{$luks_lock}" : "";
+				$o_disks		.= ($disk['partitions'][0]['fstype'] == "crypto_LUKS") ? $luks_lock : "";
 				$o_disks		.= "<a href='/Main/".$str."=".$disk_dev."'>".$disk_display."</a>";
 				$o_disks		.= "</td>";
 
@@ -724,7 +721,7 @@ switch ($_POST['action']) {
 						$disk_names[$disk_device] = $disk['unassigned_dev'];
 					}
 					if ($disk['partitions'][$i]['fstype']) {
-						$dev	= (isset($disk['partition'][$i]['fstype']) && basename(($disk['partition'][$i]['fstype'] == "crypto_LUKS")) ? $disk['luks'] : $disk['device']);
+						$dev		= ($disk['partition'][$i]['fstype'] == "crypto_LUKS") ? $disk['luks'] : $disk['device'];
 						if (MiscUD::is_device_nvme($dev)) {
 							$dev .= "p";
 						}
@@ -739,7 +736,7 @@ switch ($_POST['action']) {
 						}
 
 						$share_names				= array_flip($share_names);
-						$share_names[$mountpoint]	= isset($disk_uuid[$uuid]) ? $disk_uuid[$uuid] : $dev;
+						$share_names[$mountpoint]	= $disk_uuid[$uuid] ?? $dev;
 						$share_names				= array_flip($share_names);
 					}
 				}
@@ -811,7 +808,7 @@ switch ($_POST['action']) {
 				/* Mount button table element. */
 				/* Make the mount button. */
 				$disable	= (($mount['fstype'] == "root") && ($var['shareDisk'] == "yes" || $var['mdState'] != "STARTED")) ? "disabled" : (($is_alive || $mounted) ? "enabled" : "disabled");
-				$disable	= ((isset($mount['disable_mount']) && ($mount['disable_mount'])) || ($mount['invalid'])) ? "disabled" : $disabled;
+				$disable	= (($mount['disable_mount']) || ($mount['invalid'])) ? "disabled" : $disabled;
 				
 				/* Set up the mount button operation and text. */
 				$buttonFormat	= "<td><button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, '%s', '{$mount['device']}');\" %s><i class='%s'></i>%s</button></td>";
@@ -871,7 +868,7 @@ switch ($_POST['action']) {
 
 				$title 				= _("Remote SMB")."/".("NFS Settings and Script");
 				$title 				.= "<br />"._("Disable Mount Button").": ";
-				$title 				.= ( isset($mount['disable_mount']) && ($mount['disable_mount']) ) ? "Yes" : "No";
+				$title 				.= ($mount['disable_mount']) ? "Yes" : "No";
 				$title 				.= "<br />"._("Read Only").": ";
 				$title 				.= $mount['read_only'] ? "Yes" : "No";
 				$title 				.= "<br />"._("Automount").": ";
@@ -1079,13 +1076,14 @@ switch ($_POST['action']) {
 					$disk_dev		= ($disk_dev) ? $disk_dev : _("none");
 
 					/* Create a unique disk_display string to be sure each device is unique. */
-					$disk_display = $disk_dev."_".$serial;
+					$disk_display	= $disk_dev."_".$serial;
 
 					/* Save this devices info. */
 					$historical[$disk_display]['serial']		= $serial;
 					$historical[$disk_display]['device']		= $disk_dev;
 					$historical[$disk_display]['mntpoint']		= $mntpoint;
 					$historical[$disk_display]['mountpoint']	= $mountpoint;
+
 				}
 			}
 		}
@@ -1163,6 +1161,7 @@ switch ($_POST['action']) {
 		/* Update auto mount configuration setting. */
 		$serial = urldecode($_POST['device']);
 		$status = urldecode($_POST['status']);
+
 		$result	= toggle_automount($serial, $status);
 		echo json_encode(array( 'result' => $result ));
 		break;
@@ -1171,6 +1170,7 @@ switch ($_POST['action']) {
 		/* Update show partitions configuration setting. */
 		$serial = urldecode($_POST['serial']);
 		$status = urldecode($_POST['status']);
+
 		$result	= set_config($serial, "show_partitions", ($status == "true") ? "yes" : "no");
 		echo json_encode(array( 'result' => $result ));
 		break;
@@ -1180,6 +1180,7 @@ switch ($_POST['action']) {
 		$device	= urldecode($_POST['device']);
 		$part	= urldecode($_POST['part']);
 		$status = urldecode($_POST['status']) == "yes" ? "true" : "false";
+
 		$result	= set_config($device, "command_bg.{$part}", $status);
 		echo json_encode(array( 'result' => $result ));
 		break;
@@ -1189,6 +1190,7 @@ switch ($_POST['action']) {
 		$device	= urldecode($_POST['device']);
 		$part	= urldecode($_POST['part']);
 		$status = urldecode($_POST['status']) == "yes" ? "true" : "false";
+
 		$result	= set_config($device, "enable_script.{$part}", $status);
 		echo json_encode(array( 'result' => $result ));
 		break;
@@ -1199,6 +1201,7 @@ switch ($_POST['action']) {
 		$part		= urldecode($_POST['part']);
 		$cmd		= urldecode($_POST['command']);
 		$user_cmd	= urldecode($_POST['user_command']);
+
 		$file_path = pathinfo($cmd);
 		if ((isset($file_path['dirname'])) && ($file_path['dirname'] == "/boot/config/plugins/unassigned.devices") && ($file_path['filename'])) {
 			set_config($serial, "user_command.{$part}", $user_cmd);
@@ -1217,6 +1220,7 @@ switch ($_POST['action']) {
 		$serial	= urldecode($_POST['serial']);
 		$part	= urldecode($_POST['part']);
 		$vol	= urldecode($_POST['volume']);
+
 		$result	= set_config($serial, "volume.{$part}", $vol);
 		echo json_encode(array( 'result' => $result ));
 		break;
@@ -1225,6 +1229,7 @@ switch ($_POST['action']) {
 		/* Set disk name configuration setting. */
 		$serial		= urldecode($_POST['serial']);
 		$dev		= urldecode($_POST['device']);
+
 		$name		= safe_name(urldecode($_POST['name']));
 		$disk_names = MiscUD::get_json($paths['disk_names']);
 
@@ -1264,6 +1269,7 @@ switch ($_POST['action']) {
 	case 'remove_config':
 		/* Remove historical disk configuration. */
 		$serial	= urldecode($_POST['serial']);
+
 		$result	= remove_config_disk($serial);
 		echo json_encode($result);
 		break;
@@ -1272,6 +1278,7 @@ switch ($_POST['action']) {
 		/* Toggle the share configuration setting. */
 		$info	= json_decode($_POST['info'], true);
 		$status	= urldecode($_POST['status']);
+
 		$result	= toggle_share($info['serial'], $info['part'], $status);
 		if (($result) && ($info['target'])) {
 			$fat_fruit	= (($info['fstype'] == "vfat") || ($info['fstype'] == "exfat"));
@@ -1289,6 +1296,7 @@ switch ($_POST['action']) {
 		$serial		= urldecode($_POST['serial']);
 		$partition	= urldecode($_POST['part']);
 		$status		= urldecode($_POST['status']);
+
 		$result		= toggle_share($serial, $partition, $status);
 		echo json_encode(array( 'result' => $result ));
 		break;
@@ -1298,6 +1306,7 @@ switch ($_POST['action']) {
 		$serial	= urldecode($_POST['serial']);
 		$part	= urldecode($_POST['part']);
 		$status	= urldecode($_POST['status']);
+
 		$result	= toggle_read_only($serial, $status, $part);
 		echo json_encode(array( 'result' => $result ));
 		break;
@@ -1307,6 +1316,7 @@ switch ($_POST['action']) {
 		$serial	= urldecode($_POST['serial']);
 		$part	= urldecode($_POST['part']);
 		$status	= urldecode($_POST['status']);
+
 		$result	= toggle_pass_through($serial, $status, $part);
 		echo json_encode(array( 'result' => $result ));
 		break;
@@ -1316,6 +1326,7 @@ switch ($_POST['action']) {
 		$serial	= urldecode($_POST['device']);
 		$part	= urldecode($_POST['part']);
 		$status	= urldecode($_POST['status']);
+
 		$result	= toggle_disable_mount($serial, $status, $part);
 		echo json_encode(array( 'result' => $result ));
 		break;
@@ -1324,6 +1335,7 @@ switch ($_POST['action']) {
 	case 'mount':
 		/* Mount a disk device. */
 		$device	= urldecode($_POST['device']);
+
 		$return = trim(shell_exec("/usr/bin/nice plugins/".$plugin."/scripts/rc.unassigned mount ".escapeshellarg($device)." & 2>/dev/null"));
 		echo json_encode($return == "success");
 		break;
@@ -1331,6 +1343,7 @@ switch ($_POST['action']) {
 	case 'umount':
 		/* Unmount a disk device. */
 		$device	= urldecode($_POST['device']);
+
 		$return = trim(shell_exec("/usr/bin/nice plugins/".$plugin."/scripts/rc.unassigned umount ".escapeshellarg($device)." & 2>/dev/null"));
 		echo json_encode($return == "success");
 		break;
@@ -1384,6 +1397,7 @@ switch ($_POST['action']) {
 		$fs			= urldecode($_POST['fs']);
 		$pass		= isset($_POST['pass']) ? urldecode($_POST['pass']) : "";
 		$pool_name	= isset($_POST['pool_name']) ? urldecode($_POST['pool_name']) : "";
+
 		$pool_name	= safe_name($pool_name, false);
 
 		/* Create the state file. */
@@ -1404,6 +1418,7 @@ switch ($_POST['action']) {
 	case 'list_samba_hosts':
 		/* Get a list of samba hosts. */
 		$network	= $_POST['network'];
+
 		$names		= [];
 		foreach ($network as $iface) {
 			$ip			= $iface['ip'];
@@ -1435,6 +1450,10 @@ switch ($_POST['action']) {
 	case 'list_samba_shares':
 		/* Get a list of samba shares for a specific host. */
 		$ip			= urldecode($_POST['IP']);
+		$user		= isset($_POST['USER']) ? $_POST['USER'] : "";
+		$pass		= isset($_POST['PASS']) ? $_POST['PASS'] : "";
+		$domain		= isset($_POST['DOMAIN']) ? $_POST['DOMAIN'] : "";
+
 		$ip			= implode("",explode("\\", $ip));
 		$ip			= strtoupper(stripslashes(trim($ip)));
 
@@ -1442,10 +1461,6 @@ switch ($_POST['action']) {
 		if (! MiscUD::is_ip($ip)) {
 			$ip		= str_replace( array(".".$local_tld, ".".$default_tld), "", $ip);
 		}
-
-		$user	= isset($_POST['USER']) ? $_POST['USER'] : "";
-		$pass	= isset($_POST['PASS']) ? $_POST['PASS'] : "";
-		$domain	= isset($_POST['DOMAIN']) ? $_POST['DOMAIN'] : "";
 
 		/* Create the credentials file. */
 		@file_put_contents("{$paths['authentication']}", "username=".$user."\n");
@@ -1469,8 +1484,9 @@ switch ($_POST['action']) {
 	/*	NFS	*/
 	case 'list_nfs_hosts':
 		/* Get a list of nfs hosts. */
-		$names		= [];
 		$network	= $_POST['network'];
+		$names		= [];
+
 		foreach ($network as $iface) {
 			$ip			= $iface['ip'];
 			$netmask 	= $iface['netmask'];
@@ -1501,6 +1517,7 @@ switch ($_POST['action']) {
 	case 'list_nfs_shares':
 		/* Get a list of nfs shares for a specific host. */
 		$ip			= urldecode($_POST['IP']);
+
 		$ip			= implode("",explode("\\", $ip));
 		$ip			= strtoupper(stripslashes(trim($ip)));
 
@@ -1521,16 +1538,17 @@ switch ($_POST['action']) {
 	/* SMB SHARES */
 	case 'add_samba_share':
 		/* Add a samba share configuration. */
-		$rc			= true;
-
 		$ip			= urldecode($_POST['IP']);
-		$ip			= implode("",explode("\\", $ip));
-		$ip			= strtoupper(stripslashes(trim($ip)));
 		$protocol	= urldecode($_POST['PROTOCOL']);
 		$user		= isset($_POST['USER']) ? urldecode($_POST['USER']) : "";
 		$domain		= isset($_POST['DOMAIN']) ? urldecode($_POST['DOMAIN']) : "";
 		$pass		= isset($_POST['PASS']) ? urldecode($_POST['PASS']) : "";
 		$path		= isset($_POST['SHARE']) ? urldecode($_POST['SHARE']) : "";
+
+		$rc			= true;
+
+		$ip			= implode("",explode("\\", $ip));
+		$ip			= strtoupper(stripslashes(trim($ip)));
 		$path		= implode("",explode("\\", $path));
 		$path		= stripslashes(trim($path));
 		$share		= basename($path);
@@ -1583,6 +1601,7 @@ switch ($_POST['action']) {
 	case 'remove_samba_config':
 		/* Remove samba configuration. */
 		$device		= urldecode($_POST['device']);
+
 		$result		= remove_config_samba($device);
 		echo json_encode($result);
 		break;
@@ -1591,6 +1610,7 @@ switch ($_POST['action']) {
 		/* Set samba auto mount configuration setting. */
 		$device		= urldecode($_POST['device']);
 		$status		= urldecode($_POST['status']);
+
 		$result		= toggle_samba_automount($device, $status);
 		echo json_encode(array( 'result' => $result ));
 		break;
@@ -1599,8 +1619,9 @@ switch ($_POST['action']) {
 		/* Toggle samba share configuration setting. */
 		$info		= json_decode($_POST['info'], true);
 		$status		= urldecode($_POST['status']);
+
 		$result		= toggle_samba_share($info['device'], $status);
-		if ($result && $info['target']) {
+		if (($result) && ($info['target'])) {
 			add_smb_share($info['mountpoint'], $info['fstype'] == "root");
 			add_nfs_share($info['mountpoint']);
 		} else if ($info['mounted']) {
@@ -1614,6 +1635,7 @@ switch ($_POST['action']) {
 		/* Toggle the disable mount button setting. */
 		$serial	= urldecode($_POST['serial']);
 		$status	= urldecode($_POST['status']);
+
 		$result	= toggle_samba_readonly($serial, $status);
 		echo json_encode(array( 'result' => $result ));
 		break;
@@ -1622,6 +1644,7 @@ switch ($_POST['action']) {
 		/* Toggle the disable mount button setting. */
 		$device	= urldecode($_POST['device']);
 		$status	= urldecode($_POST['status']);
+
 		$result	= toggle_samba_disable_mount($device, $status);
 		echo json_encode(array( 'result' => $result ));
 		break;
@@ -1630,6 +1653,7 @@ switch ($_POST['action']) {
 		/* Set samba share background configuration setting. */
 		$device		= urldecode($_POST['device']);
 		$status		= urldecode($_POST['status']) == "yes" ? "true" : "false";
+
 		$result		= set_samba_config($device, "command_bg", $status);
 		echo json_encode(array( 'result' => $result ));
 		break;
@@ -1638,6 +1662,7 @@ switch ($_POST['action']) {
 		/* Set samba share enable script configuration setting. */
 		$device		= urldecode($_POST['device']);
 		$status		= urldecode($_POST['status']) == "yes" ? "true" : "false";
+
 		$result		= set_samba_config($device, "enable_script", $status);
 		echo json_encode(array( 'result' => $result ));
 		break;
@@ -1646,6 +1671,7 @@ switch ($_POST['action']) {
 		/* Set samba mount encryption configuration setting. */
 		$device		= urldecode($_POST['device']);
 		$status		= urldecode($_POST['status']);
+
 		$result		= set_samba_config($device, "encryption", $status);
 		echo json_encode(array( 'result' => $result ));
 		break;
@@ -1655,6 +1681,7 @@ switch ($_POST['action']) {
 		$device		= urldecode($_POST['device']);
 		$cmd		= urldecode($_POST['command']);
 		$user_cmd	= urldecode($_POST['user_command']);
+
 		$file_path = pathinfo($cmd);
 		if ((isset($file_path['dirname'])) && ($file_path['dirname'] == "/boot/config/plugins/unassigned.devices") && ($file_path['filename'])) {
 			set_samba_config($device, "user_command", urldecode($_POST['user_command']));
