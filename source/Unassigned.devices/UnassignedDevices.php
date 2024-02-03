@@ -1070,8 +1070,8 @@ switch ($_POST['action']) {
 					if ((isset($config[$serial]['unassigned_dev'])) && ($config[$serial]['unassigned_dev']) && (! in_array($config[$serial]['unassigned_dev'], $disk_names))) {
 						$disk_names[$serial] = $config[$serial]['unassigned_dev'];
 					}
-					$mntpoint		= isset($config[$serial]['mountpoint.1']) ? basename($config[$serial]['mountpoint.1']) : "";
-					$mountpoint		= ($mntpoint) ? " (".$mntpoint.")" : "";
+					$mountpoint		= isset($config[$serial]['mountpoint.1']) ? basename($config[$serial]['mountpoint.1']) : "";
+					$mntpoint		= ($mountpoint) ? " (".$mountpoint.")" : "";
 					$disk_dev		= (isset($config[$serial]['unassigned_dev'])) ? $config[$serial]['unassigned_dev'] : "";
 					$disk_dev		= ($disk_dev) ? $disk_dev : _("none");
 
@@ -1084,6 +1084,10 @@ switch ($_POST['action']) {
 					$historical[$disk_display]['mntpoint']		= $mntpoint;
 					$historical[$disk_display]['mountpoint']	= $mountpoint;
 
+					/* Add to the share names. */
+					if ($mountpoint) {
+						$share_names[$serial] = $mountpoint;
+					}
 				}
 			}
 		}
@@ -1102,7 +1106,7 @@ switch ($_POST['action']) {
 			$o_historical	.= sprintf( "<td><a class='info'><i class='fa fa-minus-circle %s orb'></i><span>"._("Historical Device is")." %s</span></a>".$historical[$disk_display]['device']."</td>", ( $is_standby ? "green-orb" : "grey-orb" ), ( $is_standby ? _("in standby") : _("offline") ));
 
 			$o_historical	.= "<td>";
-			$o_historical	.= $historical[$disk_display]['serial'].$historical[$disk_display]['mountpoint'];
+			$o_historical	.= $historical[$disk_display]['serial'].$historical[$disk_display]['mntpoint'];
 			$o_historical	.= "<td>";
 
 			/* Empty table element. */
@@ -1120,7 +1124,7 @@ switch ($_POST['action']) {
 
 			/* Device settings table element. */
 			$o_historical	.= "<td>";
-			$o_historical	.= "<a class='info' href='/Main/DeviceSettings?s=".$historical[$disk_display]['serial']."&l=".$historical[$disk_display]['mntpoint']."&p="."1"."&t=true'><i class='fa fa-gears'></i><span>"._("Historical Device Settings and Script")."</span></a>";
+			$o_historical	.= "<a class='info' href='/Main/DeviceSettings?s=".$historical[$disk_display]['serial']."&l=".$historical[$disk_display]['mountpoint']."&p="."1"."&t=true'><i class='fa fa-gears'></i><span>"._("Historical Device Settings and Script")."</span></a>";
 			$o_historical	.= "</td>";
 
 
