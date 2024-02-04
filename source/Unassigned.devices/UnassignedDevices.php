@@ -807,8 +807,8 @@ switch ($_POST['action']) {
 
 				/* Mount button table element. */
 				/* Make the mount button. */
-				$disable	= (($mount['fstype'] == "root") && ($var['shareDisk'] == "yes" || $var['mdState'] != "STARTED")) ? "disabled" : (($is_alive || $mounted) ? "enabled" : "disabled");
-				$disable	= (($mount['disable_mount']) || ($mount['invalid'])) ? "disabled" : $disabled;
+				$disable	= (($mount['fstype'] == "root") && ($var['shareDisk'] == "yes" || $var['mdState'] != "STARTED")) ? "disabled" : (($is_alive || $mounted) ? false : true);
+				$disable	= (($mount['disable_mount']) || ($mount['invalid'])) ? true : $disable;
 				
 				/* Set up the mount button operation and text. */
 				$buttonFormat	= "<td><button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, '%s', '{$mount['device']}');\" %s><i class='%s'></i>%s</button></td>";
@@ -1054,8 +1054,10 @@ switch ($_POST['action']) {
 		$time = -microtime(true);
 
 		$o_historical = "";
-		$config_file	= $paths["config_file"];
-		$config			= is_file($config_file) ? @parse_ini_file($config_file, true) : array();
+
+		/* Get the UD configuration. */
+		$config			= $ud_config;
+
 		ksort($config, SORT_NATURAL);
 		$disks_serials	= array();
 		foreach ($all_disks as $disk) {
@@ -1083,11 +1085,6 @@ switch ($_POST['action']) {
 					$historical[$disk_display]['device']		= $disk_dev;
 					$historical[$disk_display]['mntpoint']		= $mntpoint;
 					$historical[$disk_display]['mountpoint']	= $mountpoint;
-
-					/* Add to the share names. */
-					if ($mountpoint) {
-						$share_names[$serial] = $mountpoint;
-					}
 				}
 			}
 		}
