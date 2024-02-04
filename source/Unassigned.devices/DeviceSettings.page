@@ -78,7 +78,6 @@ if (isset($_GET['s'])) {
 	$fstype				= $_GET['f'] ?? "";
 	$ud_device			= $serial;
 
-unassigned_log("*** serial ".$serial);
 	/* Do some configuration file work */
 	/* If the script file does not exist, reset the command script file. */
 	if (($file) && (! file_exists($file))) {
