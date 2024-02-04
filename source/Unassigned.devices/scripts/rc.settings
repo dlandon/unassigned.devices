@@ -24,7 +24,7 @@ function save() {
 
 /* Save settings and update shares based on any changes to settings. */
 function apply() {
-	global $paths;
+	global $paths, $ud_config;
 
 	unassigned_log("Updating share settings...");
 
@@ -33,6 +33,10 @@ function apply() {
 
 	/* Copy the updated configuration from the flash drive to the tmp config file. */
 	@copy("/boot/config/plugins/unassigned.devices/unassigned.devices.cfg", $paths['config_file']);
+
+	/* Update the UD configuration file in ram. */
+	$config_ini		= @parse_ini_file($paths['config_file'], true, INI_SCANNER_RAW);
+	$ud_config		= ($config_ini !== false) ? $config_ini : array();
 
 	/* Reload the shares based on the new settings. */
 	reload_shares();
