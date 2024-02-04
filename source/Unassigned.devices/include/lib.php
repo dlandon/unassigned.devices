@@ -348,7 +348,7 @@ class MiscUD
 			}
 
 			/* The disk must be mounted if we cannot import the zpool. */
-			if ((! $rc) && ($mount_point)) {
+			if ((! $rc) && ($mount_point) && (isset($mounts))) {
 				foreach ($mounts as $k => $v) {
 					if ($v['mountpoint'] === $mount_point) {
 						$rc		= $k;
