@@ -219,7 +219,8 @@ function ping_servers() {
 	global $config_file, $default_tld;
 
 	/* Refresh the ping status. */
-	$samba_mounts	= @parse_ini_file($config_file, true);
+	$config_ini		= @parse_ini_file($config_file, true);
+	$samba_mounts	= ($config_ini !== false) ? $config_ini : array();
 	if (is_array($samba_mounts)) {
 		/* Ceate an array of unique server names/ip addresses. */
 		$srvr	= array();
