@@ -53,7 +53,7 @@ define('NFS_PORT', '2049');
 
 /* Get the Unraid users. */
 $users			= @parse_ini_file($docroot."/state/users.ini", true);
-$users			= (is_array($users)) ? $users : array();
+$users			= ($users !== false) ? $users : array();
 
 /* Get all Unraid disk devices (array disks, cache, and pool devices). */
 $array_disks	= @parse_ini_file($docroot."/state/disks.ini", true);
@@ -95,6 +95,9 @@ $iso_config		= ($config_ini !== false) ? $config_ini : array();
 
 $DEBUG_LEVEL	= (int) get_config("Config", "debug_level");
 
+/* See if the UD settings are set for either SMB or NFS sharing. */
+$shares_enabled		= ((get_config("Config", "smb_security") != "no") || (get_config("Config", "nfs_export") == "yes"));
+
 /* Read Unraid variables file. Used to determine disks not assigned to the array and other array parameters. */
 if (! isset($var)){
 	if (! is_file($docroot."/state/var.ini")) {
@@ -123,9 +126,6 @@ if ( is_file( "plugins/preclear.disk/assets/lib.php" ) ) {
 } else {
 	$Preclear = null;
 }
-
-/* See if the UD settings are set for either SMB or NFS sharing. */
-$shares_enabled		= ((get_config("Config", "smb_security") && (get_config("Config", "smb_security") != "no")) || (get_config("Config", "nfs_export") == "yes"));
 
 /* Misc functions. */
 class MiscUD
@@ -2188,74 +2188,96 @@ function toggle_share($serial, $part, $status) {
 
 /* Add mountpoint to samba shares. */
 function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
-	global $paths, $ud_config, $var, $users;
+	global $paths, $var, $users, $ud_config;
 
 	/* Get the current UD configuration. */
-	$config			= $ud_config;
+	$config			= $ud_config["Config"];
+
+	/* Initialize some settings. */
+	$smb_security			= $config['smb_security'] ?? "";
+	$config['force_user']	= $config['force_user'] ?? "";
+
+	/* Force user setting. */
+	$force_user = ($config['force_user'] == "yes") ? "\n\tforce User = nobody" : "";
 
 	/* Add mountpoint to samba shares. */
 	if ($var['shareSMBEnabled'] != "no") {
-		if ( (isset($config['smb_security'])) && ($config['smb_security'] != "no") ) {
+		if ($smb_security != "no") {
 			/* Remove special characters from share name. */
 			$share_name = str_replace( array("(", ")"), "", basename($dir));
 
-			$vfs_objects	= "\n\tvfs objects = dirsort";
+			$vfs_objects = "";
 
 			/* Is the Mac OS interoperability setting on? */
 			$enable_fruit = ($var['enableFruit'] == "yes");
 
-			/* Add the Mac OS stuff if enabled. */
-			if ($enable_fruit) {
-				if (! $fat_fruit) {
-					/* See if the smb-fruit.conf from the /boot/config/ folder. */
-					$fruit_file = "/boot/config/smb-fruit.conf";
-					if (file_exists($fruit_file)) {
-						$fruit_file_settings = explode("\n", file_get_contents($fruit_file));
-					} else {
-						/* Use the smb-fruit.conf from the /etc/samba/ folder. */
-						$fruit_file = "/etc/samba/smb-fruit.conf";
+			/* Add the recycle bin and the Mac OS stuff if enabled. */
+			if (($recycle_bin) || ($enable_fruit)) {
+				if ($enable_fruit) {
+					if (! $fat_fruit) {
+						/* See if the smb-fruit.conf from the /boot/config/ folder. */
+						$fruit_file = "/boot/config/smb-fruit.conf";
 						if (file_exists($fruit_file)) {
 							$fruit_file_settings = explode("\n", file_get_contents($fruit_file));
 						} else {
-							$vfs_objects	.= " catia fruit streams_xattr";
-							$fruit_file_settings = array( $vfs_objects );
+							/* Use the smb-fruit.conf from the /etc/samba/ folder. */
+							$fruit_file = "/etc/samba/smb-fruit.conf";
+							if (file_exists($fruit_file)) {
+								$fruit_file_settings = explode("\n", file_get_contents($fruit_file));
+							} else {
+								$fruit_file_settings = array( "vfs objects = catia fruit streams_xattr dirsort" );
+							}
+						}
+					} else {
+						/* For fat and exfat file systems. */
+						$fruit_file_settings = array( "vfs objects = catia fruit dirsort", "fruit:resource = file", "fruit:metadata = netatalk", "fruit:encoding = native" );
+					}
+
+					/* Apply the fruit settings. */
+					foreach ($fruit_file_settings as $f) {
+						/* Remove comment lines. */
+						if (($f) && (strpos($f, "#") === false)) {
+							$vfs_objects .= "\n\t".$f;
 						}
 					}
-				} else {
-					/* For fat and exfat file systems. */
-					$vfs_objects	.= " catia fruit";
-					$fruit_file_settings = array( $vfsobjects, "fruit:resource = file", "fruit:metadata = netatalk", "fruit:encoding = native" );
 				}
-
-				/* Apply the fruit settings. */
-				foreach ($fruit_file_settings as $f) {
-					/* Remove comment lines. */
-					if (($f) && (strpos($f, "#") === false)) {
-						$vfs_objects .= "\n\t".$f;
-					}
-				}
+			} else {
+				$vfs_objects	= "\n\tvfs objects = dirsort";
 			}
 
-			if ((isset($config['smb_security'])) && (($config['smb_security'] == "yes") || ($config['smb_security'] == "hidden"))) {
-				$read_users = $write_users = $valid_users = array();
-				foreach ($users as $key => $user) {
-					if ($user['name'] != "root" ) {
-						$valid_users[] = $user['name'];
-					}
-				}
+			if (($smb_security == "yes") || ($smb_security == "hidden")) {
+				$read_users		= array();
+				$write_users	= array();
+				$valid_users	= array_keys($users);;
 
-				$invalid_users = array_filter($valid_users, function($v) use($config, &$read_users, &$write_users) { 
-					if ($config["smb_{$v}"] == "read-only") {$read_users[] = $v;}
-					else if ($config["smb_{$v}"] == "read-write") {$write_users[] = $v;}
-					else {return $v;}
+				/* Remove the root user. */
+				$valid_users	= array_diff($valid_users, ["root"]);
+
+				/* Get the valid users from the UD config, and create an array of read and write users. */
+				$invalid_users = array_filter($valid_users, function ($v) use ($config, &$read_users, &$write_users) {
+					switch ($config["smb_$v"]) {
+						case "read-only":
+							$read_users[] = $v;
+							break;
+						case "read-write":
+							$write_users[] = $v;
+							break;
+						default:
+							return $v;
+					}
 				});
+
+				/* Remove the invalid users. */
 				$valid_users = array_diff($valid_users, $invalid_users);
-				if ($config["smb_security"] == "hidden") {
+
+				/* Set whether or not the share is browseable. *.
+				if ($smb_security == "hidden") {
 					$hidden = "\n\tbrowseable = no";
 				} else {
 					$hidden = "\n\tbrowseable = yes";
 				}
-				$force_user = ( get_config("Config", "force_user") == "yes" ) ? "\n\tforce User = nobody" : "";
+
+				/* Case settings. */
 				if (($config["case_names"]) || ($config["case_names"] == "auto")) {
 					$case_names = "\n\tcase sensitive = auto\n\tpreserve case = yes\n\tshort preserve case = yes";
 				} else if ($config["case_names"] == "yes") {
@@ -2265,6 +2287,8 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 				} else {
 					$case_names = "";
 				}
+
+				/* Add the valid users and their access. */
 				if (count($valid_users)) {
 					$valid_users	= "\n\tvalid users = ".implode(' ', $valid_users);
 					$write_users	= count($write_users) ? "\n\twrite list = ".implode(' ', $write_users) : "";
@@ -2275,7 +2299,6 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 					unassigned_log("Warning: No valid smb users defined. Share '{$dir}' cannot be accessed.");
 				}
 			} else {
-				$force_user = ( get_config("Config", "force_user") == "yes" ) ? "\n\tforce User = nobody" : "";
 				$share_cont = "[{$share_name}]\n\tpath = {$dir}\n\tread only = No\n\tguest ok = Yes{$force_user}{$vfs_objects}";
 			}
 
@@ -2286,7 +2309,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 
 			unassigned_log("Adding SMB share '{$share_name}'.");
 			@file_put_contents($share_conf, $share_cont);
-			if (! MiscUD::exist_in_file($paths['smb_unassigned'], $share_conf)) {
+			if (! (new MiscUD)->exist_in_file($paths['smb_unassigned'], $share_conf)) {
 				$c		= (is_file($paths['smb_unassigned'])) ? @file($paths['smb_unassigned'], FILE_IGNORE_NEW_LINES) : array();
 				$c[]	= "include = $share_conf";
 
