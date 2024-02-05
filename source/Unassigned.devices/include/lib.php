@@ -3530,9 +3530,9 @@ function get_disk_info($dev) {
 
 	/* Are there any preclearing operations going on? */
 	if ((! $disk['fstype']) && ($Preclear)) {
-		$disk['ipreclearing']	= (($Preclear->isRunning(basename($disk['device']))) || (shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep " . escapeshellarg($disk['device']) . " | /bin/grep -v 'grep'") != ""));
+		$disk['preclearing']	= (($Preclear->isRunning(basename($disk['device']))) || (shell_exec("/usr/bin/ps -ef | /bin/grep 'preclear' | /bin/grep " . escapeshellarg($disk['device']) . " | /bin/grep -v 'grep'") != ""));
 	} else {
-		$disk['ipreclearing']	= false;
+		$disk['preclearing']	= false;
 	}
 
 	/* Get the hostX from the DEVPATH so we can re-attach a disk. */

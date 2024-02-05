@@ -102,7 +102,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$device			= $partition['fstype'] == "crypto_LUKS" ? $partition['luks'] : $partition['device'];
 		$is_mounting	= $partition['is_mounting'];
 		$is_unmounting	= $partition['is_unmounting'];
-		$is_formatting	= $partition['is_formatting'];
+		$is_formatting	= $partition['is_formatting'] ?? false;
 		$disabled		= ($is_mounting || $is_unmounting || $partition['running'] || ! $partition['fstype'] || $disk['array_disk']);
 
 		/* Get the lsblk file system to compare to udev. */
@@ -380,7 +380,7 @@ function make_mount_button($device) {
 		/* Check the state of mounting, unmounting, and formatting. */
 		$is_mounting	= $device['is_mounting'];
 		$is_unmounting	= $device['is_unmounting'];
-		$is_formatting	= $device['is_formatting'];
+		$is_formatting	= false;
 		$zvol_device	= $device['file_system'];
 		$preclearing	= false;
 	}
@@ -575,7 +575,7 @@ switch ($_POST['action']) {
 				$temp					= my_temp($disk['temperature']);
 
 				/* Get the mounting and unmounting states of disks and all partitions. */
-				$disk['is_mounting'] = $disk['is_mounting'] || (
+				$disk['is_mounting'] = (
 					in_array(true, array_map(function($partition) {
 						return $partition['is_mounting'];
 					}, $disk['partitions']), true) ||
@@ -585,7 +585,7 @@ switch ($_POST['action']) {
 					}, $disk['zvol']), true)
 				);
 
-				$disk['is_unmounting'] = $disk['is_unmounting'] || (
+				$disk['is_unmounting'] = (
 					in_array(true, array_map(function($partition) {
 						return $partition['is_unmounting'];
 					}, $disk['partitions']), true) ||
@@ -602,7 +602,7 @@ switch ($_POST['action']) {
 				$preclear_link			= (($Preclear) && ($disk['size'] !== 0) && (! $file_system) && (! $mounted) && (! $disk['is_formatting']) && (! $preclearing) && (! $disk['array_disk']) && (! $disk['pass_through']) && (! $disk['fstype'])) ? "&nbsp;&nbsp;".$Preclear->Link($disk_device, "icon") : "";
 
 				/* Add the clear disk icon. */
-				$clear_disk				= (($parted) && (get_config("Config", "destructive_mode") == "enabled") && (! $mounted) && (! $disk['is_mounting']) && (! $disk['is_unmounting']) && (! $disk['is_formatting']) && (! $disk['pass_through']) && (! $disk['array_disk']) && (! $preclearing) && (((! $parts) && ($disk['fstype'])) || (($parts) && (! $disk['partitions'][0]['pool']) && (! $disk['partitions'][0]['disable_mount']))) ) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$partition['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove clear-hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
+				$clear_disk				= (($parted) && (get_config("Config", "destructive_mode") == "enabled") && (! $mounted) && (! $disk['is_mounting']) && (! $disk['is_unmounting']) && (! $disk['is_formatting']) && (! $disk['pass_through']) && (! $disk['array_disk']) && (! $preclearing) && (((! $parts) && ($disk['fstype'])) || (($parts) && (! $disk['partitions'][0]['pool']) && (! $disk['partitions'][0]['disable_mount']))) ) ? "<a device='{$disk['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$disk['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove clear-hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
 
 				/* Show disk icon based on SSD or spinner disk. */
 				$disk_icon = $disk['ssd'] ? "icon-nvme" : "fa fa-hdd-o";
@@ -659,7 +659,7 @@ switch ($_POST['action']) {
 					}
 				}
 				$luks_lock		= $mounted ? "<i class='fa fa-unlock-alt fa-append green-orb'></i>" : "<i class='fa fa-lock fa-append grey-orb'></i>";
-				$o_disks		.= ($disk['partitions'][0]['fstype'] == "crypto_LUKS") ? $luks_lock : "";
+				$o_disks		.= ((count($disk['partitions']) > 0) && ($disk['partitions'][0]['fstype'] == "crypto_LUKS")) ? $luks_lock : "";
 				$o_disks		.= "<a href='/Main/".$str."=".$disk_dev."'>".$disk_display."</a>";
 				$o_disks		.= "</td>";
 
@@ -721,13 +721,12 @@ switch ($_POST['action']) {
 						$disk_names[$disk_device] = $disk['unassigned_dev'];
 					}
 					if ($disk['partitions'][$i]['fstype']) {
-						$dev		= ($disk['partition'][$i]['fstype'] == "crypto_LUKS") ? $disk['luks'] : $disk['device'];
+						$dev		= ($disk['partitions'][$i]['fstype'] == "crypto_LUKS") ? $disk['partitions'][$i]['luks'] : $disk['partitions'][$i]['device'];
 						if (MiscUD::is_device_nvme($dev)) {
 							$dev .= "p";
 						}
 						/* Check if this disk uuid has already been entered in the share_names array. */
 						$mountpoint					= basename($disk['partitions'][$i]['mountpoint']);
-						$dev						.= $disk['partitions'][$i]['part'];
 						$uuid		 				= $disk['partitions'][$i]['uuid'];
 						if (($uuid) && (isset($disk_uuid[$uuid]))) {
 							$disk_uuid[$uuid]		= $disk_uuid[$uuid].",".$dev;
