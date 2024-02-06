@@ -84,14 +84,17 @@ function zfs_upgrade() {
 	$cfg		= is_file($config_file) ? @parse_ini_file($config_file, true) : array();
 
 	/* Get the device from the passed in device and serial number. */
-	$mountpoint		= $cfg['Config']['zfs_upgrade'];
-	$first			= strpos($mountpoint, "(") + 1;
-	$last			= strpos($mountpoint, ")") - 1;
-	$mountpoint		= substr($mountpoint, $first, $last);
+	$pool_name		= $cfg['Config']['zfs_upgrade'];
+	$first			= strpos($pool_name, "(") + 1;
+	$last			= strpos($pool_name, ")") - 1;
+	$pool_name		= substr($pool_name, $first, $last);
 
 	/* Upgrade the ZFS on the device. */
-	$pool_name	= MiscUD::zfs_pool_name("", $mountpoint);
-	upgrade_ZFS_pool($pool_name);
+	if ($pool_name) {
+		upgrade_ZFS_pool($pool_name);
+	} else {
+		unassigned_log("Warning: ZFS Upgrade - no pool name specified!");
+	}
 
 	/* Now clear the setting from the tmp file. */
 	unset($cfg['Config']['zfs_upgrade']);

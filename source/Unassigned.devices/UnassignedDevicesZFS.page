@@ -44,12 +44,12 @@ foreach (get_all_disks_info() as $d) {
 		/* Collect all the candidates for a zfs upgrade. */
 		if (($file_system == "zfs") && ($d['partitions'][0]['mounted'])) {
 			/* See if the device needs an upgrade. */
-			$pool_name	= MiscUD::zfs_pool_name("", $d['partitions'][0]['mountpoint']);
+			$pool_name	= $d['partitions'][0]['pool_name'];
 			if (($pool_name) && (! is_upgraded_ZFS_pool($pool_name))) {
 				$a = array();
 				$a['device']		= $d['device'];
 				$a['label']			= $d['serial'];
-				$a['mountpoint']	= $d['partitions'][0]['mountpoint'];
+				$a['pool_name']		= $pool_name;
 				$zfs_devices[]		= $a;
 			}
 		}
@@ -69,7 +69,7 @@ foreach (get_all_disks_info() as $d) {
 _(Select Disk)_:
 : <select name="zfs_upgrade" size="1">
   <?foreach ($zfs_devices as $d) {?>
-  <?=mk_option($cfg["Config"]["zfs_upgrade"], ("(".$d['mountpoint'].") ".$d['label']), ($d['label']." (".basename($d['device']).")"));?>
+  <?=mk_option($cfg["Config"]["zfs_upgrade"], ("(".$d['pool_name'].") ".$d['label']), ($d['label']." (".basename($d['device']).")"));?>
   <?}?>
   </select>
 
