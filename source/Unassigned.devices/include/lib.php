@@ -359,6 +359,7 @@ class MiscUD
 		} else {
 			$rc	= "";
 		}
+
 		return ($rc);
 	}
 }
@@ -404,11 +405,16 @@ function release_file_lock($lock_file) {
 }
 
 /* Save ini and cfg files to tmp file system and then copy cfg file changes to flash. */
-function save_ini_file($file, $array, $save_config = true) {
-	global $plugin, $paths;
+function save_ini_file($file, $config, $save_config = true) {
+	global $plugin, $paths, $ud_config;
+
+	/* If this is the unassigned devices config file, make a copy in the ram array. */
+	if ($file == $paths["config_file"]) {
+		$ud_config	= $config;
+	}
 
 	$res = array();
-	foreach($array as $key => $val) {
+	foreach($config as $key => $val) {
 		if (is_array($val)) {
 			$res[] = PHP_EOL."[$key]";
 			foreach($val as $skey => $sval) {
@@ -3409,6 +3415,41 @@ function get_all_disks_info() {
 				$disk['ud_dev'] = get_disk_dev($disk['device']);
 			}
 
+			/* Any partitions mounted? */
+			$disk['mounted']		= array_filter($disk['partitions'], function ($partition) {
+				return $partition['mounted'] === true;
+			});
+
+			/* Is the disk not unmounted properly? */
+			$disk['not_unmounted'] = in_array(true, array_map(function($partition) {
+				return $partition['not_unmounted'];
+			}, $disk['partitions']), true);
+
+			/* Is a partition mounting? */
+			$disk['mounting']		= array_filter($disk['partitions'], function ($partition) {
+				return $partition['mounting'] === true;
+			});
+
+			/* Is a partition unmounting? */
+			$disk['unmounting']		= array_filter($disk['partitions'], function ($partition) {
+				return $partition['unmounting'] === true;
+			});
+
+			/* Is a partition script running? */
+			$disk['running']		= array_filter($disk['partitions'], function ($partition) {
+				return $partition['running'] === true;
+			});
+
+			/* Is this a pool disk? */
+			$disk['pool_disk']		= array_filter($disk['partitions'], function ($partition) {
+				return $partition['pool'] === true;
+			});
+
+			/* Check that udev matches the file system on the disk. */
+			$disk['not_udev']		= array_filter($disk['partitions'], function ($partition) {
+				return $partition['not_udev'] === true;
+			});
+
 			/* Add this device as a UD device. */
 			$ud_disks[$unassigned_dev] = $disk;
 		}
@@ -3540,7 +3581,7 @@ function get_disk_info($dev) {
 
 	/* Values not needed but must exist for make_mount_button(). */
 	$disk['file_system']		= "";
-	#disk['not_udev']			= false;
+	$disk['not_udev']			= false;
 	$disk['running']			= false;
 	$disk['not_unmounted']		= false;
 
@@ -3726,6 +3767,9 @@ function get_zvol_info($disk) {
 
 			/* Values not needed but must exist for make_mount_button(). */
 			$zvol[$vol]['array_disk']		= false;
+			$zvol[$vol]['not_unmounted']	= false;
+			$zvol[$vol]['not_udev']			= false;
+			$zvol[$vol]['running']			= false;
 			$zvol[$vol]['command']			= "";
 			$zvol[$vol]['user_command']		= "";
 		}

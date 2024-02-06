@@ -328,57 +328,49 @@ function render_partition($disk, $partition, $disk_line = false) {
 function make_mount_button($device) {
 	global $paths;
 
+	/* If the device array has partitions, this is the disk device array. */
 	if (isset($device['partitions'])) {
 		/* Disk device mount button. */
 		$context		= "disk";
 
-		/* Any partitions mounted? */
-		$mounted		= array_filter($device['partitions'], function ($partition) {
-			return $partition['mounted'] === true;
-		});
+		/* A partition on the disk is mounted. */
+		$mounted		= $device['mounted'];
+
+		/* The disk was not unmounted before being removed and the reinstalled. */
+		$not_unmounted	= $device['not_unmounted'];
+
+		/* A disk partition is mounting. */
+		$is_mounting	= $device['mounting'];
+
+		/* A disk partition is unmounting. */
+		$is_unmounting	= $device['unmounting'];
+
+		/* Disk is formatting. */
+		$is_formatting	= $device['formatting'];
+
+		/* Disk is preclearing. */
+		$preclearing	= $device['preclearing'];
+
+		/* Disk script or user script is running. */
+		$is_running		= $device['running'];
+
+		/* Disk is a pool disk. */
+		$pool_disk		= $device['pool_disk'];
+
+		/* Udev and lsblk do not agree on the file system type. */
+		$not_udev		= $device['not_udev'];
+
+		/* Disable mount button enabled. */
+		$disable_mount	= $device['disable_mount'];
 
 		/* Mount button is disabled if there aren't any partitions on the disk. */
-		$disable		= array_reduce($device['partitions'], function ($carry, $partition) {
-			return $carry || !empty($partition['fstype']);
-		}, false) ? false : true;
-
-		/* Is the disk not unmounted properly? */
-		$not_unmounted = in_array(true, array_map(function($partition) {
-			return $partition['not_unmounted'];
-		}, $device['partitions']), true);
-
-		/* Is a partition mounting? */
-		$is_mounting		= array_filter($device['partitions'], function ($partition) {
-			return $partition['mounting'] === true;
-		});
-
-		/* Is a partition unmounting? */
-		$is_unmounting		= array_filter($device['partitions'], function ($partition) {
-			return $partition['unmounting'] === true;
-		});
-
-		/* Is a partition script running? */
-		$is_running		= array_filter($device['partitions'], function ($partition) {
-			return $partition['running'] === true;
-		});
-
-		/* Is a partition script running? */
-		$pool_disk		= array_filter($device['partitions'], function ($partition) {
-			return $partition['pool'] === true;
-		});
-
-		/* Check that udev matches the file system on the disk. */
-		$not_udev		= array_filter($device['partitions'], function ($partition) {
-			return $partition['not_udev'] === true;
-		});
+		$disable		= (count($device['partitions']) == 0);
 
 		/* Disk can be formatted if there are no partitions. */
 		$pass_through	= $device['pass_through'];
 		$format			= ((! $pass_through) && ($disable));
 
-		$disable_mount	= $device['disable_mount'];
-		$is_formatting	= $device['formatting'];
-		$preclearing	= $device['preclearing'];
+		/* This is not a zvol device. */
 		$zvol_device	= false;
 
 		/* A pool disk can be part of a disk pool or a disk with a file system and no partition. */
@@ -387,7 +379,10 @@ function make_mount_button($device) {
 		/* Partition mount button. */
 		$context		= "partition";
 
+		/* The partition is mounted. */
 		$mounted		= $device['mounted'];
+
+		/* Mount button is disabled if there is no file system present. */
 		$disable		= (! $device['fstype']);
 
 		/* Find conditions to disable the 'Mount' button. */
@@ -404,7 +399,10 @@ function make_mount_button($device) {
 		$is_unmounting	= $device['unmounting'];
 		$is_running		= $device['running'];
 
+		/* Is this a zvol device? */
 		$zvol_device	= $device['file_system'];
+
+		/* The partition is set as passed through. */
 		$pass_through	= $device['pass_through'];
 
 		/* Things not related to a partition. */
