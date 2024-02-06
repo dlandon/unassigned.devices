@@ -201,6 +201,7 @@ if (($file) && (file_exists($file))) {
 } else {
 	/* The device script file does not exist. */
 	$file				= "";
+	$text				= "";
 }
 
 /* If the disk is mounted, disable the device script file field. */
