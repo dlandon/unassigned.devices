@@ -78,7 +78,7 @@ function unassigned_mount() {
 		}
 
 		/* If disk is formatting, skip to the next one. */
-		if ($disk_info['is_formatting']) {
+		if ($disk_info['formatting']) {
 			continue;
 		}
 
@@ -240,12 +240,12 @@ function unassigned_mount() {
 				}
 
 				/* If disk is already mounting, skip to the next one. */
-				if ($info['is_mounting']) {
+				if ($info['mounting']) {
 					continue;
 				}
 
 				/* If disk is unmounting, skip to the next one. */
-				if ($info['is_unmounting']) {
+				if ($info['unmounting']) {
 					continue;
 				}
 
@@ -322,12 +322,12 @@ function unassigned_mount() {
 				}
 
 				/* If disk is already unmounting, skip to the next one. */
-				if ($info['is_unmounting']) {
+				if ($info['unmounting']) {
 					continue;
 				}
 
 				/* If disk is mounting, skip to the next one. */
-				if ($info['is_mounting']) {
+				if ($info['mounting']) {
 					continue;
 				}
 
@@ -576,12 +576,12 @@ function unassigned_umount() {
 				unassigned_log("Remote SMB/NFS share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
 
 				/* If disk is already unmounting, skip to the next one. */
-				if ($info['is_unmounting']) {
+				if ($info['unmounting']) {
 					continue;
 				}
 
 				/* If disk is mounting, skip to the next one. */
-				if ($info['is_mounting']) {
+				if ($info['mounting']) {
 					continue;
 				}
 
@@ -600,7 +600,7 @@ function unassigned_umount() {
 					unassigned_log("Unmounting Remote SMB/NFS Share '{$info['device']}'...");
 
 					/* See if we are force unmounting this device. */
-					$force_unmount = $info['fstype'] == "root" ? false : ($info['is_alive'] && $info['is_available'] ? $force : true);
+					$force_unmount = $info['fstype'] == "root" ? false : ($info['alive'] && $info['available'] ? $force : true);
 
 					/* Determine if this is a remote mount and what kind. */
 					$smb = ($info['fstype'] == "cifs");
@@ -644,12 +644,12 @@ function unassigned_umount() {
 				unassigned_log("ISO File share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = (strpos($k, "pass") !== false) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
 
 				/* If disk is already unmounting, skip to the next one. */
-				if ($info['is_unmounting']) {
+				if ($info['unmounting']) {
 					continue;
 				}
 
 				/* If disk is mounting, skip to the next one. */
-				if ($info['is_mounting']) {
+				if ($info['mounting']) {
 					continue;
 				}
 

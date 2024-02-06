@@ -94,15 +94,15 @@ function render_partition($disk, $partition, $disk_line = false) {
 	global $paths, $plugin, $shares_enabled;
 
 	$out = array();
-	if (isset($partition['device'])) {
+	if (! empty($disk['partitions'])) {
 		$mounted		= $partition['mounted'];
 		$not_unmounted	= $partition['not_unmounted'];
 		$not_udev		= $partition['not_udev'];
 		$cmd			= $partition['command'];
 		$device			= $partition['fstype'] == "crypto_LUKS" ? $partition['luks'] : $partition['device'];
-		$is_mounting	= $partition['is_mounting'];
-		$is_unmounting	= $partition['is_unmounting'];
-		$is_formatting	= $partition['is_formatting'] ?? false;
+		$is_mounting	= $partition['mounting'];
+		$is_unmounting	= $partition['unmounting'];
+		$is_formatting	= $partition['formatting'] ?? false;
 		$disabled		= ($is_mounting || $is_unmounting || $partition['running'] || ! $partition['fstype'] || $disk['array_disk']);
 
 		/* Get the lsblk file system to compare to udev. */
@@ -229,10 +229,10 @@ function render_partition($disk, $partition, $disk_line = false) {
 				if ($part['mounted']) {
 					$mounted_disk = true;
 				}
-				if ($part['is_mounting']) {
+				if ($part['mounting']) {
 					$mounting_disk = true;
 				}
-				if ($part['is_unmounting']) {
+				if ($part['unmounting']) {
 					$unmounting_disk = true;
 				}
 			}
@@ -329,60 +329,90 @@ function make_mount_button($device) {
 	global $paths;
 
 	if (isset($device['partitions'])) {
-		$mounted = in_array(true, array_map(function($partition) {
-			return $partition['mounted'];
-		}, $device['partitions']), true);
-
-		$pass_through	= is_pass_through($device['serial']);
-		$format			= ((! count($device['partitions'])) && (! $pass_through));
-		$disable = array_reduce($device['partitions'], function ($carry, $partition) {
-			return $carry || !empty($partition['fstype']);
-		}, false) ? false : true;
+		/* Disk device mount button. */
 		$context		= "disk";
 
-		/* A pool disk can be part of a disk pool or a disk with a file system and no partition. */
-		$pool_disk		= $device['partitions'][0]['pool'] ?? ($device['fstype']);
-		$no_partition	= ($pool_disk && $format);
+		/* Any partitions mounted? */
+		$mounted		= array_filter($device['partitions'], function ($partition) {
+			return $partition['mounted'] === true;
+		});
 
-		/* Find conditions to disable the 'Mount' button. */
-		$disable_mount	= $device['partitions'][0]['disable_mount'] ?? false;
+		/* Mount button is disabled if there aren't any partitions on the disk. */
+		$disable		= array_reduce($device['partitions'], function ($carry, $partition) {
+			return $carry || !empty($partition['fstype']);
+		}, false) ? false : true;
 
 		/* Is the disk not unmounted properly? */
 		$not_unmounted = in_array(true, array_map(function($partition) {
 			return $partition['not_unmounted'];
 		}, $device['partitions']), true);
 
-		/* Is the disk file system not matching udev file system? */
-		$not_udev		= $device['partitions'][0]['not_udev'] ?? false;
+		/* Is a partition mounting? */
+		$is_mounting		= array_filter($device['partitions'], function ($partition) {
+			return $partition['mounting'] === true;
+		});
 
+		/* Is a partition unmounting? */
+		$is_unmounting		= array_filter($device['partitions'], function ($partition) {
+			return $partition['unmounting'] === true;
+		});
+
+		/* Is a partition script running? */
+		$is_running		= array_filter($device['partitions'], function ($partition) {
+			return $partition['running'] === true;
+		});
+
+		/* Is a partition script running? */
+		$pool_disk		= array_filter($device['partitions'], function ($partition) {
+			return $partition['pool'] === true;
+		});
+
+		/* Check that udev matches the file system on the disk. */
+		$not_udev		= array_filter($device['partitions'], function ($partition) {
+			return $partition['not_udev'] === true;
+		});
+
+		/* Disk can be formatted if there are no partitions. */
+		$pass_through	= $device['pass_through'];
+		$format			= ((! $pass_through) && ($disable));
+
+		$disable_mount	= $device['disable_mount'];
+		$is_formatting	= $device['formatting'];
+		$preclearing	= $device['preclearing'];
 		$zvol_device	= false;
 
-		/* Check the state of mounting, unmounting, and formatting. */
-		$is_mounting	= $device['is_mounting'];
-		$is_unmounting	= $device['is_unmounting'];
-		$is_formatting	= $device['is_formatting'];
-		$preclearing	= $device['preclearing'];
+		/* A pool disk can be part of a disk pool or a disk with a file system and no partition. */
+		$no_partition	= ($device['fstype'] && $format);
 	} else {
-		$mounted		= $device['mounted'];
-		$disable		= (! empty($device['fstype']) && $device['fstype'] != "crypto_LUKS") ? false : true;
-		$pass_through	= $device['pass_through'];
-		$disable_mount	= $device['disable_mount'];
-		$format			= ((empty($device['fstype'])) && (! $pass_through));
+		/* Partition mount button. */
 		$context		= "partition";
-		$pool_disk		= false;
-		$no_partition	= false;
+
+		$mounted		= $device['mounted'];
+		$disable		= (! $device['fstype']);
+
+		/* Find conditions to disable the 'Mount' button. */
+		$disable_mount	= $device['disable_mount'];
 
 		/* Is the disk not unmounted properly? */
-		$not_unmounted	= $device['not_unmounted'] ?? false;
-		$not_udev		= false;
-		$dev			= $device['fstype'] == "crypto_LUKS" ? $device['luks'] : $device['device'];
+		$not_unmounted = $device['not_unmounted'];
 
-		/* Check the state of mounting, unmounting, and formatting. */
-		$is_mounting	= $device['is_mounting'];
-		$is_unmounting	= $device['is_unmounting'];
-		$is_formatting	= false;
+		/* Is the disk file system not matching udev file system? */
+		$not_udev		= $device['not_udev'];
+
+		/* Check the state of mounting, unmounting, and running. */
+		$is_mounting	= $device['mounting'];
+		$is_unmounting	= $device['unmounting'];
+		$is_running		= $device['running'];
+
 		$zvol_device	= $device['file_system'];
+		$pass_through	= $device['pass_through'];
+
+		/* Things not related to a partition. */
+		$is_formatting	= false;
 		$preclearing	= false;
+		$format			= false;
+		$pool_disk		= false;
+		$no_partition	= false;
 	}
 
 	/* Set up the mount button operation and text. */
@@ -401,76 +431,74 @@ function make_mount_button($device) {
 			$disable	= true;
 			$text		= _('Passed');
 			break;
+
 		case ($no_partition):
 			$class		= $ban_class;
 			$disable	= true;
 			$text		= _('Partition');
 			break;
+
 		case ($pool_disk):
 			$disable	= true;
 			$text		= _('Pool');
 			break;
+
 		case (($device['size'] == 0) && (! $zvol_device)):
 			$disable	= true;
 			$text		= _('Mount');
 			break;
+
 		case ($device['array_disk']):
 			$class		= $ban_class;
 			$disable	= true;
 			$text		= _('Array');
 			break;
+
 		case ($not_udev):
 			$class		= $ban_class;
 			$disable	= true;
 			$text		= _('Udev');
 			break;
+
 		case ($not_unmounted):
 			$class		= $ban_class;
 			$disable	= true;
 			$text		= _('Reboot');
 			break;
+
 		case ($preclearing):
 			$disable	= true;
 			$text		= _('Preclear');
 			break;
+
 		case ($is_formatting):
 			$class		= $spinner_class;
 			$disable	= true;
 			$text		= _('Formatting');
 			break;
+
 		case ($format):
 			$role		= 'format';
 			$disable 	= false;
 			$text		= _('Format');
 			break;
+
 		case ($is_mounting):
 			$class		= $spinner_class;
 			$role		= 'mount';
 			$disable	= true;
 			$text		= _('Mounting');
 			break;
+
 		case ($is_unmounting):
 			$class		= $spinner_class;
 			$role		= 'umount';
 			$disable	= true;
 			$text		= _('Unmounting');
 			break;
+
 		case ($mounted):
-			if (!isset($device['partitions'])) {
-				$cmd			= $device['command'];
-				$user_cmd		= $device['user_command'];
-				$running		= $device['running'];
-			} else {
-				foreach ($device['partitions'] as $part) {
-					$cmd		= $part['command'];
-					$user_cmd 	= $part['user_command'];
-					$running	= $part['running'];
-					if ($running) {
-						break;
-					}
-				}
-			}
-			if ($running) {
+			if ($is_running) {
 				$class		= $spinner_class;
 				$role		= 'mount';
 				$disable	= true;
@@ -482,11 +510,12 @@ function make_mount_button($device) {
 				$text		= _('Unmount');
 			}
 			break;
+
 		default:
 			$class		= $disable_mount ? $ban_class : "";
 			$role		= 'mount';
 			$disable 	= $disable_mount ? true : $disable;
-			$text = _('Mount');
+			$text 		= _('Mount');
 			break;
 	}
 
@@ -570,28 +599,28 @@ switch ($_POST['action']) {
 				$disk_device			= basename($disk['device']);
 				$disk_dev				= $disk['ud_dev'];
 				$disk_name				= $disk['unassigned_dev'] ? $disk['unassigned_dev'] : $disk['ud_dev'];
-				$parts					= (count($disk['partitions']) > 0) ? render_partition($disk, $disk['partitions'][0], true) : false;
+				$parts					= (! empty($disk['partitions'])) ? render_partition($disk, $disk['partitions'][0], true) : false;
 				$preclearing			= $disk['preclearing'];
 				$temp					= my_temp($disk['temperature']);
 
 				/* Get the mounting and unmounting states of disks and all partitions. */
-				$disk['is_mounting'] = (
+				$disk['mounting'] = (
 					in_array(true, array_map(function($partition) {
-						return $partition['is_mounting'];
+						return $partition['mounting'];
 					}, $disk['partitions']), true) ||
 
 					in_array(true, array_map(function($zvol) {
-						return $zvol['is_mounting'];
+						return $zvol['mounting'];
 					}, $disk['zvol']), true)
 				);
 
-				$disk['is_unmounting'] = (
+				$disk['unmounting'] = (
 					in_array(true, array_map(function($partition) {
-						return $partition['is_unmounting'];
+						return $partition['unmounting'];
 					}, $disk['partitions']), true) ||
 
 					in_array(true, array_map(function($zvol) {
-						return $zvol['is_unmounting'];
+						return $zvol['unmounting'];
 					}, $disk['zvol']), true)
 				);
 
@@ -599,10 +628,10 @@ switch ($_POST['action']) {
 				$mbutton				= make_mount_button($disk);
 
 				/* Set up the preclear link for preclearing a disk. */
-				$preclear_link			= (($Preclear) && ($disk['size'] !== 0) && (! $file_system) && (! $mounted) && (! $disk['is_formatting']) && (! $preclearing) && (! $disk['array_disk']) && (! $disk['pass_through']) && (! $disk['fstype'])) ? "&nbsp;&nbsp;".$Preclear->Link($disk_device, "icon") : "";
+				$preclear_link			= (($Preclear) && ($disk['size'] !== 0) && (! $file_system) && (! $mounted) && (! $disk['formatting']) && (! $preclearing) && (! $disk['array_disk']) && (! $disk['pass_through']) && (! $disk['fstype'])) ? "&nbsp;&nbsp;".$Preclear->Link($disk_device, "icon") : "";
 
 				/* Add the clear disk icon. */
-				$clear_disk				= (($parted) && (get_config("Config", "destructive_mode") == "enabled") && (! $mounted) && (! $disk['is_mounting']) && (! $disk['is_unmounting']) && (! $disk['is_formatting']) && (! $disk['pass_through']) && (! $disk['array_disk']) && (! $preclearing) && (((! $parts) && ($disk['fstype'])) || (($parts) && (! $disk['partitions'][0]['pool']) && (! $disk['partitions'][0]['disable_mount']))) ) ? "<a device='{$disk['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$disk['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove clear-hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
+				$clear_disk				= (($parted) && (get_config("Config", "destructive_mode") == "enabled") && (! $mounted) && (! $disk['mounting']) && (! $disk['unmounting']) && (! $disk['formatting']) && (! $disk['pass_through']) && (! $disk['array_disk']) && (! $preclearing) && (((! $parts) && ($disk['fstype'])) || (($parts) && (! $disk['partitions'][0]['pool']) && (! $disk['partitions'][0]['disable_mount']))) ) ? "<a device='{$disk['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$disk['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove clear-hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
 
 				/* Show disk icon based on SSD or spinner disk. */
 				$disk_icon = $disk['ssd'] ? "icon-nvme" : "fa fa-hdd-o";
@@ -645,11 +674,16 @@ switch ($_POST['action']) {
 					$o_disks	.= "<i class='fa fa-circle ".($disk['running'] ? "green-orb" : "grey-orb" )." orb'></i>";
 				} else {
 					$str		= "Device?name";
-					$orb		= (($disk['running']) ? "green-orb" : "grey-orb")." orb";
+					$orb		= (($disk['spinning']) ? "green-orb" : "grey-orb")." orb";
 					if (! $preclearing) {
-						if (! is_disk_spin($disk['ud_dev'], $disk['running'])) {
-							$spin			= ($disk['running']) ? "spin_down_disk" : "spin_up_disk";
-							$tool_tip		= ($disk['running']) ? _("Click to spin down device") : _("Click to spin up device");
+						if (! is_disk_spin($disk['ud_dev'], $disk['spinning'])) {
+							if ($disk['spinning']) {
+								$spin			= "spin_down_disk";
+								$tool_tip		= _("Click to spin down device");
+							} else {
+								$spin			= "spin_up_disk";
+								$tool_tip		= _("Click to spin up device");
+							}
 							$o_disks		.= "<a style='cursor:pointer' class='exec info' onclick='{$spin}(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle {$orb}'></i><span>{$tool_tip}</span></a>";
 						} else {
 							$o_disks		.= "<i class='fa fa-refresh fa-spin {$orb}'></i>";
@@ -760,13 +794,13 @@ switch ($_POST['action']) {
 		if (count($samba_mounts)) {
 			foreach ($samba_mounts as $mount)
 			{
-				$is_alive		= $mount['is_alive'];
-				$is_available	= $mount['is_available'];
+				$is_alive		= $mount['alive'];
+				$is_available	= $mount['available'];
 				$mounted		= $mount['mounted'];
 
 				/* Is the device mounting or unmounting. */
-				$is_mounting	= $mount['is_mounting'];
-				$is_unmounting	= $mount['is_unmounting'];
+				$is_mounting	= $mount['mounting'];
+				$is_unmounting	= $mount['unmounting'];
 
 				/* Populate the table row for this device. */
 				$o_remotes		.= "<tr>";
@@ -918,10 +952,10 @@ switch ($_POST['action']) {
 				$mounted		= $mount['mounted'];
 
 				/* Is the device mounting or unmounting. */
-				$is_mounting	= $mount['is_mounting'];
-				$is_unmounting	= $mount['is_unmounting'];
+				$is_mounting	= $mount['mounting'];
+				$is_unmounting	= $mount['unmounting'];
 
-				$is_alive		= $mount['is_alive'];
+				$is_alive		= $mount['alive'];
 
 				/* Populate the iso line for this device. */
 				$o_remotes		.= "<tr>";
@@ -1363,12 +1397,6 @@ switch ($_POST['action']) {
 	case 'rescan_disks':
 		/* Refresh all disk partition information, update config files from flash, and clear status files. */
 		exec("plugins/".$plugin."/scripts/copy_config.sh");
-
-		/* Clear the get_ud_status pid file so get_ud_stats does not get stuck. */
-		if (file_exists($pidFile)) {
-			/* Remove PID file when script is done. */
-			@unlink($pidFile);
-		}
 
 		$sf		= $paths['dev_state'];
 		if (is_file($sf)) {

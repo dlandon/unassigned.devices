@@ -604,7 +604,7 @@ function get_disk_reads_writes($ud_dev, $dev) {
 }
 
 /* Check to see if the disk is spun up or down. */
-function is_disk_running($ud_dev) {
+function is_disk_spinning($ud_dev) {
 	global $paths;
 
 	$rc			= false;
@@ -1604,7 +1604,6 @@ function is_mounted($dev, $dir = "", $update = true) {
 	}
 	if ($dir) {
 		if ($dev) {
-			$rc_dir		= (isset($mounts[$dev]) && ($mounts[$dev]['mountpoint'] == $dir));
 		} else {
 			foreach ($mounts as $k => $v) {
 				if ($v['mountpoint'] === $dir) {
@@ -2014,7 +2013,7 @@ function do_mount_root($info) {
 	/* A rootshare device is treated similar to a CIFS mount. */
 	if ($var['shareDisk'] != "yes") {
 		/* Be sure the server online status is current. */
-		$is_alive = $info['is_alive'];
+		$is_alive = $info['alive'];
 
 		/* If the root server is not online, run the ping update and see if ping status needs to be refreshed. */
 		if (! $is_alive) {
@@ -2681,7 +2680,7 @@ function get_samba_mounts() {
 				}
 
 				/* Is the remote server on line? */
-				$mount['is_alive']		= is_samba_server_online($mount['ip'], $mount['protocol']);
+				$mount['alive']			= is_samba_server_online($mount['ip'], $mount['protocol']);
 
 				/* Is read only enabled? */
 				$mount['read_only']		= is_samba_read_only($mount['name']);
@@ -2713,8 +2712,8 @@ function get_samba_mounts() {
 				/* Check for mounting/unmounting state. */
 				$mount_device			= basename($mount['ip'])."_".basename($mount['path']);
 
-				$mount['is_mounting']	= MiscUD::get_mounting_status($mount_device);
-				$mount['is_unmounting']	= MiscUD::get_unmounting_status($mount_device);
+				$mount['mounting']		= MiscUD::get_mounting_status($mount_device);
+				$mount['unmounting']	= MiscUD::get_unmounting_status($mount_device);
 
 				/* Is remote share mounted? */
 				if ($mount['fstype'] != "root") {
@@ -2736,13 +2735,13 @@ function get_samba_mounts() {
 				$mount['invalid']		= (($safe_device != $device) || ($safe_device != $check_device));
 
 				/* Get the disk size, used, and free stats. */
-				$stats					= get_device_stats($mount['mountpoint'], $mount['mounted'], $mount['is_alive']);
+				$stats					= get_device_stats($mount['mountpoint'], $mount['mounted'], $mount['alive']);
 				$mount['size']			= $stats[0]*1024;
 				$mount['used']			= $stats[1]*1024;
 				$mount['avail']			= $stats[2]*1024;
 
 				/* If the device size is zero, the device is effectively off-line. */
-				$mount['is_available']	= ($mount['mounted'] && $mount['size'] == 0) ? false : $mount['is_alive'];
+				$mount['available']		= ($mount['mounted'] && $mount['size'] == 0) ? false : $mount['alive'];
 
 				/* Target is set to the mount point when the device is mounted. */
 				$mount['target']		= $mount['mounted'] ? $mount['mountpoint'] : "";
@@ -2774,7 +2773,7 @@ function do_mount_samba($info) {
 	$rc				= false;
 
 	/* Be sure the server online status is current. */
-	$is_alive = $info['is_alive'];
+	$is_alive		= $info['alive'];
 
 	/* If the remote server is not online, run the ping update and see if ping status needs to be refreshed. */
 	if (! $is_alive) {
@@ -3153,8 +3152,8 @@ function get_iso_mounts() {
 				$mount_device			= safe_name(basename($mount['device']), true, true);
 
 				/* Check mounting and unmounting status. */
-				$mount['is_mounting']	= MiscUD::get_mounting_status($mount_device);
-				$mount['is_unmounting']	= MiscUD::get_unmounting_status($mount_device);
+				$mount['mounting']		= MiscUD::get_mounting_status($mount_device);
+				$mount['unmounting']	= MiscUD::get_unmounting_status($mount_device);
 
 				/* Is the ios file mounted? */
 				$mount['mounted']		= is_mounted("", $mount['mountpoint'], "", false);
@@ -3166,8 +3165,8 @@ function get_iso_mounts() {
 				/* Target is set to the mount point when the device is mounted. */
 				$mount['target']		= $mount['mounted'] ? $mount['mountpoint'] : "";
 
-				$mount['is_alive']		= is_file($mount['file']);
-				$stats					= get_device_stats($mount['mountpoint'], $mount['mounted'], $mount['is_alive']);
+				$mount['alive']			= is_file($mount['file']);
+				$stats					= get_device_stats($mount['mountpoint'], $mount['mounted'], $mount['alive']);
 				$mount['size']			= $stats[0]*1024;
 				$mount['used']			= $stats[1]*1024;
 				$mount['avail']			= $stats[2]*1024;
@@ -3377,15 +3376,18 @@ function get_all_disks_info() {
 			/* Get all the disk partitions. */
 			$disk			= array_merge($disk, get_disk_info($key));
 			$disk['zvol']	= array();
-			foreach ($disk['partitions'] as $k => $p) {
-				if ($p) {
-					$disk['partitions'][$k]	= get_partition_info($p);
-					$disk['array_disk']		= ($disk['array_disk'] || $disk['partitions'][$k]['array_disk']);
 
-					/* If this is a zfs disk, see if there are any zfs volumes. */
-					if ($disk['partitions'][$k]['fstype'] == "zfs") {
-						/* Get any zfs volumes. */
-						$disk['zvol']		= array_merge($disk['zvol'], get_zvol_info($disk['partitions'][$k]));
+			/* Get all the partitions and additional settings. */
+			if (! empty($disk['partitions'])) {
+				foreach ($disk['partitions'] as $k => $p) {
+					if (! empty($p)) {
+						$disk['partitions'][$k]	= get_partition_info($p);
+
+						/* If this is a zfs disk, see if there are any zfs volumes. */
+						if ($disk['partitions'][$k]['fstype'] == "zfs") {
+							/* Get any zfs volumes. */
+							$disk['zvol']		= array_merge($disk['zvol'], get_zvol_info($disk['partitions'][$k]));
+						}
 					}
 				}
 			}
@@ -3515,18 +3517,19 @@ function get_disk_info($dev) {
 	$disk['writes']				= $rw[1];
 	$disk['read_rate']			= $rw[2];
 	$disk['write_rate']			= $rw[3];
-	$disk['running']			= is_disk_running($disk['ud_dev']);
+	$disk['spinning']			= is_disk_spinning($disk['ud_dev']);
 	$usb						= (isset($attrs['ID_BUS']) && ($attrs['ID_BUS'] == "usb"));
 	$disk['automount']			= is_automount($disk['serial'], $usb);
-	$disk['temperature']		= get_temp($disk['ud_dev'], $disk['device'], $disk['running']);
+	$disk['disable_mount']		= is_disable_mount($disk['serial']);
+	$disk['temperature']		= get_temp($disk['ud_dev'], $disk['device'], $disk['spinning']);
 	$disk['command']			= get_config($disk['serial'], "command.1");
 	$disk['command_bg']			= get_config($disk['serial'], "command_bg.1");
 	$disk['enable_script']		= $disk['command'] ? get_config($disk['serial'], "enable_script.1") : "false";
 	$disk['user_command']		= get_config($disk['serial'], "user_command.1");
 	$disk['show_partitions']	= (get_config($disk['serial'], "show_partitions") == "no") ? false : true;
-	$disk['pass_through']		= is_pass_through($disk['serial']);
 	$disk['array_disk']			= in_array($disk['device'], $unraid_disks);
-	$disk['is_formatting']		= MiscUD::get_formatting_status(basename($disk['device']));
+	$disk['pass_through']		= is_pass_through($disk['serial']);
+	$disk['formatting']			= MiscUD::get_formatting_status(basename($disk['device']));
 
 	/* Are there any preclearing operations going on? */
 	if ((! $disk['fstype']) && ($Preclear)) {
@@ -3534,6 +3537,12 @@ function get_disk_info($dev) {
 	} else {
 		$disk['preclearing']	= false;
 	}
+
+	/* Values not needed but must exist for make_mount_button(). */
+	$disk['file_system']		= "";
+	#disk['not_udev']			= false;
+	$disk['running']			= false;
+	$disk['not_unmounted']		= false;
 
 	/* Get the hostX from the DEVPATH so we can re-attach a disk. */
 	MiscUD::save_device_host($disk['serial'], $attrs['DEVPATH']);
@@ -3604,8 +3613,8 @@ function get_partition_info($dev) {
 		$partition['not_udev']			= ($partition['fstype'] != "crypto_LUKS") ? ($partition['fstype'] != $partition['file_system']) : false;
 
 		/* Get the partition mounting, unmounting, and formatting status. */
-		$partition['is_mounting']		= MiscUD::get_mounting_status(basename($dev));
-		$partition['is_unmounting']		= MiscUD::get_unmounting_status(basename($dev));
+		$partition['mounting']			= MiscUD::get_mounting_status(basename($dev));
+		$partition['unmounting']		= MiscUD::get_unmounting_status(basename($dev));
 
 		/* Set up all disk parameters and status. */
 		$partition['pass_through']		= is_pass_through($partition['serial']);
@@ -3674,6 +3683,9 @@ function get_partition_info($dev) {
 		$partition['logfile']		= ($partition['prog_name']) ? $paths['device_log'].$partition['prog_name'].".log" : "";
 		$partition['running']		= ((is_script_running($partition['command'])) || (is_script_running($partition['user_command'], true)));
 
+		/* Values not needed but must exist for make_mount_button(). */
+		$partition['formatting']	= false;
+		$partition['preclearing']	= false;
 	}
 
 	return $partition;
@@ -3697,8 +3709,8 @@ function get_zvol_info($disk) {
 			$zvol[$vol]['active']			= (strpos($q, "-part") !== false) ? true : empty(glob($q."-part*"));
 			$zvol[$vol]['mountpoint']		= $disk['mountpoint'].".".basename($q);
 			$zvol[$vol]['mounted']			= is_mounted("", $zvol[$vol]['mountpoint'], false);
-			$zvol[$vol]['is_mounting']		= MiscUD::get_mounting_status(basename($zvol[$vol]['device']));
-			$zvol[$vol]['is_unmounting']	= MiscUD::get_unmounting_status(basename($zvol[$vol]['device']));
+			$zvol[$vol]['mounting']			= MiscUD::get_mounting_status(basename($zvol[$vol]['device']));
+			$zvol[$vol]['unmounting']		= MiscUD::get_unmounting_status(basename($zvol[$vol]['device']));
 			$zvol[$vol]['fstype']			= "zvol";
 			$zvol[$vol]['file_system']		= part_fs_type($zvol[$vol]['device']);
 			$zvol[$vol]['file_system']		= ($zvol[$vol]['file_system']) ?: zvol_fs_type($zvol[$vol]['device']);
@@ -3711,6 +3723,8 @@ function get_zvol_info($disk) {
 			$zvol[$vol]['target']			= $zvol[$vol]['mounted'] ? $zvol[$vol]['mountpoint'] : "";
 			$zvol[$vol]['pass_through']		= is_pass_through($serial, $vol);
 			$zvol[$vol]['disable_mount']	= is_disable_mount($serial, $vol);
+
+			/* Values not needed but must exist for make_mount_button(). */
 			$zvol[$vol]['array_disk']		= false;
 			$zvol[$vol]['command']			= "";
 			$zvol[$vol]['user_command']		= "";
