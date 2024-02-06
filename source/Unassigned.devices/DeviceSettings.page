@@ -19,6 +19,7 @@ require_once("plugins/{$plugin}/include/lib.php");
 
 function safe_filename($string) {
 	$string = preg_replace('~[^0-9a-z -_]~i', '', $string);
+
 	/* Remove special characters from file name */
 	$string = str_replace( array("(", ")", "$"), "", $string);
 	return preg_replace('~[ ]~i', '_', $string);
@@ -53,14 +54,19 @@ $samba_device			= false;
 $iso_device				= false;
 
 /* Wait for lock files release to be sure the cfg and smb  files are completely updated. */
+define('CFG_LOCK', "/tmp/{$plugin}/cfg_*.lock");
+define('SMB_LOCK', "/tmp/{$plugin}/smb_*.lock");
+define('ISO_LOCK', "/tmp/{$plugin}/iso_*.lock");
+
 $i = 0;
 $l = 0;
-while (((! empty(glob("/tmp/".$plugin."/cfg_*.lock"))) || (! empty(glob("/tmp/".$plugin."/smb_*.lock"))) || (! empty(glob("/tmp/".$plugin."/iso_*.lock")))) && ($i < 8) && ($l < 2)) {
-	usleep(250 * 1000);
-	$i++;
-	if ((empty(glob("/tmp/".$plugin."/cfg_*.lock"))) && (empty(glob("/tmp/".$plugin."/smb_*.lock"))) && (empty(glob("/tmp/".$plugin."/iso_*.lock")))) {
-		$l++;
-	}
+while ((!empty(glob(CFG_LOCK)) || !empty(glob(SMB_LOCK)) || !empty(glob(ISO_LOCK))) && ($i < 8) && ($l < 2)) {
+    usleep(250 * 1000);
+    $i++;
+
+    if (empty(glob(CFG_LOCK)) && empty(glob(SMB_LOCK)) && empty(glob(ISO_LOCK))) {
+        $l++;
+    }
 }
 
 /* Main entry point. */
