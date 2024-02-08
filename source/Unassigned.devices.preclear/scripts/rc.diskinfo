@@ -1,7 +1,7 @@
 #!/usr/bin/php
 <?php
 /* Copyright 2015-2020, Guilherme Jardim
- * Copyright 2022-2023, Dan Landon
+ * Copyright 2022-2024, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -452,7 +452,7 @@ class Disks
 
 				/* Probe SMART data. */
 				if ($disk['SMART'] != "none") {
-					$smartInfo = explode(PHP_EOL, timed_exec(10, "/usr/sbin/smartctl --info --attributes ".$disk['SMART']." ".escapeshellarg($device)." 2>/dev/null"));
+					$smartInfo = explode(PHP_EOL, timed_exec(10, "/usr/sbin/smartctl --info --attributes ".$disk['SMART']." ".escapeshellarg($device)." 2>/dev/null | tr -d '\"'"));
 				} else {
 					$smartInfo = array();
 				}
@@ -539,9 +539,9 @@ class Disks
 			$smart = "none";
 			foreach (array_merge($types_1, $types_2) as $type) {
 				preclear_log("Trying SMART parameter ($type) for disk [{$device}]...", "DEBUG");
-				$out	= timed_exec(10, "/usr/sbin/smartctl --info --attributes ".$type." ".escapeshellarg($device)." 2>/dev/null");
-				$info = trim(shell_exec("echo -e \"{$out}\" | grep -v '\[No Information Found\]' | grep -c -e 'Vendor:' -e 'Product:' -e 'Serial Number:' -e 'Device Model:'"));
-				$attr = trim(shell_exec("echo -e \"{$out}\" | grep -c 'ATTRIBUTE_NAME'"));
+				$out	= timed_exec(10, "/usr/sbin/smartctl --info --attributes ".$type." ".escapeshellarg($device)." 2>/dev/null | tr -d '\"'");
+				$info	= trim(shell_exec("echo -e ".escapeshellarg($out)." | grep -v '\[No Information Found\]' | grep -c -e 'Vendor:' -e 'Product:' -e 'Serial Number:' -e 'Device Model:'"));
+				$attr	= trim(shell_exec("echo -e ".escapeshellarg($out)." | grep -c 'ATTRIBUTE_NAME'"));
 				/* SMART info and attributes present. */
 				if ( intval($info) > 0 && intval($attr) > 0 ) {
 					$smart = $type;
