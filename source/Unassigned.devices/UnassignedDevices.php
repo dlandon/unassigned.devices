@@ -363,12 +363,12 @@ function make_mount_button($device) {
 		/* Disable mount button enabled. */
 		$disable_mount	= $device['disable_mount'];
 
-		/* Mount button is disabled if there aren't any partitions on the disk. */
-		$disable		= (count($device['partitions']) == 0);
+		/* Is this device enabled with valid partitions. */
+		$disable		= $device['disable'];
 
 		/* Disk can be formatted if there are no partitions. */
 		$pass_through	= $device['pass_through'];
-		$format			= ((! $pass_through) && ($disable));
+		$format			= ((! count($device['partitions'])) && (! $pass_through));
 
 		/* This is not a zvol device. */
 		$zvol_device	= false;
@@ -579,48 +579,21 @@ switch ($_POST['action']) {
 		/* Get updated disks info in case devices have been hot plugged. */
 		if ( count($all_disks) ) {
 			foreach ($all_disks as $disk) {
+				$disk_device		= basename($disk['device']);
+				$disk_dev			= $disk['ud_dev'];
+				$disk_name			= $disk['unassigned_dev'] ? $disk['unassigned_dev'] : $disk['ud_dev'];
+				$parts				= (! empty($disk['partitions'])) ? render_partition($disk, $disk['partitions'][0], true) : false;
+				$preclearing		= $disk['preclearing'];
+				$temp				= my_temp($disk['temperature']);
+
 				/* See if any partitions are mounted. */
-				$mounted = in_array(true, array_map(function($partition) {
-					return $partition['mounted'];
-				}, $disk['partitions']), true);
+				$mounted			= $disk['mounted'];
 
 				/* Was the disk unmounted properly? */
-				$not_unmounted = in_array(true, array_map(function($partition) {
-					return $partition['not_unmounted'];
-				}, $disk['partitions']), true);
+				$not_unmounted		= $disk['not_unmounted'];
 
 				/* See if any partitions have a file system. */
-				$file_system = in_array(true, array_map(function($partition) {
-					return !empty($partition['fstype']);
-				}, $disk['partitions']), true);
-
-				$disk_device			= basename($disk['device']);
-				$disk_dev				= $disk['ud_dev'];
-				$disk_name				= $disk['unassigned_dev'] ? $disk['unassigned_dev'] : $disk['ud_dev'];
-				$parts					= (! empty($disk['partitions'])) ? render_partition($disk, $disk['partitions'][0], true) : false;
-				$preclearing			= $disk['preclearing'];
-				$temp					= my_temp($disk['temperature']);
-
-				/* Get the mounting and unmounting states of disks and all partitions. */
-				$disk['mounting'] = (
-					in_array(true, array_map(function($partition) {
-						return $partition['mounting'];
-					}, $disk['partitions']), true) ||
-
-					in_array(true, array_map(function($zvol) {
-						return $zvol['mounting'];
-					}, $disk['zvol']), true)
-				);
-
-				$disk['unmounting'] = (
-					in_array(true, array_map(function($partition) {
-						return $partition['unmounting'];
-					}, $disk['partitions']), true) ||
-
-					in_array(true, array_map(function($zvol) {
-						return $zvol['unmounting'];
-					}, $disk['zvol']), true)
-				);
+				$file_system		= $disk['file_system'];
 
 				/* Create the mount button. */
 				$mbutton				= make_mount_button($disk);
@@ -748,27 +721,29 @@ switch ($_POST['action']) {
 				}
 
 				/* Add to share names and disk names. */
-				for ($i = 0; $i < count($disk['partitions']); $i++) {
-					if (($disk['unassigned_dev']) && (! in_array($disk['unassigned_dev'], $disk_names))) {
-						$disk_names[$disk_device] = $disk['unassigned_dev'];
-					}
-					if ($disk['partitions'][$i]['fstype']) {
-						$dev		= ($disk['partitions'][$i]['fstype'] == "crypto_LUKS") ? $disk['partitions'][$i]['luks'] : $disk['partitions'][$i]['device'];
-						if (MiscUD::is_device_nvme($dev)) {
-							$dev .= "p";
+				if (! $disk['formatting']) {
+					for ($i = 0; $i < count($disk['partitions']); $i++) {
+						if (($disk['unassigned_dev']) && (! in_array($disk['unassigned_dev'], $disk_names))) {
+							$disk_names[$disk_device] = $disk['unassigned_dev'];
 						}
-						/* Check if this disk uuid has already been entered in the share_names array. */
-						$mountpoint					= basename($disk['partitions'][$i]['mountpoint']);
-						$uuid		 				= $disk['partitions'][$i]['uuid'];
-						if (($uuid) && (isset($disk_uuid[$uuid]))) {
-							$disk_uuid[$uuid]		= $disk_uuid[$uuid].",".$dev;
-						} else if ($uuid) {
-							$disk_uuid[$uuid]		= $dev;
-						}
+						if ($disk['partitions'][$i]['fstype']) {
+							$dev		= ($disk['partitions'][$i]['fstype'] == "crypto_LUKS") ? $disk['partitions'][$i]['luks'] : $disk['partitions'][$i]['device'];
+							if (MiscUD::is_device_nvme($dev)) {
+								$dev .= "p";
+							}
+							/* Check if this disk uuid has already been entered in the share_names array. */
+							$mountpoint					= basename($disk['partitions'][$i]['mountpoint']);
+							$uuid		 				= $disk['partitions'][$i]['uuid'];
+							if (($uuid) && (isset($disk_uuid[$uuid]))) {
+								$disk_uuid[$uuid]		= $disk_uuid[$uuid].",".$dev;
+							} else if ($uuid) {
+								$disk_uuid[$uuid]		= $dev;
+							}
 
-						$share_names				= array_flip($share_names);
-						$share_names[$mountpoint]	= $disk_uuid[$uuid] ?? $dev;
-						$share_names				= array_flip($share_names);
+							$share_names				= array_flip($share_names);
+							$share_names[$mountpoint]	= $disk_uuid[$uuid] ?? $dev;
+							$share_names				= array_flip($share_names);
+						}
 					}
 				}
 			}

@@ -2139,7 +2139,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 						}
 					}
 
-					unassigned_log("Successfully unmounted '".$dev."'");
+					unassigned_log("Successfully unmounted '".($dev ? $dev : $dir)."'");
 
 					/* Remove saved pool devices if this is a btrfs pooled device. */
 					MiscUD::get_pool_devices($dir, true);
@@ -3415,30 +3415,49 @@ function get_all_disks_info() {
 				$disk['ud_dev'] = get_disk_dev($disk['device']);
 			}
 
+			/* See if any partitions have a file system. */
+			$disk['file_system']	= in_array(true, array_map(function($partition) {
+				return !empty($partition['fstype']);
+			}, $disk['partitions']), true);
+
 			/* Any partitions mounted? */
 			$disk['mounted']		= array_filter($disk['partitions'], function ($partition) {
 				return $partition['mounted'] === true;
 			});
 
 			/* Is the disk not unmounted properly? */
-			$disk['not_unmounted'] = in_array(true, array_map(function($partition) {
+			$disk['not_unmounted']	= in_array(true, array_map(function($partition) {
 				return $partition['not_unmounted'];
 			}, $disk['partitions']), true);
 
-			/* Is a partition mounting? */
-			$disk['mounting']		= array_filter($disk['partitions'], function ($partition) {
-				return $partition['mounting'] === true;
-			});
+			/* Get the mounting and unmounting states of disks and all partitions. */
+			$disk['mounting']		= (
+				in_array(true, array_map(function($partition) {
+					return $partition['mounting'];
+				}, $disk['partitions']), true) ||
 
-			/* Is a partition unmounting? */
-			$disk['unmounting']		= array_filter($disk['partitions'], function ($partition) {
-				return $partition['unmounting'] === true;
-			});
+				in_array(true, array_map(function($zvol) {
+					return $zvol['mounting'];
+				}, $disk['zvol']), true)
+			);
+
+			$disk['unmounting'] 	= (
+				in_array(true, array_map(function($partition) {
+					return $partition['unmounting'];
+				}, $disk['partitions']), true) ||
+
+				in_array(true, array_map(function($zvol) {
+					return $zvol['unmounting'];
+				}, $disk['zvol']), true)
+			);
 
 			/* Is a partition script running? */
 			$disk['running']		= array_filter($disk['partitions'], function ($partition) {
 				return $partition['running'] === true;
 			});
+
+			/* Device is disabled unless partition is found with a valid file system. */
+			$disk['disable']		= (! $disk['file_system']);
 
 			/* Is this a pool disk? */
 			$disk['pool_disk']		= array_filter($disk['partitions'], function ($partition) {
