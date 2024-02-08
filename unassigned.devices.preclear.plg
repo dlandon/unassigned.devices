@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2023.12.15">
+<!ENTITY version	"2024.02.07">
 <!ENTITY launch		"Tools/Preclear">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/unassigned.devices/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"c6838423cbfa33158cf4e02dbb53c770">
+<!ENTITY MD5		"c06db0bf2fa58a0e0805576cd013692a">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
@@ -21,6 +21,9 @@
 <CHANGES>
 ###&name;
 ###&version;
+- Fix: Double quote in the smartctl report causing issues with php in rc.diskinfo.
+
+###2023.12.15
 - Fix: Style changes for GUI compatibility with 6.13.
 - Fix: Put styles into .css files.
 
@@ -284,7 +287,7 @@ echo ""
 echo "-----------------------------------------------------------"
 echo " &name; has been installed."
 echo " Copyright 2015-2020, gfjardim"
-echo " Copyright 2022-2023, &author;"
+echo " Copyright 2022-2024, &author;"
 echo " Version: &version;"
 echo "-----------------------------------------------------------"
 echo ""
@@ -321,7 +324,7 @@ echo ""
 echo "-----------------------------------------------------------"
 echo " &name; has been uninstalled."
 echo " Copyright 2015-2020, gfjardim"
-echo " Copyright 2023, &author;"
+echo " Copyright 2022-2024, &author;"
 echo " Version: &version;"
 echo "-----------------------------------------------------------"
 echo ""
