@@ -494,6 +494,20 @@ _(User Script)_:
 </form>
 
 <script>
+	/* Start the Unraid spinner. */
+	unraidWaveTimer = setTimeout(function(){
+		$('div.spinner.fixed').show();
+	}, 500);
+
+	/* Wait for the page to load. */
+	window.onload = function() {
+		/* Clear the spinner timer. */
+		clearTimeout(unraidWaveTimer);
+
+		/* Stop spinner after the page has loaded. */
+		$('div.spinner.fixed').hide();
+	};
+
 	const UDURL		= '/plugins/<?=$plugin;?>/UnassignedDevices.php';
 
 <? if (($disk_device) && (! $mounted)):?>
