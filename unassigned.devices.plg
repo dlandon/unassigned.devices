@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.02.02a">
+<!ENTITY version	"2024.02.09">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"6a03a3440e0316580f7e291fbec38b8b">
+<!ENTITY MD5		"09b5a425c3e7f7cb5c75faffa03a4aea">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,12 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Remote Shares showing offline and unavailable not working properly.
+- Fix: Several php warnings.
+- Fix: Samba config files not always created properly with MacOS Interoperability enabled.
+- Add: Unraid wave to Device Settings and Unassigned Devices Settings.
+
+###2024.02.02a
 - Fix: Remote server online status check not detecting changes in online status properly when the remote server goes offline.
 - Fix: Device Script file selector drop down always sets the default file and file name; user cannot select a different file.
 - Fix: The 'Delete' button on device settings deletes the wrong file after a new file is selected.
