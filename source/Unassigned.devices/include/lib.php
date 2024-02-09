@@ -3403,16 +3403,16 @@ function get_all_disks_info() {
 			$disk['path'] = $key;
 
 			/* Use the devX designation of the sdX if there is no devX designation. */
-			$unassigned_dev = $disk['unassigned_dev'] ?? $disk['ud_dev'];
-			$unassigned_dev	= $unassigned_dev ?? basename($disk['device']);
+			$unassigned_dev			= $disk['unassigned_dev'] ?? $disk['ud_dev'];
+			$unassigned_dev			= $unassigned_dev ?? basename($disk['device']);
 
 			/* If there is already a devX that is the same, use the disk device sdX designation. */
 			if (strtoupper(substr($unassigned_dev, 0, 3)) == "DEV") {
 				/* Get the sdX device designation. */
-				$unassigned_dev = basename($disk['device']);
+				$unassigned_dev		= basename($disk['device']);
 
 				/* Set the ud_dev to the current value in the devs.ini file. */
-				$disk['ud_dev'] = get_disk_dev($disk['device']);
+				$disk['ud_dev']		= get_disk_dev($disk['device']);
 			}
 
 			/* See if any partitions have a file system. */
