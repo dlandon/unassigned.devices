@@ -53,20 +53,23 @@ $disk_device			= false;
 $samba_device			= false;
 $iso_device				= false;
 
-/* Wait for lock files release to be sure the cfg and smb  files are completely updated. */
+/* Wait for lock files release to be sure the cfg, smb, and iso files are completely updated. */
 define('CFG_LOCK', "/tmp/{$plugin}/cfg_*.lock");
 define('SMB_LOCK', "/tmp/{$plugin}/smb_*.lock");
 define('ISO_LOCK', "/tmp/{$plugin}/iso_*.lock");
 
 $i = 0;
 $l = 0;
-while ((!empty(glob(CFG_LOCK)) || !empty(glob(SMB_LOCK)) || !empty(glob(ISO_LOCK))) && ($i < 8) && ($l < 2)) {
-    usleep(250 * 1000);
+while ((!empty(glob(CFG_LOCK)) || !empty(glob(SMB_LOCK)) || !empty(glob(ISO_LOCK))) && ($i < 8) && ($l < 10)) {
+    usleep(1000 * 1000);
     $i++;
 
     if (empty(glob(CFG_LOCK)) && empty(glob(SMB_LOCK)) && empty(glob(ISO_LOCK))) {
         $l++;
-    }
+    } else {
+		$i	= 0;
+	}
+    usleep(1000 * 1000);
 }
 
 /* Main entry point. */
@@ -370,7 +373,6 @@ EOT;
 <?endif;?>
 
 <form markdown="1" name="device_settings" method="POST" action="/update.php" target="progressFrame">
-<input type="hidden" name="#include" value="/webGui/include/update.file.php">
 
 <?if (($disk_setting) && ($fstype != "zvol")):?>
 _(Disk Name)_:
