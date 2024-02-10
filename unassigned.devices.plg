@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.02.09">
+<!ENTITY version	"2024.02.10">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"09b5a425c3e7f7cb5c75faffa03a4aea">
+<!ENTITY MD5		"c6efdd6faf34ae5cb10293eb715c95ac">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Fix nvme drives not mounting because of duplicate share name.
+
+###2024.02.09
 - Fix: Remote Shares showing offline and unavailable not working properly.
 - Fix: Several php warnings.
 - Fix: Samba config files not always created properly with MacOS Interoperability enabled.
