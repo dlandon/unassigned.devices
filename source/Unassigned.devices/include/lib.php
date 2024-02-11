@@ -2078,7 +2078,7 @@ function do_mount_root($info) {
 function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs = false) {
 	global $paths;
 
-	$rc = false;
+	$rc			= false;
 	$pool_name	= ($zfs) ? MiscUD::zfs_pool_name("", $dir) : "";
 	$timeout	= ($smb || $nfs) ? ($force ? 30 : 10) : 90;
 	$mounted	= (($zfs) && ($pool_name)) ? (is_mounted($pool_name, $dir)) : (is_mounted($dev, $dir));
@@ -2126,7 +2126,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 			/* Check to see if the device really unmounted. */
 			for ($i=0; $i < 5; $i++) {
 				/* The device and mount point both need to be unmounted. */
-				$mounted	= ((is_mounted("", $dir) && ((($file_system == "zfs") && ($pool_name)) ? is_mounted($pool_name, "", false) : is_mounted($dev, "", false))));
+				$mounted	= ((is_mounted("", $dir) && ((($zfs) && ($pool_name)) ? is_mounted($pool_name, "", false) : is_mounted($dev, "", false))));
 				if (! $mounted) {
 					if (is_dir($dir)) {
 						/* Remove the mount point. */
@@ -2241,7 +2241,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 				} else {
 					/* For fat and exfat file systems. */
 					$vfs_objects	.= " catia fruit";
-					$fruit_file_settings = array( $vfs_objects, "fruit:resource = file", "fruit:metadata = netatalk", "fruit:encoding = native" );
+					$fruit_file_settings = array( $vfs_objects );
 				}
 
 				/* Apply the fruit settings. */
