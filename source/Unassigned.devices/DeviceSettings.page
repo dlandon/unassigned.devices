@@ -58,20 +58,6 @@ define('CFG_LOCK', "/tmp/{$plugin}/cfg_*.lock");
 define('SMB_LOCK', "/tmp/{$plugin}/smb_*.lock");
 define('ISO_LOCK', "/tmp/{$plugin}/iso_*.lock");
 
-$i = 0;
-$l = 0;
-while ((!empty(glob(CFG_LOCK)) || !empty(glob(SMB_LOCK)) || !empty(glob(ISO_LOCK))) && ($i < 8) && ($l < 10)) {
-    usleep(1000 * 1000);
-    $i++;
-
-    if (empty(glob(CFG_LOCK)) && empty(glob(SMB_LOCK)) && empty(glob(ISO_LOCK))) {
-        $l++;
-    } else {
-		$i	= 0;
-	}
-    usleep(1000 * 1000);
-}
-
 /* Main entry point. */
 if (isset($_GET['s'])) {
 	/* Disk devices. */
@@ -647,109 +633,104 @@ _(User Script)_:
 	});
 
 	$("form").submit(function(event) {
+		let requests = [];
+
 		<?php if ($disk_device): ?>
-			$.post(UDURL, {
+			requests.push($.post(UDURL, {
 				action: "set_command",
 				serial: "<?=$ud_device;?>",
 				part: "<?=$partition;?>",
 				command: $("input[name='#file']").val(),
 				user_command: $("input[name='#user_file']").val()
-			}).done(function() {
-				location.reload();
-			});
+			}));
 
 			<?php if ($disk_setting): ?>
-				$.post(UDURL, {
+				requests.push($.post(UDURL, {
 					action: "set_name",
 					serial: "<?=$ud_device;?>",
 					device: "<?=$device;?>",
 					name: $("input[name='#name']").val()
-				}).done(function() {
-					location.reload();
-				});
+				}));
 			<?php endif; ?>
 
-			$.post(UDURL, {
+			requests.push($.post(UDURL, {
 				action: "<?=$script_action;?>",
 				device: "<?=$ud_device;?>",
 				part: "<?=$partition;?>",
 				status: $("select[name='#enable_script']").val()
-			}).done(function() {
-				location.reload();
-			});
+			}));
 
-			$.post(UDURL, {
+			requests.push($.post(UDURL, {
 				action: "<?=$background_action;?>",
 				device: "<?=$ud_device;?>",
 				part: "<?=$partition;?>",
 				status: $("select[name='#background']").val()
-			}).done(function() {
-				location.reload();
-			});
+			}));
 
 			<?php if ($fstype == "apfs"): ?>
-				$.post(UDURL, {
+				requests.push($.post(UDURL, {
 					action: "set_volume",
 					serial: "<?=$ud_device;?>",
 					part: "<?=$partition;?>",
 					volume: $("input[name='#volume']").val()
-				}).done(function() {
-					location.reload();
-				});
+				}));
 			<?php endif; ?>
 
 		<?php else: ?>
 
 			<?php if ($samba_device): ?>
-				$.post(UDURL, {
+				requests.push($.post(UDURL, {
 					action: "set_samba_command",
 					device: "<?=$device;?>",
 					command: $("input[name='#file']").val(),
 					user_command: $("input[name='#user_file']").val()
-				}).done(function() {
-					location.reload();
-				});
+				}));
+
+				requests.push($.post(UDURL, {
+					action: "set_samba_command",
+					device: "<?=$device;?>",
+					command: $("input[name='#file']").val(),
+					user_command: $("input[name='#user_file']").val()
+				}));
 
 				<?php if ($protocol == "SMB"): ?>
-					$.post(UDURL, {
+					requests.push($.post(UDURL, {
 						action: "samba_enable_encryption",
 						device: "<?=$ud_device;?>",
 						status: $("select[name='#enable_encrypt']").val()
-					}).done(function() {
-						location.reload();
-					});
+					}));
 				<?php endif; ?>
 
 			<?php endif; ?>
 
 			<?php if ($iso_device): ?>
-				$.post(UDURL, {
+				requests.push($.post(UDURL, {
 					action: "set_iso_command",
 					device: "<?=$device;?>",
 					command: $("input[name='#file']").val()
-				}).done(function() {
-					location.reload();
-				});
+				}));
 			<?php endif; ?>
 
-			$.post(UDURL, {
+			requests.push($.post(UDURL, {
 				action: "<?=$script_action;?>",
 				device: "<?=$ud_device;?>",
 				part: "<?=$partition;?>",
 				status: $("select[name='#enable_script']").val()
-			}).done(function() {
-				location.reload();
-			});
+			}));
 
-			$.post(UDURL, {
+			requests.push($.post(UDURL, {
 				action: "<?=$background_action;?>",
 				device: "<?=$ud_device;?>",
 				status: $("select[name='#background']").val()
-			}).done(function() {
-				location.reload();
-			});
+			}));
 
 		<?php endif; ?>
+
+		/* Wait for all requests to complete. */
+		$.when.apply($, requests).done(function() {
+			/* All requests completed. */
+			location.reload();
+		});
 	});
 
 	/*
