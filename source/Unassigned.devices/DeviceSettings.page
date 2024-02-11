@@ -636,12 +636,17 @@ _(User Script)_:
 		let requests = [];
 
 		<?php if ($disk_device): ?>
-			requests.push($.post(UDURL, {
-				action: "set_command",
-				serial: "<?=$ud_device;?>",
-				part: "<?=$partition;?>",
-				command: $("input[name='#file']").val(),
-				user_command: $("input[name='#user_file']").val()
+			requests.push($.ajax({
+				url: UDURL,
+				type: 'POST',
+	            async: false,
+				data: {
+					action: 'set_command',
+					serial: '<?= $ud_device; ?>',
+					part: '<?= $partition; ?>',
+					command: $("input[name='#file']").val(),
+					user_command: $("input[name='#user_file']").val()
+				}
 			}));
 
 			<?php if ($disk_setting): ?>
@@ -679,11 +684,16 @@ _(User Script)_:
 		<?php else: ?>
 
 			<?php if ($samba_device): ?>
-				requests.push($.post(UDURL, {
-					action: "set_samba_command",
-					device: "<?=$device;?>",
-					command: $("input[name='#file']").val(),
-					user_command: $("input[name='#user_file']").val()
+				requests.push($.ajax({
+					url: UDURL,
+					type: 'POST',
+		            async: false,
+					data: {
+						action: 'set_samba_command',
+						device: '<?= $device; ?>',
+						command: $("input[name='#file']").val(),
+						user_command: $("input[name='#user_file']").val()
+					}
 				}));
 
 				requests.push($.post(UDURL, {
@@ -704,6 +714,17 @@ _(User Script)_:
 			<?php endif; ?>
 
 			<?php if ($iso_device): ?>
+				requests.push($.ajax({
+					url: UDURL,
+					type: 'POST',
+		            async: false,
+					data: {
+						action: 'set_iso_command',
+						device: '<?= $device; ?>',
+						command: $("input[name='#file']").val()
+					}
+				}));
+
 				requests.push($.post(UDURL, {
 					action: "set_iso_command",
 					device: "<?=$device;?>",
