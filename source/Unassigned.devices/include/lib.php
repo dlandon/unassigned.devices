@@ -1882,8 +1882,8 @@ function do_mount_local($info) {
 
 				/* Check to see if the device really mounted. */
 				for ($i=0; $i < 5; $i++) {
-					/* The device or mount point need to be mounted. */
-					$mounted	= ((is_mounted("", $dir) || ((($file_system == "zfs") && ($pool_name)) ? is_mounted($pool_name, "", false) : is_mounted($dev, "", false))));
+					/* The device and mount point need to be mounted. */
+					$mounted	= (($file_system == "zfs") && ($pool_name)) ? is_mounted($pool_name, $dir) : is_mounted($dev, $dir);
 					if ($mounted) {
 						if (! is_mounted_read_only($dir)) {
 							exec("/bin/chmod 0777 ".escapeshellarg($dir)." 2>/dev/null");
@@ -1966,8 +1966,8 @@ function do_mount_local($info) {
 
 										/* Check to see if the dataset really mounted. */
 										for ($i=0; $i < 5; $i++) {
-											/* The device or mount point need to be mounted. */
-											if ((is_mounted($columns[0])) || (is_mounted("", $columns[1], false))) {
+											/* The device and mount point need to be mounted. */
+											if (is_mounted($columns[0], $columns[1])) {
 												unassigned_log("Successfully mounted zfs dataset '".$columns[0]."' on '".$columns[1]."'.");
 
 												$rc = true;
@@ -2144,7 +2144,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 		}
 
 		if (! $rc) {
-			unassigned_log("Unmount of '".$dev."' failed: '".$o."'"); 
+			unassigned_log("Unmount of '".($dev ? $dev : $dir)."' failed: '".$o."'"); 
 		} else if ($zfs) {
 			exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
 		}
@@ -3148,7 +3148,7 @@ function get_iso_mounts() {
 				$mount['unmounting']	= MiscUD::get_unmounting_status($mount_device);
 
 				/* Is the ios file mounted? */
-				$mount['mounted']		= is_mounted("", $mount['mountpoint'], "", false);
+				$mount['mounted']		= is_mounted("", $mount['mountpoint'], false);
 
 				/* If this is a legacy iso mount indicate that it should be removed. */
 				$safe_device			= safe_name($mount['file']);
