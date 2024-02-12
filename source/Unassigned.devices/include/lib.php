@@ -1597,8 +1597,8 @@ function is_mounted($dev, $dir = "", $update = true) {
 				$new_mounts[$device]['mountpoint']	= $mount_point;
 				$new_mounts[$device]['read_only']	= ($read_only == "ro");
 			}
-
 		}
+
 
 		/* Update the global mounts array. */
 		$mounts		= $new_mounts;
@@ -1610,6 +1610,7 @@ function is_mounted($dev, $dir = "", $update = true) {
 	}
 	if ($dir) {
 		if ($dev) {
+			$rc_dir		= ($rc_dev) ? ($mounts[$dev]['mountpoint'] === $dir) : false;
 		} else {
 			foreach ($mounts as $k => $v) {
 				if ($v['mountpoint'] === $dir) {
@@ -1903,11 +1904,6 @@ function do_mount_local($info) {
 						usleep(100 * 1000);
 					}
 				}
-
-				/* If we timed out waiting for the mount to be successful set timed out error. */
-				if ($i == 5) {
-					$o	= "mount wait timeout";
-				}
 			}
 
 			/* If the device did not mount, close the luks disk if the FS is luks, and show an error. */
@@ -1981,11 +1977,6 @@ function do_mount_local($info) {
 												usleep(100 * 1000);
 											}
 										}
-									}
-
-									/* If we timed out waiting for the mount to be successful set timed out error. */
-									if ($i == 5) {
-										$o	= "mount wait timeout";
 									}
 
 									/* Was there an error? */
@@ -2126,7 +2117,7 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 			/* Check to see if the device really unmounted. */
 			for ($i=0; $i < 5; $i++) {
 				/* The device and mount point both need to be unmounted. */
-				$mounted	= ((is_mounted("", $dir) && ((($zfs) && ($pool_name)) ? is_mounted($pool_name, "", false) : is_mounted($dev, "", false))));
+				$mounted	= ((is_mounted("", $dir)) || ((($zfs) && ($pool_name)) ? is_mounted($pool_name, "", false) : is_mounted($dev, "", false)));
 				if (! $mounted) {
 					if (is_dir($dir)) {
 						/* Remove the mount point. */
@@ -2149,11 +2140,6 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 				} else {
 					usleep(100 * 1000);
 				}
-			}
-
-			/* If we timed out waiting for the mount to be successful set timed out error. */
-			if ($i == 5) {
-				$o	= "unmount wait timeout";
 			}
 		}
 
@@ -3505,10 +3491,12 @@ function get_udev_info($dev, $udev = null) {
 			$state[$device] = $udev;
 		} else {
 			/* Remove all entries for this serial number. */
-			$serial	= $udev['ID_SERIAL'];
-			foreach ($state as $key => $val) {
-				if ($val['ID_SERIAL'] == $serial) {
-					unset($state[$key]);
+			$serial	= $udev['ID_SERIAL'] ?? "";
+			if ($serial) {
+				foreach ($state as $key => $val) {
+					if ($val['ID_SERIAL'] == $serial) {
+						unset($state[$key]);
+					}
 				}
 			}
 		}
