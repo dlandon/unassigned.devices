@@ -1881,9 +1881,18 @@ function do_mount_local($info) {
 				usleep(250 * 1000);
 
 				/* Check to see if the device really mounted. */
+				if (($file_system == "zfs") && ($pool_name)) {
+					/* For zfs devices, the pool name is the device. */
+					$mount_dev		= $pool_name;
+				} else if ($file_system == "btrfs") {
+					/* If the secondary pool device is being mounted, don't check the devidce. */
+					$mount_dev		= "";
+				} else {
+					$mount_dev		= $dev;
+				}
 				for ($i=0; $i < 5; $i++) {
 					/* The device and mount point need to be mounted. */
-					$mounted	= (($file_system == "zfs") && ($pool_name)) ? is_mounted($pool_name, $dir) : is_mounted($dev, $dir);
+					$mounted	=  is_mounted($mount_dev, $dir);
 					if ($mounted) {
 						if (! is_mounted_read_only($dir)) {
 							exec("/bin/chmod 0777 ".escapeshellarg($dir)." 2>/dev/null");
@@ -2066,12 +2075,55 @@ function do_mount_root($info) {
 }
 
 /* Unmount a device. */
-function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs = false) {
+function do_unmount($info, $force = false) {
 	global $paths;
 
+	/* Default return value - failure. */
 	$rc			= false;
-	$pool_name	= ($zfs) ? MiscUD::zfs_pool_name("", $dir) : "";
-	$timeout	= ($smb || $nfs) ? ($force ? 30 : 10) : 90;
+
+	/* Initialize some variables. */
+	$smb			= false;
+	$nfs			= false;
+	$zfs			= false;
+	$unmount_type	= "";
+	$unmount_mode	= ($force ? "-f " : "-l ");
+
+	switch ($info['fstype']) {
+		case ("cifs"):
+			$smb			= true;
+			$dev			= $info['mount_dev'];
+			$timeout		= ($force ? 10 : 30);
+			$unmount_type	= "-t cifs ";
+			break;
+
+		case ("nfs"):
+			$nfs			= true;
+			$dev			= $info['mount_dev'];
+			$timeout		= ($force ? 10 : 30);
+			$unmount_type	= "-t nfs ";
+			break;
+
+		case ("root"):
+			$unmount_mode	= "-l ";
+		case ("loop"):
+			$dev		= "";
+			$timeout	= 10;
+			break;
+
+		default:
+			if ($info['file_system'] == "zfs") {
+				$zfs			= true;
+				$pool_name		= $info['pool_name'];
+			} else {
+				$pool_name		= "";
+			}
+			$dev			= $info['device'];
+			$timeout		= 90;
+			break;
+	}
+
+	$dir		= $info['mountpoint'];
+
 	$mounted	= (($zfs) && ($pool_name)) ? (is_mounted($pool_name, $dir)) : (is_mounted($dev, $dir));
 	if ($mounted) {
 		if (((! $force) || (($force) && (! $smb) && (! $nfs))) && (! is_mounted_read_only($dir))) {
@@ -2096,11 +2148,11 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 			exec("/usr/sbin/zfs set readonly=off ".escapeshellarg($pool_name)." 2>/dev/null");
 
 			/* Unmount zfs file system. */
-			$cmd = ("/usr/sbin/zfs unmount".($force ? " -f" : "")." ".escapeshellarg($dir)." 2>&1");
+			$cmd = ("/usr/sbin/zfs unmount ".escapeshellarg($dir)." 2>&1");
 		} else {
 			/* The umount flags are set depending on the unmount conditions.  When the array is being stopped force will
 			   be set.  This helps to keep unmounts from hanging.  NFS mounts are always force lazy unmounted. */  
-			$cmd = "/sbin/umount".($smb ? " -t cifs " : ($nfs ? " -t nfs " : " ")).($force ? ("-f".($nfs ? "l " : " ")) : "")."".escapeshellarg($dir)." 2>&1";
+			$cmd = "/sbin/umount ".$unmount_type.$unmount_mode.escapeshellarg($dir)." 2>&1";
 		}
 
 		unassigned_log("Unmount cmd: ".$cmd);
@@ -2149,10 +2201,10 @@ function do_unmount($dev, $dir, $force = false, $smb = false, $nfs = false, $zfs
 			exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
 		}
 	} else {
-		if ((zfs) && (! $pool_name)) {
+		if (($zfs) && (! $pool_name)) {
 			unassigned_log("Warning: Cannot determine Pool Name of '".$dev."'");
 		}
-		unassigned_log("Cannot unmount '".$dev."'. UD did not mount the device or it was not properly unmounted.");
+		unassigned_log("Cannot unmount '".($dev ? $dev : $dir)."'. UD did not mount the device or it was not properly unmounted.");
 	}
 
 	return $rc;

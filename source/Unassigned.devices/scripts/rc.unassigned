@@ -479,7 +479,7 @@ function unassigned_umount() {
 									/* Create unmounting status file. */
 									addFile(sprintf($paths['unmounting'], basename($zvol['device'])));
 
-									$rc = do_unmount($zvol['device'], $zvol['mountpoint'], $force, false, false, false);
+									$rc = do_unmount($zvol, $force);
 									if (! $rc) {
 										unassigned_log("ZFS Volume '".$k."' cannot be unmounted.");
 
@@ -510,7 +510,7 @@ function unassigned_umount() {
 							}
 
 							/* Unmount the disk. */
-							$rc		= do_unmount($info['device'], $info['mountpoint'], $force, false, false, ($file_system == "zfs"));
+							$rc		= do_unmount($info, $force);
 						}
 
 						if ($rc) {
@@ -552,7 +552,7 @@ function unassigned_umount() {
 								/* Create unmounting status file. */
 								addFile(sprintf($paths['unmounting'], basename($zvol['device'])));
 
-								$rc = do_unmount($zvol['device'], $zvol['mountpoint'], $force, false, false, false);
+								$rc = do_unmount($zvol, $force);
 								if (! $rc) {
 									unassigned_log("ZFS Volume '".$k."' cannot be unmounted.");
 								}
@@ -599,16 +599,8 @@ function unassigned_umount() {
 
 					unassigned_log("Unmounting Remote SMB/NFS Share '{$info['device']}'...");
 
-					/* See if we are force unmounting this device. */
-					$force_unmount = $info['fstype'] == "root" ? false : ($info['alive'] && $info['available'] ? $force : true);
-
-					/* Determine if this is a remote mount and what kind. */
-					$smb = ($info['fstype'] == "cifs");
-					$nfs = ($info['fstype'] == "nfs");
-
 					/* Unmount the remote share. */
-					$mounted_dev	= $info['fstype'] != "root" ? $info['mount_dev'] : "";
-					if ( do_unmount($mounted_dev, $info['mountpoint'], $force_unmount, $smb, $nfs) ) {
+					if ( do_unmount($info, $force) ) {
 						rm_smb_share($info['mountpoint']);
 						rm_nfs_share($info['mountpoint']);
 
@@ -621,7 +613,7 @@ function unassigned_umount() {
 
 						$result	= "failure";
 					}
-				} else {
+				} else if (! $force){
 					unassigned_log("Remote SMB/NFS share '{$info['device']}' is not mounted.");
 				}
 			}
@@ -667,7 +659,7 @@ function unassigned_umount() {
 
 
 					/* Unmount the iso file. */
-					if ( do_unmount("", $info['mountpoint'], $force) ) {
+					if ( do_unmount($info, $force) ) {
 						/* Remove the smb and nfs shares. */
 						rm_smb_share($info['mountpoint']);
 						rm_nfs_share($info['mountpoint']);
@@ -681,7 +673,7 @@ function unassigned_umount() {
 
 						$result	= "failure";
 					}
-				} else {
+				} else if (! $force) {
 					unassigned_log("Remote ISO File share '{$info['device']}' is not mounted.");
 				}
 			}
