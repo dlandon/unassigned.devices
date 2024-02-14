@@ -52,17 +52,16 @@ define('SMB_PORT', '445');
 define('NFS_PORT', '2049');
 
 /* Get the Unraid users. */
-$users			= @parse_ini_file($docroot."/state/users.ini", true);
-$users			= ($users !== false) ? $users : array();
+$users_ini			= @parse_ini_file($docroot."/state/users.ini", true);
+$users				= ($users_ini !== false) ? $users_ini : array();
 
 /* Get all Unraid disk devices (array disks, cache, and pool devices). */
-$array_disks	= @parse_ini_file($docroot."/state/disks.ini", true);
-$unraid_disks	= array();
-if (is_array($array_disks)) {
-	foreach ($array_disks as $d) {
-		if ($d['device']) {
-			$unraid_disks[] = "/dev/".$d['device'];
-		}
+$array_disks_ini	= @parse_ini_file($docroot."/state/disks.ini", true);
+$array_disks		= ($array_disks_ini !== false) ? $array_disks_ini : array();
+$unraid_disks		= array();
+foreach ($array_disks as $d) {
+	if ($d['device']) {
+		$unraid_disks[] = "/dev/".$d['device'];
 	}
 }
 
@@ -1885,7 +1884,7 @@ function do_mount_local($info) {
 					/* For zfs devices, the pool name is the device. */
 					$mount_dev		= $pool_name;
 				} else if ($file_system == "btrfs") {
-					/* If the secondary pool device is being mounted, don't check the devidce. */
+					/* If the btrfs secondary pool device is being mounted, don't check the device is mounted. */
 					$mount_dev		= "";
 				} else {
 					$mount_dev		= $dev;
@@ -2112,10 +2111,10 @@ function do_unmount($info, $force = false) {
 
 		default:
 			if ($info['file_system'] == "zfs") {
-				$zfs			= true;
-				$pool_name		= $info['pool_name'];
+				$zfs		= true;
+				$pool_name	= $info['pool_name'];
 			} else {
-				$pool_name		= "";
+				$pool_name	= "";
 			}
 			$dev			= $info['device'];
 			$timeout		= 90;
@@ -2151,7 +2150,7 @@ function do_unmount($info, $force = false) {
 			$cmd = ("/usr/sbin/zfs unmount ".escapeshellarg($dir)." 2>&1");
 		} else {
 			/* The umount flags are set depending on the unmount conditions.  When the array is being stopped force will
-			   be set.  This helps to keep unmounts from hanging.  NFS mounts are always force lazy unmounted. */  
+			   be set.  This helps to keep unmounts from hanging. */
 			$cmd = "/sbin/umount ".$unmount_type.$unmount_mode.escapeshellarg($dir)." 2>&1";
 		}
 
