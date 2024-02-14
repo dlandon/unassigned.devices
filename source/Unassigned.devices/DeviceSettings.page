@@ -53,11 +53,6 @@ $disk_device			= false;
 $samba_device			= false;
 $iso_device				= false;
 
-/* Wait for lock files release to be sure the cfg, smb, and iso files are completely updated. */
-define('CFG_LOCK', "/tmp/{$plugin}/cfg_*.lock");
-define('SMB_LOCK', "/tmp/{$plugin}/smb_*.lock");
-define('ISO_LOCK', "/tmp/{$plugin}/iso_*.lock");
-
 /* Main entry point. */
 if (isset($_GET['s'])) {
 	/* Disk devices. */
