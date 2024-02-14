@@ -2233,21 +2233,27 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 	global $paths, $var, $users, $ud_config;
 
 	/* Get the current UD configuration. */
-	$config					= $ud_config["Config"];
+	$config						= $ud_config["Config"];
 
 	/* Initialize some settings to make sure they are defined. */
-	$smb_security			= $config['smb_security'] ?? "";
-	$config['force_user']	= $config['force_user'] ?? "";
-	$config['hidden_share']	= $config['hidden_share'] ?? "";
+	$smb_security					= $config['smb_security'] ?? "";
+	$config['force_user']			= $config['force_user'] ?? "";
+	$config['hidden_share']			= $config['hidden_share'] ?? "";
 
 	/* Force user setting. */
-	$force_user 			= ($config['force_user'] == "yes") ? "\n\tforce User = nobody" : "";
+	$force_user 					= ($config['force_user'] == "yes") ? "\n\tforce User = nobody" : "";
 
-	/* Set whether or not the share is browseable. */
-	$hidden_share			= ($smb_security == "hidden") ? "\n\tbrowseable = no" : "\n\tbrowseable = yes";
+	/* Get the time machine settings. */
+	$config['time_machine']			= $config['time_machine'] ?? "";
+	$time_machine 					= ($config['time_machine'] == "yes") ? "\n\tfruit:time machine = yes" : "";
+	$Config['time_mach_vol_size']	= $config['time_mach_vol_size'] ?? "";
+	$time_mach_vol_size				= (($config['time_machine'] == "yes") && ($config['time_mach_vol_size'])) ? "\n\tfruit:time machine max size = ".intval($config['time_mach_vol_size'])."M" : "";
+
+	/* Set whether or not the share is browseable and set browseable setting. */
+	$hidden_share					= ($smb_security == "hidden") ? "\n\tbrowseable = no" : "\n\tbrowseable = yes";
 
 	/* Is the Mac OS interoperability setting on? */
-	$enable_fruit			= ($var['enableFruit'] == "yes");
+	$enable_fruit					= ($var['enableFruit'] == "yes");
 
 	/* Add mountpoint to samba shares. */
 	if ($var['shareSMBEnabled'] != "no") {
@@ -2274,10 +2280,17 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 							$vfs_objects	.= " catia fruit streams_xattr";
 							$fruit_file_settings = array( $vfs_objects );
 						}
+
+						/* Set up time machine parameters. */
+						if ($config['time_machine'] == "yes") {
+							$fruit_file_settings[] = $time_machine;
+							$fruit_file_settings[] = $time_mach_vol_size;
+							$fruit_file_settings[] = "\n\tfruit:metadata = stream";
+						}
 					}
 				} else {
 					/* For fat and exfat file systems. */
-					$vfs_objects	.= " catia fruit";
+					$vfs_objects		.= " catia fruit";
 					$fruit_file_settings = array( $vfs_objects );
 				}
 
