@@ -403,6 +403,7 @@ _(Encrypt CIFS Mount)_?
 
 <form markdown="1" name="edit_script" method="POST" action="/update.php" target="progressFrame">
 <input type="hidden" name="#include" value="/webGui/include/update.file.php">
+<input type="hidden" name="#raw_file" value="true">
 
 <?if ($fstype != "zvol"):?>
 _(Device Script)_:
@@ -645,35 +646,55 @@ _(User Script)_:
 			}));
 
 			<?php if ($disk_setting): ?>
-				requests.push($.post(UDURL, {
+			requests.push($.ajax({
+				url: UDURL,
+				type: 'POST',
+	            async: false,
+				data: {
 					action: "set_name",
 					serial: "<?=$ud_device;?>",
 					device: "<?=$device;?>",
 					name: $("input[name='#name']").val()
-				}));
+				}
+			}));
 			<?php endif; ?>
 
-			requests.push($.post(UDURL, {
-				action: "<?=$script_action;?>",
-				device: "<?=$ud_device;?>",
-				part: "<?=$partition;?>",
-				status: $("select[name='#enable_script']").val()
+			requests.push($.ajax({
+				url: UDURL,
+				type: 'POST',
+	            async: false,
+				data: {
+					action: "<?=$script_action;?>",
+					device: "<?=$ud_device;?>",
+					part: "<?=$partition;?>",
+					status: $("select[name='#enable_script']").val()
+				}
 			}));
 
-			requests.push($.post(UDURL, {
-				action: "<?=$background_action;?>",
-				device: "<?=$ud_device;?>",
-				part: "<?=$partition;?>",
-				status: $("select[name='#background']").val()
+			requests.push($.ajax({
+				url: UDURL,
+				type: 'POST',
+	            async: false,
+				data: {
+					action: "<?=$background_action;?>",
+					device: "<?=$ud_device;?>",
+					part: "<?=$partition;?>",
+					status: $("select[name='#background']").val()
+				}
 			}));
 
 			<?php if ($fstype == "apfs"): ?>
-				requests.push($.post(UDURL, {
+			requests.push($.ajax({
+				url: UDURL,
+				type: 'POST',
+	            async: false,
+				data: {
 					action: "set_volume",
 					serial: "<?=$ud_device;?>",
 					part: "<?=$partition;?>",
 					volume: $("input[name='#volume']").val()
-				}));
+				}
+			}));
 			<?php endif; ?>
 
 		<?php else: ?>
@@ -691,19 +712,29 @@ _(User Script)_:
 					}
 				}));
 
-				requests.push($.post(UDURL, {
-					action: "set_samba_command",
-					device: "<?=$device;?>",
-					command: $("input[name='#file']").val(),
-					user_command: $("input[name='#user_file']").val()
+				requests.push($.ajax({
+					url: UDURL,
+					type: 'POST',
+					async: false,
+					data: {
+						action: "set_samba_command",
+						device: "<?=$device;?>",
+						command: $("input[name='#file']").val(),
+						user_command: $("input[name='#user_file']").val()
+					}
 				}));
 
 				<?php if ($protocol == "SMB"): ?>
-					requests.push($.post(UDURL, {
+				requests.push($.ajax({
+					url: UDURL,
+					type: 'POST',
+					async: false,
+					data: {
 						action: "samba_enable_encryption",
 						device: "<?=$ud_device;?>",
 						status: $("select[name='#enable_encrypt']").val()
-					}));
+					}
+				}));
 				<?php endif; ?>
 
 			<?php endif; ?>
@@ -720,24 +751,39 @@ _(User Script)_:
 					}
 				}));
 
-				requests.push($.post(UDURL, {
-					action: "set_iso_command",
-					device: "<?=$device;?>",
-					command: $("input[name='#file']").val()
+				requests.push($.ajax({
+					url: UDURL,
+					type: 'POST',
+					async: false,
+					data: {
+						action: "set_iso_command",
+						device: "<?=$device;?>",
+						command: $("input[name='#file']").val()
+					}
 				}));
 			<?php endif; ?>
 
-			requests.push($.post(UDURL, {
-				action: "<?=$script_action;?>",
-				device: "<?=$ud_device;?>",
-				part: "<?=$partition;?>",
-				status: $("select[name='#enable_script']").val()
+			requests.push($.ajax({
+				url: UDURL,
+				type: 'POST',
+	            async: false,
+				data: {
+					action: "<?=$script_action;?>",
+					device: "<?=$ud_device;?>",
+					part: "<?=$partition;?>",
+					status: $("select[name='#enable_script']").val()
+				}
 			}));
 
-			requests.push($.post(UDURL, {
-				action: "<?=$background_action;?>",
-				device: "<?=$ud_device;?>",
-				status: $("select[name='#background']").val()
+			requests.push($.ajax({
+				url: UDURL,
+				type: 'POST',
+	            async: false,
+				data: {
+					action: "<?=$background_action;?>",
+					device: "<?=$ud_device;?>",
+					status: $("select[name='#background']").val()
+				}
 			}));
 
 		<?php endif; ?>
