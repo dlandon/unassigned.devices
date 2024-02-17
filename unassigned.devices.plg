@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.02.11">
+<!ENTITY version	"2024.02.17">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"685ce3860907c89a5863f42027a6247c">
+<!ENTITY MD5		"7e6dcb96d8916a41c45cbe222524f689">
 ]>
 
 <PLUGIN name="&name;"
@@ -25,6 +25,9 @@
 - Fix: More improvements to device settings.
 - Fix: Php warning when unmounting a device.
 - Fix: Unmounting not detecting a proper unmount.
+- Fix: Rework unmounting code to make more sense and allow the code be more readbable.
+- Fix: Change mounted logic to be sure the mount points are all unique in the mount status array.
+- Add: Time machine settings to SMB settings to support time machine backups to UD devices.
 
 ###2024.02.10
 - Fix: Fix nvme drives not mounting because of duplicate share name.
