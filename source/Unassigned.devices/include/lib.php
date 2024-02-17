@@ -347,13 +347,8 @@ class MiscUD
 			}
 
 			/* The disk must be mounted if we cannot import the zpool. */
-			if ((! $rc) && ($mount_point) && (isset($mounts))) {
-				foreach ($mounts as $k => $v) {
-					if ($v['mountpoint'] === $mount_point) {
-						$rc		= $k;
-						break;
-					}
-				}
+			if ((! $rc) && ($mount_point) && (isset($mounts[$mount_point]))) {
+				$rc		= $mounts[$mount_point]['device'];
 			}
 		} else {
 			$rc	= "";
@@ -1565,8 +1560,8 @@ function is_mounted($dev, $dir = "", $update = true) {
 	global $mounts;
 
 	/* Create a global array of device, mount point, and read only status from /-proc/mounts. */
-	$rc_dev		= false;
-	$rc_dir		= true;
+	$rc_dev		= ($dir) ? (! $dev) : false;
+	$rc_dir		= ($dev) ? (! $dir) : false;
 
 	/* See if we need to load the /proc/mounts file to memory. */
 	if ((! isset($mounts)) || ($update)) {
@@ -1576,7 +1571,6 @@ function is_mounted($dev, $dir = "", $update = true) {
 		$mount				= str_replace($escapeSequences, $replacementChars, $mount);
 
 		/* Create a two element array of the values. */
-		/* Get the cached mounts. */
 		$lines	= explode("\n", $mount);
 		$new_mounts		= [];
 
@@ -1588,13 +1582,8 @@ function is_mounted($dev, $dir = "", $update = true) {
 				$mount_point					= trim($parts[1]);
 				$read_only						= trim($parts[2]);
 
-				/* Be sure every root share is unique. */
-				if ($device == "shfs") {
-					$device	= $mount_point;
-				}
-
-				$new_mounts[$device]['mountpoint']	= $mount_point;
-				$new_mounts[$device]['read_only']	= ($read_only == "ro");
+				$new_mounts[$mount_point]['device']		= $device;
+				$new_mounts[$mount_point]['read_only']	= ($read_only == "ro");
 			}
 		}
 
@@ -1603,21 +1592,19 @@ function is_mounted($dev, $dir = "", $update = true) {
 		$mounts		= $new_mounts;
 	}
 
-	/* Check for mounted status. */
+	/* Check for mounted status of device. */
 	if ($dev) {
-		$rc_dev			= isset($mounts[$dev]);
-	}
-	if ($dir) {
-		if ($dev) {
-			$rc_dir		= ($rc_dev) ? ($mounts[$dev]['mountpoint'] === $dir) : false;
-		} else {
-			foreach ($mounts as $k => $v) {
-				if ($v['mountpoint'] === $dir) {
-					$rc_dev	= true;
-					break;
-				}
+		foreach ($mounts as $k => $v) {
+			if ($v['device'] === $dev) {
+				$rc_dev	= true;
+				break;
 			}
 		}
+	}
+
+	/* Check for mounted status of the mount point. */
+	if ($dir) {
+		$rc_dir		= isset($mounts[$dir]);
 	}
 
 	return ($rc_dev && $rc_dir);
@@ -1627,13 +1614,7 @@ function is_mounted($dev, $dir = "", $update = true) {
 function is_mounted_read_only($dir) {
 	global $mounts;
 
-	$rc		= false;
-	foreach ($mounts as $k => $v) {
-		if ($v['mountpoint'] === $dir) {
-			$rc		= $v['read_only'];
-			break;
-		}
-	}
+	$rc		= isset($mounts[$dir]) ? $mounts[$dir]['read_only'] : false;
 
 	return ($rc);
 }
@@ -2168,7 +2149,13 @@ function do_unmount($info, $force = false) {
 			/* Check to see if the device really unmounted. */
 			for ($i=0; $i < 5; $i++) {
 				/* The device and mount point both need to be unmounted. */
-				$mounted	= ((is_mounted("", $dir)) || ((($zfs) && ($pool_name)) ? is_mounted($pool_name, "", false) : is_mounted($dev, "", false)));
+				if (($zfs) && ($pool_name)) {
+					$mounted_dev	= $pool_name;
+				} else {
+					$mounted_dev	= $dev;
+				}
+
+				$mounted	= is_mounted($mounted_dev, $dir);
 				if (! $mounted) {
 					if (is_dir($dir)) {
 						/* Remove the mount point. */
