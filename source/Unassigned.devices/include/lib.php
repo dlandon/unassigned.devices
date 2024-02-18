@@ -1574,7 +1574,7 @@ function is_mounted($dev, $dir = "", $update = true) {
 		$lines	= explode("\n", $mount);
 		$new_mounts		= [];
 
-		/* Break down each line into the key (device) and values (mount point and read only). */
+		/* Break down each line into the key (mount point) and values (device and read only). */
 		foreach ($lines as $line) {
 			$parts = explode(',', $line, 3);
 			if (count($parts) === 3) {
@@ -1586,7 +1586,6 @@ function is_mounted($dev, $dir = "", $update = true) {
 				$new_mounts[$mount_point]['read_only']	= ($read_only == "ro");
 			}
 		}
-
 
 		/* Update the global mounts array. */
 		$mounts		= $new_mounts;
@@ -1604,7 +1603,7 @@ function is_mounted($dev, $dir = "", $update = true) {
 
 	/* Check for mounted status of the mount point. */
 	if ($dir) {
-		$rc_dir		= isset($mounts[$dir]);
+		$rc_dir		= array_key_exists($dir, $mounts);
 	}
 
 	return ($rc_dev && $rc_dir);
@@ -1614,7 +1613,7 @@ function is_mounted($dev, $dir = "", $update = true) {
 function is_mounted_read_only($dir) {
 	global $mounts;
 
-	$rc		= isset($mounts[$dir]) ? $mounts[$dir]['read_only'] : false;
+	$rc		= $mounts[$dir]['read_only'] ?? false;
 
 	return ($rc);
 }
@@ -3390,7 +3389,10 @@ function get_unassigned_disks() {
 /* Get all the disk information for each disk device. */
 function get_all_disks_info() {
 
+	/* Get all the unassigned disks. */
 	$ud_disks = get_unassigned_disks();
+
+	/* If there are unassigned disks, get all disk information from udev. */
 	if (is_array($ud_disks)) {
 		/* Read the disk sizes into an array so we only call lsblk once. */
 		$lsblkOutput	= timed_exec(0.5, "/bin/lsblk -b -n -o NAME,SIZE,TYPE | /bin/awk '$3 == \"disk\" {print $1 \",\" $2}' 2</dev/null");
@@ -3409,6 +3411,7 @@ function get_all_disks_info() {
 			}
 		}
 
+		/* Go through each disk and get the information for each. */
 		foreach ($ud_disks as $key => $disk) {
 			/* Add as a UD device. */
 			$dev			= basename(realpath($key));
@@ -3462,7 +3465,7 @@ function get_all_disks_info() {
 				return $partition['mounted'] === true;
 			});
 
-			/* Is the disk not unmounted properly? */
+			/* Was the disk unmounted properly? */
 			$disk['not_unmounted']	= in_array(true, array_map(function($partition) {
 				return $partition['not_unmounted'];
 			}, $disk['partitions']), true);
@@ -3493,7 +3496,7 @@ function get_all_disks_info() {
 				return $partition['running'] === true;
 			});
 
-			/* Device is disabled unless partition is found with a valid file system. */
+			/* Device is disabled unless a partition is found with a valid file system. */
 			$disk['disable']		= (! $disk['file_system']);
 
 			/* Is this a pool disk? */
@@ -3637,12 +3640,6 @@ function get_disk_info($dev) {
 		$disk['preclearing']	= false;
 	}
 
-	/* Values not needed but must exist for make_mount_button(). */
-	$disk['file_system']		= "";
-	$disk['not_udev']			= false;
-	$disk['running']			= false;
-	$disk['not_unmounted']		= false;
-
 	/* Get the hostX from the DEVPATH so we can re-attach a disk. */
 	MiscUD::save_device_host($disk['serial'], $attrs['DEVPATH']);
 
@@ -3761,6 +3758,7 @@ function get_partition_info($dev) {
 			$partition['not_unmounted']		= false;
 		}
 
+		/* Is the disable mount button switch on? */
 		$partition['disable_mount']	= is_disable_mount($partition['serial']);
 
 		/* Target is set to the mount point when the device is mounted. */
@@ -3782,7 +3780,7 @@ function get_partition_info($dev) {
 		$partition['logfile']		= ($partition['prog_name']) ? $paths['device_log'].$partition['prog_name'].".log" : "";
 		$partition['running']		= ((is_script_running($partition['command'])) || (is_script_running($partition['user_command'], true)));
 
-		/* Values not needed but must exist for make_mount_button(). */
+		/* Values not needed but must exist for make_mount_button() on the partition. */
 		$partition['formatting']	= false;
 		$partition['preclearing']	= false;
 	}
@@ -3797,7 +3795,7 @@ function get_zvol_info($disk) {
 	$zvol		= array();
 	if ((get_config("Config", "zvols") == "yes") && ($disk['fstype'] == "zfs") && ($disk['mounted'])) {
 		$serial		= $disk['serial'];
-		$zpool_name	= MiscUD::zfs_pool_name("", $disk['mountpoint']);
+		$zpool_name	= $disk['pool_name'];
 
 		foreach (glob("/dev/zvol/".$zpool_name."/*") as $n => $q) {
 			$vol							= basename($q);
@@ -3823,7 +3821,7 @@ function get_zvol_info($disk) {
 			$zvol[$vol]['pass_through']		= is_pass_through($serial, $vol);
 			$zvol[$vol]['disable_mount']	= is_disable_mount($serial, $vol);
 
-			/* Values not needed but must exist for make_mount_button(). */
+			/* Values not needed but must exist for make_mount_button() for this partition. */
 			$zvol[$vol]['array_disk']		= false;
 			$zvol[$vol]['not_unmounted']	= false;
 			$zvol[$vol]['not_udev']			= false;
