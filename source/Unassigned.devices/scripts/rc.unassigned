@@ -17,7 +17,8 @@ require_once("$docroot/plugins/".$plugin."/include/lib.php");
 
 $COMMAND = $argv[1] ?? "";
 $DEVNAME = $_ENV['DEVNAME'] ?? ( $argv[2] ?? "" );
-$DEVNAME = ((isset($DEVNAME)) && (file_exists($DEVNAME))) ? realpath($DEVNAME) : $DEVNAME;
+$luks_dev	= (strpos($DEVNAME, "/dev/mapper/") !== false);
+$DEVNAME = ((isset($DEVNAME)) && (file_exists($DEVNAME)) && (! $luks_dev)) ? realpath($DEVNAME) : $DEVNAME;
 $dev_pos = (isset($DEVNAME)) ? strpos($DEVNAME, 'name=') : false;
 if ($dev_pos !== false) {
 	$dev_name		= substr($DEVNAME, $dev_pos+5);
@@ -395,10 +396,17 @@ function unassigned_mount() {
 
 /* Unmount devices. */
 function unassigned_umount() {
-	global $DEVNAME, $paths, $result;
+	global $DEVNAME, $paths, $luks_dev, $result;
+
+	/* Cannot unmount a luks device. */
+	if ($luks_dev) {
+		unassigned_log("Cannot unmount device '".$DEVNAME."'!");
+		$result	= "failure";
+		return;
+	}
 
 	/* Set as operation was successful. */
-	$result	= "success";
+	$result= "success";
 
 	/* Set force if we are stopping the array. */
 	$force = ($DEVNAME == "all");
