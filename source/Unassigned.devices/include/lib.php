@@ -3491,6 +3491,34 @@ function get_all_disks_info() {
 				}, $disk['zvol']), true)
 			);
 
+			/* Mark any partitions as mounting if the disk is mounting. */
+			if ($disk['mounting'] === true) {
+				/* Loop through partitions and set 'mounting' to true. */
+				foreach ($disk['partitions'] as &$partition) {
+					$partition['mounting'] = true;
+				}
+				/* Check if 'mounting' is true in the zvol and set for zvols. */
+				if (isset($disk['zvol'])) {
+					foreach ($disk['zvol'] as &$zvol) {
+						$zvol['mounting'] = true;
+					}
+				}
+			}
+
+			/* Mark any partitions as unmounting if the disk is unmounting. */
+			if ($disk['unmounting'] === true) {
+				/* Loop through partitions and set 'unmounting' to true. */
+				foreach ($disk['partitions'] as &$partition) {
+					$partition['unmounting'] = true;
+				}
+				/* Check if 'unmounting' is true in the zvol and set for zvols. */
+				if (isset($disk['zvol'])) {
+					foreach ($disk['zvol'] as &$zvol) {
+						$zvol['unmounting'] = true;
+					}
+				}
+			}
+
 			/* Is a partition script running? */
 			$disk['running']		= array_filter($disk['partitions'], function ($partition) {
 				return $partition['running'] === true;
