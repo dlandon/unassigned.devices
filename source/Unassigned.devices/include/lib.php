@@ -3470,39 +3470,30 @@ function get_all_disks_info() {
 				return $partition['not_unmounted'];
 			}, $disk['partitions']), true);
 
-			/* Get the mounting and unmounting states of disks and all partitions. */
-			$disk['mounting']		= (
-				in_array(true, array_map(function($partition) {
-					return $partition['mounting'];
-				}, $disk['partitions']), true) ||
-
-				in_array(true, array_map(function($zvol) {
-					return $zvol['mounting'];
-				}, $disk['zvol']), true)
-			);
-
-			$disk['unmounting'] 	= (
-				in_array(true, array_map(function($partition) {
-					return $partition['unmounting'];
-				}, $disk['partitions']), true) ||
-
-				in_array(true, array_map(function($zvol) {
-					return $zvol['unmounting'];
-				}, $disk['zvol']), true)
-			);
-
 			/* Mark any partitions as mounting if the disk is mounting. */
 			if ($disk['mounting'] === true) {
 				/* Loop through partitions and set 'mounting' to true. */
 				foreach ($disk['partitions'] as &$partition) {
 					$partition['mounting'] = true;
 				}
+
 				/* Check if 'mounting' is true in the zvol and set for zvols. */
 				if (isset($disk['zvol'])) {
 					foreach ($disk['zvol'] as &$zvol) {
 						$zvol['mounting'] = true;
 					}
 				}
+			} else {
+				/* Get the mounting states of disks and all partitions. */
+				$disk['mounting']		= (
+					in_array(true, array_map(function($partition) {
+						return $partition['mounting'];
+					}, $disk['partitions']), true) ||
+
+					in_array(true, array_map(function($zvol) {
+						return $zvol['mounting'];
+					}, $disk['zvol']), true)
+				);
 			}
 
 			/* Mark any partitions as unmounting if the disk is unmounting. */
@@ -3511,12 +3502,24 @@ function get_all_disks_info() {
 				foreach ($disk['partitions'] as &$partition) {
 					$partition['unmounting'] = true;
 				}
+
 				/* Check if 'unmounting' is true in the zvol and set for zvols. */
 				if (isset($disk['zvol'])) {
 					foreach ($disk['zvol'] as &$zvol) {
 						$zvol['unmounting'] = true;
 					}
 				}
+			} else {
+				/* Get the unmounting states of disks and all partitions. */
+				$disk['unmounting'] 	= (
+					in_array(true, array_map(function($partition) {
+						return $partition['unmounting'];
+					}, $disk['partitions']), true) ||
+
+					in_array(true, array_map(function($zvol) {
+						return $zvol['unmounting'];
+					}, $disk['zvol']), true)
+				);
 			}
 
 			/* Is a partition script running? */
@@ -3660,6 +3663,8 @@ function get_disk_info($dev) {
 	$disk['array_disk']			= in_array($disk['device'], $unraid_disks);
 	$disk['pass_through']		= is_pass_through($disk['serial']);
 	$disk['formatting']			= MiscUD::get_formatting_status(basename($disk['device']));
+	$disk['mounting']			= MiscUD::get_mounting_status(basename($disk['device']));
+	$disk['unmounting']			= MiscUD::get_unmounting_status(basename($disk['device']));
 
 	/* Are there any preclearing operations going on? */
 	if ((! $disk['fstype']) && ($Preclear)) {
