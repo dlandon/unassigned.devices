@@ -49,7 +49,6 @@ get_serial()
 	echo $serial_number
 }
 
-
 for dir in $(find /tmp/preclear -mindepth 1 -maxdepth 1 -type f ); do
 	pidfile="$dir/pid"
 	disk_name=$(basename $dir)
