@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.02.07">
+<!ENTITY version	"2024.02.22">
 <!ENTITY launch		"Tools/Preclear">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/unassigned.devices/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"c06db0bf2fa58a0e0805576cd013692a">
+<!ENTITY MD5		"85bd8461e3b1718cf91656837cdfab98">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
@@ -21,6 +21,10 @@
 <CHANGES>
 ###&name;
 ###&version;
+- Fix: Only resume a paused preclear on a disk that is an unassigned disk.
+- Fix: Change the logic to better manage the pause/resume so disks are not resumed inappropriately.
+
+###2024.02.07
 - Fix: Double quote in the smartctl report causing issues with php in rc.diskinfo.
 
 ###2023.12.15
