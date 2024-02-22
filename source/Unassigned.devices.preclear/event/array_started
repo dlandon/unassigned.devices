@@ -11,7 +11,20 @@
 # all copies or substantial portions of the Software.
 #
 
-for disk in $(find /tmp/.preclear/ -mindepth 1 -maxdepth 1 -type d -exec basename '{}' \;); do
-	echo "Resuming preclear of disk '$disk'"|logger -t preclear.disk
-	rm -f "/tmp/.preclear/${disk}/pause"
-done
+# Path to the devs.ini file
+ini_file="/usr/local/emhttp/state/devs.ini"
+
+# Path to the /tmp/.preclear directory
+preclear_dir="/tmp/.preclear"
+
+# Find directories in /tmp/.preclear/ and iterate over them
+find "$preclear_dir" -mindepth 1 -maxdepth 1 -type d -exec bash -c '
+    # Extract the device from the directory name
+    device=$(basename "$1" | cut -d "_" -f 4)
+
+    # Check if the device is in the ini file and if the "$1/pause" file exists
+    if grep -q "device=\"$device\"" "$2" && [ -e "$1/pause" ]; then
+        echo "Resuming preclear of disk '\''$device'\''" | logger -t preclear.disk
+        rm -f "$1/pause"
+    fi
+' _ {} "$ini_file" \;

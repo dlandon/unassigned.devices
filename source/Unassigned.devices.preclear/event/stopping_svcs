@@ -11,7 +11,14 @@
 # all copies or substantial portions of the Software.
 #
 
-for disk in $(find /tmp/.preclear/ -mindepth 1 -maxdepth 1 -type d -exec basename '{}' \;); do
-	echo "Pausing preclear of disk '$disk'"|logger -t preclear.disk
-	touch "/tmp/.preclear/${disk}/pause"
+# Path to the preclear directory
+preclear_dir="/tmp/.preclear"
+
+# Find directories in $preclear_dir and iterate over them
+find "$preclear_dir" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | while read -r disk; do
+
+    if [ ! -e "$preclear_dir/$disk/pause" ] && [ -e "/tmp/preclear/preclear_stat_$disk" ]; then
+		echo "Pausing preclear of disk '$disk'" | logger -t preclear.disk
+		touch "$preclear_dir/$disk/pause"
+	fi
 done

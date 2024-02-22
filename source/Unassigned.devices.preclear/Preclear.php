@@ -348,9 +348,15 @@ if (isset($_POST['action'])) {
 				if (is_file($GLOBALS['preclear_status'].$device)) {
 					@unlink($GLOBALS['preclear_status'].$device);
 				}
+
 				if (is_file($GLOBALS['tmp_preclear'].$device."/pid")) {
 					@unlink($GLOBALS['tmp_preclear'].$device."/pid");
 				}
+
+				if (is_file($GLOBALS['tmp_preclear'].$device."/pause")) {
+					$unlink($GLOBALS['tmp_preclear'].$device."/pause");
+				}
+
 				if ($serial != "DEVICE") {
 					preclear_log("Preclear stopped on device: ".$serial);
 				}
