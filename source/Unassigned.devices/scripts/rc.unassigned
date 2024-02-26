@@ -22,6 +22,9 @@ $DEVNAME = ((isset($DEVNAME)) && (file_exists($DEVNAME)) && (! $luks_dev)) ? rea
 $dev_pos = (isset($DEVNAME)) ? strpos($DEVNAME, 'name=') : false;
 if ($dev_pos !== false) {
 	$dev_name		= substr($DEVNAME, $dev_pos+5);
+
+	/* Set DEVNAME as not defined.  The operation will fail if the DEVNAME is not defined. */
+	$DEVNAME		= "";
 	foreach (get_all_disks_info() as $disk) {
 		if ($disk['unassigned_dev'] == $dev_name) {
 			if ($COMMAND != "spindown") {
