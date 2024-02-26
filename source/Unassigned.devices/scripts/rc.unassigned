@@ -87,12 +87,12 @@ function unassigned_mount() {
 		}
 
 		/* If disk is already mounting, skip to the next one. */
-		if (MiscUD::get_mounting_status(basename($device))) {
+		if ($disk_info['mounting']) {
 			continue;
 		}
 
 		/* If disk is unmounting, skip to the next one. */
-		if (MiscUD::get_unmounting_status(basename($device))) {
+		if ($disk_info['unmounting']) {
 			continue;
 		}
 
@@ -103,7 +103,6 @@ function unassigned_mount() {
 			if ( (preg_match("#".$DEVNAME."#i", realpath($partition))) || $DEVNAME == "auto" || $DEVNAME == "autodevices" ) {
 				/* Get partition info. */
 				$info = get_partition_info($partition);
-
 				/* If partition info is non-existent, skip this partition. */
 				if (! isset($info)) {
 					continue;
@@ -425,12 +424,12 @@ function unassigned_umount() {
 		}
 
 		/* If disk is already unmounting, skip to the next one. */
-		if (MiscUD::get_unmounting_status(basename($device))) {
+		if ($disk_info['unmounting']) {
 			continue;
 		}
 
 		/* If disk is mounting, skip to the next one. */
-		if (MiscUD::get_mounting_status(basename($device))) {
+		if ($disk_info['mounting']) {
 			continue;
 		}
 
