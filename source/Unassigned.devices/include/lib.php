@@ -1466,13 +1466,14 @@ function execute_script($info, $action, $testing = false) {
 			if (is_file($cmd)) {
 				unassigned_log("Running device script: '".basename($cmd)."' with action '".$action."'.");
 
-				$script_running = $info['running'];
-				if (! $script_running){
+				/* Is the device script currently running? */
+				$script_running = is_script_running($cmd);
+
+				/* If script is not running, copy to /tmp, change permissions, execute the script. */
+				if ((! $script_running) || (($script_running) && ($action != "ADD"))) {
 					copy($cmd, $command_script);
 					@chmod($command_script, 0755);
-				}
 
-				if ((! $script_running) || (($script_running) && ($action != "ADD"))) {
 					if (! $testing) {
 						if (($action == "REMOVE") || ($action == "ERROR_MOUNT") || ($action == "ERROR_UNMOUNT")) {
 							sleep(1);
@@ -1493,7 +1494,7 @@ function execute_script($info, $action, $testing = false) {
 						$rc			= $command_script;
 					}
 				} else {
-					unassigned_log("Device script '".basename($cmd)."' is aleady running!");
+					unassigned_log("Device script '".basename($cmd)."' is already running!");
 				}
 			} else {
 				unassigned_log("Script file '".$command_script."' is not a valid file!");
@@ -3461,14 +3462,14 @@ function get_all_disks_info() {
 			}, $disk['partitions']), true);
 
 			/* Any partitions mounted? */
-			$disk['mounted']		= array_filter($disk['partitions'], function ($partition) {
-				return $partition['mounted'] === true;
-			});
+			$disk['mounted']		= array_reduce($disk['partitions'], function ($carry, $partition) {
+				return $carry || $partition['mounted'];
+			}, false);
 
 			/* Was the disk unmounted properly? */
-			$disk['not_unmounted']	= in_array(true, array_map(function($partition) {
-				return $partition['not_unmounted'];
-			}, $disk['partitions']), true);
+			$disk['not_unmounted']		= array_reduce($disk['partitions'], function ($carry, $partition) {
+				return $carry || $partition['not_unmounted'];
+			}, false);
 
 			/* Mark any partitions as mounting if the disk is mounting. */
 			if ($disk['mounting'] === true) {
@@ -3523,22 +3524,22 @@ function get_all_disks_info() {
 			}
 
 			/* Is a partition script running? */
-			$disk['running']		= array_filter($disk['partitions'], function ($partition) {
-				return $partition['running'] === true;
-			});
+			$disk['running']		= array_reduce($disk['partitions'], function ($carry, $partition) {
+				return $carry || $partition['running'];
+			}, false);
 
 			/* Device is disabled unless a partition is found with a valid file system. */
 			$disk['disable']		= (! $disk['file_system']);
 
 			/* Is this a pool disk? */
-			$disk['pool_disk']		= array_filter($disk['partitions'], function ($partition) {
-				return $partition['pool'] === true;
-			});
+			$disk['pool_disk']		= array_reduce($disk['partitions'], function ($carry, $partition) {
+				return $carry || $partition['pool'];
+			}, false);
 
 			/* Check that udev matches the file system on the disk. */
-			$disk['not_udev']		= array_filter($disk['partitions'], function ($partition) {
-				return $partition['not_udev'] === true;
-			});
+			$disk['not_udev']		= array_reduce($disk['partitions'], function ($carry, $partition) {
+				return $carry || $partition['not_udev'];
+			}, false);
 
 			/* Add this device as a UD device. */
 			$ud_disks[$unassigned_dev] = $disk;
