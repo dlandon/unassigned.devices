@@ -650,13 +650,6 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	}
 
 	/*
-		Show the Unraid wave.
-	*/
-	$(function() {
-		$('div.spinner').html(unraid_logo);
-	});
-
-	/*
 		Check for a plugin update and show banner.
 	*/
 	$(function() {
