@@ -875,7 +875,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	/* Page refresh rate in milliseconds. */
 	const REFRESH_INTERVAL = 3000;
 
-	/* Ping poll intervl. */
+	/* Ping poll interval in milliseconds. */
 	const PING_INTERVAL = 15000;
 
 	/* Reload page if browser back button was used. */
