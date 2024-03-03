@@ -2318,16 +2318,9 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 				/* Remove the invalid users. */
 				$valid_users = array_diff($valid_users, $invalid_users);
 
-				/* Case settings. */
-				if (($config["case_names"]) || ($config["case_names"] == "auto")) {
-					$case_names = "\n\tcase sensitive = auto\n\tpreserve case = yes\n\tshort preserve case = yes";
-				} else if ($config["case_names"] == "yes") {
-					$case_names = "\n\tcase sensitive = yes\n\tpreserve case = yes\n\tshort preserve case = yes";
-				} else if ($config["case_names"] == "force") {
-					$case_names = "\n\tcase sensitive = yes\n\tpreserve case = no\n\tshort preserve case = no";
-				} else {
-					$case_names = "";
-				}
+				/* File name case settings. */
+				$case_setting		= (($config["case_names"] === 'force') || (empty($config["case_names"]))) ? "auto" : $config["case_names"];
+				$case_names			= "\n\tcase sensitive = ".$case_setting."\n\tpreserve case = yes\n\tshort preserve case = yes";
 
 				/* Add the valid users and their access. */
 				if (count($valid_users)) {
@@ -2337,7 +2330,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 					$share_cont		= "[{$share_name}]\n\tcomment = {$share_name}\n\tpath = {$dir}{$hidden_share}{$force_user}{$valid_users}{$write_users}{$read_users}{$vfs_objects}{$case_names}";
 				} else {
 					$share_cont 	= "[{$share_name}]\n\tpath = {$dir}{$hidden_share}\n\tinvalid users = @users";
-					unassigned_log("Warning: No valid smb users defined. Share '{$dir}' cannot be accessed.");
+					unassigned_log("Warning: No valid smb users defined. Share '{$dir}' cannot be accessed with smb.");
 				}
 			} else {
 				$share_cont = "[{$share_name}]\n\tpath = {$dir}\n\tread only = No\n\tguest ok = Yes{$force_user}{$vfs_objects}";
