@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.02.17">
+<!ENTITY version	"2024.03.03">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"7e6dcb96d8916a41c45cbe222524f689">
+<!ENTITY MD5		"b37c05ca6b181a573ceaeb1b1f255d87">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,14 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Issue with script already running when executing a User Scripts script.
+- Fix: Fail the command if the 'name=' alias is not found.
+- Fix: Unraid wave starting too soon.  It should be delayed 1/2 second.
+- Fix: Increase remote shares mount timeout to 15 seconds.
+- Fix: Php warning in get_ud_stats.
+- Add: Partition and zvols 'Mount' buttons now show mounting/unmounting when the disk is mounting/unmounting.
+
+###2024.02.17
 - Fix: More improvements to device settings.
 - Fix: Php warning when unmounting a device.
 - Fix: Unmounting not detecting a proper unmount.
