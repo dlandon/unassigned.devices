@@ -2849,7 +2849,7 @@ function do_mount_samba($info) {
 					unassigned_log("Mount NFS command: ".$cmd);
 
 					/* Mount the remote share. */
-					$o		= timed_exec(10, $cmd." 2>&1");
+					$o		= timed_exec(15, $cmd." 2>&1");
 					if ($o) {
 						unassigned_log("NFS mount failed: '".$o."'.");
 					}
@@ -2878,7 +2878,7 @@ function do_mount_samba($info) {
 					unassigned_log("Mount SMB command: ".$cmd);
 
 					/* Mount the remote share. */
-					$o		= timed_exec(10, $cmd." 2>&1");
+					$o		= timed_exec(15, $cmd." 2>&1");
 				} else {
 					$o		= "";
 				}
@@ -2894,7 +2894,7 @@ function do_mount_samba($info) {
 					unassigned_log("Mount SMB command: ".$cmd);
 
 					/* Mount the remote share. */
-					$o		= timed_exec(10, $cmd." 2>&1");
+					$o		= timed_exec(15, $cmd." 2>&1");
 				}
 
 				/* If the remote share didn't mount, try SMB 3.0. */
@@ -2908,7 +2908,7 @@ function do_mount_samba($info) {
 					unassigned_log("Mount SMB command: ".$cmd);
 
 					/* Mount the remote share. */
-					$o		= timed_exec(10, $cmd." 2>&1");
+					$o		= timed_exec(15, $cmd." 2>&1");
 				}
 
 				/* If the remote share didn't mount, try SMB 2.0. */
@@ -2922,7 +2922,7 @@ function do_mount_samba($info) {
 					unassigned_log("Mount SMB command: ".$cmd);
 
 					/* Mount the remote share. */
-					$o		= timed_exec(10, $cmd." 2>&1");
+					$o		= timed_exec(15, $cmd." 2>&1");
 				}
 
 				/* If the remote share didn't mount, try SMB 1.0. */
@@ -2936,7 +2936,7 @@ function do_mount_samba($info) {
 					unassigned_log("Mount SMB command: ".$cmd);
 
 					/* Mount the remote share. */
-					$o		= timed_exec(10, $cmd." 2>&1");
+					$o		= timed_exec(15, $cmd." 2>&1");
 					if ($o) {
 						unassigned_log("SMB mount failed: '".$o."'.");
 					}
