@@ -153,8 +153,8 @@ function is_server_online($server, $protocol, $log = false) {
 			/* If this is not done, the server cannot be found unless specified by 'server.Local TLD'. */
 			if (MiscUD::is_ip($ip_local)) {
 				if ($ip != $ip_local) {
-					timed_exec(5, "/bin/sed -i '/".escapeshellarg($server)."/d' /etc/hosts");
-					timed_exec(5, "/bin/echo -e '".escapeshellarg($ip_local)."''\t''".escapeshellarg($server)."' >> /etc/hosts" );
+					exec("/bin/sed -i '/".escapeshellarg($server)."/d' /etc/hosts");
+					exec("/bin/echo -e '".escapeshellarg($ip_local)."''\t''".escapeshellarg($server)."' >> /etc/hosts" );
 				}
 			} else if ((strpos($ip_arp, "no match found") === false) && ($log)) {
 				unassigned_log("Remote server '".$server."' cannot be found on the LAN.");
@@ -169,7 +169,7 @@ function is_server_online($server, $protocol, $log = false) {
 		$was_alive		= (isset($ping_status[$name]['online']) && ($ping_status[$name]['online'] == 'yes'));
 
 		/* Ping the server to see if it is currently offline. */
-		$is_alive		= (trim(shell_exec("/usr/bin/nice /usr/bin/timeout -s 5 1 bash -c '(echo >/dev/tcp/{$server}/{$port}) &>/dev/null'; echo $?")) == 0 );
+		$is_alive		= (trim(shell_exec("/usr/bin/nice /usr/bin/timeout -s 3 1 bash -c '(echo >/dev/tcp/{$server}/{$port}) &>/dev/null'; echo $?")) == 0);
 
 		/* Get the number of pings we've checked since it went offline. */
 		$no_pings		= $ping_status[$name]['no_pings'] ?? 0;
@@ -177,10 +177,10 @@ function is_server_online($server, $protocol, $log = false) {
 		/* If it's not online and the server is not an ip address lookup the server and ping it. */
 		if ((! $is_alive) && (! MiscUD::is_ip($server)))
 		{
-			$ip			= trim(timed_exec(5, "/usr/bin/nmblookup ".escapeshellarg($server)." | /bin/head -n1 | /bin/awk '{print $1}' 2>/dev/null"));
+			$ip			= trim(timed_exec(2, "/usr/bin/nmblookup ".escapeshellarg($server)." | /bin/head -n1 | /bin/awk '{print $1}' 2>/dev/null"));
 			if (MiscUD::is_ip($ip))
 			{
-				$is_alive		= (trim(shell_exec("/usr/bin/nice /usr/bin/timeout -s 5 1 bash -c '(echo >/dev/tcp/{$ip}/{$port}) &>/dev/null'; echo $?")) == 0 );
+				$is_alive		= (trim(shell_exec("/usr/bin/nice /usr/bin/timeout -s 3 1 bash -c '(echo >/dev/tcp/{$ip}/{$port}) &>/dev/null'; echo $?")) == 0 );
 			}
 		}
 
@@ -276,7 +276,9 @@ switch ($COMMAND) {
 			ping_servers();
 
 			/* Remove PID file when script is done. */
-			unlink($pidFile);
+			if (file_exists($pidFile)) {
+				unlink($pidFile);
+			}
 		}
 		break;
 
