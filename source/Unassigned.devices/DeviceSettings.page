@@ -332,14 +332,14 @@ EOT;
 :end
 
 <?if (($show_device_switches) && ($fstype != "zvol") && ($disk_device) && ($info) && (! $mounted) && (! $is_preclearing) && (! is_pass_through($ud_device)) && ($host) && ($connected)):?>
-<button type="button" id="detach" title='_(Detach This Disk)_.' onclick='detach_disk("<?=$device;?>");'>_(Detach)_</button>
+<button type="button" id="detach-button" title='_(Detach This Disk)_.' onclick='detach_disk("<?=$device;?>");'>_(Detach)_</button>
 
 :ud_edit_script_detach_plug:
 > Click **Detach** to detach the device.  The device will then show in Historical Devices and can be Attached from the device settings there.
 :end
 <?endif;?>
 <?if ($disk_device && (! $info) && ($host) && (! $connected)):?>
-<button type="button" id="attach" title='_(Attach This Disk)_.' onclick='attach_disk("<?=$ud_device;?>");'>_(Attach)_</button>
+<button type="button" id="attach-button" title='_(Attach This Disk)_.' onclick='attach_disk("<?=$ud_device;?>");'>_(Attach)_</button>
 
 :ud_edit_script_attach_plug:
 > Click **Attach** to attach a device that has been detached.  This will act like the device was just installed and will auto mount if 'Auto Mount' is on.  It will take a while for the device to show up in UD.
@@ -1098,8 +1098,8 @@ _(User Script)_:
 
 	/* Detach a disk device. */
 	function detach_disk(device) {
-		$("button[id='detach']").prop("disabled", true);
-		$("button[id='detach']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Detaching');?>");
+		$("button[id='detach-button']").prop("disabled", true);
+		$("button[id='detach-button']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Detaching');?>");
 		$.post("/update.php", {
 			"#command": "/plugins/unassigned.devices/scripts/rc.unassigned",
 			"#arg[1]": "detach",
@@ -1111,8 +1111,8 @@ _(User Script)_:
 
 	/* Attach a disk device. */
 	function attach_disk(serial) {
-		$("button[id='attach']").prop("disabled", true);
-		$("button[id='attach']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Attaching');?>");
+		$("button[id='attach-button']").prop("disabled", true);
+		$("button[id='attach-button']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Attaching');?>");
 		$.post("/update.php", {
 			"#command": "/plugins/unassigned.devices/scripts/rc.unassigned",
 			"#arg[1]": "attach",
