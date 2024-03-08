@@ -107,7 +107,7 @@ if (! isset($var)){
 
 /* Capitalize the local.tld.  Default local TLD is 'LOCAL'. */
 $default_tld	= "LOCAL";
-$local_tld		= (isset($var['LOCAL_TLD']) && ($var['LOCAL_TLD']))? strtoupper($var['LOCAL_TLD']) : $default_tld;
+$local_tld		= (isset($var['LOCAL_TLD']) && ($var['LOCAL_TLD'])) ? strtoupper($var['LOCAL_TLD']) : $default_tld;
 
 /* Array of devices, mount points, and read only status taken from the /proc/mounts file. */
 $mounts				= null;
