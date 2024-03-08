@@ -189,11 +189,18 @@ if (isset($_GET['s'])) {
 if (($file) && (file_exists($file))) {
 	/* Get the device script file text. */
 	$text				= @file_get_contents($file);
+
+	$device_script_running	= is_script_running($file);
 } else {
 	/* The device script file does not exist. */
 	$file				= "";
 	$text				= "";
+
+	$device_script_running	= false;
 }
+
+/* Is the user script running. */
+$user_script_running	= ($file) ? is_script_running($user_file, true) : false;
 
 /* If the disk is mounted, disable the device script file field. */
 if ($mounted) {
@@ -345,7 +352,7 @@ EOT;
 > Click **Attach** to attach a device that has been detached.  This will act like the device was just installed and will auto mount if 'Auto Mount' is on.  It will take a while for the device to show up in UD.
 :end
 <?endif;?>
-<?if ((is_script_running($file)) && ($info)):?>
+<?if (($device_script_running) && ($info)):?>
 <button type="button" title='_(Abort Device Script)_.' onclick='abort_script("<?=$file;?>");'>_(Abort)_</button>
 
 :ud_edit_script_abort_plug:
@@ -449,7 +456,7 @@ _(User Script)_:
 
 <textarea spellcheck="false" cols="80" rows="22" name="text" title='_(Enter and Edit the Device Script that runs when a udev or operator event occurs)_.' style="width:80%"><?=$text;?></textarea>
 
-<?if ((! is_script_running($file)) && (! is_script_running($user_file))):?>
+<?if ((! $device_script_running) && (! $user_script_running)):?>
 <?if (! is_file($file)):?>
 <button type="button" id='default-button' title='_(Load the default Device Script)_.' onclick="setDefault(this.form)">_(Default)_</button>
 <button type="button" id='clear-button' title='_(Clear the Device Script)_.' onclick="clearDefault(this.form)" disabled>_(Clear)_</button>
