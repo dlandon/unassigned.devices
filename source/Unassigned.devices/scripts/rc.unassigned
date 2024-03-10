@@ -413,6 +413,11 @@ function unassigned_umount() {
 	/* Set force if we are stopping the array. */
 	$force = ($DEVNAME == "all");
 
+	if (($force) && ($common_cmd = trim(escapeshellcmd(get_config("Config", "common_cmd"))))) {
+		/* Abort any common command that is running. */
+		unassigned_abort(basename($common_cmd));
+	}
+
 	/* Unmount local disks. */
 	foreach(get_unassigned_disks() as $disk) {
 		$device		= $disk['device'];
@@ -464,13 +469,18 @@ function unassigned_umount() {
 					if ($mounted) {
 						/* If forced shutdown, abort device script. */
 						if ($force) {
+							/* Abort the user script. */
+							if ($info['user_command']) {
+								unassigned_abort(dirname($info['user_command']), true);
+							}
+
 							/* Abort the device script. */
 							if ($info['command']) {
 								unassigned_abort($info['command']);
 							}
 						}
 
-						/* Create the mounting status file for this device. */
+						/* Create the unmounting status file for this device. */
 						$device	= ($info['fstype'] != "crypto_LUKS") ? $info['device'] : $info['luks'];
 
 						/* Create unmounting status file. */
@@ -598,6 +608,19 @@ function unassigned_umount() {
 				/* Unmount the remote share if it is mounted. */
 				$dev	= $info['fstype'] == "root" ? $info['mountpoint'] : $info['device'];
 				if ( $info['mounted'] ) {
+					/* If forced shutdown, abort device script. */
+					if ($force) {
+						/* Abort the user script. */
+						if ($info['user_command']) {
+							unassigned_abort(dirname($info['user_command']), true);
+						}
+
+						/* Abort the device script. */
+						if ($info['command']) {
+							unassigned_abort($info['command']);
+						}
+					}
+
 					/* Remove special characters. */
 					$mount_device = basename($info['ip'])."_".basename($info['path']);
 
@@ -657,6 +680,19 @@ function unassigned_umount() {
 
 				/* If iso file is mounted, unmount it. */
 				if ( $info['mounted'] ) {
+					/* If forced shutdown, abort device script. */
+					if ($force) {
+						/* Abort the user script. */
+						if ($info['user_command']) {
+							unassigned_abort(dirname($info['user_command']), true);
+						}
+
+						/* Abort the device script. */
+						if ($info['command']) {
+							unassigned_abort($info['command']);
+						}
+					}
+
 					/* Create mounting status file. */
 					addFile(sprintf($paths['unmounting'], basename($info['device'])));
 
@@ -824,21 +860,33 @@ function unassigned_attach($device) {
 }
 
 /* Abort device script. */
-function unassigned_abort($script) {
-	/* Get the process ID using pgrep. */
-	$cmd = "/usr/bin/pgrep -f " . escapeshellarg(basename($script));
+function unassigned_abort($script, $user_script = false) {
+	global $paths;
 
-	/* Get the process ID and remove newline characters, providing an empty string as a default if null. */
-	$pid = trim(shell_exec($cmd) ?? "");
-
-	/* Terminate the process using kill. */
-	while ($pid) {
-		exec("/bin/kill " . $pid . " 2>/dev/null");
-
-		/* Get the updated PID after termination. */
-		$pid = trim(shell_exec($cmd) ?? "");
+	if (! $user_script) {
+		/* This is where the script is actually running. */
+		$command_script = $paths['scripts'].basename($script);
+	} else {
+		$command_script = "/tmp/user.scripts/tmpScripts/".basename($script)."/script";
+		exec("/usr/bin/rm -f ".escapeshellarg("/tmp/user.scripts/running/".basename($script)));
 	}
-}
+
+	if ($command_script) {
+		/* Get the process ID using pgrep. */
+		$cmd = "/usr/bin/pgrep -f " . escapeshellarg($command_script);
+
+		/* Get the process ID and remove newline characters, providing an empty string as a default if null. */
+		$pid = trim(shell_exec($cmd) ?? "");
+
+		/* Terminate the process using kill. */
+		while ($pid) {
+			exec("/bin/kill " . $pid . " 2>/dev/null");
+
+			/* Get the updated PID after termination. */
+			$pid = trim(shell_exec($cmd) ?? "");
+		}
+	}
+ }
 
 /* Add status file so mount buttons will show current status of operation. */
 function addFile($file) {
