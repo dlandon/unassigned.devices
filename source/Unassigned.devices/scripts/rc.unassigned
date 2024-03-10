@@ -825,14 +825,18 @@ function unassigned_attach($device) {
 
 /* Abort device script. */
 function unassigned_abort($script) {
+	/* Get the process ID using pgrep. */
+	$cmd = "/usr/bin/pgrep -f " . escapeshellarg(basename($script));
 
-	$cmd	= "/usr/bin/pgrep ".escapeshellarg(basename($script));
-	$pid	= shell_exec($cmd);
-	$pid	= isset($pid) ? str_replace("\n", "", $pid) : "";
+	/* Get the process ID and remove newline characters, providing an empty string as a default if null. */
+	$pid = trim(shell_exec($cmd) ?? "");
+
+	/* Terminate the process using kill. */
 	while ($pid) {
-		exec("/bin/kill ".$pid." 2>/dev/null");
-		$pid = shell_exec($cmd);
-		$pid = isset($pid) ? str_replace("\n", "", $pid) : "";
+		exec("/bin/kill " . $pid . " 2>/dev/null");
+
+		/* Get the updated PID after termination. */
+		$pid = trim(shell_exec($cmd) ?? "");
 	}
 }
 
