@@ -1438,16 +1438,25 @@ function execute_script($info, $action, $testing = false) {
 	$ud_dev = get_disk_dev(MiscUD::base_device(basename($device)));
 	putenv("UD_DEVICE=".$ud_dev);
 
+	/* Run the command in the background? */
+	$bg				= (($info['command_bg'] != "false") && ($action == "ADD")) ? "&" : "";
+
 	/* Execute the common script if it is defined. */
-	if ($common_cmd = trim(escapeshellcmd(get_config("Config", "common_cmd")))) {
+	if (($action == "ADD") && ($common_cmd = trim(escapeshellcmd(get_config("Config", "common_cmd"))))) {
+
 		if (is_file($common_cmd)) {
 			$common_script	= $paths['scripts'].basename($common_cmd);
 			copy($common_cmd, $common_script);
 			@chmod($common_script, 0755);
 			unassigned_log("Running common script: '".basename($common_script)."'");
+
+			/* Apply escapeshellarg() to the command. */
+	        $cmd = "nohup ".escapeshellarg($common_script)." > /dev/null 2>&1 ".$bg;
+
+			/* Run the script. */
 			$out	= null;
 			$return	= null;
-			exec($common_script, $out, $return);
+			exec($cmd, $out, $return);
 			if ($return) {
 				unassigned_log("Error: common script failed: '".$return."'");
 			}
@@ -1458,19 +1467,18 @@ function execute_script($info, $action, $testing = false) {
 
 	/* If there is a command, execute the script. */
 	$cmd			= $info['command'];
-	$bg				= (($info['command_bg'] != "false") && ($action == "ADD")) ? "&" : "";
 	$enable_script	= ($info['enable_script'] != "false") ? true : false;
 	if (file_exists($cmd)) {
 		$command_script = $paths['scripts'].basename($cmd);
 		if ($enable_script) {
 			if (is_file($cmd)) {
-				unassigned_log("Running device script: '".basename($cmd)."' with action '".$action."'.");
-
 				/* Is the device script currently running? */
 				$script_running = is_script_running($cmd);
 
 				/* If script is not running, copy to /tmp, change permissions, execute the script. */
 				if ((! $script_running) || (($script_running) && ($action != "ADD"))) {
+					unassigned_log("Running device script: '".basename($cmd)."' with action '".$action."'.");
+
 					copy($cmd, $command_script);
 					@chmod($command_script, 0755);
 
@@ -1481,7 +1489,7 @@ function execute_script($info, $action, $testing = false) {
 						$clear_log	= ($action == "ADD") ? " > " : " >> ";
 
 						/* Apply escapeshellarg() to the command and logfile of the command. */
-						$cmd		= escapeshellarg($command_script).$clear_log.escapeshellarg($info['logfile'])." 2>&1 $bg";
+						$cmd		= "nohup ".escapeshellarg($command_script).$clear_log.escapeshellarg($info['logfile'])." 2>&1 ".$bg;
 
 						/* Run the script. */
 						$out		= null;
@@ -2062,11 +2070,11 @@ function do_unmount($info, $force = false) {
 	$rc			= false;
 
 	/* Initialize some variables. */
-	$smb			= false;
-	$nfs			= false;
-	$zfs			= false;
-	$unmount_type	= "";
-	$unmount_mode	= ($force ? "-f " : "-l ");
+	$smb				= false;
+	$nfs				= false;
+	$zfs				= false;
+	$unmount_type		= "";
+	$unmount_mode		= ($force ? "-f " : "-l ");
 
 	switch ($info['fstype']) {
 		case ("cifs"):
@@ -2106,12 +2114,15 @@ function do_unmount($info, $force = false) {
 
 	$mounted	= (($zfs) && ($pool_name)) ? (is_mounted($pool_name, $dir)) : (is_mounted($dev, $dir));
 	if ($mounted) {
+		/* Are we shutting down Unraid? */
 		if (((! $force) || (($force) && (! $smb) && (! $nfs))) && (! is_mounted_read_only($dir))) {
 			unassigned_log("Synching file system on '".$dir."'.");
 			if ($zfs) {
 				if (! $force) {
+					/* Sync the file system and wait for it to be done. */
 					exec("/usr/sbin/zpool sync ".escapeshellarg($pool_name)." 2>/dev/null");
 				} else {
+					/* Time out so sync command doesn't get stuck. */
 					timed_exec($timeout, "/usr/sbin/zpool sync ".escapeshellarg($pool_name)." 2>/dev/null");
 				}
 			} else if ((! $force) && (! $smb) && (! $nfs)) {
