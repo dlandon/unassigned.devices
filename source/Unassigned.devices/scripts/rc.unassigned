@@ -478,6 +478,9 @@ function unassigned_umount() {
 							if ($info['command']) {
 								unassigned_abort($info['command']);
 							}
+
+							/* Kill any remaining processes on the mount point. */
+							kill_processes_on_mountpoint($info['mountpoint']);
 						}
 
 						/* Create the unmounting status file for this device. */
@@ -619,6 +622,9 @@ function unassigned_umount() {
 						if ($info['command']) {
 							unassigned_abort($info['command']);
 						}
+
+						/* Kill any remaining processes on the mount point. */
+						kill_processes_on_mountpoint($info['mountpoint']);
 					}
 
 					/* Remove special characters. */
@@ -691,6 +697,9 @@ function unassigned_umount() {
 						if ($info['command']) {
 							unassigned_abort($info['command']);
 						}
+
+						/* Kill any remaining processes on the mount point. */
+						kill_processes_on_mountpoint($info['mountpoint']);
 					}
 
 					/* Create mounting status file. */
@@ -887,6 +896,30 @@ function unassigned_abort($script, $user_script = false) {
 		}
 	}
  }
+
+/* Function to check if processes are still running on the mountpoint. */
+function areProcessesRunning($mountpoint) {
+	$output = [];
+	$exitCode = 0;
+
+	exec("/usr/bin/fuser -s ".escapeshellarg($mountpoint), $output, $exitCode);
+
+	return $exitCode === 0;
+}
+
+/* Kill any processes left on the mountpoint to insure a clean shutdown. */
+function kill_processes_on_mountpoint($mountpoint) {
+
+	/* Kill all processes on the mountpoint. */
+	exec("/usr/bin/fuser -mk ".escapeshellarg($mountpoint)." 2>/dev/null");
+
+	/* Wait until processes are no longer running. */
+	$i	= 0;
+	while ((areProcessesRunning($mountpoint)) && ($i < 10)) {
+		sleep(1);
+		$i++;
+	}
+}
 
 /* Add status file so mount buttons will show current status of operation. */
 function addFile($file) {
