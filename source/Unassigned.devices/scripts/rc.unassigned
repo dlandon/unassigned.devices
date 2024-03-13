@@ -877,7 +877,7 @@ function unassigned_abort($script, $user_script = false) {
 		$command_script = $paths['scripts'].basename($script);
 	} else {
 		$command_script = "/tmp/user.scripts/tmpScripts/".basename($script)."/script";
-		exec("/usr/bin/rm -f ".escapeshellarg("/tmp/user.scripts/running/".basename($script)));
+		$file	= "/tmp/user.scripts/running/".basename($script);
 	}
 
 	if ($command_script) {
@@ -887,15 +887,26 @@ function unassigned_abort($script, $user_script = false) {
 		/* Get the process ID and remove newline characters, providing an empty string as a default if null. */
 		$pid = trim(shell_exec($cmd) ?? "");
 
-		/* Terminate the process using kill. */
-		while ($pid) {
-			exec("/bin/kill " . $pid . " 2>/dev/null");
+		/* Terminate the process using kill. Time out after 10 seconds if the processes don't stop. */
+		$i	= 0;
+		while (($pid) && ($i <10)) {
+			exec("/bin/kill ".$pid." 2>/dev/null");
+
+			/* Wait before checking again. */
+			sleep(1);
 
 			/* Get the updated PID after termination. */
 			$pid = trim(shell_exec($cmd) ?? "");
+
+			$i++;
 		}
 	}
- }
+
+	/* Remove the user script running file. */
+	if (($user_script) && (file_exists($file))) {
+		unlink($file);
+	}
+}
 
 /* Function to check if processes are still running on the mountpoint. */
 function areProcessesRunning($mountpoint) {
