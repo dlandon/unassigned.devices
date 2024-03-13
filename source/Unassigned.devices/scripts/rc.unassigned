@@ -1000,8 +1000,23 @@ switch ($COMMAND) {
 		break;
 
 	case 'abort':
-		$script = $argv[2] ?? "";
-		unassigned_abort($script);
+		/* Abort the user script. */
+		$user_script	= $argv[3] ?? "";
+		if ($user_script) {
+			unassigned_abort(dirname($user_script), true);
+		}
+
+		/* Abort the device script. */
+		$device_script	= $argv[2] ?? "";
+		if ($device_script) {
+			unassigned_abort($device_script);
+		}
+
+		/* Kill any remaining processes on the mount point. */
+		$mount_point	= $argv[4] ?? "";
+		if ($mount_point) {
+			kill_processes_on_mountpoint($mount_point);
+		}
 		break;
 
 	case 'refresh':

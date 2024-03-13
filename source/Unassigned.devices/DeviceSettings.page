@@ -352,8 +352,8 @@ EOT;
 > Click **Attach** to attach a device that has been detached.  This will act like the device was just installed and will auto mount if 'Auto Mount' is on.  It will take a while for the device to show up in UD.
 :end
 <?endif;?>
-<?if (($device_script_running) && ($info)):?>
-<button type="button" title='_(Abort Device Script)_.' onclick='abort_script("<?=$file;?>");'>_(Abort)_</button>
+<?if ((($device_script_running) || ($user_script_running)) && ($info)):?>
+<button type="button" id="abort-button" title='_(Abort Device Script)_.' onclick='abort_script("<?=$file;?>", "<?=$user_file;?>", "<?=$mount_point;?>");'>_(Abort)_</button>
 
 :ud_edit_script_abort_plug:
 > Click **Abort** to abort the device script.
@@ -1130,11 +1130,15 @@ _(User Script)_:
 	}
 
 	/* Abort a running device script. */
-	function abort_script(script) {
+	function abort_script(device_script, user_script, mount_point) {
+		$("button[id='abort-button']").prop("disabled", true);
+		$("button[id='abort-button']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Aborting');?>");
 		$.post("/update.php", {
 			"#command": "/plugins/unassigned.devices/scripts/rc.unassigned",
 			"#arg[1]": "abort",
-			"#arg[2]": script
+			"#arg[2]": device_script,
+			"#arg[3]": user_script,
+			"#arg[4]": mount_point
 		}).done(function () {
 			location.reload();
 		});
