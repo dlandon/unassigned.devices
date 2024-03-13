@@ -158,6 +158,11 @@ i.fa-switch {
 	opacity:1.0
 }
 
+/* Style for the disabled abort button */
+#abort-button[disabled] {
+	opacity:1.0
+}
+
 /* Left align edit settings help text. */
 span.help-title {
 	text-align:left;
