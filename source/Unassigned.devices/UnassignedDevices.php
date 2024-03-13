@@ -555,7 +555,7 @@ switch ($_POST['action']) {
 
 			/* Update the preclear diskinfo. */
 			if (file_exists("/etc/rc.d/rc.diskinfo")) {
-				exec("/etc/rc.d/rc.diskinfo force &");
+				exec("nohup /etc/rc.d/rc.diskinfo force &");
 			}
 		} else {
 			$all_disks = get_all_disks_info();
@@ -1152,7 +1152,7 @@ switch ($_POST['action']) {
 
 	case 'update_ping':
 		/* Refresh the ping status in the background. */
-		exec("plugins/".$plugin."/scripts/get_ud_stats ping &");
+		exec("nohup plugins/".$plugin."/scripts/get_ud_stats ping &");
 		break;
 
 	case 'get_content_json':
@@ -1341,7 +1341,7 @@ switch ($_POST['action']) {
 		/* Mount a disk device. */
 		$device	= urldecode($_POST['device']);
 
-		$return = trim(shell_exec("/usr/bin/nice plugins/".$plugin."/scripts/rc.unassigned mount ".escapeshellarg($device)." & 2>/dev/null"));
+		$return = trim(shell_exec("nohup /usr/bin/nice plugins/".$plugin."/scripts/rc.unassigned mount ".escapeshellarg($device)." & 2>/dev/null"));
 		echo json_encode($return == "success");
 		break;
 
@@ -1349,7 +1349,7 @@ switch ($_POST['action']) {
 		/* Unmount a disk device. */
 		$device	= urldecode($_POST['device']);
 
-		$return = trim(shell_exec("/usr/bin/nice plugins/".$plugin."/scripts/rc.unassigned umount ".escapeshellarg($device)." & 2>/dev/null"));
+		$return = trim(shell_exec("nohup /usr/bin/nice plugins/".$plugin."/scripts/rc.unassigned umount ".escapeshellarg($device)." & 2>/dev/null"));
 		echo json_encode($return == "success");
 		break;
 
