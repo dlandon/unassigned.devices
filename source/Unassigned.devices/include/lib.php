@@ -508,7 +508,7 @@ function get_device_stats($mountpoint, $mounted, $active = true) {
 
 		/* Update the size, used, and free status every 90 seconds on each device. */
 		if (($active) && ((time() - $df_status[$mountpoint]['timestamp']) > 90)) {
-			exec("plugins/".$plugin."/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." &");
+			exec("nohup plugins/".$plugin."/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." &");
 		}
 
 		/* Get the device stats. */
@@ -1763,7 +1763,7 @@ function do_mount_local($info) {
 	$fs				= $info['fstype'];
 	$ro				= $info['read_only'];
 	$file_system	= $fs;
-	$pool_name		= $info['pool_name'];
+	$pool_name		= ($info['pool_name']) ? $info['pool_name'] : MiscUD::zfs_pool_name($dev);
 	$mounted		= $info['mounted'];
 
 	if (! $mounted) {
@@ -3778,7 +3778,7 @@ function get_partition_info($dev) {
 		$zfs							= ($partition['file_system'] == "zfs");
 
 		/* Get the pool name for a zfs device whether or not it is mounted. */
-		$partition['pool_name']			= $zfs ? MiscUD::zfs_pool_name($dev, $partition['mountpoint']) : "";
+		$partition['pool_name']			= (($partition['mounted']) && ($zfs)) ? MiscUD::zfs_pool_name("", $partition['mountpoint']) : "";
 
 		/* If the disk mount point is mounted, we need to verify it is also mounted by device. */
 		/* If it is not, then the disk was probably removed before being properly unmounted. */
