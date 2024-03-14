@@ -208,7 +208,7 @@ if ($mounted) {
 	$script_disabled = "disabled";
 
 	/* Show that the device is mounted. */
-	$mount_point	.= " (mounted)";
+	$mount_pt		= $mount_point." (mounted)";
 }
 
 /* If there is no device or user script file, then disable the user script field. */
@@ -297,7 +297,7 @@ EOT;
 <?if (($disk_setting) && ($fstype == "zvol")):?>
 <p><strong>_(ZFS Volume)_: </strong><?=$zfs_volume;?></p>
 <?endif;?>
-<p><strong>_(Mount Point)_: </strong><?=$mount_point;?></p>
+<p><strong>_(Mount Point)_: </strong><?=$mount_pt;?></p>
 
 <div style='width:<?=$width;?>;'>
 <?if ($show_device_switches):?>
@@ -353,10 +353,10 @@ EOT;
 :end
 <?endif;?>
 <?if ((($device_script_running) || ($user_script_running)) && ($info)):?>
-<button type="button" id="abort-button" title='_(Abort Device Script)_.' onclick='abort_script("<?=$file;?>", "<?=$user_file;?>", "<?=$mount_point;?>");'>_(Abort)_</button>
+<button type="button" id="abort-button" title='_(Abort Device and User Scripts)_.' onclick='abort_script("<?=$file;?>", "<?=$user_file;?>", "<?=$mount_point;?>");'>_(Abort)_</button>
 
 :ud_edit_script_abort_plug:
-> Click **Abort** to abort the device script.
+> Click **Abort** to abort the device script, user script, and kill all processes running on the mount point.
 :end
 <?endif;?>
 
