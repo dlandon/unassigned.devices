@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.03.03">
+<!ENTITY version	"2024.03.14">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"b37c05ca6b181a573ceaeb1b1f255d87">
+<!ENTITY MD5		"5ed2e22c67d2893af9fe820968f23912">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,8 +22,21 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Only show Time Machine settings in UD SMB Settings when 'macOS Interoperability' is enabled.
+- Fix: Attach, Detach, and Abort button style changes.
+- Fix: User Script running not detected properly that disables Device Settings file operations.
+- Fix: Abort script adjustments in pgrep for longer script file names.
+- Fix: Zpool operation that kept disks from spinning down.
+- Add: Abort device script on remote shares and ISO file mounts when shutting down the array.
+- Add: Common script only runs when a device is added.
+- Add: Abort common script when stopping array.
+- Add: Abort User Script running on a UD device when stopping the array.
+- Add: Abort any running processes on the mount point when stopping the array so the array will shutdown.
+- Add: Abort button in device settings will abort device script, user script, and any processes running on the device mountpoint.
+
+###2024.03.03
 - Fix: Issue with script already running when executing a User Scripts script.
-- Fix: Fail the command if the 'name=' alias is not found.
+- Fix: Fail the command if the 'name=' alias is not found in rc.unassigned.
 - Fix: Unraid wave starting too soon.  It should be delayed 1/2 second.
 - Fix: Increase remote shares mount timeout to 15 seconds.
 - Fix: Php warning in get_ud_stats.
@@ -43,7 +56,7 @@
 ###2024.02.09
 - Fix: Remote Shares showing offline and unavailable not working properly.
 - Fix: Several php warnings.
-- Fix: Samba config files not always created properly with MacOS Interoperability enabled.
+- Fix: Samba config files not always created properly with macOS Interoperability enabled.
 - Add: Unraid wave to Device Settings and Unassigned Devices Settings.
 
 ###2024.02.02a
@@ -460,7 +473,7 @@
 - Fix: Disable 'Detach' button if disk is passed through.
 
 ###2022.09.16
-- Add: Fruit (MacOS) SMB handling settings to SMB share config files for Unraid 6.11. 
+- Add: Fruit (macOS) SMB handling settings to SMB share config files for Unraid 6.11. 
 
 ###2022.09.12c
 - Fix: Possibility of re-attaching the wrong device.
