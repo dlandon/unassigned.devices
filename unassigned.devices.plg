@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.03.14">
+<!ENTITY version	"2024.03.16">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"5ed2e22c67d2893af9fe820968f23912">
+<!ENTITY MD5		"e6b1d969e6a89f0de894b7f04de46444">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Php warning.
+
+###2024.03.14
 - Fix: Only show Time Machine settings in UD SMB Settings when 'macOS Interoperability' is enabled.
 - Fix: Attach, Detach, and Abort button style changes.
 - Fix: User Script running not detected properly that disables Device Settings file operations.
