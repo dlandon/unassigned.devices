@@ -209,6 +209,8 @@ if ($mounted) {
 
 	/* Show that the device is mounted. */
 	$mount_pt		= $mount_point." (mounted)";
+} else {
+	$mount_pt		= $mount_point;
 }
 
 /* If there is no device or user script file, then disable the user script field. */
