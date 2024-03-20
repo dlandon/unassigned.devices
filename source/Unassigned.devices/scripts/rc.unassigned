@@ -924,7 +924,7 @@ function kill_processes_on_mountpoint($mountpoint) {
 	/* Kill all processes on the mountpoint. */
 	exec("/usr/bin/fuser -mk ".escapeshellarg($mountpoint)." 2>/dev/null");
 
-	/* Wait until processes are no longer running. */
+	/* Wait until processes are no longer running.  Time out after 10 seconds. */
 	$i	= 0;
 	while ((areProcessesRunning($mountpoint)) && ($i < 10)) {
 		sleep(1);
