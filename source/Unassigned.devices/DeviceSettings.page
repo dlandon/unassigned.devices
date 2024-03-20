@@ -354,7 +354,7 @@ EOT;
 > Click **Attach** to attach a device that has been detached.  This will act like the device was just installed and will auto mount if 'Auto Mount' is on.  It will take a while for the device to show up in UD.
 :end
 <?endif;?>
-<?if ((($device_script_running) || ($user_script_running)) && ($info)):?>
+<?if (($device_script_running) || ($user_script_running)):?>
 <button type="button" id="abort-button" title='_(Abort Device and User Scripts)_.' onclick='abort_script("<?=$file;?>", "<?=$user_file;?>", "<?=$mount_point;?>");'>_(Abort)_</button>
 
 :ud_edit_script_abort_plug:
