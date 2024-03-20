@@ -110,7 +110,7 @@ $default_tld	= "LOCAL";
 $local_tld		= (isset($var['LOCAL_TLD']) && ($var['LOCAL_TLD'])) ? strtoupper($var['LOCAL_TLD']) : $default_tld;
 
 /* Array of devices, mount points, and read only status taken from the /proc/mounts file. */
-$mounts				= null;
+$mounts			= null;
 
 /* Array of devices and file system type taken from lsblk. */
 $lsblk_file_types	= null;
@@ -1211,7 +1211,7 @@ function part_fs_type($dev) {
 
 	/* Set $rc to the file system type or "luks" if not found. */
 	$luks		= (strpos($dev, "/dev/mapper/") !== false);
-    $rc = $file_type === "zfs_member" ? "zfs" : ($file_type ? $file_type : ($luks ? "luks" : ""));
+    $rc			= ($file_type === "zfs_member") ? "zfs" : ($file_type ? $file_type : ($luks ? "luks" : ""));
 
 	return $rc;
 }
