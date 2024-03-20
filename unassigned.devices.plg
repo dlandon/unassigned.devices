@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.03.16">
+<!ENTITY version	"2024.03.19">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"e6b1d969e6a89f0de894b7f04de46444">
+<!ENTITY MD5		"e7543e48166501fa7fbd501e408ac750">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Update.php on 6.11 and 6.12 needs to be updated for saving device script changes to work.
+
+###2024.03.16
 - Fix: Php warning.
 
 ###2024.03.14
@@ -2398,6 +2401,20 @@ find /boot/config/plugins/&name; -type f -iname "&name;*.md5" ! -iname "*&versio
 
 # reload udev rules
 udevadm control --reload-rules
+
+# Update the file 'update.php' if version is 6.11, or 6.12 so device script 'Apply' changes will work.
+# Get the Unraid version
+unraid_version=$(cat /etc/unraid-version)
+
+# Extract the first 4 characters of the version
+# Read the Unraid version from the file
+source '/etc/unraid-version'
+first_four_chars=${version:0:4}
+
+# Check if the first 4 characters are 6.11 or 6.12
+if [[ $first_four_chars == "6.11" || $first_four_chars == "6.12" ]]; then
+	cp /usr/local/emhttp/plugins/&name;/include/update.php /usr/local/emhttp/update.php
+fi
 
 echo ""
 echo "-----------------------------------------------------------"
