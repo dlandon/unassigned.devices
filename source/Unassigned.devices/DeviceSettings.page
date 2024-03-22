@@ -128,7 +128,6 @@ if (isset($_GET['s'])) {
 	$source				= $_GET['j'];
 	$info				= $_GET['m'] ?? "";
 	$mounted			= $_GET['n'] ?? false;
-	$mount				= (array) json_decode($info);
 	$file				= get_samba_config($device, "command");
 
 	/* Do some configuration file work */
@@ -150,7 +149,6 @@ if (isset($_GET['s'])) {
 	$share				= (is_samba_share($device)) ? "checked" : "";
 	$read_only			= (is_samba_read_only($device)) ? "checked" : "";
 	$enable_encrypt		= (is_samba_encrypted($device)) ? "yes" : "no";
-	$mount_device		= basename($mount['ip'])."_".basename($mount['path']);
 	$width				= "55%";
 	$automount_action	= "samba_automount";
 	$ud_device			= $device;
