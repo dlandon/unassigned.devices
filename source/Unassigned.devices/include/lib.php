@@ -95,7 +95,7 @@ $iso_config		= ($config_ini !== false) ? $config_ini : array();
 $DEBUG_LEVEL	= (int) get_config("Config", "debug_level");
 
 /* See if the UD settings are set for either SMB or NFS sharing. */
-$shares_enabled		= ((get_config("Config", "smb_security") != "no") || (get_config("Config", "nfs_export") == "yes"));
+$shares_enabled	= ((get_config("Config", "smb_security") != "no") || (get_config("Config", "nfs_export") == "yes"));
 
 /* Read Unraid variables file. Used to determine disks not assigned to the array and other array parameters. */
 if (! isset($var)){
@@ -196,7 +196,7 @@ class MiscUD
 		}
 	}
 
-	/* Get array of pool devices on a mount point. */
+	/* Get array of btrfs pool devices on a mount point. */
 	public static function get_pool_devices($mountpoint, $remove = false) {
 		global $paths;
 
@@ -305,7 +305,7 @@ class MiscUD
 	public static function get_mounting_status($device) {
 		global $paths;
 
-		$mounting		= array_values(preg_grep("@/mounting_".safe_name($device, true, true)."@i", listDir(dirname($paths['mounting']))))[0] ?? '';
+		$mounting		= array_values(preg_grep("@/mounting_".safe_name($device, true, true)."@i", listFile(dirname($paths['mounting']))))[0] ?? '';
 		$is_mounting	= (isset($mounting) && (time() - filemtime($mounting) < 300));
 		return $is_mounting;
 	}
@@ -314,7 +314,7 @@ class MiscUD
 	public static function get_unmounting_status($device) {
 		global $paths;
 
-		$unmounting		= array_values(preg_grep("@/unmounting_".safe_name($device, true, true)."@i", listDir(dirname($paths['unmounting']))))[0] ?? '';
+		$unmounting		= array_values(preg_grep("@/unmounting_".safe_name($device, true, true)."@i", listFile(dirname($paths['unmounting']))))[0] ?? '';
 		$is_unmounting	= (isset($unmounting) && (time() - filemtime($unmounting)) < 300);
 		return $is_unmounting;
 	}
@@ -323,7 +323,7 @@ class MiscUD
 	public static function get_formatting_status($device) {
 		global $paths;
 
-		$formatting		= array_values(preg_grep("@/formatting_".basename($device)."@i", listDir(dirname($paths['formatting']))))[0] ?? '';
+		$formatting		= array_values(preg_grep("@/formatting_".basename($device)."@i", listFile(dirname($paths['formatting']))))[0] ?? '';
 		$is_formatting	= (isset($formatting) && (time() - filemtime($formatting) < 300));
 		return $is_formatting;
 	}
@@ -346,7 +346,7 @@ class MiscUD
 				$rc	= "";
 			}
 
-			/* The disk must be mounted if we cannot import the zpool. */
+			/* The disk must be mounted if we cannot import the zpool. The pool name is the device in the mount status. */
 			if ((! $rc) && ($mount_point) && (isset($mounts[$mount_point]))) {
 				$rc		= $mounts[$mount_point]['device'];
 			}
@@ -363,7 +363,7 @@ function _echo($m) {
 	echo "<pre>".print_r($m,true)."</pre>";
 }
 
-/* Get a file lock so changes can be made to the file. */
+/* Get a file lock so changes can be made to a cfg or ini file. */
 function get_file_lock($type = "cfg") {
 	global $plugin;
 
@@ -378,7 +378,7 @@ function get_file_lock($type = "cfg") {
 		$i++;
 	}
 
-	/* Did we time out waiting for unlock release? */
+	/* Did we time out waiting for an unlock release? */
 	if ($i == 200) {
 		unassigned_log("Debug: Timed out waiting for file lock.", $GLOBALS['UPDATE_DEBUG']);
 	}
@@ -446,20 +446,18 @@ function unassigned_log($m, $debug_level = 0) {
 }
 
 /* Get a list of directories at $root. */
-function listDir($root) {
-	$iter = new RecursiveIteratorIterator(
-			new RecursiveDirectoryIterator($root, 
-			RecursiveDirectoryIterator::SKIP_DOTS),
-			RecursiveIteratorIterator::SELF_FIRST,
-			RecursiveIteratorIterator::CATCH_GET_CHILD);
-	$paths = array();
-	foreach ($iter as $path => $fileinfo) {
-		if (! $fileinfo->isDir()) {
-			$paths[] = $path;
+function listFile($root) {
+	$filePaths = glob($root . '/*', GLOB_MARK);
+
+	foreach ($filePaths as $index => $path) {
+		/* Remove directories from the list. */
+		if (is_dir($path)) {
+			unset($filePaths[$index]);
 		}
 	}
 
-	return $paths;
+	/* Reindex the array to start from 0. */
+	return array_values($filePaths);
 }
 
 /* Remove characters that will cause issues with php in names. */
@@ -695,7 +693,7 @@ function is_samba_server_online($ip, $protocol) {
 	return $is_alive;
 }
 
-/* Check to see if a mount/unmount device or user script is running. */
+/* Check to see if a mount/unmount device script or user script is running. */
 function is_script_running($cmd, $user = false) {
 	global $paths;
 
@@ -729,8 +727,8 @@ function get_temp($ud_dev, $dev, $running) {
 
 	/* Get temperature from the devs.ini file. */
 	if (is_file($sf)) {
-		$devs = @parse_ini_file($sf, true);
-		$rc	= $devs[$ud_dev]['temp'] ?? "*";
+		$devs	= @parse_ini_file($sf, true);
+		$rc		= $devs[$ud_dev]['temp'] ?? "*";
 	}
 
 	return $rc;
@@ -1417,7 +1415,7 @@ function execute_script($info, $action, $testing = false) {
 	/* Set environment variables. */
 	putenv("ACTION=".$action);
 	foreach ($info as $key => $value) {
-		/* Only set the environment variables used by the scripts. */
+		/* Only set the environment variables used by the device script. */
 		switch ($key) {
 			case 'device':
 			case 'serial':
@@ -2231,7 +2229,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 	global $paths, $var, $users, $ud_config;
 
 	/* Get the current UD configuration. */
-	$config						= $ud_config["Config"];
+	$config							= $ud_config["Config"];
 
 	/* Initialize some settings to make sure they are defined. */
 	$smb_security					= $config['smb_security'] ?? "";
@@ -2257,7 +2255,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 	if ($var['shareSMBEnabled'] != "no") {
 		if ($smb_security != "no") {
 			/* Remove special characters from share name. */
-			$share_name = str_replace( array("(", ")"), "", basename($dir));
+			$share_name		= str_replace( array("(", ")"), "", basename($dir));
 
 			/* Initialize the vfs_objects variable with the dirsort option. */
 			$vfs_objects	= "vfs objects = dirsort";
@@ -2327,7 +2325,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 				});
 
 				/* Remove the invalid users. */
-				$valid_users = array_diff($valid_users, $invalid_users);
+				$valid_users		= array_diff($valid_users, $invalid_users);
 
 				/* File name case settings. */
 				$case_setting		= (($config["case_names"] === 'force') || (empty($config["case_names"]))) ? "auto" : $config["case_names"];
@@ -2622,8 +2620,8 @@ function encrypt_data($data) {
 		set_config("Config", "iv", $iv);
 	}
 
-	$value	= openssl_encrypt($data, 'aes256', $key, $options=0, $iv);
-	$value	= str_replace("\n", "", $value);
+	/* Encrypt the password using aes-256-cbc. */
+    $value = trim(openssl_encrypt($data, 'aes-256-cbc', $key, OPENSSL_RAW_DATA, $iv));
 
 	return $value;
 }
@@ -2633,10 +2631,18 @@ function decrypt_data($data) {
 
 	$key	= get_config("Config", "key");
 	$iv		= get_config("Config", "iv");
-	$value	= openssl_decrypt($data, 'aes256', $key, $options=0, $iv);
+
+	/* Try decrypting using aes-256-cbc first (new encryption algorithm). */
+	$value	= openssl_decrypt($data, 'aes-256-cbc', $key, OPENSSL_RAW_DATA, $iv);
+
+	/* If the password did not decrypt with aes-256-cbc', use the older algorithm. */
+	if ($value === false) {
+		/* If decryption fails, try decrypting using aes256 (old encryption algorithm). */
+		$value	= openssl_decrypt($data, 'aes256', $key, $options=0, $iv);
+	}
 
 	/* Make sure the password is UTF-8 encoded. */
-	if (! preg_match("//u", $value)) {
+    if (!mb_check_encoding($value, 'UTF-8')) {
 		unassigned_log("Warning: Password is not UTF-8 encoded");
 		$value = "";
 	}
@@ -3351,7 +3357,7 @@ function get_unassigned_disks() {
 	$ud_disks = $paths = array();
 
 	/* Get all devices by id and eliminate any duplicates. */
-	foreach (array_unique(listDir("/dev/disk/by-id/")) as $p) {
+	foreach (array_unique(listFile("/dev/disk/by-id/")) as $p) {
 		$r = realpath($p);
 
 		/* Only /dev/sd*, /dev/hd*, and /dev/nvme* devices. */
@@ -3711,7 +3717,7 @@ function get_partition_info($dev) {
 			} else {
 				$partition['label']		= safe_name($attrs['ID_SERIAL_SHORT']);
 			}
-			$all_disks					= array_unique(array_map(function($ar){return realpath($ar);}, listDir("/dev/disk/by-id")));
+			$all_disks					= array_unique(array_map(function($ar){return realpath($ar);}, listFile("/dev/disk/by-id")));
 			$partition['label']			= (isset($partition['label']) && (isset($matches[1][0])) && (count(preg_grep("%".$matches[1][0]."%i", $all_disks)) > 2)) ? $partition['label']."-part".$matches[2][0] : $partition['label'];
 			$partition['disk_label']	= "";
 		}
