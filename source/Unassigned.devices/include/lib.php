@@ -506,7 +506,7 @@ function get_device_stats($mountpoint, $mounted, $active = true) {
 
 		/* Update the size, used, and free status every 90 seconds on each device. */
 		if (($active) && ((time() - $df_status[$mountpoint]['timestamp']) > 90)) {
-			exec("nohup plugins/".$plugin."/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." &");
+			exec("/usr/bin/nohup plugins/".$plugin."/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." &");
 		}
 
 		/* Get the device stats. */
@@ -1449,7 +1449,7 @@ function execute_script($info, $action, $testing = false) {
 			unassigned_log("Running common script: '".basename($common_script)."'");
 
 			/* Apply escapeshellarg() to the command. */
-	        $cmd = "nohup ".escapeshellarg($common_script)." > /dev/null 2>&1 ".$bg;
+	        $cmd = "/usr/bin/nohup ".escapeshellarg($common_script)." > /dev/null 2>&1 ".$bg;
 
 			/* Run the script. */
 			$out	= null;
@@ -1487,7 +1487,7 @@ function execute_script($info, $action, $testing = false) {
 						$clear_log	= ($action == "ADD") ? " > " : " >> ";
 
 						/* Apply escapeshellarg() to the command and logfile of the command. */
-						$cmd		= "nohup ".escapeshellarg($command_script).$clear_log.escapeshellarg($info['logfile'])." 2>&1 ".$bg;
+						$cmd		= "/usr/bin/nohup ".escapeshellarg($command_script).$clear_log.escapeshellarg($info['logfile'])." 2>&1 ".$bg;
 
 						/* Run the script. */
 						$out		= null;
