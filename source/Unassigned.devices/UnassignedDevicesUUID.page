@@ -46,6 +46,7 @@ foreach (get_all_disks_info() as $d) {
 <table class="tablesorter shift ups">
 <thead><tr><th>_(Change Disk UUID)_</th></tr></thead>
 </table>
+
 <form markdown="1" name="change_uuid" method="POST" action="/update.php" target="progressFrame">
 <input type="hidden" name="#section" value="Config">
 <input type="hidden" name="#file" value="<?=$paths['config_file']?>">
