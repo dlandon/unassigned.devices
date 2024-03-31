@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.03.19">
+<!ENTITY version	"2024.03.31">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"e7543e48166501fa7fbd501e408ac750">
+<!ENTITY MD5		"02e10f37118b4954501685c0f233edd8">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,7 +22,10 @@
 <CHANGES>
 ##&name;
 ###&version;
-- Fix: Update.php on 6.11 and 6.12 needs to be updated for saving device script changes to work.
+
+
+###2024.03.19
+- Fix: Update.php on 6.11 and 6.12 needs to be updated for saving device script changes to work due to recent changes in UD.
 
 ###2024.03.16
 - Fix: Php warning.
@@ -2411,10 +2414,16 @@ unraid_version=$(cat /etc/unraid-version)
 source '/etc/unraid-version'
 first_four_chars=${version:0:4}
 
+#
+# These are some temporary patches to oveercome several issues
+#
 # Check if the first 4 characters are 6.11 or 6.12
 if [[ $first_four_chars == "6.11" || $first_four_chars == "6.12" ]]; then
 	cp /usr/local/emhttp/plugins/&name;/include/update.php /usr/local/emhttp/update.php
 fi
+# Fix a wrong configuration parameter in nfsmount.conf
+sed -i '/^Nfsvers=4$/d' /etc/nfsmount.conf
+/etc/rc.d/rc.nfsd restart 1>/dev/null
 
 echo ""
 echo "-----------------------------------------------------------"
