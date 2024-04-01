@@ -7,7 +7,7 @@
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"02e10f37118b4954501685c0f233edd8">
+<!ENTITY MD5		"">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,7 +22,7 @@
 <CHANGES>
 ##&name;
 ###&version;
-
+- Fix: Apply a patch to revert an NFS setting causing "protocol not supported" issue.
 
 ###2024.03.19
 - Fix: Update.php on 6.11 and 6.12 needs to be updated for saving device script changes to work due to recent changes in UD.
