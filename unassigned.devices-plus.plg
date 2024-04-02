@@ -1,9 +1,9 @@
 <?xml version='1.0' standalone='yes'?>
 <!DOCTYPE PLUGIN [
-<!ENTITY name      "unassigned.devices-plus">
-<!ENTITY author    "dlandon">
-<!ENTITY version   "2023.11.30">
-<!ENTITY launch    "Main/UnassignedDevices">
+<!ENTITY name		"unassigned.devices-plus">
+<!ENTITY author		"dlandon">
+<!ENTITY version	"2024.04.01">
+<!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/unassigned.devices/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
@@ -22,6 +22,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Update libbsd to 0.12.2.
+
+###2023.11.30
 - Fix: Change Unraid minimum version to 6.11.
 
 ###2023.11.08
@@ -31,8 +34,8 @@
 - Add: Add libmd package to support htfs+ disk check.
 
 ###2023.04.15
-- Add: Update libbsd to 0.11.7.
-- Add: Update parted to 3.6.
+- Fix: Update libbsd to 0.11.7.
+- Fix: Update parted to 3.6.
 
 ###2022.11.06
 - Add: Parted 3.5 for Unraid 6.11.
@@ -132,11 +135,11 @@ hfsprogs-332.25-x86_64-2sl.txz
 </FILE>
 
 <!--
-libbsd-0.11.7-x86_64-1cf.txz
+libbsd-0.12.2-x86_64-1cf.txz
 -->
-<FILE Name="&packages;/libbsd-0.11.7-x86_64-1cf.txz" Run="upgradepkg --install-new">
-<URL>"&gitURL;/packages/libbsd-0.11.7-x86_64-1cf.txz"</URL>
-<MD5>19ee0ef149d3706474132c24c8a666a3</MD5>
+<FILE Name="&packages;/libbsd-0.12.2-x86_64-1cf.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/libbsd-0.12.2-x86_64-1cf.txz"</URL>
+<MD5>5437fb159a2a7805b6c04bd59848fc0e</MD5>
 </FILE>
 
 <!--
@@ -177,7 +180,7 @@ echo ""
 echo "-----------------------------------------------------------"
 echo " &name; has been installed."
 echo " Copyright 2015, gfjardim"
-echo " Copyright 2016-2023, &author;"
+echo " Copyright 2016-2024, &author;"
 echo " Version: &version;"
 echo "-----------------------------------------------------------"
 echo ""
@@ -197,7 +200,7 @@ removepkg parted-3.6-x86_64-1 >/dev/null
 removepkg exfat-utils-1.3.0-x86_64-1_slonly >/dev/null
 removepkg fuse-exfat-1.3.0-x86_64-1_slonly.txz >/dev/null
 removepkg hfsprogs-332.25-x86_64-2sl >/dev/null
-removepkg libbsd-0.11.7-x86_64-1cf.txz >/dev/null
+removepkg libbsd-0.12.2-x86_64-1cf.txz >/dev/null
 removepkg libmd-1.1.0-x86_64-1cf.txz >/dev/null
 removepkg apfsfuse-v20230312-x86_64-1.txz >/dev/null
 
