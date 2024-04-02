@@ -61,7 +61,7 @@ foreach (get_all_disks_info() as $d) {
 <thead><tr><th>_(Upgrade ZFS)_</th></tr></thead>
 </table>
 
-<form markdown="1" name="zfs_upgrade" method="POST" action="/update.php" target="progressFrame">
+<form markdown="1" name="zfs_disk_upgrade" method="POST" action="/update.php" target="progressFrame">
 <input type="hidden" name="#section" value="Config">
 <input type="hidden" name="#file" value="<?=$paths['config_file']?>">
 <input type="hidden" name="#command" value="/plugins/unassigned.devices/scripts/rc.settings">
@@ -69,10 +69,10 @@ foreach (get_all_disks_info() as $d) {
 
 _(Select Disk)_:
 : <select name="zfs_upgrade" size="1">
-  <?foreach ($zfs_devices as $d) {?>
-  <?=mk_option($cfg["Config"]["zfs_upgrade"], ("(".$d['pool_name'].") ".$d['label']), ($d['label']." (".basename($d['device']).")"));?>
-  <?}?>
-  </select>
+	<?foreach ($zfs_devices as $d) {?>
+		<?=mk_option($cfg["Config"]["zfs_upgrade"], ("(".$d['pool_name'].") ".$d['label']), ($d['label']." (".basename($d['device']).")"));?>
+	<?}?>
+</select>
 
 :ud_settings_zfs_upgrade_plug:
 > Select the disk that you want to upgrade to the latest ZFS version. Drive must be mounted to upgrade ZFS.
