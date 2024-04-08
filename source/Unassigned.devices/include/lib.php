@@ -2609,21 +2609,21 @@ function set_samba_config($source, $variable, $value) {
 
 /* Encrypt data. */
 function encrypt_data($data) {
-    $key	= get_config("Config", "key");
-    if ((! $key) || strlen($key) != 32) {
-        $key = substr(base64_encode(openssl_random_pseudo_bytes(32)), 0, 32);
-        set_config("Config", "key", $key);
-    }
-    $iv		= get_config("Config", "iv");
-    if ((! $iv) || strlen($iv) != 16) {
-        $iv = substr(base64_encode(openssl_random_pseudo_bytes(16)), 0, 16);
-        set_config("Config", "iv", $iv);
-    }
+	$key	= get_config("Config", "key");
+	if ((! $key) || strlen($key) != 32) {
+		$key = substr(base64_encode(openssl_random_pseudo_bytes(32)), 0, 32);
+		set_config("Config", "key", $key);
+	}
+	$iv		= get_config("Config", "iv");
+	if ((! $iv) || strlen($iv) != 16) {
+		$iv = substr(base64_encode(openssl_random_pseudo_bytes(16)), 0, 16);
+		set_config("Config", "iv", $iv);
+	}
 
-    /* Encrypt the data using aes256. */
-    $value	= trim(openssl_encrypt($data, 'aes256', $key, $options=0, $iv));
+	/* Encrypt the data using aes256. */
+	$value	= trim(openssl_encrypt($data, 'aes256', $key, $options=0, $iv));
 
-    return $value;
+	return $value;
 }
 
 /* Decrypt data. */
