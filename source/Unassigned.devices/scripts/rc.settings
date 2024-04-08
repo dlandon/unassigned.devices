@@ -11,8 +11,7 @@
  */
 
 $plugin		= "unassigned.devices";
-$docroot	= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-require_once("$docroot/plugins/".$plugin."/include/lib.php");
+require_once("plugins/".$plugin."/include/lib.php");
 
 /* Save changed settings. */
 function save() {

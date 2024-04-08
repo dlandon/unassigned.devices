@@ -11,7 +11,6 @@
  */
 
 $plugin = "unassigned.devices";
-$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 require_once("plugins/".$plugin."/include/lib.php");
 require_once("webGui/include/Helpers.php");
 
