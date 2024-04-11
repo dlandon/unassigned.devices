@@ -955,8 +955,10 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		/* Set ping poll interval every 15 seconds. */
 		window.setInterval(pingPoll, PING_INTERVAL);
 
-		/* Check for diskio cookie change every 100ms. */
-		window.setInterval(checkCookie, 100);
+		/* Check for diskio cookie change. */
+		$(document).ready(function() {
+			checkCookie();
+		});
 
 		/* Add icons to Tab/Title bar. */
 		$('#tab4').bind({
