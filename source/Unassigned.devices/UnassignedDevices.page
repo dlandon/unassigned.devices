@@ -1509,9 +1509,9 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		<div data-question-content>
 			<div class="image-radio">
 				<input type="radio" id="{0}" name="PROTOCOL" value="NFS" required="" <?=($var['shareNFSEnabled']=="no") ? "disabled" : "";?>>
-				<label class="image-radio-label image-radio-linux" for="{0}"></label>
+				<label class="image-radio-label image-radio-linux" for="{0}" title="<?=_('Click to select NFS');?>"></label>
 				<input type="radio" id="{1}" name="PROTOCOL" value="SMB" required="" <?=($var['shareSMBEnabled']=="no") ? "disabled" : "";?>>
-				<label class="image-radio-label image-radio-windows" for="{1}"></label>
+				<label class="image-radio-label image-radio-windows" for="{1}"  title="<?=_('Click to select SMB');?>"></label>
 				<p><?=_('WARNING').": "._('Use caution when using a remote share local mount in a Docker Container or VM for critical data');?>.  <?=_('Media mapped to apps like Plex should not be a problem');?>.  <?=_('Remote share mounts are dependent on a solid and reliable network connection and that can be difficult to achieve');?>. <?=_('If the remote share goes offline, you may have problems');?>!</p>
 				<?if ($var['shareNFSEnabled']=="no"):?><p><?=_('Note').": "._('You must enable NFS in Settings->NFS to mount NFS shares').".";?></p><?endif;?>
 				<?if ($var['shareSMBEnabled']=="no"):?><p><?=_('Note').": "._('You must enable SMB in Settings->SMB to mount SMB shares').".";?></p><?endif;?>
@@ -1565,9 +1565,28 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 			</div>
 		</div>
 	</div>
-	<div data-question data-question-title="<?=_('Choose Share');?>">
+	<div data-question data-question-title="<?=_('Choose NFS Share');?>">
 		<div data-question-format>
-			[surveyData['PROTOCOL'], surveyData['IP'], surveyData['USER'], surveyData['PASS'], surveyData['DOMAIN'], (surveyData['PROTOCOL'] == 'SMB' ? 'list_samba_shares' : 'list_nfs_shares')]
+			[surveyData['PROTOCOL'], surveyData['IP'], "", "", "", 'list_nfs_shares']
+		</div>
+		<div data-question-condition>
+			surveyData['PROTOCOL'] == 'NFS'
+		</div>
+		<div data-question-content>
+			<input type='text' class="swal-content__input" autocomplete="off" name='SHARE' required placeholder="<?=_('Enter or Select Share');?>"><br />
+			<button class="swal-button" onclick='load_shares(this, "{1}", "{2}", "{3}", "{5}")'><?=_('Load Shares');?></button>
+			<p><?=_('Search for Shares or enter the Share name manually');?>.</p>
+		</div>
+		<div data-question-done>
+			(surveyData["SHARE"].length)
+		</div>
+	</div>
+	<div data-question data-question-title="<?=_('Choose SMB Share');?>">
+		<div data-question-format>
+			[surveyData['PROTOCOL'], surveyData['IP'], surveyData['USER'], surveyData['PASS'], surveyData['DOMAIN'], 'list_samba_shares']
+		</div>
+		<div data-question-condition>
+			surveyData['PROTOCOL'] == 'SMB'
 		</div>
 		<div data-question-content>
 			<input type='text' class="swal-content__input" autocomplete="off" name='SHARE' required placeholder="<?=_('Enter or Select Share');?>"><br />
