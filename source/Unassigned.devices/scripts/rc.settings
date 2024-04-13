@@ -10,15 +10,19 @@
  * all copies or substantial portions of the Software.
  */
 
-$plugin		= "unassigned.devices";
+$plugin	= "unassigned.devices";
 require_once("plugins/".$plugin."/include/lib.php");
 
 /* Save changed settings. */
 function save() {
-	global $paths;
+	global $paths, $ud_config;
 
-	/* Copy the updated configuration from the flash drive to the tmp config file. */
-	@copy("/boot/config/plugins/unassigned.devices/unassigned.devices.cfg", $paths['config_file']);
+	/* Update the UD configuration file in ram. */
+	$config_ini		= @parse_ini_file($paths['config_file'], true, INI_SCANNER_RAW);
+	$ud_config		= ($config_ini !== false) ? $config_ini : array();
+
+	/* Save the updated config onto the flash. */
+	save_ini_file($paths['config_file'], $ud_config);
 }
 
 /* Save settings and update shares based on any changes to settings. */
