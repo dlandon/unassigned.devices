@@ -34,12 +34,12 @@ function apply() {
 	/* Remove the old shares based on the old settings. */
 	remove_shares();
 
-	/* Copy the updated configuration from the flash drive to the tmp config file. */
-	@copy("/boot/config/plugins/unassigned.devices/unassigned.devices.cfg", $paths['config_file']);
-
 	/* Update the UD configuration file in ram. */
 	$config_ini		= @parse_ini_file($paths['config_file'], true, INI_SCANNER_RAW);
 	$ud_config		= ($config_ini !== false) ? $config_ini : array();
+
+	/* Save the updated config onto the flash. */
+	save_ini_file($paths['config_file'], $ud_config);
 
 	/* Reload the shares based on the new settings. */
 	reload_shares();
@@ -49,17 +49,18 @@ function apply() {
 
 /* Change the UUID of a device. */
 function uuid_change() {
-	global $paths;
+	global $paths, $ud_config;
 
 	/* Get a lock so file changes can be made. */
 	$lock_file	= get_file_lock("cfg");
 
 	/* Make file changes. */
-	$config_file = $paths['config_file'];
-	$cfg		= is_file($config_file) ? @parse_ini_file($config_file, true) : array();
+	$config_file	= $paths['config_file'];
+	$config_ini		= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
+	$ud_config		= ($config_ini !== false) ? $config_ini : array();
 
 	/* Get the device from the passed in device and serial number. */
-	$dev		= $cfg['Config']['change_uuid'];
+	$dev		= $ud_config['Config']['change_uuid'];
 	$first		= strpos($dev, "(") + 1;
 	$last		= strpos($dev, ")") - 1;
 	$dev		= substr($dev, $first, $last);
@@ -68,8 +69,8 @@ function uuid_change() {
 	change_UUID($dev);
 
 	/* Now clear the setting from the tmp file. */
-	unset($cfg['Config']['change_uuid']);
-	save_ini_file($config_file, $cfg, false);
+	unset($ud_config['Config']['change_uuid']);
+	save_ini_file($config_file, $ud_config, false);
 
 	/* Release the file lock. */
 	release_file_lock($lock_file);
@@ -77,17 +78,18 @@ function uuid_change() {
 
 /* Upgrade ZFS on a device. */
 function zfs_upgrade() {
-	global $paths;
+	global $paths, $ud_config;
 
 	/* Get a lock so file changes can be made. */
 	$lock_file	= get_file_lock("cfg");
 
 	/* Make file changes. */
-	$config_file = $paths['config_file'];
-	$cfg		= is_file($config_file) ? @parse_ini_file($config_file, true) : array();
+	$config_file	= $paths['config_file'];
+	$config_ini		= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
+	$ud_config		= ($config_ini !== false) ? $config_ini : array();
 
 	/* Get the device from the passed in device and serial number. */
-	$pool_name		= $cfg['Config']['zfs_upgrade'];
+	$pool_name		= $ud_config['Config']['zfs_upgrade'];
 	$first			= strpos($pool_name, "(") + 1;
 	$last			= strpos($pool_name, ")") - 1;
 	$pool_name		= substr($pool_name, $first, $last);
@@ -100,8 +102,8 @@ function zfs_upgrade() {
 	}
 
 	/* Now clear the setting from the tmp file. */
-	unset($cfg['Config']['zfs_upgrade']);
-	save_ini_file($config_file, $cfg, false);
+	unset($ud_config['Config']['zfs_upgrade']);
+	save_ini_file($config_file, $ud_config, false);
 
 	/* Release the file lock. */
 	release_file_lock($lock_file);
@@ -109,24 +111,25 @@ function zfs_upgrade() {
 
 /* Set an encrypted device password. */
 function set_pass() {
-	global $paths;
+	global $paths, $ud_config;
 
 	/* Get a lock so file changes can be made. */
 	$lock_file	= get_file_lock("cfg");
 
 	/* Make file changes. */
-	$config_file = $paths['config_file'];
-	$cfg		= is_file($config_file) ? @parse_ini_file($config_file, true) : array();
+	$config_file	= $paths['config_file'];
+	$config_ini		= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
+	$ud_config		= ($config_ini !== false) ? $config_ini : array();
 
-	$serial		= $cfg['Config']['set_pass'];
-	$password	= $cfg['Config']['password'];
+	$serial		= $ud_config['Config']['pswd_serial'];
+	$password	= $ud_config['Config']['password'];
 
 	/* Now clear the settings from the tmp file. */
-	unset($cfg['Config']['set_pass']);
-	unset($cfg['Config']['password']);
+	unset($ud_config['Config']['pswd_serial']);
+	unset($ud_config['Config']['password']);
 
 	/* Save the new configuration. */
-	save_ini_file($config_file, $cfg, false);
+	save_ini_file($config_file, $ud_config, false);
 
 	/* Release the file lock. */
 	release_file_lock($lock_file);
