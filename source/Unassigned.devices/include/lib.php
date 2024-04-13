@@ -10,9 +10,9 @@
  * all copies or substantial portions of the Software.
  */
 
-$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+$docroot	= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+$plugin		= "unassigned.devices";
 
-$plugin = "unassigned.devices";
 $paths = [	"smb_unassigned"	=> "/etc/samba/smb-unassigned.conf",
 			"smb_usb_shares"	=> "/etc/samba/unassigned-shares",
 			"usb_mountpoint"	=> "/mnt/disks",
@@ -72,13 +72,13 @@ $version = @parse_ini_file("/etc/unraid-version");
 /* 0 - normal logging, */
 
 /* 1 - udev and disk discovery logging, */
-$UDEV_DEBUG	= 1;
+$UDEV_DEBUG		= 1;
 
 /* 2 - refresh and update logging, */
 $UPDATE_DEBUG	= 2;
 
 /* 8 - command time outs. */
-$CMD_DEBUG	= 8;
+$CMD_DEBUG		= 8;
 
 /* Read in the UD configuration file. */
 $config_ini		= @parse_ini_file($paths['config_file'], true, INI_SCANNER_RAW);
@@ -105,9 +105,9 @@ if (! isset($var)){
 	$var = @parse_ini_file($docroot."/state/var.ini");
 }
 
-/* Capitalize the local.tld.  Default local TLD is 'LOCAL'. */
+/* Capitalize the local_tld.  Default local TLD is 'LOCAL'. */
 $default_tld	= "LOCAL";
-$local_tld		= (isset($var['LOCAL_TLD']) && ($var['LOCAL_TLD'])) ? strtoupper($var['LOCAL_TLD']) : $default_tld;
+$local_tld		= (isset($var['LOCAL_TLD']) && ($var['LOCAL_TLD'])) ? strtoupper(trim($var['LOCAL_TLD'])) : $default_tld;
 
 /* Array of devices, mount points, and read only status taken from the /proc/mounts file. */
 $mounts			= null;
