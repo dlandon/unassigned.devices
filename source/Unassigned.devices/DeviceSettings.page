@@ -499,7 +499,7 @@ _(User Script)_:
 		$('div.spinner.fixed').hide();
 	};
 
-	const UDURL		= 'plugins/<?=$plugin;?>/UnassignedDevices.php';
+	const UDURL		= '/plugins/<?=$plugin;?>/UnassignedDevices.php';
 
 <? if (($disk_device) && (! $mounted)):?>
 	/* Passthrough switch. */

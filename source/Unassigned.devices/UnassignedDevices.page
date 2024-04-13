@@ -863,7 +863,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	const tab_usbdisks = $('input[name$="tabs"]').length;
 
 	/* URL for Unassigned Devices PHP file. */
-	const UDURL = "plugins/<?=$plugin;?>/UnassignedDevices.php";
+	const UDURL = "/plugins/<?=$plugin;?>/UnassignedDevices.php";
 
 	/* Page refresh timer. */
 	let refreshTimer;
