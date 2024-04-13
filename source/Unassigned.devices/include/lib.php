@@ -116,11 +116,11 @@ $mounts			= null;
 $lsblk_file_types	= null;
 
 /* See if the preclear plugin is installed. */
-if ( is_file( "plugins/preclear.disk/assets/lib.php" ) ) {
-	require_once( "plugins/preclear.disk/assets/lib.php" );
+if ( is_file( "/plugins/preclear.disk/assets/lib.php" ) ) {
+	require_once( "/plugins/preclear.disk/assets/lib.php" );
 	$Preclear = new Preclear;
-} else if ( is_file( "plugins/".$plugin.".preclear/include/lib.php" ) ) {
-	require_once( "plugins/".$plugin.".preclear/include/lib.php" );
+} else if ( is_file( "/plugins/".$plugin.".preclear/include/lib.php" ) ) {
+	require_once( "/plugins/".$plugin.".preclear/include/lib.php" );
 	$Preclear = new Preclear;
 } else {
 	$Preclear = null;
@@ -501,7 +501,7 @@ function get_device_stats($mountpoint, $mounted, $active = true) {
 
 		/* Update the size, used, and free status every 90 seconds on each device. */
 		if (($active) && ((time() - $df_status[$mountpoint]['timestamp']) > 90)) {
-			exec("/usr/bin/nohup plugins/".$plugin."/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." &");
+			exec("/usr/bin/nohup /plugins/".$plugin."/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." &");
 		}
 
 		/* Get the device stats. */
@@ -1993,7 +1993,7 @@ function do_mount_root($info) {
 		/* If the root server is not online, run the ping update and see if ping status needs to be refreshed. */
 		if (! $is_alive) {
 			/* Update the root share server ping status. */
-			exec("plugins/unassigned.devices/scripts/get_ud_stats ping");
+			exec("/plugins/unassigned.devices/scripts/get_ud_stats ping");
 
 			/* See if the root share server is online now. */
 			$is_alive = is_samba_server_online($info['ip'], $info['protocol']);
@@ -2354,7 +2354,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 				/* If the recycle bin plugin is installed, add the recycle bin to the share. */
 				if ($recycle_bin) {
 					/* Add the recycle bin parameters if plugin is installed */
-					$recycle_script = "plugins/recycle.bin/scripts/configure_recycle_bin";
+					$recycle_script = "/plugins/recycle.bin/scripts/configure_recycle_bin";
 					if (is_file($recycle_script)) {
 						if (file_exists("/boot/config/plugins/recycle.bin/recycle.bin.cfg")) {
 							$recycle_bin_cfg	= @parse_ini_file( "/boot/config/plugins/recycle.bin/recycle.bin.cfg" );
@@ -2805,7 +2805,7 @@ function do_mount_samba($info) {
 	/* If the remote server is not online, run the ping update and see if ping status needs to be refreshed. */
 	if (! $is_alive) {
 		/* Update the remote server ping status. */
-		exec("plugins/unassigned.devices/scripts/get_ud_stats ping");
+		exec("/plugins/unassigned.devices/scripts/get_ud_stats ping");
 
 		/* See if the server is online now. */
 		$is_alive = is_samba_server_online($info['ip'], $info['protocol']);
@@ -4144,7 +4144,7 @@ function change_UUID($dev) {
 
 	/* Deal with crypto_LUKS disks. */
 	if ($fs_type == "crypto_LUKS") {
-		timed_exec(20, escapeshellcmd("plugins/".$plugin."/scripts/luks_uuid.sh ".escapeshellarg($device)));
+		timed_exec(20, escapeshellcmd("/plugins/".$plugin."/scripts/luks_uuid.sh ".escapeshellarg($device)));
 		$mapper	= basename($luks)."_UUID";
 		$cmd	= "luksOpen ".escapeshellarg($luks)." ".escapeshellarg($mapper);
 		$pass	= decrypt_data(get_config($serial, "pass"));

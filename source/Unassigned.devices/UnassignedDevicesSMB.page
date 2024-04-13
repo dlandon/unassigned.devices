@@ -34,7 +34,7 @@ $cfg['Config']['time_mach_vol_size']	= (($cfg['Config']['time_machine'] == "yes"
 <form markdown="1" name="smb_settings" method="POST" action="/update.php" target="progressFrame">
 <input type="hidden" name="#section" value="Config">
 <input type="hidden" name="#file" value="<?=$paths['config_file']?>">
-<input type="hidden" name="#command" value="plugins/unassigned.devices/scripts/rc.settings">
+<input type="hidden" name="#command" value="/plugins/unassigned.devices/scripts/rc.settings">
 <input type="hidden" name="#arg[1]" value="apply">
 
 _(SMB Sharing)_:

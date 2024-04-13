@@ -1096,7 +1096,7 @@ _(User Script)_:
 	/* Remove a device script file. */
 	function rmfile() {
 		$.post("/update.php", {
-			"#command": "plugins/unassigned.devices/scripts/rm",
+			"#command": "/plugins/unassigned.devices/scripts/rm",
 			"#arg[1]": $("input[name='#file']").val()
 		}).done(function () {
 			location.reload();
@@ -1108,7 +1108,7 @@ _(User Script)_:
 		$("button[id='detach-button']").prop("disabled", true);
 		$("button[id='detach-button']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Detaching');?>");
 		$.post("/update.php", {
-			"#command": "plugins/unassigned.devices/scripts/rc.unassigned",
+			"#command": "/plugins/unassigned.devices/scripts/rc.unassigned",
 			"#arg[1]": "detach",
 			"#arg[2]": device
 		}).done(function () {
@@ -1121,7 +1121,7 @@ _(User Script)_:
 		$("button[id='attach-button']").prop("disabled", true);
 		$("button[id='attach-button']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Attaching');?>");
 		$.post("/update.php", {
-			"#command": "plugins/unassigned.devices/scripts/rc.unassigned",
+			"#command": "/plugins/unassigned.devices/scripts/rc.unassigned",
 			"#arg[1]": "attach",
 			"#arg[2]": serial
 		}).done(function () {
@@ -1134,7 +1134,7 @@ _(User Script)_:
 		$("button[id='abort-button']").prop("disabled", true);
 		$("button[id='abort-button']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Aborting');?>");
 		$.post("/update.php", {
-			"#command": "plugins/unassigned.devices/scripts/rc.unassigned",
+			"#command": "/plugins/unassigned.devices/scripts/rc.unassigned",
 			"#arg[1]": "abort",
 			"#arg[2]": device_script,
 			"#arg[3]": user_script,
