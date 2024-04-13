@@ -14,8 +14,8 @@ Tag="hdd-o"
  * all copies or substantial portions of the Software.
  */
 
-$plugin			= "unassigned.devices";
-require_once "plugins/$plugin/include/lib.php";
+$plugin	= "unassigned.devices";
+require_once("plugins/$plugin/include/lib.php");
 
 $config_file = $paths['config_file'];
 $cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
@@ -49,7 +49,7 @@ foreach (get_all_disks_info() as $d) {
 <form markdown="1" name="disk_uuid" method="POST" action="/update.php" target="progressFrame">
 <input type="hidden" name="#section" value="Config">
 <input type="hidden" name="#file" value="<?=$paths['config_file']?>">
-<input type="hidden" name="#command" value="/plugins/unassigned.devices/scripts/rc.settings">
+<input type="hidden" name="#command" value="plugins/unassigned.devices/scripts/rc.settings">
 <input type="hidden" name="#arg[1]" value="uuid_change">
 
 _(Select Disk)_:
