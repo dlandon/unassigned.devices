@@ -27,9 +27,9 @@ $pidFile		= "/var/run/get_ud_stats";
 $tc 			= "/var/state/".$plugin."/ping_status.json";
 $var			= @parse_ini_file("$docroot/state/var.ini");
 
-/* Set default local TLD reference and capitalize the LOCLA_TLD.  Default local TLD is 'local'. */
+/* Capitalize the local_tld.  Default local TLD is 'LOCAL'. */
 $default_tld	= "LOCAL";
-$local_tld		= strtoupper($var['LOCAL_TLD']) ?: $default_tld;
+$local_tld		= (isset($var['LOCAL_TLD']) && ($var['LOCAL_TLD'])) ? strtoupper(trim($var['LOCAL_TLD'])) : $default_tld;
 
 /* Misc functions. */
 class MiscUD
@@ -267,7 +267,7 @@ function df_status($tc, $mountpoint) {
 
 switch ($COMMAND) {
 	case 'ping':
-		/* If we are already running, skip the update so we don't duplicate the instances of the ping script. */
+		/* If we are already running, skip the update so we don't duplicate the instances of this ping script. */
 		if (! file_exists($pidFile)) {
 			/* Get the current PID and save it to the file. */
 			file_put_contents($pidFile, getmypid());
