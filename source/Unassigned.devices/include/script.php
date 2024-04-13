@@ -14,7 +14,7 @@ require_once("plugins/".$plugin."/include/lib.php");
 
 /* add translations */
 $_SERVER['REQUEST_URI'] = 'unassigneddevices';
-require_once "$docroot/webGui/include/Translations.php";
+require_once("$docroot/webGui/include/Translations.php");
 
 readfile('logging.htm');
 
