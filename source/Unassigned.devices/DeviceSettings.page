@@ -17,21 +17,13 @@ $plugin = "unassigned.devices";
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 require_once("plugins/{$plugin}/include/lib.php");
 
-function safe_filename($string) {
-	$string = preg_replace('~[^0-9a-z -_]~i', '', $string);
-
-	/* Remove special characters from file name */
-	$string = str_replace( array("(", ")", "$"), "", $string);
-	return preg_replace('~[ ]~i', '_', $string);
-}
-
 $background				= "yes";
 $partition				= "";
 $disk_setting			= true;
 $show_device_switches	= true;
 $script_disabled		= "";
 $user_disabled			= "";
-$default_file			= safe_filename("/boot/config/plugins/{$plugin}/".($_GET['l'] ? basename($_GET['l']).".sh" : ""));
+$default_file			= safe_name("/boot/config/plugins/{$plugin}/".($_GET['l'] ? basename($_GET['l']).".sh" : ""), true, true);
 $fstype					= "";
 $volume					= "";
 $id_bus					= "";
@@ -408,13 +400,13 @@ _(Encrypt CIFS Mount)_?
 <input type="button" value="_(Done)_" onclick="done()">
 </form>
 
-<form markdown="1" name="edit_script" method="POST" action="/update.php" target="progressFrame">
+<form markdown="1" name="edit_script" method="POST" action="/update.php" target="progressFrame" onsubmit="cleanUpFileInput()">
 <input type="hidden" name="#include" value="/webGui/include/update.file.php">
 <input type="hidden" name="#raw_file" value="true">
 
 <?if ($fstype != "zvol"):?>
 _(Device Script)_:
-: <input type="text" title='_(Enter Device Script File Name)_.' name="#file" style="width:46%;" <?=(!$script_disabled ? 'onclick="openFileBrowserDevice(this, \'/boot/config/plugins/' . $plugin . '\', \'sh\');"' : 'readonly');?> autocomplete="off" value="<?=$file;?>" placeholder="_(Click here to select a Script File or 'Default' button for a Default Script)_">
+: <input type="text" title='_(Enter Device Script File Name)_.' name="#file" id="fileInput" style="width:46%;"  <?=(!$script_disabled ? 'onclick="openFileBrowserDevice(this, \'/boot/config/plugins/' . $plugin . '\', \'sh\');"' : 'readonly');?> autocomplete="off" value="<?=$file;?>" placeholder="_(Click here to select a Script File or 'Default' button for a Default Script)_">
 
 :ud_edit_script_choose_name_plug:
 > This is the Script File that runs when the device is mounted. Choose your Script File name from the file selection dropdown, or enter your desired script.  This cannot be changed if the device is mounted.
@@ -500,6 +492,19 @@ _(User Script)_:
 	};
 
 	const UDURL		= '/plugins/<?=$plugin;?>/UnassignedDevices.php';
+
+	/* Clean up the file name before submitting it. */
+	function cleanUpFileInput() {
+		var fileInput = document.getElementById('fileInput');
+		fileInput.value = removeSpecialChars(fileInput.value);
+	}
+
+	/* Function to remove special characters to prevent php warnings in update.file.php. */
+	function removeSpecialChars(input) {
+		/* List of special characters not allowed in the file name. */
+		var specialChars = /['"?\#&!<>\|+@*]/g;
+		return input.replace(specialChars, '');
+	}
 
 <? if (($disk_device) && (! $mounted)):?>
 	/* Passthrough switch. */
@@ -719,18 +724,6 @@ _(User Script)_:
 					}
 				}));
 
-				requests.push($.ajax({
-					url: UDURL,
-					type: 'POST',
-					async: false,
-					data: {
-						action: "set_samba_command",
-						device: "<?=$device;?>",
-						command: $("input[name='#file']").val(),
-						user_command: $("input[name='#user_file']").val()
-					}
-				}));
-
 				<?php if ($protocol == "SMB"): ?>
 				requests.push($.ajax({
 					url: UDURL,
@@ -758,16 +751,6 @@ _(User Script)_:
 					}
 				}));
 
-				requests.push($.ajax({
-					url: UDURL,
-					type: 'POST',
-					async: false,
-					data: {
-						action: "set_iso_command",
-						device: "<?=$device;?>",
-						command: $("input[name='#file']").val()
-					}
-				}));
 			<?php endif; ?>
 
 			requests.push($.ajax({
