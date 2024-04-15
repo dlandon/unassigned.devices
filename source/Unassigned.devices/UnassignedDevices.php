@@ -12,7 +12,7 @@
 
 $plugin = "unassigned.devices";
 require_once("plugins/".$plugin."/include/lib.php");
-require_once("webGui/include/Helpers.php");
+require_once($docroot."/webGui/include/Helpers.php");
 
 /* add translations */
 $_SERVER['REQUEST_URI'] = "unassigneddevices";
@@ -554,7 +554,7 @@ switch ($_POST['action']) {
 
 			/* Update the preclear diskinfo. */
 			if (file_exists("/etc/rc.d/rc.diskinfo")) {
-				exec("/usr/bin/nohup /etc/rc.d/rc.diskinfo force & 2>/dev/null");
+				exec("/etc/rc.d/rc.diskinfo force & 2>/dev/null");
 			}
 		} else {
 			$all_disks = get_all_disks_info();
@@ -1151,7 +1151,7 @@ switch ($_POST['action']) {
 
 	case 'update_ping':
 		/* Refresh the ping status in the background. */
-		exec("/usr/bin/nohup /plugins/".$plugin."/scripts/get_ud_stats ping & 2>/dev/null");
+		exec($docroot."/plugins/".$plugin."/scripts/get_ud_stats ping & 2>/dev/null");
 		break;
 
 	case 'get_content_json':
@@ -1340,7 +1340,7 @@ switch ($_POST['action']) {
 		/* Mount a disk device. */
 		$device	= urldecode($_POST['device']);
 
-		$return = trim(shell_exec("/usr/bin/nohup /usr/bin/nice /plugins/".$plugin."/scripts/rc.unassigned mount ".escapeshellarg($device)." & 2>/dev/null"));
+		$return = trim(shell_exec("/usr/bin/nice plugins/".$plugin."/scripts/rc.unassigned mount ".escapeshellarg($device)." & 2>/dev/null") ?? "");
 		echo json_encode($return == "success");
 		break;
 
@@ -1348,7 +1348,7 @@ switch ($_POST['action']) {
 		/* Unmount a disk device. */
 		$device	= urldecode($_POST['device']);
 
-		$return = trim(shell_exec("/usr/bin/nohup /usr/bin/nice /plugins/".$plugin."/scripts/rc.unassigned umount ".escapeshellarg($device)." & 2>/dev/null"));
+		$return = trim(shell_exec("/usr/bin/nice plugins/".$plugin."/scripts/rc.unassigned umount ".escapeshellarg($device)." & 2>/dev/null") ?? "");
 		echo json_encode($return == "success");
 		break;
 
@@ -1366,7 +1366,7 @@ switch ($_POST['action']) {
 	/* DISK */
 	case 'rescan_disks':
 		/* Refresh all disk partition information, update config files from flash, and clear status files. */
-		exec("/plugins/".$plugin."/scripts/copy_config.sh");
+		exec($docroot."/plugins/".$plugin."/scripts/copy_config.sh");
 
 		$sf		= $paths['dev_state'];
 		if (is_file($sf)) {
@@ -1422,7 +1422,7 @@ switch ($_POST['action']) {
 			$ip			= $iface['ip'];
 			$netmask 	= $iface['netmask'];
 			if (MiscUD::is_ip($ip) && MiscUD::is_ip($netmask)) {
-				exec("/plugins/".$plugin."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." ".SMB_PORT, $hosts);
+				exec($docroot."/plugins/".$plugin."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." ".SMB_PORT, $hosts);
 				foreach ($hosts as $host) {
 					/* Resolve name as a local server. */
 					$name	= trim(shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'") ?? "");
@@ -1466,7 +1466,7 @@ switch ($_POST['action']) {
 		@file_put_contents("{$paths['authentication']}", "domain=".$domain."\n", FILE_APPEND);
 
 		/* Update this server status before listing shares. */
-		exec("/plugins/".$plugin."/scripts/get_ud_stats is_online ".escapeshellarg($ip)." ".SMB_PORT);
+		exec($docroot."/plugins/".$plugin."/scripts/get_ud_stats is_online ".escapeshellarg($ip)." ".SMB_PORT);
 
 		/* Get a list of samba shares on this server. */
 		$list	= shell_exec("/usr/bin/smbclient -t2 -g -L ".escapeshellarg($ip)." --authentication-file=".escapeshellarg($paths['authentication'])." 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}' | sort");
@@ -1489,7 +1489,7 @@ switch ($_POST['action']) {
 			$ip			= $iface['ip'];
 			$netmask 	= $iface['netmask'];
 			if (MiscUD::is_ip($ip) && MiscUD::is_ip($netmask)) {
-				exec("/plugins/".$plugin."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." ".NFS_PORT." 2>/dev/null | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4", $hosts);
+				exec($docroot."/plugins/".$plugin."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." ".NFS_PORT." 2>/dev/null | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4", $hosts);
 				foreach ($hosts as $host) {
 					/* Resolve name as a local server. */
 					$name	= trim(shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'") ?? "");
@@ -1525,7 +1525,7 @@ switch ($_POST['action']) {
 		}
 
 		/* Update this server status before listing shares. */
-		exec("/plugins/".$plugin."/scripts/get_ud_stats is_online ".escapeshellarg($ip)." ".NFS_PORT);
+		exec($docroot."/plugins/".$plugin."/scripts/get_ud_stats is_online ".escapeshellarg($ip)." ".NFS_PORT);
 
 		/* List the shares. */
 		$result		= timed_exec(10, "/usr/sbin/showmount --no-headers -e ".escapeshellarg($ip)." 2>/dev/null | rev | cut -d' ' -f2- | rev | sort");

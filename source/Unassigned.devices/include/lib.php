@@ -116,11 +116,11 @@ $mounts			= null;
 $lsblk_file_types	= null;
 
 /* See if the preclear plugin is installed. */
-if ( is_file( "/plugins/preclear.disk/assets/lib.php" ) ) {
-	require_once( "/plugins/preclear.disk/assets/lib.php" );
+if ( is_file( $docroot."/plugins/preclear.disk/assets/lib.php" ) ) {
+	require_once( $docroot."/plugins/preclear.disk/assets/lib.php" );
 	$Preclear = new Preclear;
-} else if ( is_file( "/plugins/".$plugin.".preclear/include/lib.php" ) ) {
-	require_once( "/plugins/".$plugin.".preclear/include/lib.php" );
+} else if ( is_file( $docroot."/plugins/".$plugin.".preclear/include/lib.php" ) ) {
+	require_once( $docroot."/plugins/".$plugin.".preclear/include/lib.php" );
 	$Preclear = new Preclear;
 } else {
 	$Preclear = null;
@@ -488,7 +488,7 @@ function safe_name($name, $convert_spaces = true, $convert_extra = false) {
 
 /* Get the size, used, and free space on a mount point. */
 function get_device_stats($mountpoint, $mounted, $active = true) {
-	global $paths, $plugin;
+	global $docroot, $paths, $plugin;
 
 	$rc			= "";
 	$tc			= $paths['df_status'];
@@ -501,7 +501,7 @@ function get_device_stats($mountpoint, $mounted, $active = true) {
 
 		/* Update the size, used, and free status every 90 seconds on each device. */
 		if (($active) && ((time() - $df_status[$mountpoint]['timestamp']) > 90)) {
-			exec("/usr/bin/nohup /plugins/".$plugin."/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." &");
+			exec($docroot."/plugins/".$plugin."/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." &");
 		}
 
 		/* Get the device stats. */
@@ -1058,7 +1058,7 @@ function remove_partition($dev, $part) {
 			$rc = false;
 		} else {
 			/* Reload the partition. */
-			exec("hdparm -z ".escapeshellarg($dev)." >/dev/null 2>&1 &");
+			exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." >/dev/null 2>&1 &");
 
 			/* Refresh partition information. */
 			exec("/usr/sbin/partprobe ".escapeshellarg($dev));
@@ -1434,7 +1434,7 @@ function execute_script($info, $action, $testing = false) {
 			unassigned_log("Running common script: '".basename($common_script)."'");
 
 			/* Apply escapeshellarg() to the command. */
-			$cmd = "/usr/bin/nohup ".escapeshellarg($common_script)." > /dev/null 2>&1 ".$bg;
+			$cmd = escapeshellarg($common_script)." > /dev/null 2>&1 ".$bg;
 
 			/* Run the script. */
 			$out	= null;
@@ -1472,7 +1472,7 @@ function execute_script($info, $action, $testing = false) {
 						$clear_log	= ($action == "ADD") ? " > " : " >> ";
 
 						/* Apply escapeshellarg() to the command and logfile of the command. */
-						$cmd		= "/usr/bin/nohup ".escapeshellarg($command_script).$clear_log.escapeshellarg($info['logfile'])." 2>&1 ".$bg;
+						$cmd		= escapeshellarg($command_script).$clear_log.escapeshellarg($info['logfile'])." 2>&1 ".$bg;
 
 						/* Run the script. */
 						$out		= null;
@@ -1981,7 +1981,7 @@ function do_mount_local($info) {
 
 /* Mount root share. */
 function do_mount_root($info) {
-	global $paths, $var;
+	global $docroot, $paths, $var;
 
 	$rc		= false;
 
@@ -1993,7 +1993,7 @@ function do_mount_root($info) {
 		/* If the root server is not online, run the ping update and see if ping status needs to be refreshed. */
 		if (! $is_alive) {
 			/* Update the root share server ping status. */
-			exec("/plugins/unassigned.devices/scripts/get_ud_stats ping");
+			exec($docroot."/plugins/unassigned.devices/scripts/get_ud_stats ping");
 
 			/* See if the root share server is online now. */
 			$is_alive = is_samba_server_online($info['ip'], $info['protocol']);
@@ -2209,7 +2209,7 @@ function toggle_share($serial, $part, $status) {
 
 /* Add mountpoint to samba shares. */
 function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
-	global $paths, $var, $users, $ud_config;
+	global $docroot, $paths, $var, $users, $ud_config;
 
 	/* Get the current UD configuration. */
 	$config							= $ud_config["Config"];
@@ -2354,7 +2354,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 				/* If the recycle bin plugin is installed, add the recycle bin to the share. */
 				if ($recycle_bin) {
 					/* Add the recycle bin parameters if plugin is installed */
-					$recycle_script = "/plugins/recycle.bin/scripts/configure_recycle_bin";
+					$recycle_script = $docroot."/plugins/recycle.bin/scripts/configure_recycle_bin";
 					if (is_file($recycle_script)) {
 						if (file_exists("/boot/config/plugins/recycle.bin/recycle.bin.cfg")) {
 							$recycle_bin_cfg	= @parse_ini_file( "/boot/config/plugins/recycle.bin/recycle.bin.cfg" );
@@ -2795,7 +2795,7 @@ function get_samba_mounts() {
 
 /* Mount a remote samba or NFS share. */
 function do_mount_samba($info) {
-	global $paths, $var;
+	global $docroot, $paths, $var;
 
 	$rc				= false;
 
@@ -2805,7 +2805,7 @@ function do_mount_samba($info) {
 	/* If the remote server is not online, run the ping update and see if ping status needs to be refreshed. */
 	if (! $is_alive) {
 		/* Update the remote server ping status. */
-		exec("/plugins/unassigned.devices/scripts/get_ud_stats ping");
+		exec($docroot."/plugins/unassigned.devices/scripts/get_ud_stats ping");
 
 		/* See if the server is online now. */
 		$is_alive = is_samba_server_online($info['ip'], $info['protocol']);
@@ -4123,7 +4123,7 @@ function change_iso_mountpoint($dev, $mountpoint) {
 
 /* Change the disk UUID. */
 function change_UUID($dev) {
-	global $plugin, $paths, $var;
+	global $docroot, $plugin, $paths, $var;
 
 	$rc	= "";
 
@@ -4144,7 +4144,7 @@ function change_UUID($dev) {
 
 	/* Deal with crypto_LUKS disks. */
 	if ($fs_type == "crypto_LUKS") {
-		timed_exec(20, escapeshellcmd("/plugins/".$plugin."/scripts/luks_uuid.sh ".escapeshellarg($device)));
+		timed_exec(20, escapeshellcmd($docroot."/plugins/".$plugin."/scripts/luks_uuid.sh ".escapeshellarg($device)));
 		$mapper	= basename($luks)."_UUID";
 		$cmd	= "luksOpen ".escapeshellarg($luks)." ".escapeshellarg($mapper);
 		$pass	= decrypt_data(get_config($serial, "pass"));

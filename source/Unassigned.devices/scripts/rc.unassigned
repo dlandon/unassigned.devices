@@ -59,7 +59,7 @@ $result	= "";
 
 /* Mount devices. */
 function unassigned_mount() {
-	global $DEVNAME, $paths, $result;
+	global $docroot, $DEVNAME, $paths, $result;
 
 	/* Set as operation was successful. */
 	$result	= "success";
@@ -229,7 +229,7 @@ function unassigned_mount() {
 			sleep($remote_share_wait);
 
 			/* Refresh the ping status before trying to mount remote devices. */
-			exec("/usr/local/emhttp/plugins/unassigned.devices/scripts/get_ud_stats ping");
+			exec($docroot."/plugins/unassigned.devices/scripts/get_ud_stats ping");
 		}
 
 		foreach (get_samba_mounts() as $info) {
