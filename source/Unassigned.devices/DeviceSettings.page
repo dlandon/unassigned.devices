@@ -352,7 +352,7 @@ EOT;
 :end
 <?endif;?>
 
-<form markdown="1" name="device_settings" method="POST" action="/update.php" target="progressFrame">
+<form markdown="1" method="POST" action="/update.php" target="progressFrame">
 
 <?if (($disk_setting) && ($fstype != "zvol")):?>
 _(Disk Name)_:
@@ -400,7 +400,7 @@ _(Encrypt CIFS Mount)_?
 <input type="button" value="_(Done)_" onclick="done()">
 </form>
 
-<form markdown="1" name="edit_script" method="POST" action="/update.php" target="progressFrame" onsubmit="cleanUpFileInput()">
+<form markdown="1" method="POST" action="/update.php" target="progressFrame" onsubmit="cleanUpFileInput()">
 <input type="hidden" name="#include" value="/webGui/include/update.file.php">
 <input type="hidden" name="#raw_file" value="true">
 
@@ -443,8 +443,7 @@ _(User Script)_:
 :end
 <?endif;?>
 
-&nbsp;&nbsp;_(Device Script content)_:
-<br />
+###_(Device Script content)_:
 
 <textarea spellcheck="false" cols="80" rows="22" name="text" title='_(Enter and Edit the Device Script that runs when a udev or operator event occurs)_.' style="width:80%"><?=$text;?></textarea>
 
@@ -458,7 +457,7 @@ _(User Script)_:
 <input type="submit" id='apply-button' title='_(Save your Device Script File changes)_.' value='_(Apply)_'/>
 <?endif;?>
 <?endif;?>
-<input type="button" value="_(Done)_" onclick="done()"/>
+<input type="button" value="_(Done)_" onclick="done()"/><span><strong>_(Private Browsing with Chrome can cause file creation and editing to fail due to security settings)_.</strong></span>
 
 :ud_edit_script_buttons_plug:
 > Click **Default** to initialize the edit box with a default Device Script. You still need to click **Save** in order to commit the change.
@@ -647,7 +646,7 @@ _(User Script)_:
 			requests.push($.ajax({
 				url: UDURL,
 				type: 'POST',
-	            async: false,
+				async: false,
 				data: {
 					action: 'set_command',
 					serial: '<?= $ud_device; ?>',
@@ -661,7 +660,7 @@ _(User Script)_:
 			requests.push($.ajax({
 				url: UDURL,
 				type: 'POST',
-	            async: false,
+				async: false,
 				data: {
 					action: "set_name",
 					serial: "<?=$ud_device;?>",
@@ -674,7 +673,7 @@ _(User Script)_:
 			requests.push($.ajax({
 				url: UDURL,
 				type: 'POST',
-	            async: false,
+				async: false,
 				data: {
 					action: "<?=$script_action;?>",
 					device: "<?=$ud_device;?>",
@@ -686,7 +685,7 @@ _(User Script)_:
 			requests.push($.ajax({
 				url: UDURL,
 				type: 'POST',
-	            async: false,
+				async: false,
 				data: {
 					action: "<?=$background_action;?>",
 					device: "<?=$ud_device;?>",
@@ -699,7 +698,7 @@ _(User Script)_:
 			requests.push($.ajax({
 				url: UDURL,
 				type: 'POST',
-	            async: false,
+				async: false,
 				data: {
 					action: "set_volume",
 					serial: "<?=$ud_device;?>",
@@ -715,7 +714,7 @@ _(User Script)_:
 				requests.push($.ajax({
 					url: UDURL,
 					type: 'POST',
-		            async: false,
+					async: false,
 					data: {
 						action: 'set_samba_command',
 						device: '<?= $device; ?>',
@@ -743,7 +742,7 @@ _(User Script)_:
 				requests.push($.ajax({
 					url: UDURL,
 					type: 'POST',
-		            async: false,
+					async: false,
 					data: {
 						action: 'set_iso_command',
 						device: '<?= $device; ?>',
@@ -756,7 +755,7 @@ _(User Script)_:
 			requests.push($.ajax({
 				url: UDURL,
 				type: 'POST',
-	            async: false,
+				async: false,
 				data: {
 					action: "<?=$script_action;?>",
 					device: "<?=$ud_device;?>",
@@ -768,7 +767,7 @@ _(User Script)_:
 			requests.push($.ajax({
 				url: UDURL,
 				type: 'POST',
-	            async: false,
+				async: false,
 				data: {
 					action: "<?=$background_action;?>",
 					device: "<?=$ud_device;?>",
