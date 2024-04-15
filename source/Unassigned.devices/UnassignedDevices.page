@@ -188,41 +188,52 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	/*
 		Refresh UD page showing any updated information.
 	*/
-	function refreshPage() {
+	async function refreshPage() {
 		/* Check if we're already refreshing. */
-		if (! isRefreshing) {
+		if (!isRefreshing) {
 			/* Set that we are refreshing the page. */
 			isRefreshing = true;
 
-			/* Get the UD devices table data and render the web page. */
-			return new Promise(function (resolve) {
-				$.post(UDURL, {
-					'action': 'get_content',
-					'display': display
-				}, function (data) {
-					const toggled = $("tr.toggle-parts:visible").map(function () {
-						return $(this).attr("name");
-					}).get();
+			try {
+				const data = await new Promise(function(resolve, reject) {
+					$.post(UDURL, {
+						'action': 'get_content',
+						'display': display
+					}, function(data) {
+						const toggled = $("tr.toggle-parts:visible").map(function() {
+							return $(this).attr("name");
+						}).get();
 
-					/* Fill the UD devices tables. */
-					if (data) {
-						$('#disk-table-body').html(data.disks);
-						$('#remotes-table-body').html(data.remotes);
-						$('#historical-table-body').html(data.historical);
-					}
+						/* Fill the UD devices tables. */
+						if (data) {
+							$('#disk-table-body').html(data.disks);
+							$('#remotes-table-body').html(data.remotes);
+							$('#historical-table-body').html(data.historical);
+						}
 
-					/* Show toggled disk partitions. */
-					$.each(toggled, function (k, v) {
-						$("tr[name='" + v + "']").css("display", "table-row");
+						/* Show toggled disk partitions. */
+						$.each(toggled, function(k, v) {
+							$("tr[name='" + v + "']").css("display", "table-row");
+						});
+
+						/* Resolve the promise with the data */
+						resolve();
+					}, 'json').fail(function(xhr, status, error) {
+						/* Reject the promise with an error */
+						reject(error);
 					});
+				});
 
-					/* Resolve the promise */
-					resolve();
+				/* We are done refreshing the page. */
+				isRefreshing = false;
 
-					/* We are done refreshing the page. */
-					isRefreshing = false;
-				}, 'json');
-			});
+				return;
+				} catch (error) {
+					/* Ignore any errors. */
+			} finally {
+				/* Make sure to reset isRefreshing even if an error occurred. */
+				isRefreshing = false;
+			}
 		}
 	}
 
@@ -234,7 +245,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		let lastCookie = $.cookie('diskio');
 
 		/* Return a function to check for changes in the 'diskio' cookie and refresh the page. */
-		return function() {
+		return async function() {
 			/* Get the current value of the 'diskio' cookie. */
 			const currentCookie = $.cookie('diskio');
 
@@ -243,8 +254,12 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 				/* Update the last cookie value. */
 				lastCookie = currentCookie;
 
-				/* Refresh the page. */
-				refreshPage();
+				try {
+					/* Refresh the page after the asynchronous operations are completed. */
+					refreshPage();
+				} catch (error) {
+					/* Ignore any errors. */
+				}
 			}
 		};
 	})();
