@@ -1176,11 +1176,11 @@ function timed_exec($timeout, $cmd) {
 
 /* Find the file system type of a partition. */
 function part_fs_type($dev) {
-    global $lsblk_file_types;
+	global $lsblk_file_types;
 
-    /* Get the file system types from lsblk and cache for later use. */
-    if (! isset($lsblk_file_types[$dev])) {
-        $lsblkOutput = timed_exec(0.5, "/bin/lsblk -o NAME,FSTYPE -n -l -p -e 7,11 2>/dev/null | /usr/bin/grep -v 'crypto_LUKS'");
+	/* Get the file system types from lsblk and cache for later use. */
+	if (! isset($lsblk_file_types[$dev])) {
+		$lsblkOutput = timed_exec(0.5, "/bin/lsblk -o NAME,FSTYPE -n -l -p -e 7,11 2>/dev/null | /usr/bin/grep -v 'crypto_LUKS'");
 
 		$lines = explode(PHP_EOL, trim($lsblkOutput));
 		$new_file_types = [];
@@ -1192,7 +1192,7 @@ function part_fs_type($dev) {
 				$device						= $parts[0];
 				$fileType					= $parts[1];
 				$new_file_types[$device]	= $fileType;
-		   }
+			}
 		}
 
 		/* Update the lsblk array. */
@@ -1204,7 +1204,7 @@ function part_fs_type($dev) {
 
 	/* Set $rc to the file system type or "luks" if not found. */
 	$luks		= (strpos($dev, "/dev/mapper/") !== false);
-    $rc			= ($file_type === "zfs_member") ? "zfs" : ($file_type ? $file_type : ($luks ? "luks" : ""));
+	$rc			= ($file_type === "zfs_member") ? "zfs" : ($file_type ? $file_type : ($luks ? "luks" : ""));
 
 	return $rc;
 }
@@ -1434,7 +1434,7 @@ function execute_script($info, $action, $testing = false) {
 			unassigned_log("Running common script: '".basename($common_script)."'");
 
 			/* Apply escapeshellarg() to the command. */
-	        $cmd = "/usr/bin/nohup ".escapeshellarg($common_script)." > /dev/null 2>&1 ".$bg;
+			$cmd = "/usr/bin/nohup ".escapeshellarg($common_script)." > /dev/null 2>&1 ".$bg;
 
 			/* Run the script. */
 			$out	= null;
@@ -1861,7 +1861,7 @@ function do_mount_local($info) {
 				}
 				for ($i=0; $i < 5; $i++) {
 					/* The device and mount point need to be mounted. */
-					$mounted	=  is_mounted($mount_dev, $dir);
+					$mounted	= is_mounted($mount_dev, $dir);
 					if ($mounted) {
 						if (! is_mounted_read_only($dir)) {
 							exec("/bin/chmod 0777 ".escapeshellarg($dir)." 2>/dev/null");
@@ -2612,7 +2612,7 @@ function decrypt_data($data) {
 	$key	= get_config("Config", "key");
 	$iv		= get_config("Config", "iv");
 
-    /* Decrypt the data using aes256. */
+	/* Decrypt the data using aes256. */
 	$value = openssl_decrypt($data, 'aes256', $key, $options=0, $iv);
 
 	/* Make sure the data is UTF-8 encoded. */
@@ -2685,7 +2685,7 @@ function get_samba_mounts() {
 						$mount['fstype']	= "nfs";
 						$path				= $mount['share'];
 						break;
-        
+
 					case "ROOT":
 						$mount['fstype']	= "root";
 						$root_type			= $mount['share'] == "user" ? "Shares-Pools" : "Shares-NoPools";

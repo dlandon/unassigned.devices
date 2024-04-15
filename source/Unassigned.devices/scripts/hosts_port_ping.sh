@@ -31,10 +31,10 @@ if [[ $ip =~ $ip_regex && ! $ip =~ $zero_regex && $mask =~ $ip_regex && ! $mask 
 	IFS=. read -r m1 m2 m3 m4 <<< "$mask"
 
 	# Uncomment the following lines to display network information
-	# echo "network:   $((i1 & m1)).$((i2 & m2)).$((i3 & m3)).$((i4 & m4))"
-	# echo "broadcast: $((i1 & m1 | 255-m1)).$((i2 & m2 | 255-m2)).$((i3 & m3 | 255-m3)).$((i4 & m4 | 255-m4))"
-	# echo "first IP:  $((i1 & m1)).$((i2 & m2)).$((i3 & m3)).$(((i4 & m4)+1))"
-	# echo "last IP:   $((i1 & m1 | 255-m1)).$((i2 & m2 | 255-m2)).$((i3 & m3 | 255-m3)).$(((i4 & m4 | 255-m4)-1))"
+	# echo "network:	$((i1 & m1)).$((i2 & m2)).$((i3 & m3)).$((i4 & m4))"
+	# echo "broadcast:	$((i1 & m1 | 255-m1)).$((i2 & m2 | 255-m2)).$((i3 & m3 | 255-m3)).$((i4 & m4 | 255-m4))"
+	# echo "first IP:	$((i1 & m1)).$((i2 & m2)).$((i3 & m3)).$(((i4 & m4)+1))"
+	# echo "last IP:	$((i1 & m1 | 255-m1)).$((i2 & m2 | 255-m2)).$((i3 & m3 | 255-m3)).$(((i4 & m4 | 255-m4)-1))"
 
 	# Port scan the subnet(s)
 	for net1 in $(seq $((i1 & m1)) $((i1 & m1 | 255-m1))); do

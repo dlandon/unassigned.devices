@@ -83,11 +83,11 @@ function is_server_online($server, $protocol, $log = false) {
 	global $tc, $local_tld, $default_tld;
 
 	/* The scheme here is to do name lookup using 'arp -a server'.  The problem is that the server name might not
-	   be available using 'arp -a server'.  Local servers will need to be looked up using 'server.local TLD'.  If
-	   the 'server.local TLD' name resolves, we create or update the '/etc/hosts' file entry for this server so
-	   the 'arp -a server' will be able to resolve the name.  There are several advantages to this.
-	   For example:
-	   	- UD mount commnds can use 'server' and not have to use 'server.local TLD' to use name resolution.
+		be available using 'arp -a server'.  Local servers will need to be looked up using 'server.local TLD'.  If
+		the 'server.local TLD' name resolves, we create or update the '/etc/hosts' file entry for this server so
+		the 'arp -a server' will be able to resolve the name.  There are several advantages to this.
+		For example:
+		- UD mount commnds can use 'server' and not have to use 'server.local TLD' to use name resolution.
 		- Ping commands can use 'server' and not 'server.local TLD' and the 'server' name will resolve.
 		- Ping status is kept for 'server' and 'server.local TLD' in one entry.
 		- Server lookups don't have to be adjusted for the local TLD.
