@@ -678,7 +678,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 <div class='pluginUpdate'></div>
 
 <div id='title' class='title ud'>
-<span class='left'>_(Unassigned Disks)_/_(Remote Shares)_/_(Historical Devices)_</span>
+<span class='left'>_(Unassigned Disks)_/_(Remote Shares)_/_(Historical Unassigned Devices)_</span>
 <span class='right ud'><a class='tooltip' title="_(Unassigned Devices Settings)_" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a></span>
 <span class='right ud'><a class='tooltip' title="_(Refresh Disks and Configuration)_" onclick="rescan_disks()"><i class="fa fa-refresh"></i></a></span>
 <span class='right ud'><a class='tooltip' title="_(Show/Hide Historical Devices)_"><input type="checkbox" class="historical-switch"></a></span>
