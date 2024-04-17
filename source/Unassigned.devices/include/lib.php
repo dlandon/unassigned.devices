@@ -407,7 +407,7 @@ function save_ini_file($file, $config, $save_config = true) {
 		if (is_array($val)) {
 			$res[] = PHP_EOL."[$key]";
 			foreach($val as $skey => $sval) {
-				$res[] = "$skey = ".(is_numeric($sval) ? $sval : '"'.$sval.'"');
+				$res[] = $skey."=".(is_numeric($sval) ? $sval : '"'.$sval.'"');
 			}
 		} else {
 			$res[] = "$key = ".(is_numeric($val) ? $val : '"'.$val.'"');
@@ -2075,8 +2075,8 @@ function do_unmount($info, $force = false) {
 		case ("root"):
 			$unmount_mode	= "-l ";
 		case ("loop"):
-			$dev		= "";
-			$timeout	= 10;
+			$dev			= "";
+			$timeout		= 10;
 			break;
 
 		default:
