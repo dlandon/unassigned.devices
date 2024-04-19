@@ -588,7 +588,7 @@ function unassigned_umount() {
 
 	/* Unmount Remote SMB/NFS mounts. */
 	if (strpos($DEVNAME, "//") === 0 || strpos($DEVNAME, ":/") || $DEVNAME == "auto" || $DEVNAME == "all") {
-		/* Unmount every samba mount. */
+		/* Unmount every samba mount if 'all' unmount. */
 		foreach (get_samba_mounts() as $info) {
 			$device = $info['device'];
 			if ( $DEVNAME == $device || $DEVNAME == "auto" || $DEVNAME == "all" ) {
@@ -623,7 +623,9 @@ function unassigned_umount() {
 						}
 
 						/* Kill any remaining processes on the mount point. */
-						kill_processes_on_mountpoint($info['mountpoint']);
+						if ($info['fstype'] != "root") {
+							kill_processes_on_mountpoint($info['mountpoint']);
+						}
 					}
 
 					/* Remove special characters. */
