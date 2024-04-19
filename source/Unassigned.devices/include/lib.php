@@ -1260,6 +1260,7 @@ function is_automount($serial, $usb = false) {
 	$auto			= get_config($serial, "automount");
 	$auto_usb		= get_config("Config", "automount_usb");
 	$pass_through	= get_config($serial, "pass_through");
+
 	return ( (($pass_through != "yes") && (($auto == "yes") || ($usb && $auto_usb == "yes"))) );
 }
 
@@ -1268,6 +1269,7 @@ function is_read_only($serial, $default = false, $part = "") {
 	$read_only		= "read_only".($part ? ".$part" : "");
 	$read_only		= get_config($serial, $read_only);
 	$pass_through	= get_config($serial, "pass_through");
+
 	return ( $pass_through != "yes" && $read_only == "yes" ) ? true : (($read_only == "no") ? false : $default);
 }
 
@@ -1275,12 +1277,14 @@ function is_read_only($serial, $default = false, $part = "") {
 function is_pass_through($serial, $part = "") {
 	$pass_through	= "pass_through".($part ? ".$part" : "");
 	$passed_through	= get_config($serial, $pass_through);
+
 	return ($passed_through == "yes") ? true : (($passed_through == "no") ? false : false);
 }
 
 /* Is disable mount button set. */
 function is_disable_mount($serial, $part = "") {
 	$disable_mount	= "disable_mount".($part ? ".$part" : "");
+
 	return (get_config($serial, $disable_mount) == "yes");
 }
 
@@ -1302,7 +1306,7 @@ function toggle_automount($serial, $status) {
 		/* Release the file lock. */
 		release_file_lock($lock_file);
 
-		$rc	= ($ud_config[$serial]["automount"] == "yes") ? 'true' : 'false';
+		$rc	= ($ud_config[$serial]["automount"] == "yes") ? "true" : "false";
 	} else {
 		$rc = false;
 	}
@@ -1329,7 +1333,7 @@ function toggle_read_only($serial, $status, $part = "") {
 		/* Release the file lock. */
 		release_file_lock($lock_file);
 
-		$rc = ($ud_config[$serial][$read_only] == "yes") ? 'true' : 'false';
+		$rc = ($ud_config[$serial][$read_only] == "yes") ? "true" : "false";
 	} else {
 		$rc = false;
 	}
@@ -1356,7 +1360,7 @@ function toggle_pass_through($serial, $status, $part = "") {
 		/* Release the file lock. */
 		release_file_lock($lock_file);
 
-		$rc = ($ud_config[$serial][$pass_through] == "yes") ? 'true' : 'false';
+		$rc = ($ud_config[$serial][$pass_through] == "yes") ? "true" : "false";
 	} else {
 		$rc = false;
 	}
@@ -1383,7 +1387,7 @@ function toggle_disable_mount($serial, $status, $part = "") {
 		/* Release the file lock. */
 		release_file_lock($lock_file);
 
-		$rc = ($ud_config[$serial][$disable_mount] == "yes") ? 'true' : 'false';
+		$rc = ($ud_config[$serial][$disable_mount] == "yes") ? "true" : "false";
 	} else {
 		$rc = false;
 	}
@@ -2196,14 +2200,15 @@ function do_unmount($info, $force = false) {
 function config_shared($serial, $part, $usb = false) {
 	$share		= get_config($serial, "share.{$part}");
 	$auto_usb	= get_config("Config", "automount_usb");
+
 	return (($share == "yes") || ($usb && $auto_usb == "yes")); 
 }
 
 /* Toggle samba share on/off. */
 function toggle_share($serial, $part, $status) {
-
 	$new 	= ($status == "true") ? "yes" : "no";
 	set_config($serial, "share.{$part}", $new);
+
 	return ($new == "yes");
 }
 
@@ -2627,30 +2632,35 @@ function decrypt_data($data) {
 /* Is the samba mount set for auto mount? */
 function is_samba_automount($serial) {
 	$auto	= get_samba_config($serial, "automount");
+
 	return ($auto == "yes");
 }
 
 /* Is the samba mount set to share? */
 function is_samba_share($serial) {
 	$smb_share	= get_samba_config($serial, "smb_share");
+
 	return ($smb_share == "yes");
 }
 
 /* Is disable mount enabled. */
 function is_samba_disable_mount($serial) {
 	$disable_mount	= get_samba_config($serial, "disable_mount");
+
 	return ($disable_mount == "yes");
 }
 
 /* Is the samba mount set to read only? */
 function is_samba_read_only($serial) {
 	$smb_readonly	= get_samba_config($serial, "read_only");
+
 	return ($smb_readonly == "yes");
 }
 
 /* Is the samba mount set to read only? */
 function is_samba_encrypted($serial) {
 	$smb_encrypt	= get_samba_config($serial, "encryption");
+
 	return ($smb_encrypt == "yes");
 }
 
@@ -3029,7 +3039,7 @@ function toggle_samba_disable_mount($source, $status) {
 		/* Release the file lock. */
 		release_file_lock($lock_file);
 
-		$rc	= ($samba_config[$source]["disable_mount"] == "yes") ? 'true' : 'false';
+		$rc	= ($samba_config[$source]["disable_mount"] == "yes") ? "true" : "false";
 	} else {
 		$rc	= false;
 	}
