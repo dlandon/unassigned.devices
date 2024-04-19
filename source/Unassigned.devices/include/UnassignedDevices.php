@@ -1466,7 +1466,7 @@ switch ($_POST['action']) {
 		@file_put_contents("{$paths['authentication']}", "domain=".$domain."\n", FILE_APPEND);
 
 		/* Update this server status before listing shares. */
-		exec($docroot."/plugins/".$plugin."/scripts/get_ud_stats is_online ".escapeshellarg($ip)." ".SMB_PORT);
+		exec($docroot."/plugins/".$plugin."/scripts/get_ud_stats is_online ".escapeshellarg($ip)." "."SMB");
 
 		/* Get a list of samba shares on this server. */
 		$list	= shell_exec("/usr/bin/smbclient -t2 -g -L ".escapeshellarg($ip)." --authentication-file=".escapeshellarg($paths['authentication'])." 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}' | sort");
@@ -1525,7 +1525,7 @@ switch ($_POST['action']) {
 		}
 
 		/* Update this server status before listing shares. */
-		exec($docroot."/plugins/".$plugin."/scripts/get_ud_stats is_online ".escapeshellarg($ip)." ".NFS_PORT);
+		exec($docroot."/plugins/".$plugin."/scripts/get_ud_stats is_online ".escapeshellarg($ip)." "."NFS");
 
 		/* List the shares. */
 		$result		= timed_exec(10, "/usr/sbin/showmount --no-headers -e ".escapeshellarg($ip)." 2>/dev/null | rev | cut -d' ' -f2- | rev | sort");
