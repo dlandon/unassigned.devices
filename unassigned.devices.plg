@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.03.31">
+<!ENTITY version	"2024.04.19">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"02e10f37118b4954501685c0f233edd8">
+<!ENTITY MD5		"f65e8fb5c19a7fbba38e452502b596d0">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,7 +22,22 @@
 <CHANGES>
 ##&name;
 ###&version;
-- Fix: Apply a patch to revert an NFS setting causing "protocol not supported" issue.
+- Fix: Checking online status of SMB and NFS shares could fail when "Local TLD" is blank.
+- Fix: Disk password stopped working in UD Settings.
+- Fix: Cut down on config file writes.
+- Fix: Don't kill tasks on a rootshare mountpoint when shutting down.  It kills the shutdown process and can leave UD devices in limbo.
+- Fix: Issue with checking for a selected server being online before listing shares on that server when adding a remote share.
+- Add: Change diskio (disk reads/writes display) icon click to an event rather than being polled.
+- Add: Tool Tips to the add SMB/NFS share icons to clarify what they are for.
+- Add: Indicate NFS and SMB when entering the server when adding a remote share.
+- Add: Separate NFS and SMB load share prompts to clarify whether or not it is NFS or SMB being added.
+- Add: Change UD Settings to update the flash config file using an atomic write.
+- Add: Clean up device script file name to keep file save and update from failing when some special characters are used.
+- Add: Full path to all UD scripts when executing.
+- Rem: NFS patch required for 6.12.9 to fix "protocol not supported" issue.  It's no longer necessary.  The fix is to upgrade to 6.12.10.
+
+###2024.03.31
+- Fix: Apply a patch to revert an NFS setting causing "protocol not supported" issue for 6.12.9.
 
 ###2024.03.19
 - Fix: Update.php on 6.11 and 6.12 needs to be updated for saving device script changes to work due to recent changes in UD.
@@ -40,7 +55,7 @@
 - Add: Common script only runs when a device is added.
 - Add: Abort common script when stopping array.
 - Add: Abort User Script running on a UD device when stopping the array.
-- Add: Abort any running processes on the mount point when stopping the array so the array will shutdown.
+- Add: Abort any running processes on the mount point when stopping the array so the array will shutdown clean;y.
 - Add: Abort button in device settings will abort device script, user script, and any processes running on the device mountpoint.
 
 ###2024.03.03
@@ -2415,15 +2430,15 @@ source '/etc/unraid-version'
 first_four_chars=${version:0:4}
 
 #
-# These are some temporary patches to oveercome several issues
+# These are some temporary patches to overcome several issues
 #
+# Update the update.php file so device settings will save the script correctly
 # Check if the first 4 characters are 6.11 or 6.12
 if [[ $first_four_chars == "6.11" || $first_four_chars == "6.12" ]]; then
 	cp /usr/local/emhttp/plugins/&name;/include/update.php /usr/local/emhttp/update.php
+else
+	rm /usr/local/emhttp/plugins/&name;/include/update.php
 fi
-# Fix a wrong configuration parameter in nfsmount.conf
-sed -i '/^Nfsvers=4$/d' /etc/nfsmount.conf
-/etc/rc.d/rc.nfsd restart 1>/dev/null
 
 echo ""
 echo "-----------------------------------------------------------"
@@ -2503,7 +2518,6 @@ echo "-----------------------------------------------------------"
 echo " &name; has been uninstalled."
 echo "-----------------------------------------------------------"
 echo ""
-
 </INLINE>
 </FILE>
 
