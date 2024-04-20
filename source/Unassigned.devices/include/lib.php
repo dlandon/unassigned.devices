@@ -3793,6 +3793,7 @@ function get_partition_info($dev) {
 		$partition['running']		= ((is_script_running($partition['command'])) || (is_script_running($partition['user_command'], true)));
 
 		/* Values not needed but must exist for make_mount_button() on the partition. */
+		$partition['ud_device']		= true;
 		$partition['formatting']	= false;
 		$partition['preclearing']	= false;
 	}
@@ -3837,6 +3838,7 @@ function get_zvol_info($disk) {
 			$zvol[$vol]['array_disk']		= false;
 			$zvol[$vol]['not_unmounted']	= false;
 			$zvol[$vol]['not_udev']			= false;
+			$zvol[$vol]['ud_device']		= true;
 			$zvol[$vol]['running']			= false;
 			$zvol[$vol]['command']			= "";
 			$zvol[$vol]['user_command']		= "";
