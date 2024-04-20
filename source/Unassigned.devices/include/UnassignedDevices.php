@@ -446,6 +446,7 @@ function make_mount_button($device) {
 			break;
 
 		case ($device['array_disk']):
+		case (! $device['ud_device']):
 			$class		= $ban_class;
 			$disable	= true;
 			$text		= _('Array');
