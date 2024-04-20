@@ -14,11 +14,12 @@
 $plugin = "unassigned.devices";
 require_once("plugins/".$plugin."/include/lib.php");
 
-$COMMAND = $argv[1] ?? "";
-$DEVNAME = $_ENV['DEVNAME'] ?? ( $argv[2] ?? "" );
+$COMMAND	= $argv[1] ?? "";
+$DEVNAME	= $_ENV['DEVNAME'] ?? ( $argv[2] ?? "" );
 $luks_dev	= (strpos($DEVNAME, "/dev/mapper/") !== false);
-$DEVNAME = ((isset($DEVNAME)) && (file_exists($DEVNAME)) && (! $luks_dev)) ? realpath($DEVNAME) : $DEVNAME;
-$dev_pos = (isset($DEVNAME)) ? strpos($DEVNAME, 'name=') : false;
+$DEVNAME	= ((isset($DEVNAME)) && (file_exists($DEVNAME)) && (! $luks_dev)) ? realpath($DEVNAME) : $DEVNAME;
+$dev_pos	= (isset($DEVNAME)) ? strpos($DEVNAME, 'name=') : false;
+
 if ($dev_pos !== false) {
 	$dev_name		= substr($DEVNAME, $dev_pos+5);
 
