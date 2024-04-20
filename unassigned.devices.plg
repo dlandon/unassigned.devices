@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.04.19">
+<!ENTITY version	"2024.04.20">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"f65e8fb5c19a7fbba38e452502b596d0">
+<!ENTITY MD5		"28f54826ad07a55d16e1b7f312bd0553">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Load shares by protocol not working for NFS.
+- Add: Show 'Array' on mount point when a disk is not unassigned - i.e. shows an 'sdX' designation instead on 'devX'.
+
+###2024.04.19
 - Fix: Checking online status of SMB and NFS shares could fail when "Local TLD" is blank.
 - Fix: Disk password stopped working in UD Settings.
 - Fix: Cut down on config file writes.
