@@ -17,8 +17,8 @@ $plugin	= "unassigned.devices";
 require_once("plugins/$plugin/include/lib.php");
 
 $config_file 	= $paths['config_file'];
-$cfg_ini		= is_file($config_file) ? @parse_ini_file($config_file, true) : array();
-$cfg			= ($cfg_ini !== false) ? $cfg_ini : array();
+$cfg_ini		= is_file($config_file) ? @parse_ini_file($config_file, true) : [];
+$cfg			= ($cfg_ini !== false) ? $cfg_ini : [];
 
 $cfg['Config']['smb_security']			= $cfg['Config']['smb_security'] ?? "";
 $cfg['Config']['case_names']			= $cfg['Config']['case_names'] ?? "";

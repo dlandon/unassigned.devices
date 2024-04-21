@@ -18,7 +18,7 @@ $plugin	= "unassigned.devices";
 require_once("plugins/$plugin/include/lib.php");
 
 $config_file = $paths['config_file'];
-$cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
+$cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : [];
 $cfg['Config']['common_cmd']		= $cfg['Config']['common_cmd'] ?? "";
 $cfg['Config']['destructive_mode']	= $cfg['Config']['destructive_mode'] ?? "";
 $cfg['Config']['automount_usb']		= $cfg['Config']['automount_usb'] ?? "";

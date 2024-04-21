@@ -19,11 +19,11 @@ $plugin	= "unassigned.devices";
 require_once("plugins/$plugin/include/lib.php");
 
 $config_file = $paths['config_file'];
-$cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
+$cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : [];
 $cfg['Config']['zfs_upgrade']		= $cfg['Config']['zfs_upgrade'] ?? "";
 
 /* Get array of ZFS devices that can be upgraded. */
-$zfs_devices = array();
+$zfs_devices = [];
 
 foreach (get_all_disks_info() as $d) {
 	/* If the disk dropped out of the array, skip it. */
@@ -45,7 +45,7 @@ foreach (get_all_disks_info() as $d) {
 			/* See if the device needs an upgrade. */
 			$pool_name	= $d['partitions'][0]['pool_name'];
 			if (($pool_name) && (! is_upgraded_ZFS_pool($pool_name))) {
-				$a = array();
+				$a = [];
 				$a['device']		= $d['device'];
 				$a['serial']			= $d['serial'];
 				$a['pool_name']		= $pool_name;

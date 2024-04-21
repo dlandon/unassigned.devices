@@ -55,7 +55,7 @@ if (! $DEVNAME) {
 }
 
 /* Create array for mount button status files. */
-$remove = array();
+$remove = [];
 $result	= "";
 
 /* Mount devices. */
@@ -796,7 +796,7 @@ function unassigned_spin_down($device) {
 
 		/* Set the spinning_down state. */
 		$tc			= $paths['run_status'];
-		$run_status	= file_exists($tc) ? json_decode(file_get_contents($tc), true) : array();
+		$run_status	= file_exists($tc) ? json_decode(file_get_contents($tc), true) : [];
 		if (isset($run_status[$device])) {
 			if ($run_status[$device]['running'] == "yes") {
 				$run_status[$device]['spin_time']	= time();

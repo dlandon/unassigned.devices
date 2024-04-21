@@ -36,7 +36,7 @@ class MiscUD
 {
 	/* Get content from a json file. */
 	public static function get_json($file) {
-		return file_exists($file) ? @json_decode(file_get_contents($file), true) : array();
+		return file_exists($file) ? @json_decode(file_get_contents($file), true) : [];
 	}
 
 	/* Save content to a json file. */
@@ -220,10 +220,10 @@ function ping_servers() {
 
 	/* Refresh the ping status. */
 	$config_ini		= @parse_ini_file($config_file, true);
-	$samba_mounts	= ($config_ini !== false) ? $config_ini : array();
+	$samba_mounts	= ($config_ini !== false) ? $config_ini : [];
 	if (is_array($samba_mounts)) {
 		/* Ceate an array of unique server names/ip addresses. */
-		$srvr	= array();
+		$srvr	= [];
 		foreach ($samba_mounts as $device => $mount) {
 			if (isset($mount['ip'])) {
 				/* Strip off any local tld reference and capitalize the server name. */

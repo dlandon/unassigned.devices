@@ -53,12 +53,12 @@ define('NFS_PORT', '2049');
 
 /* Get the Unraid users. */
 $users_ini			= @parse_ini_file($docroot."/state/users.ini", true);
-$users				= ($users_ini !== false) ? $users_ini : array();
+$users				= ($users_ini !== false) ? $users_ini : [];
 
 /* Get all Unraid disk devices (array disks, cache, and pool devices). */
 $array_disks_ini	= @parse_ini_file($docroot."/state/disks.ini", true);
-$array_disks		= ($array_disks_ini !== false) ? $array_disks_ini : array();
-$unraid_disks		= array();
+$array_disks		= ($array_disks_ini !== false) ? $array_disks_ini : [];
+$unraid_disks		= [];
 foreach ($array_disks as $d) {
 	if ($d['device']) {
 		$unraid_disks[] = "/dev/".$d['device'];
@@ -82,15 +82,15 @@ $CMD_DEBUG		= 8;
 
 /* Read in the UD configuration file. */
 $config_ini		= @parse_ini_file($paths['config_file'], true, INI_SCANNER_RAW);
-$ud_config		= ($config_ini !== false) ? $config_ini : array();
+$ud_config		= ($config_ini !== false) ? $config_ini : [];
 
 /* Read in the Samba configuration file. */
 $config_ini		= @parse_ini_file($paths['samba_mount'], true, INI_SCANNER_RAW);
-$samba_config	= ($config_ini !== false) ? $config_ini : array();
+$samba_config	= ($config_ini !== false) ? $config_ini : [];
 
 /* Read in the ISO configuration file. */
 $config_ini		= @parse_ini_file($paths['iso_mount'], true, INI_SCANNER_RAW);
-$iso_config		= ($config_ini !== false) ? $config_ini : array();
+$iso_config		= ($config_ini !== false) ? $config_ini : [];
 
 $DEBUG_LEVEL	= (int) get_config("Config", "debug_level");
 
@@ -141,7 +141,7 @@ class MiscUD
 
 	/* Get content from a json file. */
 	public static function get_json($file) {
-		return file_exists($file) ? @json_decode(file_get_contents($file), true) : array();
+		return file_exists($file) ? @json_decode(file_get_contents($file), true) : [];
 	}
 
 	/* Check for a valid IP address. */
@@ -200,14 +200,14 @@ class MiscUD
 	public static function get_pool_devices($mountpoint, $remove = false) {
 		global $paths;
 
-		$rc = array();
+		$rc = [];
 
 		/* Get the current pool status. */
 		$pool_state	= MiscUD::get_json($paths['pool_state']);
 
 		/* If this mount point is not defined, set it as an empty array. */
 		if (in_array($mountpoint, $pool_state)) {
-			$pool_state[$mountpoint]	= is_array($pool_state[$mountpoint]) ? $pool_state[$mountpoint] : array();
+			$pool_state[$mountpoint]	= is_array($pool_state[$mountpoint]) ? $pool_state[$mountpoint] : [];
 		}
 
 		if (isset($pool_state[$mountpoint])) {
@@ -402,7 +402,7 @@ function release_file_lock($lock_file) {
 function save_ini_file($file, $config, $save_config = true) {
 	global $plugin, $paths, $ud_config;
 
-	$res = array();
+	$res = [];
 	foreach($config as $key => $val) {
 		if (is_array($val)) {
 			$res[] = PHP_EOL."[$key]";
@@ -588,7 +588,7 @@ function get_disk_reads_writes($ud_dev, $dev) {
 	$dev	= MiscUD::base_device(basename($dev));
 
 	/* Get the disk_io for this device. */
-	$disk_io	= (is_file($paths['disk_load'])) ? @parse_ini_file($paths['disk_load']) : array();
+	$disk_io	= (is_file($paths['disk_load'])) ? @parse_ini_file($paths['disk_load']) : [];
 	$data		= explode(' ', $disk_io[$dev] ?? '0 0 0 0');
 
 	/* Read rate. */
@@ -1910,7 +1910,7 @@ function do_mount_local($info) {
 				if ($info['fstype'] == "btrfs") {
 					/* Update the btrfs state file for single scan for pool devices. */
 					$pool_state			= MiscUD::get_json($paths['pool_state']);
-					$pool_state[$dir]	= array();
+					$pool_state[$dir]	= [];
 					MiscUD::save_json($paths['pool_state'], $pool_state);
 				}
 
@@ -2295,8 +2295,8 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 			}
 
 			if (($smb_security == "yes") || ($smb_security == "hidden")) {
-				$read_users		= array();
-				$write_users	= array();
+				$read_users		= [];
+				$write_users	= [];
 				$valid_users	= array_keys($users);;
 
 				/* Remove the root user. */
@@ -2346,7 +2346,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 
 			@file_put_contents($share_conf, $share_cont);
 			if (! (new MiscUD)->exist_in_file($paths['smb_unassigned'], $share_conf)) {
-				$c		= (is_file($paths['smb_unassigned'])) ? @file($paths['smb_unassigned'], FILE_IGNORE_NEW_LINES) : array();
+				$c		= (is_file($paths['smb_unassigned'])) ? @file($paths['smb_unassigned'], FILE_IGNORE_NEW_LINES) : [];
 				$c[]	= "include = $share_conf";
 
 				/* Do some cleanup. */
@@ -2368,7 +2368,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 						if (file_exists("/boot/config/plugins/recycle.bin/recycle.bin.cfg")) {
 							$recycle_bin_cfg	= @parse_ini_file( "/boot/config/plugins/recycle.bin/recycle.bin.cfg" );
 						} else {
-							$recycle_nin_cfg	= array();
+							$recycle_nin_cfg	= [];
 						}
 						if ((isset($recycle_bin_cfg['INCLUDE_UD'])) && ($recycle_bin_cfg['INCLUDE_UD'] == "yes")) {
 							if (is_file("/var/run/recycle.bin.pid")) {
@@ -2404,7 +2404,7 @@ function rm_smb_share($dir) {
 		@unlink($share_conf);
 	}
 	if (MiscUD::exist_in_file($paths['smb_unassigned'], $share_conf)) {
-		$c = (is_file($paths['smb_unassigned'])) ? @file($paths['smb_unassigned'], FILE_IGNORE_NEW_LINES) : array();
+		$c = (is_file($paths['smb_unassigned'])) ? @file($paths['smb_unassigned'], FILE_IGNORE_NEW_LINES) : [];
 
 		/* Do some cleanup. */
 		$smb_unassigned_includes = array_unique(preg_grep("/include/i", $c));
@@ -2433,7 +2433,7 @@ function add_nfs_share($dir) {
 			$reload = false;
 			foreach (array("/etc/exports","/etc/exports-") as $file) {
 				if (! MiscUD::exist_in_file($file, $dir)) {
-					$c			= (is_file($file)) ? @file($file, FILE_IGNORE_NEW_LINES) : array();
+					$c			= (is_file($file)) ? @file($file, FILE_IGNORE_NEW_LINES) : [];
 					$fsid		= 200 + count(preg_grep("@^\"@", $c));
 					$nfs_sec	= get_config("Config", "nfs_security");
 					if ( $nfs_sec == "private" ) {
@@ -2672,7 +2672,7 @@ function is_samba_encrypted($serial) {
 function get_samba_mounts() {
 	global $paths, $samba_config, $default_tld, $local_tld;
 
-	$return			= array();
+	$return			= [];
 
 	/* Get all the samba devices from the configuration. */
 	$samba_mounts	= $samba_config;
@@ -3156,7 +3156,7 @@ function get_iso_mounts() {
 	global $paths, $iso_config;
 
 	/* Create an array of iso file mounts and set paramaters. */
-	$return			= array();
+	$return			= [];
 
 	$iso_mounts		= $iso_config;
 
@@ -3327,8 +3327,8 @@ function get_unassigned_disks() {
 	global $unraid_disks;
 
 	/* Initialize arrays. */
-	$ud_disks = array();
-	$devicePaths = array();
+	$ud_disks = [];
+	$devicePaths = [];
 
 	/* Get all devices by id and eliminate any duplicates. */
 	foreach (array_unique(listFile("/dev/disk/by-id/")) as $physicalDevice) {
@@ -3408,7 +3408,7 @@ function get_all_disks_info() {
 
 			/* Get all the disk partitions. */
 			$disk			= array_merge($disk, get_disk_info($key));
-			$disk['zvol']	= array();
+			$disk['zvol']	= [];
 
 			/* Get all the partitions and additional settings. */
 			if (! empty($disk['partitions'])) {
@@ -3533,7 +3533,7 @@ function get_all_disks_info() {
 	} else {
 		/* There was a problem getting the unassigned disks array. */
 		unassigned_log("Error: unable to get unassigned disks.");
-		$ud_disks = array();
+		$ud_disks = [];
 	}
 
 	/* Sort the unassigned devoces in natural order. */
@@ -3546,10 +3546,10 @@ function get_all_disks_info() {
 function get_udev_info($dev, $udev = null) {
 	global $paths;
 
-	$rc		= array();
+	$rc		= [];
 
 	/* Make file changes. */
-	$state	= is_file($paths['state']) ? @parse_ini_file($paths['state'], true, INI_SCANNER_RAW) : array();
+	$state	= is_file($paths['state']) ? @parse_ini_file($paths['state'], true, INI_SCANNER_RAW) : [];
 
 	/* Be sure the device name has safe characters. */
 	$device	= safe_name($dev);
@@ -3620,7 +3620,7 @@ function get_disk_info($dev) {
 	global $unraid_disks, $Preclear;
 
 	/* Get all the disk information for this disk device. */
-	$disk						= array();
+	$disk						= [];
 	$attrs						= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
 	$disk['serial_short']		= $attrs['ID_SCSI_SERIAL'] ?? ($attrs['ID_SERIAL_SHORT'] ?? "");
 	$disk['device']				= realpath($dev);
@@ -3670,7 +3670,7 @@ function get_disk_info($dev) {
 function get_partition_info($dev) {
 	global $paths;
 
-	$partition	= array();
+	$partition	= [];
 	$attrs	= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
 	if ($attrs['DEVTYPE'] == "partition") {
 		$partition['serial_short']		= $attrs['ID_SCSI_SERIAL'] ?? ($attrs['ID_SERIAL_SHORT'] ?? "");
@@ -3813,7 +3813,7 @@ function get_partition_info($dev) {
 function get_zvol_info($disk) {
 
 	/* Get any zfs volumes. */
-	$zvol		= array();
+	$zvol		= [];
 	if ((get_config("Config", "zvols") == "yes") && ($disk['fstype'] == "zfs") && ($disk['mounted'])) {
 		$serial		= $disk['serial'];
 		$zpool_name	= $disk['pool_name'];
@@ -3941,7 +3941,7 @@ function check_for_duplicate_share($dev, $mountpoint) {
 	}
 
 	/* Start with an empty array of ud_shares. */
-	$ud_shares		= array();
+	$ud_shares		= [];
 
 	/* Get an array of all ud shares. */
 	$share_names	= MiscUD::get_json($paths['share_names']);

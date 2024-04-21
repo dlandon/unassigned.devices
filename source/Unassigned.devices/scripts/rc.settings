@@ -19,7 +19,7 @@ function save() {
 
 	/* Update the UD configuration file in ram. */
 	$config_ini		= @parse_ini_file($paths['config_file'], true, INI_SCANNER_RAW);
-	$ud_config		= ($config_ini !== false) ? $config_ini : array();
+	$ud_config		= ($config_ini !== false) ? $config_ini : [];
 
 	/* Save the updated config onto the flash. */
 	save_ini_file($paths['config_file'], $ud_config);
@@ -36,7 +36,7 @@ function apply() {
 
 	/* Update the UD configuration file in ram. */
 	$config_ini		= @parse_ini_file($paths['config_file'], true, INI_SCANNER_RAW);
-	$ud_config		= ($config_ini !== false) ? $config_ini : array();
+	$ud_config		= ($config_ini !== false) ? $config_ini : [];
 
 	/* Save the updated config onto the flash. */
 	save_ini_file($paths['config_file'], $ud_config);
@@ -57,7 +57,7 @@ function uuid_change() {
 	/* Make file changes. */
 	$config_file	= $paths['config_file'];
 	$config_ini		= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
-	$ud_config		= ($config_ini !== false) ? $config_ini : array();
+	$ud_config		= ($config_ini !== false) ? $config_ini : [];
 
 	/* Get the device from the passed in device and serial number. */
 	$dev		= $ud_config['Config']['change_uuid'];
@@ -86,7 +86,7 @@ function zfs_upgrade() {
 	/* Make file changes. */
 	$config_file	= $paths['config_file'];
 	$config_ini		= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
-	$ud_config		= ($config_ini !== false) ? $config_ini : array();
+	$ud_config		= ($config_ini !== false) ? $config_ini : [];
 
 	/* Get the device from the passed in device and serial number. */
 	$pool_name		= $ud_config['Config']['zfs_upgrade'];
@@ -119,7 +119,7 @@ function set_pass() {
 	/* Make file changes. */
 	$config_file	= $paths['config_file'];
 	$config_ini		= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
-	$ud_config		= ($config_ini !== false) ? $config_ini : array();
+	$ud_config		= ($config_ini !== false) ? $config_ini : [];
 
 	$serial		= $ud_config['Config']['pswd_serial'];
 	$password	= $ud_config['Config']['password'];
@@ -144,7 +144,7 @@ function nfs_settings() {
 
 	/* Make file changes. */
 	$config_file = $paths['config_file'];
-	$cfg		= is_file($config_file) ? @parse_ini_file($config_file, true) : array();
+	$cfg		= is_file($config_file) ? @parse_ini_file($config_file, true) : [];
 
 	if (isset($cfg['Config']['new_nfs_rule'])) {
 		/* Get a lock so file changes can be made. */

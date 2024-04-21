@@ -17,7 +17,7 @@ $plugin	= "unassigned.devices";
 require_once("plugins/$plugin/include/lib.php");
 
 $config_file = $paths['config_file'];
-$cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : array();
+$cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : [];
 $cfg['Config']['nfs_export']		= $cfg['Config']['nfs_export'] ?? "";
 $cfg['Config']['nfs_security']		= $cfg['Config']['nfs_security'] ?? "";
 $cfg['Config']['nfs_rule']			= $cfg['Config']['nfs_rule'] ?? "";
