@@ -92,7 +92,7 @@ function render_used_and_free_disk($disk, $mounted) {
 function render_partition($disk, $partition, $disk_line = false) {
 	global $paths, $plugin, $shares_enabled;
 
-	$out = array();
+	$out = [];
 	if (! empty($disk['partitions'])) {
 		$mounted		= $partition['mounted'];
 		$not_unmounted	= $partition['not_unmounted'];
@@ -534,7 +534,7 @@ switch ($_POST['action']) {
 
 		/* Check for a recent hot plug event. */
 		if (file_exists($paths['hotplug_event'])) {
-			exec("rm -f ".$paths['hotplug_event']);
+			exec("/usr/bin/rm -f ".escapeshellarg($paths['hotplug_event']));
 
 			unassigned_log("Debug: Processing Hotplug event...", $UDEV_DEBUG);
 
@@ -544,11 +544,10 @@ switch ($_POST['action']) {
 			/* Get all updated unassigned disks and update devX designations for newly found unassigned devices. */
 			$all_disks = get_all_disks_info();
 			foreach ($all_disks as $disk) {
-				$unassigned	= get_config($disk['serial'], "unassigned_dev");
-				if ((! $unassigned) && ($disk['device'] != $disk['ud_dev'])) {
-					set_config($disk['serial'], "unassigned_dev", $disk['ud_dev']);					
-
-				} else if (($unassigned) && ((strtoupper(substr($unassigned, 0, 3)) == "DEV" || strtoupper(substr($unassigned, 0, 2)) == "SD") && ($unassigned != $disk['ud_dev']))) {
+				/* This is the device label and is either a 'devX' designation or a disk alias. */
+				$unassigned	= $disk['unassigned_dev'];
+				/* If the unassigned_dev value is not set or is 'dev' or 'sd', then assign it the 'devX' value. */
+				if ((! $unassigned) || (((strtoupper(substr($unassigned, 0, 3)) == "DEV") || (strtoupper(substr($unassigned, 0, 2)) == "SD")) && ($unassigned != $disk['ud_dev']))) {
 					set_config($disk['serial'], "unassigned_dev", $disk['ud_dev']);
 				}
 			}
@@ -562,11 +561,11 @@ switch ($_POST['action']) {
 		}
 
 		/* Create empty array of share names for duplicate share checking. */
-		$share_names	= array();
-		$disk_uuid		= array();
+		$share_names	= [];
+		$disk_uuid		= [];
 
 		/* Create array of disk names. */
-		$disk_names		= array();
+		$disk_names		= [];
 
 		/* Disk devices. */
 		$o_disks		= "";
@@ -1063,13 +1062,13 @@ switch ($_POST['action']) {
 		$config			= $ud_config;
 
 		ksort($config, SORT_NATURAL);
-		$disks_serials	= array();
+		$disks_serials	= [];
 		foreach ($all_disks as $disk) {
 			$disks_serials[] = $disk['serial'];
 		}
 
 		/* Organize the historical devices. */
-		$historical = array();
+		$historical = [];
 		foreach ($config as $serial => $value) {
 			if ($serial != "Config") {
 				if (! preg_grep("#{$serial}#", $disks_serials)){
@@ -1835,7 +1834,7 @@ switch ($_POST['action']) {
 
 		/* Set the spinning_down state. */
 		$tc			= $paths['run_status'];
-		$run_status	= file_exists($tc) ? json_decode(file_get_contents($tc), true) : array();
+		$run_status	= file_exists($tc) ? json_decode(file_get_contents($tc), true) : [];
 		if ($run_status[$device]['running'] == "yes") {
 			$run_status[$device]['spin_time']	= time();
 			$run_status[$device]['spin']		= "down";
@@ -1851,7 +1850,7 @@ switch ($_POST['action']) {
 
 		/* Set the spinning_up state. */
 		$tc			= $paths['run_status'];
-		$run_status	= file_exists($tc) ? json_decode(file_get_contents($tc), true) : array();
+		$run_status	= file_exists($tc) ? json_decode(file_get_contents($tc), true) : [];
 		if ($run_status[$device]['running'] == "no") {
 			$run_status[$device]['spin_time']	= time();
 			$run_status[$device]['spin']		= "up";
