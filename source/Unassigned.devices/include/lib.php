@@ -442,17 +442,21 @@ function unassigned_log($m, $debug_level = 0) {
 
 /* Get a list of directories at $root. */
 function listFile($root) {
-	$filePaths = glob($root . '/*', GLOB_MARK);
+	/* Check if $root is a valid directory. */
+	if (is_dir($root)) {
+		$filePaths = glob($root . '/*', GLOB_MARK);
+		$filesOnly = [];
 
-	foreach ($filePaths as $index => $path) {
-		/* Remove directories from the list. */
-		if (is_dir($path)) {
-			unset($filePaths[$index]);
+		foreach ($filePaths as $path) {
+			if (! is_dir($path)) {
+				$filesOnly[] = $path;
+			}
 		}
+	} else {
+		$filesOnly = [];
 	}
 
-	/* Reindex the array to start from 0. */
-	return array_values($filePaths);
+	return $filesOnly;
 }
 
 /* Remove characters that will cause issues with php in names. */
@@ -3322,40 +3326,44 @@ function remove_config_iso($source) {
 function get_unassigned_disks() {
 	global $unraid_disks;
 
-	$ud_disks = $paths = array();
+	/* Initialize arrays. */
+	$ud_disks = array();
+	$devicePaths = array();
 
 	/* Get all devices by id and eliminate any duplicates. */
-	foreach (array_unique(listFile("/dev/disk/by-id/")) as $p) {
-		$r = realpath($p);
+	foreach (array_unique(listFile("/dev/disk/by-id/")) as $physicalDevice) {
+		$realPath = realpath($physicalDevice);
 
 		/* Only /dev/sd*, /dev/hd*, and /dev/nvme* devices. */
-		if (array_reduce(["/dev/sd", "/dev/hd", "/dev/nvme"], function ($carry, $substring) use ($r) {
-			return $carry || strpos($r, $substring) !== false;
+		if (array_reduce(["/dev/sd", "/dev/hd", "/dev/nvme"], function ($carry, $substring) use ($realPath) {
+			return $carry || strpos($realPath, $substring) !== false;
 		}, false)) {
-			$paths[$r] = $p;
+			$devicePaths[$realPath] = $physicalDevice;
 		}
 	}
-	ksort($paths, SORT_NATURAL);
+
+	ksort($devicePaths, SORT_NATURAL);
 
 	/* Create the array of unassigned devices. */
-	foreach ($paths as $path => $device) {
-		/* Check if $device is not empty and doesn't contain "part" in its name */
+	foreach ($devicePaths as $path => $device) {
+		/* Check if $device is not empty and doesn't contain "part" in its name. */
 		if ($device && (preg_match("#^(.(?!part))*$#", $device))) {
 
 			/* Check if $path is not in $unraid_disks */
-			if (!in_array($path, $unraid_disks, true)) {
+			if (! in_array($path, $unraid_disks, true)) {
 
-				/* Check if $path is not in the 'device' field of any array in $ud_disks */
-				if (!in_array($path, array_map(function ($ar) {
-					return $ar['device'];
-				}, $ud_disks), true)) {
-					/* Get partitions matching the pattern "$device.*-part\d+" */
-					$partitions = array_values(preg_grep("|$device.*-part\d+|", $paths));
+				/* Check if $path is not in the 'device' field of any array in $ud_disks. */
+				if (! in_array($path, array_map(function ($ar) {
+						return $ar['device'];
+					}, $ud_disks), true)) {
 
-					/* Sort partitions using natural order */
+					/* Get partitions matching the pattern "$device.*-part\d+". */
+					$partitions = array_values(preg_grep("|$device.*-part\d+|", $devicePaths));
+
+					/* Sort partitions using natural order. */
 					natsort($partitions);
 
-					/* Add entry to $ud_disks */
+					/* Add entry to $ud_disks. */
 					$ud_disks[$device] = array("device" => $path, "partitions" => $partitions);
 				}
 			}
