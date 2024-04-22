@@ -3560,6 +3560,13 @@ function get_udev_info($dev, $udev = null) {
 
  		/* Save this entry unless the ACTION is remove. */
  		if ($udev['ACTION'] != "remove") {
+			/* Remove proxy environment variables. */
+			if (isset($udev['http_proxy'])) {
+				unset($udev['http_proxy']);
+				unset($udev['https_proxy']);
+				unset($udev['no_proxy']);
+			}
+
 			$state[$device] = $udev;
 		} else {
 			/* Remove all entries for this serial number. */
@@ -3598,9 +3605,10 @@ function get_udev_info($dev, $udev = null) {
 			/* Get a lock so file changes can be made. */
 			$lock_file	= get_file_lock("udev");
 
-			save_ini_file($paths['state'], $state);
+			/* Write the file to the ram file system. */
+			save_ini_file($paths['state'], $state, false);
 
-			/* Write to temp file and then move to destination file. */
+			/* Write to temp file and then move to diagnostics destination file. */
 			$tmp_file	= $paths['tmp_file'];
 			@copy($paths['state'], $tmp_file);
 			@rename($tmp_file, $paths['diag_state']);
