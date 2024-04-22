@@ -747,7 +747,8 @@ function unassigned_umount() {
 function unassigned_reload() {
 	global $paths;
 
-	if ($_ENV['DEVTYPE'] == "disk" || $_ENV['DEVTYPE'] == "partition") {
+	$device_type	= $_ENV['DEVTYPE'] ?? "";
+	if ($device_type == "disk" || $device_type == "partition") {
 
 		unassigned_log("Reload: A udev '".$_ENV['ACTION']." ".$_ENV['DEVTYPE']."' initiated a reload of udev info.", $GLOBALS['UDEV_DEBUG']);
 
@@ -769,7 +770,8 @@ function unassigned_reload() {
 function unassigned_hotplug() {
 	global $paths;
 
-	if ($_ENV['DEVTYPE'] == "disk") {
+	$device_type	= $_ENV['DEVTYPE'] ?? "";
+	if ($device_type == "disk") {
 
 		unassigned_log("Hotplug: A udev 'add disk' initiated a Hotplug event.", $GLOBALS['UDEV_DEBUG']);
 
