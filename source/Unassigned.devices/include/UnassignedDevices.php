@@ -527,7 +527,7 @@ switch ($_POST['action']) {
 	case 'get_content':
 		/* Update the UD webpage content. */
 
-		/* Start time for disk ops. */
+		/* Start time for disk ops. Used for debugging. */
 		$time		= -microtime(true); 
 
 		unassigned_log("Debug: Begin - Refreshing content...", $UPDATE_DEBUG);
@@ -546,17 +546,19 @@ switch ($_POST['action']) {
 			foreach ($all_disks as $disk) {
 				/* This is the device label and is either a 'devX' designation or a disk alias. */
 				$unassigned	= $disk['unassigned_dev'];
-				/* If the unassigned_dev value is not set or is 'dev' or 'sd', then assign it the 'devX' value. */
+
+				/* If the unassigned_dev value is not set or is 'dev' or 'sd', and not equal to ud_dev value the then assign it the 'devX' value. */
 				if ((! $unassigned) || (((strtoupper(substr($unassigned, 0, 3)) == "DEV") || (strtoupper(substr($unassigned, 0, 2)) == "SD")) && ($unassigned != $disk['ud_dev']))) {
 					set_config($disk['serial'], "unassigned_dev", $disk['ud_dev']);
 				}
 			}
 
-			/* Update the preclear diskinfo. */
+			/* Update the preclear diskinfo for the hot plugged device. */
 			if (file_exists("/etc/rc.d/rc.diskinfo")) {
 				exec("/etc/rc.d/rc.diskinfo force & 2>/dev/null");
 			}
 		} else {
+			/* Get all unassigned disks if we don't have a hot plug event. */
 			$all_disks = get_all_disks_info();
 		}
 
