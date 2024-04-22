@@ -681,14 +681,14 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 <span class='left'>_(Unassigned Disks)_/_(Remote Shares)_/_(Historical Unassigned Devices)_</span>
 <span class='right ud'><a class='tooltip' title="_(Unassigned Devices Settings)_" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a></span>
 <span class='right ud'><a class='tooltip' title="_(Refresh Disks and Configuration)_" onclick="rescan_disks()"><i class="fa fa-refresh"></i></a></span>
-<span class='right ud'><a class='tooltip' title="_(Show/Hide Historical Devices)_"><input type="checkbox" class="historical-switch"></a></span>
+<span class='right ud'><a class='tooltip' title="_(Show/Hide Historical Unassigned Devices)_"><input type="checkbox" class="historical-switch"></a></span>
 <span class='right ud'><a class='tooltip' title="_(Show/Hide SMB/NFS/ISO Shares)_"><input type="checkbox" class="shares-switch"></a></span>
-<span class='right ud'><a class='tooltip' title="_(Show/Hide Disk Devices)_"><input type="checkbox" class="disks-switch"></a></span>
+<span class='right ud'><a class='tooltip' title="_(Show/Hide Unassiged Disk Devices)_"><input type="checkbox" class="disks-switch"></a></span>
 </div>
 
 <div class='show-disks'>
 	<div id='title' class='title shift'>
-		<span class='left'><img src='/plugins/<?=$plugin?>/icons/disk.png' class='icon'><?=_('Disk Devices')?></span>
+		<span class='left'><img src='/plugins/<?=$plugin?>/icons/disk.png' class='icon'><?=_('Unassigned Disk Devices')?></span>
 	</div>
 
 	<table id='usb_devices_list' class='usb_mounts'>
@@ -786,7 +786,7 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	<div class='show-historical'>
 		<br /><br />
 		<div id='title' class='title shift'>
-			<span class='left'><img src='/plugins/<?=$plugin?>/icons/historical.png' class='icon'><?=_('Historical Devices')?></span>
+			<span class='left'><img src='/plugins/<?=$plugin?>/icons/historical.png' class='icon'><?=_('Historical Unassigned Devices')?></span>
 		</div>
 
 		<table class='usb_absent'>
