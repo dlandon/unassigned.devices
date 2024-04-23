@@ -17,7 +17,7 @@ export LC_CTYPE
 ionice -c3 -p$BASHPID
 
 # Version
-version="1.0.29"
+version="1.0.30"
 #
 # Change Log
 # 1.0.23
@@ -51,6 +51,9 @@ version="1.0.29"
 # Don't read disk data into memory and check to be zero when
 # doing post-read.  Disk data is read, but not confirmed
 # to be zero.
+#
+# 1.0.30
+# Increase dd_hang timeout even more when reading and writing to disk.
 #
 ######################################################
 ##													##
@@ -981,7 +984,7 @@ write_the_disk(){
 		#
 		# Kill dd if hung
 		#
-		if [ "$dd_hang" -gt 240 ]; then
+		if [ "$dd_hang" -gt 480 ]; then
 			eval "$initial_bytes='$bytes_written';"
 			eval "$initial_timer='$current_elapsed';"
 			while read l; do debug "${write_type_s}: dd output: ${l}"; done < <(cat "${dd_output}_complete")
@@ -1506,7 +1509,7 @@ read_the_disk() {
 		#
 		# Kill dd if hung
 		#
-		if [ "$dd_hang" -gt 240 ]; then
+		if [ "$dd_hang" -gt 480 ]; then
 			eval "$initial_bytes='"$bytes_read"';"
 			eval "$initial_timer='$(time_elapsed $read_type export)';"
 			while read l; do debug "${read_type_s}: dd output: ${l}"; done < <(cat "${dd_output}_complete")
