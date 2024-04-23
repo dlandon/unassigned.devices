@@ -1550,6 +1550,18 @@ function is_disk_ssd($dev) {
 	return $rc;
 }
 
+/* Is the device designation a 'devX' device? */
+function is_dev_device($dev) {
+
+	return (strtoupper(substr($dev, 0, 3)) == "DEV");
+}
+
+/* Is the device designation a 'sdX' device? */
+function is_sd_device($dev) {
+
+	return (strtoupper(substr($dev, 0, 2)) == "SD");
+}
+
 #########################################################
 ############		MOUNT FUNCTIONS			#############
 #########################################################
@@ -3429,11 +3441,11 @@ function get_all_disks_info() {
 			unset($ud_disks[$key]);
 			$disk['path'] = $key;
 
-			/* Use the devX designation of the sdX if there is no devX designation. */
+			/* Use the devX designation or the sdX if there is no devX designation. */
 			$unassigned_dev			= $disk['unassigned_dev'] ?: ($disk['ud_dev'] ?: basename($disk['device']));
 
 			/* If there is already a devX that is the same, use the disk device sdX designation. */
-			if (strtoupper(substr($unassigned_dev, 0, 3)) == "DEV") {
+			if (is_dev_device($unassigned_dev)) {
 				/* Get the sdX device designation. */
 				$unassigned_dev		= basename($disk['device']);
 
@@ -3559,7 +3571,7 @@ function get_udev_info($dev, $udev = null) {
 
  		/* Save this entry unless the ACTION is remove. */
  		if ($udev['ACTION'] != "remove") {
-			/* Remove proxy environment variables. */
+			/* Remove proxy environment variables that are added to php environment variables. */
 			if (isset($udev['http_proxy'])) {
 				unset($udev['http_proxy']);
 				unset($udev['https_proxy']);
@@ -3583,7 +3595,7 @@ function get_udev_info($dev, $udev = null) {
 
 		save_ini_file($paths['state'], $state);
 
-		/* Write to temp file and then move to destination file. */
+		/* Write to temp file and then move to destination file for diagnostics. */
 		$tmp_file	= $paths['tmp_file'];
 		@copy($paths['state'], $tmp_file);
 		@rename($tmp_file, $paths['diag_state']);
@@ -3635,9 +3647,9 @@ function get_disk_info($dev) {
 	$disk['id_bus']				= $attrs['ID_BUS'] ?? "";
 	$disk['fstype']				= $attrs['ID_FS_TYPE'] ?? "";
 	$disk['ud_dev']				= get_disk_dev($disk['device']);
-	$disk['ud_device']			= (strtoupper(substr($disk['ud_dev'], 0, 3)) == "DEV");
+	$disk['ud_device']			= is_dev_device($disk['ud_dev']);
 	$disk['unassigned_dev']		= get_config($disk['serial'], "unassigned_dev");
-	$disk['ud_unassigned_dev']	= (strtoupper(substr($disk['unassigned_dev'], 0, 3)) == "DEV");
+	$disk['ud_unassigned_dev']	= is_dev_device($disk['unassigned_dev']);
 	$disk['ssd']				= is_disk_ssd($disk['device']);
 	$rw							= get_disk_reads_writes($disk['ud_dev'], $disk['device']);
 	$disk['reads']				= $rw[0];

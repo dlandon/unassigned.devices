@@ -548,7 +548,7 @@ switch ($_POST['action']) {
 				$unassigned	= $disk['unassigned_dev'];
 
 				/* If the unassigned_dev value is not set or is 'dev' or 'sd', and not equal to ud_dev value the then assign it the 'devX' value. */
-				if ((! $unassigned) || (((strtoupper(substr($unassigned, 0, 3)) == "DEV") || (strtoupper(substr($unassigned, 0, 2)) == "SD")) && ($unassigned != $disk['ud_dev']))) {
+				if ((! $unassigned) || ((is_dev_device($unassigned)) || (is_sd_device($unassigned)) && ($unassigned != $disk['ud_dev']))) {
 					set_config($disk['serial'], "unassigned_dev", $disk['ud_dev']);
 				}
 			}
@@ -1247,7 +1247,7 @@ switch ($_POST['action']) {
 		$dev_name	= get_disk_dev($dev);
 		$result		= true;
 		if ($name != $dev_name) {
-			if ((! $name) || (strtoupper(substr($name, 0, 3)) != "DEV") && (strtoupper(substr($name, 0, 2)) != "SD")) {
+			if ((! $name) || (! is_dev_device($name)) && (! is_sd_device($name))) {
 				if (! in_array($name, $disk_names)) {
 					if (! $name) {
 						$name	= $dev_name;
@@ -1875,7 +1875,7 @@ switch ($_POST['action']) {
 		$device			= urldecode($_POST['device']);
 		$fstype			= urldecode($_POST['fstype']);
 		$mountpoint		= basename(safe_name(urldecode($_POST['mountpoint']), false));
-		if ((strtoupper(substr($mountpoint, 0, 3)) != "DEV") && (strtoupper(substr($mountpoint, 0, 2)) != "SD")) {
+		if ((! is_dev_device($mountpoint)) && (! is_sd_device($mountpoint))) {
 			$result		= change_mountpoint($serial, $partition, $device, $fstype, $mountpoint);
 		} else {
 			unassigned_log("Warning: Mount Point cannot be a device designation.");
