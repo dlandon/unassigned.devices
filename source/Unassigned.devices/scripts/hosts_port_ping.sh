@@ -43,7 +43,7 @@ if [[ $ip =~ $ip_regex && ! $ip =~ $zero_regex && $mask =~ $ip_regex && ! $mask 
 				for host in $(seq $(((i4 & m4)+1)) $(((i4 & m4 | 255-m4)-1)) ); do
 					ip="${net1}.${net2}.${net3}.${host}"
 					# Scan the IP address and port and timeout if port is not open - run in the background
-					nice timeout -s 5 $timeout bash -c "(echo >/dev/tcp/${ip}/${port}) &>/dev/null && echo $ip" 2>/dev/null &
+					nice timeout $timeout bash -c "(echo >/dev/tcp/${ip}/${port}) &>/dev/null && echo $ip" 2>/dev/null &
 				done
 			done
 		done

@@ -169,7 +169,7 @@ function is_server_online($server, $protocol, $log = false) {
 		$was_alive		= (isset($ping_status[$name]['online']) && ($ping_status[$name]['online'] == 'yes'));
 
 		/* Ping the server to see if it is currently offline. */
-		$is_alive		= (trim(shell_exec("/usr/bin/nice /usr/bin/timeout -s 3 1 bash -c '(echo >/dev/tcp/{$server}/{$port}) &>/dev/null'; echo $?")) == 0);
+		$is_alive		= (trim(shell_exec("/usr/bin/nice /usr/bin/timeout 1 bash -c '(echo >/dev/tcp/{$server}/{$port}) &>/dev/null'; echo $?")) == 0);
 
 		/* Get the number of pings we've checked since it went offline. */
 		$no_pings		= $ping_status[$name]['no_pings'] ?? 0;
@@ -180,7 +180,7 @@ function is_server_online($server, $protocol, $log = false) {
 			$ip			= trim(timed_exec(2, "/usr/bin/nmblookup ".escapeshellarg($server)." | /bin/head -n1 | /bin/awk '{print $1}' 2>/dev/null"));
 			if (MiscUD::is_ip($ip))
 			{
-				$is_alive		= (trim(shell_exec("/usr/bin/nice /usr/bin/timeout -s 3 1 bash -c '(echo >/dev/tcp/{$ip}/{$port}) &>/dev/null'; echo $?")) == 0 );
+				$is_alive		= (trim(shell_exec("/usr/bin/nice /usr/bin/timeout 1 bash -c '(echo >/dev/tcp/{$ip}/{$port}) &>/dev/null'; echo $?")) == 0 );
 			}
 		}
 
