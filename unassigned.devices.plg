@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.04.20a">
+<!ENTITY version	"2024.04.22">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"053ea77bc07eb59823711c7ee7b83125">
+<!ENTITY MD5		"8ac9562deea62be2a1b06e2984116538">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,8 +22,13 @@
 <CHANGES>
 ##&name;
 ###&version;
-- Fix: Load shares by protocol not working for NFS.
-- Add: Show 'Array' on mount point when a disk is not unassigned - i.e. shows an 'sdX' designation instead of 'devX'.
+- Fix: Too many flash writes when a device is hot plugged.
+- Fix: Issue where UD does not show all unassigned disks.
+- Add: UD diagnostics for troubleshooting UD issues.
+
+###2024.04.20a
+- Fix: Add remote NFS share not working.
+- Add: Show 'Array' on mount button when a disk is not unassigned - i.e. when a device is a 'sdX' designation instead of 'devX'.
 
 ###2024.04.19
 - Fix: Checking online status of SMB and NFS shares could fail when "Local TLD" is blank.
@@ -2327,6 +2332,7 @@ chmod +x /usr/local/emhttp/plugins/&name;/scripts/* /usr/local/emhttp/plugins/&n
 # Create a symlink to unassigned devices scripts.
 ln -sf /usr/local/emhttp/plugins/&name;/scripts/rc.unassigned /usr/local/sbin
 ln -sf /usr/local/emhttp/plugins/&name;/scripts/mkmbr.sh /usr/local/sbin
+ln -sf /usr/local/emhttp/plugins/&name;/scripts/ud_diagnostics /usr/local/sbin
 
 # Create state folder and mount points
 mkdir -p /mnt/disks/ /mnt/remotes/ /mnt/addons/ /mnt/rootshare/ /var/state/&name;/
