@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.04.23">
+<!ENTITY version	"2024.04.23a">
 <!ENTITY launch		"Tools/Preclear">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/unassigned.devices/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"68fa4488efafd2d2ca05537e69f3c82d">
+<!ENTITY MD5		"">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
@@ -21,7 +21,7 @@
 <CHANGES>
 ###&name;
 ###&version;
-- Fix: Update tmux to version 3.4.
+- Fix: Update tmux to version 3.4 for 6.13.
 - Fix: Increase dd_hang timeout even further.
 
 ###2024.02.22
@@ -198,9 +198,17 @@ tmux-3.1b-x86_64-1.txz
 </FILE>
 
 <!--
+tmux-3.3a-x86_64-1.txz
+-->
+<FILE Min='6.11.0-rc1' Name="/boot/config/plugins/&name;/tmux-3.3a-x86_64-1.txz" Run="upgradepkg --install-new">
+<URL>"&gitURL;/packages/tmux-3.3a-x86_64-1.txz"</URL>
+<MD5>6f929e52a448007bf5468ae541fda15c</MD5>
+</FILE>
+
+<!--
 tmux-3.4-x86_64-1.txz
 -->
-<FILE Min='6.11.0-rc1' Name="/boot/config/plugins/&name;/tmux-3.4-x86_64-1.txz" Run="upgradepkg --install-new">
+<FILE Min='6.13.0-beta.1.8' Name="/boot/config/plugins/&name;/tmux-3.4-x86_64-1.txz" Run="upgradepkg --install-new">
 <URL>"&gitURL;/packages/tmux-3.4-x86_64-1.txz"</URL>
 <MD5>a5f489e6b37800c4da6687e56a3f8d94</MD5>
 </FILE>
