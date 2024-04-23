@@ -67,7 +67,7 @@ function listDir($root)
 	RecursiveDirectoryIterator::SKIP_DOTS),
 	RecursiveIteratorIterator::SELF_FIRST,
 	RecursiveIteratorIterator::CATCH_GET_CHILD);
-	$paths = array();
+	$paths = [];
 
 	foreach ($iter as $path => $fileinfo) {
 		if (! $fileinfo->isDir()) {
@@ -96,10 +96,10 @@ if (isset($_POST['action'])) {
 			foreach ($disks as $disk => $attibutes) {
 				$disks[$disk]["PRECLEARING"] = $Preclear->isRunning($attibutes["DEVICE"]);
 			}
-			$all_status = array();
-			$all_disks_o = array();
+			$all_status = [];
+			$all_disks_o = [];
 
-			$sort = array();
+			$sort = [];
 
 			$counter = 9999;
 			if ( count($disks) ) {
@@ -119,7 +119,7 @@ if (isset($_POST['action'])) {
 											});
 					$disk_reports		= array_reverse($disk_reports, false);
 					} else {
-						$disk_reports	= array();
+						$disk_reports	= [];
 					}
 
 					if (count($disk_reports)) {
@@ -195,7 +195,7 @@ if (isset($_POST['action'])) {
 			break;
 
 		case 'start_preclear':
-			$devices = (isset($_POST['device']) && is_array($_POST['device'])) ? $_POST['device'] : array();
+			$devices = (isset($_POST['device']) && is_array($_POST['device'])) ? $_POST['device'] : [];
 			$success = true;
 
 			if (count($devices)) {

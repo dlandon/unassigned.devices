@@ -104,7 +104,7 @@ class Misc
 	public static function get_json($file)
 	{
 		$out = file_exists($file) ? json_decode(file_get_contents($file), true) : [];
-		return is_array($out) ? $out : array(); 
+		return is_array($out) ? $out : []; 
 	}
 
 	/* Is $disk a valid device. */

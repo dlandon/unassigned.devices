@@ -244,7 +244,7 @@ class Misc
 
 	public static function get_json($file)
 	{
-		return file_exists($file) ? @json_decode(file_get_contents($file), true) : array();
+		return file_exists($file) ? @json_decode(file_get_contents($file), true) : [];
 	}
 
 	public static function disk_device($disk)
@@ -282,7 +282,7 @@ class Disks
 
 	public function get_unraid_config()
 	{
-		$this->unraid = array();
+		$this->unraid = [];
 
 		/* Make sure paths exist. */
 		if (! is_dir(dirname($this->cache))) {
@@ -300,20 +300,20 @@ class Disks
 
 	public function get_disks()
 	{
-		$this->all			= array();
-		$this->assigned		= array();
-		$this->unassigned	= array();
-		$this->partitions	= array();
+		$this->all			= [];
+		$this->assigned		= [];
+		$this->unassigned	= [];
+		$this->partitions	= [];
 
 		/* Get all disks and define those which are unassigned. */
 		exec("/usr/bin/timeout 10 /bin/lsblk -nbP -o name,type,size,fstype 2>/dev/null", $blocks);
 
 		if (is_array($blocks)) {
 			foreach ($blocks as $b) {
-				$block	= @parse_ini_string(preg_replace('$"\s(\w+[=])$', '"'.PHP_EOL.'${1}', $b)) ?: array();
+				$block	= @parse_ini_string(preg_replace('$"\s(\w+[=])$', '"'.PHP_EOL.'${1}', $b)) ?: [];
 				$device = (isset($block['NAME'])) ? "/dev/{$block['NAME']}" : "";
 				if (isset($block['TYPE']) && ($block['TYPE'] == "disk") && (file_exists($device))) {
-					$attrs = @parse_ini_string(timed_exec(1, "/sbin/udevadm info --query=property --name ".escapeshellarg($device)." 2>/dev/null")) ?: array();
+					$attrs = @parse_ini_string(timed_exec(1, "/sbin/udevadm info --query=property --name ".escapeshellarg($device)." 2>/dev/null")) ?: [];
 					$block['SERIAL'] = isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : (isset($attrs['ID_SERIAL_SHORT']) ? $attrs['ID_SERIAL_SHORT'] : "");
 
 					$this->all[$block['NAME']] = $block;
@@ -334,12 +334,12 @@ class Disks
 
 	public function unassigned_disks_info($force = false)
 	{
-		$disks = array();
+		$disks = [];
 
 		/* Get cached info from file. */
 		if ($force) {
 			$GLOBALS['reload_force'] = true;
-			$cache = array();
+			$cache = [];
 		} else {
 			$GLOBALS['reload_force'] = false;
 			$cache = Misc::get_json($this->cache);
@@ -395,7 +395,7 @@ class Disks
 	{
 		$device = Misc::disk_device($device);
 		if (! $device) {
-			return array();
+			return [];
 		}
 
 		$name		= Misc::disk_name($device);
@@ -454,7 +454,7 @@ class Disks
 				if ($disk['SMART'] != "none") {
 					$smartInfo = explode(PHP_EOL, timed_exec(10, "/usr/sbin/smartctl --info --attributes ".$disk['SMART']." ".escapeshellarg($device)." 2>/dev/null | tr -d '\"'"));
 				} else {
-					$smartInfo = array();
+					$smartInfo = [];
 				}
 				$disk['FAMILY']		= $parse_smart($smartInfo, "Model Family");
 				$disk['MODEL']		= $parse_smart($smartInfo, "Device Model");
@@ -477,7 +477,7 @@ class Disks
 			}
 
 			/* Refreshing partition info. */ 
-			$disk['PARTS'] = ((isset($this->partitions[$name])) && (is_array($this->partitions[$name]))) ? $this->partitions[$name] : array();
+			$disk['PARTS'] = ((isset($this->partitions[$name])) && (is_array($this->partitions[$name]))) ? $this->partitions[$name] : [];
 
 			$timeout = (isset($disk["TIMESTAMP"]) && (time() - $disk["TIMESTAMP"])) > $this->interval;
 
