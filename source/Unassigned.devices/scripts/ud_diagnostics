@@ -1,0 +1,131 @@
+#!/usr/bin/php
+<?php
+/* Copyright 2015, Guilherme Jardim
+ * Copyright 2016-2024, Dan Landon
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+
+$plugin = "unassigned.devices";
+require_once("plugins/".$plugin."/include/lib.php");
+
+/* This is a routine to collect some diagnostics from UD to help in diagnosing issues. */
+$directory		= "/tmp/".$plugin."/diagnostics";
+
+// Add a timestamp to the zip file name
+$timestamp = date('Ymd-His');
+$diag_output    = "/boot/logs/ud_diagnostics-".$timestamp.".zip";
+
+$sourceFiles = [
+	"/var/state/".$plugin."/ping_status.json",
+	"/var/state/".$plugin."/run_status.json",
+	"/var/state/".$plugin."/device_hosts.json",
+	"/var/state/".$plugin."/unassigned.devices.ini",
+	$paths['dev_state'],
+	"/etc/hosts",
+	"/var/log/syslog"
+];
+
+/* Create the diagnostics directory and be sure it is empty if it already exists. */ 
+exec("/usr/bin/mkdir -p ".$directory);
+exec("/usr/bin/rm -R ".$directory."/*");
+
+/* This is the routine that determines what disks on the system are not assigned to the array. */
+$ud_disks		= get_unassigned_disks();
+$output_file	= $directory."/ud_disks.txt";
+
+@file_put_contents($output_file, json_encode($ud_disks, JSON_PRETTY_PRINT));
+
+/* This is the routine that determines what disks on the system are not assigned to the array. */
+$all_disks		= get_all_disks_info();
+$output_file	= $directory."/all_disks.txt";
+
+@file_put_contents($output_file, json_encode($all_disks, JSON_PRETTY_PRINT));
+
+/* Get the current unassigned.cfg. */
+$unassigned_cfg	= $ud_config;
+
+/* Remove security keys. */
+unset($unassigned_cfg['Config']['iv']);
+unset($unassigned_cfg['Config']['key']);
+
+/* Remove passwords. */
+foreach ($unassigned_cfg as &$subArray) {
+	if (isset($subArray['pass'])) {
+		/* Anonymize the 'pass' value with a placeholder. */
+		$subArray['pass'] = '**********';
+	}
+}
+$output_file	= $directory."/unassigned_config.txt";
+@file_put_contents($output_file, json_encode($unassigned_cfg, JSON_PRETTY_PRINT));
+
+/* Get the current samba_mount.cfg. */
+$samba_cfg	= $samba_config;
+
+/* Remove passwords. */
+foreach ($samba_cfg as &$subArray) {
+	if (isset($subArray['user'])) {
+		/* Anonymize the 'user' value with a placeholder. */
+		$subArray['user'] = '**********';
+	}
+
+	if (isset($subArray['pass'])) {
+		/* Anonymize the 'pass' value with a placeholder. */
+		$subArray['pass'] = '**********';
+	}
+}
+$output_file	= $directory."/samba_config.txt";
+@file_put_contents($output_file, json_encode($samba_cfg, JSON_PRETTY_PRINT));
+
+/* Get the current iso_mount.cfg. */
+$iso_cfg		= $iso_config;
+
+$output_file	= $directory."/iso_config.txt";
+@file_put_contents($output_file, json_encode($iso_cfg, JSON_PRETTY_PRINT));
+
+/* Get the disk devices listing. */
+$disk_by_id		= listFile("/dev/disk/by-id");
+
+$output_file	= $directory."/disk_by-id.txt";
+@file_put_contents($output_file, json_encode($disk_by_id, JSON_PRETTY_PRINT));
+
+/* Copy files to the diagnostics directory with .txt extension */
+foreach ($sourceFiles as $sourceFile) {
+	// Get the filename from the full path
+	$filename = basename($sourceFile);
+
+	// Change the file extension to .txt
+	if (pathinfo($filename, PATHINFO_EXTENSION) === '') {
+		// Add .txt extension if the file doesn't have one
+		$destinationFile = $directory."/".$filename.'.txt';
+	} else {
+		// Change the file extension to .txt
+		$destinationFile = $directory."/".str_replace(pathinfo($filename, PATHINFO_EXTENSION), 'txt', $filename);
+	}
+
+	// Copy the file to the destination directory with .txt extension
+	if (! copy($sourceFile, $destinationFile)) {
+		echo "Failed to copy ".$sourceFile."\n";
+	}
+}
+
+/* Create a zip file from the diagnostics in /tmp/unassigned.devices/diagnostics/. */
+/* Use a bash command to zip the directory. */
+$zipCommand = "/usr/bin/zip -rj ".$diag_output." ".$directory;
+
+/* Execute the zip command. */
+exec($zipCommand, $output, $returnCode);
+
+if ($returnCode === 0) {
+	/* Output a success message. */
+	echo "Diagnostics zip file created successfully!\n";
+} else {
+	/* Output an error message if the zip command failed. */
+	echo "Failed to create zip file!\n";
+}
+?>
