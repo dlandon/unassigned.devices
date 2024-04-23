@@ -1424,7 +1424,10 @@ switch ($_POST['action']) {
 			$ip			= $iface['ip'];
 			$netmask 	= $iface['netmask'];
 			if (MiscUD::is_ip($ip) && MiscUD::is_ip($netmask)) {
+				/* Check for SMB servers having their port open for SMB. */
 				exec($docroot."/plugins/".$plugin."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." ".SMB_PORT, $hosts);
+
+				/* Do a name lookup on each IP address found in hosts. */
 				foreach ($hosts as $host) {
 					/* Resolve name as a local server. */
 					$name	= trim(shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'") ?? "");
@@ -1491,7 +1494,10 @@ switch ($_POST['action']) {
 			$ip			= $iface['ip'];
 			$netmask 	= $iface['netmask'];
 			if (MiscUD::is_ip($ip) && MiscUD::is_ip($netmask)) {
-				exec($docroot."/plugins/".$plugin."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." ".NFS_PORT." 2>/dev/null | sort -n -t . -k 1,1 -k 2,2 -k 3,3 -k 4,4", $hosts);
+				/* Check for NFS servers having their port open for NFS. */
+				exec($docroot."/plugins/".$plugin."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." ".NFS_PORT." 2>/dev/null", $hosts);
+
+				/* Do a name lookup on each IP address found in hosts. */
 				foreach ($hosts as $host) {
 					/* Resolve name as a local server. */
 					$name	= trim(shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'") ?? "");
