@@ -3331,7 +3331,7 @@ function get_unassigned_disks() {
 	$devicePaths = [];
 
 	/* Get all devices by id and eliminate any duplicates. */
-	foreach (array_unique(listFile("/dev/disk/by-id/")) as $physicalDevice) {
+	foreach (array_unique(listFile("/dev/disk/by-id")) as $physicalDevice) {
 		$realPath = realpath($physicalDevice);
 
 		/* Only /dev/sd*, /dev/hd*, and /dev/nvme* devices. */
@@ -3430,8 +3430,7 @@ function get_all_disks_info() {
 			$disk['path'] = $key;
 
 			/* Use the devX designation of the sdX if there is no devX designation. */
-			$unassigned_dev			= $disk['unassigned_dev'] ?? $disk['ud_dev'];
-			$unassigned_dev			= $unassigned_dev ?? basename($disk['device']);
+			$unassigned_dev			= $disk['unassigned_dev'] ?: ($disk['ud_dev'] ?: basename($disk['device']));
 
 			/* If there is already a devX that is the same, use the disk device sdX designation. */
 			if (strtoupper(substr($unassigned_dev, 0, 3)) == "DEV") {
