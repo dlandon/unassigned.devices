@@ -1,7 +1,6 @@
 #!/usr/bin/php
 <?php
-/* Copyright 2015, Guilherme Jardim
- * Copyright 2016-2024, Dan Landon
+/* Copyright 2024, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -17,7 +16,7 @@ require_once("plugins/".$plugin."/include/lib.php");
 /* This is a routine to collect some diagnostics from UD to help in diagnosing issues. */
 $directory		= "/tmp/".$plugin."/diagnostics";
 
-// Add a timestamp to the zip file name
+/* Add a timestamp to the zip file name. */
 $timestamp = date('Ymd-His');
 $diag_output    = "/boot/logs/ud_diagnostics-".$timestamp.".zip";
 
@@ -33,18 +32,16 @@ $sourceFiles = [
 
 /* Create the diagnostics directory and be sure it is empty if it already exists. */ 
 exec("/usr/bin/mkdir -p ".$directory);
-exec("/usr/bin/rm -R ".$directory."/*");
+exec("/usr/bin/rm -f ".$directory."/*");
 
 /* This is the routine that determines what disks on the system are not assigned to the array. */
 $ud_disks		= get_unassigned_disks();
 $output_file	= $directory."/ud_disks.txt";
-
 @file_put_contents($output_file, json_encode($ud_disks, JSON_PRETTY_PRINT));
 
 /* This is the routine that determines what disks on the system are not assigned to the array. */
 $all_disks		= get_all_disks_info();
 $output_file	= $directory."/all_disks.txt";
-
 @file_put_contents($output_file, json_encode($all_disks, JSON_PRETTY_PRINT));
 
 /* Get the current unassigned.cfg. */
@@ -96,19 +93,19 @@ $output_file	= $directory."/disk_by-id.txt";
 
 /* Copy files to the diagnostics directory with .txt extension */
 foreach ($sourceFiles as $sourceFile) {
-	// Get the filename from the full path
+	/* Get the filename from the full path. */
 	$filename = basename($sourceFile);
 
-	// Change the file extension to .txt
+	/* Change the file extension to .txt. */
 	if (pathinfo($filename, PATHINFO_EXTENSION) === '') {
-		// Add .txt extension if the file doesn't have one
+		/* Add .txt extension if the file doesn't have one. */
 		$destinationFile = $directory."/".$filename.'.txt';
 	} else {
-		// Change the file extension to .txt
+		/* Change the file extension to .txt. */
 		$destinationFile = $directory."/".str_replace(pathinfo($filename, PATHINFO_EXTENSION), 'txt', $filename);
 	}
 
-	// Copy the file to the destination directory with .txt extension
+	/* Copy the file to the destination directory with .txt extension. */
 	if (! copy($sourceFile, $destinationFile)) {
 		echo "Failed to copy ".$sourceFile."\n";
 	}
