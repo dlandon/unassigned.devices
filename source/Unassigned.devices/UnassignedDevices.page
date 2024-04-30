@@ -1781,9 +1781,9 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		<div data-question-content>
 			<p><?=_('Refresh Disks and Configuration');?>?</p>
 			<ul>
-			<li style="text-align:left;"><?=_('All disks will be refreshed');?>.</li>
+			<li style="text-align:left;"><?=_('All disks will be refreshed using udev');?>.</li>
 			<li style="text-align:left;"><?=_('Remote Shares online status will be reset');?>.</li>
-			<li style="text-align:left;"><?=_('Unassigned Devices configuration will be updated');?>.</li>
+			<li style="text-align:left;"><?=_('All Unassigned Devices configurations will be updated from flash drive');?>.</li>
 			</ul>
 		</div>
 		<div data-question-load></div>
