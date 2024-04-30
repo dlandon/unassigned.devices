@@ -1166,7 +1166,7 @@ function benchmark() {
 /* Run a command and time out if it takes too long. */
 function timed_exec($timeout, $cmd) {
 	$time		= -microtime(true); 
-	$out		= shell_exec("/usr/bin/timeout ".escapeshellarg($timeout)." ".$cmd);
+	$out		= trim(shell_exec("/usr/bin/timeout ".escapeshellarg($timeout)." ".$cmd) ?? "");
 	$time		+= microtime(true);
 	if ($time > $timeout) {
 		unassigned_log("Warning: shell_exec(".$cmd.") took longer than ".sprintf('%d', $timeout)."s!");
@@ -1175,7 +1175,7 @@ function timed_exec($timeout, $cmd) {
 		unassigned_log("Timed Exec: shell_exec(".$cmd.") took ".sprintf('%f', $time)."s!", $GLOBALS['CMD_DEBUG']);
 	}
 
-	return $out ?? "";
+	return $out;
 }
 
 /* Find the file system type of a partition. */
@@ -3441,16 +3441,16 @@ function get_all_disks_info() {
 			unset($ud_disks[$key]);
 			$disk['path'] = $key;
 
-			/* Use the devX designation or the sdX if there is no devX designation. */
+			/* Set the ud_dev to the current value in the devs.ini file. */
+			$disk['ud_dev']		= get_disk_dev($disk['device']);
+
+			/* Use the devX designation or the sdX if there is no devX designation for disk device sorting. */
 			$unassigned_dev			= $disk['unassigned_dev'] ?: ($disk['ud_dev'] ?: basename($disk['device']));
 
 			/* If there is already a devX that is the same, use the disk device sdX designation. */
-			if (is_dev_device($unassigned_dev)) {
+			if ((is_dev_device($unassigned_dev)) && (array_key_exists($unassigned_dev, $ud_disks))) {
 				/* Get the sdX device designation. */
 				$unassigned_dev		= basename($disk['device']);
-
-				/* Set the ud_dev to the current value in the devs.ini file. */
-				$disk['ud_dev']		= get_disk_dev($disk['device']);
 			}
 
 			/* See if any partitions have a file system. */
@@ -3468,7 +3468,7 @@ function get_all_disks_info() {
 				return $carry || $partition['not_unmounted'];
 			}, false);
 
-			/* Mark any partitions as mounting if the disk is mounting. */
+			/* Mark all partitions as mounting if the disk is mounting. */
 			if ($disk['mounting'] === true) {
 				/* Loop through partitions and set 'mounting' to true. */
 				foreach ($disk['partitions'] as &$partition) {
