@@ -545,10 +545,10 @@ switch ($_POST['action']) {
 			$all_disks = get_all_disks_info();
 			foreach ($all_disks as $disk) {
 				/* This is the device label and is either a 'devX' designation or a disk alias. */
-				$unassigned	= $disk['unassigned_dev'];
+				$unassigned_dev	= $disk['unassigned_dev'];
 
 				/* If the unassigned_dev value is not set or is 'dev' or 'sd', and not equal to ud_dev value the then assign it the 'devX' value. */
-				if ((! $unassigned) || ((is_dev_device($unassigned)) || (is_sd_device($unassigned)) && ($unassigned != $disk['ud_dev']))) {
+				if (((! $unassigned_dev) || (is_sd_device($unassigned_dev))) || ((is_dev_device($unassigned_dev)) && ($unassigned_dev != $disk['ud_dev']))) {
 					set_config($disk['serial'], "unassigned_dev", $disk['ud_dev']);
 				}
 			}
@@ -582,7 +582,7 @@ switch ($_POST['action']) {
 			foreach ($all_disks as $disk) {
 				$disk_device		= basename($disk['device']);
 				$disk_dev			= $disk['ud_dev'];
-				$disk_name			= $disk['unassigned_dev'] ? $disk['unassigned_dev'] : $disk['ud_dev'];
+				$disk_name			= $disk['unassigned_dev'] ?: $disk['ud_dev'];
 				$parts				= (! empty($disk['partitions'])) ? render_partition($disk, $disk['partitions'][0], true) : false;
 				$preclearing		= $disk['preclearing'];
 				$temp				= my_temp($disk['temperature']);
@@ -740,7 +740,7 @@ switch ($_POST['action']) {
 							}
 
 							$share_names				= array_flip($share_names);
-							$share_names[$mountpoint]	= $disk_uuid[$uuid] ?? $dev;
+							$share_names[$mountpoint]	= $disk_uuid[$uuid] ?: $dev;
 							$share_names				= array_flip($share_names);
 						}
 					}
