@@ -75,6 +75,10 @@ foreach ($samba_cfg as &$subArray) {
 		/* Anonymize the 'pass' value with a placeholder. */
 		$subArray['pass'] = '**********';
 	}
+	if (isset($subArray['domain'])) {
+		/* Anonymize the 'domain' value with a placeholder. */
+		$subArray['domain'] = '**********';
+	}
 }
 $output_file	= $directory."/samba_config.txt";
 @file_put_contents($output_file, json_encode($samba_cfg, JSON_PRETTY_PRINT));
