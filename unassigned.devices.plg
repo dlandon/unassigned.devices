@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.04.22">
+<!ENTITY version	"2024.05.01">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"8ac9562deea62be2a1b06e2984116538">
+<!ENTITY MD5		"3a3d170f85f3911e87d9b3097c2cb9ac">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Change the timeout action on remote server port check for server being available.
+- Fix: Disk device sorting to sort on 'Dev X' and not 'sdX'.
+- Fix: Cut down on flash writes when a device is hot plugged.
+
+###2024.04.22
 - Fix: Too many flash writes when a device is hot plugged.
 - Fix: Issue where UD does not show all unassigned disks.
 - Add: UD diagnostics for troubleshooting UD issues.
