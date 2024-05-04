@@ -1764,7 +1764,7 @@ function do_mount_local($info) {
 	$fs				= $info['fstype'];
 	$ro				= $info['read_only'];
 	$file_system	= $fs;
-	$pool_name		= ($info['pool_name']) ? $info['pool_name'] : MiscUD::zfs_pool_name($dev);
+	$pool_name		= ($info['pool_name']) ?: MiscUD::zfs_pool_name($dev);
 	$mounted		= $info['mounted'];
 
 	if (! $mounted) {
