@@ -27,6 +27,7 @@ $sourceFiles = [
 	"/var/state/".$plugin."/unassigned.devices.ini",
 	$paths['dev_state'],
 	"/etc/hosts",
+	"/var/local/emhttp/plugins/diskinfo/diskinfo.json",
 	"/var/log/syslog"
 ];
 
