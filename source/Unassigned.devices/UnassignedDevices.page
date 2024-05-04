@@ -189,51 +189,57 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 		Refresh UD page showing any updated information.
 	*/
 	async function refreshPage() {
-		/* Check if we're already refreshing. */
-		if (!isRefreshing) {
-			/* Set that we are refreshing the page. */
-			isRefreshing = true;
+		/* Exit if a refresh is already in progress. */
+ 		if (isRefreshing) {
+			return;
+		}
 
-			try {
-				const data = await new Promise(function(resolve, reject) {
-					$.post(UDURL, {
-						'action': 'get_content',
-						'display': display
-					}, function(data) {
-						const toggled = $("tr.toggle-parts:visible").map(function() {
-							return $(this).attr("name");
-						}).get();
+		isRefreshing = true;
 
-						/* Fill the UD devices tables. */
-						if (data) {
-							$('#disk-table-body').html(data.disks);
-							$('#remotes-table-body').html(data.remotes);
-							$('#historical-table-body').html(data.historical);
-						}
+		/* Define a timeout promise that rejects after 10 seconds. */
+		const timeoutPromise = new Promise((_, reject) => {
+			setTimeout(() => {
+				reject(new Error("<tr><td colspan='11' style='text-align:center;'><?=_('Timeout: Failed to get unassigned devices information - check the syslog');?>.</td></tr>"));
+			}, 10000);
+		});
 
-						/* Show toggled disk partitions. */
-						$.each(toggled, function(k, v) {
-							$("tr[name='" + v + "']").css("display", "table-row");
-						});
-
-						/* Resolve the promise with the data */
-						resolve();
+		try {
+			/* Wait for either the data from the server or the timeout. */
+			const data = await Promise.race([
+				new Promise((resolve, reject) => {
+					$.post(UDURL, { 'action': 'get_content', 'display': display }, function(data) {
+						/* Resolve with the fetched data. */
+ 						resolve(data);
 					}, 'json').fail(function(xhr, status, error) {
-						/* Reject the promise with an error */
-						reject(error);
+						/* Reject on AJAX failure. */
+ 						reject(error);
 					});
+				}),
+				timeoutPromise
+			]);
+
+			/* Process the data only if it is returned before the timeout. */
+			if (data) {
+				const toggled = $("tr.toggle-parts:visible").map(function() {
+					return $(this).attr("name");
+				}).get();
+
+				$('#disk-table-body').html(data.disks);
+				$('#remotes-table-body').html(data.remotes);
+				$('#historical-table-body').html(data.historical);
+
+				$.each(toggled, function(k, v) {
+					$("tr[name='" + v + "']").css("display", "table-row");
 				});
-
-				/* We are done refreshing the page. */
-				isRefreshing = false;
-
-				return;
-				} catch (error) {
-					/* Ignore any errors. */
-			} finally {
-				/* Make sure to reset isRefreshing even if an error occurred. */
-				isRefreshing = false;
 			}
+		} catch (error) {
+			/* Handle errors and timeouts. */
+			$('#disk-table-body').html(error.message);
+			$('#remotes-table-body').html(error.message);
+			$('#historical-table-body').html(error.message);
+		} finally {
+			/* Reset the refreshing flag. */
+ 			isRefreshing = false;
 		}
 	}
 
