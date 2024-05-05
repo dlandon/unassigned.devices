@@ -674,17 +674,14 @@ function is_disk_spin($ud_dev, $running) {
 
 /* Check to see if a remote server is online by chccking the ping status. */
 function is_samba_server_online($ip, $protocol) {
-	global $paths, $default_tld;
+	global $paths;
 
 	$is_alive		= false;
-
-	/* Strip off any local tld reference and capitalize the server name. */
-	$server			= str_replace(".".$default_tld, "", strtoupper($ip));
 
 	/* Get the updated ping status. */
 	$tc				= $paths['ping_status'];
 	$ping_status	= MiscUD::get_json($tc);
-	$name			= $server.".".$protocol;
+	$name			= $ip.".".$protocol;
 	if (isset($ping_status[$name])) {
 		$is_alive = ($ping_status[$name]['online'] == "yes");
 	}
@@ -2752,7 +2749,8 @@ function get_samba_mounts() {
 				} else {
 					/* Determine the mountpoint for this remote share. */
 					if (! $mount['mountpoint']) {
-						$mount['mountpoint'] = $paths['remote_mountpoint']."/".$mount['ip']."_".$path;
+						$mount_ip			= str_replace( array(".".$local_tld, ".".$default_tld), "", $mount['ip']);
+						$mount['mountpoint'] = $paths['remote_mountpoint']."/".$mount_ip."_".$path;
 					} else {
 						$path = basename($mount['mountpoint']);
 						$mount['mountpoint'] = $paths['remote_mountpoint']."/".$path;
