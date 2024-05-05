@@ -1429,18 +1429,26 @@ switch ($_POST['action']) {
 
 				/* Do a name lookup on each IP address found in hosts. */
 				foreach ($hosts as $host) {
-					/* Resolve name as a local server. */
-					$name	= trim(shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'") ?? "");
-					if ($name) {
-						$name		= strtoupper($name);
+					if ($host == $_SERVER['SERVER_ADDR']) {
+						$name		= $var['NAME'];
+					} else {
+						/* Resolve name as a local server. */
+						$name	= trim(shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'") ?? "");
 						if ($name == "?") {
 							/* Look up the server name using nmblookup. */
-							$name		= trim(shell_exec("/usr/bin/nmblookup -A ".escapeshellarg($host)." 2>/dev/null | grep -v 'GROUP' | grep -Po '[^<]*(?=<00>)' | head -n 1") ?? "");
+							$name		= trim(timed_exec(1, "/usr/bin/nmblookup -A ".escapeshellarg($host)." 2>/dev/null | grep -v 'GROUP' | grep -Po '[^<]*(?=<00>)' | head -n 1"));
+							/* If this is a local device and not found with nmblookup, look it up using avahi. */
+							if ((! $name) || ($name == "command timed out")) {
+								/* Look up the server name using avahi-resolve-address. */
+								$name	= trim(shell_exec("avahi-resolve-address ".escapeshellarg($host)." | /bin/awk '{print \$2}'") ?? "");
+							} else {
+								/* Add the local tld. */
+								$name	.= ".".$local_tld;
+							}
 						}
-					} else if ($host == $_SERVER['SERVER_ADDR']) {
-						$name		= strtoupper($var['NAME']);
 					}
-					$name			= str_replace( array(".".$local_tld, ".".$default_tld), "", $name);
+
+					$name			= strtoupper($name);
 					$names[] 		= $name ? $name : $host;
 				}
 			}
@@ -1459,11 +1467,6 @@ switch ($_POST['action']) {
 
 		$ip			= implode("",explode("\\", $ip));
 		$ip			= strtoupper(stripslashes(trim($ip)));
-
-		/* Remove the 'local' and 'default' tld reference as they are unnecessary. */
-		if (! MiscUD::is_ip($ip)) {
-			$ip		= str_replace( array(".".$local_tld, ".".$default_tld), "", $ip);
-		}
 
 		/* Create the credentials file. */
 		@file_put_contents("{$paths['authentication']}", "username=".$user."\n");
@@ -1499,18 +1502,18 @@ switch ($_POST['action']) {
 
 				/* Do a name lookup on each IP address found in hosts. */
 				foreach ($hosts as $host) {
-					/* Resolve name as a local server. */
-					$name	= trim(shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'") ?? "");
-					if ($name) {
-						$name		= strtoupper($name);
+					if ($host == $_SERVER['SERVER_ADDR']) {
+						$name		= $var['NAME'];
+					} else {
+						/* Resolve name as a local server. */
+						$name	= trim(shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'"));
 						if ($name == "?") {
-							$name	= "";
+							/* Look up the server name using avahi-resolve-address. */
+							$name	= trim(shell_exec("avahi-resolve-address ".escapeshellarg($host)." | /bin/awk '{print \$2}'") ?? "");
 						}
-					} else if ($host == $_SERVER['SERVER_ADDR']) {
-						$name		= strtoupper($var['NAME']);
 					}
 
-					$name			= str_replace( array(".".$local_tld, ".".$default_tld), "", $name);
+					$name			= strtoupper($name);
 					$names[] 		= $name ? $name : $host;
 				}
 			}
@@ -1526,11 +1529,6 @@ switch ($_POST['action']) {
 
 		$ip			= implode("",explode("\\", $ip));
 		$ip			= strtoupper(stripslashes(trim($ip)));
-
-		/* Remove the 'local' and 'default' tld reference as they are unnecessary. */
-		if (! MiscUD::is_ip($ip)) {
-			$ip		= str_replace( array(".".$local_tld, ".".$default_tld), "", $ip);
-		}
 
 		/* Update this server status before listing shares. */
 		exec($docroot."/plugins/".$plugin."/scripts/get_ud_stats is_online ".escapeshellarg($ip)." "."NFS");
@@ -1553,15 +1551,15 @@ switch ($_POST['action']) {
 
 		$rc			= true;
 
-		$ip			= implode("",explode("\\", $ip));
-		$ip			= strtoupper(stripslashes(trim($ip)));
+		$ip_local	= implode("",explode("\\", $ip));
+		$ip_local	= strtoupper(stripslashes(trim($ip)));
 		$path		= implode("",explode("\\", $path));
 		$path		= stripslashes(trim($path));
 		$share		= basename($path);
 
-		/* Remove the 'local' and 'default' tld reference as they are unnecessary. */
+		/* Remove the 'local' and 'default' tld reference as they aren't used here. */
 		if (! MiscUD::is_ip($ip)) {
-			$ip		= str_replace( array(".".$local_tld, ".".$default_tld), "", $ip);
+			$ip		= str_replace( array(".".$local_tld, ".".$default_tld), "", $ip_local);
 		}
 
 		/* See if there is another mount with a different protocol. */
@@ -1584,7 +1582,7 @@ switch ($_POST['action']) {
 
 				/* Set this configuration. */
 				set_samba_config($device, "protocol", $protocol);
-				set_samba_config($device, "ip", (MiscUD::is_ip($ip) ? $ip : strtoupper($ip)));
+				set_samba_config($device, "ip", (MiscUD::is_ip($ip) ? $ip_local : strtoupper($ip_local)));
 				set_samba_config($device, "path", $path);
 
 				if ($protocol == "SMB") {
