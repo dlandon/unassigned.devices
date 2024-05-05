@@ -28,8 +28,7 @@ $tc 			= "/var/state/".$plugin."/ping_status.json";
 $var			= @parse_ini_file("$docroot/state/var.ini");
 
 /* Capitalize the local_tld.  Default local TLD is 'LOCAL'. */
-$default_tld	= "LOCAL";
-$local_tld		= (isset($var['LOCAL_TLD']) && ($var['LOCAL_TLD'])) ? strtoupper(trim($var['LOCAL_TLD'])) : $default_tld;
+$local_tld		= (isset($var['LOCAL_TLD']) && ($var['LOCAL_TLD'])) ? strtoupper(trim($var['LOCAL_TLD'])) : "LOCAL";
 
 /* Misc functions. */
 class MiscUD
@@ -87,12 +86,11 @@ function is_server_alive($server, $port) {
 
 /* Is the server currently on line. */
 function is_server_online($server, $protocol, $log = false) {
-	global $tc, $local_tld, $default_tld;
+	global $tc, $local_tld;
 
 	/* The check for a remote server to be online is just a simple open port check. The checks are done as follows:
-		- Check the original server name without TLD.
+		- Check the original server name.
 		- Then check the name with added defined 'Local TLD'.
-		- Then check the name with added 'Default TLD' which is 'LOCAL'.
 	*/
 
 	/* Determine the port number from the protocol. */
@@ -105,7 +103,7 @@ function is_server_online($server, $protocol, $log = false) {
 	$name	= $server.".".$protocol;
 
 	/* Strip off any local tld reference and capitalize the server name. */
-	$server	= str_replace( array(".".$local_tld, ".".$default_tld), "", strtoupper($server));
+	$server	= strtoupper($server);
 	if ($server) {
 		/* Get the ping status json file. */
 		$ping_status	= MiscUD::get_json($tc);
@@ -115,16 +113,6 @@ function is_server_online($server, $protocol, $log = false) {
 
 		/* Is the remote server on line and responding. */
 		$is_alive		= is_server_alive($server, $port);
-		if (! $is_alive) {
-			/* Check with local tld. */
-			$srvr		= $server . "." . $local_tld;
-			$is_alive	= is_server_alive($srvr, $port);
-		}
-		if (! $is_alive) {
-			/* Check with default tld. */
-			$srvr		= $server . "." . $default_tld;
-			$is_alive	= is_server_alive($srvr, $port);
-		}
 
 		/* Get the number of pings we've checked since it went offline. */
 		$no_pings		= $ping_status[$name]['no_pings'] ?? 0;
@@ -161,7 +149,7 @@ function is_server_online($server, $protocol, $log = false) {
 
 /* Ping all remote servers to check for being on-line. */
 function ping_servers() {
-	global $config_file, $default_tld;
+	global $config_file;
 
 	/* Refresh the ping status. */
 	$config_ini		= @parse_ini_file($config_file, true);
@@ -171,8 +159,7 @@ function ping_servers() {
 		$srvr	= [];
 		foreach ($samba_mounts as $device => $mount) {
 			if (isset($mount['ip'])) {
-				/* Strip off any local tld reference and capitalize the server name. */
-				$server			= str_replace(".".$default_tld, "", $mount['ip']);
+				$server			= $mount['ip'];
 				$protocol		= $mount['protocol'];
 				$name			= $server.".".$protocol;
 				$srvr[$name]	= array('server' => $server, 'protocol' => $protocol);
