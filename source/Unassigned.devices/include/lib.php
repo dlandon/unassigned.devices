@@ -1161,15 +1161,17 @@ function benchmark() {
 }
 
 /* Run a command and time out if it takes too long. */
-function timed_exec($timeout, $cmd) {
+function timed_exec($timeout, $cmd, $silent = false) {
 	$time		= -microtime(true); 
 	$out		= trim(shell_exec("/usr/bin/timeout ".escapeshellarg($timeout)." ".$cmd) ?? "");
 	$time		+= microtime(true);
-	if ($time > $timeout) {
-		unassigned_log("Warning: shell_exec(".$cmd.") took longer than ".sprintf('%d', $timeout)."s!");
-		$out	= "command timed out";
-	} else {
-		unassigned_log("Timed Exec: shell_exec(".$cmd.") took ".sprintf('%f', $time)."s!", $GLOBALS['CMD_DEBUG']);
+	if (! $silent) {
+		if ($time > $timeout) {
+			unassigned_log("Warning: shell_exec(".$cmd.") took longer than ".sprintf('%d', $timeout)."s!");
+			$out	= "command timed out";
+		} else {
+			unassigned_log("Timed Exec: shell_exec(".$cmd.") took ".sprintf('%f', $time)."s!", $GLOBALS['CMD_DEBUG']);
+		}
 	}
 
 	return $out;
