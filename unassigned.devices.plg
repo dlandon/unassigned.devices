@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.05.01">
+<!ENTITY version	"2024.05.06">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"3a3d170f85f3911e87d9b3097c2cb9ac">
+<!ENTITY MD5		"9cce29a511b52e1c731532b7dcecd532">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,10 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Check for remote shares online to only test for open ports to remote servers using name or IP without requiring name resolution.  This will cause some remote shares to show offline after updating.  That can be fixed by just going through the add a share procedure to re-add the remote share and it will update the configuration and fix the offline status.
+- Add: Timeout to the page refresh to keep the Unraid wave from never stopping.  After 10 seconds the refresh will time out and display in the device tables that UD cannot refresh the information.
+
+###2024.05.01
 - Fix: Change the timeout action on remote server port check for server being available.
 - Fix: Disk device sorting to sort on 'Dev X' and not 'sdX'.
 - Fix: Cut down on flash writes when a device is hot plugged.
