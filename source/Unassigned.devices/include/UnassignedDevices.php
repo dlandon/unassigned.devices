@@ -1436,11 +1436,11 @@ switch ($_POST['action']) {
 						$name	= trim(shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'") ?? "");
 						if ($name == "?") {
 							/* Look up the server name using nmblookup. */
-							$name		= trim(timed_exec(1, "/usr/bin/nmblookup -A ".escapeshellarg($host)." 2>/dev/null | grep -v 'GROUP' | grep -Po '[^<]*(?=<00>)' | head -n 1"));
+							$name		= trim(timed_exec(1, "/usr/bin/nmblookup -A ".escapeshellarg($host)." 2>/dev/null | grep -v 'GROUP' | grep -Po '[^<]*(?=<00>)' | head -n 1", true) ?? "");
 							/* If this is a local device and not found with nmblookup, look it up using avahi. */
-							if ((! $name) || ($name == "command timed out")) {
+							if (! $name) {
 								/* Look up the server name using avahi-resolve-address. */
-								$name	= trim(shell_exec("avahi-resolve-address ".escapeshellarg($host)." | /bin/awk '{print \$2}'") ?? "");
+								$name	= trim(shell_exec("avahi-resolve-address ".escapeshellarg($host)." | /bin/awk '{print \$2}'"));
 							} else {
 								/* Add the local tld. */
 								$name	.= ".".$local_tld;
@@ -1477,7 +1477,7 @@ switch ($_POST['action']) {
 		exec($docroot."/plugins/".$plugin."/scripts/get_ud_stats is_online ".escapeshellarg($ip)." "."SMB");
 
 		/* Get a list of samba shares on this server. */
-		$list	= shell_exec("/usr/bin/smbclient -t2 -g -L ".escapeshellarg($ip)." --authentication-file=".escapeshellarg($paths['authentication'])." 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}' | sort");
+		$list	= timed_exec(10, "/usr/bin/smbclient -t2 -g -L ".escapeshellarg($ip)." --authentication-file=".escapeshellarg($paths['authentication'])." 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}' | sort", true);
 
 		/* Shred the authentication file and remove the credential variables. */
 		exec("/bin/shred -u ".escapeshellarg($paths['authentication']));
