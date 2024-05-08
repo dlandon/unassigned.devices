@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.05.06">
+<!ENTITY version	"2024.05.07">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"9cce29a511b52e1c731532b7dcecd532">
+<!ENTITY MD5		"8b77f787d281a34e44f2499042bcf30c">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Increase the time out on the UD page to 30 seconds.
+- Fix: Changes to NFS sharing on the settings page did not work properly and actually corrupted the uassigned.devices.cfg file.
+- Fix: When changing NFS share settings, NFS sharing would not be removed if NFS was turned off.
+
+###2024.05.06
 - Fix: Check for remote shares online to only test for open ports to remote servers using name or IP without requiring name resolution.  This will cause some remote shares to show offline after updating.  That can be fixed by just going through the add a share procedure to re-add the remote share and it will update the configuration and fix the offline status.
 - Add: Timeout to the page refresh to keep the Unraid wave from never stopping.  After 10 seconds the refresh will time out and display in the device tables that UD cannot refresh the information.
 
