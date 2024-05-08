@@ -16,8 +16,10 @@ Title="NFS Settings"
 $plugin	= "unassigned.devices";
 require_once("plugins/$plugin/include/lib.php");
 
-$config_file = $paths['config_file'];
-$cfg = is_file($config_file) ? @parse_ini_file($config_file, true) : [];
+$config_file	= $paths['config_file'];
+$cfg_ini		= is_file($config_file) ? @parse_ini_file($config_file, true) : [];
+$cfg			= ($cfg_ini !== false) ? $cfg_ini : [];
+
 $cfg['Config']['nfs_export']		= $cfg['Config']['nfs_export'] ?? "";
 $cfg['Config']['nfs_security']		= $cfg['Config']['nfs_security'] ?? "";
 $cfg['Config']['nfs_rule']			= $cfg['Config']['nfs_rule'] ?? "";
@@ -55,14 +57,14 @@ _(Enable NFS export)_?
 	</dd>
 </dl>
 
-<div id="nfs_rule" style="display: <?=($cfg['Config']['nfs_security'] == "public" ? "none" : "block");?>">
+<div id="new_nfs_rule" style="display: <?=($cfg['Config']['nfs_security'] == "public" ? "none" : "block");?>">
 	<dl>
 		<dt>_(Rules)_:</dt>
 		<dd>
 			<textarea spellcheck="false" cols="40" rows="5" name="new_nfs_rule" title='_(Enter NFS Rules)_.' style="width:45%"><?=$text;?></textarea>
 		</dd>
 	</dl>
-	</div>
+</div>
 </div>
 
 :ud_settings_nfs_rules_plug:
