@@ -196,11 +196,11 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 
 		isRefreshing = true;
 
-		/* Define a timeout promise that rejects after 10 seconds. */
+		/* Define a timeout promise that rejects after 30 seconds. */
 		const timeoutPromise = new Promise((_, reject) => {
 			setTimeout(() => {
 				reject(new Error("<tr><td colspan='11' style='text-align:center;'><?=_('Timeout: Failed to get unassigned devices information - check the syslog');?>.</td></tr>"));
-			}, 10000);
+			}, 30000);
 		});
 
 		try {
