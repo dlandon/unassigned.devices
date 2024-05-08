@@ -140,7 +140,9 @@ function set_pass() {
 
 /* Update the NFS rule. */
 function nfs_settings() {
-	global $paths;
+	global $paths, $ud_config;
+
+	unassigned_log("Updating share settings...");
 
 	/* Make file changes. */
 	$config_file = $paths['config_file'];
@@ -148,13 +150,16 @@ function nfs_settings() {
 
 	if (isset($cfg['Config']['new_nfs_rule'])) {
 		/* Get a lock so file changes can be made. */
-		$lock_file	= get_file_lock("cfg");
+		$lock_file			= get_file_lock("cfg");
 
 		/* Remove cr and leave new line. */
-		$o		= str_replace("\r", "", $cfg['Config']['new_nfs_rule']);
+		$new_nfs_rule		= str_replace("\r", "", $cfg['Config']['new_nfs_rule'] ?? "");
 
-		/* CHange new line to semicolon to store as a single line in the config file. */
-		$o		= str_replace("\n", ";", $o);
+		/* Change new line to semicolon to store as a single line in the config file. */
+		$new_nfs_rule		= str_replace("\n", ";", $new_nfs_rule);
+
+		/* Set the new nfs rule. */
+		$cfg['Config']['nfs_rule']	= $new_nfs_rule;
 
 		/* Now clear the settings from the tmp file. */
 		unset($cfg['Config']['new_nfs_rule']);
@@ -164,12 +169,13 @@ function nfs_settings() {
 
 		/* Release the file lock. */
 		release_file_lock($lock_file);
-
-		set_config("Config", "nfs_rule", "$o");
-
-		/* Apply the changes. */
-		apply();
 	}
+
+	/* Update ud_config. */
+	$ud_config	= $cfg;
+
+	/* Apply new settings. */
+	apply();
 }
 
 /* Main entry point, */

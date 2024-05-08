@@ -400,7 +400,7 @@ function release_file_lock($lock_file) {
 
 /* Save ini and cfg files to tmp file system and then copy cfg file changes to flash. */
 function save_ini_file($file, $config, $save_config = true) {
-	global $plugin, $paths, $ud_config;
+	global $plugin, $paths;
 
 	$res = [];
 	foreach($config as $key => $val) {
@@ -2516,7 +2516,8 @@ function remove_shares() {
 	foreach (get_unassigned_disks() as $name => $disk) {
 		foreach ($disk['partitions'] as $p) {
 			$info = get_partition_info($p);
-			if ( ($info['mounted']) && ($info['shared']) ) {
+
+			if ( $info['mounted'] ) {
 				rm_smb_share($info['mountpoint']);
 				rm_nfs_share($info['mountpoint']);
 			}
@@ -2525,7 +2526,7 @@ function remove_shares() {
 
 	/* SMB Mounts */
 	foreach (get_samba_mounts() as $name => $info) {
-		if ( ($info['mounted']) && ($info['smb_share']) ) {
+		if ( $info['mounted'] ) {
 			rm_smb_share($info['mountpoint']);
 			rm_nfs_share($info['mountpoint']);
 		}
@@ -3725,6 +3726,7 @@ function get_partition_info($dev) {
 		$partition['fstype']			= ($partition['fstype'] == "zfs_member") ? "zfs" : $partition['fstype'];
 
 		/* Get the mount point from the configuration and if not set create a default mount point. */
+
 		$partition['mountpoint']		= get_config($partition['serial'], "mountpoint.{$partition['part']}");
 		if (! $partition['mountpoint']) { 
 			$partition['mountpoint']	= preg_replace("%\s+%", "_", sprintf("%s/%s", $paths['usb_mountpoint'], $partition['label']));
