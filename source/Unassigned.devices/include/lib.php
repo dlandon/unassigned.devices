@@ -220,7 +220,7 @@ class MiscUD
 				unassigned_log("Debug: Get Disk Pool members on mountpoint '".$mountpoint."'.", $GLOBALS['UDEV_DEBUG']);
 
 				/* Get the brfs pool status from the mountpoint. */
-				$s	= shell_exec("/sbin/btrfs fi show ".escapeshellarg($mountpoint)." | /bin/grep 'path' | /bin/awk '{print $8}'");
+				$s	= trim(shell_exec("/sbin/btrfs fi show ".escapeshellarg($mountpoint)." | /bin/grep 'path' | /bin/awk '{print $8}'") ?? "");
 				$rc	= explode("\n", $s);
 				$pool_state[$mountpoint] = array_filter($rc);
 				MiscUD::save_json($paths['pool_state'], $pool_state);
@@ -340,7 +340,7 @@ class MiscUD
 		/* Only check for pool name if zfs is running. */
 		if (is_file("/usr/sbin/zpool")) {
 			if ($dev) {
-				$rc	= shell_exec("/usr/sbin/zpool import -d ".escapeshellarg($dev)." 2>/dev/null | grep 'pool:'") ?? "";
+				$rc	= trim(shell_exec("/usr/sbin/zpool import -d ".escapeshellarg($dev)." 2>/dev/null | grep 'pool:'") ?? "");
 				$rc	= trim(str_replace("pool:", "", $rc));
 			} else {
 				$rc	= "";
@@ -707,7 +707,7 @@ function is_script_running($cmd, $user = false) {
 		}
 
 		/* Check if the script is currently running. */
-		$is_running = shell_exec("/usr/bin/ps -ef | /bin/grep ".escapeshellarg(basename($cmd))." | /bin/grep -v 'grep' | /bin/grep ".escapeshellarg($source)) != "";
+		$is_running = trim(shell_exec("/usr/bin/ps -ef | /bin/grep ".escapeshellarg(basename($cmd))." | /bin/grep -v 'grep' | /bin/grep ".escapeshellarg($source)) ?? "") != "";
 	}
 
 	return $is_running;
@@ -794,7 +794,7 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 
 		/* Clear the partition table. */
 		unassigned_log("Clearing partition table of disk '".$dev."'.");
-		$o = trim(shell_exec("/usr/bin/dd if=/dev/zero of=".escapeshellarg($dev)." bs=2M count=1 2>&1"));
+		$o = trim(shell_exec("/usr/bin/dd if=/dev/zero of=".escapeshellarg($dev)." bs=2M count=1 2>&1") ?? "");
 		if ($o) {
 			unassigned_log("Clear partition result:\n".$o);
 		}
@@ -804,7 +804,7 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 
 		/* Reload the partition table. */
 		unassigned_log("Reloading disk '".$dev."' partition table.");
-		$o = trim(shell_exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." 2>&1"));
+		$o = trim(shell_exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." 2>&1") ?? "");
 		if ($o) {
 			unassigned_log("Reload partition table result:\n".$o);
 		}
@@ -829,7 +829,7 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 
 				/* Alignment is 4Kb for spinners and 1Mb for SSD. */
 				$alignment = $is_ssd ? "" : "-a 8";
-				$o = shell_exec("/sbin/sgdisk -o ".$alignment." -n 1:32K:0 ".escapeshellarg($dev));
+				$o = trim(shell_exec("/sbin/sgdisk -o ".$alignment." -n 1:32K:0 ".escapeshellarg($dev)) ?? "");
 				if ($o) {
 					unassigned_log("Create gpt partition table result:\n".$o);
 				}
@@ -838,7 +838,7 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 
 				/* Alignment is 4Kb for spinners and 1Mb for SSD. */
 				$start_sector = $is_ssd ? "2048" : "64";
-				$o = shell_exec("/usr/local/sbin/mkmbr.sh ".escapeshellarg($dev)." ".escapeshellarg($start_sector));
+				$o = trim(shell_exec("/usr/local/sbin/mkmbr.sh ".escapeshellarg($dev)." ".escapeshellarg($start_sector)) ?? "");
 				if ($o) {
 					unassigned_log("Create mbr partition table result:\n".$o);
 				}
@@ -849,7 +849,7 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 
 			/* Reload the partition table. */
 			unassigned_log("Reloading disk ".escapeshellarg($dev)." partition table.");
-			$o = trim(shell_exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." 2>&1"));
+			$o = trim(shell_exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." 2>&1") ?? "");
 			if ($o) {
 				unassigned_log("Reload partition table result:\n".$o);
 			}
@@ -859,13 +859,13 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 
 			/* All other file system partitions are gpt, except fat32. */
 			unassigned_log("Creating a '".$disk_schema."' partition table on disk '".$dev."'.");
-			$o = shell_exec("/usr/sbin/parted ".escapeshellarg($dev)." --script -- mklabel ".escapeshellarg($disk_schema)." 2>&1");
+			$o = trim(shell_exec("/usr/sbin/parted ".escapeshellarg($dev)." --script -- mklabel ".escapeshellarg($disk_schema)." 2>&1") ?? "");
 			if (isset($o)) {
 				unassigned_log("Create '".$disk_schema."' partition table result:\n".$o);
 			}
 
 			/* Create an optimal disk partition. */
-			$o = shell_exec("/usr/sbin/parted -a optimal ".escapeshellarg($dev)." --script -- mkpart primary ".escapeshellarg($parted_fs)." 0% 100% 2>&1");
+			$o = trim(shell_exec("/usr/sbin/parted -a optimal ".escapeshellarg($dev)." --script -- mkpart primary ".escapeshellarg($parted_fs)." 0% 100% 2>&1") ?? "");
 			if (isset($o)) {
 				unassigned_log("Create primary partition result:\n".$o);
 			}
@@ -977,7 +977,7 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 				unassigned_log("Reloading disk '".$dev."' partition table.");
 
 				/* Reload the partition table. */
-				$o = trim(shell_exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." 2>&1"));
+				$o = trim(shell_exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." 2>&1") ?? "");
 				if ($o) {
 					unassigned_log("Reload partition table result:\n".$o);
 				}
@@ -1053,7 +1053,7 @@ function remove_partition($dev, $part) {
 		unassigned_log("Removing partition '".$part."' from disk '".$dev."'.");
 
 		/* Remove the partition. */
-		$out = shell_exec("/usr/sbin/parted ".escapeshellarg($dev)." --script -- rm ".escapeshellarg($part)." 2>&1");
+		$out = trim(shell_exec("/usr/sbin/parted ".escapeshellarg($dev)." --script -- rm ".escapeshellarg($part)." 2>&1") ?? "");
 		if ($out) {
 			unassigned_log("Remove partition failed: '".$out."'.");
 			$rc = false;
@@ -1718,7 +1718,7 @@ function do_mount($info) {
 			$cmd		= "luksOpen $discard ".escapeshellarg($info['luks'])." ".escapeshellarg($luks);
 			$pass		= decrypt_data(get_config($info['serial'], "pass"));
 			if (! $pass) {
-				$o		= shell_exec("/usr/local/sbin/emcmd cmdCryptsetup=".escapeshellarg($cmd)." 2>&1");
+				$o		= trim(shell_exec("/usr/local/sbin/emcmd cmdCryptsetup=".escapeshellarg($cmd)." 2>&1") ?? "");
 
 				/* Check for the mapper file existing. If it's not there, unraid did not open the luks disk. */
 				if (! file_exists($info['device'])) {
@@ -1728,7 +1728,7 @@ function do_mount($info) {
 				$luks_pass_file = $paths['luks_pass']."_".$luks;
 				@file_put_contents($luks_pass_file, $pass);
 				unassigned_log("Using disk password to open the 'crypto_LUKS' device.");
-				$o		= shell_exec("/sbin/cryptsetup ".escapeshellcmd($cmd)." -d ".escapeshellarg($luks_pass_file)." 2>&1");
+				$o		= trim(shell_exec("/sbin/cryptsetup ".escapeshellcmd($cmd)." -d ".escapeshellarg($luks_pass_file)." 2>&1") ?? "");
 				exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 				unset($pass);
 			}
@@ -1850,7 +1850,7 @@ function do_mount_local($info) {
 					$o = "Warning: Cannot determine Pool Name of '".$dev."'";
 				} else {
 					/* Do the mount command. */
-					$o = shell_exec(escapeshellcmd($cmd)." 2>&1");
+					$o = trim(shell_exec(escapeshellcmd($cmd)." 2>&1") ?? "");
 				}
 			}
 
@@ -1932,7 +1932,7 @@ function do_mount_local($info) {
 
 				/* If file system is zfs, mount any datasets. */
 				if ($file_system == "zfs") {
-					$data	= shell_exec("/usr/sbin/zfs list -H -o name,mountpoint | /usr/bin/grep ".escapeshellarg($pool_name)." | /bin/awk -F'\t' '$2 != \"-\" && $2 != \"legacy\" {print $1 \",\" $2}'");
+					$data	= trim(shell_exec("/usr/sbin/zfs list -H -o name,mountpoint | /usr/bin/grep ".escapeshellarg($pool_name)." | /bin/awk -F'\t' '$2 != \"-\" && $2 != \"legacy\" {print $1 \",\" $2}'") ?? "");
 
 					$rows	= explode("\n", $data);
 
@@ -1955,7 +1955,7 @@ function do_mount_local($info) {
 									unassigned_log("Mount dataset cmd: ".$cmd);
 
 									/* Do the mount command. */
-									$o		= shell_exec(escapeshellcmd($cmd)." 2>&1");
+									$o		= trim(shell_exec(escapeshellcmd($cmd)." 2>&1") ?? "");
 									$rc		= false;
 									if (! $o) {
 										/* Let the mount settle. */
@@ -4190,7 +4190,7 @@ function change_UUID($dev) {
 		$cmd	= "luksOpen ".escapeshellarg($luks)." ".escapeshellarg($mapper);
 		$pass	= decrypt_data(get_config($serial, "pass"));
 		if (! $pass) {
-			$o		= shell_exec("/usr/local/sbin/emcmd cmdCryptsetup=".escapeshellarg($cmd)." 2>&1");
+			$o		= trim(shell_exec("/usr/local/sbin/emcmd cmdCryptsetup=".escapeshellarg($cmd)." 2>&1") ?? "");
 
 			/* Check for the mapper file existing. If it's not there, unraid did not open the luks disk. */
 			if (! file_exists("/dev/mapper/".$mapper)) {
