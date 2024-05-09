@@ -121,8 +121,8 @@ function set_pass() {
 	$config_ini		= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
 	$ud_config		= ($config_ini !== false) ? $config_ini : [];
 
-	$serial		= $ud_config['Config']['pswd_serial'];
-	$password	= $ud_config['Config']['password'];
+	$serial			= $ud_config['Config']['pswd_serial'];
+	$password		= $ud_config['Config']['password'];
 
 	/* Now clear the settings from the tmp file. */
 	unset($ud_config['Config']['pswd_serial']);
