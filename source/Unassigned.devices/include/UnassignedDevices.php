@@ -1440,7 +1440,7 @@ switch ($_POST['action']) {
 							/* If this is a local device and not found with nmblookup, look it up using avahi. */
 							if (! $name) {
 								/* Look up the server name using avahi-resolve-address. */
-								$name	= trim(shell_exec("avahi-resolve-address ".escapeshellarg($host)." | /bin/awk '{print \$2}'"));
+								$name	= trim(shell_exec("avahi-resolve-address ".escapeshellarg($host)." | /bin/awk '{print \$2}'") ?? "");
 							} else {
 								/* Add the local tld. */
 								$name	.= ".".$local_tld;
@@ -1506,7 +1506,7 @@ switch ($_POST['action']) {
 						$name		= $var['NAME'];
 					} else {
 						/* Resolve name as a local server. */
-						$name	= trim(shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'"));
+						$name	= trim(shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'") ?? "");
 						if ($name == "?") {
 							/* Look up the server name using avahi-resolve-address. */
 							$name	= trim(shell_exec("avahi-resolve-address ".escapeshellarg($host)." | /bin/awk '{print \$2}'") ?? "");
@@ -1775,7 +1775,7 @@ switch ($_POST['action']) {
 	case 'add_root_share':
 		/* Add root file share. */
 		$ip			= strtoupper($var['NAME']);
-		$path		= urldecode($_POST['path']);
+		$path		= "/mnt/".urldecode($_POST['path']);
 		$device		= "//".$ip.$path;
 		$share		= basename($path);
 
