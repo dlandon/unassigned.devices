@@ -897,10 +897,10 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 	/* Flag to track whether page is currently being refreshed. */
 	let isRefreshing = false;
 
-	/* Page refresh rate in milliseconds. */
+	/* Page refresh rate is 3 seconds. */
 	const REFRESH_INTERVAL = 3000;
 
-	/* Ping poll interval in milliseconds. */
+	/* Ping poll interval is 15 seconds. */
 	const PING_INTERVAL = 15000;
 
 	/* Reload page if browser back button was used. */
