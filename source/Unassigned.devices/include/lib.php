@@ -2448,9 +2448,14 @@ function add_nfs_share($dir) {
 					$fsid		= 200 + count(preg_grep("@^\"@", $c));
 					$nfs_sec	= get_config("Config", "nfs_security");
 					if ( $nfs_sec == "private" ) {
-						$sec	= explode(";", get_config("Config", "nfs_rule"));
+						$nfs_rule	= get_config("Config", "nfs_rule");
+						if ($nfs_rule) {
+							$sec	= explode(";", $nfs_rule);
+						} else {
+							$sec[]	= "*(rw,sec=sys,insecure,anongid=100,anonuid=99,no_root_squash)";
+						}
 					} else {
-						$sec[]	= "*(sec=sys,rw,insecure,anongid=100,anonuid=99,all_squash)";
+						$sec[]	= "*(rw,sec=sys,insecure,anongid=100,anonuid=99,all_squash)";
 					}
 					foreach ($sec as $security) {
 						if ($security) {
