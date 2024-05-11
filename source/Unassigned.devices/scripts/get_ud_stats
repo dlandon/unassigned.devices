@@ -102,7 +102,7 @@ function is_server_online($server, $protocol, $log = false) {
 	/* Ping status file key for this server. */
 	$name	= $server.".".$protocol;
 
-	/* Strip off any local tld reference and capitalize the server name. */
+	/* Capitalize the server name. */
 	$server	= strtoupper($server);
 	if ($server) {
 		/* Get the ping status json file. */
@@ -113,6 +113,15 @@ function is_server_online($server, $protocol, $log = false) {
 
 		/* Is the remote server on line and responding. */
 		$is_alive		= is_server_alive($server, $port);
+
+		/* If the server status fails with the name, use the server IP address found with 'arp'. */
+		if (! $is_alive) {
+			$ip_address	= trim(shell_exec("/sbin/arp -a ".escapeshellarg($server)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $2}'") ?? "");
+			$ip_address = str_replace(['(', ')'], '', $ip_address);
+			if (MiscUD::is_ip($ip_address)) {
+				$is_alive	= is_server_alive($ip_address, $port);
+			}
+		}
 
 		/* Get the number of pings we've checked since it went offline. */
 		$no_pings		= $ping_status[$name]['no_pings'] ?? 0;
