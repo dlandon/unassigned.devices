@@ -167,12 +167,7 @@ function nfs_settings() {
 		});
 
 		/* Join the lines with a semicolon. */
-		$result = implode(';', $lines);
-
-		/* If the rules are blank, set a default rule. */
-		if (! $result) {
-			$result	= "*(rw,sec=sys,insecure,anongid=100,anonuid=99,no_root_squash,lock)";
-		}
+		$result = implode(' ', $lines);
 
 		/* Set the new nfs rule. */
 		$cfg['Config']['nfs_rule']	= $result;
