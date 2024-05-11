@@ -153,13 +153,29 @@ function nfs_settings() {
 		$lock_file			= get_file_lock("cfg");
 
 		/* Remove cr and leave new line. */
-		$new_nfs_rule		= str_replace("\r", "", $cfg['Config']['new_nfs_rule'] ?? "");
+		$new_nfs_rule		= str_replace(["\r", " "], "", $cfg['Config']['new_nfs_rule'] ?? "");
 
-		/* Change new line to semicolon to store as a single line in the config file. */
-		$new_nfs_rule		= str_replace("\n", ";", $new_nfs_rule);
+		/* Remove all spaces */
+		$new_nfs_rule = str_replace(' ', '', $new_nfs_rule);
+
+		/* Split the text into lines. */
+		$lines = explode("\n", $new_nfs_rule);
+
+		/* Filter out any empty lines. */
+		$lines = array_filter($lines, function($line) {
+			return !empty($line);
+		});
+
+		/* Join the lines with a semicolon. */
+		$result = implode(';', $lines);
+
+		/* If the rules are blank, set a default rule. */
+		if (! $result) {
+			$result	= "*(rw,sec=sys,insecure,anongid=100,anonuid=99,no_root_squash,lock)";
+		}
 
 		/* Set the new nfs rule. */
-		$cfg['Config']['nfs_rule']	= $new_nfs_rule;
+		$cfg['Config']['nfs_rule']	= $result;
 
 		/* Now clear the settings from the tmp file. */
 		unset($cfg['Config']['new_nfs_rule']);
