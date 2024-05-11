@@ -61,14 +61,14 @@ _(Enable NFS export)_?
 	<dl>
 		<dt>_(Rules)_:</dt>
 		<dd>
-			<textarea spellcheck="false" cols="40" rows="5" name="new_nfs_rule" title='_(Enter NFS Rules)_.' style="width:45%" placeholder="Example: *(rw,sec=sys,insecure,anongid=100,anonuid=99,no_root_squash,lock)"><?=$text;?></textarea>
+			<textarea spellcheck="false" cols="40" rows="5" name="new_nfs_rule" title='_(Enter NFS Rules)_.' style="width:45%" placeholder="*(rw,sec=sys,insecure,anongid=100,anonuid=99,no_root_squash)"><?=$text;?></textarea>
 		</dd>
 	</dl>
 </div>
 </div>
 
 :ud_settings_nfs_rules_plug:
-> **Note:** The normal rule used by UD is '*(sec=sys,rw,insecure,anongid=100,anonuid=99,all_squash)'.
+> **Note:** The normal rule used by UD is '*(rw,sec=sys,insecure,anongid=100,anonuid=99,no_root_squash)'.
 :end
 
 &nbsp;
