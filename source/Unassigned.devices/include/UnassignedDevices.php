@@ -1564,7 +1564,7 @@ switch ($_POST['action']) {
 
 		/* See if there is another mount with a different protocol. */
 		foreach (get_samba_mounts() as $mount) {
-			if (($mount['ip'] == $ip) && (basename($mount['path']) == basename($path)) && ($mount['protocol'] != $protocol)) {
+			if (($mount['ip'] == $ip_local) && (basename($mount['path']) == basename($path)) && ($mount['protocol'] != $protocol)) {
 				$same_protocol	= $mount['protocol'];
 				$rc	= false;
 			}
