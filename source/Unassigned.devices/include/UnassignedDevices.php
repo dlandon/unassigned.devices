@@ -101,7 +101,8 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$device			= $partition['fstype'] == "crypto_LUKS" ? $partition['luks'] : $partition['device'];
 		$is_mounting	= $partition['mounting'];
 		$is_unmounting	= $partition['unmounting'];
-		$is_formatting	= $partition['formatting'] ?? false;
+		$is_formatting	= $partition['formatting'];
+		$is_clearing	= $partition['clearing'];
 		$disabled		= ($is_mounting || $is_unmounting || $partition['running'] || ! $partition['fstype'] || $disk['array_disk']);
 
 		/* Get the lsblk file system to compare to udev. */
@@ -129,7 +130,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 
 		/* Add remove partition icon if destructive mode is enabled. */
 		$parted				= file_exists("/usr/sbin/parted");
-		$rm_partition		= ((get_config("Config", "destructive_mode") == "enabled") && ($parted) && (! $is_mounting) && (! $is_unmounting) && (! $is_formatting) && (! $disk['pass_through']) && (! $disk['partitions'][0]['disable_mount']) && (! $disk['array_disk']) && ($fstype) && ($fstype != "zfs")) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$partition['serial']}\",\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove clear-hdd'></i><span>"._("Remove Partition")."</span></a>" : "";
+		$rm_partition		= ((get_config("Config", "destructive_mode") == "enabled") && ($parted) && (! $is_mounting) && (! $is_unmounting) && (! $is_formatting) && (!$is_clearing) && (! $disk['pass_through']) && (! $disk['partitions'][0]['disable_mount']) && (! $disk['array_disk']) && ($fstype) && ($fstype != "zfs")) ? "<a device='{$partition['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='rm_partition(this,\"{$partition['serial']}\",\"{$disk['device']}\",\"{$partition['part']}\");'><i class='fa fa-remove clear-hdd'></i><span>"._("Remove Partition")."</span></a>" : "";
 		$mpoint				= "<span>".$fscheck;
 
 		/* Add script log icon. */
@@ -347,6 +348,9 @@ function make_mount_button($device) {
 		/* Disk is formatting. */
 		$is_formatting	= $device['formatting'];
 
+		/* Disk is clearing. */
+		$is_clearing	= $device['clearing'];
+
 		/* Disk is preclearing. */
 		$preclearing	= $device['preclearing'];
 
@@ -406,6 +410,7 @@ function make_mount_button($device) {
 
 		/* Things not related to a partition. */
 		$is_formatting	= false;
+		$is_clearing	= false;
 		$preclearing	= false;
 		$format			= false;
 		$pool_disk		= false;
@@ -473,6 +478,12 @@ function make_mount_button($device) {
 			$class		= $spinner_class;
 			$disable	= true;
 			$text		= _('Formatting');
+			break;
+
+		case ($is_clearing):
+			$class		= $spinner_class;
+			$disable	= true;
+			$text		= _('Clearing');
 			break;
 
 		case ($format):
@@ -583,7 +594,7 @@ switch ($_POST['action']) {
 				$disk_device		= basename($disk['device']);
 				$disk_dev			= $disk['ud_dev'];
 				$disk_name			= $disk['unassigned_dev'] ?: $disk['ud_dev'];
-				$parts				= (! empty($disk['partitions'])) ? render_partition($disk, $disk['partitions'][0], true) : false;
+				$parts				= ((! $disk['clearing']) && (! empty($disk['partitions']))) ? render_partition($disk, $disk['partitions'][0], true) : false;
 				$preclearing		= $disk['preclearing'];
 				$temp				= my_temp($disk['temperature']);
 
@@ -600,10 +611,10 @@ switch ($_POST['action']) {
 				$mbutton				= make_mount_button($disk);
 
 				/* Set up the preclear link for preclearing a disk. */
-				$preclear_link			= (($Preclear) && ($disk['size'] !== 0) && (! $file_system) && (! $mounted) && (! $disk['formatting']) && (! $preclearing) && (! $disk['array_disk']) && (! $disk['pass_through']) && (! $disk['fstype'])) ? "&nbsp;&nbsp;".$Preclear->Link($disk_device, "icon") : "";
+				$preclear_link			= (($Preclear) && ($disk['size'] !== 0) && (! $file_system) && (! $mounted) && (! $disk['formatting']) && (! $disk['clearing']) && (! $preclearing) && (! $disk['array_disk']) && (! $disk['pass_through']) && (! $disk['fstype'])) ? "&nbsp;&nbsp;".$Preclear->Link($disk_device, "icon") : "";
 
 				/* Add the clear disk icon. */
-				$clear_disk				= (($parted) && (get_config("Config", "destructive_mode") == "enabled") && (! $mounted) && (! $disk['mounting']) && (! $disk['unmounting']) && (! $disk['formatting']) && (! $disk['pass_through']) && (! $disk['array_disk']) && (! $preclearing) && (((! $parts) && ($disk['fstype'])) || (($parts) && (! $disk['partitions'][0]['pool']) && (! $disk['partitions'][0]['disable_mount']))) ) ? "<a device='{$disk['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$disk['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove clear-hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
+				$clear_disk				= (($parted) && (get_config("Config", "destructive_mode") == "enabled") && (! $mounted) && (! $disk['mounting']) && (! $disk['unmounting']) && (! $disk['formatting']) && (! $disk['clearing']) && (! $disk['pass_through']) && (! $disk['array_disk']) && (! $preclearing) && (((! $parts) && ($disk['fstype'])) || (($parts) && (! $disk['partitions'][0]['pool']) && (! $disk['partitions'][0]['disable_mount']))) ) ? "<a device='{$disk['device']}' class='exec info' style='color:#CC0000;font-weight:bold;' onclick='clr_disk(this,\"{$disk['serial']}\",\"{$disk['device']}\");'><i class='fa fa-remove clear-hdd'></i><span>"._("Clear Disk")."</span></a>" : "";
 
 				/* Show disk icon based on SSD or spinner disk. */
 				$disk_icon = $disk['ssd'] ? "icon-nvme" : "fa fa-hdd-o";
@@ -722,7 +733,7 @@ switch ($_POST['action']) {
 				}
 
 				/* Add to share names and disk names. */
-				if (! $disk['formatting']) {
+				if ((! $disk['formatting']) && (! $disk['clearing'])) {
 					for ($i = 0; $i < count($disk['partitions']); $i++) {
 						if (($disk['unassigned_dev']) && (! in_array($disk['unassigned_dev'], $disk_names))) {
 							$disk_names[$disk_device] = $disk['unassigned_dev'];

@@ -44,7 +44,8 @@ $paths = [	"smb_unassigned"	=> "/etc/samba/smb-unassigned.conf",
 			"device_hosts"		=> "/var/state/".$plugin."/device_hosts.json",
 			"unmounting"		=> "/var/state/".$plugin."/unmounting_%s.state",
 			"mounting"			=> "/var/state/".$plugin."/mounting_%s.state",
-			"formatting"		=> "/var/state/".$plugin."/formatting_%s.state"
+			"formatting"		=> "/var/state/".$plugin."/formatting_%s.state",
+			"clearing"			=> "/var/state/".$plugin."/clearing_%s.state"
 		];
 
 /* SMB and NFS ports. */
@@ -326,6 +327,15 @@ class MiscUD
 		$formatting		= array_values(preg_grep("@/formatting_".basename($device)."@i", listFile(dirname($paths['formatting']))))[0] ?? '';
 		$is_formatting	= (isset($formatting) && (time() - filemtime($formatting) < 300));
 		return $is_formatting;
+	}
+
+	/* Get the clearing status. */
+	public static function get_clearing_status($device) {
+		global $paths;
+
+		$clearing		= array_values(preg_grep("@/clearing_".basename($device)."@i", listFile(dirname($paths['clearing']))))[0] ?? '';
+		$is_clearing	= (isset($clearing) && (time() - filemtime($clearing) < 300));
+		return $is_clearing;
 	}
 
 	/* Get the zpool name if this is a zfs disk file system. */
@@ -1034,6 +1044,7 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 
 /* Remove a disk partition. */
 function remove_partition($dev, $part) {
+	global $paths;
 
 	$rc = true;
 
@@ -1050,10 +1061,14 @@ function remove_partition($dev, $part) {
 	}
 
 	if ($rc) {
+		/* Create the state file. */
+		@touch(sprintf($paths['clearing'], basename($dev)));
+
 		unassigned_log("Removing partition '".$part."' from disk '".$dev."'.");
 
 		/* Remove the partition. */
 		$out = trim(shell_exec("/usr/sbin/parted ".escapeshellarg($dev)." --script -- rm ".escapeshellarg($part)." 2>&1") ?? "");
+
 		if ($out) {
 			unassigned_log("Remove partition failed: '".$out."'.");
 			$rc = false;
@@ -1064,6 +1079,9 @@ function remove_partition($dev, $part) {
 			/* Refresh partition information. */
 			exec("/usr/sbin/partprobe ".escapeshellarg($dev));
 		}
+
+		/* Erase the state file. */
+		@unlink(sprintf($paths['clearing'], basename($dev)));
 	}
 
 	return $rc;
@@ -1071,6 +1089,8 @@ function remove_partition($dev, $part) {
 
 /* Remove all disk partitions. */
 function remove_all_partitions($dev) {
+	global $paths;
+
 	$rc = true;
 
 	/* Be sure there are no mounted partitions. */
@@ -1089,6 +1109,9 @@ function remove_all_partitions($dev) {
 
 	if ($rc) {
 		$device	= MiscUD::base_device($dev);
+
+		/* Create the state file. */
+		@touch(sprintf($paths['clearing'], basename($device)));
 
 		unassigned_log("Removing all partitions from disk '".$device."'.");
 
@@ -1141,6 +1164,9 @@ function remove_all_partitions($dev) {
 
 		/* Refresh partition information. */
 		exec("/usr/sbin/partprobe ".escapeshellarg($dev));
+
+		/* Erase the state file. */
+		@unlink(sprintf($paths['clearing'], basename($device)));
 	}
 
 	return $rc;
@@ -3647,9 +3673,20 @@ function get_disk_info($dev) {
 	/* Get all the disk information for this disk device. */
 	$disk						= [];
 	$attrs						= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
-	$disk['serial_short']		= $attrs['ID_SCSI_SERIAL'] ?? ($attrs['ID_SERIAL_SHORT'] ?? "");
 	$disk['device']				= realpath($dev);
 	$disk['serial']				= get_disk_id($disk['device'], trim($attrs['ID_SERIAL']));
+	/* Be sure the suffix on the serial number is added to the short serial number. */
+	if (isset($attrs['ID_SERIAL_SHORT'])) {
+		/* Get the suffix from the serial number fopr the format -N:N and concatenate it to the short serial. */
+		if (preg_match('/-\d+:\d+$/', $attrs['ID_SERIAL'], $matches)) {
+			$suffix = $matches[0];
+			/* Concatenate suffix only if it is not already present. */
+			if ($suffix && strpos($attrs['ID_SERIAL_SHORT'], $suffix) === false) {
+				$attrs['ID_SERIAL_SHORT']	.= $suffix;
+			}
+		}
+	}
+	$disk['serial_short']		= $attrs['ID_SCSI_SERIAL'] ?? ($attrs['ID_SERIAL_SHORT'] ?? "");
 	$disk['id_bus']				= $attrs['ID_BUS'] ?? "";
 	$disk['fstype']				= $attrs['ID_FS_TYPE'] ?? "";
 	$disk['ud_dev']				= get_disk_dev($disk['device']);
@@ -3675,6 +3712,7 @@ function get_disk_info($dev) {
 	$disk['array_disk']			= in_array($disk['device'], $unraid_disks);
 	$disk['pass_through']		= is_pass_through($disk['serial']);
 	$disk['formatting']			= MiscUD::get_formatting_status(basename($disk['device']));
+	$disk['clearing']			= MiscUD::get_clearing_status(basename($disk['device']));
 	$disk['mounting']			= MiscUD::get_mounting_status(basename($disk['device']));
 	$disk['unmounting']			= MiscUD::get_unmounting_status(basename($disk['device']));
 
@@ -3754,7 +3792,7 @@ function get_partition_info($dev) {
 		/* Check for udev and lsblk file system type matching. If not then udev is not reporting the correct file system. */
 		$partition['not_udev']			= ($partition['fstype'] != "crypto_LUKS") ? ($partition['fstype'] != $partition['file_system']) : false;
 
-		/* Get the partition mounting, unmounting, and formatting status. */
+		/* Get the partition mounting and unmounting status. */
 		$partition['mounting']			= MiscUD::get_mounting_status(basename($dev));
 		$partition['unmounting']		= MiscUD::get_unmounting_status(basename($dev));
 
@@ -3829,6 +3867,7 @@ function get_partition_info($dev) {
 		/* Values not needed but must exist for make_mount_button() on the partition. */
 		$partition['ud_device']		= true;
 		$partition['formatting']	= false;
+		$partition['clearing']		= false;
 		$partition['preclearing']	= false;
 	}
 
