@@ -566,7 +566,7 @@ switch ($_POST['action']) {
 
 			/* Update the preclear diskinfo for the hot plugged device. */
 			if (file_exists("/etc/rc.d/rc.diskinfo")) {
-				exec("/etc/rc.d/rc.diskinfo force & 2>/dev/null");
+				exec("nohup /etc/rc.d/rc.diskinfo force > /dev/null 2>&1 &");
 			}
 		} else {
 			/* Get all unassigned disks if we don't have a hot plug event. */
@@ -1164,7 +1164,7 @@ switch ($_POST['action']) {
 
 	case 'update_ping':
 		/* Refresh the ping status in the background. */
-		exec($docroot."/plugins/".$plugin."/scripts/get_ud_stats ping & 2>/dev/null");
+		exec($docroot."/plugins/".$plugin."/scripts/get_ud_stats ping > /dev/null 2>&1 &");
 		break;
 
 	case 'get_content_json':
@@ -1353,7 +1353,7 @@ switch ($_POST['action']) {
 		/* Mount a disk device. */
 		$device	= urldecode($_POST['device']);
 
-		$return = trim(shell_exec("/usr/bin/nice plugins/".$plugin."/scripts/rc.unassigned mount ".escapeshellarg($device)." & 2>/dev/null") ?? "");
+		$return = trim(shell_exec("/usr/bin/nice plugins/".$plugin."/scripts/rc.unassigned mount ".escapeshellarg($device)." 2>&1") ?? "");
 		echo json_encode($return == "success");
 		break;
 
@@ -1361,7 +1361,7 @@ switch ($_POST['action']) {
 		/* Unmount a disk device. */
 		$device	= urldecode($_POST['device']);
 
-		$return = trim(shell_exec("/usr/bin/nice plugins/".$plugin."/scripts/rc.unassigned umount ".escapeshellarg($device)." & 2>/dev/null") ?? "");
+		$return = trim(shell_exec("/usr/bin/nice plugins/".$plugin."/scripts/rc.unassigned umount ".escapeshellarg($device)." 2>&1") ?? "");
 		echo json_encode($return == "success");
 		break;
 
