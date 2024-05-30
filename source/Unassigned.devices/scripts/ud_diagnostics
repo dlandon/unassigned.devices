@@ -18,7 +18,7 @@ $directory		= "/tmp/".$plugin."/diagnostics";
 
 /* Add a timestamp to the zip file name. */
 $timestamp = date('Ymd-His');
-$diag_output    = "/tmp/".$plugin."/ud_diagnostics-".$timestamp.".zip";
+$diag_output    = "/boot/logs/ud_diagnostics-".$timestamp.".zip";
 
 $sourceFiles = [
 	"/var/state/".$plugin."/ping_status.json",
@@ -133,22 +133,10 @@ $zipCommand = "/usr/bin/zip -rj ".$diag_output." ".$directory;
 exec($zipCommand, $output, $returnCode);
 
 if ($returnCode === 0) {
-	/* Source file path */
-	$sourceFile			= $diag_output;
-
-	/* Destination file path */
-	$destinationFile	= "/boot/logs/".basename($diag_output);
-
-	/* Attempt to move the file */
-	if (rename($sourceFile, $destinationFile)) {
-		/* Successfully moved the file */
-		echo "Diagnostics zip file created successfully!\n";
-	} else {
-		/* Failed to move the file */
-		echo 'Failed to move the file to flash!';
-	}
+	/* Output a success message. */
+	echo "Diagnostics zip file created successfully!\n";
 } else {
 	/* Output an error message if the zip command failed. */
-	echo "Failed to create zip file! Error code: ".$returnCode."\n";
+	echo "Failed to create zip file!\n";
 }
 ?>
