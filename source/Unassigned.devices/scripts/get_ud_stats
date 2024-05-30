@@ -15,77 +15,83 @@ define('SMB_PORT', '445');
 define('NFS_PORT', '2049');
 
 /* Set the level for debugging. */
-$DEBUG_LEVEL	= (int) ($argv[4] ?? 0);
+$DEBUG_LEVEL = (int)($argv[4] ?? 0);
 
-/* Get the comand to execute. */
-$COMMAND	= $argv[1];
+/* Get the command to execute. */
+$COMMAND = $argv[1];
 
-$plugin			= "unassigned.devices";
-$docroot		= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-$config_file	= "/tmp/".$plugin."/config/samba_mount.cfg";
-$pidFile		= "/var/run/get_ud_stats";
-$tc 			= "/var/state/".$plugin."/ping_status.json";
-$var			= @parse_ini_file("$docroot/state/var.ini");
+$plugin       = "unassigned.devices";
+$docroot      = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+$config_file  = "/tmp/" . $plugin . "/config/samba_mount.cfg";
+$tc           = "/var/state/" . $plugin . "/ping_status.json";
+$var          = @parse_ini_file("$docroot/state/var.ini");
 
 /* Capitalize the local_tld.  Default local TLD is 'LOCAL'. */
-$local_tld		= (isset($var['LOCAL_TLD']) && ($var['LOCAL_TLD'])) ? strtoupper(trim($var['LOCAL_TLD'])) : "LOCAL";
+$local_tld = (isset($var['LOCAL_TLD']) && ($var['LOCAL_TLD'])) ? strtoupper(trim($var['LOCAL_TLD'])) : "LOCAL";
 
 /* Misc functions. */
 class MiscUD
 {
 	/* Get content from a json file. */
-	public static function get_json($file) {
+	public static function get_json($file)
+	{
 		return file_exists($file) ? @json_decode(file_get_contents($file), true) : [];
 	}
 
 	/* Save content to a json file. */
-	public static function save_json($file, $content) {
-		@file_put_contents($file."-", json_encode($content, JSON_PRETTY_PRINT));
-		@rename($file."-", $file);
+	public static function save_json($file, $content)
+	{
+		@file_put_contents($file . "-", json_encode($content, JSON_PRETTY_PRINT));
+		@rename($file . "-", $file);
 	}
 
 	/* Confirm we have a good ip address. */
-	public static function is_ip($str) {
+	public static function is_ip($str)
+	{
 		return filter_var($str, FILTER_VALIDATE_IP);
 	}
 }
 
 /* Unassigned Devices logging. */
-function unassigned_log($m, $debug_level = 0) {
+function unassigned_log($m, $debug_level = 0)
+{
 	global $plugin;
 
 	if (($debug_level == 0) || ($debug_level == $GLOBALS["DEBUG_LEVEL"])) {
-		$m		= print_r($m,true);
-		$m		= str_replace("\n", " ", $m);
-		$m		= str_replace('"', "'", $m);
-		shell_exec("/usr/bin/logger"." ".escapeshellarg($m)." -t ".escapeshellarg($plugin));
+		$m = print_r($m, true);
+		$m = str_replace("\n", " ", $m);
+		$m = str_replace('"', "'", $m);
+		shell_exec("/usr/bin/logger" . " " . escapeshellarg($m) . " -t " . escapeshellarg($plugin));
 	}
 }
 
 /* Run a command and time out if it doesn't complete in the $timeout number of seconds. */
-function timed_exec($timeout, $cmd) {
-	$time		= -microtime(true); 
-	$out		= trim(shell_exec("/usr/bin/timeout ".escapeshellarg($timeout)." ".$cmd) ?? "");
-	$time		+= microtime(true);
+function timed_exec($timeout, $cmd)
+{
+	$time = -microtime(true);
+	$out = trim(shell_exec("/usr/bin/timeout " . escapeshellarg($timeout) . " " . $cmd) ?? "");
+	$time += microtime(true);
 	if ($time >= $timeout) {
-		unassigned_log("Warning: shell_exec(".$cmd.") took longer than ".sprintf('%d', $timeout)."s!");
-		$out	= "command timed out";
+		unassigned_log("Warning: shell_exec(" . $cmd . ") took longer than " . sprintf('%d', $timeout) . "s!");
+		$out = "command timed out";
 	} else {
-		unassigned_log("Timed Exec: shell_exec(".$cmd.") took ".sprintf('%f', $time)."s!", 3);
+		unassigned_log("Timed Exec: shell_exec(" . $cmd . ") took " . sprintf('%f', $time) . "s!", 3);
 	}
 
 	return $out;
 }
 
 /* See if the server port is open. */
-function is_server_alive($server, $port) {
-	$is_alive	= trim(shell_exec("/usr/bin/nice /usr/bin/timeout 1 bash -c '(echo >/dev/tcp/{$server}/{$port}) &>/dev/null'; echo $?")) == 0;
+function is_server_alive($server, $port)
+{
+	$is_alive = trim(shell_exec("/usr/bin/nice /usr/bin/timeout 1 bash -c '(echo >/dev/tcp/{$server}/{$port}) &>/dev/null'; echo $?")) == 0;
 
 	return $is_alive;
 }
 
-/* Is the server currently on line. */
-function is_server_online($server, $protocol, $log = false) {
+/* Is the server currently online. */
+function is_server_online($server, $protocol, $log = false)
+{
 	global $tc, $local_tld;
 
 	/* The check for a remote server to be online is just a simple open port check. The checks are done as follows:
@@ -94,45 +100,45 @@ function is_server_online($server, $protocol, $log = false) {
 	*/
 
 	/* Determine the port number from the protocol. */
-	$port		= ($protocol == "NFS") ? NFS_PORT : SMB_PORT;
+	$port = ($protocol == "NFS") ? NFS_PORT : SMB_PORT;
 
 	/* Set as ping status has not changed. */
-	$changed	= false;
+	$changed = false;
 
 	/* Ping status file key for this server. */
-	$name	= $server.".".$protocol;
+	$name = $server . "." . $protocol;
 
 	/* Capitalize the server name. */
-	$server	= strtoupper($server);
+	$server = strtoupper($server);
 	if ($server) {
 		/* Get the ping status json file. */
-		$ping_status	= MiscUD::get_json($tc);
+		$ping_status = MiscUD::get_json($tc);
 
 		/* See if the server was last seen as being online. */
-		$was_alive		= (isset($ping_status[$name]['online']) && ($ping_status[$name]['online'] == 'yes'));
+		$was_alive = (isset($ping_status[$name]['online']) && ($ping_status[$name]['online'] == 'yes'));
 
-		/* Is the remote server on line and responding. */
-		$is_alive		= is_server_alive($server, $port);
+		/* Is the remote server online and responding. */
+		$is_alive = is_server_alive($server, $port);
 
 		/* If the server status fails with the name, use the server IP address found with 'arp'. */
-		if (! $is_alive) {
-			$ip_address	= trim(shell_exec("/sbin/arp -a ".escapeshellarg($server)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $2}'") ?? "");
+		if (!$is_alive) {
+			$ip_address = trim(shell_exec("/sbin/arp -a " . escapeshellarg($server) . " 2>&1 | grep -v 'arp:' | /bin/awk '{print $2}'") ?? "");
 			$ip_address = str_replace(['(', ')'], '', $ip_address);
 			if (MiscUD::is_ip($ip_address)) {
-				$is_alive	= is_server_alive($ip_address, $port);
+				$is_alive = is_server_alive($ip_address, $port);
 			}
 		}
 
 		/* Get the number of pings we've checked since it went offline. */
-		$no_pings		= $ping_status[$name]['no_pings'] ?? 0;
+		$no_pings = $ping_status[$name]['no_pings'] ?? 0;
 
 		/* If it is not online then start counts for being offline. */
-		if (! $is_alive) {
-			/* Check for three consecutive negative pings before declaring it is off-line. */
+		if (!$is_alive) {
+			/* Check for three consecutive negative pings before declaring it is offline. */
 			$no_pings++;
 			if (($no_pings <= 3) && (isset($ping_status[$name]['online'])) && ($ping_status[$name]['online'] == 'yes')) {
 				$is_alive = true;
-			} else if ($no_pings > 3){
+			} else if ($no_pings > 3) {
 				$no_pings = 0;
 			}
 		} else {
@@ -141,8 +147,8 @@ function is_server_online($server, $protocol, $log = false) {
 
 		/* When the server first goes offline, log a message. */
 		if ($was_alive != $is_alive) {
-			if (! $is_alive) {
-				unassigned_log("Remote server '".$server."' port '".$port."' is not open; server apears to be offline.");
+			if (!$is_alive) {
+				unassigned_log("Remote server '" . $server . "' port '" . $port . "' is not open; server appears to be offline.");
 			}
 
 			$changed = true;
@@ -156,26 +162,27 @@ function is_server_online($server, $protocol, $log = false) {
 	return;
 }
 
-/* Ping all remote servers to check for being on-line. */
-function ping_servers() {
+/* Ping all remote servers to check for being online. */
+function ping_servers()
+{
 	global $config_file;
 
 	/* Refresh the ping status. */
-	$config_ini		= @parse_ini_file($config_file, true);
-	$samba_mounts	= ($config_ini !== false) ? $config_ini : [];
+	$config_ini = @parse_ini_file($config_file, true);
+	$samba_mounts = ($config_ini !== false) ? $config_ini : [];
 	if (is_array($samba_mounts)) {
-		/* Ceate an array of unique server names/ip addresses. */
-		$srvr	= [];
+		/* Create an array of unique server names/ip addresses. */
+		$srvr = [];
 		foreach ($samba_mounts as $device => $mount) {
 			if (isset($mount['ip'])) {
-				$server			= $mount['ip'];
-				$protocol		= $mount['protocol'];
-				$name			= $server.".".$protocol;
-				$srvr[$name]	= array('server' => $server, 'protocol' => $protocol);
+				$server = $mount['ip'];
+				$protocol = $mount['protocol'];
+				$name = $server . "." . $protocol;
+				$srvr[$name] = array('server' => $server, 'protocol' => $protocol);
 			}
 		}
 
-		/* Now ping every server to check for it being on-line. */
+		/* Now ping every server to check for it being online. */
 		foreach ($srvr as $device => $ping) {
 			/* This updates the ping_status file with the current state of the remote server. */
 			is_server_online($ping['server'], $ping['protocol']);
@@ -184,20 +191,20 @@ function ping_servers() {
 }
 
 /* Get the size, used, and free space on device. */
-function df_status($tc, $mountpoint) {
-
+function df_status($tc, $mountpoint)
+{
 	/* Get the status of the mounted device. */
-	$df_status	= MiscUD::get_json($tc);
+	$df_status = MiscUD::get_json($tc);
 
 	/* Get the current stats if previously set. */
-	$rc	= $df_status[$mountpoint]['stats'] ?? "";
+	$rc = $df_status[$mountpoint]['stats'] ?? "";
 
 	/* Save new time so the status will not be requested again in case it takes a while for df to work. */
 	$df_status[$mountpoint] = array('timestamp' => time(), 'stats' => $rc);
 	MiscUD::save_json($tc, $df_status);
 
 	/* Get the new stats from df. */
-	$rc			= timed_exec(10, "/bin/df ".escapeshellarg($mountpoint)." --output=size,used,avail | /bin/grep -v '1K-blocks' 2>/dev/null");
+	$rc = timed_exec(10, "/bin/df " . escapeshellarg($mountpoint) . " --output=size,used,avail | /bin/grep -v '1K-blocks' 2>/dev/null");
 
 	/* Save the new stats if df doesn't time out. */
 	if ($rc) {
@@ -206,31 +213,54 @@ function df_status($tc, $mountpoint) {
 	}
 }
 
-switch ($COMMAND) {
-	case 'ping':
-		/* If we are already running, skip the update so we don't duplicate the instances of this ping script. */
-		if (! file_exists($pidFile)) {
-			/* Get the current PID and save it to the file. */
-			file_put_contents($pidFile, getmypid());
+/* Handle PID and lock file management. */
+function handle_pid($pidFile, $callback, $waitTime = 0) {
+	$waited = 0;
 
-			/* Update ping status on all remote servers. */
-			ping_servers();
+	/* Convert seconds to milliseconds. */
+ 	$maxWaitTime = $waitTime * 1000;
 
-			/* Remove PID file when script is done. */
+	while (file_exists($pidFile) && $waited < $maxWaitTime) {
+		/* Wait for 500 milliseconds. */
+ 		usleep(500000);
+		$waited += 500;
+	}
+
+	if (!file_exists($pidFile) || $waited >= $maxWaitTime) {
+		/* Get the current PID and save it to the file. */
+		file_put_contents($pidFile, getmypid());
+
+		try {
+			/* Execute the callback function. */
+			$callback();
+		} finally {
+			/* Ensure PID file is removed when script is done. */
 			if (file_exists($pidFile)) {
 				unlink($pidFile);
 			}
 		}
+	}
+}
+
+/* Handle each command with its specific PID file */
+switch ($COMMAND) {
+	case 'ping':
+		$pidFile = "/var/run/get_ud_stats_ping";
+		handle_pid($pidFile, 'ping_servers');
 		break;
 
 	case 'df_status':
-		/* Update size, used, and free stats on mounted device. */
-		df_status($argv[2], $argv[3]);
+		$pidFile = "/var/run/get_ud_stats_df_status";
+		handle_pid($pidFile, function() use ($argv) {
+			df_status($argv[2], $argv[3]);
+		});
 		break;
 
 	case 'is_online':
-		/* Check that the remote server is online. */
-		is_server_online($argv[2], ($argv[3] ?? "SMB"), true);
+		$pidFile = "/var/run/get_ud_stats_ping";
+		handle_pid($pidFile, function() use ($argv) {
+			is_server_online($argv[2], ($argv[3] ?? "SMB"), true);
+		}, 2); // Wait for 2 seconds before running
 		break;
 
 	default:
