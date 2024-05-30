@@ -515,7 +515,7 @@ function get_device_stats($mountpoint, $mounted, $active = true) {
 
 		/* Update the size, used, and free status every 90 seconds on each device. */
 		if (($active) && ((time() - $df_status[$mountpoint]['timestamp']) > 90)) {
-			exec($docroot."/plugins/".$plugin."/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." > /dev/null 2>&1 &");
+			exec($docroot."/plugins/".$plugin."/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." &");
 		}
 
 		/* Get the device stats. */
