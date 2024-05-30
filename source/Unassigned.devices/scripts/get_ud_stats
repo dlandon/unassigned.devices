@@ -102,12 +102,12 @@ function is_server_online($server, $protocol, $log = false) {
 	/* Ping status file key for this server. */
 	$name	= $server.".".$protocol;
 
+	/* Get the ping status json file. */
+	$ping_status	= MiscUD::get_json($tc);
+
 	/* Capitalize the server name. */
 	$server	= strtoupper($server);
 	if ($server) {
-		/* Get the ping status json file. */
-		$ping_status	= MiscUD::get_json($tc);
-
 		/* See if the server was last seen as being online. */
 		$was_alive		= (isset($ping_status[$name]['online']) && ($ping_status[$name]['online'] == 'yes'));
 
@@ -148,10 +148,12 @@ function is_server_online($server, $protocol, $log = false) {
 			$changed = true;
 		}
 
-		/* Update the server status file. */
+		/* Update the ping status. */
 		$ping_status[$name] = array('no_pings' => $no_pings, 'online' => $is_alive ? 'yes' : 'no', 'changed' => $changed ? 'yes' : 'no');
-		MiscUD::save_json($tc, $ping_status);
 	}
+
+	/* Update the server status file. */
+	MiscUD::save_json($tc, $ping_status);
 
 	return;
 }
@@ -213,12 +215,14 @@ switch ($COMMAND) {
 			/* Get the current PID and save it to the file. */
 			file_put_contents($pidFile, getmypid());
 
-			/* Update ping status on all remote servers. */
-			ping_servers();
-
-			/* Remove PID file when script is done. */
-			if (file_exists($pidFile)) {
-				unlink($pidFile);
+			try {
+				/* Update ping status on all remote servers. */
+				ping_servers();
+			} finally {
+				/* Ensure PID file is removed when script is done. */
+				if (file_exists($pidFile)) {
+					unlink($pidFile);
+				}
 			}
 		}
 		break;
@@ -229,8 +233,21 @@ switch ($COMMAND) {
 		break;
 
 	case 'is_online':
-		/* Check that the remote server is online. */
-		is_server_online($argv[2], ($argv[3] ?? "SMB"), true);
+		/* If we are already running, skip the update so we don't duplicate the instances of this ping script. */
+		if (! file_exists($pidFile)) {
+			/* Get the current PID and save it to the file. */
+			file_put_contents($pidFile, getmypid());
+
+			try {
+				/* Check that the remote server is online. */
+				is_server_online($argv[2], ($argv[3] ?? "SMB"), true);
+			} finally {
+				/* Ensure PID file is removed when script is done. */
+				if (file_exists($pidFile)) {
+					unlink($pidFile);
+				}
+			}
+		}
 		break;
 
 	default:
