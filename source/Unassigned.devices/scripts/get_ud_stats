@@ -200,9 +200,9 @@ function getMountpointSpaceInfo($mountpoint) {
 
 		if (count($info) === 3) {
 			/* Calculate total size, used, and free space in 1K blocks */
-			$used = convertToBytes($info[1]) / 1024;
-			$free = convertToBytes($info[2]) / 1024;
-			$totalSize = $used + $free;
+			$used		= convertToBytes($info[1]) / 1024;
+			$free		= convertToBytes($info[2]) / 1024;
+			$totalSize	= $used + $free;
 
 			/* Format the output as size used free with a single space as delimiter */
 			$result = sprintf("%d %d %d", $totalSize, $used, $free);
@@ -215,16 +215,7 @@ function getMountpointSpaceInfo($mountpoint) {
 		$dfOutput = timed_exec(10, $dfCommand);
 
 		if (!empty($dfOutput) && $dfOutput !== "command timed out") {
-			/* Parse the df output */
-			$columns = preg_split('/\s+/', trim($dfOutput));
-			if (count($columns) >= 3) {
-				$totalSize = $columns[0];
-				$used = $columns[1];
-				$free = $columns[2];
-
-				/* Format the output as size used free with a single space as delimiter */
-				$result = sprintf("%d %d %d", $totalSize, $used, $free);
-			}
+			$result = $dfOutput;
 		}
 	}
 
