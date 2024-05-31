@@ -185,6 +185,61 @@ function ping_servers() {
 	}
 }
 
+/* Function to get the size, used, and free space of a mountpoint */
+function getMountpointSpaceInfo($mountpoint) {
+	$result = "";
+
+	/* Check if the mountpoint is a ZFS file system */
+	$zfsCommand = '/usr/sbin/zfs list -H -o name,used,avail ' . escapeshellarg($mountpoint) . ' 2>/dev/null';
+	$zfsOutput = timed_exec(10, $zfsCommand);
+
+	if (!empty($zfsOutput) && $zfsOutput !== "command timed out") {
+		/* Parse the ZFS output */
+		$lines = explode("\n", trim($zfsOutput));
+		$info = explode("\t", $lines[0]);
+
+		if (count($info) === 3) {
+			/* Calculate total size, used, and free space in 1K blocks */
+			$used = convertToBytes($info[1]) / 1024;
+			$free = convertToBytes($info[2]) / 1024;
+			$totalSize = $used + $free;
+
+			/* Format the output as size used free with a single space as delimiter */
+			$result = sprintf("%d %d %d", $totalSize, $used, $free);
+		}
+	}
+
+	if (empty($result)) {
+		/* If not a ZFS file system, use df to get the size, used, and free space */
+		$dfCommand = '/usr//bin/df ' . escapeshellarg($mountpoint) . ' --output=size,used,avail | /bin/grep -v \'1K-blocks\' 2>/dev/null';
+		$dfOutput = timed_exec(10, $dfCommand);
+
+		if (!empty($dfOutput) && $dfOutput !== "command timed out") {
+			/* Parse the df output */
+			$columns = preg_split('/\s+/', trim($dfOutput));
+			if (count($columns) >= 3) {
+				$totalSize = $columns[0];
+				$used = $columns[1];
+				$free = $columns[2];
+
+				/* Format the output as size used free with a single space as delimiter */
+				$result = sprintf("%d %d %d", $totalSize, $used, $free);
+			}
+		}
+	}
+
+	return $result;
+}
+
+/* Helper function to convert human-readable sizes to bytes */
+function convertToBytes($size) {
+	$units = array('B' => 1, 'K' => 1024, 'M' => 1048576, 'G' => 1073741824, 'T' => 1099511627776, 'P' => 1125899906842624);
+	$unit = strtoupper(substr($size, -1));
+	$value = (float) $size;
+
+	return isset($units[$unit]) ? $value * $units[$unit] : $value;
+}
+
 /* Get the size, used, and free space on device. */
 function df_status($tc, $mountpoint) {
 
@@ -192,18 +247,18 @@ function df_status($tc, $mountpoint) {
 	$df_status	= MiscUD::get_json($tc);
 
 	/* Get the current stats if previously set. */
-	$rc	= $df_status[$mountpoint]['stats'] ?? "";
+	$result	= $df_status[$mountpoint]['stats'] ?? "";
 
 	/* Save new time so the status will not be requested again in case it takes a while for df to work. */
-	$df_status[$mountpoint] = array('timestamp' => time(), 'stats' => $rc);
+	$df_status[$mountpoint] = array('timestamp' => time(), 'stats' => $result);
 	MiscUD::save_json($tc, $df_status);
 
 	/* Get the new stats from df. */
-	$rc			= timed_exec(10, "/bin/df ".escapeshellarg($mountpoint)." --output=size,used,avail | /bin/grep -v '1K-blocks' 2>/dev/null");
+	$result = getMountpointSpaceInfo($mountpoint);
 
 	/* Save the new stats if df doesn't time out. */
-	if ($rc) {
-		$df_status[$mountpoint] = array('timestamp' => time(), 'stats' => $rc);
+	if ($result) {
+		$df_status[$mountpoint] = array('timestamp' => time(), 'stats' => $result);
 		MiscUD::save_json($tc, $df_status);
 	}
 }
