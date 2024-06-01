@@ -28,7 +28,7 @@
 - Add: Create ud_diagnostics in the tmp file system and then move to the flash so failures can be indicated as zip creation or flash writes.
 - Add: Adjustments for deprecating 'user0' mounts.
 - Add: Rework get_ud_stats for robustness and additional work to prevent potential hangs.
-- Add: Show size, used, and free properly on zfs volumes.
+- Add: Show size, used, and free properly on zfs disks.
 
 ###2024.05.11
 - Fix: Default Mount SSDs with 'discard' option? to 'no'.
