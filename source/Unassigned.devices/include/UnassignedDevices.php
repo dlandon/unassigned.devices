@@ -1562,8 +1562,10 @@ switch ($_POST['action']) {
 
 		$rc			= true;
 
-		$ip_local	= implode("",explode("\\", $ip));
-		$ip_local	= strtoupper(stripslashes(trim($ip)));
+		/* Remove backslashes, trim whitespace, and convert to uppercase. */
+		$ip_local	= stripslashes(trim($ip));
+		$ip_local	= strtoupper(trim(str_replace("\\", "", $ip_local)));
+
 		$path		= implode("",explode("\\", $path));
 		$path		= stripslashes(trim($path));
 		$share		= basename($path);
