@@ -568,14 +568,14 @@ function get_disk_id($dev, $udev_id) {
 	if (is_file($sf)) {
 		$devs = @parse_ini_file($sf, true);
 		foreach ($devs as $d) {
-			if (($d['device'] == $device) && $d['id']) {
+			if (($d['device'] == $device) && isset($d['id'])) {
 				$rc = $d['id'];
 				break;
 			}
 		}
 	}
 
-	return $rc;
+	return safe_name($rc);
 }
 
 /* Get the reads and writes from diskload.ini. */
@@ -3675,17 +3675,6 @@ function get_disk_info($dev) {
 	$attrs						= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
 	$disk['device']				= realpath($dev);
 	$disk['serial']				= get_disk_id($disk['device'], trim($attrs['ID_SERIAL']));
-	/* Be sure the suffix on the serial number is added to the short serial number. */
-	if (isset($attrs['ID_SERIAL_SHORT'])) {
-		/* Get the suffix from the serial number fopr the format -N:N and concatenate it to the short serial. */
-		if (preg_match('/-\d+:\d+$/', $attrs['ID_SERIAL'], $matches)) {
-			$suffix = $matches[0];
-			/* Concatenate suffix only if it is not already present. */
-			if ($suffix && strpos($attrs['ID_SERIAL_SHORT'], $suffix) === false) {
-				$attrs['ID_SERIAL_SHORT']	.= $suffix;
-			}
-		}
-	}
 	$disk['serial_short']		= $attrs['ID_SCSI_SERIAL'] ?? ($attrs['ID_SERIAL_SHORT'] ?? "");
 	$disk['id_bus']				= $attrs['ID_BUS'] ?? "";
 	$disk['fstype']				= $attrs['ID_FS_TYPE'] ?? "";
