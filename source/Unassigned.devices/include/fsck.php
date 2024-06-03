@@ -158,7 +158,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 }
 
 /* Btrfs file systems have to be mounted to scrub them. */
-if ((($file_system == "btrfs")|| ($file_system == "zfs"))&& (! $mounted)) {
+if ((($file_system == "btrfs") || ($file_system == "zfs")) && (! $mounted)) {
 	write_log("<br />"._('A btrfs or zfs file system has to be mounted to be scrubbed')."!<br />");
 } else {
 	/* Check the fsck return code and process the return code. */
