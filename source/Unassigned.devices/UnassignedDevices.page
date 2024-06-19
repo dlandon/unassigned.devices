@@ -26,8 +26,8 @@ $version = parse_ini_file("/etc/unraid-version");
 /* See if NFS and SMB sharing is enabled. */
 $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "no")) ? "disabled" : "";
 
-/* If the configuration is pools only, then no array disks are available. */
-$poolsOnly	= ((int)$var['SYS_ARRAY_SLOTS'] <= 2) ? true : false;
+/* If user0 exists, then a user- root share is available. */
+$isUser0	= is_dir("/mnt/user0/") ? true : false;
 ?>
 
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.ui.css')?>">
@@ -1084,7 +1084,7 @@ $poolsOnly	= ((int)$var['SYS_ARRAY_SLOTS'] <= 2) ? true : false;
 		<div data-question-content>
 			<select name="PATH" class="swal-content__input">
 				<option value="user"><?=_('User Shares');?></option>
-				<option value="user0" <?= $poolsOnly ? 'disabled' : ''; ?>><?=_('User Shares without Pools');?></option>
+				<option value="user0" <?= $isUser0 ? '' : 'disabled'; ?>><?=_('User Shares without Pools');?></option>
 			</select>
 			<p><?=_('Select the Root Share');?>.</p>
 			<p><?=_('User Shares - allow access to User Shares, including Cache and Pool files');?>.</p>
