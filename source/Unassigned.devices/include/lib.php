@@ -3939,7 +3939,7 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 			break;
 
 		case 'btrfs':
-			$cmd = array('ro'=>'/sbin/btrfs scrub start -B -R -d -r %s', 'rw'=>'/sbin/btrfs scrub start -B -R -d %s');
+			$cmd = array('ro'=>'/sbin/btrfs scrub start -B -R -d %s', 'rw'=>'/sbin/btrfs scrub start -B -R -d %s');
 			break;
 
 		case 'ext4':
