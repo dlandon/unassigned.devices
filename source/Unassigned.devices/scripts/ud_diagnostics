@@ -62,7 +62,7 @@ foreach ($unassigned_cfg as &$subArray) {
 		$subArray['pass'] = '**********';
 	}
 }
-$output_file	= $directory."/unassigned_config.txt";
+$output_file	= $directory."/unassigned.devices.txt";
 $output			= print_r($unassigned_cfg, true);
 @file_put_contents($output_file, $output);
 
@@ -85,7 +85,7 @@ foreach ($samba_cfg as &$subArray) {
 		$subArray['domain'] = '**********';
 	}
 }
-$output_file	= $directory."/samba_config.txt";
+$output_file	= $directory."/samba_mount.txt";
 $output			= print_r($samba_cfg, true);
 @file_put_contents($output_file, $output);
 
