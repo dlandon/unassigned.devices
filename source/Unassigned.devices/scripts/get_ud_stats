@@ -27,9 +27,6 @@ $pidFile		= "/var/run/get_ud_stats";
 $tc 			= "/var/state/".$plugin."/ping_status.json";
 $var			= @parse_ini_file("$docroot/state/var.ini");
 
-/* Capitalize the local_tld.  Default local TLD is 'LOCAL'. */
-$local_tld		= (isset($var['LOCAL_TLD']) && ($var['LOCAL_TLD'])) ? strtoupper(trim($var['LOCAL_TLD'])) : "LOCAL";
-
 /* Misc functions. */
 class MiscUD
 {
@@ -86,11 +83,11 @@ function is_server_alive($server, $port) {
 
 /* Is the server currently on line. */
 function is_server_online($server, $protocol, $log = false) {
-	global $tc, $local_tld;
+	global $tc;
 
 	/* The check for a remote server to be online is just a simple open port check. The checks are done as follows:
 		- Check the original server name.
-		- Then check the name with added defined 'Local TLD'.
+		- Then check the IP address if the name does not resolve.
 	*/
 
 	/* Determine the port number from the protocol. */
