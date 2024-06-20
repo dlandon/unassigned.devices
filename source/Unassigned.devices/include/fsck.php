@@ -85,7 +85,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 		$file_system = $fs;
 	}
 
-	/* A BTRFS file syste scrub is done on the mountpoint, not the physical device. */
+	/* A BTRFS file system scrub is done on the mountpoint, not the physical device. */
 	if ($file_system == "btrfs") {
 		$device		= $mountpoint;
 	}
