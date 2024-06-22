@@ -3448,7 +3448,7 @@ function get_all_disks_info() {
 			$dev			= basename(realpath($key));
 
 			/* Set the disk size from the lsblk array. */
-			$disk['size']	= intval($disk_sizes[$dev]);
+			$disk['size']	= $dev ? intval($disk_sizes[$dev]) : 0;
 
 			/* Get all the disk partitions. */
 			$disk			= array_merge($disk, get_disk_info($key));
