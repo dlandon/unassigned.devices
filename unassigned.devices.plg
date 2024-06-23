@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.05.31">
+<!ENTITY version	"2024.06.23">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"3d0c0da1f8c6526d80df378ec64ac9b4">
+<!ENTITY MD5		"0df74573e43bb28541ede28919ed21c9">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,16 +22,22 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Simplify zfs stats routine.
+- Fix: Strip backslashes from remote server when manually entered.
+- Fix: "Root Shares without Pools" is based on the existence of the "/mnt/user0/" mount point.
+- Fix: Remove some unnecessary code.
+
+###2024.05.31
 - Fix: Adjust default NFS rules.
 - Fix: Changes to NFS rules placeholder text.
 - Fix: Comparison for duplicate remote share.  Cannot have a remote share NFS and SMB at the same time.
 - Add: Create ud_diagnostics in the tmp file system and then move to the flash so failures can be indicated as zip creation or flash writes.
 - Add: Adjustments for deprecating 'user0' mounts.
 - Add: Rework get_ud_stats for robustness and additional work to prevent potential hangs.
-- Add: Show size, used, and free properly on zfs disks.
+- Add: Show size, used, and free properly on zfs disks/partitions.
 
 ###2024.05.11
-- Fix: Default Mount SSDs with 'discard' option? to 'no'.
+- Fix: Default 'Mount SSDs with 'discard' option?' to 'no'.
 - Fix: Hitting 'Back' and then 'Next' when adding a Rootshare would hang the dialog.
 - Fix: If a remote server name doesn't work for checking online status, use the IP address.
 - Add: Clean up NFS rules by removing spaces and blank lines before saving in configuration file.
