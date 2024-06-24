@@ -480,9 +480,6 @@ function safe_name($name, $convert_spaces = true, $convert_extra = false) {
 	$escapeSequences	= array("'", '"', "?", "#", "&", "!", "<", ">", "|", "+", "@");
 	$replacementChars	= "_";
 
-	/* Convert troublesome Chinese multi-byte characters to underscore. */
-	$escapeSequences[]	= "空";
-
 	/* Convert parentheses to underscore. */
 	if ($convert_extra) {
 		$extraSequences		= array("(", ")");
@@ -496,6 +493,11 @@ function safe_name($name, $convert_spaces = true, $convert_extra = false) {
 
 	/* Convert all unsafe characters to underline character. */
 	$string = str_replace($escapeSequences, $replacementChars, $string);
+
+	/* Convert troublesome Chinese multi-byte characters to underscore. */
+	$string	= str_replace("空", $replacementChars, $string); /* Chinese space character. */
+	$string	= str_replace("蜘", $replacementChars, $string); /* Chinese dragonfly character. */
+	$string	= str_replace("蛛", $replacementChars, $string); /* Chinese spider character. */
 
 	return trim($string);
 }
