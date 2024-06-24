@@ -221,7 +221,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 					},
 					'json').fail(function(xhr, status, error) {
 						/* Reject on AJAX failure. */
- 						reject(error);
+						reject(new Error("<tr><td colspan='11' style='text-align:center;'><?=_('Failed to get data to refresh page');?>.</td></tr>"));
 					});
 				}),
 				timeoutPromise
