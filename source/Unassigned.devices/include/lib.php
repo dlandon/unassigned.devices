@@ -503,7 +503,7 @@ function safe_name($name, $convert_spaces = true, $convert_extra = false) {
 }
 
 /* Get the size, used, and free space on a mount point. */
-function get_device_stats($mountpoint, $mounted, $active = true) {
+function get_device_stats($mountpoint, $mounted, $active = true, $zfs = false) {
 	global $docroot, $paths, $plugin;
 
 	$rc			= "";
@@ -517,7 +517,7 @@ function get_device_stats($mountpoint, $mounted, $active = true) {
 
 		/* Update the size, used, and free status every 90 seconds on each device. */
 		if (($active) && ((time() - $df_status[$mountpoint]['timestamp']) > 90)) {
-			exec($docroot."/plugins/".$plugin."/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." &");
+			exec($docroot."/plugins/".$plugin."/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".($zfs ? "true" : "false")." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." &");
 		}
 
 		/* Get the device stats. */
@@ -3839,7 +3839,7 @@ function get_partition_info($dev) {
 		/* Target is set to the mount point when the device is mounted. */
 		$partition['target']		= $partition['mounted'] ? $partition['mountpoint'] : "";
 
-		$stats						= get_device_stats($partition['mountpoint'], $partition['mounted']);
+		$stats						= get_device_stats($partition['mountpoint'], $partition['mounted'], true, $zfs);
 		$partition['size']			= $stats[0]*1024;
 		$partition['used']			= $stats[1]*1024;
 		$partition['avail']			= $stats[2]*1024;
@@ -3889,7 +3889,7 @@ function get_zvol_info($disk) {
 			$zvol[$vol]['file_system']		= part_fs_type($zvol[$vol]['device']);
 			$zvol[$vol]['file_system']		= ($zvol[$vol]['file_system']) ?: zvol_fs_type($zvol[$vol]['device']);
 			$zvol[$vol]['zfs_read_only']	= is_mounted_read_only($zvol[$vol]['mountpoint']);
-			$stats							= get_device_stats($zvol[$vol]['mountpoint'], $zvol[$vol]['mounted'], $zvol[$vol]['active']);
+			$stats							= get_device_stats($zvol[$vol]['mountpoint'], $zvol[$vol]['mounted'], $zvol[$vol]['active'], true);
 			$zvol[$vol]['size']				= $stats[0]*1024;
 			$zvol[$vol]['used']				= $stats[1]*1024;
 			$zvol[$vol]['avail']			= $stats[2]*1024;

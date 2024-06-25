@@ -139,7 +139,7 @@ function is_server_online($server, $protocol, $log = false) {
 		/* When the server first goes offline, log a message. */
 		if ($was_alive != $is_alive) {
 			if (! $is_alive) {
-				unassigned_log("Remote server '".$server."' port '".$port."' is not open; server apears to be offline.");
+				unassigned_log("Remote server '".$server."' port '".$port."' is not open; server appears to be offline.");
 			}
 
 			$changed = true;
@@ -183,15 +183,18 @@ function ping_servers() {
 }
 
 /* Function to get the size, used, and free space of a mountpoint */
-function getMountpointSpaceInfo($mountpoint) {
+function getMountpointSpaceInfo($mountpoint, $zfs) {
 	$result = "";
 
 	/* Check if the mountpoint is a ZFS file system */
-	$zfsCommand = '/usr/sbin/zfs list -Hp -o used,avail ' . escapeshellarg($mountpoint) . ' 2>/dev/null';
-	$zfsOutput = timed_exec(10, $zfsCommand);
+	if ($zfs) {
+		$zfsCommand = '/usr/sbin/zfs list -Hp -o used,avail ' . escapeshellarg($mountpoint) . ' 2>/dev/null';
+		$zfsOutput = timed_exec(10, $zfsCommand);
+	} else {
+		$zfsOutput	= "";
+	}
 
 	if (!empty($zfsOutput) && $zfsOutput !== "command timed out") {
-		/* Parse the ZFS output */
 		/* Parse the ZFS output */
 		$info = preg_split('/\s+/', trim($zfsOutput));
 
@@ -220,7 +223,7 @@ function getMountpointSpaceInfo($mountpoint) {
 }
 
 /* Get the size, used, and free space on device. */
-function df_status($tc, $mountpoint) {
+function df_status($tc, $mountpoint, $zfs) {
 
 	/* Get the status of the mounted device. */
 	$df_status	= MiscUD::get_json($tc);
@@ -233,7 +236,7 @@ function df_status($tc, $mountpoint) {
 	MiscUD::save_json($tc, $df_status);
 
 	/* Get the new stats from df. */
-	$result = getMountpointSpaceInfo($mountpoint);
+	$result = getMountpointSpaceInfo($mountpoint, $zfs);
 
 	/* Save the new stats if df doesn't time out. */
 	if ($result) {
@@ -263,7 +266,7 @@ switch ($COMMAND) {
 
 	case 'df_status':
 		/* Update size, used, and free stats on mounted device. */
-		df_status($argv[2], $argv[3]);
+		df_status($argv[2], $argv[3], ($argv[4] == "true"), $argv[5]);
 		break;
 
 	case 'is_online':
