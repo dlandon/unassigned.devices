@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.06.23">
+<!ENTITY version	"2024.06.27">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"0df74573e43bb28541ede28919ed21c9">
+<!ENTITY MD5		"94a59e01379b8d21633e956d9228f5e6">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,12 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Remove additional troublesome Chinese characters when adding ISO files.
+- Fix: Display more meaningful message when the UD tables cannot be updated.
+- Fix: Only perform zfs used and free stats on zfs disk mount points.
+- Fix: Separate out config files in ud_diagnostics.
+
+###2024.06.23
 - Fix: Simplify zfs stats routine.
 - Fix: Strip backslashes from remote server when manually entered.
 - Fix: "Root Shares without Pools" is based on the existence of the "/mnt/user0/" mount point.
