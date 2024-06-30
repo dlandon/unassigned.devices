@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.06.27">
+<!ENTITY version	"2024.06.30">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"94a59e01379b8d21633e956d9228f5e6">
+<!ENTITY MD5		"6114565b64b620ebb793a1d3fb89562d">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Mount fails when using apfs password.
+
+###2024.06.27
 - Fix: Remove additional troublesome Chinese characters when adding ISO files.
 - Fix: Display more meaningful message when the UD tables cannot be updated.
 - Fix: Only perform zfs used and free stats on zfs disk mount points.
