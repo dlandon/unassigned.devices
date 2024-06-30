@@ -1858,9 +1858,8 @@ function do_mount_local($info) {
 					$cmd		= "/usr/sbin/zfs mount -o $params ".escapeshellarg($pool_name);
 				}
 			}
-			$cmd = str_replace($recovery, ", pass='*****'", ($cmd ?? ""));
 
-			unassigned_log("Mount cmd: ".$cmd);
+			unassigned_log("Mount cmd: ".str_replace($recovery, ",pass='*****'", ($cmd ?? "")));
 
 			/* apfs file system requires UD+ to be installed. */
 			if (($fs == "apfs") && (! is_file("/usr/bin/apfs-fuse"))) {
