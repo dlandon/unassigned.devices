@@ -477,7 +477,7 @@ function safe_name($name, $convert_spaces = true, $convert_extra = false) {
 	$string				= preg_replace('/[\p{C}]+/u', '', stripcslashes($string));
 
 	/* Convert reserved php characters and invalid file name characters to underscore. */
-	$escapeSequences	= array("'", '"', "?", "#", "&", "!", "<", ">", "|", "+", "@");
+	$escapeSequences	= array("'", '"', "?", "#", "&", "!", "<", ">", "[", "]", "{", "}", "|", "+", "@");
 	$replacementChars	= "_";
 
 	/* Convert parentheses to underscore. */
@@ -1792,6 +1792,7 @@ function do_mount_local($info) {
 	$ro				= $info['read_only'];
 	$file_system	= $fs;
 	$pool_name		= ($info['pool_name']) ?: MiscUD::zfs_pool_name($dev);
+
 	$mounted		= $info['mounted'];
 
 	if (! $mounted) {
