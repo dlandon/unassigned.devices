@@ -17,14 +17,14 @@ $plugin	= "unassigned.devices";
 require_once("plugins/$plugin/include/lib.php");
 
 $config_file 	= $paths['config_file'];
-$cfg_ini		= is_file($config_file) ? @parse_ini_file($config_file, true) : [];
-$cfg			= ($cfg_ini !== false) ? $cfg_ini : [];
+$UD_cfg_ini		= is_file($config_file) ? @parse_ini_file($config_file, true) : [];
+$UD_cfg			= ($UD_cfg_ini !== false) ? $UD_cfg_ini : [];
 
-$cfg['Config']['smb_security']			= $cfg['Config']['smb_security'] ?? "";
-$cfg['Config']['case_names']			= $cfg['Config']['case_names'] ?? "";
-$cfg['Config']['force_user']			= $cfg['Config']['force_user'] ?? "";
-$cfg['Config']['time_machine']			= $cfg['Config']['time_machine'] ?? "";
-$cfg['Config']['time_mach_vol_size']	= (($cfg['Config']['time_machine'] == "yes") ? ($cfg['Config']['time_mach_vol_size'] ?? "") : "");
+$UD_cfg['Config']['smb_security']			= $UD_cfg['Config']['smb_security'] ?? "";
+$UD_cfg['Config']['case_names']			= $UD_cfg['Config']['case_names'] ?? "";
+$UD_cfg['Config']['force_user']			= $UD_cfg['Config']['force_user'] ?? "";
+$UD_cfg['Config']['time_machine']			= $UD_cfg['Config']['time_machine'] ?? "";
+$UD_cfg['Config']['time_mach_vol_size']	= (($UD_cfg['Config']['time_machine'] == "yes") ? ($UD_cfg['Config']['time_mach_vol_size'] ?? "") : "");
 ?>
 
 <table class="tablesorter shift ups">
@@ -39,10 +39,10 @@ $cfg['Config']['time_mach_vol_size']	= (($cfg['Config']['time_machine'] == "yes"
 
 _(SMB Sharing)_:
 : <select name="smb_security" size="1" onchange="prepareSecurity(this);">
-  <?=mk_option($cfg['Config']['smb_security'], "no", "_(Disabled)_");?>
-  <?=mk_option($cfg['Config']['smb_security'], "public", "_(Public)_");?>
-  <?=mk_option($cfg['Config']['smb_security'], "yes", "_(Private)_");?>
-  <?=mk_option($cfg['Config']['smb_security'], "hidden", "_(Private Hidden)_");?>
+  <?=mk_option($UD_cfg['Config']['smb_security'], "no", "_(Disabled)_");?>
+  <?=mk_option($UD_cfg['Config']['smb_security'], "public", "_(Public)_");?>
+  <?=mk_option($UD_cfg['Config']['smb_security'], "yes", "_(Private)_");?>
+  <?=mk_option($UD_cfg['Config']['smb_security'], "hidden", "_(Private Hidden)_");?>
   </select>
 
 :ud_settings_smb_security_plug:
@@ -54,16 +54,16 @@ _(SMB Sharing)_:
 > + Set to **Private Hidden** to enable SMB Security on SMB shares that will not be visible. Set access by user to allow access and whether or not the user can write to the share.
 :end
 
-<div id="smb_security" style="display: <?=($cfg['Config']['smb_security'] == "no" || $cfg['Config']['smb_security'] == "public" || (! $cfg['Config']['smb_security']) ? "none" : "block");?>">
+<div id="smb_security" style="display: <?=($UD_cfg['Config']['smb_security'] == "no" || $UD_cfg['Config']['smb_security'] == "public" || (! $UD_cfg['Config']['smb_security']) ? "none" : "block");?>">
 	<?php foreach ($users as $user): ?>
 	<?php if ($user['name'] == "root"): continue; endif;?>
 	<dl>
 		<dt><?=$user['name'];?></dt>
 		<dd>
 			<select name="smb_<?=$user['name'];?>" size="1">
-			<?=mk_option($cfg['Config']["smb_{$user['name']}"] ?? "", "no-access", "_(No Access)_");?>
-			<?=mk_option($cfg['Config']["smb_{$user['name']}"] ?? "", "read-write", "_(Read/Write)_");?>
-			<?=mk_option($cfg['Config']["smb_{$user['name']}"] ?? "", "read-only", "_(Read-only)_");?>
+			<?=mk_option($UD_cfg['Config']["smb_{$user['name']}"] ?? "", "no-access", "_(No Access)_");?>
+			<?=mk_option($UD_cfg['Config']["smb_{$user['name']}"] ?? "", "read-write", "_(Read/Write)_");?>
+			<?=mk_option($UD_cfg['Config']["smb_{$user['name']}"] ?? "", "read-only", "_(Read-only)_");?>
 			</select>
 		</dd>
 	</dl>
@@ -72,9 +72,9 @@ _(SMB Sharing)_:
 
 _(Case-sensitive names)_:
 : <select name="case_names" size="1">
-  <?=mk_option($cfg['Config']['case_names'], "auto", "_(Auto)_");?>
-  <?=mk_option($cfg['Config']['case_names'], "yes", "_(Yes)_");?>
-  <?=mk_option($cfg['Config']['case_names'], "no", "_(Force lower)_");?>
+  <?=mk_option($UD_cfg['Config']['case_names'], "auto", "_(Auto)_");?>
+  <?=mk_option($UD_cfg['Config']['case_names'], "yes", "_(Yes)_");?>
+  <?=mk_option($UD_cfg['Config']['case_names'], "no", "_(Force lower)_");?>
   </select>
 
 :ud_settings_case_sensitive_plug:
@@ -90,8 +90,8 @@ _(Case-sensitive names)_:
 <? if ($var['enableFruit'] == "yes"):?>
 _(Enable Time Machine)_?
 : <select name="time_machine" size="1">
-	<?=mk_option($cfg['Config']['time_machine'], "no", "_(No)_");?>
-	<?=mk_option($cfg['Config']['time_machine'], "yes", "_(Yes)_");?>
+	<?=mk_option($UD_cfg['Config']['time_machine'], "no", "_(No)_");?>
+	<?=mk_option($UD_cfg['Config']['time_machine'], "yes", "_(Yes)_");?>
 	</select>
 <?endif;?>
 
@@ -103,7 +103,7 @@ _(Enable Time Machine)_?
 
 <? if ($var['enableFruit'] == "yes"):?>
 _(Time Machine volume size limit)_:
-: <input type="text" name="time_mach_vol_size" class="narrow" style="width:8%" maxlength="8" value="<?=$cfg['Config']['time_mach_vol_size'];?>" <?if ($cfg['Config']['time_machine'] != "yes"):?>disabled<?endif;?>>MB
+: <input type="text" name="time_mach_vol_size" class="narrow" style="width:8%" maxlength="8" value="<?=$UD_cfg['Config']['time_mach_vol_size'];?>" <?if ($UD_cfg['Config']['time_machine'] != "yes"):?>disabled<?endif;?>>MB
 <?endif;?>
 
 <? if ($var['enableFruit'] == "yes"):?>
@@ -114,8 +114,8 @@ _(Time Machine volume size limit)_:
 
 _(Add)_ 'force user = nobody' _(to SMB share config)_?
 : <select name="force_user" size="1">
-  <?=mk_option($cfg['Config']['force_user'], "no", "_(No)_");?>
-  <?=mk_option($cfg['Config']['force_user'], "yes", "_(Yes)_");?>
+  <?=mk_option($UD_cfg['Config']['force_user'], "no", "_(No)_");?>
+  <?=mk_option($UD_cfg['Config']['force_user'], "yes", "_(Yes)_");?>
   </select>
 
 :ud_settings_force_user_plug:

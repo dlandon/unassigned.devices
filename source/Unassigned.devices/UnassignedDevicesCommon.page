@@ -18,24 +18,24 @@ $plugin	= "unassigned.devices";
 require_once("plugins/$plugin/include/lib.php");
 
 $config_file	= $paths['config_file'];
-$cfg_ini		= is_file($config_file) ? @parse_ini_file($config_file, true) : [];
-$cfg			= ($cfg_ini !== false) ? $cfg_ini : [];
+$UD_cfg_ini		= is_file($config_file) ? @parse_ini_file($config_file, true) : [];
+$UD_cfg			= ($UD_cfg_ini !== false) ? $UD_cfg_ini : [];
 
-$cfg['Config']['common_cmd']		= $cfg['Config']['common_cmd'] ?? "";
-$cfg['Config']['destructive_mode']	= $cfg['Config']['destructive_mode'] ?? "";
-$cfg['Config']['automount_usb']		= $cfg['Config']['automount_usb'] ?? "";
-$cfg['Config']['discard']			= $cfg['Config']['discard'] ?? "";
-$cfg['Config']['symlinks']			= $cfg['Config']['symlinks'] ?? "";
-$cfg['Config']['zvols']				= $cfg['Config']['zvols'] ?? "";
-$cfg['Config']['remote_share_wait']	= $cfg['Config']['remote_share_wait'] ?? "";
-$cfg['Config']['smb_version']		= $cfg['Config']['smb_version'] ?? "";
-$cfg['Config']['nfs_version']		= $cfg['Config']['nfs_version'] ?? "";
-$cfg['Config']['debug_level']		= $cfg['Config']['debug_level'] ?? "";
+$UD_cfg['Config']['common_cmd']		= $UD_cfg['Config']['common_cmd'] ?? "";
+$UD_cfg['Config']['destructive_mode']	= $UD_cfg['Config']['destructive_mode'] ?? "";
+$UD_cfg['Config']['automount_usb']		= $UD_cfg['Config']['automount_usb'] ?? "";
+$UD_cfg['Config']['discard']			= $UD_cfg['Config']['discard'] ?? "";
+$UD_cfg['Config']['symlinks']			= $UD_cfg['Config']['symlinks'] ?? "";
+$UD_cfg['Config']['zvols']				= $UD_cfg['Config']['zvols'] ?? "";
+$UD_cfg['Config']['remote_share_wait']	= $UD_cfg['Config']['remote_share_wait'] ?? "";
+$UD_cfg['Config']['smb_version']		= $UD_cfg['Config']['smb_version'] ?? "";
+$UD_cfg['Config']['nfs_version']		= $UD_cfg['Config']['nfs_version'] ?? "";
+$UD_cfg['Config']['debug_level']		= $UD_cfg['Config']['debug_level'] ?? "";
 
 /* See if conditions are set for destructive mode to be enabled. */
 $parted = file_exists("/usr/sbin/parted");
-if ((! $parted) && ($cfg['Config']['destructive_mode'] == "enabled")) {
-	$cfg['Config']['destructive_mode'] = "disabled";
+if ((! $parted) && ($UD_cfg['Config']['destructive_mode'] == "enabled")) {
+	$UD_cfg['Config']['destructive_mode'] = "disabled";
 }
 ?>
 
@@ -196,7 +196,7 @@ if ((! $parted) && ($cfg['Config']['destructive_mode'] == "enabled")) {
 <?endif;?>
 
 _(Common Script)_:
-: <input type="text" name="common_cmd" style="width:43%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>', 'sh');" autocomplete="off" value="<?=$cfg['Config']['common_cmd'];?>">
+: <input type="text" name="common_cmd" style="width:43%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>', 'sh');" autocomplete="off" value="<?=$UD_cfg['Config']['common_cmd'];?>">
 
 :ud_settings_common_script_plug:
 > If set, this script will run before the device script when a device is first added - **$ACTION**='ADD'.  The device script setting 'Run Device Script File in the background?' will also apply to this script.
@@ -204,8 +204,8 @@ _(Common Script)_:
 
 _(Destructive Mode)_:
 : <select name="destructive_mode" size="1" <?if (! $parted):?>disabled<?endif;?>>
-  <?=mk_option($cfg['Config']['destructive_mode'], "disabled", "_(Disabled)_");?>
-  <?=mk_option($cfg['Config']['destructive_mode'], "enabled", "_(Enabled)_");?>
+  <?=mk_option($UD_cfg['Config']['destructive_mode'], "disabled", "_(Disabled)_");?>
+  <?=mk_option($UD_cfg['Config']['destructive_mode'], "enabled", "_(Enabled)_");?>
   </select><?if (! $parted):?>&nbsp;_(Install)_&nbsp;<a href='/Apps?search=unassigned%20devices%20plus'>Unassigned Devices Plus</a>&nbsp;_(to enable Destructive Mode)_.<?endif;?>
 
 :ud_settings_destructive_plug:
@@ -214,8 +214,8 @@ _(Destructive Mode)_:
 
 _(Auto Mount USB Devices)_?
 : <select name="automount_usb" size="1">
-  <?=mk_option($cfg['Config']['automount_usb'], "no", "_(No)_");?>
-  <?=mk_option($cfg['Config']['automount_usb'], "yes", "_(Yes)_");?>
+  <?=mk_option($UD_cfg['Config']['automount_usb'], "no", "_(No)_");?>
+  <?=mk_option($UD_cfg['Config']['automount_usb'], "yes", "_(Yes)_");?>
   </select>
 
 :ud_settings_mount_usb_devices_plug:
@@ -224,8 +224,8 @@ _(Auto Mount USB Devices)_?
 
 _(Mount SSDs with 'discard' option)_?
 : <select name="discard" size="1">
-  <?=mk_option($cfg['Config']['discard'], "no", "_(No)_");?>
-  <?=mk_option($cfg['Config']['discard'], "yes", "_(Yes)_");?>
+  <?=mk_option($UD_cfg['Config']['discard'], "no", "_(No)_");?>
+  <?=mk_option($UD_cfg['Config']['discard'], "yes", "_(Yes)_");?>
   </select>
 
 :ud_settings_discard_plug:
@@ -234,8 +234,8 @@ _(Mount SSDs with 'discard' option)_?
 
 _(Legacy Mount Point Compatibility)_?
 : <select name="symlinks" size="1">
-  <?=mk_option($cfg['Config']['symlinks'], "no", "_(No)_");?>
-  <?=mk_option($cfg['Config']['symlinks'], "yes", "_(Yes)_");?>
+  <?=mk_option($UD_cfg['Config']['symlinks'], "no", "_(No)_");?>
+  <?=mk_option($UD_cfg['Config']['symlinks'], "yes", "_(Yes)_");?>
   </select>
 
 :ud_settings_symlinks_plug:
@@ -249,8 +249,8 @@ _(Legacy Mount Point Compatibility)_?
 
 _(Show ZFS Volumes on Disks)_?
 : <select name="zvols" size="1">
-  <?=mk_option($cfg['Config']['zvols'], "no", "_(No)_");?>
-  <?=mk_option($cfg['Config']['zvols'], "yes", "_(Yes)_");?>
+  <?=mk_option($UD_cfg['Config']['zvols'], "no", "_(No)_");?>
+  <?=mk_option($UD_cfg['Config']['zvols'], "yes", "_(Yes)_");?>
   </select>
 
 :ud_settings_zvols_plug:
@@ -258,7 +258,7 @@ _(Show ZFS Volumes on Disks)_?
 :end
 
 _(Remote Share Mount Wait Time)_ :
-: <input type="text" name="remote_share_wait" class="narrow" maxlength="4" value="<?=$cfg['Config']['remote_share_wait'];?>" placeholder="5">
+: <input type="text" name="remote_share_wait" class="narrow" maxlength="4" value="<?=$UD_cfg['Config']['remote_share_wait'];?>" placeholder="5">
 
 :ud_settings_remote_share_wait_plug:
 > This is the time in seconds to wait before mounting remote shares when the array is first started.
@@ -267,8 +267,8 @@ _(Remote Share Mount Wait Time)_ :
 
 _(Specify SMB Version when Mounting Remote Shares)_?
 : <select name="smb_version" size="1">
-  <?=mk_option($cfg['Config']['smb_version'], "no", "_(No)_");?>
-  <?=mk_option($cfg['Config']['smb_version'], "yes", "_(Yes)_");?>
+  <?=mk_option($UD_cfg['Config']['smb_version'], "no", "_(No)_");?>
+  <?=mk_option($UD_cfg['Config']['smb_version'], "yes", "_(Yes)_");?>
   </select>
 
 :ud_settings_specify_smb_vers_plug:
@@ -281,8 +281,8 @@ _(Specify SMB Version when Mounting Remote Shares)_?
 
 _(NFS Version to use when Mounting Remote Shares)_:
 : <select name="nfs_version" size="1" <?if ($var['shareNFSEnabled']=="no"):?>disabled<?endif;?>>
-  <?=mk_option($cfg['Config']['nfs_version'], "0", "_(Auto)_");?>
-  <?=mk_option($cfg['Config']['nfs_version'], "4", "_(NFSv4)_");?>
+  <?=mk_option($UD_cfg['Config']['nfs_version'], "0", "_(Auto)_");?>
+  <?=mk_option($UD_cfg['Config']['nfs_version'], "4", "_(NFSv4)_");?>
 
   </select><?if ($var['shareNFSEnabled']=="no"):?>&nbsp;_(NFS must be enabled in Settings->NFS for NFS support)_.<?endif;?>
 
@@ -294,10 +294,10 @@ _(NFS Version to use when Mounting Remote Shares)_:
 
 _(Debug Log Level)_:
 : <select name="debug_level" size="1">
-  <?=mk_option($cfg['Config']['debug_level'], "0", "_(None)_");?>
-  <?=mk_option($cfg['Config']['debug_level'], "1", "_(Udev and Hotplug)_");?>
-  <?=mk_option($cfg['Config']['debug_level'], "2", "_(Refresh and Update)_");?>
-  <?=mk_option($cfg['Config']['debug_level'], "8", "_(Command times)_");?>
+  <?=mk_option($UD_cfg['Config']['debug_level'], "0", "_(None)_");?>
+  <?=mk_option($UD_cfg['Config']['debug_level'], "1", "_(Udev and Hotplug)_");?>
+  <?=mk_option($UD_cfg['Config']['debug_level'], "2", "_(Refresh and Update)_");?>
+  <?=mk_option($UD_cfg['Config']['debug_level'], "8", "_(Command times)_");?>
   </select>&nbsp;_(Use only when directed for support because the messages can flood the log)_.
 
 :ud_settings_debug_level_plug:

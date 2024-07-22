@@ -19,10 +19,10 @@ $plugin	= "unassigned.devices";
 require_once("plugins/$plugin/include/lib.php");
 
 $config_file	= $paths['config_file'];
-$cfg_ini		= is_file($config_file) ? @parse_ini_file($config_file, true) : [];
-$cfg			= ($cfg_ini !== false) ? $cfg_ini : [];
+$UD_cfg_ini		= is_file($config_file) ? @parse_ini_file($config_file, true) : [];
+$UD_cfg			= ($UD_cfg_ini !== false) ? $UD_cfg_ini : [];
 
-$cfg['Config']['zfs_upgrade']		= $cfg['Config']['zfs_upgrade'] ?? "";
+$UD_cfg['Config']['zfs_upgrade']		= $UD_cfg['Config']['zfs_upgrade'] ?? "";
 
 /* Get array of ZFS devices that can be upgraded. */
 $zfs_devices = [];
@@ -71,7 +71,7 @@ foreach (get_all_disks_info() as $d) {
 _(Select Disk)_:
 : <select name="zfs_upgrade" size="1">
 	<?foreach ($zfs_devices as $d) {?>
-		<?=mk_option($cfg["Config"]["zfs_upgrade"], ("(".$d['pool_name'].") ".$d['serial']), ($d['serial']." (".basename($d['device']).")"));?>
+		<?=mk_option($UD_cfg["Config"]["zfs_upgrade"], ("(".$d['pool_name'].") ".$d['serial']), ($d['serial']." (".basename($d['device']).")"));?>
 	<?}?>
 </select>
 

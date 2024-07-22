@@ -17,13 +17,13 @@ $plugin	= "unassigned.devices";
 require_once("plugins/$plugin/include/lib.php");
 
 $config_file	= $paths['config_file'];
-$cfg_ini		= is_file($config_file) ? @parse_ini_file($config_file, true) : [];
-$cfg			= ($cfg_ini !== false) ? $cfg_ini : [];
+$UD_cfg_ini		= is_file($config_file) ? @parse_ini_file($config_file, true) : [];
+$UD_cfg			= ($UD_cfg_ini !== false) ? $UD_cfg_ini : [];
 
-$cfg['Config']['nfs_export']		= $cfg['Config']['nfs_export'] ?? "";
-$cfg['Config']['nfs_security']		= $cfg['Config']['nfs_security'] ?? "";
-$cfg['Config']['nfs_rule']			= $cfg['Config']['nfs_rule'] ?? "";
-$text								= str_replace(";", "\n", $cfg['Config']['nfs_rule']);
+$UD_cfg['Config']['nfs_export']		= $UD_cfg['Config']['nfs_export'] ?? "";
+$UD_cfg['Config']['nfs_security']		= $UD_cfg['Config']['nfs_security'] ?? "";
+$UD_cfg['Config']['nfs_rule']			= $UD_cfg['Config']['nfs_rule'] ?? "";
+$text								= str_replace(";", "\n", $UD_cfg['Config']['nfs_rule']);
 ?>
 
 <table class="tablesorter shift ups">
@@ -38,26 +38,26 @@ $text								= str_replace(";", "\n", $cfg['Config']['nfs_rule']);
 
 _(Enable NFS export)_?
 : <select name="nfs_export" size="1" <?if ($var['shareNFSEnabled']=="no"):?>disabled<?endif;?>>
-  <?=mk_option($cfg['Config']['nfs_export'], "no", "_(No)_");?>
-  <?=mk_option($cfg['Config']['nfs_export'], "yes", "_(Yes)_");?>
+  <?=mk_option($UD_cfg['Config']['nfs_export'], "no", "_(No)_");?>
+  <?=mk_option($UD_cfg['Config']['nfs_export'], "yes", "_(Yes)_");?>
   </select><?if ($var['shareNFSEnabled']=="no"):?>&nbsp;_(NFS must be enabled in Settings->NFS to enable NFS Export)_.<?endif;?>
 
 :ud_settings_nfs_security_plug:
 > Set to **Yes** to export Unassigned Devices with NFS sharing. Shares are exported Public with read and write access or Private with the rule you set. Access is controlled with permission settings on files and folders.
 :end
 
-<div id="nfs_security" style="display: <?=($cfg['Config']['nfs_export'] == "no" ? "none" : "block");?>">
+<div id="nfs_security" style="display: <?=($UD_cfg['Config']['nfs_export'] == "no" ? "none" : "block");?>">
 <dl>
 	<dt>_(NFS Security)_:</dt>
 	<dd>
 		<select name="nfs_security" size="1" <?if ($var['shareNFSEnabled']=="no"):?>disabled<?endif;?>>
-		<?=mk_option($cfg['Config']['nfs_security'], "public", "_(Public)_");?>
-		<?=mk_option($cfg['Config']['nfs_security'], "private", "_(Private)_");?>
+		<?=mk_option($UD_cfg['Config']['nfs_security'], "public", "_(Public)_");?>
+		<?=mk_option($UD_cfg['Config']['nfs_security'], "private", "_(Private)_");?>
 		</select>
 	</dd>
 </dl>
 
-<div id="new_nfs_rule" style="display: <?=($cfg['Config']['nfs_security'] == "public" ? "none" : "block");?>">
+<div id="new_nfs_rule" style="display: <?=($UD_cfg['Config']['nfs_security'] == "public" ? "none" : "block");?>">
 	<dl>
 		<dt>_(Rules)_:</dt>
 		<dd>
