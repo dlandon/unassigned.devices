@@ -896,12 +896,12 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 
 			/* Use a disk password, or Unraid's. */
 			if (! $pass) {
-				$o				= trim(shell_exec("/usr/local/sbin/emcmd cmdCryptsetup=".escapeshellarg($cmd)." 2>&1"));
+				$o				= trim(shell_exec("/usr/local/sbin/emcmd cmdCryptsetup=".escapeshellarg($cmd)." 2>&1") ?? "");
 			} else {
 				$luks			= basename($dev);
 				$luks_pass_file	= $paths['luks_pass']."_".$luks;
 				@file_put_contents($luks_pass_file, $pass);
-				$o				= trim(shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1"));
+				$o				= trim(shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1") ?? "");
 				exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 			}
 
@@ -914,7 +914,7 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 
 				/* Use a disk password, or Unraid's. */
 				if (! $pass) {
-					$o = trim(shell_exec("/usr/local/sbin/emcmd cmdCryptsetup=".escapeshellarg($cmd)." 2>&1"));
+					$o = trim(shell_exec("/usr/local/sbin/emcmd cmdCryptsetup=".escapeshellarg($cmd)." 2>&1") ?? "");
 
 					/* Check for the mapper file existing. If it's not there, unraid did not open the luks disk. */
 					if (! file_exists("/dev/mapper/".$mapper)) {
@@ -924,7 +924,7 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 					$luks			= basename($dev);
 					$luks_pass_file	= $paths['luks_pass']."_".$luks;
 					@file_put_contents($luks_pass_file, $pass);
-					$o				= trim(shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1"));
+					$o				= trim(shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1") ?? "");
 					exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
 				}
 
@@ -4087,7 +4087,7 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 					$cmd	= "luksOpen ".escapeshellarg($dev)." ".escapeshellarg($mapper);
 					$pass	= decrypt_data(get_config($serial, "pass"));
 					if (! $pass) {
-						$o		= shell_exec("/usr/local/sbin/emcmd cmdCryptsetup=".escapeshellarg($cmd)." 2>&1");
+						$o		= trim(shell_exec("/usr/local/sbin/emcmd cmdCryptsetup=".escapeshellarg($cmd)." 2>&1") ?? "");
 
 						/* Check for the mapper file existing. If it's not there, unraid did not open the luks disk. */
 						if (! file_exists("/dev/mapper/".$mapper)) {

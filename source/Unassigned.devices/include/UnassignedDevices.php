@@ -1085,12 +1085,12 @@ switch ($_POST['action']) {
 		foreach ($config as $serial => $value) {
 			if ($serial != "Config") {
 				if (! preg_grep("#{$serial}#", $disks_serials)){
-					if ((isset($config[$serial]['unassigned_dev'])) && ($config[$serial]['unassigned_dev']) && (! in_array($config[$serial]['unassigned_dev'], $disk_names))) {
+					if (($config[$serial]['unassigned_dev'] ?? "") && (! in_array($config[$serial]['unassigned_dev'], $disk_names))) {
 						$disk_names[$serial] = $config[$serial]['unassigned_dev'];
 					}
-					$mountpoint		= isset($config[$serial]['mountpoint.1']) ? basename($config[$serial]['mountpoint.1']) : "";
+					$mountpoint		= basename($config[$serial]['mountpoint.1'] ?? "");
 					$mntpoint		= ($mountpoint) ? " (".$mountpoint.")" : "";
-					$disk_dev		= (isset($config[$serial]['unassigned_dev'])) ? $config[$serial]['unassigned_dev'] : "";
+					$disk_dev		= $config[$serial]['unassigned_dev'] ?? "";
 					$disk_dev		= ($disk_dev) ? $disk_dev : _("none");
 
 					/* Create a unique disk_display string to be sure each device is unique. */
@@ -1220,7 +1220,7 @@ switch ($_POST['action']) {
 		$user_cmd	= urldecode($_POST['user_command']);
 
 		$file_path = pathinfo($cmd);
-		if ((isset($file_path['dirname'])) && ($file_path['dirname'] == "/boot/config/plugins/unassigned.devices") && ($file_path['filename'])) {
+		if ((($file_path['dirname'] ?? "") == "/boot/config/plugins/unassigned.devices") && ($file_path['filename'])) {
 			set_config($serial, "user_command.{$part}", $user_cmd);
 			$result	= set_config($serial, "command.{$part}", $cmd);
 			echo json_encode(array( 'result' => $result ));
@@ -1406,9 +1406,8 @@ switch ($_POST['action']) {
 		/* Format a disk. */
 		$device		= urldecode($_POST['device']);
 		$fs			= urldecode($_POST['fs']);
-		$pass		= isset($_POST['pass']) ? urldecode($_POST['pass']) : "";
-		$pool_name	= isset($_POST['pool_name']) ? urldecode($_POST['pool_name']) : "";
-
+		$pass		= urldecode($_POST['pass'] ?? "");
+		$pool_name	= urldecode($_POST['pool_name'] ?? "");
 		$pool_name	= safe_name($pool_name, false);
 
 		/* Create the state file. */
