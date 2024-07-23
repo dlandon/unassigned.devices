@@ -106,7 +106,7 @@ function is_server_online($server, $protocol, $log = false) {
 	$server	= strtoupper($server);
 	if ($server) {
 		/* See if the server was last seen as being online. */
-		$was_alive		= (isset($ping_status[$name]['online']) && ($ping_status[$name]['online'] == 'yes'));
+		$was_alive		= (($ping_status[$name]['online'] ?? "") == 'yes');
 
 		/* Is the remote server on line and responding. */
 		$is_alive		= is_server_alive($server, $port);
@@ -127,7 +127,7 @@ function is_server_online($server, $protocol, $log = false) {
 		if (! $is_alive) {
 			/* Check for three consecutive negative pings before declaring it is off-line. */
 			$no_pings++;
-			if (($no_pings <= 3) && (isset($ping_status[$name]['online'])) && ($ping_status[$name]['online'] == 'yes')) {
+			if (($no_pings <= 3) && (($ping_status[$name]['online'] ?? "") == 'yes')) {
 				$is_alive = true;
 			} else if ($no_pings > 3){
 				$no_pings = 0;
