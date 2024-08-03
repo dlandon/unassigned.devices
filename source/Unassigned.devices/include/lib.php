@@ -154,11 +154,13 @@ class MiscUD
 	public static function exist_in_file($file, $text) {
 
 		$rc	= false;
-		$fileContent = file_get_contents($file);
+		if (file_exists($file)) {
+			$fileContent = file_get_contents($file);
 
-		if ($fileContent !== false) {
-			if (strpos($fileContent, $text) !== false) {
-				$rc	= true;
+			if ($fileContent !== false) {
+				if (strpos($fileContent, $text) !== false) {
+					$rc	= true;
+				}
 			}
 		}
 
