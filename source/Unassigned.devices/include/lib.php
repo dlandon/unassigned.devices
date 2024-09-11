@@ -3963,7 +3963,7 @@ function get_fsck_commands($fs, $dev, $type = "ro") {
 }
 
 /* Check for a duplicate share name when changing the mount point and mounting disks. */
-function check_for_duplicate_share($dev, $mountpoint) {
+function check_for_duplicate_share($dev, $mountpoint, $mounting = false) {
 	global $var, $paths;
 
 	$rc = true;
@@ -4016,6 +4016,18 @@ function check_for_duplicate_share($dev, $mountpoint) {
 		/* If this device is not self, then keep it. */
 		if ($keep) {
 			$ud_shares[] = strtoupper($name);
+		}
+	}
+
+	/* If we are mounting a device, we only need to check if another device of the same name is mounted. */
+	if (($mounting) && (! is_mounted("", $mountpoint))) {
+		/* Find the key associated with the value */
+		$key = array_search(strtoupper($mountpoint), $ud_shares);
+
+		/* Remove the share name because it is not really a duplicate. */
+		if ($key !== false) {
+			/* Remove the element from the array */
+			unset($ud_shares[$key]);
 		}
 	}
 

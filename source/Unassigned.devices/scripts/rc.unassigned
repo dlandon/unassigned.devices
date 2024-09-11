@@ -132,7 +132,7 @@ function unassigned_mount() {
 				}
 
 				/* See if the mountpoint is a duplicate reserved, share, or UD name. Don't mount if a duplicate.*/
-				if (! check_for_duplicate_share(($info['fstype'] == "crypto_LUKS" ? $info['luks'] : $info['device']), basename($info['mountpoint']))) {
+				if (! check_for_duplicate_share(($info['fstype'] == "crypto_LUKS" ? $info['luks'] : $info['device']), basename($info['mountpoint']), true)) {
 					unassigned_log("Disk with serial '{$info['serial']}', mountpoint '".basename($info['mountpoint'])."' cannot be mounted.");
 
 					/* Execute device script with error mounting action. */
@@ -259,7 +259,7 @@ function unassigned_mount() {
 				addFile(sprintf($paths['mounting'], $mount_device));
 
 				/* See if the mountpoint is a duplicate reserved, share, or UD name. Don't mount if a duplicate.*/
-				if (! check_for_duplicate_share($info['device'], basename($info['mountpoint']))) {
+				if (! check_for_duplicate_share($info['device'], basename($info['mountpoint']), true)) {
 					unassigned_log("Remote Share '".$info['device']."' cannot be mounted.");
 
 					/* Execute device script with error mounting action. */
@@ -341,7 +341,7 @@ function unassigned_mount() {
 				addFile(sprintf($paths['mounting'], $mount_device));
 
 				/* See if the mountpoint is a duplicate reserved, share, or UD name. Don't mount if a duplicate.*/
-				if (! check_for_duplicate_share($info['device'], basename($info['mountpoint']))) {
+				if (! check_for_duplicate_share($info['device'], basename($info['mountpoint']), true)) {
 					unassigned_log("ISO File '".$info['device']."' cannot be mounted.");
 
 					/* Execute device script with error mounting action. */
