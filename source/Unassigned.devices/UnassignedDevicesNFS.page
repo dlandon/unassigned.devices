@@ -21,8 +21,8 @@ $UD_cfg_ini		= is_file($config_file) ? @parse_ini_file($config_file, true) : [];
 $UD_cfg			= ($UD_cfg_ini !== false) ? $UD_cfg_ini : [];
 
 $UD_cfg['Config']['nfs_export']		= $UD_cfg['Config']['nfs_export'] ?? "";
-$UD_cfg['Config']['nfs_security']		= $UD_cfg['Config']['nfs_security'] ?? "";
-$UD_cfg['Config']['nfs_rule']			= $UD_cfg['Config']['nfs_rule'] ?? "";
+$UD_cfg['Config']['nfs_security']	= $UD_cfg['Config']['nfs_security'] ?? "";
+$UD_cfg['Config']['nfs_rule']		= $UD_cfg['Config']['nfs_rule'] ?? "";
 $text								= str_replace(";", "\n", $UD_cfg['Config']['nfs_rule']);
 ?>
 
