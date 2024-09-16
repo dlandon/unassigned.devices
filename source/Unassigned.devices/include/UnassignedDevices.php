@@ -1381,14 +1381,24 @@ switch ($_POST['action']) {
 		/* Refresh all disk partition information, update config files from flash, and clear status files. */
 		exec($docroot."/plugins/".$plugin."/scripts/copy_config.sh");
 
-		$sf		= $paths['dev_state'];
-		if (is_file($sf)) {
-			$devs = @parse_ini_file($sf, true);
-			foreach ($devs as $d) {
-				$device = "/dev/".$d['device'];
+		/* Rescan all disk partitions. */
+		foreach (get_all_disks_info() as $d) {
+			foreach ($d['partitions'] as $p) {
+				$dev	= $d['device'];
+				/* Get partition designation based on type of device. */
+				if (MiscUD::is_device_nvme($d['device'])) {
+					$dev	= $dev."p".$p['part'];
+				} else {
+					$dev	= $dev.$p['part'];
+				}
 
-				/* Refresh partition information. */
-				exec("/usr/sbin/partprobe ".escapeshellarg($device));
+				/* Trigger udev to rescan the device */
+				$out			= null;
+				$return_code	= null;
+				exec("/sbin/udevadm trigger ".escapeshellarg($dev)." 2>&1", $out, $return_code);
+				if ($return_code !== 0) {
+					unassigned_log("Failed to trigger udev on device '".$dev."'.");
+				}
 			}
 		}
 
