@@ -194,28 +194,30 @@ function getMountpointSpaceInfo($mountpoint, $zfs) {
 		$zfsOutput	= "";
 	}
 
-	if (!empty($zfsOutput) && $zfsOutput !== "command timed out") {
+	/* If the mountpoint is a zfs file system. get the stats using zfs. */
+	if (($zfsOutput) && ($zfsOutput !== "command timed out")) {
 		/* Parse the ZFS output */
 		$info = preg_split('/\s+/', trim($zfsOutput));
 
 		if (count($info) === 2) {
 			/* Calculate total size, used, and free space in 1K blocks */
-			$used = intval($info[0] / 1024);
-			$free = intval($info[1] / 1024);
-			$totalSize = $used + $free;
+			$used		= intval($info[0] / 1024);
+			$free		= intval($info[1] / 1024);
+			$totalSize	= $used + $free;
 
 			/* Format the output as size used free with a single space as delimiter */
 			$result = sprintf("%d %d %d", $totalSize, $used, $free);
 		}
 	}
 
-	if (empty($result)) {
+	/* If the mountpoint is not zfs, use df to the the stats. */
+	if (! $result) {
 		/* If not a ZFS file system, use df to get the size, used, and free space */
-		$dfCommand = '/usr/bin/df ' . escapeshellarg($mountpoint) . ' --output=size,used,avail | /bin/grep -v \'1K-blocks\' 2>/dev/null';
-		$dfOutput = timed_exec(10, $dfCommand);
+		$dfCommand	= '/usr/bin/df ' . escapeshellarg($mountpoint) . ' --output=size,used,avail | /bin/grep -v \'1K-blocks\' 2>/dev/null';
+		$dfOutput	= timed_exec(10, $dfCommand);
 
-		if (!empty($dfOutput) && $dfOutput !== "command timed out") {
-			$result = $dfOutput;
+		if (($dfOutput) && ($dfOutput !== "command timed out")) {
+			$result	= $dfOutput;
 		}
 	}
 
