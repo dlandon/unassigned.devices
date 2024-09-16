@@ -500,6 +500,7 @@ function safe_name($name, $convert_spaces = true, $convert_extra = false) {
 	$string	= str_replace("空", $replacementChars, $string); /* Chinese space character. */
 	$string	= str_replace("蜘", $replacementChars, $string); /* Chinese dragonfly character. */
 	$string	= str_replace("蛛", $replacementChars, $string); /* Chinese spider character. */
+	$string	= str_replace("宝", $replacementChars, $string); /* Chinese treasure character. */
 
 	return trim($string);
 }
@@ -786,7 +787,7 @@ function get_format_cmd($dev, $fs, $pool_name) {
 function format_disk($dev, $fs, $pass, $pool_name) {
 	global $paths;
 
-	unassigned_log("Format device '".$dev."'.");
+	unassigned_log("Formatting device '".$dev."'.");
 	$rc	= true;
 
 	/* Make sure it doesn't have any partitions. */
@@ -813,22 +814,13 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 			unassigned_log("Clear partition result:\n".$o);
 		}
 
-		/* Let things settle a bit. */
-		sleep(2);
-
 		/* Reload the partition table. */
-		unassigned_log("Reloading disk '".$dev."' partition table.");
-		$o = trim(shell_exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." 2>&1") ?? "");
-		if ($o) {
-			unassigned_log("Reload partition table result:\n".$o);
+		if (!reload_partition_table($dev)) {
+			return false;
 		}
 
 		/* Get partition designation based on type of device. */
-		if (MiscUD::is_device_nvme($dev)) {
-			$device	= $dev."p1";
-		} else {
-			$device	= $dev."1";
-		}
+		$device	= get_partition_designation($dev);
 
 		/* Create partition for xfs, or btrfs. Partitions are Unraid compatible. */
 		if ($fs == "xfs" || $fs == "xfs-encrypted" || $fs == "btrfs" || $fs == "btrfs-encrypted"|| $fs == "zfs" || $fs == "zfs-encrypted") {
@@ -857,16 +849,6 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 					unassigned_log("Create mbr partition table result:\n".$o);
 				}
 			}
-
-			/* Let things settle a bit. */
-			sleep(2);
-
-			/* Reload the partition table. */
-			unassigned_log("Reloading disk ".escapeshellarg($dev)." partition table.");
-			$o = trim(shell_exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." 2>&1") ?? "");
-			if ($o) {
-				unassigned_log("Reload partition table result:\n".$o);
-			}
 		} else {
 			/* If the file system is fat32, the disk_schema is msdos. */
 			$disk_schema = ($fs == "fat32") ? "msdos" : "gpt";
@@ -885,16 +867,18 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 			}
 		}
 
-		unassigned_log("Formatting disk '".$dev."' with '".$fs."' filesystem.");
+
+		/* Reload the partition table. */
+		if (!reload_partition_table($dev)) {
+			return false;
+		}
+
+		unassigned_log("Format device '".$dev."' with '".$fs."' filesystem.");
 
 		/* Format the disk. */
 		if (strpos($fs, "-encrypted") !== false) {
 			/* nvme partition designations are 'p1', not '1'. */
-			if (MiscUD::is_device_nvme($dev)) {
-				$cmd = "luksFormat ".$dev."p1";
-			} else {
-				$cmd = "luksFormat ".$dev."1";
-			}
+			$cmd = "luksFormat ".$device;
 
 			/* Use a disk password, or Unraid's. */
 			if (! $pass) {
@@ -902,9 +886,15 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 			} else {
 				$luks			= basename($dev);
 				$luks_pass_file	= $paths['luks_pass']."_".$luks;
-				@file_put_contents($luks_pass_file, $pass);
+				if (file_put_contents($luks_pass_file, $pass) === false) {
+					unassigned_log("Failed to write LUKS password to file '".$luks_pass_file."'.");
+					return false;
+				}
 				$o				= trim(shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1") ?? "");
-				exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
+				exec("/bin/shred -u ".escapeshellarg($luks_pass_file), $out, $return_code);
+				if ($return_code !== 0) {
+					unassigned_log("Failed to securely shred the password file '".$luks_pass_file."'.");
+				}
 			}
 
 			if ($o) {
@@ -925,23 +915,25 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 				} else {
 					$luks			= basename($dev);
 					$luks_pass_file	= $paths['luks_pass']."_".$luks;
-					@file_put_contents($luks_pass_file, $pass);
+					if (file_put_contents($luks_pass_file, $pass) === false) {
+						unassigned_log("Failed to write LUKS password to file '".$luks_pass_file."'.");
+						return false;
+					}
 					$o				= trim(shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1") ?? "");
-					exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
+					exec("/bin/shred -u ".escapeshellarg($luks_pass_file), $out, $return_code);
+					if ($return_code !== 0) {
+						unassigned_log("Failed to securely shred the password file '".$luks_pass_file."'.");
+					}
 				}
 
 				if ($o && stripos($o, "warning") === false) {
 					unassigned_log("luksOpen result: ".$o);
 					$rc = false;
 				} else {
-					$out	= null;
-					$return	= null;
-					$cmd	= get_format_cmd("/dev/mapper/".$mapper, $fs, $pool_name);
-					unassigned_log("Format drive command: ".$cmd);
-
 					/* Format the disk. */
-					exec($cmd, $out, $return);
-					sleep(1);
+					if (! format_disk_with_cmd("/dev/mapper/".$mapper, $fs, $pool_name)) {
+						$rc	= false;
+					}
 
 					/* Set compatibility setting off so we can check for needing upgrade. */
 					exec("/usr/sbin/zpool set compatibility=off ".escapeshellarg($pool_name));
@@ -957,12 +949,10 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 			}
 		} else {
 			/* Format the disk. */
-			$out	= null;
-			$return	= null;
-			$cmd	= get_format_cmd($device, $fs, $pool_name);
-			unassigned_log("Format drive command: ".$cmd);
-			exec($cmd, $out, $return);
-			sleep(1);
+			if (! format_disk_with_cmd($device, $fs, $pool_name)) {
+				$rc	= false;
+			}
+
 			if (($fs == "zfs") && ($pool_name)) {
 				/* Set compatibility setting off so we can check for needing upgrade. */
 				exec("/usr/sbin/zpool set compatibility=off ".escapeshellarg($pool_name));
@@ -974,73 +964,120 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 			}
 		}
 
+		/* Reload the partition table. */
+		if (!reload_partition_table($dev)) {
+			return false;
+		}
+
 		/* Finish up the format. */
 		if ($rc) {
-			if ($return)
-			{
-				unassigned_log("Format disk '".$dev."' with '".$fs."' filesystem failed:\n".implode(PHP_EOL, $out));
-				$rc = false;
-			} else {
-				if ($out) {
-					unassigned_log("Format disk '".$dev."' with '".$fs."' filesystem:\n".implode(PHP_EOL, $out));
-				}
+			/* Clear the $pass variable. */
+			unset($pass);
 
-				/* Let things settle a bit. */
-				sleep(3);
+			/* Clear any existing zfs pool information onthe disk. */
+			if (($fs != "zfs") && ($fs != "zfs-encrypted")) {
+				sleep(1);
 
-				unassigned_log("Reloading disk '".$dev."' partition table.");
+				/* See if there is a zpool signature on the disk. */
+				$old_pool_name	= MiscUD::zfs_pool_name($dev);
+				if ($old_pool_name) {
+					/* Remove zpool label info. */
+					exec("/usr/sbin/zpool labelclear -f ".escapeshellarg($dev));
 
-				/* Reload the partition table. */
-				$o = trim(shell_exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." 2>&1") ?? "");
-				if ($o) {
-					unassigned_log("Reload partition table result:\n".$o);
-				}
-
-				/* Clear the $pass variable. */
-				unset($pass);
-
-				/* Clear any existing zfs pool information onthe disk. */
-				if (($fs != "zfs") && ($fs != "zfs-encrypted")) {
 					sleep(1);
 
-					/* See if there is a zpool signature on the disk. */
-					$old_pool_name	= MiscUD::zfs_pool_name($dev);
-					if ($old_pool_name) {
-						/* Remove zpool label info. */
-						exec("/usr/sbin/zpool labelclear -f ".escapeshellarg($dev));
-
-						sleep(1);
-
-						unassigned_log("Format failed, zpool signature found on device '".$dev."'!  Clear the disk and try again.");
-						$rc		= false;
-					}
-
-					/* Get partition designation based on type of device. */
-					if (MiscUD::is_device_nvme($dev)) {
-						$device	= $dev."p1";
-					} else {
-						$device	= $dev."1";
-					}
-
-					$old_pool_name	= MiscUD::zfs_pool_name($device);
-					if ($old_pool_name) {
-						/* Remove zpool label info. */
-						exec("/usr/sbin/zpool labelclear -f ".escapeshellarg($device));
-
-						sleep(1);
-
-						unassigned_log("Format failed, zpool signature found on device partition '".$device."'!  Clear the disk and try again.");
-						$rc		= false;
-					}
+					unassigned_log("Format failed, zpool signature found on device '".$dev."'!  Clear the disk and try again.");
+					$rc		= false;
 				}
 
-				/* Let things settle a bit. */
-				sleep(3);
+				$old_pool_name	= MiscUD::zfs_pool_name($device);
+				if ($old_pool_name) {
+					/* Remove zpool label info. */
+					exec("/usr/sbin/zpool labelclear -f ".escapeshellarg($device));
 
-				/* Refresh partition information. */
-				exec("/usr/sbin/partprobe ".escapeshellarg($dev));
+					sleep(1);
+
+					unassigned_log("Format failed, zpool signature found on device partition '".$device."'!  Clear the disk and try again.");
+					$rc		= false;
+				}
+
+				/* Refresh partition if there was a zfs pool issue. */
+				if (! $rc) {
+					/* Refresh partition information. */
+					reload_partition_table($dev);
+				}
 			}
 		}
+	}
+
+	return $rc;
+}
+
+/* Get the partition designation for nvme or regular devices. */
+function get_partition_designation($dev) {
+	return MiscUD::is_device_nvme($dev) ? $dev."p1" : $dev."1";
+}
+
+/* Format the disk command. */
+function format_disk_with_cmd($device, $fs, $pool_name) {
+	$out			= null;
+	$return_code	= null;
+	$cmd			= get_format_cmd($device, $fs, $pool_name);
+
+	unassigned_log("Format command: ".$cmd);
+	exec($cmd, $out, $return_code);
+	if ($return_code) {
+		unassigned_log("Format failed:\n".implode(PHP_EOL, $out));
+		return false;
+	}
+	sleep(1);
+
+	return true;
+}
+
+/* Reload the partition table. */
+function reload_partition_table($dev) {
+	/* Let things settle a bit. */
+	sleep(3);
+
+	$rc	= false;
+
+	/* Check if partprobe is installed */
+	$out = null;
+	$return_code = null;
+	if (is_executable("/usr/sbin/partprobe")) {
+		/* partprobe is installed, attempt to use it. */
+		exec("/usr/sbin/partprobe ".escapeshellarg($dev)." 2>&1", $out, $return_code);
+		if ($return_code === 0) {
+			unassigned_log("Successfully reloaded partition table on device '".$dev."' with partprobe.");
+			$rc	= true;
+		}
+	}
+
+	/* Fallback to hdparm. */
+	if (! $rc) {
+		exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." 2>&1", $out, $return_code);
+		if ($return_code === 0) {
+			unassigned_log("Successfully reloaded partition table on device '".$dev."' with hdparm.");
+			$rc	= true;
+		}
+	}
+
+	/* Fallback to blockdev. */
+	if (! $rc) {
+		exec("/sbin/blockdev --rereadpt ".escapeshellarg($dev)." 2>&1", $out, $return_code);
+		if ($return_code === 0) {
+			unassigned_log("Successfully reloaded partition table on device '".$dev."' with blockdev.");
+			$rc	= true;
+		}
+	}
+
+	/* Let the partition reload settle. */
+	if ($rc) {
+		sleep(1);
+	} else {
+		/* If all attempts failed, log the failure */
+		unassigned_log("Failed to reload partition table on device '".$dev."' after multiple attempts.");
 	}
 
 	return $rc;
@@ -1081,7 +1118,7 @@ function remove_partition($dev, $part) {
 			exec("/usr/sbin/hdparm -z ".escapeshellarg($dev)." >/dev/null 2>&1 &");
 
 			/* Refresh partition information. */
-			exec("/usr/sbin/partprobe ".escapeshellarg($dev));
+			reload_partition_table($dev);
 		}
 
 		/* Erase the state file. */
@@ -1167,7 +1204,7 @@ function remove_all_partitions($dev) {
 		unassigned_log("Debug: Remove all Disk partitions.", $GLOBALS['UDEV_DEBUG']);
 
 		/* Refresh partition information. */
-		exec("/usr/sbin/partprobe ".escapeshellarg($dev));
+		reload_partition_table($dev);
 
 		/* Erase the state file. */
 		@unlink(sprintf($paths['clearing'], basename($device)));
@@ -1756,10 +1793,16 @@ function do_mount($info) {
 				}
 			} else {
 				$luks_pass_file = $paths['luks_pass']."_".$luks;
-				@file_put_contents($luks_pass_file, $pass);
+				if (file_put_contents($luks_pass_file, $pass) === false) {
+					unassigned_log("Failed to write LUKS password to file '".$luks_pass_file."'.");
+					return false;
+				}
 				unassigned_log("Using disk password to open the 'crypto_LUKS' device.");
 				$o		= trim(shell_exec("/sbin/cryptsetup ".escapeshellcmd($cmd)." -d ".escapeshellarg($luks_pass_file)." 2>&1") ?? "");
-				exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
+				exec("/bin/shred -u ".escapeshellarg($luks_pass_file), $out, $return_code);
+				if ($return_code !== 0) {
+					unassigned_log("Failed to securely shred the password file '".$luks_pass_file."'.");
+				}
 				unset($pass);
 			}
 
@@ -2987,7 +3030,10 @@ function do_mount_samba($info) {
 						unassigned_log("SMB mount failed: '".$o."'.");
 					}
 				}
-				exec("/bin/shred -u ".escapeshellarg($credentials_file));
+				exec("/bin/shred -u ".escapeshellarg($credentials_file), $out, $return_code);
+				if ($return_code !== 0) {
+					unassigned_log("Failed to securely shred the password file '".$credentials_file."'.");
+				}
 				unset($pass);
 			} else {
 				unassigned_log("SMB must be enabled in 'Settings->SMB' to mount SMB remote shares.");
@@ -4109,10 +4155,16 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 						}
 					} else {
 						$luks_pass_file = "{$paths['luks_pass']}_".basename($dev);
-						@file_put_contents($luks_pass_file, $pass);
+						if (file_put_contents($luks_pass_file, $pass) === false) {
+							unassigned_log("Failed to write LUKS password to file '".$luks_pass_file."'.");
+							return false;
+						}
 						unassigned_log("Using disk password to open the 'crypto_LUKS' device.");
 						$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
-						exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
+						exec("/bin/shred -u ".escapeshellarg($luks_pass_file), $out, $return_code);
+						if ($return_code !== 0) {
+							unassigned_log("Failed to securely shred the password file '".$luks_pass_file."'.");
+						}
 						unset($pass);
 					}
 					if ($o) {
@@ -4247,10 +4299,16 @@ function change_UUID($dev) {
 			}
 		} else {
 			$luks_pass_file = "{$paths['luks_pass']}_".basename($luks);
-			@file_put_contents($luks_pass_file, $pass);
+			if (file_put_contents($luks_pass_file, $pass) === false) {
+				unassigned_log("Failed to write LUKS password to file '".$luks_pass_file."'.");
+				return false;
+			}
 			unassigned_log("Using disk password to open the 'crypto_LUKS' device.");
 			$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
-			exec("/bin/shred -u ".escapeshellarg($luks_pass_file));
+			exec("/bin/shred -u ".escapeshellarg($luks_pass_file), $out, $return_code);
+			if ($return_code !== 0) {
+				unassigned_log("Failed to securely shred the password file '".$luks_pass_file."'.");
+			}
 			unset($pass);
 		}
 
