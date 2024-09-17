@@ -3288,7 +3288,7 @@ function get_iso_mounts() {
 				/* Target is set to the mount point when the device is mounted. */
 				$mount['target']		= $mount['mounted'] ? $mount['mountpoint'] : "";
 
-				$mount['alive']			= is_file($mount['file']);
+				$mount['alive']			= $mount['mounted'] || is_file($mount['file']);
 				$stats					= get_device_stats($mount['mountpoint'], $mount['mounted'], $mount['alive']);
 				$mount['size']			= $stats[0]*1024;
 				$mount['used']			= $stats[1]*1024;
