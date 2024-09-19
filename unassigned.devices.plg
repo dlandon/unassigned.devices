@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.09.16">
+<!ENTITY version	"2024.09.19">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"acd095b1513ab858206c69601c08a1c8">
+<!ENTITY MD5		"efe5a206340a93692b1e68618d2c4529">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Change 'soft' mount parameter to 'hard' on SMB and NFS mounts to help with remote shares going offline.
+- Fix: Remove 'retrans' parameter from NFS remote mounts.
+- Fix: Allow unmounting an ISO file if the ISO file is deleted.
+
+###2024.09.16
 - Fix: Sort users in natural order in SMB settings.
 - Fix: Don't fail the duplicate share name check when a device is hot plugged and auto mounted as long as there is not a device with the same mount point already mounted.
 - Fix: Some rework on formatting disks to try to help with nvme drive format issues.
