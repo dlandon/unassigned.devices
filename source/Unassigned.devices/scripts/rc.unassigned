@@ -81,18 +81,8 @@ function unassigned_mount() {
 			continue;
 		}
 
-		/* If disk is formatting, skip to the next one. */
-		if ($disk_info['formatting']) {
-			continue;
-		}
-
-		/* If disk is already mounting, skip to the next one. */
-		if ($disk_info['mounting']) {
-			continue;
-		}
-
-		/* If disk is unmounting, skip to the next one. */
-		if ($disk_info['unmounting']) {
+		/* If disk is formatting, mounting, or unmountoing, skip to the next one. */
+		if (($disk_info['formatting']) || ($disk_info['mounting']) || ($disk_info['unmounting'])) {
 			continue;
 		}
 
@@ -242,13 +232,8 @@ function unassigned_mount() {
 					continue;
 				}
 
-				/* If disk is already mounting, skip to the next one. */
-				if ($info['mounting']) {
-					continue;
-				}
-
-				/* If disk is unmounting, skip to the next one. */
-				if ($info['unmounting']) {
+				/* If disk is already mounting or unmounting, skip to the next one. */
+				if (($info['mounting']) || ($info['unmounting'])) {
 					continue;
 				}
 
@@ -324,13 +309,8 @@ function unassigned_mount() {
 					continue;
 				}
 
-				/* If disk is already unmounting, skip to the next one. */
-				if ($info['unmounting']) {
-					continue;
-				}
-
-				/* If disk is mounting, skip to the next one. */
-				if ($info['mounting']) {
+				/* If disk is already unmounting, or mounting, skip to the next one. */
+				if (($info['unmounting']) || ($info['mounting'])) {
 					continue;
 				}
 
