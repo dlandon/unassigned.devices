@@ -41,6 +41,7 @@ $source					= "";
 $zvol					= "";
 $protocol				= "";
 $enable_encrypt			= "";
+$ntfs3_driver			= "";
 $disk_device			= false;
 $samba_device			= false;
 $iso_device				= false;
@@ -112,6 +113,7 @@ if (isset($_GET['s'])) {
 	} else {
 		$connected		= false;
 	}
+	$ntfs3_driver		= get_config($ud_device, "ntfs3_driver.".$partition);
 } else if (isset($_GET['d'])) {
 	/* Remote shares. */
 	$samba_device		= true;
@@ -175,7 +177,12 @@ if (isset($_GET['s'])) {
 	$disk_setting		= false;
 }
 
-/* If there is not file, or the file doesn't exist, then set as no file. */
+/* Check if the ntfs3 module is loaded. */
+$output = [];
+exec('lsmod | grep ntfs3', $output);
+$ntfs3_driver_loaded	= $output ? true : false;
+
+/* If there is no file, or the file doesn't exist, then set as no file. */
 if (($file) && (file_exists($file))) {
 	/* Get the device script file text. */
 	$text				= @file_get_contents($file);
@@ -369,7 +376,7 @@ _(Disk Name)_:
 :end
 <?endif;?>
 
-<?if (($fstype == "apfs") && (! $mounted)):?>
+<?if (($disk_setting) && ($fstype == "apfs") && (! $mounted)):?>
 _(APFS Volume)_:
 : <input type="text" name="#volume" class="narrow" style="width:2%" maxlength="1" value="<?=$volume;?>" placeholder="0">
 <?endif;?>
@@ -377,6 +384,20 @@ _(APFS Volume)_:
 <?if (($fstype == "apfs") && (! $mounted)):?>
 :ud_apfs_volume_plug:
 > Enter the volume to mount on this APFS partition.
+:end
+<?endif;?>
+
+<?if (($disk_setting) && ($fstype == "ntfs") && ($ntfs3_driver_loaded) && (! $mounted)):?>
+_(Use the NTFS3 Driver)_?
+: <select name="#ntfs3_driver" size="1">
+	<?=mk_option($ntfs3_driver, "no", "_(No)_");?>
+	<?=mk_option($ntfs3_driver, "yes", "_(Yes)_");?>
+	</select>
+<?endif;?>
+
+<?if (($disk_setting) && ($fstype == "ntfs") && ($ntfs3_driver_loaded) && (! $mounted)):?>
+:ntfs3_driver_plug:
+> Select 'Yes' to enable the built in NTFS3 driver module for mounting this disk.  The NTFS3 driver module can be faster than the ntfs-3g driver, but may not support all the features of the NTFS file system.
 :end
 <?endif;?>
 
@@ -694,7 +715,7 @@ _(User Script)_:
 				}
 			}));
 
-			<?php if ($fstype == "apfs"): ?>
+			<?php if (($disk_setting) && ($fstype == "apfs")): ?>
 			requests.push($.ajax({
 				url: UDURL,
 				type: 'POST',
@@ -704,6 +725,20 @@ _(User Script)_:
 					serial: "<?=$ud_device;?>",
 					part: "<?=$partition;?>",
 					volume: $("input[name='#volume']").val()
+				}
+			}));
+			<?php endif; ?>
+
+			<?php if (($disk_setting) && ($fstype == "ntfs") && ($ntfs3_driver_loaded)): ?>
+			requests.push($.ajax({
+				url: UDURL,
+				type: 'POST',
+				async: false,
+				data: {
+					action: "set_ntfs3_driver",
+					serial: "<?=$ud_device;?>",
+					part: "<?=$partition;?>",
+					ntfs3_driver: $("select[name='#ntfs3_driver']").val()
 				}
 			}));
 			<?php endif; ?>

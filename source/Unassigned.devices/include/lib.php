@@ -1732,6 +1732,10 @@ function get_mount_params($fs, $dev, $ro = false) {
 			$rc = "{$rw},relatime,nodev,nosuid,nls=utf8,umask=000";
 			break;
 
+		case 'ntfs3':
+			$rc = "{$rw},relatime,nodev,nosuid,umask=000";
+			break;
+
 		case 'ext4':
 			$rc = "{$rw},relatime,nodev,nosuid{$discard}";
 			break;
@@ -1837,9 +1841,18 @@ function do_mount_local($info) {
 	$ro				= $info['read_only'];
 	$file_system	= $fs;
 	$pool_name		= ($info['pool_name']) ?: MiscUD::zfs_pool_name($dev);
-
 	$mounted		= $info['mounted'];
 
+	/* Check if the ntfs3 module is loaded. */
+	$output = [];
+	exec('lsmod | grep ntfs3', $output);
+	$ntfs3_driver_loaded	= $output ? true : false;
+	$ntfs3					= (($ntfs3_driver_loaded) && (get_config($info['serial'], "ntfs3_driver.".$info['part']) == "yes")) ? "3" : "";
+
+	/* If the file system is ntfs, apply the ntfs3 setting to mount the disk. */
+	$fs	= $fs.($fs == "ntfs" ? $ntfs3 : "");
+
+	/* Mount the disk is it is not already mounted. */
 	if (! $mounted) {
 		if ($fs) {
 			$recovery = "";
@@ -2916,6 +2929,7 @@ function do_mount_samba($info) {
 		$is_alive = is_samba_server_online($info['ip'], $info['protocol']);
 	}
 	
+	/* If the remote share is available, mount it. */
 	if ($is_alive) {
 		$dir		= $info['mountpoint'];
 		$fs			= $info['fstype'];

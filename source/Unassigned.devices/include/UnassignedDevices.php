@@ -1242,6 +1242,16 @@ switch ($_POST['action']) {
 		echo json_encode(array( 'result' => $result ));
 		break;
 
+	case 'set_ntfs3_driver':
+		/* Set apfs volume configuration setting. */
+		$serial	= urldecode($_POST['serial']);
+		$part	= urldecode($_POST['part']);
+		$ntfs3	= urldecode($_POST['ntfs3_driver']);
+
+		$result	= set_config($serial, "ntfs3_driver.{$part}", $ntfs3);
+		echo json_encode(array( 'result' => $result ));
+		break;
+
 	case 'set_name':
 		/* Set disk name configuration setting. */
 		$serial		= urldecode($_POST['serial']);
