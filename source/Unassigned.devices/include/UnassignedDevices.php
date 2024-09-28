@@ -1112,8 +1112,7 @@ switch ($_POST['action']) {
 			$is_standby		= (MiscUD::get_device_host($historical[$disk_display]['serial']) && (empty(glob("/dev/disk/by-id/*-".$historical[$disk_display]['serial']."*"))));
 	
 			/* Add to the historical devices. */
-
-			/* Start of taable row for this device. */
+			/* Start of table row for this device. */
 			$o_historical	.= "<tr>";
 
 			$o_historical	.= sprintf( "<td><a class='info'><i class='fa fa-minus-circle %s orb'></i><span>"._("Historical Device is")." %s</span></a>".$historical[$disk_display]['device']."</td>", ( $is_standby ? "green-orb" : "grey-orb" ), ( $is_standby ? _("in standby") : _("offline") ));
