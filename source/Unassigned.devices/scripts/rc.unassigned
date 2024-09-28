@@ -81,7 +81,7 @@ function unassigned_mount() {
 			continue;
 		}
 
-		/* If disk is formatting, mounting, or unmountoing, skip to the next one. */
+		/* If disk is formatting, mounting, or unmounting, skip to the next one. */
 		if (($disk_info['formatting']) || ($disk_info['mounting']) || ($disk_info['unmounting'])) {
 			continue;
 		}
@@ -223,76 +223,106 @@ function unassigned_mount() {
 			exec($docroot."/plugins/unassigned.devices/scripts/get_ud_stats ping");
 		}
 
-		foreach (get_samba_mounts() as $info) {
-			$device = $info['device'];
-			if ( ($DEVNAME == $device) || ($DEVNAME == "auto") || ($DEVNAME == "autoshares") ) {
-				/* if remote mount is not set to auto mount, go to the next one. */
-				if (! $info['automount'] && ($DEVNAME == "auto" || $DEVNAME == "autoshares")) {
-					unassigned_log("Remote Share '".$info['device']."' is not set to auto mount.");
-					continue;
-				}
+		$attempts		= 0;
+		$max_attempts	= 3;
+		$result			= "failure";
 
-				/* If disk is already mounting or unmounting, skip to the next one. */
-				if (($info['mounting']) || ($info['unmounting'])) {
-					continue;
-				}
-
-				/* Create the mounting status file. */
-				$mount_device = basename($info['ip'])."_".basename($info['path']);
-
-				/* Create mounting status file. */
-				addFile(sprintf($paths['mounting'], $mount_device));
-
-				/* See if the mountpoint is a duplicate reserved, share, or UD name. Don't mount if a duplicate.*/
-				if (! check_for_duplicate_share($info['device'], basename($info['mountpoint']), true)) {
-					unassigned_log("Remote Share '".$info['device']."' cannot be mounted.");
-
-					/* Execute device script with error mounting action. */
-					execute_script($info, "ERROR_MOUNT");
-
-					$result	= "failure";
-					continue;
-				}
-
-				unassigned_log("Remote Share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = ((strpos($k, "pass") !== false) || ((strpos($k, "user") !== false) && (strpos($k, "user_command") === false))) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
-
-				unassigned_log("Mounting Remote Share '{$info['device']}'...");
-
-				/* Mount the remote share. */
-				if ($info['invalid']) {
-					/* If the cofiguration is invalid, don't mount the device. */
-					unassigned_log("Warning: Device '".$info['device']."' has an invalid configuration and can not be mounted.");
-				} else if (do_mount($info)) {
-					if ($info['smb_share']) {
-						/* Add smb share for the remote share. */
-						add_smb_share($info['mountpoint'], ($info['fstype'] == "root"));
-						add_nfs_share($info['mountpoint']);
-
-						/* Update the samba mount status. */
-						foreach (get_samba_mounts() as $info) {
-							$device = $info['device'];
-							if ( $DEVNAME == $device ) {
-								export_disk($info, true);
-								break;
-							}
-						}
-					} else {
-						unassigned_log("Device '".$info['device']."' is not set to be shared.");
+		/* Try three times to mount all remote shares to be sure they can be mounted if the remote server is not immediately available. */
+		while (($result == "failure") && ($attempts < $max_attempts)) {
+			$attempts++;
+			$result		= "success";
+			foreach (get_samba_mounts() as $info) {
+				$device = $info['device'];
+				if ( ($DEVNAME == $device) || ($DEVNAME == "auto") || ($DEVNAME == "autoshares") ) {
+					/* If we are auto mounting remote shares and the device is already mounted, skip to the next one. */
+					if ( (($DEVNAME == "auto") || ($DEVNAME == "autoshares")) && ($info['mounted']) ) {
+						continue;
 					}
 
-					/* Execute remote mount script with add action. */
-					execute_script($info, "ADD");
-				} else {
-					/* Execute remote mount script with error mount action. */
-					execute_script($info, "ERROR_MOUNT");
+					/* If remote share is already mounting or unmounting, skip to the next one. */
+					if (($info['mounting']) || ($info['unmounting'])) {
+						continue;
+					}
 
-					$result	= "failure";
+					/* if remote mount is not set to auto mount, go to the next one. */
+					if (! $info['automount'] && ($DEVNAME == "auto" || $DEVNAME == "autoshares")) {
+						if ($attempts == 1) {
+							unassigned_log("Remote Share '".$info['device']."' is not set to auto mount.");
+						}
+						continue;
+					}
+
+					/* Create the mounting status file. */
+					$mount_device = basename($info['ip'])."_".basename($info['path']);
+
+					/* Create mounting status file. */
+					addFile(sprintf($paths['mounting'], $mount_device));
+
+					/* See if the mountpoint is a duplicate reserved, share, or UD name. Don't mount if a duplicate.*/
+					if (! check_for_duplicate_share($info['device'], basename($info['mountpoint']), true)) {
+						unassigned_log("Remote Share '".$info['device']."' cannot be mounted.");
+
+						/* Execute device script with error mounting action. */
+						execute_script($info, "ERROR_MOUNT");
+
+						$result	= "failure";
+						continue;
+					}
+
+					unassigned_log("Remote Share found with the following attributes: ".(implode(', ', array_map(function($v, $k){$v = ((strpos($k, "pass") !== false) || ((strpos($k, "user") !== false) && (strpos($k, "user_command") === false))) ? "*******" : $v; return "$k='$v'"; }, $info, array_keys($info)))), $GLOBALS['UDEV_DEBUG']);
+
+					unassigned_log("Mounting Remote Share '{$info['device']}'...");
+
+					/* Mount the remote share. */
+					if ($info['invalid']) {
+						/* If the cofiguration is invalid, don't mount the device. */
+						unassigned_log("Warning: Device '".$info['device']."' has an invalid configuration and can not be mounted.");
+					} else if (do_mount($info)) {
+						if ($info['smb_share']) {
+							/* Add smb share for the remote share. */
+							add_smb_share($info['mountpoint'], ($info['fstype'] == "root"));
+							add_nfs_share($info['mountpoint']);
+
+							/* Update the samba mount status. */
+							foreach (get_samba_mounts() as $info) {
+								$device = $info['device'];
+								if ( $DEVNAME == $device ) {
+									export_disk($info, true);
+									break;
+								}
+							}
+						} else {
+							unassigned_log("Device '".$info['device']."' is not set to be shared.");
+						}
+
+						/* Execute remote mount script with add action. */
+						execute_script($info, "ADD");
+					} else {
+						/* Execute remote mount script with error mount action. */
+						execute_script($info, "ERROR_MOUNT");
+
+						$result	= "failure";
+					}
+				}
+
+
+				/* If we are mounting a single device, we are done now. */
+				if ($DEVNAME == $device) {
+					break;
 				}
 			}
 
-			/* If we are mounting a single device, we are done now. */
-			if ($DEVNAME == $device) {
+			/* Check if result is success then all devices have mounted. */
+			if ($result == "success") {
 				break;
+			}
+
+			/* Wait for remote_share_wait seconds before retrying */
+			if ($attempts < $max_attempts) {
+				sleep($remote_share_wait);
+
+				/* Refresh the ping status before trying to mount remote devices. */
+				exec($docroot."/plugins/unassigned.devices/scripts/get_ud_stats ping");
 			}
 		}
 	}
