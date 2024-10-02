@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.09.19">
+<!ENTITY version	"2024.10.02">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"efe5a206340a93692b1e68618d2c4529">
+<!ENTITY MD5		"d9e5a2c06d4cad6a4590f2552ea982c3">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,12 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Increase timeout when checking for SMB and NFS ports to be open for remote shares.  This should fix the issue where remote shares do not show online and auto mount fails after a reboot.
+- Fix: Cannot use 'closetimeo' parameter on SMB remote mounts in Unraid 6.11.
+- Add: Option to mount NTFS disks using the Linux NTFS3 module in disk Device Settings.  The NTFS3 module is included in Unraid 7.0.
+- Add: Attempt three times to mount remote share devices on initial array start.  Each try is delayed by the "Remote Mount Share Wait Time" UD setting.  This should help with remote servers not being online and ready when Unraid is started.
+
+###2024.09.23
 - Fix: Change 'soft' mount parameter to 'hard' on SMB and NFS mounts to help with remote shares going offline.
 - Fix: Remove 'retrans' parameter from NFS remote mounts.
 - Fix: Allow unmounting an ISO file if the ISO file is deleted.
@@ -2494,6 +2500,9 @@ find /boot/config/plugins/&name; -type f -iname "&name;*.md5" ! -iname "*&versio
 
 # reload udev rules
 udevadm control --reload-rules
+
+# Load the ntfs3 module if it is available
+modprobe ntfs3
 
 # Update the file 'update.php' if version is 6.11, or 6.12 so device script 'Apply' changes will work.
 # Get the Unraid version
