@@ -222,15 +222,18 @@ function unassigned_mount() {
 
 			/* Refresh the ping status before trying to mount remote devices. */
 			exec($docroot."/plugins/unassigned.devices/scripts/get_ud_stats ping");
+
+			/* Try three times to mount the remote share. */
+			$max_attempts	= 3;
+		} else {
+			$max_attempts	= 1;
 		}
 
 		$attempts		= 0;
-		$max_attempts	= 3;
 		$result			= "failure";
 
 		/* Try three times to mount all remote shares to be sure they can be mounted if the remote server is not immediately available. */
 		while (($result == "failure") && ($attempts < $max_attempts)) {
-			$attempts++;
 			$result		= "success";
 			foreach (get_samba_mounts() as $info) {
 				$device = $info['device'];
@@ -241,13 +244,13 @@ function unassigned_mount() {
 					}
 
 					/* If remote share is already mounting or unmounting, skip to the next one. */
-					if (($info['mounting']) || ($info['unmounting'])) {
+					if (($attempts == 0) && ($info['mounting']) || ($info['unmounting'])) {
 						continue;
 					}
 
 					/* if remote mount is not set to auto mount, go to the next one. */
 					if (! $info['automount'] && ($DEVNAME == "auto" || $DEVNAME == "autoshares")) {
-						if ($attempts == 1) {
+						if ($attempts == 0) {
 							unassigned_log("Remote Share '".$info['device']."' is not set to auto mount.");
 						}
 						continue;
@@ -305,12 +308,6 @@ function unassigned_mount() {
 						$result	= "failure";
 					}
 				}
-
-
-				/* If we are mounting a single device, we are done now. */
-				if ($DEVNAME == $device) {
-					break;
-				}
 			}
 
 			/* Check if result is success then all devices have mounted. */
@@ -318,9 +315,12 @@ function unassigned_mount() {
 				break;
 			}
 
+			/* Try again. */
+			$attempts++;
+
 			/* Wait for remote_share_wait seconds before retrying */
 			if ($attempts < $max_attempts) {
-				unassigned_log("Waiting ".$remote_share_wait." secs before attempting to mount Remote Shares...");
+				unassigned_log("Waiting ".$remote_share_wait." secs before retry mounting Remote Shares...");
 
 				sleep($remote_share_wait);
 			}
