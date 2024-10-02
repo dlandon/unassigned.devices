@@ -1696,7 +1696,7 @@ function is_mounted_read_only($dir) {
 
 /* Get the mount parameters based on the file system. */
 function get_mount_params($fs, $dev, $ro = false) {
-	global $paths;
+	global $paths, $version;
 
 	$rc				= "";
 	if (($fs != "cifs") && ($fs != "nfs") && ($fs != "root")) {
@@ -1742,7 +1742,8 @@ function get_mount_params($fs, $dev, $ro = false) {
 
 		case 'cifs':
 			$credentials_file = "{$paths['credentials']}_".basename($dev);
-			$rc = "{$rw},hard,relatime,noserverino,nounix,cache=none,iocharset=utf8,file_mode=0777,dir_mode=0777,uid=99,gid=100,actimeo=10,closetimeo=30%s,credentials=".escapeshellarg($credentials_file);
+			$closetimeo	= version_compare($version['version'],"6.11.9", ">") ? "closetimeo=30" : "";
+			$rc = "{$rw},hard,relatime,noserverino,nounix,cache=none,iocharset=utf8,file_mode=0777,dir_mode=0777,uid=99,gid=100,actimeo=10,$closetimeo%s,credentials=".escapeshellarg($credentials_file);
 			break;
 
 		case 'nfs':
