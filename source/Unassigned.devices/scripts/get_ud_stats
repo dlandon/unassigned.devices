@@ -76,7 +76,7 @@ function timed_exec($timeout, $cmd) {
 
 /* See if the server port is open. */
 function is_server_alive($server, $port) {
-	$is_alive	= trim(shell_exec("/usr/bin/nice /usr/bin/timeout 1 bash -c '(echo >/dev/tcp/{$server}/{$port}) &>/dev/null'; echo $?")) == 0;
+	$is_alive	= trim(shell_exec("/usr/bin/nice /usr/bin/timeout 10 bash -c '(echo >/dev/tcp/{$server}/{$port}) &>/dev/null'; echo $?")) == 0;
 
 	return $is_alive;
 }
