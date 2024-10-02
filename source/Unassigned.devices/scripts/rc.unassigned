@@ -211,11 +211,12 @@ function unassigned_mount() {
 
 	/* Mount Remote mounts. */
 	if (strpos($DEVNAME, "//") === 0 || strpos($DEVNAME, ":/") || $DEVNAME == "auto" || $DEVNAME == "autoshares") {
-		/* If remote shares are being mounted from initial array start, delay mounting by the user set time or default. */
-		if ($DEVNAME == "autoshares") {
-			$remote_share_wait	= (int) get_config("Config", "remote_share_wait");
-			$remote_share_wait	= ($remote_share_wait > 5) ? $remote_share_wait : 5;
+		/* Get the remote share mount wait delay from the UD settings. */
+		$remote_share_wait	= (int) get_config("Config", "remote_share_wait");
+		$remote_share_wait	= ($remote_share_wait > 5) ? $remote_share_wait : 5;
 
+		/* If remote shares are being mounted from initial array start, delay mounting by the user set time or default. */
+		if (($DEVNAME == "auto") || ($DEVNAME == "autoshares")) {
 			unassigned_log("Waiting ".$remote_share_wait." secs before mounting Remote Shares...");
 			sleep($remote_share_wait);
 
@@ -319,10 +320,9 @@ function unassigned_mount() {
 
 			/* Wait for remote_share_wait seconds before retrying */
 			if ($attempts < $max_attempts) {
-				sleep($remote_share_wait);
+				unassigned_log("Waiting ".$remote_share_wait." secs before attempting to mount Remote Shares...");
 
-				/* Refresh the ping status before trying to mount remote devices. */
-				exec($docroot."/plugins/unassigned.devices/scripts/get_ud_stats ping");
+				sleep($remote_share_wait);
 			}
 		}
 	}
