@@ -2502,7 +2502,7 @@ find /boot/config/plugins/&name; -type f -iname "&name;*.md5" ! -iname "*&versio
 udevadm control --reload-rules
 
 # Load the ntfs3 module if it is available
-modprobe ntfs3
+modprobe ntfs3 2>/dev/null
 
 # Update the file 'update.php' if version is 6.11, or 6.12 so device script 'Apply' changes will work.
 # Get the Unraid version
