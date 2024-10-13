@@ -68,6 +68,7 @@ function unassigned_mount() {
 	/* Mount local disks. */
 	foreach (get_unassigned_disks() as $name => $disk) {
 		$device		= $disk['device'];
+
 		$disk_info	= get_disk_info($device);
 
 		/* If disk is passed through or is marked as an array disk, skip to the next disk. */
@@ -857,10 +858,10 @@ function unassigned_detach($device) {
 }
 
 /* Attach a disk device that is detached. */
-function unassigned_attach($device) {
+function unassigned_attach($serial) {
 
 	/* Get this device's hostX and delete the hosts entry in case the device has been removed. */
-	$host	= MiscUD::get_device_host($device, true);
+	$host	= MiscUD::get_device_host($serial, true);
 
 	/* Initiate a rescan of the scsi devices. */
 	if ($host) {
@@ -871,14 +872,14 @@ function unassigned_attach($device) {
 	$i		= 0;
 	while ((! $file) && ($i < 25)) {
 		sleep(1);
-		$file	= shell_exec("/usr/bin/ls /dev/disk/by-id/*-".$device." 2>/dev/null");
+		$file	= shell_exec("/usr/bin/ls /dev/disk/by-id/*-".$serial." 2>/dev/null");
 		$i++;
 	}
 
 	if ($i < 25) {
-		unassigned_log("Device with serial '".$device."' has been attached.");
+		unassigned_log("Device with serial '".$serial."' has been attached.");
 	} else {
-		unassigned_log("Device with serial '".$device."' could not be attached.");
+		unassigned_log("Device with serial '".$serial."' could not be attached.");
 	}
 }
 
