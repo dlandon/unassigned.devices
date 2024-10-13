@@ -1743,7 +1743,7 @@ function get_mount_params($fs, $dev, $ro = false) {
 		case 'cifs':
 			$credentials_file = "{$paths['credentials']}_".basename($dev);
 			$closetimeo	= version_compare($version['version'],"6.11.9", ">") ? "closetimeo=30" : "";
-			$rc = "{$rw},hard,relatime,noserverino,nounix,cache=none,iocharset=utf8,file_mode=0777,dir_mode=0777,uid=99,gid=100,actimeo=10,$closetimeo%s,credentials=".escapeshellarg($credentials_file);
+			$rc = "{$rw},hard,relatime,noserverino,nounix,iocharset=utf8,file_mode=0777,dir_mode=0777,uid=99,gid=100,actimeo=10,$closetimeo%s,credentials=".escapeshellarg($credentials_file);
 			break;
 
 		case 'nfs':
@@ -1848,10 +1848,12 @@ function do_mount_local($info) {
 	$output = [];
 	exec('lsmod | grep ntfs3', $output);
 	$ntfs3_driver_loaded	= $output ? true : false;
-	$ntfs3					= (($ntfs3_driver_loaded) && (get_config($info['serial'], "ntfs3_driver.".$info['part']) == "yes")) ? "3" : "";
 
 	/* If the file system is ntfs, apply the ntfs3 setting to mount the disk. */
-	$fs	= $fs.($fs == "ntfs" ? $ntfs3 : "");
+	if ($fs == "ntfs") {
+		$ntfs3		= (($ntfs3_driver_loaded) && (get_config($info['serial'], "ntfs3_driver.".$info['part']) == "yes")) ? "3" : "";
+		$fs			= $fs.$ntfs3;
+	}
 
 	/* Mount the disk is it is not already mounted. */
 	if (! $mounted) {
@@ -3656,17 +3658,23 @@ function get_udev_info($dev, $udev = null) {
 
 	$rc		= [];
 
-	/* Make file changes. */
-	$state	= is_file($paths['state']) ? @parse_ini_file($paths['state'], true, INI_SCANNER_RAW) : [];
-
 	/* Be sure the device name has safe characters. */
 	$device	= safe_name($dev);
 
+	/* Read the state file. */
+	$state	= is_file($paths['state']) ? @parse_ini_file($paths['state'], true, INI_SCANNER_RAW) : [];
+
 	/* If the udev is not null, save it to the unassigned.devices.ini file. */
 	if (isset($udev)) {
-		unassigned_log("Udev: Update udev info for ".$dev.".", $GLOBALS['UDEV_DEBUG']);
+		unassigned_log("Udev: Update udev info for ".$device.".", $GLOBALS['UDEV_DEBUG']);
 
- 		/* Save this entry unless the ACTION is remove. */
+ 		/* Get a lock so file changes can be made. */
+		$lock_file	= get_file_lock("udev");
+
+		/* Make file changes. */
+		$state	= is_file($paths['state']) ? @parse_ini_file($paths['state'], true, INI_SCANNER_RAW) : [];
+
+		/* Save this entry unless the ACTION is remove. */
  		if ($udev['ACTION'] != "remove") {
 			/* Remove proxy environment variables that are added to php environment variables. */
 			if (isset($udev['http_proxy'])) {
@@ -3687,9 +3695,6 @@ function get_udev_info($dev, $udev = null) {
 				}
 			}
 		}
-		/* Get a lock so file changes can be made. */
-		$lock_file	= get_file_lock("udev");
-
 		save_ini_file($paths['state'], $state);
 
 		/* Write to temp file and then move to destination file for diagnostics. */
@@ -3705,13 +3710,17 @@ function get_udev_info($dev, $udev = null) {
 		$rc	= $state[$device];
 	} else {
 		$dev_state = @parse_ini_string(timed_exec(5, "/sbin/udevadm info --query=property --path $(/sbin/udevadm info -q path -n ".escapeshellarg($device)." 2>/dev/null) 2>/dev/null"), INI_SCANNER_RAW);
-		if (is_array($dev_state)) {
-			unassigned_log("Udev: Refresh udev info for ".$dev.".", $GLOBALS['UDEV_DEBUG']);
 
-			$state[$device] = $dev_state;
+		if (is_array($dev_state)) {
+			unassigned_log("Udev: Refresh udev info for ".$device.".", $GLOBALS['UDEV_DEBUG']);
 
 			/* Get a lock so file changes can be made. */
 			$lock_file	= get_file_lock("udev");
+
+			/* Make file changes. */
+			$state	= is_file($paths['state']) ? @parse_ini_file($paths['state'], true, INI_SCANNER_RAW) : [];
+
+			$state[$device] = $dev_state;
 
 			/* Write the file to the ram file system. */
 			save_ini_file($paths['state'], $state, false);
@@ -3737,7 +3746,7 @@ function get_disk_info($dev) {
 
 	/* Get all the disk information for this disk device. */
 	$disk						= [];
-	$attrs						= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
+	$attrs						= (isset($_ENV['DEVTYPE']) && (strpos($dev, '/dev/disk/') === 0)) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
 	$disk['device']				= realpath($dev);
 	$disk['serial']				= get_disk_id($disk['device'], trim($attrs['ID_SERIAL']));
 	$disk['serial_short']		= $attrs['ID_SCSI_SERIAL'] ?? ($attrs['ID_SERIAL_SHORT'] ?? "");
@@ -3788,7 +3797,7 @@ function get_partition_info($dev) {
 	global $paths;
 
 	$partition	= [];
-	$attrs	= (isset($_ENV['DEVTYPE'])) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
+	$attrs	= (isset($_ENV['DEVTYPE']) && (strpos($dev, '/dev/disk/') === 0)) ? get_udev_info($dev, $_ENV) : get_udev_info($dev, null);
 	if ($attrs['DEVTYPE'] == "partition") {
 		$partition['serial_short']		= $attrs['ID_SCSI_SERIAL'] ?? ($attrs['ID_SERIAL_SHORT'] ?? "");
 		$partition['device']			= realpath($dev);
