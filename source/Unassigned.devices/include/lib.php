@@ -1234,10 +1234,10 @@ function timed_exec($timeout, $cmd, $silent = false) {
 	$time		+= microtime(true);
 	if (! $silent) {
 		if ($time > $timeout) {
-			unassigned_log("Warning: shell_exec(".$cmd.") took longer than ".sprintf('%d', $timeout)."s!");
+			unassigned_log("Warning: shell_exec(".$cmd.") took longer than ".sprintf('%.1f', $timeout)."s!");
 			$out	= "command timed out";
 		} else {
-			unassigned_log("Timed Exec: shell_exec(".$cmd.") took ".sprintf('%f', $time)."s!", $GLOBALS['CMD_DEBUG']);
+			unassigned_log("Timed Exec: shell_exec(".$cmd.") took ".sprintf('%.1f', $time)."s!", $GLOBALS['CMD_DEBUG']);
 		}
 	}
 
@@ -1250,7 +1250,7 @@ function part_fs_type($dev) {
 
 	/* Get the file system types from lsblk and cache for later use. */
 	if (! isset($lsblk_file_types[$dev])) {
-		$lsblkOutput = timed_exec(0.5, "/bin/lsblk -o NAME,FSTYPE -n -l -p -e 7,11 2>/dev/null | /usr/bin/grep -v 'crypto_LUKS'");
+		$lsblkOutput = timed_exec(0.5, "/bin/lsblk -o NAME,FSTYPE -n -l -p -e 7,11 2>/dev/null | /usr/bin/grep -v 'crypto_LUKS'", true);
 
 		$lines = explode(PHP_EOL, trim($lsblkOutput));
 		$new_file_types = [];
@@ -1283,7 +1283,7 @@ function part_fs_type($dev) {
 function zvol_fs_type($dev) {
 
 	/* Get the file system type from blkid for a zfs volume. */
-	$rc	= trim(timed_exec(0.5, "/sbin/blkid -s TYPE -o value ".escapeshellarg($dev)." 2>/dev/null") ?? "");
+	$rc	= trim(timed_exec(0.5, "/sbin/blkid -s TYPE -o value ".escapeshellarg($dev)." 2>/dev/null", true) ?? "");
 
 	return $rc;
 }
