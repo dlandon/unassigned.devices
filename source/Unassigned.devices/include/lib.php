@@ -2483,7 +2483,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 			/* Add the [global] tag to the end of the share file. */
 			@file_put_contents($share_conf, "\n[global]\n", FILE_APPEND);
 
-			timed_exec(2, "/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
+			timed_exec(2, "/usr/bin/smbcontrol $(cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1", true);
 		} else {
 			unassigned_log("Warning: Unassigned Devices are not set to be shared with SMB.");
 		}
@@ -2516,8 +2516,8 @@ function rm_smb_share($dir) {
 		$c = array_merge(preg_grep("/include/i", $c, PREG_GREP_INVERT), $smb_unassigned_includes);
 		$c = preg_replace('/\n\s*\n\s*\n/s', PHP_EOL.PHP_EOL, implode(PHP_EOL, $c));
 		@file_put_contents($paths['smb_unassigned'], $c);
-		timed_exec(2, "/usr/bin/smbcontrol $(/bin/cat /var/run/smbd.pid 2>/dev/null) close-share ".escapeshellarg($share_name)." 2>&1");
-		timed_exec(2, "/usr/bin/smbcontrol $(/bin/cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1");
+		timed_exec(2, "/usr/bin/smbcontrol $(/bin/cat /var/run/smbd.pid 2>/dev/null) close-share ".escapeshellarg($share_name)." 2>&1", true);
+		timed_exec(2, "/usr/bin/smbcontrol $(/bin/cat /var/run/smbd.pid 2>/dev/null) reload-config 2>&1", true);
 	}
 
 	return true;
@@ -3493,7 +3493,7 @@ function get_all_disks_info() {
 	/* If there are unassigned disks, get all disk information from udev. */
 	if (is_array($ud_disks)) {
 		/* Read the disk sizes into an array so we only call lsblk once. */
-		$lsblkOutput	= timed_exec(0.5, "/bin/lsblk -b -n -o NAME,SIZE,TYPE | /bin/awk '$3 == \"disk\" {print $1 \",\" $2}' 2</dev/null");
+		$lsblkOutput	= timed_exec(0.5, "/bin/lsblk -b -n -o NAME,SIZE,TYPE | /bin/awk '$3 == \"disk\" {print $1 \",\" $2}' 2</dev/null", true);
 
 		/* Explode the output into an array based on newline character. */
 		$lines = explode("\n", trim($lsblkOutput));
