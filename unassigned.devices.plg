@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.10.14">
+<!ENTITY version	"2024.10.29">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"a2b393d061c722e7d7e55e537036902a">
+<!ENTITY MD5		"c9a3f0ec3093d771a9fc3bd95400b8ab">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,13 +22,20 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Don't display device in drop down for a LUKS password or UUID change if disk is passed through.
+- Fix: Change wording of ZFS disk upgrade in UD Settings to 'Upgrade ZFS Pool'.
+- Add: Display "******" for disk LUKS password if one is set, else show blank in disk password setting.
+- Add" Warning about Windows Server Signing for Windows 24H2 and newer plus additional help text.
+- Add: A remote NFS server will be considered offline if 'showmount' does not show any mounts available.
+
+###2024.10.14
 - Fix: Php errors when mounting some disks caused by the NTFS3 changes.
 - Fix: Rework udev tracking procedure to more appropriately lock the file when updating.
 - Fix: Udev information for 'dev/devX' not working properly.  This may be the cause of the incorrect script execution when auto mounting a disk.
 - Fix: Remove 'cache=none' from CIFS mounts.  The default is 'cache=strict' and this gives better performance.
 - Fix: Change command timeout to show timeout in x.x seconds format.
 
-###2014.10.02
+###2024.10.02
 - Fix: Increase timeout when checking for SMB and NFS ports to be open for remote shares.  This should fix the issue where remote shares do not show online and auto mount fails after a reboot.
 - Fix: Cannot use 'closetimeo' parameter on SMB remote mounts in Unraid 6.11.
 - Add: Option to mount NTFS disks using the Linux NTFS3 module in disk Device Settings.  The NTFS3 module is included in Unraid 7.0.
