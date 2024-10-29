@@ -41,20 +41,26 @@ uksort($users, 'strnatcmp');
 <input type="hidden" name="#arg[1]" value="apply">
 
 _(SMB Sharing)_:
-: <select name="smb_security" size="1" onchange="prepareSecurity(this);">
+: <select name="smb_security" size="1" onchange="checkPublicSelection(this);">
   <?=mk_option($UD_cfg['Config']['smb_security'], "no", "_(Disabled)_");?>
   <?=mk_option($UD_cfg['Config']['smb_security'], "public", "_(Public)_");?>
   <?=mk_option($UD_cfg['Config']['smb_security'], "yes", "_(Private)_");?>
   <?=mk_option($UD_cfg['Config']['smb_security'], "hidden", "_(Private Hidden)_");?>
-  </select>
+  </select><span id="warningMessage" style="display:none; color: red;">_(Warning)_:  _(Windows may require a valid User to be defined even for Public shares)_.  _(See Help)_.</span>
 
 :ud_settings_smb_security_plug:
-> Set the user level of SMB Sharing.
+> Set the user level of SMB Sharing:
 >
 > + Set to **Disabled** to disable SMB sharing.
 > + Set to **Public** will share devices, Remote SMB/NFS shares, and iso Mounts Public with read and write access.
 > + Set to **Private** to enable SMB Security on SMB shares. Set access by user to allow access and whether or not the user can write to the share.
 > + Set to **Private Hidden** to enable SMB Security on SMB shares that will not be visible. Set access by user to allow access and whether or not the user can write to the share.
+>
+> Windows Server Signing:
+>
+> If you are unable to browse SMB shares with Windows 11 version 24H2 or newer, you need to make some changes to accomodate a new feature called Server Signing.  Server Signing is enabled in Unraid and you need to make changes to access Public shares.
+> You can <u><a href='https://techcommunity.microsoft.com/t5/storage-at-microsoft/accessing-a-third-party-nas-with-smb-in-windows-11-24h2-may-fail/ba-p/4154300', target='_blank'>_(disable it in Windows)_</a></u>, or to work with Unraid with Server Signing enabled, the easiest way is to create a user (with a password set) in Unraid with the same name as the Windows account you are using, Windows should then ask you for the credentials.
+> If you are using a Microsoft account, it may be better to just create a user in Unraid with a simple username and set a password, then in Windows go to Control Panel -> Credential Manager -> Windows credentials -> Add a Windows Credential and add the correct Unraid server name and credentials.
 :end
 
 <div id="smb_security" style="display: <?=($UD_cfg['Config']['smb_security'] == "no" || $UD_cfg['Config']['smb_security'] == "public" || (! $UD_cfg['Config']['smb_security']) ? "none" : "block");?>">
@@ -130,3 +136,28 @@ _(Add)_ 'force user = nobody' _(to SMB share config)_?
 &nbsp;
 : <input type="submit" value='_(Apply)_'><input type="button" value="_(Done)_" onclick="done()">
 </form>
+
+<script>
+function checkPublicSelection(select) {
+	/* Get reference to the warning message span */
+	let warningMessage = document.getElementById("warningMessage");
+
+	/* Check if 'Public' is selected */
+	if (select.value === "public") {
+		/* Display warning for 'Public' option */
+		warningMessage.style.display = "inline";
+	} else {
+		/* Hide warning for other options */
+		warningMessage.style.display = "none";
+	}
+
+	/* Call the original prepareSecurity function */
+	prepareSecurity(select);
+}
+
+/* Call checkPublicSelection with the initial selection on page load */
+document.addEventListener("DOMContentLoaded", function() {
+	let smbSecuritySelect = document.querySelector('[name="smb_security"]');
+	checkPublicSelection(smbSecuritySelect);
+});
+</script>
