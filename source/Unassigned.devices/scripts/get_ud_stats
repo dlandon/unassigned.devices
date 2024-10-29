@@ -120,6 +120,19 @@ function is_server_online($server, $protocol, $log = false) {
 			}
 		}
 
+		/* Confirm the remote server is actually serving NFS shares. */
+		if (($protocol == "NFS") && ($is_alive)) {
+			/* Run the showmount command and check for NFS shares available. */
+			$output = [];
+			$return_var = 0;
+			exec("/usr/sbin/showmount -e ".escapeshellarg($server)." 2>/dev/null", $output, $return_var);
+
+			/* Check that there are NFS mounts available on the remote server. */
+			if (($return_var !== 0) || (! $output)) {
+				$is_alive	= false;
+			}
+		}
+
 		/* Get the number of pings we've checked since it went offline. */
 		$no_pings		= $ping_status[$name]['no_pings'] ?? 0;
 
