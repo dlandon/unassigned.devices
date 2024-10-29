@@ -34,7 +34,7 @@ foreach (get_all_disks_info() as $d) {
 
 	if (isset($d['partitions'][0]['fstype'])) {
 		/* Get an array of devices that are candidates for uuid change. */
-		if (($d['partitions'][0]['fstype'] == "xfs" || $d['partitions'][0]['fstype'] == "btrfs" || $d['partitions'][0]['fstype'] == "crypto_LUKS") && (! $d['partitions'][0]['mounted'])) {
+		if (($d['partitions'][0]['fstype'] == "xfs" || $d['partitions'][0]['fstype'] == "btrfs" || $d['partitions'][0]['fstype'] == "crypto_LUKS") && (! $d['partitions'][0]['mounted'])  && (! $d['partitions'][0]['pass_through'])) {
 			$a = [];
 			$a['device'] = $d['device'];
 			$a['serial'] = $d['serial'];
