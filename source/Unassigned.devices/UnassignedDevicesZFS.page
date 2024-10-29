@@ -1,5 +1,5 @@
 Menu="UnassignedDevicesSettings:6"
-Title="Upgrade ZFS"
+Title="Upgrade ZFS Pool"
 Tag="hdd-o"
 Cond="version_compare(parse_ini_file('/etc/unraid-version')['version'], '6.11.9', '>')"
 ---
@@ -49,7 +49,7 @@ foreach (get_all_disks_info() as $d) {
 			if (($pool_name) && (! is_upgraded_ZFS_pool($pool_name))) {
 				$a = [];
 				$a['device']		= $d['device'];
-				$a['serial']			= $d['serial'];
+				$a['serial']		= $d['serial'];
 				$a['pool_name']		= $pool_name;
 				$zfs_devices[]		= $a;
 			}
@@ -59,7 +59,7 @@ foreach (get_all_disks_info() as $d) {
 ?>
 
 <table class="tablesorter shift ups">
-<thead><tr><th>_(Upgrade ZFS)_</th></tr></thead>
+<thead><tr><th>_(Upgrade ZFS Pool)_</th></tr></thead>
 </table>
 
 <form markdown="1" name="zfs_disk_upgrade" method="POST" action="/update.php" target="progressFrame">
@@ -76,11 +76,11 @@ _(Select Disk)_:
 </select>
 
 :ud_settings_zfs_upgrade_plug:
-> Select the disk that you want to upgrade to the latest ZFS version. Drive must be mounted to upgrade ZFS.
+> Select the disk that you want to upgrade to the latest ZFS version. Drive must be mounted to upgrade the ZFS Pool.
 :end
 
 <p><span style='font-weight:bold;'>Note:</span> _(This operation cannot be reversed)_.  _(After upgrading, the disk may not be mountable in previous versions of Unraid)_.</p>
 
 &nbsp;
-: <input type="submit" value='_(Upgrade ZFS)_' title='_(Upgrade ZFS on disk to the latest)_.' <?=count($zfs_devices) ? "" : "disabled";?>>
+: <input type="submit" value='_(Upgrade ZFS Pool)_' title='_(Upgrade ZFS on disk to the latest)_.' <?=count($zfs_devices) ? "" : "disabled";?>>
 </form>
