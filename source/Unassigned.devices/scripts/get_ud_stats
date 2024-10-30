@@ -122,13 +122,11 @@ function is_server_online($server, $protocol, $log = false) {
 
 		/* Confirm the remote server is actually serving NFS shares. */
 		if (($protocol == "NFS") && ($is_alive)) {
-			/* Run the showmount command and check for NFS shares available. */
-			$output = [];
-			$return_var = 0;
-			exec("/usr/sbin/showmount -e ".escapeshellarg($server)." 2>/dev/null", $output, $return_var);
+			/* Check for NFS shares available on the remote server. */
+			$output	= trim(shell_exec("/usr/sbin/showmount -e ".escapeshellarg($server)." 2>/dev/null") ?? "");
 
 			/* Check that there are NFS mounts available on the remote server. */
-			if (($return_var !== 0) || (! $output)) {
+			if (! $output) {
 				$is_alive	= false;
 			}
 		}
@@ -152,7 +150,11 @@ function is_server_online($server, $protocol, $log = false) {
 		/* When the server first goes offline, log a message. */
 		if ($was_alive != $is_alive) {
 			if (! $is_alive) {
-				unassigned_log("Remote server '".$server."' port '".$port."' is not open; server appears to be offline.");
+				if ($protocol == "NFS") {
+					unassigned_log("Remote server '".$server."' appears to be offline; check NFS configuration.");
+				} else {
+					unassigned_log("Remote server '".$server."' port '".$port."' is not open; server appears to be offline.");
+				}
 			}
 
 			$changed = true;
