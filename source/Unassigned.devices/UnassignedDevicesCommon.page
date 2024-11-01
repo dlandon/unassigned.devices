@@ -283,8 +283,7 @@ _(NFS Version to use when Mounting Remote Shares)_:
 : <select name="nfs_version" size="1" <?if ($var['shareNFSEnabled']=="no"):?>disabled<?endif;?>>
   <?=mk_option($UD_cfg['Config']['nfs_version'], "0", "_(Auto)_");?>
   <?=mk_option($UD_cfg['Config']['nfs_version'], "4", "_(NFSv4)_");?>
-
-  </select><?if ($var['shareNFSEnabled']=="no"):?>&nbsp;_(NFS must be enabled in Settings->NFS for NFS support)_.<?endif;?>
+  </select><?if ($var['shareNFSEnabled']=="no"):?>&nbsp;<span>_(NFS must be enabled in Settings->NFS for NFS support)_.</span><?endif;?>
 
 :ud_settings_specify_nfs_vers_plug:
 > Set to **Auto** to mount all NFS Remote Shares auto negotiating the NFS version to use.
