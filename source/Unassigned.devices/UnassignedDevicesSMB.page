@@ -150,9 +150,6 @@ function checkPublicSelection(select) {
 		/* Hide warning for other options */
 		warningMessage.style.display = "none";
 	}
-
-	/* Call the original prepareSecurity function */
-	prepareSecurity(select);
 }
 
 /* Call checkPublicSelection with the initial selection on page load */
