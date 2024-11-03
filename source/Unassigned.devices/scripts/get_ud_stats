@@ -26,6 +26,7 @@ $config_file	= "/tmp/".$plugin."/config/samba_mount.cfg";
 $pidFile		= "/var/run/get_ud_stats";
 $tc 			= "/var/state/".$plugin."/ping_status.json";
 $var			= @parse_ini_file("$docroot/state/var.ini");
+$remote_test	= false;
 
 /* Misc functions. */
 class MiscUD
@@ -83,7 +84,7 @@ function is_server_alive($server, $port) {
 
 /* Is the server currently on line. */
 function is_server_online($server, $protocol, $log = false) {
-	global $tc;
+	global $tc, $remote_test;
 
 	/* The check for a remote server to be online is just a simple open port check. The checks are done as follows:
 		- Check the original server name.
@@ -116,7 +117,19 @@ function is_server_online($server, $protocol, $log = false) {
 			$ip_address	= trim(shell_exec("/sbin/arp -a ".escapeshellarg($server)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $2}'") ?? "");
 			$ip_address = str_replace(['(', ')'], '', $ip_address);
 			if (MiscUD::is_ip($ip_address)) {
+				if ($remote_test) {
+					echo("Using server IP address ".$ip_address."\n");
+				}
 				$is_alive	= is_server_alive($ip_address, $port);
+			}
+		}
+
+		/* Show results of the port test. */
+		if ($remote_test) {
+			if ($is_alive) {
+				echo("Remote server port ".$port." is open\n");
+			} else {
+				echo("Remote server port ".$port." is not open\n");
 			}
 		}
 
@@ -125,9 +138,15 @@ function is_server_online($server, $protocol, $log = false) {
 			/* Check for NFS shares available on the remote server. */
 			$output	= trim(shell_exec("/usr/sbin/showmount -e ".escapeshellarg($server)." 2>/dev/null") ?? "");
 
-			/* Check that there are NFS mounts available on the remote server. */
-			if (! $output) {
-				$is_alive	= false;
+			/* Show results of the showmount test. */
+			if ($remote_test) {
+				/* Check that there are NFS mounts available on the remote server. */
+				if ($output) {
+					echo("The 'showmount -e' command results:\n".$output.($output ? "\n" : ""));
+				} else {
+					echo("The 'showmount -e' command is not showing remote NFS shares\n");
+					$is_alive	= false;
+				}
 			}
 		}
 
@@ -167,7 +186,7 @@ function is_server_online($server, $protocol, $log = false) {
 	/* Update the server status file. */
 	MiscUD::save_json($tc, $ping_status);
 
-	return;
+	return $is_alive;
 }
 
 /* Ping all remote servers to check for being on-line. */
@@ -302,6 +321,25 @@ switch ($COMMAND) {
 				}
 			}
 		}
+		break;
+
+	case 'remote_test':
+			$remote_test	= true;
+			if (isset($argv[2])) {
+				echo("Testing Server '".$argv[2]."' SMB\n");
+				if (is_server_online($argv[2], "SMB", true)) {
+					echo("** Remote Server is online for SMB\n");
+				} else {
+					echo("** Remote Server is not online for SMB\n");
+				}
+
+				echo("\nTesting Server '".$argv[2]."' NFS\n");
+				if (is_server_online($argv[2], "NFS", true)) {
+					echo("** Remote Server is online for NFS\n");
+				} else {
+					echo("** Remote Server is not online for NFS\n");
+				}
+			}
 		break;
 
 	default:

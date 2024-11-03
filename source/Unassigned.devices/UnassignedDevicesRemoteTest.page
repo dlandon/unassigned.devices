@@ -1,0 +1,101 @@
+Menu="UnassignedDevicesSettings:7"
+Title="Remote Servers"
+Tag="icon-network"
+---
+<?php
+/* Copyright 2015, Guilherme Jardim
+ * Copyright 2016-2024, Dan Landon
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+
+$plugin	= "unassigned.devices";
+?>
+
+<table class="tablesorter shift ups">
+<thead><tr><th>_(Remote Server Test)_</th></tr></thead>
+</table>
+
+<p>_(This is a tool to help troubleshoot Remote Servers ability to serve SMB and NFS shares)_.</p>
+<p>_(Enter the Remote Server name or IP address and the results from the Unassigned Devices Remote Server Test will show in the **Result** text area)_.</p>
+
+<form markdown="1" name="remote_test" method="POST" action="/update.php" target="progressFrame">
+:ud_remote_server_test_plug:
+> Remote Servers need to have SMB and/or NFS enabled.  This will check that the SMB and/or NFS ports are open.  The 'showmount -e <server>' command on Unraid must also show NFS mounts available.
+
+> For SMB to be considered online, the Remote Server has to have the SMB port open.
+
+> For NFS to be considered online, the Remote Server has to have the NFS port open and the 'showmount -e' command has to show NFS shares.
+> There can be a case where the port is open and 'showmount -e' doesn't show NFS shares and NFS will not work.
+
+> If showmount does not return any NFS shares on a reachable remote server like a Synology, it generally means one of the following:
+
+> No NFS Shares Exported:
+
+> The server might not have any directories configured for NFS export. Check the NFS configuration on the Synology device and ensure that folders intended for NFS sharing are explicitly exported.
+
+> Access Restrictions:
+
+> NFS shares may be configured with IP-based access restrictions. Synology devices allow you to specify which IP addresses or networks can access each NFS share. If your IP address is not allowed, the NFS share will not appear in showmount output.
+
+> NFS Service Not Enabled:
+
+> The NFS service on the Synology might not be enabled. Verify this in the Synology DSM settings under Control Panel > File Services > NFS. Enable NFS if it is currently disabled.
+
+> Firewall or Network Configuration:
+
+> The Synology device may have firewall rules blocking the showmount request or the required RPC communication. Ensure that the firewall settings allow traffic on NFS-related ports (typically 2049 for NFS and 111 for RPC).
+
+> Synology Export Options:
+
+> The Synology NFS settings can sometimes require enabling Enable NFS at the top level and specifying Allow NFSv3 if you are using clients that expect NFSv3. Check Control Panel > File Services > NFS to ensure proper configuration.
+
+> By ensuring that NFS is enabled, configured with the correct permissions, and exported directories are allowed for your client IP, showmount should list the available exports.
+:end
+
+_(Server)_:
+: <input type="text" name="server_name" class="wide" maxlength="100" placeholder="Enter Server Name or IP Address">
+
+&nbsp;
+: <input type="button" value="_(Clear)_" title="_(Clear the last test results)_" onclick="refresh()"><button type="button" id="test-button" title="_(Test the Remote Server)_" onclick="return handleFormSubmit();">_(Test)_</button>
+
+
+<div style="width:55%; float:left">
+<strong><?=_('Result')?>:</strong>
+<textarea readonly name="Status" rows="10" cols="80" title='_(Result of Remote Server Test)_' style="font-family:bitstream;width:100%"></textarea>
+</div>
+</form>
+
+<script>
+var RSURL = '/plugins/<?=$plugin?>/include/server_test.php';
+
+function handleFormSubmit() {
+	let server = document.forms['remote_test'].server_name.value;
+	let opts	= {};
+	if (server) {
+		$("button[id='test-button']").prop("disabled", true);
+		$("button[id='test-button']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Testing');?>");
+		opts["server"] = server;
+		$("textarea[name=Status]").val("<?=_('Working').'...';?>");
+		$.post(RSURL, opts).done(function(data){
+			if (data) {
+				$("textarea[name=Status]").val(data);
+			} else {
+				$("textarea[name=Status]").val("");
+			}
+		}).done(function () {
+			$("button[id='test-button']").prop("disabled", false);
+			$("button[id='test-button']").html("<?=_('Test');?>");
+		});
+	} else {
+		$("textarea[name=Status]").val("<?=_('Server Name or IP Address not entered')?>!");
+	}
+
+	return false;
+}
+</script>
