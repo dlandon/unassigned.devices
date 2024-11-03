@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.10.29a">
+<!ENTITY version	"2024.11.03">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"ea2effe745d7eb39163efdb210e9cfc6">
+<!ENTITY MD5		"8092332a27c72f5adde8babaf4797707">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Ability to test Remote Servers in UD Settings and verify they can serve SMB and NFS.
+
+###2024.10.29a
 - Fix: Don't display device in drop down for a LUKS password or UUID change if disk is passed through.
 - Fix: Change wording of ZFS disk upgrade in UD Settings to 'Upgrade ZFS Pool'.
 - Add: Display "******" for disk LUKS password if one is set, else show blank in disk password setting.
