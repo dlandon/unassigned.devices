@@ -13,6 +13,7 @@
 /* SMB and NFS ports. */
 define('SMB_PORT', '445');
 define('NFS_PORT', '2049');
+define('RPC_PORT', '111');
 
 /* Set the level for debugging. */
 $DEBUG_LEVEL	= (int) ($argv[4] ?? 0);
@@ -27,6 +28,10 @@ $pidFile		= "/var/run/get_ud_stats";
 $tc 			= "/var/state/".$plugin."/ping_status.json";
 $var			= @parse_ini_file("$docroot/state/var.ini");
 $remote_test	= false;
+
+/* Capitalize the local_tld.  Default local TLD is 'LOCAL'. */
+$default_tld	= "LOCAL";
+$local_tld		= (isset($var['LOCAL_TLD']) && ($var['LOCAL_TLD'])) ? strtoupper(trim($var['LOCAL_TLD'])) : $default_tld;
 
 /* Misc functions. */
 class MiscUD
@@ -84,7 +89,7 @@ function is_server_alive($server, $port) {
 
 /* Is the server currently on line. */
 function is_server_online($server, $protocol, $log = false) {
-	global $tc, $remote_test;
+	global $tc, $remote_test, $local_tld;
 
 	/* The check for a remote server to be online is just a simple open port check. The checks are done as follows:
 		- Check the original server name.
@@ -92,7 +97,21 @@ function is_server_online($server, $protocol, $log = false) {
 	*/
 
 	/* Determine the port number from the protocol. */
-	$port		= ($protocol == "NFS") ? NFS_PORT : SMB_PORT;
+	switch ($protocol) {
+		case "NFS":
+			$port = NFS_PORT;
+			break;
+		case "SMB":
+			$port = SMB_PORT;
+			break;
+		case "RPC":
+			$port = RPC_PORT;
+			break;
+		default:
+			/* Default is SMB. */
+			$port = SMB_PORT;
+			break;
+	}
 
 	/* Set as ping status has not changed. */
 	$changed	= false;
@@ -113,7 +132,17 @@ function is_server_online($server, $protocol, $log = false) {
 		$is_alive		= is_server_alive($server, $port);
 
 		/* If the server status fails with the name, use the server IP address found with 'arp'. */
-		if (! $is_alive) {
+		$lookup			= true;
+		if ((! $is_alive) && (! MiscUD::is_ip($server))) {
+			if ($remote_test) {
+				echo("Server Name did not work");
+				if (strpos($server, '.'.$local_tld) === false) {
+					echo(" - try '".$server.".".$local_tld."'\n");
+				} else {
+					echo("\n");
+				}
+			}
+
 			$ip_address	= trim(shell_exec("/sbin/arp -a ".escapeshellarg($server)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $2}'") ?? "");
 			$ip_address = str_replace(['(', ')'], '', $ip_address);
 			if (MiscUD::is_ip($ip_address)) {
@@ -121,15 +150,17 @@ function is_server_online($server, $protocol, $log = false) {
 					echo("Using server IP address ".$ip_address."\n");
 				}
 				$is_alive	= is_server_alive($ip_address, $port);
+			} else {
+				$lookup		= false;
 			}
 		}
 
 		/* Show results of the port test. */
-		if ($remote_test) {
+		if (($remote_test) && ($lookup)) {
 			if ($is_alive) {
-				echo("Remote server port ".$port." is open\n");
+				echo("Remote server '".$protocol."' port ".$port." is open\n");
 			} else {
-				echo("Remote server port ".$port." is not open\n");
+				echo("Remote server '".$protocol."' port ".$port." is not open\n");
 			}
 		}
 
@@ -138,6 +169,11 @@ function is_server_online($server, $protocol, $log = false) {
 			/* Check for NFS shares available on the remote server. */
 			$output	= trim(shell_exec("/usr/sbin/showmount -e ".escapeshellarg($server)." 2>/dev/null") ?? "");
 
+			/* See if showmount is outputting results. */
+			if (! $output) {
+				$is_alive	= false;
+			}
+
 			/* Show results of the showmount test. */
 			if ($remote_test) {
 				/* Check that there are NFS mounts available on the remote server. */
@@ -145,7 +181,6 @@ function is_server_online($server, $protocol, $log = false) {
 					echo("The 'showmount -e' command results:\n".$output.($output ? "\n" : ""));
 				} else {
 					echo("The 'showmount -e' command is not showing remote NFS shares\n");
-					$is_alive	= false;
 				}
 			}
 		}
@@ -154,7 +189,7 @@ function is_server_online($server, $protocol, $log = false) {
 		$no_pings		= $ping_status[$name]['no_pings'] ?? 0;
 
 		/* If it is not online then start counts for being offline. */
-		if (! $is_alive) {
+		if ((! $is_alive) && (! $remote_test) && ($protocol != "RPC") ) {
 			/* Check for three consecutive negative pings before declaring it is off-line. */
 			$no_pings++;
 			if (($no_pings <= 3) && (($ping_status[$name]['online'] ?? "") == 'yes')) {
@@ -325,20 +360,29 @@ switch ($COMMAND) {
 
 	case 'remote_test':
 			$remote_test	= true;
-			if (isset($argv[2])) {
-				echo("Testing Server '".$argv[2]."' SMB\n");
-				if (is_server_online($argv[2], "SMB", true)) {
+			$server			= $argv[2] ?? "";
+			if ($server) {
+				/* Does server respond to a ping. */
+				if (trim(shell_exec("/bin/ping -c 1 -W 1 ".escapeshellarg($server)." >/dev/null 2>&1; echo $?")) == 0 ) {
+					echo("Server '".$server."' responds to a 'ping'\n");
+				} else {
+					echo("Server '".$server."' does not respond to a 'ping' - check Server Name or IP address\n");
+				}
+
+				echo("Testing SMB...\n");
+				if (is_server_online($server, "SMB", true)) {
 					echo("** Remote Server is online for SMB\n");
 				} else {
 					echo("** Remote Server is not online for SMB\n");
 				}
 
-				echo("\nTesting Server '".$argv[2]."' NFS\n");
-				if (is_server_online($argv[2], "NFS", true)) {
+				echo("\nTesting NFS...\n");
+				if ((is_server_online($server, "RPC", true) && (is_server_online($server, "NFS", true)))) {
 					echo("** Remote Server is online for NFS\n");
 				} else {
 					echo("** Remote Server is not online for NFS\n");
 				}
+
 			}
 		break;
 
