@@ -65,9 +65,9 @@ _(Server)_:
 : <input type="button" value="_(Clear)_" title="_(Clear the last test results)_" onclick="refresh()"><button type="button" id="test-button" title="_(Test the Remote Server)_" onclick="return handleFormSubmit();">_(Test)_</button>
 
 
-<div style="width:55%; float:left">
+<div style="width:65%; float:left">
 <strong><?=_('Result')?>:</strong>
-<textarea readonly name="Status" rows="10" cols="80" title='_(Result of Remote Server Test)_' style="font-family:bitstream;width:100%"></textarea>
+<textarea readonly name="Status" rows="10" cols="140" title='_(Result of Remote Server Test)_' style="font-family:bitstream;width:100%"></textarea>
 </div>
 </form>
 
