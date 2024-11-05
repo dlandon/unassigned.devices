@@ -41,7 +41,7 @@ if ((! $parted) && ($UD_cfg['Config']['destructive_mode'] == "enabled")) {
 
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.filetree.css')?>" >
 
-<script type="text/javascript" src="<?autov('/webGui/javascript/jquery.filetree.js')?>"></script>
+<script src="<?autov('/webGui/javascript/jquery.filetree.js')?>"></script>
 
 <style type="text/css">
 	.fileTree {
@@ -56,7 +56,7 @@ if ((! $parted) && ($UD_cfg['Config']['destructive_mode'] == "enabled")) {
 	}
 </style>
 
-<script type="text/javascript">
+<script>
 	/* Start the Unraid spinner. */
 	unraidWaveTimer = setTimeout(function(){
 		$('div.spinner.fixed').show();

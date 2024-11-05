@@ -200,23 +200,23 @@ function render_partition($disk, $partition, $disk_line = false) {
 		/* Set up the device settings and script settings tooltip. */
 		$title				= _("Device Settings and Script");
 		if ($disk_line) {
-			$title			.= "<br />"._("Passed Through").": ";
+			$title			.= "<br>"._("Passed Through").": ";
 			$title			.= $partition['pass_through'] ? "Yes" : "No";
-			$title			.= "<br />"._("Disable Mount Button").": ";
+			$title			.= "<br>"._("Disable Mount Button").": ";
 			$title			.= $partition['disable_mount'] ? "Yes" : "No";
-			$title			.= "<br />"._("Read Only").": ";
+			$title			.= "<br>"._("Read Only").": ";
 			$title			.= $partition['read_only'] ? "Yes" : "No";
-			$title			.= "<br />"._("Automount").": ";
+			$title			.= "<br>"._("Automount").": ";
 			$title			.= $disk['automount'] ? "Yes" : "No";
 		}
-		$title .= "<br />"._("Share").": ";
+		$title .= "<br>"._("Share").": ";
 
 		$title .= $shares_enabled ? (($partition['shared']) ? "Yes" : "No") : "Not Enabled";
 		if ($disk_line) {
-			$title .= "<br />"._("Show Partitions").": ";
+			$title .= "<br>"._("Show Partitions").": ";
 			$title .= $disk['show_partitions'] ? "Yes" : "No";
 		} else {
-			$title .= "<br />"._("Script Enabled").": ";
+			$title .= "<br>"._("Script Enabled").": ";
 			$title .= $partition['enable_script'] != "false" ? "Yes" : "No";
 		}
 
@@ -292,11 +292,11 @@ function render_partition($disk, $partition, $disk_line = false) {
 
 					/* Set up the device settings and script settings tooltip. */
 					$title			= _("ZFS Volume Settings");
-					$title			.= "<br />"._("Passed Through").": ";
+					$title			.= "<br>"._("Passed Through").": ";
 					$title			.= $z['pass_through'] ? "Yes" : "No";
-					$title			.= "<br />"._("Disable Mount Button").": ";
+					$title			.= "<br>"._("Disable Mount Button").": ";
 					$title			.= $z['disable_mount'] ? "Yes" : "No";
-					$title			.= "<br />"._("Read Only").": ";
+					$title			.= "<br>"._("Read Only").": ";
 					$title			.= $z['read_only'] ? "Yes" : "No";
 
 					$device			= basename($z['device']) ;
@@ -883,15 +883,15 @@ switch ($_POST['action']) {
 				$o_remotes			.= "<td></td>";
 
 				$title 				= _("Remote SMB")."/".("NFS Settings and Script");
-				$title 				.= "<br />"._("Disable Mount Button").": ";
+				$title 				.= "<br>"._("Disable Mount Button").": ";
 				$title 				.= ($mount['disable_mount']) ? "Yes" : "No";
-				$title 				.= "<br />"._("Read Only").": ";
+				$title 				.= "<br>"._("Read Only").": ";
 				$title 				.= $mount['read_only'] ? "Yes" : "No";
-				$title 				.= "<br />"._("Automount").": ";
+				$title 				.= "<br>"._("Automount").": ";
 				$title 				.= $mount['automount'] ? "Yes" : "No";
-				$title 				.= "<br />"._("Share").": ";
+				$title 				.= "<br>"._("Share").": ";
 				$title 				.= $shares_enabled ? (($mount['smb_share']) ? "Yes" : "No") : "Not Enabled";
-				$title				.= "<br />"._("Script Enabled").": ";
+				$title				.= "<br>"._("Script Enabled").": ";
 				$title				.= $mount['enable_script'] != "false" ? "Yes" : "No";
 
 				/* Settings icon table element. */
@@ -1022,10 +1022,10 @@ switch ($_POST['action']) {
 				$o_remotes .= $mounted ? "<td><i class='fa fa-remove'></i></td>" : "<td><a class='exec info' style='color:#CC0000;font-weight:bold;' onclick='remove_iso_config(\"{$mount['device']}\", \"{$compressed_device}\");'> <i class='fa fa-remove'></i><span>"._("Remove ISO File Share")."</span></a></td>";
 
 				$title				= _("ISO File Settings and Script");
-				$title				.= "<br />"._("Automount").": ";
+				$title				.= "<br>"._("Automount").": ";
 				$title				.= $mount['automount'] ? "Yes" : "No";
-				$title				.= "<br />"._("Share").": Yes";
-				$title				.= "<br />"._("Script Enabled").": ";
+				$title				.= "<br>"._("Share").": Yes";
+				$title				.= "<br>"._("Script Enabled").": ";
 				$title				.= $mount['enable_script'] != "false" ? "Yes" : "No";
 
 				/* Empty table element. */

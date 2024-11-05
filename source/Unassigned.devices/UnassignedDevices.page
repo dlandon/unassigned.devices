@@ -53,7 +53,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 <?endif;?>
 </style>
 
-<script type="text/javascript">
+<script>
 	/*
 		Function to initiate spinning down a disk.
 		@param dev: The device identifier.
@@ -692,18 +692,18 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 
 <div class='pluginUpdate'></div>
 
-<div id='title' class='title ud'>
+<div class='title ud'>
 <span class='left'>_(Unassigned Disks)_/_(Remote Shares)_/_(Historical Unassigned Devices)_</span>
 <span class='right ud'><a class='tooltip' title="_(Unassigned Devices Settings)_" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a></span>
 <span class='right ud'><a class='tooltip' title="_(Refresh Disks and Configuration)_" onclick="rescan_disks()"><i class="fa fa-refresh"></i></a></span>
-<span class='right ud'><a class='tooltip' title="_(Show/Hide Historical Unassigned Devices)_"><input type="checkbox" class="historical-switch"></a></span>
-<span class='right ud'><a class='tooltip' title="_(Show/Hide SMB/NFS/ISO Shares)_"><input type="checkbox" class="shares-switch"></a></span>
-<span class='right ud'><a class='tooltip' title="_(Show/Hide Unassiged Disk Devices)_"><input type="checkbox" class="disks-switch"></a></span>
+<span class='right ud'><a class='tooltip' title="_(Show/Hide Historical Unassigned Devices)_"></a><input type="checkbox" class="historical-switch"></span>
+<span class='right ud'><a class='tooltip' title="_(Show/Hide SMB/NFS/ISO Shares)_"></a><input type="checkbox" class="shares-switch"></span>
+<span class='right ud'><a class='tooltip' title="_(Show/Hide Unassiged Disk Devices)_"></a><input type="checkbox" class="disks-switch"></span>
 </div>
 
 <div class='show-disks'>
-	<div id='title' class='title shift'>
-		<span class='left'><img src='/plugins/<?=$plugin?>/icons/disk.png' class='icon'><?=_('Unassigned Disk Devices')?></span>
+	<div class='title shift'>
+		<span class='left'><img src='/plugins/<?=$plugin;?>/icons/disk.png' class='icon'><?=_('Unassigned Disk Devices')?></span>
 	</div>
 
 	<table id='usb_devices_list' class='usb_mounts'>
@@ -729,7 +729,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 		</tbody>
 	</table>
 	<div class='show-shares'>
-		<br /><br />
+		<br><br>
 	</div>
 </div>
 
@@ -764,8 +764,8 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 :end
 
 <div class='show-shares'>
-	<div id='title' class='title shift'>
-		<span class='left'><img src='/plugins/<?=$plugin?>/icons/smbsettings.png' class='icon'><?=_('SMB Shares')?>&nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/nfssettings.png' class='icon'><?=_('NFS Shares')?>&nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/iso.png' class='icon' style='width:16px;'><?=_('ISO File Shares')?></span>
+	<div class='title shift'>
+		<span class='left'><img src='/plugins/<?=$plugin;?>/icons/smbsettings.png' class='icon'><?=_('SMB Shares')?>&nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/nfssettings.png' class='icon'><?=_('NFS Shares')?>&nbsp;|&nbsp;<img src='/plugins/<?=$plugin?>/icons/iso.png' class='icon' style='width:16px;'><?=_('ISO File Shares')?></span>
 	</div>
 
 	<table class='samba_mounts'>
@@ -799,9 +799,9 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 
 <div class='show-disks'>
 	<div class='show-historical'>
-		<br /><br />
-		<div id='title' class='title shift'>
-			<span class='left'><img src='/plugins/<?=$plugin?>/icons/historical.png' class='icon'><?=_('Historical Unassigned Devices')?></span>
+		<br><br>
+		<div class='title shift'>
+			<span class='left'><img src='/plugins/<?=$plugin;?>/icons/historical.png' class='icon'><?=_('Historical Unassigned Devices')?></span>
 		</div>
 
 		<table class='usb_absent'>
@@ -882,7 +882,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 > Be careful using the /dev/sdX or devX designation because they can change after a reboot.  It's best to use the values passed into the UD script for sdX (DEVICE) and devX (UD_DEVICE).
 :end
 
-<script type="text/javascript">
+<script>
 	/* Display information from PHP on the client side. */
 	const display = <?=json_encode($display);?>;
 
@@ -1107,7 +1107,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 	</div>
 
 	<div>
-		<script type="text/javascript">
+		<script>
 			$(function() {
 				/* Define a function add_root_share and attach it to the window object */
 				window.add_root_share = function() {
@@ -1149,7 +1149,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 		}
 	</div>
 	<div>
-		<script type="text/javascript">
+		<script>
 			/* Attach a click event to the input element with the name "ISO_FILE" within the document */
 			$(document).on("click", "input[name=ISO_FILE]", function() {
 				/* Check if the input element has no sibling with the class "fileTree" */
@@ -1275,7 +1275,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 		});
 	</div>
 	<div>
-		<script type="text/javascript">
+		<script>
 			$(function() {
 				window.format_disk = function(bt, type, device){doUnassignedDevicesSurvey("format_disk", {el:bt, type:type, device:device});}
 			});
@@ -1291,7 +1291,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 	</div>
 	<?endif;?>
 	<div>
-		<script type="text/javascript">
+		<script>
 			/* Execute a function when the document is ready */
 			$(function() {
 				/* Define a function format_disk and attach it to the window object */
@@ -1339,7 +1339,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 		});
 	</div>
 	<div>
-		<script type="text/javascript">
+		<script>
 			/* Execute a function when the document is ready */
 			$(function() {
 				/* Define a function rm_partition and attach it to the window object */
@@ -1389,7 +1389,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 		});
 	</div>
 	<div>
-		<script type="text/javascript">
+		<script>
 			/* Execute a function when the document is ready */
 			$(function() {
 				/* Define a function clr_disk and attach it to the window object */
@@ -1432,7 +1432,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 		});
 	</div>
 	<div>
-		<script type="text/javascript">
+		<script>
 			/* Execute a function when the document is ready */
 			$(function() {
 				/* Define a function remove_iso_config and attach it to the window object */
@@ -1475,7 +1475,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 		});
 	</div>
 	<div>
-		<script type="text/javascript">
+		<script>
 			/* Execute a function when the document is ready */
 			$(function(){
 				/* Define a function remove_disk_config and attach it to the window object */
@@ -1518,7 +1518,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 		});
 	</div>
 	<div>
-		<script type="text/javascript">
+		<script>
 			/* Execute a function when the document is ready */
 			$(function(){
 				/* Define a function remove_samba_config and attach it to the window object */
@@ -1561,7 +1561,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 			["list_nfs_hosts"]
 		</div>
 		<div data-question-content>
-			<input type="text" class="swal-content__input" name="IP" autocomplete="off" required placeholder="<?=_('Enter or Select Server');?>"><br/>
+			<input type="text" class="swal-content__input" name="IP" autocomplete="off" required placeholder="<?=_('Enter or Select Server');?>"><br>
 			<button class="swal-button" onclick='load_hosts(this,"{0}")'><?=_('Search For Servers');?></button>
 			<?=$message;?>
 		</div>
@@ -1574,7 +1574,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 			["list_samba_hosts"]
 		</div>
 		<div data-question-content>
-			<input type="text" class="swal-content__input" name="IP" autocomplete="off" required placeholder="<?=_('Enter or Select Server');?>"><br/>
+			<input type="text" class="swal-content__input" name="IP" autocomplete="off" required placeholder="<?=_('Enter or Select Server');?>"><br>
 			<button class="swal-button" onclick='load_hosts(this,"{0}")'><?=_('Search For Servers');?></button>
 			<?=$message;?>
 		</div>
@@ -1619,7 +1619,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 			[surveyData['PROTOCOL'], surveyData['IP'], surveyData['USER'], surveyData['PASS'], surveyData['DOMAIN'], (surveyData['PROTOCOL'] == 'SMB' ? 'list_samba_shares' : 'list_nfs_shares')]
 		</div>
 		<div data-question-content>
-			<input type='text' class="swal-content__input" autocomplete="off" name='SHARE' required placeholder="<?=_('Enter or Select Share');?>"><br />
+			<input type='text' class="swal-content__input" autocomplete="off" name='SHARE' required placeholder="<?=_('Enter or Select Share');?>"><br>
 			<button class="swal-button" onclick='load_shares(this, "{1}", "{2}", "{3}", "{5}")'><?=_('Load Shares');?></button>
 			<p><?=_('Search for Shares or enter the Share name manually');?>.</p>
 			<p><?=_('If SMB shares do not show, check your credentials');?>.</p>
@@ -1647,7 +1647,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 		}
 	</div>
 	<div>
-		<script type="text/javascript">
+		<script>
 			/* Execute a function when the document is ready */
 			$(function(){
 				/* Define a function add_samba_share and attach it to the window object */
@@ -1689,7 +1689,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 		});
 	</div>
 	<div>
-		<script type="text/javascript">
+		<script>
 			/* Execute a function when the document is ready */
 			$(function() {
 				/* Define a function chg_mountpoint and attach it to the window object */
@@ -1734,7 +1734,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 		});
 	</div>
 	<div>
-		<script type="text/javascript">
+		<script>
 			/* Execute a function when the document is ready */
 			$(function() {
 				/* Define a function chg_samba_mountpoint and attach it to the window object */
@@ -1775,7 +1775,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 		});
 	</div>
 	<div>
-		<script type="text/javascript">
+		<script>
 			/* Execute a function when the document is ready */
 			$(function() {
 				/* Define a function chg_iso_mountpoint and attach it to the window object */
@@ -1816,7 +1816,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 		});
 	</div>
 	<div>
-		<script type="text/javascript">
+		<script>
 			/* Execute a function when the document is ready */
 			$(function() {
 				/* Define a function rescan_disks and attach it to the window object */

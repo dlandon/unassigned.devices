@@ -26,7 +26,7 @@ function write_log($string) {
 	if (empty($string)) {
 		return;
 	}
-	$string = str_replace("\n", "<br />", $string);
+	$string = str_replace("\n", "<br>", $string);
 	$string = str_replace('"', "\\\"", trim($string));
 	echo "<script>addLog(\"{$string}\");</script>";
 	@flush();
@@ -45,14 +45,14 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 	$rc			= true;
 
 	/* Display the file system. */
-	write_log("FS: $fs<br /><br />");
+	write_log("FS: $fs<br><br>");
 
 	/* If the disk format is encrypted, we need to open the luks device. */
 	if (($fs == "crypto_LUKS") && (! $mounted)) {
 		$mapper	= basename($device);
 		$cmd	= "luksOpen {$luks} ".escapeshellarg($mapper);
 		$pass	= decrypt_data(get_config($serial, "pass"));
-		write_log("Opening crypto_LUKS device '$luks'...<br />");
+		write_log("Opening crypto_LUKS device '$luks'...<br>");
 		if (! $pass) {
 			$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
 			$luks_pass_file	= "";
@@ -64,7 +64,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 		}
 
 		if ($o) {
-			write_log("luksOpen error: ".$o."<br />");
+			write_log("luksOpen error: ".$o."<br>");
 			if (strpos($o, "Device or resource busy") === false) {
 				$rc = false;
 			}
@@ -118,7 +118,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 
 			/* If the command is defined, execute the command. */
 			if ($command) {
-				write_log($command."<br />");
+				write_log($command."<br>");
 
 				/* Execute the fsck command and pipe it to $proc. */
 				$proc = popen($command, 'r');
@@ -141,7 +141,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 			}
 		} else {
 			if ($fs == "crypto_LUKS") {
-				write_log(_('Cannot determine file system on an encrypted disk')."!<br />");
+				write_log(_('Cannot determine file system on an encrypted disk')."!<br>");
 			}
 			$rc_check = 0;
 		}
@@ -149,32 +149,32 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 
 	/* Close the device if it is encrypted. */
 	if (($fs == "crypto_LUKS") && (! $mounted)) {
-		write_log("Closing crypto_LUKS device '$luks'...<br />");
+		write_log("Closing crypto_LUKS device '$luks'...<br>");
 		$o = shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
 		if ($o) {
-			write_log("luksClose error: ".$o."<br />");
+			write_log("luksClose error: ".$o."<br>");
 		}
 	}
 }
 
 /* Btrfs file systems have to be mounted to scrub them. */
 if ((($file_system == "btrfs") || ($file_system == "zfs")) && (! $mounted)) {
-	write_log("<br />"._('A btrfs or zfs file system has to be mounted to be scrubbed')."!<br />");
+	write_log("<br>"._('A btrfs or zfs file system has to be mounted to be scrubbed')."!<br>");
 } else {
 	/* Check the fsck return code and process the return code. */
 	if ($rc_check != 0) {
 		if ((($file_system == "xfs") && ($rc_check == 1)) || (($file_system != "xfs") && ($file_system != "zfs"))) {
-			write_log("<br />"._('File system corruption detected')."!<br />");
+			write_log("<br>"._('File system corruption detected')."!<br>");
 			write_log("<center><button type='button' onclick='document.location=\"/plugins/".$plugin."/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=rw&type="._('Done')."\"'>"._('Run with Correct flag')."</button></center>");
 		} else if (($file_system == "xfs") && ($rc_check == 2)) {
-			write_log("<br />"._('Dirty log detected')."!<br />");
+			write_log("<br>"._('Dirty log detected')."!<br>");
 			write_log("<center><button type='button' onclick='document.location=\"/plugins/".$plugin."/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=log&type="._('Done')."\"'>"._('Force Log Zeroing')."</button></center>");
-			write_log("<br />"._('Note: While there is some risk, if it is not possible to first mount the filesystem to clear the log, zeroing it is the only option to try and repair the filesystem, and in most cases it results in little or no data loss').".&nbsp;&nbsp;");
+			write_log("<br>"._('Note: While there is some risk, if it is not possible to first mount the filesystem to clear the log, zeroing it is the only option to try and repair the filesystem, and in most cases it results in little or no data loss').".&nbsp;&nbsp;");
 		} else if (($file_system == "xfs") && ($rc_check == 4)){
-			write_log("<br />"._('File system corruption fixed')."!<br />");
+			write_log("<br>"._('File system corruption fixed')."!<br>");
 		} 
 	} else if ($file_system == "xfs") {
-		write_log("<br />"._('No file system corruption detected')."!<br />");
+		write_log("<br>"._('No file system corruption detected')."!<br>");
 	}
 }
 ?>

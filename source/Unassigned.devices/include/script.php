@@ -34,7 +34,7 @@ if ( isset($_GET['device']) && isset($_GET['type']) ) {
 	if ($command != "") {
 		$command = $command." 2>&1";
 		putenv("OWNER=udev");
-		write_log(_("Executing").": ".basename($command)."<br \><br \>");
+		write_log(_("Executing").": ".basename($command)."<br><br>");
 		$proc = popen($command, 'r');
 		while (! feof($proc)) {
 			write_log(fgets($proc));
