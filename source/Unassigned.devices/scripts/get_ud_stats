@@ -377,9 +377,8 @@ switch ($COMMAND) {
 				}
 
 				echo("\nTesting NFS...\n");
-				$rpc_online	= is_server_online($server, "RPC", true);
-				$nfs_online	= is_server_online($server, "NFS", true);
-				if (($rpc_online) && ($nfs_online)) {
+				is_server_online($server, "RPC", true);
+				if (is_server_online($server, "NFS", true)) {
 					echo("** Remote Server is online for NFS\n");
 				} else {
 					echo("** Remote Server is not online for NFS\n");
