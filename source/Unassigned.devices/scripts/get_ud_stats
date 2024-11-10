@@ -379,7 +379,33 @@ switch ($COMMAND) {
 				echo("\nTesting NFS...\n");
 				is_server_online($server, "RPC", true);
 				if (is_server_online($server, "NFS", true)) {
-					echo("** Remote Server is online for NFS\n");
+					/* Fetch and trim the output from rpcinfo */
+					$output = trim(shell_exec("/sbin/rpcinfo -p ".escapeshellarg($server)." | grep nfs"));
+
+					/* Parse the output to display supported NFS versions */
+					$nfs_versions = [];
+					$lines = explode("\n", $output); // Split the output into lines
+
+					foreach ($lines as $line) {
+						/* Split each line by whitespace */
+						$parts = preg_split('/\s+/', $line);
+
+						/* Check if the line contains the expected data */
+						if (count($parts) >= 3 && $parts[1] === '100003') { // 100003 indicates the NFS program
+							$version = $parts[2];
+							$nfs_versions[$version] = true; // Use a key for unique versions
+						}
+					}
+
+					/* Display the supported NFS versions */
+					if (!empty($nfs_versions)) {
+						ksort($nfs_versions, SORT_NATURAL);
+						echo "NFS versions available: " . implode(", ", array_keys($nfs_versions)) . "\n";
+						echo "*** Remote Server is online for NFS\n";
+					} else {
+						echo "Cannot determine the NFS versions on Remote Server\n";
+						echo "*** Remote Server is not online for NFS\n";
+					}
 				} else {
 					echo("** Remote Server is not online for NFS\n");
 				}
