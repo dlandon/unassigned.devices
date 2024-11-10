@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.11.03a">
+<!ENTITY version	"2024.11.10">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"749cf2930b36588300f811291f21bffb">
+<!ENTITY MD5		"6b61d9edb1bf14e850160d69013e96a7">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Add: Show NFS versions supported by the remote server and additional adjustments.
+
+###2024.11.03a
 - Add: Ability to test Remote Servers in UD Settings and verify they can serve SMB and NFS.
 
 ###2024.10.29a
