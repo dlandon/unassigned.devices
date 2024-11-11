@@ -218,7 +218,7 @@ class Preclear
 
 		echo "var preclear_footer_icon = \"<i class='icon-preclear'></i>\"";
 		echo "</script>\n";
-		echo "<script type='text/javascript' src='";autov("/plugins/$this->preclear_plugin/assets/javascript.js"); echo "'></script>\n";
+		echo "<script src='";autov("/plugins/$this->preclear_plugin/assets/javascript.js"); echo "'></script>\n";
 		echo "<script>\n";
 	}
 
@@ -226,7 +226,7 @@ class Preclear
 	{
 		$serial	= $this->diskSerial($disk);
 		$icon	= "<a title='"._('Start Preclear')."' class='exec tooltip' onclick='getResumablePreclear(\"{$serial}\")'><i class='icon-preclear'></i></a>";
-		$text	= "<a title='"._('Start Preclear')."' class='exec' onclick='getResumablePreclear(\"{$serial}\")'>Start Preclear</a>";
+		$text	= "<a title='"._('Start Preclear')."' class='exec' onclick='getResumablePreclear(\"{$serial}\")'>"._('Start Preclear')."</a>";
 		return ($type == "text") ? $text : $icon;
 	}
 
@@ -317,7 +317,7 @@ class Preclear
 			$status .= sprintf($rm, "Clear Stats", "");
 		}
 
-		return str_replace("^n", "<br />" , $status);
+		return str_replace("^n", "<br>" , $status);
 	}
 
 	public function html()
@@ -367,7 +367,7 @@ class Preclear
 <div id="dialog-multiple-defaults" style="display:none;">
 	<dl class="dl-dialog">
 		<dt><?=_('Select Disks')?>: </dt>
-		<br />
+		<br>
 		<dd style='margin-bottom:0px;'>
 				<select id="multiple_preclear" name="disks" multiple class='chosen swal' data-placeholder="<?=_('Preclear Disks')?>">
 					{0}
@@ -573,7 +573,7 @@ class Preclear
 
 <div id="preclear-set-queue-defaults" style="display:none;">
 	<dl>
-		<?=_('If you set a queue limit, all running preclear sessions above that limit will be paused and remain in the queue until a session finishes')?>.<br /><br />
+		<?=_('If you set a queue limit, all running preclear sessions above that limit will be paused and remain in the queue until a session finishes')?>.<br><br>
 	</dl>
 	<dl class="dl-dialog">
 		<dt><?=_('Concurrent Sessions')?>: </dt>

@@ -153,7 +153,7 @@ function openPreclear(serial)
 
 function openPreclearLog(search)
 {
-	var title = "Preclear Log";
+	var title = _("Preclear Log");
 	var form = $("<form />", { action: "/plugins/"+preclear_plugin+"/logger.php", target:"_blank", method:"POST" });
 	form.append('<input type="hidden" name="file" value="/var/log/preclear/preclear.log" />');
 	form.append('<input type="hidden" name="csrf_token" value="'+preclear_vars.csrf_token+'" />');
@@ -237,12 +237,12 @@ function startPreclear(serial, multiple = "no")
 	preclear_dialog.append($("#"+preclear_scope+"-start-defaults").html());
 
 	swal2({
-		title: "Start Preclear",
+		title: _("Start Preclear"),
 		content:{ element: "div", attributes:{ innerHTML: preclear_dialog.html()}},
 		icon: "info",
 		buttons:{
-			cancel:{text: "Cancel", value: null, visible: true, className: "", closeModal: true},
-			confirm:{text: "Start", value: true, visible: true, className: "", closeModal: false},
+			cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
+			confirm:{text: _("Start"), value: true, visible: true, className: "", closeModal: false},
 		}
 	}).then((answer) => {
 		if (answer) {
@@ -298,7 +298,7 @@ function startPreclear(serial, multiple = "no")
 
 function stopPreclear(serial, ask, multiple = 'no')
 {
-	var title = 'Stop Preclear';
+	var title = _("Stop Preclear");
 
 	if (ask != "ask")
 	{
@@ -352,12 +352,12 @@ function stopPreclear(serial, ask, multiple = 'no')
 	}
 
 	swal2({
-		title: "Stop Preclear",
+		title: _("Stop Preclear"),
 		content:{ element: "div", attributes:{ innerHTML: preclear_dialog.html()}},
 		icon: "warning",
 		buttons:{
-			cancel:{text: "Cancel", value: null, visible: true, className: "", closeModal: true},
-			confirm:{text: "Stop", value: true, visible: true, className: "", closeModal: false},
+			cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
+			confirm:{text: _("Stop"), value: true, visible: true, className: "", closeModal: false},
 		}
 	}).then((answer) => {
 		if (answer) {
@@ -391,12 +391,12 @@ function stopPreclear(serial, ask, multiple = 'no')
 function preclearClear()
 {
 	swal2({
-		title: "Fix Preclear",
-		content:{ element: "div", attributes:{ innerHTML:	"This will stop all running sessions, halt all processes and remove all related files.<br /><br /><span class='red-text'><b>Do you want to proceed?</b></span>"}},
+		title: _("Fix Preclear"),
+		content:{ element: "div", attributes:{ innerHTML:	"This will stop all running sessions, halt all processes and remove all related files.<br><br><span class='red-text'><b>Do you want to proceed?</b></span>"}},
 		icon: "warning",
 		buttons:{
-			cancel:{text: "Cancel", value: null, visible: true, className: "", closeModal: true},
-			confirm:{text: "Fix", value: true, visible: true, className: "", closeModal: false},
+			cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
+			confirm:{text: _("Fix"), value: true, visible: true, className: "", closeModal: false},
 		}
 	}).then((answer) => {
 		if (answer)
@@ -570,13 +570,13 @@ function getResumablePreclear(serial)
 		if (data.resume)
 		{
 			swal2({
-				title: "Resume Preclear",
-				content:{ element: "div", attributes:{ innerHTML: "There's a previous preclear session available for this drive.<br />Do you want to resume it instead of starting a new one?"}},
+				title: _("Resume Preclear"),
+				content:{ element: "div", attributes:{ innerHTML: "There's a previous preclear session available for this drive.<br>Do you want to resume it instead of starting a new one?"}},
 				icon: "info",
 				buttons:{
-					cancel:{text: "Cancel", value: null, visible: true, className: "swal-button .swal-button-left", closeModal: true},
-					confirm:{text: "Resume", value: 1, visible: true, className: "", closeModal: false},
-					new:{text: "Start New", value: 2, visible: true, className: "", closeModal: false},
+					cancel:{text: _("Cancel"), value: null, visible: true, className: "swal-button .swal-button-left", closeModal: true},
+					confirm:{text: _("Resume"), value: 1, visible: true, className: "", closeModal: false},
+					new:{text: _("Start New"), value: 2, visible: true, className: "", closeModal: false},
 				}
 			}).then((answer) => {
 				if (answer == 1) {
@@ -615,12 +615,12 @@ function setPreclearQueue()
 		preclear_dialog.append(newSelect.html());
 
 		swal2({
-			title: "Set Queue Limit",
+			title: _("Set Queue Limit"),
 			content:{ element: "div", attributes:{ innerHTML: preclear_dialog.html()}},
 			icon: "info",
 			buttons:{
-				cancel:{text: "Cancel", value: null, visible: true, className: "", closeModal: true},
-				confirm:{text: "Set", value: true, visible: true, className: "", closeModal: false},
+				cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
+				confirm:{text: _("Set"), value: true, visible: true, className: "", closeModal: false},
 			}
 		}).then((answer) => {
 			if (answer)
@@ -655,12 +655,12 @@ function resumePreclear(disk)
 function preclearPauseAll()
 {
 	swal2({
-		title: "Pause All Preclear Sessions",
-		text:	"Do you want to pause all running preclear sessions?",
+		title: _("Pause All Preclear Sessions"),
+		text:	_("Do you want to pause all running preclear sessions")+"?",
 		icon: "warning",
 		buttons:{
-			cancel:{text: "Cancel", value: null, visible: true, className: "", closeModal: true},
-			confirm:{text: "Pause", value: true, visible: true, className: "", closeModal: false},
+			cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
+			confirm:{text: _("Pause"), value: true, visible: true, className: "", closeModal: false},
 		}
 	}).then((answer) => {
 		if (answer) {
@@ -677,12 +677,12 @@ function preclearPauseAll()
 function preclearResumeAll()
 {
 	swal2({
-		title: "Resume All Preclear Sessions",
-		text:	"Do you want to resume all running preclear sessions?",
+		title: _("Resume All Preclear Sessions"),
+		text:	_("Do you want to resume all running preclear sessions")+"?",
 		icon: "warning",
 		buttons:{
-			cancel:{text: "Cancel", value: null, visible: true, className: "", closeModal: true},
-			confirm:{text: "Resume", value: true, visible: true, className: "", closeModal: false},
+			cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
+			confirm:{text: _("Resume"), value: true, visible: true, className: "", closeModal: false},
 		}
 	}).then((answer) => {
 		if (answer) {
@@ -698,12 +698,12 @@ function preclearResumeAll()
 function preclearStopAll()
 {
 	swal2({
-		title: "Stop All Preclear Sessions",
-		text:	"Do you want to stop all running preclear sessions?",
+		title: _("Stop All Preclear Sessions"),
+		text:	_("Do you want to stop all running preclear sessions")+"?",
 		icon: "warning",
 		buttons:{
-			cancel:{text: "Cancel", value: null, visible: true, className: "", closeModal: true},
-			confirm:{text: "Stop", value: true, visible: true, className: "", closeModal: false},
+			cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
+			confirm:{text: _("Stop"), value: true, visible: true, className: "", closeModal: false},
 		}
 	}).then((answer) => {
 		if (answer) {
@@ -719,9 +719,9 @@ function preclearStopAll()
 function preclearShowResult(success)
 {
 	if (success) {
-		swal2({title:"Success!",text:" ",icon:"success",buttons:{confirm:{visible:false},cancel:{visible:false}},timer:1200});
+		swal2({title:_("Success")+"!",text:" ",icon:"success",buttons:{confirm:{visible:false},cancel:{visible:false}},timer:1200});
 	} else {
-		swal2({title:"Fail!",text:" ",icon:"error",buttons:{confirm:{visible:false},cancel:{visible:false}},timer:1200});
+		swal2({title:_("Fail")+"!",text:" ",icon:"error",buttons:{confirm:{visible:false},cancel:{visible:false}},timer:1200});
 	}
 }
 

@@ -17,10 +17,12 @@ Tag="icon-preclear"
 
 $preclear_plugin	= "unassigned.devices.preclear";
 $docroot			= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-require_once("$docroot/plugins/{$preclear_plugin}/Preclear.php");
 
 $Preclear			= new Preclear;
 $zipFile			= sprintf("log/%s-%s-%s.zip", str_replace(' ','_',strtoupper($var['NAME'])), $preclear_plugin, date('Ymd-Hi') );
+
+/* read translations */
+parse_plugin('Preclear');
 
 /* Get the version of Unraid we are running. */
 $version = parse_ini_file("/etc/unraid-version");
@@ -37,7 +39,7 @@ if (version_compare($version['version'], '6.12.0-beta5', '>')) {
 <link type="text/css" rel="stylesheet" href="<?autov("/plugins/".$preclear_plugin."/assets/style-$theme.css")?>">
 <link type="text/css" rel="stylesheet" href="<?autov("/plugins/".$preclear_plugin."/assets/preclear.css")?>">
 
-<script type="text/javascript">
+<script>
 	/* Function to clean up after downloading */
 	function cleanUp() {
 		if (document.hasFocus()) {
@@ -239,7 +241,9 @@ if (version_compare($version['version'], '6.12.0-beta5', '>')) {
 > The text <em style='color:#00BE37;'>Precleared</em> next to the disk serial number indicates that the disk has a precleared signature.  This will only show when the disk is precleared and the Preclear Stats have been removed.
 :end
 
-<script type="text/javascript">
+<script>
+	<?=$Preclear->Script();?>
+
 	<?if (isset($_GET['disk']) && ! $Preclear->isRunning($_GET['disk']) ) echo "startDisk = '{$_GET[disk]}';";?>
 
 	$(function(){
@@ -259,5 +263,4 @@ if (version_compare($version['version'], '6.12.0-beta5', '>')) {
 
 		setTimeout(preclearFixHelp,100);
 	});
-
 </script>
