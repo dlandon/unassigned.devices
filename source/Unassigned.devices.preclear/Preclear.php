@@ -12,13 +12,13 @@
 
 $preclear_plugin	= "unassigned.devices.preclear";
 $docroot			= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+require_once( "plugins/{$preclear_plugin}/include/lib.php" );
 
 /* add translations */
 $_SERVER['REQUEST_URI'] = 'preclear';
 require_once "$docroot/webGui/include/Translations.php";
 
 require_once( "webGui/include/Helpers.php" );
-require_once( "plugins/{$preclear_plugin}/include/lib.php" );
 
 ##############################################
 #############	 VARIABLES		##############
@@ -117,7 +117,7 @@ if (isset($_POST['action'])) {
 						$disk_reports	= array_filter($reports, function ($report) use ($disk) {
 											return preg_match("|".$disk["SERIAL_SHORT"]."|", $report) && ( preg_match("|_report_|", $report) || preg_match("|_rpt_|", $report) );
 											});
-					$disk_reports		= array_reverse($disk_reports, false);
+						$disk_reports	= array_reverse($disk_reports, false);
 					} else {
 						$disk_reports	= [];
 					}
@@ -146,7 +146,7 @@ if (isset($_POST['action'])) {
 
 					if ($Preclear->isRunning($disk_name)) {
 						$status	= $Preclear->Status($disk_name, $disk["SERIAL_SHORT"]);
-						$all_status[$disk['SERIAL_SHORT']]['footer'] = "<span>{$disk['SERIAL']} ({$disk['NAME']}) <br /> Size: {$disk['SIZE_H']} | Temp: ". my_temp($disk['TEMP']) ."</span><br /><span style='float:right;'>$status</span>";
+						$all_status[$disk['SERIAL_SHORT']]['footer'] = "<span>{$disk['SERIAL']} ({$disk['NAME']}) <br> Size: {$disk['SIZE_H']} | Temp: ". my_temp($disk['TEMP']) ."</span><br><span style='float:right;'>$status</span>";
 						$all_status[$disk['SERIAL_SHORT']]['status'] = $status;
 					} elseif (strpos($disk['NAME'], "dev") !== false) {
 						$status	= $Preclear->Link($disk_name, "text");
@@ -177,7 +177,7 @@ if (isset($_POST['action'])) {
 				}
 			} else {
 				$sort['none']			= $counter;
-				$all_disks_o['none']	= "<tr><td colspan='5' style='text-align:center;'>"._('There are no disks that can be precleared').".</td></tr>"."<tr><td colspan='5' style='text-align:center;'>"._('A disk must to be cleared of all partitions before it can be precleared').".&nbsp;&nbsp;"._('You can use Unassigned Devices to clear the disk').".</td></tr>";
+				$all_disks_o['none']	= "<tr><td colspan='5' style='text-align:center;'>"._('There are no disks that can be precleared').".</td></tr>"."<tr><td colspan='5' style='text-align:center;'>"._('A disk must be cleared of all partitions before it can be precleared').".&nbsp;&nbsp;"._('You can use Unassigned Devices to clear the disk').".</td></tr>";
 			}
 
 			preclear_log("get_content Finished: ".(time() - $start_time),'DEBUG');
@@ -423,9 +423,9 @@ if (isset($_POST['action'])) {
 				$output	= "";
 			}
 			$content = preg_replace("#root@[^:]*:.*#", "", TMUX::getSession($session));
-			$output .= "<pre>".preg_replace("#\n{5,}#", "<br />", $content)."</pre>";
+			$output .= "<pre>".preg_replace("#\n{5,}#", "<br>", $content)."</pre>";
 			if ( strpos($content, "Answer Yes to continue") || strpos($content, "Type Yes to proceed") ) {
-				$output .= "<br /><center><button onclick='hit_yes(\"{$serial}\")'>Answer Yes</button></center>";
+				$output .= "<br><center><button onclick='hit_yes(\"{$serial}\")'>Answer Yes</button></center>";
 			}
 			echo json_encode(array("content" => $output));
 			break;
@@ -580,9 +580,9 @@ if (isset($_GET['action'])) {
 					</tbody>
 				</table>
 				<?if (is_file("webGui/scripts/dynamix.js")):?>
-				<script type='text/javascript' src='/webGui/scripts/dynamix.js'></script>
+				<script src='/webGui/scripts/dynamix.js'></script>
 				<?else:?>
-				<script type='text/javascript' src='/webGui/javascript/dynamix.js'></script>
+				<script src='/webGui/javascript/dynamix.js'></script>
 				<?endif;?>
 				<script src="/plugins/<?=$preclear_plugin;?>/assets/clipboard.min.js"></script>
 				<script>
@@ -628,6 +628,7 @@ if (isset($_GET['action'])) {
 			break;
 
 		case 'get_log':
+sleep(5);
 			$session = urldecode($_GET['session']);
 			$file = file("/var/log/{$preclear_plugin}.log", FILE_IGNORE_NEW_LINES);
 			$output = preg_grep("/{$session}/i",$file);

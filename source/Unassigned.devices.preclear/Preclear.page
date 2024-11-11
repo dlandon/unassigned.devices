@@ -97,9 +97,21 @@ if (version_compare($version['version'], '6.12.0-beta5', '>')) {
 		});
 	}
 
-	/* Set the content of div.spinner to the value of unraid_logo on page load */
+	/* Set the content of div.spinner on page load */
 	$(function() {
-		$('div.spinner').html(unraid_logo);
+		/* Start the Unraid spinner. */
+		unraidWaveTimer = setTimeout(function(){
+			$('div.spinner.fixed').show();
+		}, 500);
+
+		/* Wait for the page to load. */
+		window.onload = function() {
+			/* Clear the spinner timer. */
+			clearTimeout(unraidWaveTimer);
+
+			/* Stop spinner after the page has loaded. */
+			$('div.spinner.fixed').hide();
+		};
 	});
 
 	/* Function to get a tab or title element by name */
