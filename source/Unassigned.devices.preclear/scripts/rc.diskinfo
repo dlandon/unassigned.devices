@@ -21,89 +21,16 @@ require_once( "$docroot/webGui/include/Helpers.php" );
 $_SERVER['REQUEST_URI'] = 'preclear';
 require_once "$docroot/webGui/include/Translations.php";
 
-##############################
-######	ERROR HANDLING	######
-##############################
-set_error_handler("log_error");
-set_exception_handler( "log_exception" );
-
 $debug = FALSE;
 $prog		= pathinfo(__FILE__, PATHINFO_BASENAME);
 $lockfile	= "/var/run/{$prog}.pid";
 $log_file	= "/var/log/diskinfo.log";
 $dev_file	= "/usr/local/emhttp/state/devs.ini";
-openlog("$prog", LOG_PID | LOG_PERROR, LOG_LOCAL0);
 
 
 ##############################
 ###### FUNCTION SECTION ######
 ##############################
-
-/* logger */
-function logger($msg, $quiet = false)
-{
-	syslog(LOG_INFO, $msg);
-	if (! $quiet)
-	{
-		echo PHP_EOL.$msg.PHP_EOL;
-	}
-}
-
-function log_error($errno, $errstr, $errfile, $errline)
-{
-	switch($errno){
-		case E_ERROR:
-			$error = "Error";
-			break;
-		case E_WARNING:
-			$error = "Warning";
-			break;
-		case E_PARSE:
-			$error = "Parse Error";
-			break;
-		case E_NOTICE:
-			$error = "Notice";
-			return; break;
-		case E_CORE_ERROR:
-			$error = "Core Error";
-			break;
-		case E_CORE_WARNING:
-			$error = "Core Warning";
-			break;
-		case E_COMPILE_ERROR:
-			$error = "Compile Error";
-			break;
-		case E_COMPILE_WARNING:
-			$error = "Compile Warning";
-			break;
-		case E_USER_ERROR:
-			$error = "User Error";
-			break;
-		case E_USER_WARNING:
-			$error = "User Warning";
-			break;
-		case E_USER_NOTICE:
-			$error = "User Notice";
-			break;
-		case E_STRICT:
-			$error = "Strict Notice";
-			break;
-		case E_RECOVERABLE_ERROR:
-			$error = "Recoverable Error";
-			break;
-		default:
-			$error = "Unknown error ($errno)";
-			return;
-			break;
-	}
-
-	preclear_log("PHP {$error}: $errstr in {$errfile} on line {$errline}", "ERROR");
-}
-
-function log_exception( $e )
-{
-	 preclear_log("PHP Exception: {$e->getMessage()} in {$e->getFile()} on line {$e->getLine()}", "ERROR");
-}
 
 function preclear_log($msg, $type = "NOTICE")
 {
@@ -264,13 +191,16 @@ class Misc
 	}
 }
 
-
 class Disks
 {
+	private $verbose;
+	private $smartdir;
+	private $cache;
+	private $diskinfo;
+
 	function __construct()
 	{
-		global $VERBOSE;
-		$this->verbose	= $VERBOSE;
+		$this->verbose	= false;
 		$this->smartdir	= "/var/local/emhttp/smart";
 		$this->cache	= "/var/local/emhttp/plugins/diskinfo/diskcache.json";
 		$this->diskinfo	= "/var/local/emhttp/plugins/diskinfo/diskinfo.json";
@@ -279,6 +209,9 @@ class Disks
 		$this->get_unraid_config();
 		$this->get_disks();
 	}
+
+	private $interval;
+	private $unraid;
 
 	public function get_unraid_config()
 	{
@@ -298,6 +231,11 @@ class Disks
 		$this->unraid = array_unique($this->unraid);
 	}
 
+	private $all;
+	private $assigned;
+	private $unassigned;
+	private $partitions;
+
 	public function get_disks()
 	{
 		$this->all			= [];
@@ -314,6 +252,7 @@ class Disks
 				$device = (isset($block['NAME'])) ? "/dev/{$block['NAME']}" : "";
 				if (isset($block['TYPE']) && ($block['TYPE'] == "disk") && (file_exists($device))) {
 					$attrs = @parse_ini_string(timed_exec(1, "/sbin/udevadm info --query=property --name ".escapeshellarg($device)." 2>/dev/null")) ?: [];
+
 					$block['SERIAL'] = isset($attrs["ID_SCSI_SERIAL"]) ? $attrs["ID_SCSI_SERIAL"] : (isset($attrs['ID_SERIAL_SHORT']) ? $attrs['ID_SERIAL_SHORT'] : "");
 
 					$this->all[$block['NAME']] = $block;
@@ -329,7 +268,6 @@ class Disks
 				}
 			}
 		}
-
 	}
 
 	public function unassigned_disks_info($force = false)
@@ -437,6 +375,7 @@ class Disks
 				$disk = array_intersect_key($udev, array_flip($whitelist));
 
 				$disk['SERIAL_SHORT']	= isset($disk["ID_SCSI_SERIAL"]) ? $disk["ID_SCSI_SERIAL"] : (isset($disk['ID_SERIAL_SHORT']) ? $disk['ID_SERIAL_SHORT'] : "");
+
 				$disk['SERIAL']			= isset($disk['ID_SERIAL']) ? get_disk_id($device, $disk['ID_SERIAL']) : "";
 
 				/* Get device BUS. */
@@ -562,7 +501,6 @@ class Disks
 		return $smart;
 	}
 
-
 	public function benchmark()
 	{
 		$params		= func_get_args();
@@ -575,7 +513,6 @@ class Disks
 		preclear_log("benchmark: $function(".implode(",", $params).") took ".sprintf('%f', $time)."s.", $type);
 		return $out;
 	}
-
 
 	public function verify_precleared($dev) {
 		$dev						= Misc::disk_device($dev);
