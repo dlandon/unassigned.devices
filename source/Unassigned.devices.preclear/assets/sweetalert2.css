@@ -120,3 +120,7 @@ input[type=text].swal-content__input, input[type=password].swal-content__input, 
   position: inherit;
   left: -100px;
 }
+.swal-modal {
+	width: 600px !important; /* Adjust the width as needed */
+	max-width: 90%; /* Optional: limits width on smaller screens */
+}
