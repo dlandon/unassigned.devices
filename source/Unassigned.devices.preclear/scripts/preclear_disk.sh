@@ -17,7 +17,7 @@ export LC_CTYPE
 ionice -c3 -p$BASHPID
 
 # Version
-version="1.0.30"
+version="1.0.31"
 #
 # Change Log
 # 1.0.23
@@ -54,6 +54,9 @@ version="1.0.30"
 #
 # 1.0.30
 # Increase dd_hang timeout even more when reading and writing to disk.
+#
+# 1.0.31
+# Add date and time to preclear report.
 #
 ######################################################
 ##													##
@@ -1742,6 +1745,9 @@ display_status(){
 		done < <(head -n -1 "$smart_output")
 		tput cup $(( $init + $height)) $wpos >> $out
 		tail -n 1 "$smart_output" >> $out
+		tput cup $(( $init + $height )) $(( $wpos*2 )) >> $out
+		current_datetime=$(date "+%B %d, %Y at %H:%M:%S")
+		echo -e -n "Report genereated on: $current_datetime" >> $out
 		tput cup $(( $init + $height )) $width >> $out
 		tput cup $(( $init + $height + 2 )) 0 >> $out
 	else
@@ -1964,7 +1970,7 @@ do_exit()
 		1)
 			debug 'error encountered, exiting ...'
 			kill -9 $dd_pid 2>/dev/null
-			echo "${disk_properties[name]}|NY|Error encountered, please check the log|$$" > ${all_files[stat]}
+			echo "${disk_properties[name]}|NY|Error encountered, please check the report|$$" > ${all_files[stat]}
 			rm -f "${all_files[resume_file]}"
 			rm -f "${all_files[resume_temp]}"
 			sleep 2
@@ -2994,7 +3000,7 @@ echo -n "${disk_properties[name]}|NN|${op_title} Finished Successfully!|$$" > ${
 if [ "$disable_smart" != "y" ]; then
 	echo -e "--> ATTENTION: Please take a look into the SMART report above for drive health issues.\n"
 fi
-echo -e "--> RESULT: ${op_title} Finished Successfully!.\n\n"
+echo -e "--> RESULT: ${op_title} Finished Successfully!\n\n"
 
 #
 # Saving report
