@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.04.23a">
+<!ENTITY version	"2024.11.12">
 <!ENTITY launch		"Tools/Preclear">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/unassigned.devices/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"68fa4488efafd2d2ca05537e69f3c82d">
+<!ENTITY MD5		"849d0c5b30f8bb769bfadac1b462ad3b">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
@@ -21,6 +21,14 @@
 <CHANGES>
 ###&name;
 ###&version;
+- Fix: Remove php error logging as it's now included in Unraid core.
+- Fix: Fix php warnings from removing the preclear php logging.
+- Fix: Adjust short serial number for disks with a -N:N suffix to help distinguish different disks with the same serial number.
+- Fix: Report GUI fixes including listing caused the disk status to shift down one line, reports removed on page update, '+'/'-' icons not toggling.
+- Add: Language translations.
+- Add: Style sheet change to adjust sweet alert 2 dialogs to stop over run of text in dialog.
+
+###2024.04.23a.
 - Fix: Update tmux to version 3.4 for 6.13.
 - Fix: Increase dd_hang timeout even further.
 
