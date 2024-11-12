@@ -199,6 +199,18 @@ if (version_compare($version['version'], '6.12.0-beta5', '>')) {
 		return shouldReturn;
 	}
 
+	/*
+		Check if SweetAlert2 library (swal2) is undefined.
+		If undefined, dynamically load the required stylesheets and scripts.
+	*/
+	if (typeof swal2 === "undefined") {
+		/* Append the SweetAlert2 stylesheet to the head of the document. */
+		$('head').append($('<link rel="stylesheet" type="text/css" />').attr('href', '<?autov("/plugins/".$plugin."/assets/sweetalert2.css");?>'));
+
+		/* Load the SweetAlert2 script dynamically. */
+		$.getScript('/plugins/<?=$plugin;?>/assets/sweetalert2.js');
+	}
+
 	/* Check for updated version and show banner if there is an update. */
 	$(function() {
 		if ( typeof caPluginUpdateCheck === "function" ) {
@@ -254,8 +266,6 @@ if (version_compare($version['version'], '6.12.0-beta5', '>')) {
 :end
 
 <script>
-	<?=$Preclear->Script();?>
-
 	<?if (isset($_GET['disk']) && ! $Preclear->isRunning($_GET['disk']) ) echo "startDisk = '{$_GET[disk]}';";?>
 
 	$(function(){
