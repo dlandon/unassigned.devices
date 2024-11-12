@@ -16,15 +16,15 @@ Link="nav-user"
 $preclear_plugin	="unassigned.devices.preclear";
 $docroot			= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 
-/* read translations */
-parse_plugin('Preclear');
-
 require_once("{$docroot}/plugins/".$preclear_plugin."/include/lib.php");
+
 $Preclear = new Preclear;
 ?>
 
 <?=$Preclear->html();?>
 <script>
+	<?=$Preclear->Script();?>
+
 	if (typeof swal2 === "undefined") {
 		$('head').append( $('<link rel="stylesheet" type="text/css" />').attr('href', '<?autov("/plugins/{$preclear_plugin}/assets/sweetalert2.css");?>') );
 		$.getScript( '/plugins/<?=$preclear_plugin;?>/assets/sweetalert2.js');
