@@ -347,7 +347,6 @@ if ( $task == "command_run" ) {
 		@keyframes mark_3{50% {transform:translateY(-62px)} 100% {transform:translateY(0px)}}
 		@keyframes mark_6{50% {transform:translateY(40px)} 100% {transform:translateY(0px)}}
 		@keyframes mark_7{50% {transform:translateY(62px)} 100% {transform: translateY(0px)}}
-
 	</style>
 	<link type="text/css" rel="stylesheet" href="/webGui/styles/default-fonts.css?v=1607102280">
 	<script src="/webGui/javascript/dynamix.js"></script>
@@ -443,10 +442,15 @@ if ( $task == "command_run" ) {
 			form.appendTo( document.body ).submit();
 			form.remove();			 
 		 }
+
+		$(function() { 
+			getLogContent();
+		});
 	</script>
 </head>
 
 <body class="logLine" onload="">
+	<div class='spinner'></div>
 	<div id="log_receiver" style="padding-bottom: 60px;">
 		<?if ($color_coding):?>
 		<p style='text-align:center'><span class='error label'>Error</span><span class='warn label'>Warning</span><span class='system label'>System</span><span class='array label'>Array</span><span class='login label'>Login</span></p>
