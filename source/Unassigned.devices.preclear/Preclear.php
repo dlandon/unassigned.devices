@@ -126,15 +126,13 @@ if (isset($_POST['action'])) {
 						$title  = "<span title='"._('Click to show reports').".' class='exec toggle-reports' hdd='".$disk_name."'>
 									<i class='fa fa-plus-square fa-append'></i></span>".$serial.$precleared;
 
-						$report_files = "<div class='toggle-{$disk_name}' style='display:none;'>";
+						$report_files = "";
 						foreach ($disk_reports as $report) {
 							$report_files .= "<div style='margin:4px 0px 4px 0px;'>";
 							$report_files .= "<i class='fa fa-list-alt hdd'></i>";
 							$report_files .= "<span style='margin:7px;'></span><a href='{$report}' title='"._('Show Preclear Report').".' target='_blank'>".pathinfo($report, PATHINFO_FILENAME)."</a>";
 							$report_files .= "<span><a class='exec info' style='color:#CC0000;font-weight:bold;' onclick='rmReport(\"{$report}\", this);'><span>"._("Remove Report")."</span>&nbsp;&nbsp;<i class='fa fa-times hdd'></i></a></div>";
 						}
-
-						$report_files .= "</div>";
 					} else {
 						$report_files="";
 						$title	= "<span class='toggle-reports' hdd='{$disk_name}'><i class='fa fa-plus-square fa-append grey-orb '></i>".$serial.$precleared."</span>";
@@ -162,7 +160,9 @@ if (isset($_POST['action'])) {
 								$output .= $title."</td><td>".$temp."</td><td><span>".$disk['SIZE_H']."</span></td><td>".$status."</td>
 								</tr>";
 
-								$output .= "<tr><td></td><td>".$report_files."</td><td></td><td></td><td></td></tr>";
+								if (!empty($report_files)) {
+									$output .= "<tr class='report-row'><td></td><td colspan='4'><div class='toggle-{$disk_name}' style='display:none;'>".$report_files."</div></td></tr>";
+								}
 
 					$pos = array_key_exists($disk_name, $sort) ? $sort[$disk_name] : $counter;
 					$sort[$disk_name]			= $pos;
@@ -622,7 +622,6 @@ if (isset($_GET['action'])) {
 			break;
 
 		case 'get_log':
-sleep(5);
 			$session = urldecode($_GET['session']);
 			$file = file("/var/log/{$preclear_plugin}.log", FILE_IGNORE_NEW_LINES);
 			$output = preg_grep("/{$session}/i",$file);

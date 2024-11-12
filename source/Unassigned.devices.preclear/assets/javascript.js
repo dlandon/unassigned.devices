@@ -57,19 +57,19 @@ $('body').on('mouseenter', '.tooltip, .tooltip-toggle', function()
 function getPreclearContent()
 {
 	clearTimeout(timers.getPreclearContent);
-	$.post(PreclearURL,{action:'get_content', display:preclear_display}, function(data)
-	{
+	$.post(PreclearURL, { action: 'get_content', display: preclear_display }, function(data) {
 		PreclearData = data;
-		var hovered = $( ".tooltip:hover" ).map(function(){return this.id;}).get();
-		if ( $('#preclear-table-body').length ) {
-			var target		= $( '#preclear-table-body' );
-			currentScroll	= $(window).scrollTop();
-			currentToggled	= getToggledReports();
+		var hovered = $(".tooltip:hover").map(function() { return this.id; }).get();
+		if ($('#preclear-table-body').length) {
+			var target = $('#preclear-table-body');
+			currentScroll = $(window).scrollTop();
+			/* Retrieve the toggled reports state from localStorage */
+			currentToggled = getToggledReports();
 			target.empty();
-			$.each(data.sort, function(i,v)
-			{
+			$.each(data.sort, function(i, v) {
 				target.append(data.disks[v]);
 			});
+			/* Apply the toggled state after new content is loaded */
 			toggleReports(currentToggled);
 			$(window).scrollTop(currentScroll);
 		}
@@ -392,7 +392,12 @@ function preclearClear()
 {
 	swal2({
 		title: _("Fix Preclear"),
-		content:{ element: "div", attributes:{ innerHTML:	"This will stop all running sessions, halt all processes and remove all related files.<br><br><span class='red-text'><b>Do you want to proceed?</b></span>"}},
+		content:{
+			element: "div",
+			attributes:{
+				innerHTML: "<p>"+_("This will stop all running sessions, halt all processes and remove all related files")+".</p><p><span class='red-text'><b>"+_("Do you want to proceed")+"?</b></span></p>"
+			}
+		},
 		icon: "warning",
 		buttons:{
 			cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
@@ -502,48 +507,56 @@ function getDiskInfo(serial, info){
 	}
 }
 
-function toggleReports(opened)
-{
-	$(".toggle-reports").each(function()
-	{
-		var elem = $(this);
-		var disk = elem.attr("hdd");
+function toggleReports(opened) {
+	$(".toggle-reports").each(function() {
+		const elem = $(this);
+		const disk = elem.attr("hdd");
 		elem.disableSelection();
 
-		elem.click(function()
-		{
-			var elem = $(this);
-			var disk = elem.attr("hdd");
-			if ( $("div.toggle-"+disk+":first").is(":visible") ) {
-				elem.find(".fa-append").removeClass("fa-minus-circle").addClass("fa-plus-circle");
-			} else {
-				elem.find(".fa-append").addClass("fa-minus-circle").removeClass("fa-plus-circle");
-			}
-			$(".toggle-"+disk).slideToggle(150);
+		elem.off("click").on("click", function() {
+			const icon = $(this).find(".fa-append");  // Target the icon directly
+			const disk = $(this).attr("hdd");
+
+			/* Toggle the inner div instead of the entire row */
+			$(".toggle-" + disk).slideToggle(150, function() {
+				const isVisible = $(this).css("display") !== "none";
+
+				/* Toggle icon state */
+				if (isVisible) {
+					icon.removeClass("fa-plus-square").addClass("fa-minus-square");
+					addToggledReport(disk);
+				} else {
+					icon.removeClass("fa-minus-square").addClass("fa-plus-square");
+					removeToggledReport(disk);
+				}
+			});
 		});
 
-		if (typeof(opened) !== 'undefined') {
-			if ( $.inArray(disk, opened) > -1 ) {
-				$(".toggle-"+disk).css("display","block");
-				elem.find(".fa-append").addClass("fa-minus-circle").removeClass("fa-plus-circle");
-			}
+		/* Set initial state based on provided opened list or localStorage */
+		if (typeof(opened) !== 'undefined' && opened.includes(disk)) {
+			$(".toggle-" + disk).css("display", "block");
+			elem.find(".fa-append").removeClass("fa-plus-square").addClass("fa-minus-square");
 		}
 	});
 }
 
-function getToggledReports()
-{ 
-	var opened = [];
-	$(".toggle-reports").each(function(e)
-	{
-		var elem = $(this);
-		var disk = elem.attr("hdd");
-		if ( $("div.toggle-"+disk+":first").is(":visible") ) {
-			opened.push(disk);
-		}
-	});
+function getToggledReports() {
+	/* Retrieve the opened state from localStorage */
+	return JSON.parse(localStorage.getItem("toggledReports") || "[]");
+}
 
-	return opened;
+function addToggledReport(disk) {
+	let opened = getToggledReports();
+	if (!opened.includes(disk)) {
+		opened.push(disk);
+		localStorage.setItem("toggledReports", JSON.stringify(opened));
+	}
+}
+
+function removeToggledReport(disk) {
+	let opened = getToggledReports();
+	opened = opened.filter(item => item !== disk);
+	localStorage.setItem("toggledReports", JSON.stringify(opened));
 }
 
 function rmReport(file, el)
@@ -571,7 +584,10 @@ function getResumablePreclear(serial)
 		{
 			swal2({
 				title: _("Resume Preclear"),
-				content:{ element: "div", attributes:{ innerHTML: "There's a previous preclear session available for this drive.<br>Do you want to resume it instead of starting a new one?"}},
+				content: {
+					element: "div",
+					attributes: { innerHTML: "<p>"+_("There is a previous preclear session available for this drive")+".</p><p>"+_("Do you want to resume it instead of starting a new one")+"?</p>"}
+				},
 				icon: "info",
 				buttons:{
 					cancel:{text: _("Cancel"), value: null, visible: true, className: "swal-button .swal-button-left", closeModal: true},
@@ -656,7 +672,10 @@ function preclearPauseAll()
 {
 	swal2({
 		title: _("Pause All Preclear Sessions"),
-		text:	_("Do you want to pause all running preclear sessions")+"?",
+		content: {
+			element: "div",
+			attributes: { innerHTML: "<p>"+_("Do you want to pause all running preclear sessions")+"?</p>"}
+		},
 		icon: "warning",
 		buttons:{
 			cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
@@ -678,7 +697,10 @@ function preclearResumeAll()
 {
 	swal2({
 		title: _("Resume All Preclear Sessions"),
-		text:	_("Do you want to resume all running preclear sessions")+"?",
+		content: {
+			element: "div",
+			attributes: { innerHTML: "<p>"+_("Do you want to resume all running preclear sessions")+"?</p>"}
+		},
 		icon: "warning",
 		buttons:{
 			cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
@@ -699,7 +721,10 @@ function preclearStopAll()
 {
 	swal2({
 		title: _("Stop All Preclear Sessions"),
-		text:	_("Do you want to stop all running preclear sessions")+"?",
+		content: {
+			element: "div",
+			attributes: { innerHTML: "<p>"+_("Do you want to stop all running preclear sessions")+"?</p>"}
+		},
 		icon: "warning",
 		buttons:{
 			cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
