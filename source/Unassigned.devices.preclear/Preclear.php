@@ -124,7 +124,7 @@ if (isset($_POST['action'])) {
 
 					if (count($disk_reports)) {
 						$title  = "<span title='"._('Click to show reports').".' class='exec toggle-reports' hdd='".$disk_name."'>
-									<i class='fa fa-plus-square fa-append'></i>".$serial.$precleared."</span>";
+									<i class='fa fa-plus-square fa-append'></i></span>".$serial.$precleared;
 
 						$report_files = "<div class='toggle-{$disk_name}' style='display:none;'>";
 						foreach ($disk_reports as $report) {
@@ -162,7 +162,7 @@ if (isset($_POST['action'])) {
 								$output .= $title."</td><td>".$temp."</td><td><span>".$disk['SIZE_H']."</span></td><td>".$status."</td>
 								</tr>";
 
-								$output .= "<tr><td></td><td>".$report_files."</td></tr>";
+								$output .= "<tr><td></td><td>".$report_files."</td><td></td><td></td><td></td></tr>";
 
 					$pos = array_key_exists($disk_name, $sort) ? $sort[$disk_name] : $counter;
 					$sort[$disk_name]			= $pos;
