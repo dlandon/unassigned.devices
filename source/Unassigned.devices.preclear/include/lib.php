@@ -265,7 +265,7 @@ class Preclear
 		$paused		= file_exists($GLOBALS['tmp_preclear'].$disk."/pause") ? "<a class='exec tooltip' style='margin-left:10px;color:#00BE37;' onclick='resumePreclear(\"{$disk}\")' title='"._('Resume')."'><i class='fa fa-play'></i></a>" : "";
 		$rm			= "<a id='preclear_rm_{$disk}' class='exec tooltip' style='color:#CC0000;font-weight:bold;margin-left:6px;' title='%s' onclick='stopPreclear(\"{$serial}\",\"%s\");'>";
 		$rm			.= "<i class='fa fa-times hdd'></i></a>";
-		$preview	= "<a id='preclear_open_{$disk}' class='exec tooltip' style='margin-left:10px;color:#1E90FF;' onclick='openPreclear(\"{$serial}\");' title='"._('Preview Progress')."'><i class='fa fa-eye hdd'></i></a>";
+		$preview	= "<a id='preclear_open_{$disk}' class='exec tooltip' style='margin-left:10px;color:#1E90FF;' onclick='openPreclear(\"{$serial}\");' title='"._('Preview Progress Report')."'><i class='fa fa-eye hdd'></i></a>";
 
 		if (is_file($file)) {
 			$stat = explode("|", file_get_contents($file));
@@ -303,18 +303,18 @@ class Preclear
 
 			if ($session && $running) {
 				$status .= $preview;
-				$status .= sprintf($rm, "Stop Preclear", "ask");
+				$status .= sprintf($rm, _("Stop Preclear"), "ask");
 			} else if ($session) {
 				$status .= $preview;
-				$status .= sprintf($rm, "Remove Preclear Log", "");
+				$status .= sprintf($rm, _("Remove Report"), "");
 			} else if ( $file ) {
-				$status .= sprintf($rm, "Clear Stats", "");
+				$status .= sprintf($rm, _("Clear Stats"), "");
 			}
 		} else if ($this->isRunning($disk)) {
 			$status .= $preview;
-			$status .= sprintf($rm, "Clear Stats", "");
+			$status .= sprintf($rm, _("Clear Stats"), "");
 		} else {
-			$status .= sprintf($rm, "Clear Stats", "");
+			$status .= sprintf($rm, _("Clear Stats"), "");
 		}
 
 		return str_replace("^n", "<br>" , $status);
