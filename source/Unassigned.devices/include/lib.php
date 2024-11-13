@@ -82,7 +82,7 @@ $UPDATE_DEBUG	= 2;
 $CMD_DEBUG		= 8;
 
 /* Read in the UD configuration file. */
-$config_ini		= @parse_ini_file($paths['config_file'], true, INI_SCANNER_RAW);
+$config_ini		= @parse_ini_file($paths['config_file'], true);
 $ud_config		= ($config_ini !== false) ? $config_ini : [];
 
 /* Read in the Samba configuration file. */
