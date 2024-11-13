@@ -14,8 +14,8 @@ Tag="hdd-o"
  * all copies or substantial portions of the Software.
  */
 
-$plugin	= "unassigned.devices";
-require_once("plugins/$plugin/include/lib.php");
+$unassigned_plugin	= "unassigned.devices";
+require_once("plugins/$unassigned_plugin/include/lib.php");
 
 $config_file	= $paths['config_file'];
 $UD_cfg_ini		= is_file($config_file) ? @parse_ini_file($config_file, true) : [];

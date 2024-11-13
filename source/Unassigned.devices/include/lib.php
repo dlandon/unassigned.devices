@@ -10,8 +10,8 @@
  * all copies or substantial portions of the Software.
  */
 
-$docroot	= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-$plugin		= "unassigned.devices";
+$docroot			= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+$unassigned_plugin	= "unassigned.devices";
 
 $paths = [	"smb_unassigned"	=> "/etc/samba/smb-unassigned.conf",
 			"smb_usb_shares"	=> "/etc/samba/unassigned-shares",
@@ -22,30 +22,30 @@ $paths = [	"smb_unassigned"	=> "/etc/samba/smb-unassigned.conf",
 			"shares_state"		=> $docroot."/state/shares.ini",
 			"disks_state"		=> $docroot."/state/disks.ini",
 			"disk_load"			=> $docroot."/state/diskload.ini",
-			"device_log"		=> "/tmp/".$plugin."/logs/",
-			"config_file"		=> "/tmp/".$plugin."/config/".$plugin.".cfg",
-			"samba_mount"		=> "/tmp/".$plugin."/config/samba_mount.cfg",
-			"iso_mount"			=> "/tmp/".$plugin."/config/iso_mount.cfg",
-			"scripts"			=> "/tmp/".$plugin."/scripts/",
-			"credentials"		=> "/tmp/".$plugin."/credentials",
-			"authentication"	=> "/tmp/".$plugin."/authentication",
-			"luks_pass"			=> "/tmp/".$plugin."/luks_pass",
-			"hotplug_event"		=> "/tmp/".$plugin."/hotplug_event",
-			"tmp_file"			=> "/tmp/".$plugin."/".uniqid("move_", true).".tmp",
-			"state"				=> "/var/state/".$plugin."/".$plugin.".ini",
-			"diag_state"		=> "/var/local/emhttp/".$plugin.".ini",
-			"mounted"			=> "/var/state/".$plugin."/".$plugin.".json",
-			"run_status"		=> "/var/state/".$plugin."/run_status.json",
-			"ping_status"		=> "/var/state/".$plugin."/ping_status.json",
-			"df_status"			=> "/var/state/".$plugin."/df_status.json",
-			"disk_names"		=> "/var/state/".$plugin."/disk_names.json",
-			"share_names"		=> "/var/state/".$plugin."/share_names.json",
-			"pool_state"		=> "/var/state/".$plugin."/pool_state.json",
-			"device_hosts"		=> "/var/state/".$plugin."/device_hosts.json",
-			"unmounting"		=> "/var/state/".$plugin."/unmounting_%s.state",
-			"mounting"			=> "/var/state/".$plugin."/mounting_%s.state",
-			"formatting"		=> "/var/state/".$plugin."/formatting_%s.state",
-			"clearing"			=> "/var/state/".$plugin."/clearing_%s.state"
+			"device_log"		=> "/tmp/".$unassigned_plugin."/logs/",
+			"config_file"		=> "/tmp/".$unassigned_plugin."/config/".$unassigned_plugin.".cfg",
+			"samba_mount"		=> "/tmp/".$unassigned_plugin."/config/samba_mount.cfg",
+			"iso_mount"			=> "/tmp/".$unassigned_plugin."/config/iso_mount.cfg",
+			"scripts"			=> "/tmp/".$unassigned_plugin."/scripts/",
+			"credentials"		=> "/tmp/".$unassigned_plugin."/credentials",
+			"authentication"	=> "/tmp/".$unassigned_plugin."/authentication",
+			"luks_pass"			=> "/tmp/".$unassigned_plugin."/luks_pass",
+			"hotplug_event"		=> "/tmp/".$unassigned_plugin."/hotplug_event",
+			"tmp_file"			=> "/tmp/".$unassigned_plugin."/".uniqid("move_", true).".tmp",
+			"state"				=> "/var/state/".$unassigned_plugin."/".$unassigned_plugin.".ini",
+			"diag_state"		=> "/var/local/emhttp/".$unassigned_plugin.".ini",
+			"mounted"			=> "/var/state/".$unassigned_plugin."/".$unassigned_plugin.".json",
+			"run_status"		=> "/var/state/".$unassigned_plugin."/run_status.json",
+			"ping_status"		=> "/var/state/".$unassigned_plugin."/ping_status.json",
+			"df_status"			=> "/var/state/".$unassigned_plugin."/df_status.json",
+			"disk_names"		=> "/var/state/".$unassigned_plugin."/disk_names.json",
+			"share_names"		=> "/var/state/".$unassigned_plugin."/share_names.json",
+			"pool_state"		=> "/var/state/".$unassigned_plugin."/pool_state.json",
+			"device_hosts"		=> "/var/state/".$unassigned_plugin."/device_hosts.json",
+			"unmounting"		=> "/var/state/".$unassigned_plugin."/unmounting_%s.state",
+			"mounting"			=> "/var/state/".$unassigned_plugin."/mounting_%s.state",
+			"formatting"		=> "/var/state/".$unassigned_plugin."/formatting_%s.state",
+			"clearing"			=> "/var/state/".$unassigned_plugin."/clearing_%s.state"
 		];
 
 /* SMB and NFS ports. */
@@ -120,8 +120,8 @@ $lsblk_file_types	= null;
 if ( is_file( $docroot."/plugins/preclear.disk/assets/lib.php" ) ) {
 	require_once( $docroot."/plugins/preclear.disk/assets/lib.php" );
 	$Preclear = new Preclear;
-} else if ( is_file( $docroot."/plugins/".$plugin.".preclear/include/lib.php" ) ) {
-	require_once( $docroot."/plugins/".$plugin.".preclear/include/lib.php" );
+} else if ( is_file( $docroot."/plugins/".$unassigned_plugin.".preclear/include/lib.php" ) ) {
+	require_once( $docroot."/plugins/".$unassigned_plugin.".preclear/include/lib.php" );
 	$Preclear = new Preclear;
 } else {
 	$Preclear = null;
@@ -377,15 +377,15 @@ function _echo($m) {
 
 /* Get a file lock so changes can be made to a cfg or ini file. */
 function get_file_lock($type = "cfg") {
-	global $plugin;
+	global $unassigned_plugin;
 
 	/* Lock file for concurrent operations unique to each process. */
-	$lock_file	= "/tmp/".$plugin."/".uniqid($type."_", true).".lock";
+	$lock_file	= "/tmp/".$unassigned_plugin."/".uniqid($type."_", true).".lock";
 
 
 	/* Check for any lock files for previous processes. */
 	$i = 0;
-	while ((! empty(glob("/tmp/".$plugin."/".$type."_*.lock"))) && ($i < 200)) {
+	while ((! empty(glob("/tmp/".$unassigned_plugin."/".$type."_*.lock"))) && ($i < 200)) {
 		usleep(10 * 1000);
 		$i++;
 	}
@@ -412,7 +412,7 @@ function release_file_lock($lock_file) {
 
 /* Save ini and cfg files to tmp file system and then copy cfg file changes to flash. */
 function save_ini_file($file, $config, $save_config = true) {
-	global $plugin, $paths;
+	global $unassigned_plugin, $paths;
 
 	$res = [];
 	foreach($config as $key => $val) {
@@ -435,20 +435,20 @@ function save_ini_file($file, $config, $save_config = true) {
 	if ($save_config) {
 		$file_path = pathinfo($file);
 		if ($file_path['extension'] == "cfg") {
-			@file_put_contents("/boot/config/plugins/".$plugin."/".basename($file), implode(PHP_EOL, $res));
+			@file_put_contents("/boot/config/plugins/".$unassigned_plugin."/".basename($file), implode(PHP_EOL, $res));
 		}
 	}
 }
 
 /* Unassigned Devices logging. */
 function unassigned_log($m, $debug_level = 0) {
-	global $plugin;
+	global $unassigned_plugin;
 
 	if (($debug_level == 0) || ($debug_level == $GLOBALS["DEBUG_LEVEL"])) {
 		$m		= print_r($m,true);
 		$m		= str_replace("\n", " ", $m);
 		$m		= str_replace('"', "'", $m);
-		exec("/usr/bin/logger"." ".escapeshellarg($m)." -t ".escapeshellarg($plugin));
+		exec("/usr/bin/logger"." ".escapeshellarg($m)." -t ".escapeshellarg($unassigned_plugin));
 	}
 }
 
@@ -507,7 +507,7 @@ function safe_name($name, $convert_spaces = true, $convert_extra = false) {
 
 /* Get the size, used, and free space on a mount point. */
 function get_device_stats($mountpoint, $mounted, $active = true, $zfs = false) {
-	global $docroot, $paths, $plugin;
+	global $docroot, $paths, $unassigned_plugin;
 
 	$rc			= "";
 	$tc			= $paths['df_status'];
@@ -520,7 +520,7 @@ function get_device_stats($mountpoint, $mounted, $active = true, $zfs = false) {
 
 		/* Update the size, used, and free status every 90 seconds on each device. */
 		if (($active) && ((time() - $df_status[$mountpoint]['timestamp']) > 90)) {
-			exec($docroot."/plugins/".$plugin."/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".($zfs ? "true" : "false")." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." &");
+			exec($docroot."/plugins/".$unassigned_plugin."/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".($zfs ? "true" : "false")." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." &");
 		}
 
 		/* Get the device stats. */
@@ -4289,7 +4289,7 @@ function change_iso_mountpoint($dev, $mountpoint) {
 
 /* Change the disk UUID. */
 function change_UUID($dev) {
-	global $docroot, $plugin, $paths, $var;
+	global $docroot, $unassigned_plugin, $paths, $var;
 
 	$rc	= "";
 
@@ -4310,7 +4310,7 @@ function change_UUID($dev) {
 
 	/* Deal with crypto_LUKS disks. */
 	if ($fs_type == "crypto_LUKS") {
-		timed_exec(20, escapeshellcmd($docroot."/plugins/".$plugin."/scripts/luks_uuid.sh ".escapeshellarg($device)));
+		timed_exec(20, escapeshellcmd($docroot."/plugins/".$unassigned_plugin."/scripts/luks_uuid.sh ".escapeshellarg($device)));
 		$mapper	= basename($luks)."_UUID";
 		$cmd	= "luksOpen ".escapeshellarg($luks)." ".escapeshellarg($mapper);
 		$pass	= decrypt_data(get_config($serial, "pass"));

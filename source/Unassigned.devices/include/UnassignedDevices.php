@@ -10,8 +10,8 @@
  * all copies or substantial portions of the Software.
  */
 
-$plugin = "unassigned.devices";
-require_once("plugins/".$plugin."/include/lib.php");
+$unassigned_plugin	= "unassigned.devices";
+require_once("plugins/".$unassigned_plugin."/include/lib.php");
 require_once($docroot."/webGui/include/Helpers.php");
 
 /* add translations */
@@ -90,7 +90,7 @@ function render_used_and_free_disk($disk, $mounted) {
 
 /* Get the partition information and render for html. */
 function render_partition($disk, $partition, $disk_line = false) {
-	global $paths, $plugin, $shares_enabled;
+	global $paths, $unassigned_plugin, $shares_enabled;
 
 	$out = [];
 	if (! empty($disk['partitions'])) {
@@ -112,7 +112,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$fstype = ($partition['fstype'] == "crypto_LUKS") ? $crypto_fs_type : $partition['fstype'];
 		if (((! $disabled) && (! $mounted) && ($fstype != "apfs") && ($fstype != "btrfs") && ($fstype != "zfs")) || ((! $disabled) && ($mounted) && ($fstype == "btrfs" || $fstype == "zfs"))) {
 			$file_system_check = (($fstype != "btrfs") && ($fstype != "zfs")) ? _('File System Check') : _('File System Scrub');
-			$fscheck = "<a class='exec info' onclick='openWindow_fsck(\"/plugins/".$plugin."/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&mountpoint={$partition['mountpoint']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i><span>".$file_system_check."</span></a>";
+			$fscheck = "<a class='exec info' onclick='openWindow_fsck(\"/plugins/".$unassigned_plugin."/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&mountpoint={$partition['mountpoint']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i><span>".$file_system_check."</span></a>";
 		} else {
 			$fscheck = "<i class='fa fa-check partition-hdd'></i></a>";
 		}
@@ -120,7 +120,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 
 		if ($mounted && is_file($cmd)) {
 			if (! $disabled) {
-				$fscheck .= "<a class='exec info' onclick='openWindow_fsck(\"/plugins/".$plugin."/include/script.php?device={$device}&type="._('Done')."\",\"Execute Script\",600,900);'><i class='fa fa-flash partition-script'></i><span>"._("Execute Script as udev simulating a device being installed")."</span></a>";
+				$fscheck .= "<a class='exec info' onclick='openWindow_fsck(\"/plugins/".$unassigned_plugin."/include/script.php?device={$device}&type="._('Done')."\",\"Execute Script\",600,900);'><i class='fa fa-flash partition-script'></i><span>"._("Execute Script as udev simulating a device being installed")."</span></a>";
 			} else {
 				$fscheck .= "<i class='fa fa-flash partition-script'></i>";
 			}
@@ -270,7 +270,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 					/* Put together the file system check icon. */
 					if (((! $z['mounted']) && ($fstype) && ($fstype != "btrfs")) || (($z['mounted']) && ($fstype == "btrfs" || $fstype == "zfs"))) {
 						$file_system_check = (($fstype != "btrfs") && ($fstype != "zfs")) ? _('File System Check') : _('File System Scrub');
-						$fscheck	= "<a class='exec info' onclick='openWindow_fsck(\"/plugins/".$plugin."/include/fsck.php?device={$z['device']}&fs={$fstype}&luks={$z['device']}&serial={$z['volume']}&mountpoint={$z['mountpoint']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check zfs-volume-hdd'></i><span>".$file_system_check."</span></a>";
+						$fscheck	= "<a class='exec info' onclick='openWindow_fsck(\"/plugins/".$unassigned_plugin."/include/fsck.php?device={$z['device']}&fs={$fstype}&luks={$z['device']}&serial={$z['volume']}&mountpoint={$z['mountpoint']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check zfs-volume-hdd'></i><span>".$file_system_check."</span></a>";
 					} else {
 						$fscheck	= "<i class='fa fa-check zfs-volume-hdd'></i></a>";
 					}
@@ -1163,7 +1163,7 @@ switch ($_POST['action']) {
 
 	case 'update_ping':
 		/* Refresh the ping status in the background. */
-		exec($docroot."/plugins/".$plugin."/scripts/get_ud_stats ping > /dev/null 2>&1 &");
+		exec($docroot."/plugins/".$unassigned_plugin."/scripts/get_ud_stats ping > /dev/null 2>&1 &");
 		break;
 
 	case 'get_content_json':
@@ -1362,7 +1362,7 @@ switch ($_POST['action']) {
 		/* Mount a disk device. */
 		$device	= urldecode($_POST['device']);
 
-		$return = trim(shell_exec("/usr/bin/nice plugins/".$plugin."/scripts/rc.unassigned mount ".escapeshellarg($device)." 2>&1") ?? "");
+		$return = trim(shell_exec("/usr/bin/nice plugins/".$unassigned_plugin."/scripts/rc.unassigned mount ".escapeshellarg($device)." 2>&1") ?? "");
 		echo json_encode($return == "success");
 		break;
 
@@ -1370,7 +1370,7 @@ switch ($_POST['action']) {
 		/* Unmount a disk device. */
 		$device	= urldecode($_POST['device']);
 
-		$return = trim(shell_exec("/usr/bin/nice plugins/".$plugin."/scripts/rc.unassigned umount ".escapeshellarg($device)." 2>&1") ?? "");
+		$return = trim(shell_exec("/usr/bin/nice plugins/".$unassigned_plugin."/scripts/rc.unassigned umount ".escapeshellarg($device)." 2>&1") ?? "");
 		echo json_encode($return == "success");
 		break;
 
@@ -1388,7 +1388,7 @@ switch ($_POST['action']) {
 	/* DISK */
 	case 'rescan_disks':
 		/* Refresh all disk partition information, update config files from flash, and clear status files. */
-		exec($docroot."/plugins/".$plugin."/scripts/copy_config.sh");
+		exec($docroot."/plugins/".$unassigned_plugin."/scripts/copy_config.sh");
 
 		/* Rescan all disk partitions. */
 		foreach (get_all_disks_info() as $d) {
@@ -1454,7 +1454,7 @@ switch ($_POST['action']) {
 			$netmask 	= $iface['netmask'];
 			if (MiscUD::is_ip($ip) && MiscUD::is_ip($netmask)) {
 				/* Check for SMB servers having their port open for SMB. */
-				exec($docroot."/plugins/".$plugin."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." ".SMB_PORT, $hosts);
+				exec($docroot."/plugins/".$unassigned_plugin."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." ".SMB_PORT, $hosts);
 
 				/* Do a name lookup on each IP address found in hosts. */
 				foreach ($hosts as $host) {
@@ -1503,7 +1503,7 @@ switch ($_POST['action']) {
 		@file_put_contents("{$paths['authentication']}", "domain=".$domain."\n", FILE_APPEND);
 
 		/* Update this server status before listing shares. */
-		exec($docroot."/plugins/".$plugin."/scripts/get_ud_stats is_online ".escapeshellarg($ip)." "."SMB");
+		exec($docroot."/plugins/".$unassigned_plugin."/scripts/get_ud_stats is_online ".escapeshellarg($ip)." "."SMB");
 
 		/* Get a list of samba shares on this server. */
 		$list	= timed_exec(10, "/usr/bin/smbclient -t2 -g -L ".escapeshellarg($ip)." --authentication-file=".escapeshellarg($paths['authentication'])." 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}' | sort", true);
@@ -1527,7 +1527,7 @@ switch ($_POST['action']) {
 			$netmask 	= $iface['netmask'];
 			if (MiscUD::is_ip($ip) && MiscUD::is_ip($netmask)) {
 				/* Check for NFS servers having their port open for NFS. */
-				exec($docroot."/plugins/".$plugin."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." ".NFS_PORT." 2>/dev/null", $hosts);
+				exec($docroot."/plugins/".$unassigned_plugin."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." ".NFS_PORT." 2>/dev/null", $hosts);
 
 				/* Do a name lookup on each IP address found in hosts. */
 				foreach ($hosts as $host) {
@@ -1560,7 +1560,7 @@ switch ($_POST['action']) {
 		$ip			= strtoupper(stripslashes(trim($ip)));
 
 		/* Update this server status before listing shares. */
-		exec($docroot."/plugins/".$plugin."/scripts/get_ud_stats is_online ".escapeshellarg($ip)." "."NFS");
+		exec($docroot."/plugins/".$unassigned_plugin."/scripts/get_ud_stats is_online ".escapeshellarg($ip)." "."NFS");
 
 		/* List the shares. */
 		$result		= timed_exec(10, "/usr/sbin/showmount --no-headers -e ".escapeshellarg($ip)." 2>/dev/null | rev | cut -d' ' -f2- | rev | sort");

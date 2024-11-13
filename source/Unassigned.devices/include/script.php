@@ -9,8 +9,8 @@
  * all copies or substantial portions of the Software.
  */
 
-$plugin = "unassigned.devices";
-require_once("plugins/".$plugin."/include/lib.php");
+$unassigned_plugin	= "unassigned.devices";
+require_once("plugins/".$unassigned_plugin."/include/lib.php");
 
 /* add translations */
 $_SERVER['REQUEST_URI'] = 'unassigneddevices';

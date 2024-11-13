@@ -14,8 +14,8 @@ Tag="unlink"
  * all copies or substantial portions of the Software.
  */
 
-$plugin	= "unassigned.devices";
-require_once("plugins/$plugin/include/lib.php");
+$unassigned_plugin	= "unassigned.devices";
+require_once("plugins/$unassigned_plugin/include/lib.php");
 
 $config_file	= $paths['config_file'];
 $UD_cfg_ini		= is_file($config_file) ? @parse_ini_file($config_file, true) : [];
@@ -196,7 +196,7 @@ if ((! $parted) && ($UD_cfg['Config']['destructive_mode'] == "enabled")) {
 <?endif;?>
 
 _(Common Script)_:
-: <input type="text" name="common_cmd" style="width:43%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$plugin;?>', 'sh');" autocomplete="off" value="<?=$UD_cfg['Config']['common_cmd'];?>">
+: <input type="text" name="common_cmd" style="width:43%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=$unassigned_plugin;?>', 'sh');" autocomplete="off" value="<?=$UD_cfg['Config']['common_cmd'];?>">
 
 :ud_settings_common_script_plug:
 > If set, this script will run before the device script when a device is first added - **$ACTION**='ADD'.  The device script setting 'Run Device Script File in the background?' will also apply to this script.

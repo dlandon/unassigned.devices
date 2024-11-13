@@ -14,7 +14,7 @@ Tag="icon-network"
  * all copies or substantial portions of the Software.
  */
 
-$plugin	= "unassigned.devices";
+$unassigned_plugin	= "unassigned.devices";
 ?>
 
 <table class="tablesorter shift ups">
@@ -72,7 +72,7 @@ _(Server)_:
 </form>
 
 <script>
-var RSURL = '/plugins/<?=$plugin?>/include/server_test.php';
+var RSURL = '/plugins/<?=$unassigned_plugin?>/include/server_test.php';
 
 function handleFormSubmit() {
 	let server = document.forms['remote_test'].server_name.value;
