@@ -421,7 +421,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 				content:{
 					element: "div",
 					attributes:{
-						innerHTML: "<?=_('Check the syslog for details');?>."
+						innerHTML: "<p><?=_('Check the syslog for details');?>.</p>"
 					}
 				},
 				buttons: {
@@ -446,7 +446,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 			content:{
 				element: "div",
 				attributes:{
-					innerHTML: "<?=_('Device');?> '" + device + "' <?=('failed to');?> " + op + ". <?=_('Check the syslog for details');?>."
+					innerHTML: "<p><?=_('Device');?> '" + device + "' <?=('failed to');?> " + op + ". </p><p><?=_('Check the syslog for details');?>.</p>"
 				}
 			},
 			buttons: {
