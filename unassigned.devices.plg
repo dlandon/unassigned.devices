@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.11.10">
+<!ENTITY version	"2024.11.15">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"6b61d9edb1bf14e850160d69013e96a7">
+<!ENTITY MD5		"c6b6a277f432bde0772746668b58132b">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,7 +22,11 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Change PHP '$plugin' variable name to prevent conflicting with other plugins.
+- Fix: Check 'showmount' when listing remote servers to be sure that NFS shares are available to mount.
+- Fix: Insure all 'Mount' button status like 'Mounting', 'Unmounting', and 'Formatting' show on the correct device.
 - Add: Show NFS versions supported by the remote server and additional adjustments.
+- Add: Style sheet change to adjust sweetalert 2 dialogs to stop over run of text in dialog.
 
 ###2024.11.03a
 - Add: Ability to test Remote Servers in UD Settings and verify they can serve SMB and NFS.
