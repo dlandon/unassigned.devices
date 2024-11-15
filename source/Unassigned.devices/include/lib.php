@@ -304,21 +304,30 @@ class MiscUD
 		return $rc;
 	}
 
-	/* Get disk mounting status. */
+	/* Get the mounting status. */
 	public static function get_mounting_status($device) {
 		global $paths;
 
-		$mounting		= array_values(preg_grep("@/mounting_".safe_name($device, true, true)."@i", listFile(dirname($paths['mounting']))))[0] ?? '';
-		$is_mounting	= (isset($mounting) && (time() - filemtime($mounting) < 300));
+		/* Safely generate the file name and ensure precise matching */
+		$pattern = "@/mounting_" . preg_quote(safe_name($device, true, true), '@') . "\\.state$@i";
+		$mounting = array_values(preg_grep($pattern, listFile(dirname($paths['mounting']))))[0] ?? '';
+
+		/* If it has been 5 minutes, then the file is stuck.  Return it is no longer mounting. */
+		$is_mounting = (!empty($mounting) && (time() - filemtime($mounting) < 300));
 		return $is_mounting;
 	}
+
 
 	/* Get the unmounting status. */
 	public static function get_unmounting_status($device) {
 		global $paths;
 
-		$unmounting		= array_values(preg_grep("@/unmounting_".safe_name($device, true, true)."@i", listFile(dirname($paths['unmounting']))))[0] ?? '';
-		$is_unmounting	= (isset($unmounting) && (time() - filemtime($unmounting)) < 300);
+		/* Safely generate the file name and ensure precise matching */
+		$pattern = "@/unmounting_" . preg_quote(safe_name($device, true, true), '@') . "\\.state$@i";
+		$unmounting = array_values(preg_grep($pattern, listFile(dirname($paths['unmounting']))))[0] ?? '';
+
+		/* If it has been 5 minutes, then the file is stuck.  Return it is no longer unmounting. */
+		$is_unmounting = (!empty($unmounting) && (time() - filemtime($unmounting) < 300));
 		return $is_unmounting;
 	}
 
@@ -326,8 +335,12 @@ class MiscUD
 	public static function get_formatting_status($device) {
 		global $paths;
 
-		$formatting		= array_values(preg_grep("@/formatting_".basename($device)."@i", listFile(dirname($paths['formatting']))))[0] ?? '';
-		$is_formatting	= (isset($formatting) && (time() - filemtime($formatting) < 300));
+		/* Safely generate the file name and ensure precise matching */
+		$pattern = "@/formatting_" . preg_quote(basename($device), '@') . "\\.state$@i";
+		$formatting = array_values(preg_grep($pattern, listFile(dirname($paths['formatting']))))[0] ?? '';
+
+		/* If it has been 5 minutes, then the file is stuck.  Return it is no longer formatting. */
+		$is_formatting = (!empty($formatting) && (time() - filemtime($formatting) < 300));
 		return $is_formatting;
 	}
 
@@ -335,8 +348,12 @@ class MiscUD
 	public static function get_clearing_status($device) {
 		global $paths;
 
-		$clearing		= array_values(preg_grep("@/clearing_".basename($device)."@i", listFile(dirname($paths['clearing']))))[0] ?? '';
-		$is_clearing	= (isset($clearing) && (time() - filemtime($clearing) < 300));
+		/* Safely generate the file name and ensure precise matching */
+		$pattern = "@/clearing_" . preg_quote(basename($device), '@') . "\\.state$@i";
+		$clearing = array_values(preg_grep($pattern, listFile(dirname($paths['clearing']))))[0] ?? '';
+
+		/* If it has been 5 minutes, then the file is stuck.  Return it is no longer clearing. */
+		$is_clearing = (!empty($clearing) && (time() - filemtime($clearing) < 300));
 		return $is_clearing;
 	}
 
