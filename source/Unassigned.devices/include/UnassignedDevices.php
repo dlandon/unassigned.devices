@@ -1542,8 +1542,12 @@ switch ($_POST['action']) {
 						}
 					}
 
-					$name			= strtoupper($name);
-					$names[] 		= $name ? $name : $host;
+					/* If the remote server does not show any shares, it is not available. */
+					$result		= trim(shell_exec("/usr/sbin/showmount -e ".escapeshellarg($name)." 2>/dev/null") ?? "");
+					if ($result) {
+						$name			= strtoupper($name);
+						$names[] 		= $name ? $name : $host;
+					}
 				}
 			}
 		}
@@ -1563,9 +1567,8 @@ switch ($_POST['action']) {
 		exec($docroot."/plugins/".$unassigned_plugin."/scripts/get_ud_stats is_online ".escapeshellarg($ip)." "."NFS");
 
 		/* List the shares. */
-		$result		= timed_exec(10, "/usr/sbin/showmount --no-headers -e ".escapeshellarg($ip)." 2>/dev/null | rev | cut -d' ' -f2- | rev | sort");
-		$rc			= ($result != "command timed out") ? $result : "";
-		echo $rc ? $rc : " ";
+		$result		= shell_exec("/usr/sbin/showmount --no-headers -e ".escapeshellarg($ip)." 2>/dev/null | rev | cut -d' ' -f2- | rev | sort");
+		echo $result ?: " ";
 		break;
 
 	/* SMB SHARES */
