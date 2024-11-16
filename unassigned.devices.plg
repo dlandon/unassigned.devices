@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.11.15">
+<!ENTITY version	"2024.11.16">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"c6b6a277f432bde0772746668b58132b">
+<!ENTITY MD5		"123bbad9603d52f4de2834779793a14e">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Config file parse failing.
+
+###2024.11.15
 - Fix: Change PHP '$plugin' variable name to prevent conflicting with other plugins.
 - Fix: Check 'showmount' when listing remote servers to be sure that NFS shares are available to mount.
 - Fix: Insure all 'Mount' button status like 'Mounting', 'Unmounting', and 'Formatting' show on the correct device.
