@@ -25,7 +25,7 @@
 - Fix: Change PHP '$plugin' variable name to prevent conflicting with other plugins.
 - Fix: Check 'showmount' when listing remote servers to be sure that NFS shares are available to mount.
 - Fix: Insure all 'Mount' button status like 'Mounting', 'Unmounting', and 'Formatting' show on the correct device.
-- Add: Show NFS versions supported by the remote server and additional adjustments.
+- Add: Show NFS versions supported by the remote server and additional adjustments in Remote Server test.
 - Add: Style sheet change to adjust sweetalert 2 dialogs to stop over run of text in dialog.
 
 ###2024.11.03a
