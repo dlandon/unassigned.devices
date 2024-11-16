@@ -4,6 +4,12 @@ span.right.ud+span.status {
 }
 
 /* Disk mounts table formatting. */
+table.usb_mounts thead tr td:first-child {
+	padding-left: 10px;
+}
+table.usb_mounts td {
+	padding-left: 10px;
+}
 table.usb_mounts {
 	padding: 0px 0px 0px 0px;
 	border-collapse: collapse;
@@ -31,6 +37,12 @@ table.usb_mounts tr>td+td+td+td+td+td+td+td {
 }
 
 /* Remote share and ISO table formatting. */
+table.samba_mounts thead tr td:first-child {
+	padding-left: 10px;
+}
+table.samba_mounts td {
+	padding-left: 10px;
+}
 table.samba_mounts {
 	padding: 0px 0px 0px 0px;
 	border-collapse: collapse;
@@ -52,6 +64,12 @@ table.samba_mounts tr>td+td+td+td+td+td+td+td+td {
 }
 
 /* Historical devices table formtting. */
+table.usb_absent thead tr td:first-child {
+	padding-left: 10px;
+}
+table.usb_absent td {
+	padding-left: 10px;
+}
 table.usb_absent {
 	padding: 0px 0px 0px 0px;
 	border-collapse: collapse;
