@@ -19,7 +19,7 @@ $unassigned_plugin	= "unassigned.devices";
 require_once("plugins/$unassigned_plugin/include/lib.php");
 
 $config_file	= $paths['config_file'];
-$UD_cfg_ini		= is_file($config_file) ? @parse_plugin_cfg($config_file, true) : [];
+$UD_cfg_ini		= is_file($config_file) ? @parse_ini_file($config_file, true) : [];
 $UD_cfg			= ($UD_cfg_ini !== false) ? $UD_cfg_ini : [];
 
 $UD_cfg['Config']['zfs_upgrade']		= $UD_cfg['Config']['zfs_upgrade'] ?? "";
