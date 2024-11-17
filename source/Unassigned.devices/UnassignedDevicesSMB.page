@@ -16,15 +16,8 @@ Title="SMB Settings"
 $unassigned_plugin	= "unassigned.devices";
 require_once("plugins/$unassigned_plugin/include/lib.php");
 
-$config_file 	= $paths['config_file'];
-$UD_cfg_ini		= is_file($config_file) ? @parse_ini_file($config_file, true) : [];
-$UD_cfg			= ($UD_cfg_ini !== false) ? $UD_cfg_ini : [];
-
-$UD_cfg['Config']['smb_security']		= $UD_cfg['Config']['smb_security'] ?? "";
-$UD_cfg['Config']['case_names']			= $UD_cfg['Config']['case_names'] ?? "";
-$UD_cfg['Config']['force_user']			= $UD_cfg['Config']['force_user'] ?? "";
-$UD_cfg['Config']['time_machine']		= $UD_cfg['Config']['time_machine'] ?? "";
-$UD_cfg['Config']['time_mach_vol_size']	= (($UD_cfg['Config']['time_machine'] == "yes") ? ($UD_cfg['Config']['time_mach_vol_size'] ?? "") : "");
+/* Get the unassigned_devices config file. */
+$UD_cfg				= $ud_config;
 
 /* Sort user array by keys in natural order */
 uksort($users, 'strnatcmp');

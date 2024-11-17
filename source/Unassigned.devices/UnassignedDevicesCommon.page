@@ -17,20 +17,8 @@ Tag="unlink"
 $unassigned_plugin	= "unassigned.devices";
 require_once("plugins/$unassigned_plugin/include/lib.php");
 
-$config_file	= $paths['config_file'];
-$UD_cfg_ini		= is_file($config_file) ? @parse_ini_file($config_file, true) : [];
-$UD_cfg			= ($UD_cfg_ini !== false) ? $UD_cfg_ini : [];
-
-$UD_cfg['Config']['common_cmd']			= $UD_cfg['Config']['common_cmd'] ?? "";
-$UD_cfg['Config']['destructive_mode']	= $UD_cfg['Config']['destructive_mode'] ?? "";
-$UD_cfg['Config']['automount_usb']		= $UD_cfg['Config']['automount_usb'] ?? "";
-$UD_cfg['Config']['discard']			= $UD_cfg['Config']['discard'] ?? "";
-$UD_cfg['Config']['symlinks']			= $UD_cfg['Config']['symlinks'] ?? "";
-$UD_cfg['Config']['zvols']				= $UD_cfg['Config']['zvols'] ?? "";
-$UD_cfg['Config']['remote_share_wait']	= $UD_cfg['Config']['remote_share_wait'] ?? "";
-$UD_cfg['Config']['smb_version']		= $UD_cfg['Config']['smb_version'] ?? "";
-$UD_cfg['Config']['nfs_version']		= $UD_cfg['Config']['nfs_version'] ?? "";
-$UD_cfg['Config']['debug_level']		= $UD_cfg['Config']['debug_level'] ?? "";
+/* Get the unassigned_devices config file. */
+$UD_cfg				= $ud_config;
 
 /* See if conditions are set for destructive mode to be enabled. */
 $parted = file_exists("/usr/sbin/parted");

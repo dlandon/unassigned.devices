@@ -16,14 +16,10 @@ Title="NFS Settings"
 $unassigned_plugin	= "unassigned.devices";
 require_once("plugins/$unassigned_plugin/include/lib.php");
 
-$config_file	= $paths['config_file'];
-$UD_cfg_ini		= is_file($config_file) ? @parse_ini_file($config_file, true) : [];
-$UD_cfg			= ($UD_cfg_ini !== false) ? $UD_cfg_ini : [];
+/* Get the unassigned_devices config file. */
+$UD_cfg				= $ud_config;
 
-$UD_cfg['Config']['nfs_export']		= $UD_cfg['Config']['nfs_export'] ?? "";
-$UD_cfg['Config']['nfs_security']	= $UD_cfg['Config']['nfs_security'] ?? "";
-$UD_cfg['Config']['nfs_rule']		= $UD_cfg['Config']['nfs_rule'] ?? "";
-$text								= str_replace(";", "\n", $UD_cfg['Config']['nfs_rule']);
+$text				= str_replace(" ", "\n", $UD_cfg['Config']['nfs_rule']);
 ?>
 
 <table class="tablesorter shift ups">

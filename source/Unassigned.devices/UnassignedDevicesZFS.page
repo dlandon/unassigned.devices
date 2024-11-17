@@ -18,11 +18,8 @@ Cond="version_compare(parse_ini_file('/etc/unraid-version')['version'], '6.11.9'
 $unassigned_plugin	= "unassigned.devices";
 require_once("plugins/$unassigned_plugin/include/lib.php");
 
-$config_file	= $paths['config_file'];
-$UD_cfg_ini		= is_file($config_file) ? @parse_ini_file($config_file, true) : [];
-$UD_cfg			= ($UD_cfg_ini !== false) ? $UD_cfg_ini : [];
-
-$UD_cfg['Config']['zfs_upgrade']		= $UD_cfg['Config']['zfs_upgrade'] ?? "";
+/* Get the unassigned_devices config file. */
+$UD_cfg				= $ud_config;
 
 /* Get array of ZFS devices that can be upgraded. */
 $zfs_devices = [];

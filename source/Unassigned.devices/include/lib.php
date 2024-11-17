@@ -24,6 +24,7 @@ $paths = [	"smb_unassigned"	=> "/etc/samba/smb-unassigned.conf",
 			"disk_load"			=> $docroot."/state/diskload.ini",
 			"device_log"		=> "/tmp/".$unassigned_plugin."/logs/",
 			"config_file"		=> "/tmp/".$unassigned_plugin."/config/".$unassigned_plugin.".cfg",
+			"default_file"		=> "/tmp/".$unassigned_plugin."/config/default.cfg",
 			"samba_mount"		=> "/tmp/".$unassigned_plugin."/config/samba_mount.cfg",
 			"iso_mount"			=> "/tmp/".$unassigned_plugin."/config/iso_mount.cfg",
 			"scripts"			=> "/tmp/".$unassigned_plugin."/scripts/",
@@ -82,8 +83,12 @@ $UPDATE_DEBUG	= 2;
 $CMD_DEBUG		= 8;
 
 /* Read in the UD configuration file. */
-$config_ini		= @parse_ini_file($paths['config_file'], true);
-$ud_config		= ($config_ini !== false) ? $config_ini : [];
+$config_file	= $paths['config_file'];
+$default_file	= $paths['default_file'];
+$config_ini		= @parse_ini_file($config_file, true);
+$default_cfg	= @parse_ini_file($default_file, true);
+$cfg['Config']	= file_exists($default_file) ? parse_ini_file($default_file, true) : [];
+$ud_config		= file_exists($config_file) ? array_replace_recursive($cfg, parse_ini_file($config_file, true)) : $cfg;
 
 /* Read in the Samba configuration file. */
 $config_ini		= @parse_ini_file($paths['samba_mount'], true, INI_SCANNER_RAW);
