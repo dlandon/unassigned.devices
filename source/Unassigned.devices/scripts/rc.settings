@@ -166,7 +166,7 @@ function nfs_settings() {
 			return !empty($line);
 		});
 
-		/* Join the lines with a semicolon. */
+		/* Join the lines with a space. */
 		$result = implode(' ', $lines);
 
 		/* Set the new nfs rule. */
