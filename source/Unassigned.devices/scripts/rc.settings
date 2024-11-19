@@ -10,16 +10,11 @@
  * all copies or substantial portions of the Software.
  */
 
-$unassigned_plugin	= "unassigned.devices";
-require_once("plugins/".$unassigned_plugin."/include/lib.php");
+require_once("plugins/unassigned.devices/include/lib.php");
 
 /* Save changed settings. */
 function save() {
 	global $paths, $ud_config;
-
-	/* Update the UD configuration file in ram. */
-	$config_ini		= @parse_ini_file($paths['config_file'], true, INI_SCANNER_RAW);
-	$ud_config		= ($config_ini !== false) ? $config_ini : [];
 
 	/* Save the updated config onto the flash. */
 	save_ini_file($paths['config_file'], $ud_config);
@@ -33,10 +28,6 @@ function apply() {
 
 	/* Remove the old shares based on the old settings. */
 	remove_shares();
-
-	/* Update the UD configuration file in ram. */
-	$config_ini		= @parse_ini_file($paths['config_file'], true, INI_SCANNER_RAW);
-	$ud_config		= ($config_ini !== false) ? $config_ini : [];
 
 	/* Save the updated config onto the flash. */
 	save_ini_file($paths['config_file'], $ud_config);
@@ -54,11 +45,6 @@ function uuid_change() {
 	/* Get a lock so file changes can be made. */
 	$lock_file	= get_file_lock("cfg");
 
-	/* Make file changes. */
-	$config_file	= $paths['config_file'];
-	$config_ini		= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
-	$ud_config		= ($config_ini !== false) ? $config_ini : [];
-
 	/* Get the device from the passed in device and serial number. */
 	$dev		= $ud_config['Config']['change_uuid'];
 	$first		= strpos($dev, "(") + 1;
@@ -70,7 +56,7 @@ function uuid_change() {
 
 	/* Now clear the setting from the tmp file. */
 	unset($ud_config['Config']['change_uuid']);
-	save_ini_file($config_file, $ud_config, false);
+	save_ini_file($paths['config_file'], $ud_config, false);
 
 	/* Release the file lock. */
 	release_file_lock($lock_file);
@@ -82,11 +68,6 @@ function zfs_upgrade() {
 
 	/* Get a lock so file changes can be made. */
 	$lock_file	= get_file_lock("cfg");
-
-	/* Make file changes. */
-	$config_file	= $paths['config_file'];
-	$config_ini		= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
-	$ud_config		= ($config_ini !== false) ? $config_ini : [];
 
 	/* Get the device from the passed in device and serial number. */
 	$pool_name		= $ud_config['Config']['zfs_upgrade'];
@@ -103,7 +84,7 @@ function zfs_upgrade() {
 
 	/* Now clear the setting from the tmp file. */
 	unset($ud_config['Config']['zfs_upgrade']);
-	save_ini_file($config_file, $ud_config, false);
+	save_ini_file($paths['config_file'], $ud_config, false);
 
 	/* Release the file lock. */
 	release_file_lock($lock_file);
@@ -116,11 +97,6 @@ function set_pass() {
 	/* Get a lock so file changes can be made. */
 	$lock_file	= get_file_lock("cfg");
 
-	/* Make file changes. */
-	$config_file	= $paths['config_file'];
-	$config_ini		= @parse_ini_file($config_file, true, INI_SCANNER_RAW);
-	$ud_config		= ($config_ini !== false) ? $config_ini : [];
-
 	$serial			= $ud_config['Config']['pswd_serial'];
 	$password		= $ud_config['Config']['password'];
 
@@ -129,7 +105,7 @@ function set_pass() {
 	unset($ud_config['Config']['password']);
 
 	/* Save the new configuration. */
-	save_ini_file($config_file, $ud_config, false);
+	save_ini_file($paths['config_file'], $ud_config, false);
 
 	/* Release the file lock. */
 	release_file_lock($lock_file);
@@ -145,8 +121,7 @@ function nfs_settings() {
 	unassigned_log("Updating share settings...");
 
 	/* Make file changes. */
-	$config_file = $paths['config_file'];
-	$cfg		= is_file($config_file) ? @parse_ini_file($config_file, true) : [];
+	$cfg		= $ud_config;
 
 	if (isset($cfg['Config']['new_nfs_rule'])) {
 		/* Get a lock so file changes can be made. */
@@ -176,7 +151,7 @@ function nfs_settings() {
 		unset($cfg['Config']['new_nfs_rule']);
 
 		/* Save the new configuration. */
-		save_ini_file($config_file, $cfg, false);
+		save_ini_file($paths['config_file'], $cfg, false);
 
 		/* Release the file lock. */
 		release_file_lock($lock_file);
