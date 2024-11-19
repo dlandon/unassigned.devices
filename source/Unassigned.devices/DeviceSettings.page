@@ -669,8 +669,8 @@ _(User Script)_:
 				async: false,
 				data: {
 					action: 'set_command',
-					serial: '<?=json_encode($ud_device);?>',
-					part: '<?=json_encode($partition);?>',
+					serial: '<?=$ud_device;?>',
+					part: '<?=$partition;?>',
 					command: $("input[name='#file']").val(),
 					user_command: $("input[name='#user_file']").val()
 				}
@@ -932,7 +932,7 @@ _(User Script)_:
 		/* Skip if fileTree is already open. */
 		if (!inputElement.next().hasClass('fileTree')) {
 			/* Create a random id. */
-			const randomId = Math.floor((Math.random() * 1000) + 1);
+			const randomId = 'id-' + crypto.randomUUID();
 
 			/* Add a new span and load fileTree. */
 			inputElement.after("<span id='fileTree" + randomId + "' class='textarea fileTree'></span>");
