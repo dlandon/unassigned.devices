@@ -10,10 +10,7 @@
  * all copies or substantial portions of the Software.
  */
 
-/* SMB and NFS ports. */
-define('SMB_PORT', '445');
-define('NFS_PORT', '2049');
-define('RPC_PORT', '111');
+require_once("plugins/unassigned.devices/include/lib.php");
 
 /* Set the level for debugging. */
 $DEBUG_LEVEL	= (int) ($argv[4] ?? 0);
@@ -21,64 +18,14 @@ $DEBUG_LEVEL	= (int) ($argv[4] ?? 0);
 /* Get the comand to execute. */
 $COMMAND	= $argv[1];
 
-$unassigned_plugin	= "unassigned.devices";
-$docroot			= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-$config_file		= "/tmp/".$unassigned_plugin."/config/samba_mount.cfg";
 $pidFile			= "/var/run/get_ud_stats";
-$tc 				= "/var/state/".$unassigned_plugin."/ping_status.json";
+$tc 				= "/var/state/".UNASSIGNED_PLUGIN."/ping_status.json";
 $var				= @parse_ini_file("$docroot/state/var.ini");
 $remote_test		= false;
 
 /* Capitalize the local_tld.  Default local TLD is 'LOCAL'. */
 $default_tld	= "LOCAL";
 $local_tld		= (isset($var['LOCAL_TLD']) && ($var['LOCAL_TLD'])) ? strtoupper(trim($var['LOCAL_TLD'])) : $default_tld;
-
-/* Misc functions. */
-class MiscUD
-{
-	/* Get content from a json file. */
-	public static function get_json($file) {
-		return file_exists($file) ? @json_decode(file_get_contents($file), true) : [];
-	}
-
-	/* Save content to a json file. */
-	public static function save_json($file, $content) {
-		@file_put_contents($file."-", json_encode($content, JSON_PRETTY_PRINT));
-		@rename($file."-", $file);
-	}
-
-	/* Confirm we have a good ip address. */
-	public static function is_ip($str) {
-		return filter_var($str, FILTER_VALIDATE_IP);
-	}
-}
-
-/* Unassigned Devices logging. */
-function unassigned_log($m, $debug_level = 0) {
-	global $unassigned_plugin;
-
-	if (($debug_level == 0) || ($debug_level == $GLOBALS["DEBUG_LEVEL"])) {
-		$m		= print_r($m,true);
-		$m		= str_replace("\n", " ", $m);
-		$m		= str_replace('"', "'", $m);
-		shell_exec("/usr/bin/logger"." ".escapeshellarg($m)." -t ".escapeshellarg($unassigned_plugin));
-	}
-}
-
-/* Run a command and time out if it doesn't complete in the $timeout number of seconds. */
-function timed_exec($timeout, $cmd) {
-	$time		= -microtime(true); 
-	$out		= trim(shell_exec("/usr/bin/timeout ".escapeshellarg($timeout)." ".$cmd) ?? "");
-	$time		+= microtime(true);
-	if ($time >= $timeout) {
-		unassigned_log("Warning: shell_exec(".$cmd.") took longer than ".sprintf('%d', $timeout)."s!");
-		$out	= "command timed out";
-	} else {
-		unassigned_log("Timed Exec: shell_exec(".$cmd.") took ".sprintf('%f', $time)."s!", 3);
-	}
-
-	return $out;
-}
 
 /* See if the server port is open. */
 function is_server_alive($server, $port) {
@@ -226,11 +173,10 @@ function is_server_online($server, $protocol, $log = false) {
 
 /* Ping all remote servers to check for being on-line. */
 function ping_servers() {
-	global $config_file;
+	global $samba_config;
 
 	/* Refresh the ping status. */
-	$config_ini		= @parse_ini_file($config_file, true);
-	$samba_mounts	= ($config_ini !== false) ? $config_ini : [];
+	$samba_mounts	= $samba_config;
 	if (is_array($samba_mounts)) {
 		/* Ceate an array of unique server names/ip addresses. */
 		$srvr	= [];
