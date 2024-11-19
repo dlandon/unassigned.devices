@@ -10,8 +10,7 @@
  * all copies or substantial portions of the Software.
  */
 
-$unassigned_plugin	= "unassigned.devices";
-require_once("plugins/".$unassigned_plugin."/include/lib.php");
+require_once("plugins/unassigned.devices/include/lib.php");
 
 /* add translations */
 $_SERVER['REQUEST_URI'] = 'fsck';
@@ -165,10 +164,10 @@ if ((($file_system == "btrfs") || ($file_system == "zfs")) && (! $mounted)) {
 	if ($rc_check != 0) {
 		if ((($file_system == "xfs") && ($rc_check == 1)) || (($file_system != "xfs") && ($file_system != "zfs"))) {
 			write_log("<br>"._('File system corruption detected')."!<br>");
-			write_log("<center><button type='button' onclick='document.location=\"/plugins/".$unassigned_plugin."/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=rw&type="._('Done')."\"'>"._('Run with Correct flag')."</button></center>");
+			write_log("<center><button type='button' onclick='document.location=\"/plugins/".UNASSIGNED_PLUGIN."/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=rw&type="._('Done')."\"'>"._('Run with Correct flag')."</button></center>");
 		} else if (($file_system == "xfs") && ($rc_check == 2)) {
 			write_log("<br>"._('Dirty log detected')."!<br>");
-			write_log("<center><button type='button' onclick='document.location=\"/plugins/".$unassigned_plugin."/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=log&type="._('Done')."\"'>"._('Force Log Zeroing')."</button></center>");
+			write_log("<center><button type='button' onclick='document.location=\"/plugins/".UNASSIGNED_PLUGIN."/include/fsck.php?device={$device}&fs={$fs}&luks={$luks}&serial={$serial}&check_type=log&type="._('Done')."\"'>"._('Force Log Zeroing')."</button></center>");
 			write_log("<br>"._('Note: While there is some risk, if it is not possible to first mount the filesystem to clear the log, zeroing it is the only option to try and repair the filesystem, and in most cases it results in little or no data loss').".&nbsp;&nbsp;");
 		} else if (($file_system == "xfs") && ($rc_check == 4)){
 			write_log("<br>"._('File system corruption fixed')."!<br>");

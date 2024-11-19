@@ -10,21 +10,20 @@
  * all copies or substantial portions of the Software.
  */
 
-$unassigned_plugin	= "unassigned.devices";
-require_once("plugins/".$unassigned_plugin."/include/lib.php");
+require_once("plugins/unassigned.devices/include/lib.php");
 
 /* This is a routine to collect some diagnostics from UD to help in diagnosing issues. */
-$directory		= "/tmp/".$unassigned_plugin."/diagnostics";
+$directory		= "/tmp/".UNASSIGNED_PLUGIN."/diagnostics";
 
 /* Add a timestamp to the zip file name. */
 $timestamp = date('Ymd-His');
 $diag_output    = "/boot/logs/ud_diagnostics-".$timestamp.".zip";
 
 $sourceFiles = [
-	"/var/state/".$unassigned_plugin."/ping_status.json",
-	"/var/state/".$unassigned_plugin."/run_status.json",
-	"/var/state/".$unassigned_plugin."/device_hosts.json",
-	"/var/state/".$unassigned_plugin."/unassigned.devices.ini",
+	"/var/state/".UNASSIGNED_PLUGIN."/ping_status.json",
+	"/var/state/".UNASSIGNED_PLUGIN."/run_status.json",
+	"/var/state/".UNASSIGNED_PLUGIN."/device_hosts.json",
+	"/var/state/".UNASSIGNED_PLUGIN."/unassigned.devices.ini",
 	$paths['dev_state'],
 	"/etc/hosts",
 	"/var/local/emhttp/plugins/diskinfo/diskinfo.json",

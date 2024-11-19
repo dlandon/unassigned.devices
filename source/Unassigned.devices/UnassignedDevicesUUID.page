@@ -14,11 +14,15 @@ Tag="hdd-o"
  * all copies or substantial portions of the Software.
  */
 
-$unassigned_plugin	= "unassigned.devices";
-require_once("plugins/$unassigned_plugin/include/lib.php");
+if (!defined('UNASSIGNED_PLUGIN')) {
+	require_once("plugins/unassigned.devices/include/lib.php");
+}
 
 /* Get the unassigned_devices config file. */
 $UD_cfg				= $ud_config;
+
+/* Temporary config value. */
+$UD_cfg['Config']['change_uuid']		= $UD_cfg['Config']['change_uuid'] ?? "";
 
 /* Get array of devices that can have UUID changed - unmounted, xfs devices. */
 $uuid_devices = [];

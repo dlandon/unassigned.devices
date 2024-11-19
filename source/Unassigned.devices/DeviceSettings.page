@@ -13,9 +13,9 @@ Tag="unlink"
  * all copies or substantial portions of the Software.
  */
 
-$unassigned_plugin	= "unassigned.devices";
-$docroot			= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-require_once("plugins/{$unassigned_plugin}/include/lib.php");
+if (!defined('UNASSIGNED_PLUGIN')) {
+	require_once("plugins/unassigned.devices/include/lib.php");
+}
 
 $background				= "yes";
 $partition				= "";
@@ -23,7 +23,7 @@ $disk_setting			= true;
 $show_device_switches	= true;
 $script_disabled		= "";
 $user_disabled			= "";
-$default_file			= safe_name("/boot/config/plugins/{$unassigned_plugin}/".($_GET['l'] ? basename($_GET['l']).".sh" : ""), true, true);
+$default_file			= safe_name("/boot/config/plugins/".UNASSIGNED_PLUGIN."/".($_GET['l'] ? basename($_GET['l']).".sh" : ""), true, true);
 $fstype					= "";
 $volume					= "";
 $id_bus					= "";
@@ -185,7 +185,7 @@ $ntfs3_driver_loaded	= $output ? true : false;
 /* If there is no file, or the file doesn't exist, then set as no file. */
 if (($file) && (file_exists($file))) {
 	/* Get the device script file text. */
-	$text				= @file_get_contents($file);
+	$text				= htmlspecialchars(@file_get_contents($file));
 
 	$device_script_running	= is_script_running($file);
 } else {
@@ -281,12 +281,11 @@ EOT;
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.ui.css')?>">
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.switchbutton.css')?>">
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.filetree.css')?>" >
-
-<link type="text/css" rel="stylesheet" href="<?autov("/plugins/".$unassigned_plugin."/assets/unassigned.css")?>">
+<link type="text/css" rel="stylesheet" href="<?autov("/plugins/".UNASSIGNED_PLUGIN."/assets/unassigned.css")?>">
 
 <script src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
 <script src="<?autov('/webGui/javascript/jquery.filetree.js')?>"></script>
-<script src="<?autov('/plugins/'.$unassigned_plugin.'/assets/arrive.min.js')?>"></script>
+<script src="<?autov('/plugins/'.UNASSIGNED_PLUGIN.'/assets/arrive.min.js')?>"></script>
 
 <?if ($disk_setting):?>
 <p><strong>_(Disk Serial)_: </strong><?=$serial;?></p>
@@ -427,7 +426,7 @@ _(Encrypt CIFS Mount)_?
 
 <?if ($fstype != "zvol"):?>
 _(Device Script)_:
-: <input type="text" title='_(Enter Device Script File Name)_.' name="#file" id="fileInput" style="width:46%;"  <?=(!$script_disabled ? 'onclick="openFileBrowserDevice(this, \'/boot/config/plugins/' . $unassigned_plugin . '\', \'sh\');"' : 'readonly');?> autocomplete="off" value="<?=$file;?>" placeholder="_(Click here to select a Script File or 'Default' button for a Default Script)_">
+: <input type="text" title='_(Enter Device Script File Name)_.' name="#file" id="fileInput" style="width:46%;"  <?=(!$script_disabled ? 'onclick="openFileBrowserDevice(this, \'/boot/config/plugins/'.UNASSIGNED_PLUGIN.'\', \'sh\');"' : 'readonly');?> autocomplete="off" value="<?=$file;?>" placeholder="_(Click here to select a Script File or 'Default' button for a Default Script)_">
 
 :ud_edit_script_choose_name_plug:
 > This is the Script File that runs when the device is mounted. Choose your Script File name from the file selection dropdown, or enter your desired script.  This cannot be changed if the device is mounted.
@@ -511,7 +510,7 @@ _(User Script)_:
 		$('div.spinner.fixed').hide();
 	};
 
-	const UDURL		= '/plugins/<?=$unassigned_plugin;?>/include/UnassignedDevices.php';
+	const UDURL		= '/plugins/<?=UNASSIGNED_PLUGIN;?>/include/UnassignedDevices.php';
 
 	/* Clean up the file name before submitting it. */
 	function cleanUpFileInput() {
@@ -670,8 +669,8 @@ _(User Script)_:
 				async: false,
 				data: {
 					action: 'set_command',
-					serial: '<?= $ud_device; ?>',
-					part: '<?= $partition; ?>',
+					serial: '<?=json_encode($ud_device);?>',
+					part: '<?=json_encode($partition);?>',
 					command: $("input[name='#file']").val(),
 					user_command: $("input[name='#user_file']").val()
 				}

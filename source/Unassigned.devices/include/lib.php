@@ -10,8 +10,14 @@
  * all copies or substantial portions of the Software.
  */
 
+/* Define our plugin name. */
+if (!defined('UNASSIGNED_PLUGIN')) {
+	define('UNASSIGNED_PLUGIN', 'unassigned.devices');
+}
+
 $docroot			= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-$unassigned_plugin	= "unassigned.devices";
+require_once($docroot."/webGui/include/Wrappers.php");
+require_once($docroot."/webGui/include/Helpers.php");
 
 $paths = [	"smb_unassigned"	=> "/etc/samba/smb-unassigned.conf",
 			"smb_usb_shares"	=> "/etc/samba/unassigned-shares",
@@ -22,36 +28,37 @@ $paths = [	"smb_unassigned"	=> "/etc/samba/smb-unassigned.conf",
 			"shares_state"		=> $docroot."/state/shares.ini",
 			"disks_state"		=> $docroot."/state/disks.ini",
 			"disk_load"			=> $docroot."/state/diskload.ini",
-			"device_log"		=> "/tmp/".$unassigned_plugin."/logs/",
-			"config_file"		=> "/tmp/".$unassigned_plugin."/config/".$unassigned_plugin.".cfg",
-			"default_file"		=> "/tmp/".$unassigned_plugin."/config/default.cfg",
-			"samba_mount"		=> "/tmp/".$unassigned_plugin."/config/samba_mount.cfg",
-			"iso_mount"			=> "/tmp/".$unassigned_plugin."/config/iso_mount.cfg",
-			"scripts"			=> "/tmp/".$unassigned_plugin."/scripts/",
-			"credentials"		=> "/tmp/".$unassigned_plugin."/credentials",
-			"authentication"	=> "/tmp/".$unassigned_plugin."/authentication",
-			"luks_pass"			=> "/tmp/".$unassigned_plugin."/luks_pass",
-			"hotplug_event"		=> "/tmp/".$unassigned_plugin."/hotplug_event",
-			"tmp_file"			=> "/tmp/".$unassigned_plugin."/".uniqid("move_", true).".tmp",
-			"state"				=> "/var/state/".$unassigned_plugin."/".$unassigned_plugin.".ini",
-			"diag_state"		=> "/var/local/emhttp/".$unassigned_plugin.".ini",
-			"mounted"			=> "/var/state/".$unassigned_plugin."/".$unassigned_plugin.".json",
-			"run_status"		=> "/var/state/".$unassigned_plugin."/run_status.json",
-			"ping_status"		=> "/var/state/".$unassigned_plugin."/ping_status.json",
-			"df_status"			=> "/var/state/".$unassigned_plugin."/df_status.json",
-			"disk_names"		=> "/var/state/".$unassigned_plugin."/disk_names.json",
-			"share_names"		=> "/var/state/".$unassigned_plugin."/share_names.json",
-			"pool_state"		=> "/var/state/".$unassigned_plugin."/pool_state.json",
-			"device_hosts"		=> "/var/state/".$unassigned_plugin."/device_hosts.json",
-			"unmounting"		=> "/var/state/".$unassigned_plugin."/unmounting_%s.state",
-			"mounting"			=> "/var/state/".$unassigned_plugin."/mounting_%s.state",
-			"formatting"		=> "/var/state/".$unassigned_plugin."/formatting_%s.state",
-			"clearing"			=> "/var/state/".$unassigned_plugin."/clearing_%s.state"
+			"device_log"		=> "/tmp/".UNASSIGNED_PLUGIN."/logs/",
+			"config_file"		=> "/tmp/".UNASSIGNED_PLUGIN."/config/".UNASSIGNED_PLUGIN.".cfg",
+			"default_file"		=> $docroot."/plugins/".UNASSIGNED_PLUGIN."/default.cfg",
+			"samba_mount"		=> "/tmp/".UNASSIGNED_PLUGIN."/config/samba_mount.cfg",
+			"iso_mount"			=> "/tmp/".UNASSIGNED_PLUGIN."/config/iso_mount.cfg",
+			"scripts"			=> "/tmp/".UNASSIGNED_PLUGIN."/scripts/",
+			"credentials"		=> "/tmp/".UNASSIGNED_PLUGIN."/credentials",
+			"authentication"	=> "/tmp/".UNASSIGNED_PLUGIN."/authentication",
+			"luks_pass"			=> "/tmp/".UNASSIGNED_PLUGIN."/luks_pass",
+			"hotplug_event"		=> "/tmp/".UNASSIGNED_PLUGIN."/hotplug_event",
+			"tmp_file"			=> "/tmp/".UNASSIGNED_PLUGIN."/".uniqid("move_", true).".tmp",
+			"state"				=> "/var/state/".UNASSIGNED_PLUGIN."/".UNASSIGNED_PLUGIN.".ini",
+			"diag_state"		=> "/var/local/emhttp/".UNASSIGNED_PLUGIN.".ini",
+			"mounted"			=> "/var/state/".UNASSIGNED_PLUGIN."/".UNASSIGNED_PLUGIN.".json",
+			"run_status"		=> "/var/state/".UNASSIGNED_PLUGIN."/run_status.json",
+			"ping_status"		=> "/var/state/".UNASSIGNED_PLUGIN."/ping_status.json",
+			"df_status"			=> "/var/state/".UNASSIGNED_PLUGIN."/df_status.json",
+			"disk_names"		=> "/var/state/".UNASSIGNED_PLUGIN."/disk_names.json",
+			"share_names"		=> "/var/state/".UNASSIGNED_PLUGIN."/share_names.json",
+			"pool_state"		=> "/var/state/".UNASSIGNED_PLUGIN."/pool_state.json",
+			"device_hosts"		=> "/var/state/".UNASSIGNED_PLUGIN."/device_hosts.json",
+			"unmounting"		=> "/var/state/".UNASSIGNED_PLUGIN."/unmounting_%s.state",
+			"mounting"			=> "/var/state/".UNASSIGNED_PLUGIN."/mounting_%s.state",
+			"formatting"		=> "/var/state/".UNASSIGNED_PLUGIN."/formatting_%s.state",
+			"clearing"			=> "/var/state/".UNASSIGNED_PLUGIN."/clearing_%s.state"
 		];
 
 /* SMB and NFS ports. */
 define('SMB_PORT', '445');
 define('NFS_PORT', '2049');
+define('RPC_PORT', '111');
 
 /* Get the Unraid users. */
 $users_ini			= @parse_ini_file($docroot."/state/users.ini", true);
@@ -125,8 +132,8 @@ $lsblk_file_types	= null;
 if ( is_file( $docroot."/plugins/preclear.disk/assets/lib.php" ) ) {
 	require_once( $docroot."/plugins/preclear.disk/assets/lib.php" );
 	$Preclear = new Preclear;
-} else if ( is_file( $docroot."/plugins/".$unassigned_plugin.".preclear/include/lib.php" ) ) {
-	require_once( $docroot."/plugins/".$unassigned_plugin.".preclear/include/lib.php" );
+} else if ( is_file( $docroot."/plugins/".UNASSIGNED_PLUGIN.".preclear/include/lib.php" ) ) {
+	require_once( $docroot."/plugins/".UNASSIGNED_PLUGIN.".preclear/include/lib.php" );
 	$Preclear = new Preclear;
 } else {
 	$Preclear = null;
@@ -399,15 +406,13 @@ function _echo($m) {
 
 /* Get a file lock so changes can be made to a cfg or ini file. */
 function get_file_lock($type = "cfg") {
-	global $unassigned_plugin;
-
 	/* Lock file for concurrent operations unique to each process. */
-	$lock_file	= "/tmp/".$unassigned_plugin."/".uniqid($type."_", true).".lock";
+	$lock_file	= "/tmp/".UNASSIGNED_PLUGIN."/".uniqid($type."_", true).".lock";
 
 
 	/* Check for any lock files for previous processes. */
 	$i = 0;
-	while ((! empty(glob("/tmp/".$unassigned_plugin."/".$type."_*.lock"))) && ($i < 200)) {
+	while ((! empty(glob("/tmp/".UNASSIGNED_PLUGIN."/".$type."_*.lock"))) && ($i < 200)) {
 		usleep(10 * 1000);
 		$i++;
 	}
@@ -434,7 +439,7 @@ function release_file_lock($lock_file) {
 
 /* Save ini and cfg files to tmp file system and then copy cfg file changes to flash. */
 function save_ini_file($file, $config, $save_config = true) {
-	global $unassigned_plugin, $paths;
+	global $paths;
 
 	$res = [];
 	foreach($config as $key => $val) {
@@ -457,20 +462,18 @@ function save_ini_file($file, $config, $save_config = true) {
 	if ($save_config) {
 		$file_path = pathinfo($file);
 		if ($file_path['extension'] == "cfg") {
-			@file_put_contents("/boot/config/plugins/".$unassigned_plugin."/".basename($file), implode(PHP_EOL, $res));
+			@file_put_contents("/boot/config/plugins/".UNASSIGNED_PLUGIN."/".basename($file), implode(PHP_EOL, $res));
 		}
 	}
 }
 
 /* Unassigned Devices logging. */
 function unassigned_log($m, $debug_level = 0) {
-	global $unassigned_plugin;
-
 	if (($debug_level == 0) || ($debug_level == $GLOBALS["DEBUG_LEVEL"])) {
 		$m		= print_r($m,true);
 		$m		= str_replace("\n", " ", $m);
 		$m		= str_replace('"', "'", $m);
-		exec("/usr/bin/logger"." ".escapeshellarg($m)." -t ".escapeshellarg($unassigned_plugin));
+		exec("/usr/bin/logger"." ".escapeshellarg($m)." -t ".UNASSIGNED_PLUGIN);
 	}
 }
 
@@ -529,7 +532,7 @@ function safe_name($name, $convert_spaces = true, $convert_extra = false) {
 
 /* Get the size, used, and free space on a mount point. */
 function get_device_stats($mountpoint, $mounted, $active = true, $zfs = false) {
-	global $docroot, $paths, $unassigned_plugin;
+	global $docroot, $paths;
 
 	$rc			= "";
 	$tc			= $paths['df_status'];
@@ -542,7 +545,7 @@ function get_device_stats($mountpoint, $mounted, $active = true, $zfs = false) {
 
 		/* Update the size, used, and free status every 90 seconds on each device. */
 		if (($active) && ((time() - $df_status[$mountpoint]['timestamp']) > 90)) {
-			exec($docroot."/plugins/".$unassigned_plugin."/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".($zfs ? "true" : "false")." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." &");
+			exec($docroot."/plugins/".UNASSIGNED_PLUGIN."/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".($zfs ? "true" : "false")." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." &");
 		}
 
 		/* Get the device stats. */
@@ -2488,7 +2491,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 					$recycle_script = $docroot."/plugins/recycle.bin/scripts/configure_recycle_bin";
 					if (is_file($recycle_script)) {
 						if (file_exists("/boot/config/plugins/recycle.bin/recycle.bin.cfg")) {
-							$recycle_bin_cfg	= @parse_ini_file( "/boot/config/plugins/recycle.bin/recycle.bin.cfg" );
+							$recycle_bin_cfg	= @parse_plugin_cfg("recycle.bin");
 						} else {
 							$recycle_nin_cfg	= [];
 						}
@@ -2709,10 +2712,8 @@ function set_samba_config($source, $variable, $value) {
 		$lock_file		= get_file_lock("smb");
 
 		/* Make file changes. */
-		$config_file	= $paths['samba_mount'];
-
 		$samba_config[$source][$variable] = $value;
-		save_ini_file($config_file, $samba_config);
+		save_ini_file($paths['samba_mount'], $samba_config);
 
 		/* Release the file lock. */
 		release_file_lock($lock_file);
@@ -3116,10 +3117,8 @@ function toggle_samba_automount($source, $status) {
 		$lock_file		= get_file_lock("smb");
 
 		/* Make file changes. */
-		$config_file	= $paths['samba_mount'];
-
 		$samba_config[$source]["automount"] = ($status == "true") ? "yes" : "no";
-		save_ini_file($config_file, $samba_config);
+		save_ini_file($paths['samba_mount'], $samba_config);
 
 		/* Release the file lock. */
 		release_file_lock($lock_file);
@@ -3142,10 +3141,8 @@ function toggle_samba_share($source, $status) {
 		$lock_file		= get_file_lock("smb");
 
 		/* Make file changes. */
-		$config_file	= $paths['samba_mount'];
-
 		$samba_config[$source]["smb_share"] = ($status == "true") ? "yes" : "no";
-		save_ini_file($config_file, $samba_config);
+		save_ini_file($paths['samba_mount'], $samba_config);
 
 		/* Release the file lock. */
 		release_file_lock($lock_file);
@@ -3168,10 +3165,8 @@ function toggle_samba_disable_mount($source, $status) {
 		$lock_file		= get_file_lock("smb");
 
 		/* Make file changes. */
-		$config_file	= $paths['samba_mount'];
-
 		$samba_config[$source]["disable_mount"] = ($status == "true") ? "yes" : "no";
-		save_ini_file($config_file, $samba_config);
+		save_ini_file($paths['samba_mount'], $samba_config);
 
 		/* Release the file lock. */
 		release_file_lock($lock_file);
@@ -3194,10 +3189,8 @@ function toggle_samba_readonly($source, $status) {
 		$lock_file		= get_file_lock("smb");
 
 		/* Make file changes. */
-		$config_file	= $paths['samba_mount'];
-
 		$samba_config[$source]['read_only'] = ($status == "true") ? "yes" : "no";
-		save_ini_file($config_file, $samba_config);
+		save_ini_file($paths['samba_mount'], $samba_config);
 
 		/* Release the file lock. */
 		release_file_lock($lock_file);
@@ -3218,8 +3211,6 @@ function remove_config_samba($source) {
 	$lock_file		= get_file_lock("smb");
 
 	/* Make file changes. */
-	$config_file	= $paths['samba_mount'];
-
 	if ( isset($config[$source]) ) {
 		unassigned_log("Removing configuration '".$source."'.");
 		if (isset($samba_config[$source]['command'])) {
@@ -3233,7 +3224,7 @@ function remove_config_samba($source) {
 	unset($samba_config[$source]);
 
 	/* Resave the samba config. */
-	save_ini_file($config_file, $samba_config);
+	save_ini_file($paths['samba_mount'], $samba_config);
 
 	/* Release the file lock. */
 	release_file_lock($lock_file);
@@ -3262,10 +3253,8 @@ function set_iso_config($source, $variable, $value) {
 		$lock_file		= get_file_lock("iso");
 
 		/* Make file changes. */
-		$config_file	= $paths['iso_mount'];
-
 		$iso_config[$source][$variable] = $value;
-		save_ini_file($config_file, $iso_config);
+		save_ini_file($paths['iso_mount'], $iso_config);
 
 		/* Release the file lock. */
 		release_file_lock($lock_file);
@@ -3394,10 +3383,8 @@ function toggle_iso_automount($source, $status) {
 		$lock_file		= get_file_lock("iso");
 
 		/* Make file changes. */
-		$config_file	= $paths['iso_mount'];
-
 		$iso_config[$source]["automount"] = ($status == "true") ? "yes" : "no";
-		save_ini_file($config_file, $iso_config);
+		save_ini_file($paths['iso_mount'], $iso_config);
 
 		/* Release the file lock. */
 		release_file_lock($lock_file);
@@ -3418,8 +3405,6 @@ function remove_config_iso($source) {
 	$lock_file		= get_file_lock("iso");
 
 	/* Make file changes. */
-	$config_file	= $paths['iso_mount'];
-
 	if ( isset($iso_config[$source]) ) {
 		unassigned_log("Removing ISO configuration '".$source."'.");
 		if (isset($iso_config[$source]['command'])) {
@@ -3433,7 +3418,7 @@ function remove_config_iso($source) {
 		unset($iso_config[$source]);
 
 		/* Save new iso config. */
-		save_ini_file($config_file, $iso_config);
+		save_ini_file($paths['iso_mount'], $iso_config);
 
 		$rc	= (! isset($iso_config[$source]));
 	} else {
@@ -4311,7 +4296,7 @@ function change_iso_mountpoint($dev, $mountpoint) {
 
 /* Change the disk UUID. */
 function change_UUID($dev) {
-	global $docroot, $unassigned_plugin, $paths, $var;
+	global $docroot, $paths, $var;
 
 	$rc	= "";
 
@@ -4332,7 +4317,7 @@ function change_UUID($dev) {
 
 	/* Deal with crypto_LUKS disks. */
 	if ($fs_type == "crypto_LUKS") {
-		timed_exec(20, escapeshellcmd($docroot."/plugins/".$unassigned_plugin."/scripts/luks_uuid.sh ".escapeshellarg($device)));
+		timed_exec(20, escapeshellcmd($docroot."/plugins/".UNASSIGNED_PLUGIN."/scripts/luks_uuid.sh ".escapeshellarg($device)));
 		$mapper	= basename($luks)."_UUID";
 		$cmd	= "luksOpen ".escapeshellarg($luks)." ".escapeshellarg($mapper);
 		$pass	= decrypt_data(get_config($serial, "pass"));

@@ -13,12 +13,12 @@ Title="NFS Settings"
  * all copies or substantial portions of the Software.
  */
 
-$unassigned_plugin	= "unassigned.devices";
-require_once("plugins/$unassigned_plugin/include/lib.php");
+if (!defined('UNASSIGNED_PLUGIN')) {
+	require_once("plugins/unassigned.devices/include/lib.php");
+}
 
 /* Get the unassigned_devices config file. */
 $UD_cfg				= $ud_config;
-
 $text				= str_replace(" ", "\n", $UD_cfg['Config']['nfs_rule']);
 ?>
 

@@ -11,8 +11,7 @@
  * all copies or substantial portions of the Software.
  */
 
-$unassigned_plugin	= "unassigned.devices";
-require_once("plugins/".$unassigned_plugin."/include/lib.php");
+require_once("plugins/unassigned.devices/include/lib.php");
 
 $COMMAND	= $argv[1] ?? "";
 $DEVNAME	= $_ENV['DEVNAME'] ?? ( $argv[2] ?? "" );

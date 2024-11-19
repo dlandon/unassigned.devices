@@ -14,14 +14,10 @@ Tag="unlink"
  * all copies or substantial portions of the Software.
  */
 
-$unassigned_plugin = "unassigned.devices";
-require_once("plugins/".$unassigned_plugin."/include/lib.php");
+require_once("plugins/unassigned.devices/include/lib.php");
 
 /* read translations */
 parse_plugin('UnassignedDevices');
-
-/* Get the version of Unraid we are running. */
-$version = parse_ini_file("/etc/unraid-version");
 
 /* See if NFS and SMB sharing is enabled. */
 $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "no")) ? "disabled" : "";
@@ -35,13 +31,13 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.switchbutton.css')?>">
 <link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.filetree.css')?>">
 
-<link type="text/css" rel="stylesheet" href="<?autov("/plugins/".$unassigned_plugin."/assets/style-$theme.css")?>">
-<link type="text/css" rel="stylesheet" href="<?autov("/plugins/".$unassigned_plugin."/assets/unassigned.css")?>">
+<link type="text/css" rel="stylesheet" href="<?autov("/plugins/".UNASSIGNED_PLUGIN."/assets/style-$theme.css")?>">
+<link type="text/css" rel="stylesheet" href="<?autov("/plugins/".UNASSIGNED_PLUGIN."/assets/unassigned.css")?>">
 
 <script src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
 <script src="<?autov('/webGui/javascript/jquery.filetree.js')?>"></script>
 
-<script src="<?autov('/plugins/'.$unassigned_plugin.'/assets/arrive.min.js')?>"></script>
+<script src="<?autov('/plugins/'.UNASSIGNED_PLUGIN.'/assets/arrive.min.js')?>"></script>
 
 <style>
 <?if ($themes1):?>
@@ -713,7 +709,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 
 <div class='show-disks'>
 	<div class='title shift'>
-		<span class='left'><img src='/plugins/<?=$unassigned_plugin;?>/icons/disk.png' class='icon'><?=_('Unassigned Disk Devices')?></span>
+		<span class='left'><img src='/plugins/<?=UNASSIGNED_PLUGIN;?>/icons/disk.png' class='icon'><?=_('Unassigned Disk Devices')?></span>
 	</div>
 
 	<table id='usb_devices_list' class='usb_mounts'>
@@ -775,7 +771,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 
 <div class='show-shares'>
 	<div class='title shift'>
-		<span class='left'><img src='/plugins/<?=$unassigned_plugin;?>/icons/smbsettings.png' class='icon'><?=_('SMB Shares')?>&nbsp;|&nbsp;<img src='/plugins/<?=$unassigned_plugin?>/icons/nfssettings.png' class='icon'><?=_('NFS Shares')?>&nbsp;|&nbsp;<img src='/plugins/<?=$unassigned_plugin?>/icons/iso.png' class='icon' style='width:16px;'><?=_('ISO File Shares')?></span>
+		<span class='left'><img src='/plugins/<?=UNASSIGNED_PLUGIN;?>/icons/smbsettings.png' class='icon'><?=_('SMB Shares')?>&nbsp;|&nbsp;<img src='/plugins/<?=UNASSIGNED_PLUGIN?>/icons/nfssettings.png' class='icon'><?=_('NFS Shares')?>&nbsp;|&nbsp;<img src='/plugins/<?=UNASSIGNED_PLUGIN?>/icons/iso.png' class='icon' style='width:16px;'><?=_('ISO File Shares')?></span>
 	</div>
 
 	<table class='samba_mounts'>
@@ -811,7 +807,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 	<div class='show-historical'>
 		<br><br>
 		<div class='title shift'>
-			<span class='left'><img src='/plugins/<?=$unassigned_plugin;?>/icons/historical.png' class='icon'><?=_('Historical Unassigned Devices')?></span>
+			<span class='left'><img src='/plugins/<?=UNASSIGNED_PLUGIN;?>/icons/historical.png' class='icon'><?=_('Historical Unassigned Devices')?></span>
 		</div>
 
 		<table class='usb_absent'>
@@ -903,7 +899,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 	const tab_usbdisks = $('input[name$="tabs"]').length;
 
 	/* URL for Unassigned Devices PHP file. */
-	const UDURL = "/plugins/<?=$unassigned_plugin;?>/include/UnassignedDevices.php";
+	const UDURL = "/plugins/<?=UNASSIGNED_PLUGIN;?>/include/UnassignedDevices.php";
 
 	/* Page refresh timer. */
 	let refreshTimer;
@@ -954,10 +950,10 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 	*/
 	if (typeof swal2 === "undefined") {
 		/* Append the SweetAlert2 stylesheet to the head of the document. */
-		$('head').append($('<link rel="stylesheet" type="text/css" />').attr('href', '<?autov("/plugins/".$unassigned_plugin."/assets/sweetalert2.css");?>'));
+		$('head').append($('<link rel="stylesheet" type="text/css" />').attr('href', '<?autov("/plugins/".UNASSIGNED_PLUGIN."/assets/sweetalert2.css");?>'));
 
 		/* Load the SweetAlert2 script dynamically. */
-		$.getScript('/plugins/<?=$unassigned_plugin;?>/assets/sweetalert2.js');
+		$.getScript('/plugins/<?=UNASSIGNED_PLUGIN;?>/assets/sweetalert2.js');
 	}
 
 	/* Bind Arrive events for dynamically added 'tr' elements in the '#usb_devices_list' table. */
