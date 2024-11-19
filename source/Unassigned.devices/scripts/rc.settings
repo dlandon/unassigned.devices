@@ -14,15 +14,15 @@ require_once("plugins/unassigned.devices/include/lib.php");
 
 /* Save changed settings. */
 function save() {
-	global $paths, $ud_config;
+	global $ud_config;
 
 	/* Save the updated config onto the flash. */
-	save_ini_file($paths['config_file'], $ud_config);
+	save_ini_file(UD_CONFIG_FILE, $ud_config);
 }
 
 /* Save settings and update shares based on any changes to settings. */
 function apply() {
-	global $paths, $ud_config;
+	global $ud_config;
 
 	unassigned_log("Updating share settings...");
 
@@ -30,7 +30,7 @@ function apply() {
 	remove_shares();
 
 	/* Save the updated config onto the flash. */
-	save_ini_file($paths['config_file'], $ud_config);
+	save_ini_file(UD_CONFIG_FILE, $ud_config);
 
 	/* Reload the shares based on the new settings. */
 	reload_shares();
@@ -40,7 +40,7 @@ function apply() {
 
 /* Change the UUID of a device. */
 function uuid_change() {
-	global $paths, $ud_config;
+	global $ud_config;
 
 	/* Get a lock so file changes can be made. */
 	$lock_file	= get_file_lock("cfg");
@@ -56,7 +56,7 @@ function uuid_change() {
 
 	/* Now clear the setting from the tmp file. */
 	unset($ud_config['Config']['change_uuid']);
-	save_ini_file($paths['config_file'], $ud_config, false);
+	save_ini_file(UD_CONFIG_FILE, $ud_config, false);
 
 	/* Release the file lock. */
 	release_file_lock($lock_file);
@@ -64,7 +64,7 @@ function uuid_change() {
 
 /* Upgrade ZFS on a device. */
 function zfs_upgrade() {
-	global $paths, $ud_config;
+	global $ud_config;
 
 	/* Get a lock so file changes can be made. */
 	$lock_file	= get_file_lock("cfg");
@@ -84,7 +84,7 @@ function zfs_upgrade() {
 
 	/* Now clear the setting from the tmp file. */
 	unset($ud_config['Config']['zfs_upgrade']);
-	save_ini_file($paths['config_file'], $ud_config, false);
+	save_ini_file(UD_CONFIG_FILE, $ud_config, false);
 
 	/* Release the file lock. */
 	release_file_lock($lock_file);
@@ -92,7 +92,7 @@ function zfs_upgrade() {
 
 /* Set an encrypted device password. */
 function set_pass() {
-	global $paths, $ud_config;
+	global $ud_config;
 
 	/* Get a lock so file changes can be made. */
 	$lock_file	= get_file_lock("cfg");
@@ -105,7 +105,7 @@ function set_pass() {
 	unset($ud_config['Config']['password']);
 
 	/* Save the new configuration. */
-	save_ini_file($paths['config_file'], $ud_config, false);
+	save_ini_file(UD_CONFIG_FILE, $ud_config, false);
 
 	/* Release the file lock. */
 	release_file_lock($lock_file);
@@ -116,7 +116,7 @@ function set_pass() {
 
 /* Update the NFS rule. */
 function nfs_settings() {
-	global $paths, $ud_config;
+	global $ud_config;
 
 	unassigned_log("Updating share settings...");
 
@@ -151,7 +151,7 @@ function nfs_settings() {
 		unset($cfg['Config']['new_nfs_rule']);
 
 		/* Save the new configuration. */
-		save_ini_file($paths['config_file'], $cfg, false);
+		save_ini_file(UD_CONFIG_FILE, $cfg, false);
 
 		/* Release the file lock. */
 		release_file_lock($lock_file);
