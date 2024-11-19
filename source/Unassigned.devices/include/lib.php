@@ -60,6 +60,11 @@ define('SMB_PORT', '445');
 define('NFS_PORT', '2049');
 define('RPC_PORT', '111');
 
+/* Path links. */
+define('UNASSIGNED_DEVICES_SETTINGS', '/plugins/unassigned.devices/scripts/rc.settings');
+define('UD_CONFIG_FILE', $paths['config_file']);
+define('UD_URL', '/plugins/'.UNASSIGNED_PLUGIN.'/include/UnassignedDevices.php');
+
 /* Get the Unraid users. */
 $users_ini			= @parse_ini_file($docroot."/state/users.ini", true);
 $users				= ($users_ini !== false) ? $users_ini : [];
@@ -90,12 +95,11 @@ $UPDATE_DEBUG	= 2;
 $CMD_DEBUG		= 8;
 
 /* Read in the UD configuration file. */
-$config_file	= $paths['config_file'];
 $default_file	= $paths['default_file'];
-$config_ini		= @parse_ini_file($config_file, true);
+$config_ini		= @parse_ini_file(UD_CONFIG_FILE, true);
 $default_cfg	= @parse_ini_file($default_file, true);
 $cfg['Config']	= file_exists($default_file) ? parse_ini_file($default_file, true) : [];
-$ud_config		= file_exists($config_file) ? array_replace_recursive($cfg, parse_ini_file($config_file, true)) : $cfg;
+$ud_config		= file_exists(UD_CONFIG_FILE) ? array_replace_recursive($cfg, parse_ini_file(UD_CONFIG_FILE, true)) : $cfg;
 
 /* Read in the Samba configuration file. */
 $config_ini		= @parse_ini_file($paths['samba_mount'], true, INI_SCANNER_RAW);
@@ -1326,7 +1330,7 @@ function get_config($serial, $variable) {
 
 /* Set device configuration parameter. */
 function set_config($serial, $variable, $value) {
-	global $paths, $ud_config;
+	global $ud_config;
 
 	/* Verify we have a serial number. */
 	if ($serial) {
@@ -1334,10 +1338,8 @@ function set_config($serial, $variable, $value) {
 		$lock_file		= get_file_lock("cfg");
 
 		/* Make file changes. */
-		$config_file	= $paths['config_file'];
-
 		$ud_config[$serial][$variable] = $value;
-		save_ini_file($config_file, $ud_config);
+		save_ini_file(UD_CONFIG_FILE, $ud_config);
 
 		/* Release the file lock. */
 		release_file_lock($lock_file);
@@ -1385,7 +1387,7 @@ function is_disable_mount($serial, $part = "") {
 
 /* Toggle auto mount on/off. */
 function toggle_automount($serial, $status) {
-	global $paths, $ud_config;
+	global $ud_config;
 
 	/* Verify we have a serial number. */
 	if ($serial) {
@@ -1393,10 +1395,8 @@ function toggle_automount($serial, $status) {
 		$lock_file		= get_file_lock("cfg");
 
 		/* Make file changes. */
-		$config_file	= $paths['config_file'];
-
 		$ud_config[$serial]["automount"] = ($status == "true") ? "yes" : "no";
-		save_ini_file($config_file, $ud_config);
+		save_ini_file(UD_CONFIG_FILE, $ud_config);
 
 		/* Release the file lock. */
 		release_file_lock($lock_file);
@@ -1411,7 +1411,7 @@ function toggle_automount($serial, $status) {
 
 /* Toggle read only on/off. */
 function toggle_read_only($serial, $status, $part = "") {
-	global $paths, $ud_config;
+	global $ud_config;
 
 	/* Verify we have a serial number. */
 	if ($serial) {
@@ -1419,11 +1419,9 @@ function toggle_read_only($serial, $status, $part = "") {
 		$lock_file		= get_file_lock("cfg");
 
 		/* Make file changes. */
-		$config_file	= $paths['config_file'];
-
 		$read_only		= "read_only".($part ? ".$part" : "");
 		$ud_config[$serial][$read_only] = ($status == "true") ? "yes" : "no";
-		save_ini_file($config_file, $ud_config);
+		save_ini_file(UD_CONFIG_FILE, $ud_config);
 
 		/* Release the file lock. */
 		release_file_lock($lock_file);
@@ -1438,7 +1436,7 @@ function toggle_read_only($serial, $status, $part = "") {
 
 /* Toggle pass through on/off. */
 function toggle_pass_through($serial, $status, $part = "") {
-	global $paths, $ud_config;
+	global $ud_config;
 
 	/* Verify we have a serial number. */
 	if ($serial) {
@@ -1446,11 +1444,9 @@ function toggle_pass_through($serial, $status, $part = "") {
 		$lock_file		= get_file_lock("cfg");
 
 		/* Make file changes. */
-		$config_file	= $paths['config_file'];
-
 		$pass_through	= "pass_through".($part ? ".$part" : "");
 		$ud_config[$serial][$pass_through] = ($status == "true") ? "yes" : "no";
-		save_ini_file($config_file, $ud_config);
+		save_ini_file(UD_CONFIG_FILE, $ud_config);
 
 		/* Release the file lock. */
 		release_file_lock($lock_file);
@@ -1465,7 +1461,7 @@ function toggle_pass_through($serial, $status, $part = "") {
 
 /* Toggle hide mount button on/off. */
 function toggle_disable_mount($serial, $status, $part = "") {
-	global $paths, $ud_config;
+	global $ud_config;
 
 	/* Verify we have a serial number. */
 	if ($serial) {
@@ -1473,11 +1469,9 @@ function toggle_disable_mount($serial, $status, $part = "") {
 		$lock_file		= get_file_lock("cfg");
 
 		/* Make file changes. */
-		$config_file	= $paths['config_file'];
-
 		$disable_mount	= "disable_mount".($part ? ".$part" : "");
 		$ud_config[$serial][$disable_mount] = ($status == "true") ? "yes" : "no";
-		save_ini_file($config_file, $ud_config);
+		save_ini_file(UD_CONFIG_FILE, $ud_config);
 
 		/* Release the file lock. */
 		release_file_lock($lock_file);
@@ -1599,15 +1593,13 @@ function execute_script($info, $action, $testing = false) {
 
 /* Remove a historical disk configuration. */
 function remove_config_disk($serial) {
-	global $paths, $ud_config;
+	global $ud_config;
 
 	/* Get the all disk configurations. */
 	/* Get a lock so file changes can be made. */
 	$lock_file		= get_file_lock("cfg");
 
 	/* Make file changes. */
-	$config_file	= $paths['config_file'];
-
 	if ( isset($ud_config[$serial]) ) {
 		unassigned_log("Removing configuration '".$serial."'.");
 	}
@@ -1616,7 +1608,7 @@ function remove_config_disk($serial) {
 	unset($ud_config[$serial]);
 
 	/* Resave all disk configurations. */
-	save_ini_file($config_file, $ud_config);
+	save_ini_file(UD_CONFIG_FILE, $ud_config);
 
 	/* Release the file lock. */
 	release_file_lock($lock_file);
