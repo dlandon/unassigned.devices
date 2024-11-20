@@ -78,7 +78,7 @@ if ((! $parted) && ($UD_cfg['Config']['destructive_mode'] == "enabled")) {
 		const inputElement = $(el);
 
 		if (!inputElement.next().hasClass('fileTree')) {
-			const randomId = Math.floor((Math.random() * 1000) + 1);
+			const randomId = 'id-' + crypto.randomUUID();
 			const fileTreeElement = createFileTreeElement(inputElement, randomId);
 
 			fileTreeElement.fileTree(
@@ -173,8 +173,8 @@ if ((! $parted) && ($UD_cfg['Config']['destructive_mode'] == "enabled")) {
 
 <form markdown="1" name="common_settings" method="POST" action="/update.php" target="progressFrame">
 <input type="hidden" name="#section" value="Config">
-<input type="hidden" name="#file" value="<?=$paths['config_file']?>">
-<input type="hidden" name="#command" value="/plugins/unassigned.devices/scripts/rc.settings">
+<input type="hidden" name="#file" value="<?=UD_CONFIG_FILE;?>">
+<input type="hidden" name="#command" value="<?=UNASSIGNED_DEVICES_SETTINGS;?>">
 <input type="hidden" name="#arg[1]" value="save">
 
 <?if (! $parted):?>
