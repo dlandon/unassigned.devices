@@ -65,8 +65,8 @@ foreach (get_all_disks_info() as $d) {
 
 <form markdown="1" name="zfs_disk_upgrade" method="POST" action="/update.php" target="progressFrame">
 <input type="hidden" name="#section" value="Config">
-<input type="hidden" name="#file" value="<?=$paths['config_file']?>">
-<input type="hidden" name="#command" value="/plugins/unassigned.devices/scripts/rc.settings">
+<input type="hidden" name="#file" value="<?=UD_CONFIG_FILE;?>">
+<input type="hidden" name="#command" value="<?=UNASSIGNED_DEVICES_SETTINGS;?>">
 <input type="hidden" name="#arg[1]" value="zfs_upgrade">
 
 _(Select Disk)_:
