@@ -10,11 +10,14 @@
  * all copies or substantial portions of the Software.
  */
 
-require_once("plugins/unassigned.devices/include/lib.php");
+/* Load the UD library file if it is not already loaded. */
+if (!defined('UNASSIGNED_PLUGIN')) {
+	require_once("plugins/unassigned.devices/include/lib.php");
+}
 
 /* add translations */
 $_SERVER['REQUEST_URI'] = 'fsck';
-require_once "$docroot/webGui/include/Translations.php";
+require_once(DOCROOT."/webGui/include/Translations.php");
 
 readfile('logging.htm');
 

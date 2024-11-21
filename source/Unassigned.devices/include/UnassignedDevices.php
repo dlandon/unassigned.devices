@@ -10,11 +10,14 @@
  * all copies or substantial portions of the Software.
  */
 
-require_once("plugins/unassigned.devices/include/lib.php");
+/* Load the UD library file if it is not already loaded. */
+if (!defined('UNASSIGNED_PLUGIN')) {
+	require_once("plugins/unassigned.devices/include/lib.php");
+}
 
 /* add translations */
 $_SERVER['REQUEST_URI'] = "unassigneddevices";
-require_once($docroot."/webGui/include/Translations.php");
+require_once(DOCROOT."/webGui/include/Translations.php");
 
 if (isset($_POST['display'])) {
 	$display = $_POST['display'];
@@ -1161,7 +1164,7 @@ switch ($_POST['action']) {
 
 	case 'update_ping':
 		/* Refresh the ping status in the background. */
-		exec($docroot."/plugins/".UNASSIGNED_PLUGIN."/scripts/get_ud_stats ping > /dev/null 2>&1 &");
+		exec(DOCROOT."/plugins/".UNASSIGNED_PLUGIN."/scripts/get_ud_stats ping > /dev/null 2>&1 &");
 		break;
 
 	case 'get_content_json':
@@ -1394,7 +1397,7 @@ switch ($_POST['action']) {
 	/* DISK */
 	case 'rescan_disks':
 		/* Refresh all disk partition information, update config files from flash, and clear status files. */
-		exec($docroot."/plugins/".UNASSIGNED_PLUGIN."/scripts/copy_config.sh");
+		exec(DOCROOT."/plugins/".UNASSIGNED_PLUGIN."/scripts/copy_config.sh");
 
 		/* Rescan all disk partitions. */
 		foreach (get_all_disks_info() as $d) {
@@ -1460,7 +1463,7 @@ switch ($_POST['action']) {
 			$netmask 	= $iface['netmask'];
 			if (MiscUD::is_ip($ip) && MiscUD::is_ip($netmask)) {
 				/* Check for SMB servers having their port open for SMB. */
-				exec($docroot."/plugins/".UNASSIGNED_PLUGIN."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." ".SMB_PORT, $hosts);
+				exec(DOCROOT."/plugins/".UNASSIGNED_PLUGIN."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." ".SMB_PORT, $hosts);
 
 				/* Do a name lookup on each IP address found in hosts. */
 				foreach ($hosts as $host) {
@@ -1509,7 +1512,7 @@ switch ($_POST['action']) {
 		@file_put_contents("{$paths['authentication']}", "domain=".$domain."\n", FILE_APPEND);
 
 		/* Update this server status before listing shares. */
-		exec($docroot."/plugins/".UNASSIGNED_PLUGIN."/scripts/get_ud_stats is_online ".escapeshellarg($ip)." "."SMB");
+		exec(DOCROOT."/plugins/".UNASSIGNED_PLUGIN."/scripts/get_ud_stats is_online ".escapeshellarg($ip)." "."SMB");
 
 		/* Get a list of samba shares on this server. */
 		$list	= timed_exec(10, "/usr/bin/smbclient -t2 -g -L ".escapeshellarg($ip)." --authentication-file=".escapeshellarg($paths['authentication'])." 2>/dev/null | /usr/bin/awk -F'|' '/Disk/{print $2}' | sort", true);
@@ -1533,7 +1536,7 @@ switch ($_POST['action']) {
 			$netmask 	= $iface['netmask'];
 			if (MiscUD::is_ip($ip) && MiscUD::is_ip($netmask)) {
 				/* Check for NFS servers having their port open for NFS. */
-				exec($docroot."/plugins/".UNASSIGNED_PLUGIN."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." ".NFS_PORT." 2>/dev/null", $hosts);
+				exec(DOCROOT."/plugins/".UNASSIGNED_PLUGIN."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." ".NFS_PORT." 2>/dev/null", $hosts);
 
 				/* Do a name lookup on each IP address found in hosts. */
 				foreach ($hosts as $host) {
@@ -1570,7 +1573,7 @@ switch ($_POST['action']) {
 		$ip			= strtoupper(stripslashes(trim($ip)));
 
 		/* Update this server status before listing shares. */
-		exec($docroot."/plugins/".UNASSIGNED_PLUGIN."/scripts/get_ud_stats is_online ".escapeshellarg($ip)." "."NFS");
+		exec(DOCROOT."/plugins/".UNASSIGNED_PLUGIN."/scripts/get_ud_stats is_online ".escapeshellarg($ip)." "."NFS");
 
 		/* List the shares. */
 		$result		= shell_exec("/usr/sbin/showmount --no-headers -e ".escapeshellarg($ip)." 2>/dev/null | rev | cut -d' ' -f2- | rev | sort");

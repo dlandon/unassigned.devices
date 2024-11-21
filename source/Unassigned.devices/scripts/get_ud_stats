@@ -10,7 +10,10 @@
  * all copies or substantial portions of the Software.
  */
 
-require_once("plugins/unassigned.devices/include/lib.php");
+/* Load the UD library file if it is not already loaded. */
+if (!defined('UNASSIGNED_PLUGIN')) {
+	require_once("plugins/unassigned.devices/include/lib.php");
+}
 
 /* Set the level for debugging. */
 $DEBUG_LEVEL	= (int) ($argv[4] ?? 0);
@@ -20,7 +23,7 @@ $COMMAND	= $argv[1];
 
 $pidFile			= "/var/run/get_ud_stats";
 $tc 				= "/var/state/".UNASSIGNED_PLUGIN."/ping_status.json";
-$var				= @parse_ini_file("$docroot/state/var.ini");
+$var				= @parse_ini_file(DOCROOT."/state/var.ini");
 $remote_test		= false;
 
 /* Capitalize the local_tld.  Default local TLD is 'LOCAL'. */

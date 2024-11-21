@@ -1,8 +1,8 @@
 #!/bin/bash
 
-docroot=$(grep -Po '^chdir = \K.*' /etc/php-fpm.d/www.conf 2>/dev/null)
-if [ -z "$docroot" ]; then
-	docroot="/usr/local/emhttp"
+DOCROOT=$(grep -Po '^chdir = \K.*' /etc/php-fpm.d/www.conf 2>/dev/null)
+if [ -z "$DOCROOT" ]; then
+	DOCROOT="/usr/local/emhttp"
 fi
 
 logger "Mounting 'Auto Mount' Remote Shares..." -t "unassigned.devices"
@@ -28,5 +28,5 @@ else
 		logger "Gateway '$gateway' is not responding to a ping!" -t "unassigned.devices"
 	fi
 
-	"$docroot"/plugins/unassigned.devices/scripts/rc.unassigned mount autoshares &>/dev/null &
+	"$DOCROOT"/plugins/unassigned.devices/scripts/rc.unassigned mount autoshares &>/dev/null &
 fi

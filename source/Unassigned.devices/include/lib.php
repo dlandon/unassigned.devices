@@ -15,22 +15,26 @@ if (!defined('UNASSIGNED_PLUGIN')) {
 	define('UNASSIGNED_PLUGIN', 'unassigned.devices');
 }
 
-$docroot			= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-require_once($docroot."/webGui/include/Wrappers.php");
-require_once($docroot."/webGui/include/Helpers.php");
+/* Define our plugin name. */
+if (!defined('DOCROOT')) {
+	define('DOCROOT', $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
+}
+
+require_once(DOCROOT."/webGui/include/Wrappers.php");
+require_once(DOCROOT."/webGui/include/Helpers.php");
 
 $paths = [	"smb_unassigned"	=> "/etc/samba/smb-unassigned.conf",
 			"smb_usb_shares"	=> "/etc/samba/unassigned-shares",
 			"usb_mountpoint"	=> "/mnt/disks",
 			"remote_mountpoint"	=> "/mnt/remotes",
 			"root_mountpoint"	=> "/mnt/rootshare",
-			"dev_state"			=> $docroot."/state/devs.ini",
-			"shares_state"		=> $docroot."/state/shares.ini",
-			"disks_state"		=> $docroot."/state/disks.ini",
-			"disk_load"			=> $docroot."/state/diskload.ini",
+			"dev_state"			=> DOCROOT."/state/devs.ini",
+			"shares_state"		=> DOCROOT."/state/shares.ini",
+			"disks_state"		=> DOCROOT."/state/disks.ini",
+			"disk_load"			=> DOCROOT."/state/diskload.ini",
 			"device_log"		=> "/tmp/".UNASSIGNED_PLUGIN."/logs/",
 			"config_file"		=> "/tmp/".UNASSIGNED_PLUGIN."/config/".UNASSIGNED_PLUGIN.".cfg",
-			"default_file"		=> $docroot."/plugins/".UNASSIGNED_PLUGIN."/default.cfg",
+			"default_file"		=> DOCROOT."/plugins/".UNASSIGNED_PLUGIN."/default.cfg",
 			"samba_mount"		=> "/tmp/".UNASSIGNED_PLUGIN."/config/samba_mount.cfg",
 			"iso_mount"			=> "/tmp/".UNASSIGNED_PLUGIN."/config/iso_mount.cfg",
 			"scripts"			=> "/tmp/".UNASSIGNED_PLUGIN."/scripts/",
@@ -61,16 +65,16 @@ define('NFS_PORT', '2049');
 define('RPC_PORT', '111');
 
 /* Path links. */
-define('UNASSIGNED_DEVICES_SETTINGS', '/plugins/unassigned.devices/scripts/rc.settings');
+define('UD_SETTINGS_SCRIPT', '/plugins/unassigned.devices/scripts/rc.settings');
 define('UD_CONFIG_FILE', $paths['config_file']);
 define('UD_URL', '/plugins/'.UNASSIGNED_PLUGIN.'/include/UnassignedDevices.php');
 
 /* Get the Unraid users. */
-$users_ini			= @parse_ini_file($docroot."/state/users.ini", true);
+$users_ini			= @parse_ini_file(DOCROOT."/state/users.ini", true);
 $users				= ($users_ini !== false) ? $users_ini : [];
 
 /* Get all Unraid disk devices (array disks, cache, and pool devices). */
-$array_disks_ini	= @parse_ini_file($docroot."/state/disks.ini", true);
+$array_disks_ini	= @parse_ini_file(DOCROOT."/state/disks.ini", true);
 $array_disks		= ($array_disks_ini !== false) ? $array_disks_ini : [];
 $unraid_disks		= [];
 foreach ($array_disks as $d) {
@@ -116,10 +120,10 @@ $shares_enabled	= ((get_config("Config", "smb_security") != "no") || (get_config
 
 /* Read Unraid variables file. Used to determine disks not assigned to the array and other array parameters. */
 if (! isset($var)){
-	if (! is_file($docroot."/state/var.ini")) {
+	if (! is_file(DOCROOT."/state/var.ini")) {
 		exec("/usr/bin/wget -qO /dev/null localhost:$(ss -napt | /bin/grep emhttp | /bin/grep -Po ':\K\d+') >/dev/null");
 	}
-	$var = @parse_ini_file($docroot."/state/var.ini");
+	$var = @parse_ini_file(DOCROOT."/state/var.ini");
 }
 
 /* Capitalize the local_tld.  Default local TLD is 'LOCAL'. */
@@ -133,11 +137,11 @@ $mounts			= null;
 $lsblk_file_types	= null;
 
 /* See if the preclear plugin is installed. */
-if ( is_file( $docroot."/plugins/preclear.disk/assets/lib.php" ) ) {
-	require_once( $docroot."/plugins/preclear.disk/assets/lib.php" );
+if ( is_file( DOCROOT."/plugins/preclear.disk/assets/lib.php" ) ) {
+	require_once( DOCROOT."/plugins/preclear.disk/assets/lib.php" );
 	$Preclear = new Preclear;
-} else if ( is_file( $docroot."/plugins/".UNASSIGNED_PLUGIN.".preclear/include/lib.php" ) ) {
-	require_once( $docroot."/plugins/".UNASSIGNED_PLUGIN.".preclear/include/lib.php" );
+} else if ( is_file( DOCROOT."/plugins/".UNASSIGNED_PLUGIN.".preclear/include/lib.php" ) ) {
+	require_once( DOCROOT."/plugins/".UNASSIGNED_PLUGIN.".preclear/include/lib.php" );
 	$Preclear = new Preclear;
 } else {
 	$Preclear = null;
@@ -536,7 +540,7 @@ function safe_name($name, $convert_spaces = true, $convert_extra = false) {
 
 /* Get the size, used, and free space on a mount point. */
 function get_device_stats($mountpoint, $mounted, $active = true, $zfs = false) {
-	global $docroot, $paths;
+	global $paths;
 
 	$rc			= "";
 	$tc			= $paths['df_status'];
@@ -549,7 +553,7 @@ function get_device_stats($mountpoint, $mounted, $active = true, $zfs = false) {
 
 		/* Update the size, used, and free status every 90 seconds on each device. */
 		if (($active) && ((time() - $df_status[$mountpoint]['timestamp']) > 90)) {
-			exec($docroot."/plugins/".UNASSIGNED_PLUGIN."/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".($zfs ? "true" : "false")." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." &");
+			exec(DOCROOT."/plugins/".UNASSIGNED_PLUGIN."/scripts/get_ud_stats df_status ".escapeshellarg($tc)." ".escapeshellarg($mountpoint)." ".($zfs ? "true" : "false")." ".escapeshellarg($GLOBALS['DEBUG_LEVEL'])." &");
 		}
 
 		/* Get the device stats. */
@@ -2106,7 +2110,7 @@ function do_mount_local($info) {
 
 /* Mount root share. */
 function do_mount_root($info) {
-	global $docroot, $paths, $var;
+	global $paths, $var;
 
 	$rc		= false;
 
@@ -2118,7 +2122,7 @@ function do_mount_root($info) {
 		/* If the root server is not online, run the ping update and see if ping status needs to be refreshed. */
 		if (! $is_alive) {
 			/* Update the root share server ping status. */
-			exec($docroot."/plugins/unassigned.devices/scripts/get_ud_stats ping");
+			exec(DOCROOT."/plugins/unassigned.devices/scripts/get_ud_stats ping");
 
 			/* See if the root share server is online now. */
 			$is_alive = is_samba_server_online($info['ip'], $info['protocol']);
@@ -2335,7 +2339,7 @@ function toggle_share($serial, $part, $status) {
 
 /* Add mountpoint to samba shares. */
 function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
-	global $docroot, $paths, $var, $users, $ud_config;
+	global $paths, $var, $users, $ud_config;
 
 	/* Get the current UD configuration. */
 	$config							= $ud_config["Config"];
@@ -2480,7 +2484,7 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 				/* If the recycle bin plugin is installed, add the recycle bin to the share. */
 				if ($recycle_bin) {
 					/* Add the recycle bin parameters if plugin is installed */
-					$recycle_script = $docroot."/plugins/recycle.bin/scripts/configure_recycle_bin";
+					$recycle_script = DOCROOT."/plugins/recycle.bin/scripts/configure_recycle_bin";
 					if (is_file($recycle_script)) {
 						if (file_exists("/boot/config/plugins/recycle.bin/recycle.bin.cfg")) {
 							$recycle_bin_cfg	= @parse_plugin_cfg("recycle.bin");
@@ -2931,7 +2935,7 @@ function get_samba_mounts() {
 
 /* Mount a remote samba or NFS share. */
 function do_mount_samba($info) {
-	global $docroot, $paths, $var;
+	global $paths, $var;
 
 	$rc				= false;
 
@@ -2941,7 +2945,7 @@ function do_mount_samba($info) {
 	/* If the remote server is not online, run the ping update and see if ping status needs to be refreshed. */
 	if (! $is_alive) {
 		/* Update the remote server ping status. */
-		exec($docroot."/plugins/unassigned.devices/scripts/get_ud_stats ping");
+		exec(DOCROOT."/plugins/unassigned.devices/scripts/get_ud_stats ping");
 
 		/* See if the server is online now. */
 		$is_alive = is_samba_server_online($info['ip'], $info['protocol']);
@@ -4288,7 +4292,7 @@ function change_iso_mountpoint($dev, $mountpoint) {
 
 /* Change the disk UUID. */
 function change_UUID($dev) {
-	global $docroot, $paths, $var;
+	global $paths, $var;
 
 	$rc	= "";
 
@@ -4309,7 +4313,7 @@ function change_UUID($dev) {
 
 	/* Deal with crypto_LUKS disks. */
 	if ($fs_type == "crypto_LUKS") {
-		timed_exec(20, escapeshellcmd($docroot."/plugins/".UNASSIGNED_PLUGIN."/scripts/luks_uuid.sh ".escapeshellarg($device)));
+		timed_exec(20, escapeshellcmd(DOCROOT."/plugins/".UNASSIGNED_PLUGIN."/scripts/luks_uuid.sh ".escapeshellarg($device)));
 		$mapper	= basename($luks)."_UUID";
 		$cmd	= "luksOpen ".escapeshellarg($luks)." ".escapeshellarg($mapper);
 		$pass	= decrypt_data(get_config($serial, "pass"));
