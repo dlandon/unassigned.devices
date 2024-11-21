@@ -11,14 +11,10 @@
  */
 
 /* Define our plugin name. */
-if (!defined('UNASSIGNED_PLUGIN')) {
-	define('UNASSIGNED_PLUGIN', 'unassigned.devices');
-}
+define('UNASSIGNED_PLUGIN', 'unassigned.devices');
 
 /* Define our plugin name. */
-if (!defined('DOCROOT')) {
-	define('DOCROOT', $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
-}
+define('DOCROOT', $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
 
 require_once(DOCROOT."/webGui/include/Wrappers.php");
 require_once(DOCROOT."/webGui/include/Helpers.php");

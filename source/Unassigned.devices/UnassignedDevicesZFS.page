@@ -16,9 +16,7 @@ Cond="version_compare(parse_ini_file('/etc/unraid-version')['version'], '6.11.9'
  */
 
 /* Load the UD library file if it is not already loaded. */
-if (!defined('UNASSIGNED_PLUGIN')) {
-	require_once("plugins/unassigned.devices/include/lib.php");
-}
+require_once("plugins/unassigned.devices/include/lib.php");
 
 /* Get the unassigned_devices config file. */
 $UD_cfg				= $ud_config;

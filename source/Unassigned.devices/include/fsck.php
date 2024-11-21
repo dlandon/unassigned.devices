@@ -11,9 +11,7 @@
  */
 
 /* Load the UD library file if it is not already loaded. */
-if (!defined('UNASSIGNED_PLUGIN')) {
-	require_once("plugins/unassigned.devices/include/lib.php");
-}
+require_once("plugins/unassigned.devices/include/lib.php");
 
 /* add translations */
 $_SERVER['REQUEST_URI'] = 'fsck';
