@@ -1241,12 +1241,22 @@ switch ($_POST['action']) {
 		break;
 
 	case 'set_ntfs3_driver':
-		/* Set apfs volume configuration setting. */
+		/* Set ntfs3 option configuration setting. */
 		$serial	= htmlspecialchars($_POST['serial']);
 		$part	= htmlspecialchars($_POST['part']);
 		$ntfs3	= htmlspecialchars($_POST['ntfs3_driver']);
 
 		$result	= set_config($serial, "ntfs3_driver.{$part}", $ntfs3);
+		echo json_encode(array( 'result' => $result ));
+		break;
+
+	case 'set_compress_option':
+		/* Set compress option configuration setting. */
+		$serial		= htmlspecialchars($_POST['serial']);
+		$part		= htmlspecialchars($_POST['part']);
+		$compress	= htmlspecialchars($_POST['compress_option']);
+
+		$result	= set_config($serial, "compress_option.{$part}", $compress);
 		echo json_encode(array( 'result' => $result ));
 		break;
 

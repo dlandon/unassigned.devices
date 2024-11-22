@@ -1712,13 +1712,15 @@ function is_mounted_read_only($dir) {
 }
 
 /* Get the mount parameters based on the file system. */
-function get_mount_params($fs, $dev, $ro = false) {
+function get_mount_params($fs, $dev, $ro = false, $compression = "") {
 	global $paths, $version;
 
 	$rc				= "";
 	if (($fs != "cifs") && ($fs != "nfs") && ($fs != "root")) {
 		$discard 		= ((get_config("Config", "discard") == "yes") && (is_disk_ssd($dev))) ? ",discard" : "";
 	}
+	$compress_option	= (($fs == "btrfs") && ($compression)) ? ",compress=".$compression : "";
+
 	$rw					= $ro ? "ro" : "rw";
 	switch ($fs) {
 		case 'hfsplus':
@@ -1726,7 +1728,7 @@ function get_mount_params($fs, $dev, $ro = false) {
 			break;
 
 		case 'btrfs':
-			$rc = "{$rw},relatime,space_cache=v2{$discard}";
+			$rc = "{$rw},relatime,space_cache=v2{$discard}{$compress_option}";
 			break;
 
 		case 'xfs':
@@ -1857,6 +1859,7 @@ function do_mount_local($info) {
 	$dir			= $info['mountpoint'];
 	$fs				= $info['fstype'];
 	$ro				= $info['read_only'];
+	$compression	= $info['compression'];
 	$file_system	= $fs;
 	$pool_name		= ($info['pool_name']) ?: MiscUD::zfs_pool_name($dev);
 	$mounted		= $info['mounted'];
@@ -1891,6 +1894,9 @@ function do_mount_local($info) {
 						exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
 						exec("/usr/sbin/zpool import -N ".escapeshellarg($pool_name)." 2>/dev/null");
 						exec("/usr/sbin/zfs set mountpoint=".escapeshellarg($dir)." ".escapeshellarg($pool_name)." 2>/dev/null");
+						if ($compression) {
+							exec("/usr/sbin/zfs set compression=".$compression." ".escapeshellarg($pool_name)." 2>/dev/null");
+						}
 
 						$params		= get_mount_params($fs, $dev, $ro);
 						$cmd		= "/usr/sbin/zfs mount -o $params ".escapeshellarg($pool_name);
@@ -1904,7 +1910,7 @@ function do_mount_local($info) {
 					$params		= get_mount_params($z_fstype, $dev, $ro);
 					$cmd		= "/sbin/mount -t ".escapeshellarg($z_fstype)." -o $params ".escapeshellarg($dev)." ".escapeshellarg($dir);
 				} else {
-					$params		= get_mount_params($fs, $dev, $ro);
+					$params		= get_mount_params($fs, $dev, $ro, $compression);
 					$cmd		= "/sbin/mount -t ".escapeshellarg($fs)." -o $params ".escapeshellarg($dev)." ".escapeshellarg($dir);
 				}
 			} else {
@@ -3918,6 +3924,7 @@ function get_partition_info($dev) {
 		$partition['read_only']		= is_read_only($partition['serial']);
 		$usb						= (isset($attrs['ID_BUS']) && ($attrs['ID_BUS'] == "usb"));
 		$partition['shared']		= config_shared($partition['serial'], $partition['part'], $usb);
+		$partition['compression']	= get_config($partition['serial'], "compress_option.{$partition['part']}");
 		$partition['command']		= get_config($partition['serial'], "command.{$partition['part']}");
 		$partition['user_command']	= get_config($partition['serial'], "user_command.{$partition['part']}");
 		$partition['command_bg']	= get_config($partition['serial'], "command_bg.{$partition['part']}");
@@ -3977,6 +3984,7 @@ function get_zvol_info($disk) {
 			$zvol[$vol]['running']			= false;
 			$zvol[$vol]['command']			= "";
 			$zvol[$vol]['user_command']		= "";
+			$zvol[$vol]['compression']		= "";
 		}
 	}
 

@@ -41,6 +41,7 @@ $zvol					= "";
 $protocol				= "";
 $enable_encrypt			= "";
 $ntfs3_driver			= "";
+$compress_option		= "";
 $disk_device			= false;
 $samba_device			= false;
 $iso_device				= false;
@@ -113,6 +114,7 @@ if (isset($_GET['s'])) {
 		$connected		= false;
 	}
 	$ntfs3_driver		= get_config($ud_device, "ntfs3_driver.".$partition);
+	$compress_option	= get_config($ud_device, "compress_option.".$partition);
 } else if (isset($_GET['d'])) {
 	/* Remote shares. */
 	$samba_device		= true;
@@ -398,6 +400,25 @@ _(Use the NTFS3 Driver)_?
 > Select 'Yes' to enable the built in NTFS3 driver module for mounting this disk.  The NTFS3 driver module can be faster than the ntfs-3g driver, but may not support all the features of the NTFS file system.
 :end
 <?endif;?>
+
+<?if (($disk_setting) && (($fstype == "btrfs") || ($fstype == "zfs")) && (! $mounted)):?>
+_(Mount with compress option)_?
+: <select name="#compress_option" size="1">
+	<?=mk_option($compress_option, "", "_(No)_");?>
+<?if ($fstype == "btrfs"):?>
+	<?=mk_option($compress_option, "zlib", "Yes");?>
+<?else:?>
+	<?=mk_option($compress_option, "lz4", "Yes");?>
+<?endif;?>
+	</select>
+<?endif;?>
+
+<?if (($disk_setting) && (($fstype == "btrfs") || ($fstype == "zfs")) && (! $mounted)):?>
+:compress_option_plug:
+> Select 'Yes' to mount a BTRFS or ZFS disk with the compress option.  Compression for BTRFS is 'zlib' and for ZFS is 'lz4'.
+:end
+<?endif;?>
+
 
 <?if (($samba_device) && ($protocol == "SMB")):?>
 _(Encrypt CIFS Mount)_?
@@ -737,6 +758,20 @@ _(User Script)_:
 					serial: "<?=$ud_device;?>",
 					part: "<?=$partition;?>",
 					ntfs3_driver: $("select[name='#ntfs3_driver']").val()
+				}
+			}));
+			<?php endif; ?>
+
+			<?if (($disk_setting) && (($fstype == "btrfs") || ($fstype == "zfs")) && (! $mounted)):?>
+			requests.push($.ajax({
+				url: UDURL,
+				type: 'POST',
+				async: false,
+				data: {
+					action: "set_compress_option",
+					serial: "<?=$ud_device;?>",
+					part: "<?=$partition;?>",
+					compress_option: $("select[name='#compress_option']").val()
 				}
 			}));
 			<?php endif; ?>
