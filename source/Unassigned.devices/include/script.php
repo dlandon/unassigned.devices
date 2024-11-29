@@ -13,8 +13,7 @@
 require_once("plugins/unassigned.devices/include/lib.php");
 
 /* add translations */
-$_SERVER['REQUEST_URI'] = 'unassigneddevices';
-require_once("$docroot/webGui/include/Translations.php");
+require_once(DOCROOT."/webGui/include/Translations.php");
 
 readfile('logging.htm');
 
