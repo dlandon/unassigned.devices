@@ -1894,14 +1894,20 @@ function do_mount_local($info) {
 					/* Mount a zfs pool device. */
 					if ($pool_name) {
 						exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
-						exec("/usr/sbin/zpool import -N ".escapeshellarg($pool_name)." 2>/dev/null");
-						exec("/usr/sbin/zfs set mountpoint=".escapeshellarg($dir)." ".escapeshellarg($pool_name)." 2>/dev/null");
-						if ($compression) {
-							exec("/usr/sbin/zfs set compression=".$compression." ".escapeshellarg($pool_name)." 2>/dev/null");
-						}
+						$o = shell_exec("/usr/sbin/zpool import -N ".escapeshellarg($pool_name)." 2>&1" ?? "");
+						if (!$o) {
+							exec("/usr/sbin/zfs set mountpoint=" . escapeshellarg($dir) . " " . escapeshellarg($pool_name) . " 2>/dev/null");
+							if ($compression) {
+								exec("/usr/sbin/zfs set compression=" . $compression . " " . escapeshellarg($pool_name) . " 2>/dev/null");
+							}
 
-						$params		= get_mount_params($fs, $dev, $ro);
-						$cmd		= "/usr/sbin/zfs mount -o $params ".escapeshellarg($pool_name);
+							$params = get_mount_params($fs, $dev, $ro);
+							$cmd = "/usr/sbin/zfs mount -o $params " . escapeshellarg($pool_name);
+						} else {
+							/* Log the warning with the message */
+							unassigned_log("Warning: ".$o);
+							return false;
+						}
 					} else {
 						unassigned_log("Warning: Cannot determine Pool Name of '".$dev."'");
 						return false;
@@ -1938,8 +1944,15 @@ function do_mount_local($info) {
 					$pool_name	= MiscUD::zfs_pool_name($dev);
 					if ($pool_name) {
 						exec("/usr/sbin/zpool export ".escapeshellarg($pool_name)." 2>/dev/null");
-						exec("/usr/sbin/zpool import -N ".escapeshellarg($pool_name)." 2>/dev/null");
-						exec("/usr/sbin/zfs set mountpoint=".escapeshellarg($dir)." ".escapeshellarg($pool_name)." 2>/dev/null");
+						$o = trim(shell_exec("/usr/sbin/zpool import -N ".escapeshellarg($pool_name)." 2>&1") ?? "");
+						if (!$o) {
+							exec("/usr/sbin/zfs set mountpoint=".escapeshellarg($dir)." ".escapeshellarg($pool_name)." 2>/dev/null");
+							exec("/usr/sbin/zfs set mountpoint=".escapeshellarg($dir)." ".escapeshellarg($pool_name)." 2>/dev/null");
+						} else {
+							/* Log the warning with the message */
+							unassigned_log("Warning: ".$o);
+							return false;
+						}
 					}
 					$params		= get_mount_params($file_system, $device, $ro);
 					$cmd		= "/usr/sbin/zfs mount -o $params ".escapeshellarg($pool_name);
