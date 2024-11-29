@@ -13,8 +13,10 @@
 /* Define our plugin name. */
 define('UNASSIGNED_PLUGIN', 'unassigned.devices');
 
-/* Define our plugin name. */
-define('DOCROOT', $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
+/* Define the docroot path. */
+if (!defined('DOCROOT')) {
+	define('DOCROOT', $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
+}
 
 require_once(DOCROOT."/webGui/include/Wrappers.php");
 require_once(DOCROOT."/webGui/include/Helpers.php");
@@ -2804,7 +2806,7 @@ function get_samba_mounts() {
 	/* Get all the samba devices from the configuration. */
 	$samba_mounts	= $samba_config;
 	if (is_array($samba_mounts)) {
-		ksort($samba_mounts, SORT_NATURAL);
+		ksort($samba_mounts, SORT_NATURAL | SORT_FLAG_CASE);
 
 		/* Get all the samba mounts. */
 		foreach ($samba_mounts as $device => $mount) {
@@ -3281,7 +3283,7 @@ function get_iso_mounts() {
 	$iso_mounts		= $iso_config;
 
 	/* Sort the iso mounts. */
-	ksort($iso_mounts, SORT_NATURAL);
+	ksort($iso_mounts, SORT_NATURAL | SORT_FLAG_CASE);
 
 	if (is_array($iso_mounts)) {
 		foreach ($iso_mounts as $device => $mount) {
@@ -3458,7 +3460,7 @@ function get_unassigned_disks() {
 		}
 	}
 
-	ksort($devicePaths, SORT_NATURAL);
+	ksort($devicePaths, SORT_NATURAL | SORT_FLAG_CASE);
 
 	/* Create the array of unassigned devices. */
 	foreach ($devicePaths as $path => $device) {
@@ -3652,7 +3654,7 @@ function get_all_disks_info() {
 	}
 
 	/* Sort the unassigned devoces in natural order. */
-	ksort($ud_disks, SORT_NATURAL);
+	ksort($ud_disks, SORT_NATURAL | SORT_FLAG_CASE);
 
 	return $ud_disks;
 }
