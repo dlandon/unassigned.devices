@@ -802,7 +802,7 @@ switch ($_POST['action']) {
 
 				/* Add the view log icon. */
 				if ($mount['command']) {
-					$o_remotes	.= "<a class='info' href='/Main/ScriptLog?d=".$mount['device']."'><i class='fa fa-align-left samba-log'></i><span>"._("View Remote SMB")."/"._("NFS Script Log")."</span></a>";
+					$o_remotes	.= "<a class='info' href='/Main/ScriptLog?d=".$mount['device']."'><i class='fa fa-align-left samba-log'></i><span>"._("View SMB Script Log")."/"._("View NFS Script Log")."</span></a>";
 				} else {
 					$o_remotes	.= "<i class='fa fa-align-left samba-log'></i>";
 				}
@@ -1073,7 +1073,7 @@ switch ($_POST['action']) {
 		/* Get the UD configuration. */
 		$config			= $ud_config;
 
-		ksort($config, SORT_NATURAL);
+		ksort($config, SORT_NATURAL | SORT_FLAG_CASE);
 		$disks_serials	= [];
 		foreach ($all_disks as $disk) {
 			$disks_serials[] = $disk['serial'];
@@ -1103,7 +1103,7 @@ switch ($_POST['action']) {
 				}
 			}
 		}
-		ksort($historical, SORT_NATURAL);
+		ksort($historical, SORT_NATURAL | SORT_FLAG_CASE);
 
 		/* Display the historical devices. */
 		foreach ($historical as $disk_display => $value) {
