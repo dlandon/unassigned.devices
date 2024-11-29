@@ -17,9 +17,6 @@ Tag="unlink"
 /* Load the UD library file if it is not already loaded. */
 require_once("plugins/unassigned.devices/include/lib.php");
 
-/* read translations */
-parse_plugin('UnassignedDevices');
-
 /* See if NFS and SMB sharing is enabled. */
 $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "no")) ? "disabled" : "";
 
@@ -1067,6 +1064,9 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 			$('#tab'+tab_usbdisks).trigger("click");
 			$.removeCookie('one', { path: '/' });
 		}
+
+		/* Store the tab ID in a cookie so we can restore the UD tab. */
+		$.cookie('tab', 'tab4', { path: '/' });
 
 		refreshPage();
 });
