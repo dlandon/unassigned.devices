@@ -2,7 +2,7 @@ Menu="Buttons:10"
 Link="nav-user"
 ---
 <?$plugin = "unassigned.devices";?>
-<script type="text/javascript">
+<script>
 	ud_url = location.pathname.split('/');
 	if (ud_url[1] == "Main" && ud_url.length > 2)
 	{
