@@ -1905,6 +1905,7 @@ function do_mount_local($info) {
 							$cmd = "/usr/sbin/zfs mount -o $params " . escapeshellarg($pool_name);
 						} else {
 							/* Log the warning with the message */
+							$o	= str_replace("\t", '', $o);
 							unassigned_log("Warning: ".$o);
 							return false;
 						}
@@ -1950,6 +1951,7 @@ function do_mount_local($info) {
 							exec("/usr/sbin/zfs set mountpoint=".escapeshellarg($dir)." ".escapeshellarg($pool_name)." 2>/dev/null");
 						} else {
 							/* Log the warning with the message */
+							$o	= str_replace("\t", '', $o);
 							unassigned_log("Warning: ".$o);
 							return false;
 						}
