@@ -27,11 +27,11 @@ if ((! $parted) && ($UD_cfg['Config']['destructive_mode'] == "enabled")) {
 }
 ?>
 
-<link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.filetree.css')?>" >
+<link rel="stylesheet" href="<?autov('/webGui/styles/jquery.filetree.css')?>" >
 
 <script src="<?autov('/webGui/javascript/jquery.filetree.js')?>"></script>
 
-<style type="text/css">
+<style>
 	.fileTree {
 		border: solid 1px #BBB;
 		background: #FFF;
@@ -179,7 +179,6 @@ if ((! $parted) && ($UD_cfg['Config']['destructive_mode'] == "enabled")) {
 <?if (! $parted):?>
 :ud_settings_plus_plug:
 > **Note:** Install <a href='/Apps?search=unassigned%20devices%20plus'>Unassigned Devices Plus</a> in order to mount apfs, HFS+, and exFAT disk formats, and enable desctrctive mode.
-
 :end
 <?endif;?>
 

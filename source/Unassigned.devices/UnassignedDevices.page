@@ -24,13 +24,13 @@ $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "n
 $isUser0	= is_dir("/mnt/user0/") ? true : false;
 ?>
 
-<link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.ui.css')?>">
-<link type="text/css" rel="stylesheet" href="<?autov("/plugins/dynamix.docker.manager/styles/style-$theme.css")?>">
-<link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.switchbutton.css')?>">
-<link type="text/css" rel="stylesheet" href="<?autov('/webGui/styles/jquery.filetree.css')?>">
+<link rel="stylesheet" href="<?autov('/webGui/styles/jquery.ui.css')?>">
+<link rel="stylesheet" href="<?autov("/plugins/dynamix.docker.manager/styles/style-$theme.css")?>">
+<link rel="stylesheet" href="<?autov('/webGui/styles/jquery.switchbutton.css')?>">
+<link rel="stylesheet" href="<?autov('/webGui/styles/jquery.filetree.css')?>">
 
-<link type="text/css" rel="stylesheet" href="<?autov("/plugins/".UNASSIGNED_PLUGIN."/assets/style-$theme.css")?>">
-<link type="text/css" rel="stylesheet" href="<?autov("/plugins/".UNASSIGNED_PLUGIN."/assets/unassigned.css")?>">
+<link rel="stylesheet" href="<?autov("/plugins/".UNASSIGNED_PLUGIN."/assets/style-$theme.css")?>">
+<link rel="stylesheet" href="<?autov("/plugins/".UNASSIGNED_PLUGIN."/assets/unassigned.css")?>">
 
 <script src="<?autov('/webGui/javascript/jquery.switchbutton.js')?>"></script>
 <script src="<?autov('/webGui/javascript/jquery.filetree.js')?>"></script>

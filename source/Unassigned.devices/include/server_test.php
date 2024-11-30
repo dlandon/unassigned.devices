@@ -3,7 +3,6 @@
  *  Execute get_ud_stats Command to test remote server
  */
 
-
 /* Define our plugin name. */
 if (!defined('DOCROOT')) {
 	define('DOCROOT', $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
