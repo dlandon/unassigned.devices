@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.11.16">
+<!ENTITY version	"2024.11.30">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"123bbad9603d52f4de2834779793a14e">
+<!ENTITY MD5		"75bede9f4fade08956994f94eb3cd62f">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,14 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Multi line NFS rules not working properly.
+- Fix: Handling of default.cfg to default first install settings.
+- Fix: Change some php variables to constants that don't need to be variables.
+- Fix: Sort devices on the GUI in alphabetical order ignoring case.
+- Add: Compress mount option for BTRFS and XFS file systems.  Compression for BTRFS is 'zlib' and for XFS 'lz4'.
+- Add: Warning message in log when a ZFS disk can't be mounted because of unsupported features.
+
+###2024.11.16
 - Fix: Config file parse failing.
 
 ###2024.11.15
