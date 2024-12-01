@@ -65,11 +65,18 @@ echo "</pre>";
 			setTimeout(cleanUp, 4000); /* Initiate cleanup after 4 seconds */
 		});
 	}
+
 <?if ($display['resize']):?>
 $(function() {
 	$('pre.up').css('height',Math.max(window.innerHeight-280,370)).show();
 });
 <?endif;?>
+
+	/* Return to 'tab' or the UD tab on main. */
+	const InitTab = $.cookie('tab') || "tab4";
+	$(window).on('beforeunload', function() {
+		$.cookie('one', InitTab, {path:'/'});
+	});
 </script>
 
 <?if ((is_file($file)) && (filesize($file) != 0)):?>

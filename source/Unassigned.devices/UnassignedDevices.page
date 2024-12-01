@@ -690,6 +690,15 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 			caPluginUpdateCheck("unassigned.devices.plg",{element:".pluginUpdate"});
 		}
 	});
+
+	/*
+		Check to see if a reboot is required to upodate UD.
+	*/
+	<?if (is_file("/var/state/".UNASSIGNED_PLUGIN."/reboot_required")):?>
+		if (typeof showUpgrade === 'function') {
+			showUpgrade('<b>Reboot is required</b> to apply Unassigned Devices update');
+		}
+	<?endif;?>
 </script>
 
 <?=$Preclear ? $Preclear->html() : "";?>
@@ -995,7 +1004,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 		});
 
 		/* Add icons to Tab/Title bar. */
-		$('#tab4').bind({
+		$('#tab4').on({
 			click: function() {
 				$('i.toggle').show('slow');
 			}
@@ -1059,15 +1068,10 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 			$.cookie('unassigned-historical-view', $('.historical-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path: '/' });
 		});
 
-		/* Load contents if tab is checked. */
-		if ($('#tab'+tab_usbdisks).is(':checked')) {
-			$('#tab'+tab_usbdisks).trigger("click");
-			$.removeCookie('one', { path: '/' });
-		}
-
-		/* Store the tab ID in a cookie so we can restore the UD tab. */
-		$.cookie('tab', 'tab4', { path: '/' });
-
+		/* Return to 'tab1' on main. */
+		$(window).on('beforeunload', function() {
+			$.cookie('one', "tab1", {path:'/'});
+		});
 		refreshPage();
 });
 </script>
