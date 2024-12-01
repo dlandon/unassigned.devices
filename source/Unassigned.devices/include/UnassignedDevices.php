@@ -660,18 +660,18 @@ switch ($_POST['action']) {
 					if (! $preclearing) {
 						if (! is_disk_spin($disk['ud_dev'], $disk['spinning'])) {
 							if ($disk['spinning']) {
-								$spin			= "spin_down_disk";
-								$tool_tip		= _("Click to spin down device");
+								$spin		= "spin_down_disk";
+								$tool_tip	= _("Click to spin down device");
 							} else {
-								$spin			= "spin_up_disk";
-								$tool_tip		= _("Click to spin up device");
+								$spin		= "spin_up_disk";
+								$tool_tip	= _("Click to spin up device");
 							}
 							$o_disks		.= "<a style='cursor:pointer' class='exec info' onclick='{$spin}(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle {$orb}'></i><span>{$tool_tip}</span></a>";
 						} else {
 							$o_disks		.= "<i class='fa fa-refresh fa-spin {$orb}'></i>";
 						}
 					} else {
-						$o_disks .= "<i class='fa fa-circle {$orb}'></i>";
+						$o_disks			.= "<i class='fa fa-circle {$orb}'></i>";
 					}
 				}
 				$luks_lock		= $mounted ? "<i class='fa fa-unlock-alt fa-append green-orb'></i>" : "<i class='fa fa-lock fa-append grey-orb'></i>";
