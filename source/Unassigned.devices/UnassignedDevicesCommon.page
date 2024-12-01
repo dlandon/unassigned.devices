@@ -158,12 +158,15 @@ if ((! $parted) && ($UD_cfg['Config']['destructive_mode'] == "enabled")) {
 			}
 		});
 
-		inputElement.bind('keydown', function () {
+		inputElement.on('keydown', function () {
 			fileTreeElement.slideUp('fast', function () {
 				fileTreeElement.remove();
 			});
 		});
 	}
+
+	/* Start with the first tab. */
+	$.cookie('one', "tab1", {path:'/'});
 </script>
 
 <table class="tablesorter shift ups">

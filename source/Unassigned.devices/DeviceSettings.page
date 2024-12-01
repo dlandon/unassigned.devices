@@ -1045,7 +1045,7 @@ _(User Script)_:
 			});
 
 			/* Close if parent changed. */
-			inputElement.bind('keydown', function () {
+			inputElement.on('keydown', function () {
 				fileTreeElement.slideUp('fast', function () {
 					fileTreeElement.remove();
 				});
@@ -1129,7 +1129,7 @@ _(User Script)_:
 			});
 
 			/* Close if parent changed. */
-			inputElement.bind('keydown', function () {
+			inputElement.on('keydown', function () {
 				fileTreeElement.slideUp('fast', function () {
 					fileTreeElement.remove();
 				});
@@ -1193,4 +1193,10 @@ _(User Script)_:
 			location.reload();
 		});
 	}
+
+	/* Return to 'tab' or the UD tab on main. */
+	const InitTab = $.cookie('tab') || "tab4";
+	$(window).on('beforeunload', function() {
+		$.cookie('one', InitTab, {path:'/'});
+	});
 </script>
