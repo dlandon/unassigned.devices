@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.11.30">
+<!ENTITY version	"2024.12.02">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"75bede9f4fade08956994f94eb3cd62f">
+<!ENTITY MD5		"eedd2d3d79792039eb501e74da22dfc2">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,9 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Rework tabbing control so UD doesn't interfere with 'Main'.
+
+###2024.11.30
 - Fix: Multi line NFS rules not working properly.
 - Fix: Handling of default.cfg to default first install settings.
 - Fix: Change some php variables to constants that don't need to be variables.
