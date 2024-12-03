@@ -1,13 +1,79 @@
-table.preclear {padding: 0px 0px 0px 0px;border-collapse:collapse;white-space:nowrap;}
-table.preclear thead tr>td{text-align:left;width:8%;}
-table.preclear tr>td{text-align:left;padding-right:4px;}
-table.preclear tr>td+td{text-align:left;width:38%;}
-table.preclear tr>td+td+td{text-align:right;}
-table.preclear tr td:last-child{min-width:450px;padding-right:10px}
+/* Preclear table styling */
+table.preclear thead tr td:first-child {
+	padding-left: 10px;
+}
 
-button[type=button] {margin:0px 14px 0 14px;}
-i.fa{margin:0px 0px 0 0px;}
-i.hdd{margin:0px 0px;font-size: 1.3em}
-i.partition{margin-left: 18px;}
-.exec{cursor: pointer;}
-i.fa-append{margin:0px;font-size: 0.8em;position: relative; left:-0.5em;top:0.6em;}
+table.preclear td {
+	padding-left: 10px;
+}
+
+table.preclear {
+	padding: 0;
+	border-collapse: collapse;
+	white-space: nowrap;
+}
+
+table.preclear thead tr > td {
+	text-align: left;
+	width: 8%;
+}
+
+table.preclear tr > td {
+	text-align: left;
+	padding-right: 4px;
+}
+
+table.preclear tr > td + td {
+	text-align: left;
+	width: 38%;
+}
+
+table.preclear tr > td + td + td {
+	text-align: right;
+}
+
+table.preclear tr td:last-child {
+	min-width: 450px;
+	padding-right: 10px;
+}
+
+/* Add spacing between the elements in the table cell */
+td.disk-cell {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	text-align: left;
+}
+
+/* Button styling */
+button[type=button] {
+	margin: 0 14px;
+}
+
+/* FontAwesome icons */
+i.fa {
+	margin: 0;
+}
+
+i.hdd {
+	margin: 0;
+	font-size: 1.3em;
+}
+
+i.partition {
+	margin-left: 18px;
+}
+
+/* Executable styling */
+.exec {
+	cursor: pointer;
+}
+
+/* Append icon */
+i.fa-append {
+	margin: 0;
+	font-size: 0.8em;
+	position: relative;
+	left: -0.5em;
+	top: 0.6em;
+}
