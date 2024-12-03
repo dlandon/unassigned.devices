@@ -683,22 +683,22 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 	}
 
 	/*
-		Check for a plugin update and show banner.
+		Show banners.
 	*/
 	$(function() {
+		/* Check for a plugin update and show banner. */
 		if ( typeof caPluginUpdateCheck === "function" ) {
 			caPluginUpdateCheck("unassigned.devices.plg",{element:".pluginUpdate"});
 		}
+
+		/* Check to see if a reboot is required to upodate UD. */
+		<?if (is_file("/var/state/".UNASSIGNED_PLUGIN."/reboot_required")):?>
+			if (typeof showUpgrade === 'function') {
+				showUpgrade('<b>Reboot is required</b> to apply Unassigned Devices update');
+			}
+		<?endif;?>
 	});
 
-	/*
-		Check to see if a reboot is required to upodate UD.
-	*/
-	<?if (is_file("/var/state/".UNASSIGNED_PLUGIN."/reboot_required")):?>
-		if (typeof showUpgrade === 'function') {
-			showUpgrade('<b>Reboot is required</b> to apply Unassigned Devices update');
-		}
-	<?endif;?>
 </script>
 
 <?=$Preclear ? $Preclear->html() : "";?>
@@ -1072,6 +1072,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 		$(window).on('beforeunload', function() {
 			$.cookie('one', "tab1", {path:'/'});
 		});
+
 		refreshPage();
 });
 </script>
