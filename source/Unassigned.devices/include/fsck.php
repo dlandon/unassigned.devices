@@ -13,10 +13,6 @@
 /* Load the UD library file if it is not already loaded. */
 require_once("plugins/unassigned.devices/include/lib.php");
 
-/* add translations */
-$_SERVER['REQUEST_URI'] = 'fsck';
-require_once(DOCROOT."/webGui/include/Translations.php");
-
 readfile('logging.htm');
 
 /* Write text to the pop up dialog. */

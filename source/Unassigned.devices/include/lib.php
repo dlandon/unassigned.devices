@@ -18,8 +18,13 @@ if (!defined('DOCROOT')) {
 	define('DOCROOT', $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
 }
 
+/* Get the Unraid Wrappers and Helpers files. */
 require_once(DOCROOT."/webGui/include/Wrappers.php");
 require_once(DOCROOT."/webGui/include/Helpers.php");
+
+/* add translations */
+$_SERVER['REQUEST_URI'] = "unassigneddevices";
+require_once(DOCROOT."/webGui/include/Translations.php");
 
 $paths = [	"smb_unassigned"	=> "/etc/samba/smb-unassigned.conf",
 			"smb_usb_shares"	=> "/etc/samba/unassigned-shares",
@@ -96,7 +101,7 @@ $UPDATE_DEBUG	= 2;
 /* 8 - command time outs. */
 $CMD_DEBUG		= 8;
 
-/* Read in the UD configuration file. */
+/* Read in the UD configuration file.  Because the config file is in /tmp/ we cannot use parse_plugin_cfg(). */
 $default_file	= $paths['default_file'];
 $config_ini		= @parse_ini_file(UD_CONFIG_FILE, true);
 $default_cfg	= @parse_ini_file($default_file, true);

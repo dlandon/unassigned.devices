@@ -13,10 +13,6 @@
 /* Load the UD library file if it is not already loaded. */
 require_once("plugins/unassigned.devices/include/lib.php");
 
-/* add translations */
-$_SERVER['REQUEST_URI'] = "unassigneddevices";
-require_once(DOCROOT."/webGui/include/Translations.php");
-
 if (isset($_POST['display'])) {
 	$display = $_POST['display'];
 }
