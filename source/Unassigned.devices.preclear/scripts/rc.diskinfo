@@ -14,12 +14,8 @@
 declare(ticks = 1);
 set_time_limit(0);
 
-$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-require_once( "$docroot/webGui/include/Helpers.php" );
-
-/* add translations */
-$_SERVER['REQUEST_URI'] = 'preclear';
-require_once "$docroot/webGui/include/Translations.php";
+/* Load the UD preclear library file if it is not already loaded. */
+require_once("plugins/unassigned.devices.preclear/include/lib.php");
 
 $debug = FALSE;
 $prog		= pathinfo(__FILE__, PATHINFO_BASENAME);
@@ -31,27 +27,6 @@ $dev_file	= "/usr/local/emhttp/state/devs.ini";
 ##############################
 ###### FUNCTION SECTION ######
 ##############################
-
-function preclear_log($msg, $type = "NOTICE")
-{
-	global $prog, $debug;
-
-	if ( $type == "DEBUG" && ! $GLOBALS["debug"] ) {
-		return NULL;
-	}
-
-	$msg_date = "\n".date("M j G:i:s").": ".print_r($msg,true);
-
-	file_put_contents($GLOBALS["log_file"], $msg_date, FILE_APPEND);
-	if ($debug) {
-		$STDERR = fopen('php://stderr', 'w+');
-		fwrite($STDERR, $msg.PHP_EOL);
-		fclose($STDERR);
-	}
-	if ($type == "ERROR") {
-		syslog(LOG_ERR, $msg);
-	}
-}
 
 /* Get the devX designation for this device from the devs.ini. */
 function get_disk_dev($dev) {
@@ -162,45 +137,14 @@ function timed_exec($timeout, $cmd) {
 	return $out;
 }
 
-class Misc
-{
-	public static function save_json($file, $content)
-	{
-		file_put_contents($file, json_encode($content, JSON_PRETTY_PRINT ));
-	}
-
-	public static function get_json($file)
-	{
-		return file_exists($file) ? @json_decode(file_get_contents($file), true) : [];
-	}
-
-	public static function disk_device($disk)
-	{
-		$disk = (file_exists($disk)) ? $disk : "/dev/{$disk}";
-		return file_exists($disk) ? $disk : null;
-	}
-
-	public static function disk_name($disk)
-	{
-		return basename($disk);
-	}
-
-	public static function array_first_element($arr)
-	{
-		return (is_array($arr) && count($arr)) ? $arr[0] : $arr;
-	}
-}
-
 class Disks
 {
-	private $verbose;
 	private $smartdir;
 	private $cache;
 	private $diskinfo;
 
 	function __construct()
 	{
-		$this->verbose	= false;
 		$this->smartdir	= "/var/local/emhttp/smart";
 		$this->cache	= "/var/local/emhttp/plugins/diskinfo/diskcache.json";
 		$this->diskinfo	= "/var/local/emhttp/plugins/diskinfo/diskinfo.json";

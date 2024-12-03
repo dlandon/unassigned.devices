@@ -15,11 +15,11 @@ Tag="icon-preclear"
  * all copies or substantial portions of the Software.
  */
 
-$preclear_plugin	= "unassigned.devices.preclear";
-$docroot			= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+/* Load the UD preclear library file if it is not already loaded. */
+require_once("plugins/unassigned.devices.preclear/include/lib.php");
 
 $Preclear			= new Preclear;
-$zipFile			= sprintf("log/%s-%s-%s.zip", str_replace(' ','_',strtoupper($var['NAME'])), $preclear_plugin, date('Ymd-Hi') );
+$zipFile			= sprintf("log/%s-%s-%s.zip", str_replace(' ','_',strtoupper($var['NAME'])), UNASSIGNED_PRECLEAR_PLUGIN, date('Ymd-Hi') );
 
 /* read translations */
 parse_plugin('Preclear');
@@ -34,10 +34,10 @@ if (version_compare($version['version'], '6.12.0-beta5', '>')) {
 	$title_div		= "div#title";
 }
 ?>
-<link type="text/css" rel="stylesheet" href="<?autov("/plugins/dynamix.docker.manager/styles/style-$theme.css")?>">
+<link rel="stylesheet" href="<?autov("/plugins/dynamix.docker.manager/styles/style-$theme.css")?>">
 
-<link type="text/css" rel="stylesheet" href="<?autov("/plugins/".$preclear_plugin."/assets/style-$theme.css")?>">
-<link type="text/css" rel="stylesheet" href="<?autov("/plugins/".$preclear_plugin."/assets/preclear.css")?>">
+<link rel="stylesheet" href="<?autov("/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/assets/style-$theme.css")?>">
+<link rel="stylesheet" href="<?autov("/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/assets/preclear.css")?>">
 
 <script>
 	/* Function to clean up after downloading */
@@ -60,7 +60,7 @@ if (version_compare($version['version'], '6.12.0-beta5', '>')) {
 		$('input[value="Download"]').val('Downloading...').prop('disabled', true);
     
 		/* Send a POST request to trigger the download process */
-		$.post('/plugins/<?=$preclear_plugin;?>/Preclear.php', { action: 'download', file: '<?=$zipFile;?>' }, function (zip) {
+		$.post('/plugins/<?=UNASSIGNED_PRECLEAR_PLUGIN;?>/Preclear.php', { action: 'download', file: '<?=$zipFile;?>' }, function (zip) {
 			/* Redirect to the downloaded file */
 			location = zip;
         
@@ -205,10 +205,10 @@ if (version_compare($version['version'], '6.12.0-beta5', '>')) {
 	*/
 	if (typeof swal2 === "undefined") {
 		/* Append the SweetAlert2 stylesheet to the head of the document. */
-		$('head').append($('<link rel="stylesheet" type="text/css" />').attr('href', '<?autov("/plugins/".$plugin."/assets/sweetalert2.css");?>'));
+		$('head').append($('<link rel="stylesheet" />').attr('href', '<?autov("/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/assets/sweetalert2.css");?>'));
 
 		/* Load the SweetAlert2 script dynamically. */
-		$.getScript('/plugins/<?=$plugin;?>/assets/sweetalert2.js');
+		$.getScript('/plugins/<?=UNASSIGNED_PRECLEAR_PLUGIN;?>/assets/sweetalert2.js');
 	}
 
 	/* Check for updated version and show banner if there is an update. */

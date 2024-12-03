@@ -10,15 +10,8 @@
  * all copies or substantial portions of the Software.
  */
 
-$preclear_plugin	= "unassigned.devices.preclear";
-$docroot			= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-require_once( "plugins/{$preclear_plugin}/include/lib.php" );
-
-/* add translations */
-$_SERVER['REQUEST_URI'] = 'preclear';
-require_once "$docroot/webGui/include/Translations.php";
-
-require_once( "webGui/include/Helpers.php" );
+/* Load the UD preclear library file if it is not already loaded. */
+require_once("plugins/unassigned.devices.preclear/include/lib.php");
 
 ##############################################
 #############	 VARIABLES		##############
@@ -26,9 +19,6 @@ require_once( "webGui/include/Helpers.php" );
 
 $Preclear			= new Preclear;
 $script_files		= $Preclear->scriptFiles();
-
-$VERBOSE		= false;
-// $TEST		= false;
 
 if (isset($_POST['display']))
 {
@@ -108,7 +98,7 @@ if (isset($_POST['action'])) {
 					$disk_name		= basename($disk['DEVICE']);
 					$disk_dev		= $disk['NAME'];
 					$disk_display	= $disk['NAME_H'];
-					$disk_orb		= "<i class='fa fa-circle orb ".($disk['RUNNING'] ? "green-orb" : "grey-orb")."'></i>";
+					$disk_orb		= "<i class='fa fa-circle orb ".($disk['RUNNING'] ? "green-orb" : "grey-orb")." orb'></i>";
 					$disk_icon		= $disk['SSD'] ? "icon-nvme" : "fa fa-hdd-o";
 					$serial			= trim($disk['SERIAL'])." (".$disk_name.")";
 					$precleared		= $disk['PRECLEAR'] && ! $disk['PRECLEARING'] ? " - <em>Precleared</em>" : "";
@@ -149,20 +139,20 @@ if (isset($_POST['action'])) {
 					}
 
 					$disk_log_title	= _('Disk Log Information');
-					$output = "<tr device='".$disk_name."'><td>".$disk_orb."<a href='/Tools/Preclear/Device?name=$disk_dev'>".$disk_display."</a></td>";
-								if (version_compare($version['version'],"6.9.9", ">")) {
-									/* Disk log in 6.10 and later. */
-									$output .= "<td><a class='info' href=\"#\" onclick=\"openTerminal('disklog', '{$disk_name}')\"><i class='".$disk_icon." icon'></i><span>"._("Disk Log Information")."</span></a>";
-								} else {
-									/* Disk log in 6.9. */
-									$output .= "<td><a class='info' href=\"#\" onclick=\"openBox('/webGui/scripts/disk_log&amp;arg1={$disk_device}','Disk Log Information',600,900,false);return false\"><i class='".$disk_icon." icon'></i><span>"._("Disk Log Information")."</span></a>";
-								}
-								$output .= $title."</td><td>".$temp."</td><td><span>".$disk['SIZE_H']."</span></td><td>".$status."</td>
-								</tr>";
+					$output = "<tr device='" . $disk_name . "'><td class='disk-cell'>".$disk_orb."<a href='/Tools/Preclear/Device?name=$disk_dev'>" . $disk_display . "</a></td>";
+					if (version_compare($version['version'],"6.9.9", ">")) {
+						/* Disk log in 6.10 and later. */
+						$output .= "<td><a class='info' href=\"#\" onclick=\"openTerminal('disklog', '{$disk_name}')\"><i class='".$disk_icon." icon'></i><span>"._("Disk Log Information")."</span></a>";
+					} else {
+						/* Disk log in 6.9. */
+						$output .= "<td><a class='info' href=\"#\" onclick=\"openBox('/webGui/scripts/disk_log&amp;arg1={$disk_device}','Disk Log Information',600,900,false);return false\"><i class='".$disk_icon." icon'></i><span>"._("Disk Log Information")."</span></a>";
+					}
+					$output .= $title."</td><td>".$temp."</td><td><span>".$disk['SIZE_H']."</span></td><td>".$status."</td>
+					</tr>";
 
-								if (!empty($report_files)) {
-									$output .= "<tr class='report-row'><td></td><td colspan='4'><div class='toggle-{$disk_name}' style='display:none;'>".$report_files."</div></td></tr>";
-								}
+					if (!empty($report_files)) {
+						$output .= "<tr class='report-row'><td></td><td colspan='4'><div class='toggle-{$disk_name}' style='display:none;'>".$report_files."</div></td></tr>";
+					}
 
 					$pos = array_key_exists($disk_name, $sort) ? $sort[$disk_name] : $counter;
 					$sort[$disk_name]			= $pos;
@@ -274,7 +264,7 @@ if (isset($_POST['action'])) {
 							TMUX::NewSession("preclear_queue");
 						}
 						if (! $queue_running) {
-							TMUX::sendCommand("preclear_queue", "/usr/local/emhttp/plugins/{$preclear_plugin}/scripts/preclear_queue.sh $queue");
+							TMUX::sendCommand("preclear_queue", "/usr/local/emhttp/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/scripts/preclear_queue.sh $queue");
 						}
 					}
 
@@ -498,7 +488,7 @@ if (isset($_POST['action'])) {
 					}
 				} else {
 					TMUX::NewSession( $queue_session );
-					TMUX::sendCommand( $queue_session, "/usr/local/emhttp/plugins/{$preclear_plugin}/scripts/preclear_queue.sh $queue");
+					TMUX::sendCommand( $queue_session, "/usr/local/emhttp/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/scripts/preclear_queue.sh $queue");
 				}
 			} else {
 				@unlink($pid_file);
@@ -540,7 +530,7 @@ if (isset($_POST['action'])) {
 			break;;
 
 		case 'clear_all_preclear':
-			shell_exec("/usr/local/emhttp/plugins/{$preclear_plugin}/scripts/clear_preclear.sh");
+			shell_exec("/usr/local/emhttp/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/scripts/clear_preclear.sh");
 			echo json_encode(true);
 			break;;
 
@@ -574,14 +564,14 @@ if (isset($_GET['action'])) {
 					</tbody>
 				</table>
 				<?if (is_file("webGui/scripts/dynamix.js")):?>
-				<script src='/webGui/scripts/dynamix.js'></script>
+				<script src=<?autov('/webGui/scripts/dynamix.js')?>></script>
 				<?else:?>
-				<script src='/webGui/javascript/dynamix.js'></script>
+				<script src=<?autov('/webGui/javascript/dynamix.js')?>></script>
 				<?endif;?>
-				<script src="/plugins/<?=$preclear_plugin;?>/assets/clipboard.min.js"></script>
+				<script src=<?autov("/plugins/<?=UNASSIGNED_PRECLEAR_PLUGIN;?>/assets/clipboard.min.js")?>></script>
 				<script>
 					var timers = {};
-					var URL = "/plugins/<?=$preclear_plugin;?>/Preclear.php";
+					var URL = "/plugins/<?=UNASSIGNED_PRECLEAR_PLUGIN;?>/Preclear.php";
 					var serial = "<?=$serial;?>";
 
 					function get_preclear()
@@ -623,7 +613,7 @@ if (isset($_GET['action'])) {
 
 		case 'get_log':
 			$session = urldecode($_GET['session']);
-			$file = file("/var/log/{$preclear_plugin}.log", FILE_IGNORE_NEW_LINES);
+			$file = file("/var/log/".UNASSIGNED_PRECLEAR_PLUGIN.".log", FILE_IGNORE_NEW_LINES);
 			$output = preg_grep("/{$session}/i",$file);
 			$tmpfile = "/tmp/preclear/{$session}.txt";
 

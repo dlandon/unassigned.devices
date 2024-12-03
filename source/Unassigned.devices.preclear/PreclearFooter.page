@@ -13,10 +13,8 @@ Link="nav-user"
  * all copies or substantial portions of the Software.
  */
 
-$preclear_plugin	="unassigned.devices.preclear";
-$docroot			= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-
-require_once("{$docroot}/plugins/".$preclear_plugin."/include/lib.php");
+/* Load the UD preclear library file if it is not already loaded. */
+require_once("plugins/unassigned.devices.preclear/include/lib.php");
 
 $Preclear = new Preclear;
 ?>
@@ -26,8 +24,8 @@ $Preclear = new Preclear;
 	<?=$Preclear->Script();?>
 
 	if (typeof swal2 === "undefined") {
-		$('head').append( $('<link rel="stylesheet" type="text/css" />').attr('href', '<?autov("/plugins/{$preclear_plugin}/assets/sweetalert2.css");?>') );
-		$.getScript( '/plugins/<?=$preclear_plugin;?>/assets/sweetalert2.js');
+		$('head').append( $('<link rel="stylesheet" />').attr('href', '<?autov("/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/assets/sweetalert2.css");?>') );
+		$.getScript( '/plugins/<?=UNASSIGNED_PRECLEAR_PLUGIN;?>/assets/sweetalert2.js');
 	}
 
 	$(function()

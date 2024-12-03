@@ -10,21 +10,14 @@
  * all copies or substantial portions of the Software.
  */
 
-/* HEADER */
+/* Load the UD library file if it is not already loaded. */
+require_once("plugins/unassigned.devices.preclear/include/lib.php");
 
-$docroot		= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-$relative_path	= str_replace($docroot, '', __FILE__);
-require_once	"$docroot/webGui/include/ColorCoding.php";
+$relative_path	= str_replace(DOCROOT, '', __FILE__);
 
 openlog(__FILE__, LOG_PID | LOG_PERROR, LOG_LOCAL0);
 
 /* FUNCTIONS */
-
-function preclear_log($msg) {
-	syslog(LOG_INFO, $msg);
-	return;
-}
-
 function readLastLines($filename, $lines, &$position, $find = "", $reverse = false)
 {
 	global $match, $color_coding;
@@ -287,12 +280,11 @@ if ( $task == "command_run" ) {
 } else if ( $task == "show_logger_html" ) {
 	$lines = [];
 	if (!isset($var)) {
-		if (!is_file("$docroot/state/var.ini")) shell_exec("wget -qO /dev/null localhost:$(lsof -nPc emhttp | grep -Po 'TCP[^\d]*\K\d+')");
-		$var = @parse_ini_file("$docroot/state/var.ini");
+		if (!is_file(DOCROOT."/state/var.ini")) shell_exec("wget -qO /dev/null localhost:$(lsof -nPc emhttp | grep -Po 'TCP[^\d]*\K\d+')");
+		$var = @parse_ini_file(DOCROOT."/state/var.ini");
 	}
 
 	if (isset($file)) {
-		// $lines = readLastLines($file, 30, $file_position, $search, true);
 	} else if (isset($command)) {
 		$socket_name = mt_rand();
 		exec("php ".__FILE__." ".escapeshellarg($command)." ".escapeshellarg($socket_name)." ".escapeshellarg($search)." 1>/dev/null 2>&1 &");
@@ -348,8 +340,8 @@ if ( $task == "command_run" ) {
 		@keyframes mark_6{50% {transform:translateY(40px)} 100% {transform:translateY(0px)}}
 		@keyframes mark_7{50% {transform:translateY(62px)} 100% {transform: translateY(0px)}}
 	</style>
-	<link type="text/css" rel="stylesheet" href="/webGui/styles/default-fonts.css?v=1607102280">
-	<script src="/webGui/javascript/dynamix.js"></script>
+	<link type="text/css" rel="stylesheet" href=<?autov("/webGui/styles/default-fonts.css?v=1607102280")?>>
+	<script src=<?autov("/webGui/javascript/dynamix.js")?>></script>
 	<script>
 		var lastLine = 0;
 		var cursor;

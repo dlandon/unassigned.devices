@@ -10,17 +10,33 @@
  * all copies or substantial portions of the Software.
  */
 
-/* Load emhttp variables if needed. */
-$docroot 		= $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+/* Define our plugin name. */
+define('UNASSIGNED_PRECLEAR_PLUGIN', 'unassigned.devices.preclear');
 
-if (!isset($var)) {
-	if (!is_file("$docroot/state/var.ini")) {
-		shell_exec("wget -qO /dev/null localhost:$(lsof -nPc emhttp | grep -Po 'TCP[^\d]*\K\d+')");
-	}
-	$var = @parse_ini_file("$docroot/state/var.ini");
+/* Define the docroot path. */
+if (!defined('DOCROOT')) {
+	define('DOCROOT', $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
 }
 
-$preclear_plugin	= "unassigned.devices.preclear";
+/* Load the Unraid ColorCoding, Wrappers, and Helpers files. */
+require_once(DOCROOT."/webGui/include/ColorCoding.php");
+require_once(DOCROOT."/webGui/include/Wrappers.php");
+require_once(DOCROOT."/webGui/include/Helpers.php");
+
+/* add translations */
+$_SERVER['REQUEST_URI'] = 'preclear';
+require_once(DOCROOT."/webGui/include/Translations.php");
+
+/* Verbose logging. */
+define('VERBOSE', false);
+
+if (!isset($var)) {
+	if (!is_file(DOCROOT."/state/var.ini")) {
+		shell_exec("wget -qO /dev/null localhost:$(lsof -nPc emhttp | grep -Po 'TCP[^\d]*\K\d+')");
+	}
+	$var = @parse_ini_file(DOCROOT."/state/var.ini");
+}
+
 $state_file			= "/var/state/unassigned.devices.preclear/state.ini";
 $log_file	 		= "/var/log/preclear/preclear.log";
 $diskinfo	 		= "/var/local/emhttp/plugins/diskinfo/diskinfo.json";
@@ -28,14 +44,14 @@ $hotplug_event		= "/tmp/unassigned.devices/hotplug_event";
 $preclear_status	= "/tmp/preclear/preclear_stat_";
 $tmp_preclear		= "/tmp/.preclear/";
 $preclear_reports	= "/boot/preclear_reports/";
-$unsupported		= "/var/state/[$preclear_plugin)/unsupported";
+$unsupported		= "/var/state/".UNASSIGNED_PRECLEAR_PLUGIN."/unsupported";
 
 /* Get the version of Unraid we are running. */
 $version = @parse_ini_file("/etc/unraid-version");
 
 function preclear_log($msg, $type = "NOTICE")
 {
-	if ( ($type == "DEBUG") && (! $GLOBALS['VERBOSE']) ) {
+	if ( ($type == "DEBUG") && (! VERBOSE) ) {
 		return NULL;
 	}
 	$msg = date("M j H:i:s")." ".print_r($msg,true)."\n";
@@ -185,9 +201,9 @@ class Preclear
 
 	public function scriptFiles()
 	{
-		$scripts = ["gfjardim"	=> "/usr/local/emhttp/plugins/".$this->preclear_plugin."/scripts/preclear_disk.sh",
+		$scripts = ["gfjardim"	=> "/usr/local/emhttp/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/scripts/preclear_disk.sh",
 					"joel"		=> "/usr/local/sbin/preclear_disk_ori.sh",
-					"docker"	=> "/usr/local/emhttp/plugins/".$this->preclear_plugin."/scripts/preclear_disk_docker.sh"];
+					"docker"	=> "/usr/local/emhttp/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/scripts/preclear_disk_docker.sh"];
 
 		foreach ($scripts as $author => $file) {
 			if (! is_executable($file)) {
