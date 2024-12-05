@@ -514,7 +514,7 @@ function toggleReports(opened) {
 		elem.disableSelection();
 
 		elem.off("click").on("click", function() {
-			const icon = $(this).find(".fa-append");  // Target the icon directly
+			const icon = $(this).find(".fa-append");
 			const disk = $(this).attr("hdd");
 
 			/* Toggle the inner div instead of the entire row */
