@@ -21,7 +21,7 @@ require_once("plugins/unassigned.devices/include/lib.php");
 $disabled = (($var['shareNFSEnabled'] == "no") && ($var['shareSMBEnabled'] == "no")) ? "disabled" : "";
 
 /* If user0 exists, then a user- root share is available. */
-$isUser0	= is_dir("/mnt/user0/") ? true : false;
+$isUser0	= is_dir("/mnt/user0/");
 ?>
 
 <link rel="stylesheet" href="<?autov('/webGui/styles/jquery.ui.css')?>">
@@ -245,33 +245,6 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
  			isRefreshing = false;
 		}
 	}
-
-	/*
-		Detect a change in the diskio cookie and refresh the page to update diskio if it changes.
-	*/
-	const checkCookie = (function() {
-		/* Get the initial value of the 'diskio' cookie. */
-		let lastCookie = $.cookie('diskio');
-
-		/* Return a function to check for changes in the 'diskio' cookie and refresh the page. */
-		return async function() {
-			/* Get the current value of the 'diskio' cookie. */
-			const currentCookie = $.cookie('diskio');
-
-			/* Check if the current cookie value is different from the last one. */
-			if (currentCookie !== lastCookie) {
-				/* Update the last cookie value. */
-				lastCookie = currentCookie;
-
-				try {
-					/* Refresh the page after the asynchronous operations are completed. */
-					refreshPage();
-				} catch (error) {
-					/* Ignore any errors. */
-				}
-			}
-		};
-	})();
 
 	/*
 		Poll remote servers and update ping status.
@@ -998,18 +971,6 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 		/* Set ping poll interval every 15 seconds. */
 		window.setInterval(pingPoll, PING_INTERVAL);
 
-		/* Check for diskio cookie change. */
-		$(document).ready(function() {
-			checkCookie();
-		});
-
-		/* Add icons to Tab/Title bar. */
-		$('#tab4').on({
-			click: function() {
-				$('i.toggle').show('slow');
-			}
-		});
-
 		/* Show the current diskio icon based on the current diskio cookie value. */
 		if ($.cookie('diskio') === undefined) {
 			$('i.toggle').removeClass('fa-tachometer').addClass('fa-list');
@@ -1068,27 +1029,21 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 			$.cookie('unassigned-historical-view', $('.historical-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path: '/' });
 		});
 
-		/* Wait for 'tab' cookie to be set, then proceed. */
-		let checkTabCookie = setInterval(function() {
-			const InitTab = $.cookie('tab');
-			const TabUD = $.cookie('tab_ud');
+		/* Proxy to check for 'tab' and 'diskio' cookie changes. */
+		(function() {
+			const originalSetCookie = $.cookie;
 
-			/* Skip polling if 'tab' and 'tab_ud' are already set and match. */
-			if (InitTab && TabUD === InitTab) {
-				/* Stop polling. */
- 				clearInterval(checkTabCookie);
-				return;
-			}
-
-			/* Proceed if 'tab' is set. */
-			if (InitTab) {
-				/* Stop polling since 'tab' is now set. */
-				clearInterval(checkTabCookie);
-
-				/* Update 'tab_ud' cookie to match 'tab'. */
-				$.cookie('tab_ud', InitTab, { path: '/' });
-			}
-		}, 100); /* Check every 100 milliseconds. */
+			// Proxy the $.cookie function
+			$.cookie = function(name, value, options) {
+				if (name === 'tab' && value !== undefined) {
+					// Update 'tab_ud' when 'tab' is set
+					$.cookie('tab_ud', value, { path: '/' });
+				} else if (name === 'diskio' && value !== undefined) {
+					refreshPage();
+				}
+				return originalSetCookie.apply(this, arguments);
+			};
+		})();
 
 		refreshPage();
 	});
