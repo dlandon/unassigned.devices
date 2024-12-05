@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.12.02">
+<!ENTITY version	"2024.12.05">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"eedd2d3d79792039eb501e74da22dfc2">
+<!ENTITY MD5		"7b5118c4767b4344f34394fd3cbff0ef">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,7 +22,12 @@
 <CHANGES>
 ##&name;
 ###&version;
-- Fix: Rework tabbing control so UD doesn't interfere with 'Main'.
+- Fix: Additional work on tabbed mode.
+- Fix: Better cookie handling for 'diskio' and 'tab' cookies without polling.
+- Fix: Some language file reorginization.
+
+###2024.12.02
+- Fix: Rework tabbed mode control so UD doesn't interfere with 'Main'.
 
 ###2024.11.30
 - Fix: Multi line NFS rules not working properly.

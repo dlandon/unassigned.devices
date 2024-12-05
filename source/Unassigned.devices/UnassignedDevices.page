@@ -1033,14 +1033,16 @@ $isUser0	= is_dir("/mnt/user0/");
 		(function() {
 			const originalSetCookie = $.cookie;
 
-			// Proxy the $.cookie function
+			/* Proxy the $.cookie function. */
 			$.cookie = function(name, value, options) {
 				if (name === 'tab' && value !== undefined) {
-					// Update 'tab_ud' when 'tab' is set
+					/* Update 'tab_ud' when 'tab' is set. */
 					$.cookie('tab_ud', value, { path: '/' });
 				} else if (name === 'diskio' && value !== undefined) {
+					/* If the 'diskio' cookie has changed, refresh the change to show the change. */
 					refreshPage();
 				}
+
 				return originalSetCookie.apply(this, arguments);
 			};
 		})();
