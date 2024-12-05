@@ -672,7 +672,7 @@ switch ($_POST['action']) {
 				}
 				$luks_lock		= $mounted ? "<i class='fa fa-unlock-alt fa-append green-orb'></i>" : "<i class='fa fa-lock fa-append grey-orb'></i>";
 				$o_disks		.= ((count($disk['partitions']) > 0) && ($disk['partitions'][0]['fstype'] == "crypto_LUKS")) ? $luks_lock : "";
-				$o_disks		.= "<a href='/Main/".$str."=".$disk_dev."'>".$disk_display."</a>";
+				$o_disks		.= "<a onclick=\"$.cookie('one','tab1');\" href='/Main/".$str."=".$disk_dev."'>".$disk_display."</a>";
 				$o_disks		.= "</td>";
 
 				/* Device serial number. */

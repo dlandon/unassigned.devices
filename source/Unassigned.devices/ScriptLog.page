@@ -66,16 +66,16 @@ echo "</pre>";
 		});
 	}
 
-<?if ($display['resize']):?>
-$(function() {
-	$('pre.up').css('height',Math.max(window.innerHeight-280,370)).show();
-});
-<?endif;?>
+	$(function() {
+		<?if ($display['resize']):?>
+			$('pre.up').css('height',Math.max(window.innerHeight-280,370)).show();
+		<?endif;?>
 
-	/* Return to 'tab' or the UD tab on main. */
-	const InitTab = $.cookie('tab') || "tab4";
-	$(window).on('beforeunload', function() {
-		$.cookie('one', InitTab, {path:'/'});
+		/* Return to the UD tab on main. */
+		const InitTab = $.cookie('tab_ud');
+		$(window).on('beforeunload', function() {
+			$.cookie('one', InitTab, {path:'/'});
+		});
 	});
 </script>
 

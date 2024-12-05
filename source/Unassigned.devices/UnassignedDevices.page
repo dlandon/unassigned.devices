@@ -707,7 +707,7 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 
 <div class='title ud'>
 <span class='left'>_(Unassigned Disks)_/_(Remote Shares)_/_(Historical Unassigned Devices)_</span>
-<span class='right ud'><a class='tooltip' title="_(Unassigned Devices Settings)_" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a></span>
+<span class='right ud'><a class='tooltip' title="_(Unassigned Devices Settings)_" onclick="$.cookie('one','tab1')" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a></span>
 <span class='right ud'><a class='tooltip' title="_(Refresh Disks and Configuration)_" onclick="rescan_disks()"><i class="fa fa-refresh"></i></a></span>
 <span class='right ud'><a class='tooltip' title="_(Show/Hide Historical Unassigned Devices)_"></a><input type="checkbox" class="historical-switch"></span>
 <span class='right ud'><a class='tooltip' title="_(Show/Hide SMB/NFS/ISO Shares)_"></a><input type="checkbox" class="shares-switch"></span>
@@ -1068,13 +1068,30 @@ $isUser0	= is_dir("/mnt/user0/") ? true : false;
 			$.cookie('unassigned-historical-view', $('.historical-switch').is(':checked') ? 'true' : 'false', { expires: 3650, path: '/' });
 		});
 
-		/* Return to 'tab1' on main. */
-		$(window).on('beforeunload', function() {
-			$.cookie('one', "tab1", {path:'/'});
-		});
+		/* Wait for 'tab' cookie to be set, then proceed. */
+		let checkTabCookie = setInterval(function() {
+			const InitTab = $.cookie('tab');
+			const TabUD = $.cookie('tab_ud');
+
+			/* Skip polling if 'tab' and 'tab_ud' are already set and match. */
+			if (InitTab && TabUD === InitTab) {
+				/* Stop polling. */
+ 				clearInterval(checkTabCookie);
+				return;
+			}
+
+			/* Proceed if 'tab' is set. */
+			if (InitTab) {
+				/* Stop polling since 'tab' is now set. */
+				clearInterval(checkTabCookie);
+
+				/* Update 'tab_ud' cookie to match 'tab'. */
+				$.cookie('tab_ud', InitTab, { path: '/' });
+			}
+		}, 100); /* Check every 100 milliseconds. */
 
 		refreshPage();
-});
+	});
 </script>
 
 <div style="display:none;" data-survey-name="add_root_share" data-survey-title="<?=_('Add Root Share');?>">

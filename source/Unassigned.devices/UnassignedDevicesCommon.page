@@ -164,9 +164,6 @@ if ((! $parted) && ($UD_cfg['Config']['destructive_mode'] == "enabled")) {
 			});
 		});
 	}
-
-	/* Start with the first tab. */
-	$.cookie('one', "tab1", {path:'/'});
 </script>
 
 <table class="tablesorter shift ups">
