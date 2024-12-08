@@ -10,6 +10,8 @@
  * all copies or substantial portions of the Software.
  */
 
+$_SERVER['REQUEST_URI'] = "preclear";
+
 /* Load the UD preclear library file if it is not already loaded. */
 require_once("plugins/unassigned.devices.preclear/include/lib.php");
 

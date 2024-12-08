@@ -24,7 +24,6 @@ require_once(DOCROOT."/webGui/include/Wrappers.php");
 require_once(DOCROOT."/webGui/include/Helpers.php");
 
 /* add translations */
-$_SERVER['REQUEST_URI'] = 'preclear';
 require_once(DOCROOT."/webGui/include/Translations.php");
 
 /* Verbose logging. */
