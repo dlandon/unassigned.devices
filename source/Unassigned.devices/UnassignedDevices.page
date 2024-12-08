@@ -512,9 +512,9 @@ $isUser0	= is_dir("/mnt/user0/");
 			content = restore_content[0].outerHTML;
 			button = {
 				back: getAttr(question, "data-question-button-back", "<?=_('Back')?>"),
-				cancel: getAttr(question, "data-question-button-cancel", "<?=_('Cancel')?>"),
+				next: getAttr(question, "data-question-button-next", "<?=_('Next')?>"),
 				done: getAttr(question, "data-question-button-done", "<?=_('Done')?>"),
-				next: getAttr(question, "data-question-button-next", "<?=_('Next')?>")
+				cancel: getAttr(question, "data-question-button-cancel", "<?=_('Cancel')?>")
 			};
 
 			/* Define SweetAlert options */
@@ -524,18 +524,18 @@ $isUser0	= is_dir("/mnt/user0/");
 			swalOpts.icon = getAttr(question, "data-question-icon", "info");
 			swalOpts.closeOnClickOutside = false;
 			swalOpts.buttons = new Object;
-			swalOpts.buttons.confirm = (index > 0) ? {
-				text: button.cancel,
-				value: null,
+			swalOpts.buttons.next = (index == numQuestions - 1) ? {
+				text: button.done,
+				value: true,
 				visible: true,
 				className: "",
-				closeModal: true
+				closeModal: false
 			} : {
-				text: "",
-				value: null,
-				visible: false,
+				text: button.next,
+				value: true,
+				visible: true,
 				className: "",
-				closeModal: true
+				closeModal: false
 			};
 			swalOpts.buttons.cancel = (index > 0) ? {
 				text: button.back,
@@ -550,18 +550,18 @@ $isUser0	= is_dir("/mnt/user0/");
 				className: "",
 				closeModal: true
 			};
-			swalOpts.buttons.next = (index == numQuestions - 1) ? {
-				text: button.done,
-				value: true,
+			swalOpts.buttons.confirm = (index > 0) ? {
+				text: button.cancel,
+				value: null,
 				visible: true,
 				className: "",
-				closeModal: false
+				closeModal: true
 			} : {
-				text: button.next,
-				value: true,
-				visible: true,
+				text: "",
+				value: null,
+				visible: false,
 				className: "",
-				closeModal: false
+				closeModal: true
 			};
 
 			/* Display SweetAlert and handle responses */
@@ -680,7 +680,7 @@ $isUser0	= is_dir("/mnt/user0/");
 
 <div class='title ud'>
 <span class='left'>_(Unassigned Disks)_/_(Remote Shares)_/_(Historical Unassigned Devices)_</span>
-<span class='right ud'><a class='tooltip' title="_(Unassigned Devices Settings)_" onclick="$.cookie('one','tab1')" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a></span>
+<span class='right ud'><a class='tooltip' title="_(Unassigned Devices Settings)_" href="/Settings/UnassignedDevicesSettings"><i class="fa fa-gear"></i></a></span>
 <span class='right ud'><a class='tooltip' title="_(Refresh Disks and Configuration)_" onclick="rescan_disks()"><i class="fa fa-refresh"></i></a></span>
 <span class='right ud'><a class='tooltip' title="_(Show/Hide Historical Unassigned Devices)_"></a><input type="checkbox" class="historical-switch"></span>
 <span class='right ud'><a class='tooltip' title="_(Show/Hide SMB/NFS/ISO Shares)_"></a><input type="checkbox" class="shares-switch"></span>
@@ -1035,10 +1035,7 @@ $isUser0	= is_dir("/mnt/user0/");
 
 			/* Proxy the $.cookie function. */
 			$.cookie = function(name, value, options) {
-				if (name === 'tab' && value !== undefined) {
-					/* Update 'tab_ud' when 'tab' is set. */
-					$.cookie('tab_ud', value, { path: '/' });
-				} else if (name === 'diskio' && value !== undefined) {
+				if (name === 'diskio' && value !== undefined) {
 					/* If the 'diskio' cookie has changed, refresh the change to show the change. */
 					refreshPage();
 				}
