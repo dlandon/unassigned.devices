@@ -70,12 +70,6 @@ echo "</pre>";
 		<?if ($display['resize']):?>
 			$('pre.up').css('height',Math.max(window.innerHeight-280,370)).show();
 		<?endif;?>
-
-		/* Return to the UD tab on main. */
-		const InitTab = $.cookie('tab_ud');
-		$(window).on('beforeunload', function() {
-			$.cookie('one', InitTab, {path:'/'});
-		});
 	});
 </script>
 

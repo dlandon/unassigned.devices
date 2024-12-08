@@ -1193,12 +1193,4 @@ _(User Script)_:
 			location.reload();
 		});
 	}
-
-	$(function() {
-		/* Return to the UD tab on main. */
-		const InitTab = $.cookie('tab_ud');
-		$(window).on('pagehide', function() {
-			$.cookie('one', InitTab, {path:'/'});
-		});
-	});
 </script>
