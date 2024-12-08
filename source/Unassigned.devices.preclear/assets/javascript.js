@@ -241,8 +241,8 @@ function startPreclear(serial, multiple = "no")
 		content:{ element: "div", attributes:{ innerHTML: preclear_dialog.html()}},
 		icon: "info",
 		buttons:{
-			cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
 			confirm:{text: _("Start"), value: true, visible: true, className: "", closeModal: false},
+			cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
 		}
 	}).then((answer) => {
 		if (answer) {
@@ -356,8 +356,8 @@ function stopPreclear(serial, ask, multiple = 'no')
 		content:{ element: "div", attributes:{ innerHTML: preclear_dialog.html()}},
 		icon: "warning",
 		buttons:{
-			cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
 			confirm:{text: _("Stop"), value: true, visible: true, className: "", closeModal: false},
+			cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
 		}
 	}).then((answer) => {
 		if (answer) {
@@ -400,8 +400,8 @@ function preclearClear()
 		},
 		icon: "warning",
 		buttons:{
-			cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
 			confirm:{text: _("Fix"), value: true, visible: true, className: "", closeModal: false},
+			cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
 		}
 	}).then((answer) => {
 		if (answer)
@@ -590,9 +590,9 @@ function getResumablePreclear(serial)
 				},
 				icon: "info",
 				buttons:{
-					cancel:{text: _("Cancel"), value: null, visible: true, className: "swal-button .swal-button-left", closeModal: true},
 					confirm:{text: _("Resume"), value: 1, visible: true, className: "", closeModal: false},
 					new:{text: _("Start New"), value: 2, visible: true, className: "", closeModal: false},
+					cancel:{text: _("Cancel"), value: null, visible: true, className: "swal-button .swal-button-left", closeModal: true},
 				}
 			}).then((answer) => {
 				if (answer == 1) {
@@ -635,8 +635,8 @@ function setPreclearQueue()
 			content:{ element: "div", attributes:{ innerHTML: preclear_dialog.html()}},
 			icon: "info",
 			buttons:{
-				cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
 				confirm:{text: _("Set"), value: true, visible: true, className: "", closeModal: false},
+				cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
 			}
 		}).then((answer) => {
 			if (answer)
@@ -678,8 +678,8 @@ function preclearPauseAll()
 		},
 		icon: "warning",
 		buttons:{
-			cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
 			confirm:{text: _("Pause"), value: true, visible: true, className: "", closeModal: false},
+			cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
 		}
 	}).then((answer) => {
 		if (answer) {
@@ -703,8 +703,8 @@ function preclearResumeAll()
 		},
 		icon: "warning",
 		buttons:{
-			cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
 			confirm:{text: _("Resume"), value: true, visible: true, className: "", closeModal: false},
+			cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
 		}
 	}).then((answer) => {
 		if (answer) {
@@ -727,8 +727,8 @@ function preclearStopAll()
 		},
 		icon: "warning",
 		buttons:{
-			cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
 			confirm:{text: _("Stop"), value: true, visible: true, className: "", closeModal: false},
+			cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
 		}
 	}).then((answer) => {
 		if (answer) {
