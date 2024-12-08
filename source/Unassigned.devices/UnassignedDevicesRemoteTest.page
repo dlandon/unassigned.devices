@@ -63,7 +63,7 @@ _(Server)_:
 : <input type="text" name="server_name" class="wide" maxlength="100" placeholder="Enter Server Name or IP Address">
 
 &nbsp;
-: <input type="button" value="_(Clear)_" title="_(Clear the last test results)_" onclick="refresh()"><button type="button" id="test-button" title="_(Test the Remote Server)_" onclick="return handleFormSubmit();">_(Test)_</button>
+: <input type="button" value="_(Clear)_" title="_(Clear the last test results)_" onclick="refresh()"><button type="button" id="test-button" title="_(Test the Remote Server)_" onclick="return handleFormSubmit();">_(Test)_</button><input type="button" value="_(Done)_" onclick="done()">
 
 
 <div style="width:65%; float:left">

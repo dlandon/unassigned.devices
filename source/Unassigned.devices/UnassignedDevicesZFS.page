@@ -82,5 +82,5 @@ _(Select Disk)_:
 <p><span style='font-weight:bold;'>Note:</span> _(This operation cannot be reversed)_.  _(After upgrading, the disk may not be mountable in previous versions of Unraid)_.</p>
 
 &nbsp;
-: <input type="submit" value='_(Upgrade ZFS Pool)_' title='_(Upgrade ZFS on disk to the latest)_.' <?=count($zfs_devices) ? "" : "disabled";?>>
+: <input type="submit" value='_(Upgrade ZFS Pool)_' title='_(Upgrade ZFS on disk to the latest)_.' <?=count($zfs_devices) ? "" : "disabled";?>><input type="button" value="_(Done)_" onclick="done()">
 </form>

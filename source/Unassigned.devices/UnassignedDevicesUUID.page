@@ -68,5 +68,5 @@ _(Select Disk)_:
 :end
 
 &nbsp;
-: <input type="submit" value='_(Change UUID)_' title='_(Change the disk UUID)_.' <?=count($uuid_devices) ? "" : "disabled";?>>
+: <input type="submit" value='_(Change UUID)_' title='_(Change the disk UUID)_.' <?=count($uuid_devices) ? "" : "disabled";?>><input type="button" value="_(Done)_" onclick="done()">
 </form>
