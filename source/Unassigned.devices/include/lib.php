@@ -23,7 +23,6 @@ require_once(DOCROOT."/webGui/include/Wrappers.php");
 require_once(DOCROOT."/webGui/include/Helpers.php");
 
 /* add translations */
-$_SERVER['REQUEST_URI'] = "unassigneddevices";
 require_once(DOCROOT."/webGui/include/Translations.php");
 
 $paths = [	"smb_unassigned"	=> "/etc/samba/smb-unassigned.conf",
