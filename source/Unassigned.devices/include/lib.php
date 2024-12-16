@@ -1771,7 +1771,8 @@ function get_mount_params($fs, $dev, $ro = false, $compression = "") {
 		case 'cifs':
 			$credentials_file = "{$paths['credentials']}_".basename($dev);
 			$closetimeo	= version_compare($version['version'],"6.11.9", ">") ? "closetimeo=30" : "";
-			$rc = "{$rw},hard,relatime,noserverino,nounix,iocharset=utf8,file_mode=0777,dir_mode=0777,uid=99,gid=100,retrans=3,actimeo=10,rsize=1048576,wsize=1048576,$closetimeo%s,credentials=".escapeshellarg($credentials_file);
+			$retrans	= version_compare($version['version'],"6.12.99", ">") ? "retrans=3" : "";
+			$rc = "{$rw},hard,relatime,noserverino,nounix,iocharset=utf8,file_mode=0777,dir_mode=0777,uid=99,gid=100,$retrans,actimeo=10,rsize=1048576,wsize=1048576,$closetimeo%s,credentials=".escapeshellarg($credentials_file);
 			break;
 
 		case 'nfs':
