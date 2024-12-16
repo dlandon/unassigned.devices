@@ -1505,9 +1505,9 @@ switch ($_POST['action']) {
 	case 'list_samba_shares':
 		/* Get a list of samba shares for a specific host. */
 		$ip			= htmlspecialchars($_POST['IP']);
-		$user		= isset($_POST['USER']) ? $_POST['USER'] : "";
-		$pass		= isset($_POST['PASS']) ? $_POST['PASS'] : "";
-		$domain		= isset($_POST['DOMAIN']) ? $_POST['DOMAIN'] : "";
+		$user		= isset($_POST['USER']) ? htmlspecialchars($_POST['USER']) : "";
+		$pass		= isset($_POST['PASS']) ? htmlspecialchars($_POST['PASS']) : "";
+		$domain		= isset($_POST['DOMAIN']) ? htmlspecialchars($_POST['DOMAIN']) : "";
 
 		$ip			= implode("",explode("\\", $ip));
 		$ip			= strtoupper(stripslashes(trim($ip)));
@@ -1637,7 +1637,7 @@ switch ($_POST['action']) {
 				if ($protocol == "SMB") {
 					set_samba_config($device, "user", $user);
 					set_samba_config($device, "domain", $domain);
-					set_samba_config($device, "pass", encrypt_data($pass));
+					set_samba_config($device, "pass", addslashes(encrypt_data($pass)));
 				}
 
 				set_samba_config($device, "share", $share);

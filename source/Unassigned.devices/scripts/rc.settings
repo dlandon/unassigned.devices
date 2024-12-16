@@ -112,7 +112,7 @@ function set_pass() {
 	release_file_lock($lock_file);
 
 	/* Save the new password */
-	set_config($serial, "pass", encrypt_data($password));
+	set_config($serial, "pass", addslashes(encrypt_data($password)));
 }
 
 /* Update the NFS rule. */

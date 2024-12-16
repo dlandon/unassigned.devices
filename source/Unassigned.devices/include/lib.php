@@ -19,7 +19,6 @@ if (!defined('DOCROOT')) {
 }
 
 /* Get the Unraid Wrappers and Helpers files. */
-require_once(DOCROOT."/webGui/include/Wrappers.php");
 require_once(DOCROOT."/webGui/include/Helpers.php");
 
 /* add translations */
@@ -925,6 +924,8 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 					unassigned_log("Failed to write LUKS password to file '".$luks_pass_file."'.");
 					return false;
 				}
+				/* Set permissions on passwork file. */
+				@chmod($luks_pass_file, 0600);
 				$o				= trim(shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1") ?? "");
 				exec("/bin/shred -u ".escapeshellarg($luks_pass_file), $out, $return_code);
 				if ($return_code !== 0) {
@@ -954,6 +955,8 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 						unassigned_log("Failed to write LUKS password to file '".$luks_pass_file."'.");
 						return false;
 					}
+					/* Set permissions on passwork file. */
+					@chmod($luks_pass_file, 0600);
 					$o				= trim(shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1") ?? "");
 					exec("/bin/shred -u ".escapeshellarg($luks_pass_file), $out, $return_code);
 					if ($return_code !== 0) {
@@ -1768,11 +1771,11 @@ function get_mount_params($fs, $dev, $ro = false, $compression = "") {
 		case 'cifs':
 			$credentials_file = "{$paths['credentials']}_".basename($dev);
 			$closetimeo	= version_compare($version['version'],"6.11.9", ">") ? "closetimeo=30" : "";
-			$rc = "{$rw},hard,relatime,noserverino,nounix,iocharset=utf8,file_mode=0777,dir_mode=0777,uid=99,gid=100,actimeo=10,$closetimeo%s,credentials=".escapeshellarg($credentials_file);
+			$rc = "{$rw},hard,relatime,noserverino,nounix,iocharset=utf8,file_mode=0777,dir_mode=0777,uid=99,gid=100,retrans=3,actimeo=10,rsize=1048576,wsize=1048576,$closetimeo%s,credentials=".escapeshellarg($credentials_file);
 			break;
 
 		case 'nfs':
-			$rc = "{$rw},hard,relatime";
+			$rc = "{$rw},hard,timeo=50,retrans=5,relatime,rsize=1048576,wsize=1048576";
 			break;
 
 		case 'root':
@@ -1827,6 +1830,8 @@ function do_mount($info) {
 					unassigned_log("Failed to write LUKS password to file '".$luks_pass_file."'.");
 					return false;
 				}
+				/* Set permissions on passwork file. */
+				@chmod($luks_pass_file, 0600);
 				unassigned_log("Using disk password to open the 'crypto_LUKS' device.");
 				$o		= trim(shell_exec("/sbin/cryptsetup ".escapeshellcmd($cmd)." -d ".escapeshellarg($luks_pass_file)." 2>&1") ?? "");
 				exec("/bin/shred -u ".escapeshellarg($luks_pass_file), $out, $return_code);
@@ -2745,40 +2750,44 @@ function set_samba_config($source, $variable, $value) {
 	return $rc;
 }
 
-/* Encrypt data. */
 function encrypt_data($data) {
-	$key	= get_config("Config", "key");
-	if ((! $key) || strlen($key) != 32) {
-		$key = substr(base64_encode(openssl_random_pseudo_bytes(32)), 0, 32);
-		set_config("Config", "key", $key);
-	}
-	$iv		= get_config("Config", "iv");
-	if ((! $iv) || strlen($iv) != 16) {
-		$iv = substr(base64_encode(openssl_random_pseudo_bytes(16)), 0, 16);
-		set_config("Config", "iv", $iv);
-	}
+    $key = get_config("Config", "key");
+    if (!$key || strlen($key) != 32) {
+        $key = substr(base64_encode(openssl_random_pseudo_bytes(32)), 0, 32);
+        set_config("Config", "key", $key);
+    }
+    $iv = get_config("Config", "iv");
+    if (!$iv || strlen($iv) != 16) {
+        $iv = substr(base64_encode(openssl_random_pseudo_bytes(16)), 0, 16);
+        set_config("Config", "iv", $iv);
+    }
 
-	/* Encrypt the data using aes256. */
-	$value	= trim(openssl_encrypt($data, 'aes256', $key, $options=0, $iv));
+    /* Encrypt the data using aes-256-cbc (ensure mode and padding are specified). */
+    $encrypted = openssl_encrypt($data, 'aes-256-cbc', $key, OPENSSL_RAW_DATA, $iv);
 
-	return $value;
+    /* Base64 encode the encrypted data. */
+    $value = base64_encode($encrypted);
+
+    return $value;
 }
 
-/* Decrypt data. */
 function decrypt_data($data) {
-	$key	= get_config("Config", "key");
-	$iv		= get_config("Config", "iv");
+    $key = get_config("Config", "key");
+    $iv  = get_config("Config", "iv");
 
-	/* Decrypt the data using aes256. */
-	$value = openssl_decrypt($data, 'aes256', $key, $options=0, $iv);
+    /* Base64 decode before decryption. */
+    $encrypted_data = base64_decode(stripslashes($data));
 
-	/* Make sure the data is UTF-8 encoded. */
-	if (! mb_check_encoding($value, 'UTF-8')) {
-		unassigned_log("Warning: Data is not UTF-8 encoded");
-		$value = "";
-	}
+    /* Decrypt the data using aes-256-cbc. */
+    $decrypted = openssl_decrypt($encrypted_data, 'aes-256-cbc', $key, OPENSSL_RAW_DATA, $iv);
 
-	return $value;
+    /* Ensure the decrypted data is UTF-8 encoded. */
+    if (!mb_check_encoding($decrypted, 'UTF-8')) {
+        unassigned_log("Warning: Data is not UTF-8 encoded");
+        $decrypted = "";
+    }
+
+    return $decrypted;
 }
 
 /* Is the samba mount set for auto mount? */
@@ -3010,6 +3019,9 @@ function do_mount_samba($info) {
 				@file_put_contents("$credentials_file", "username=".($info['user'] ? $info['user'] : 'guest')."\n");
 				@file_put_contents("$credentials_file", "password=".decrypt_data($info['pass'])."\n", FILE_APPEND);
 				@file_put_contents("$credentials_file", "domain=".$info['domain']."\n", FILE_APPEND);
+
+				/* Change credentials file permissions. */
+				@chmod($credentials_file, 0600);
 
 				/* Are we encrypting this mount? */
 				$encrypt	= $info['encryption'] ? ",seal" : "";
@@ -4211,6 +4223,8 @@ function change_mountpoint($serial, $partition, $dev, $fstype, $mountpoint) {
 							unassigned_log("Failed to write LUKS password to file '".$luks_pass_file."'.");
 							return false;
 						}
+						/* Set permissions on passwork file. */
+						@chmod($luks_pass_file, 0600);
 						unassigned_log("Using disk password to open the 'crypto_LUKS' device.");
 						$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
 						exec("/bin/shred -u ".escapeshellarg($luks_pass_file), $out, $return_code);
@@ -4355,6 +4369,8 @@ function change_UUID($dev) {
 				unassigned_log("Failed to write LUKS password to file '".$luks_pass_file."'.");
 				return false;
 			}
+			/* Set permissions on passwork file. */
+			@chmod($luks_pass_file, 0600);
 			unassigned_log("Using disk password to open the 'crypto_LUKS' device.");
 			$o		= shell_exec("/sbin/cryptsetup $cmd -d ".escapeshellarg($luks_pass_file)." 2>&1");
 			exec("/bin/shred -u ".escapeshellarg($luks_pass_file), $out, $return_code);
