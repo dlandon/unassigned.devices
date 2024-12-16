@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.12.08">
+<!ENTITY version	"2024.12.16">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"081c3265365231889a637a0b7e66baec">
+<!ENTITY MD5		"6d7bdb773678d25b9a2c138f6c163787">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,9 +22,14 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Additional help text on NFS Rules.
+- Fix: Adjust some NFS and CIFS mount options for robustness.
+- Add: Ability to use special characters in passwords.
+
+###2024.12.08
 - Fix: Reorder dialog buttons to be more compatible with Unraid standard with the 'Cancel' button on the right.
 - Fix: Language translations not being applied in UnassignedDevices.php.
-- Add: 'Done' buttons to all UD Settings tabs.
+- Add: 'Done' buttons to all UD Settings pages.
 - Rem: Remove all the tabbed page hacks in UD.  The proper changes will be made in the next release of Unraid.
 
 ###2024.12.05
