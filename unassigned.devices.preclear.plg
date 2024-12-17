@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.12.16">
+<!ENTITY version	"2024.12.17">
 <!ENTITY launch		"Tools/Preclear">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/unassigned.devices/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"14dbdb7ef70074d60d9cff3bfabf179e">
+<!ENTITY MD5		"f3e4a3eac6681341c960b859f05bfa94">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
@@ -21,6 +21,9 @@
 <CHANGES>
 ###&name;
 ###&version;
+- Fix: Cannot preclear a disk with an empty partition.
+
+###2024.12.16
 - Fix: Reorder dialog buttons to be more compatible with Unraid standard with the 'Cancel' button on the right.
 - Fix: Language translations not being applied in Preclear.php.
 
