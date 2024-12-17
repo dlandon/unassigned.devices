@@ -83,7 +83,7 @@ class TMUX
 	/* Is this $name a current session? */
 	public static function getSession($name)
 	{
-		return (TMUX::hasSession($name)) ? shell_exec("/usr/bin/tmux capture-pane -t ".escapeshellarg($name)." 2>/dev/null;/usr/bin/tmux show-buffer 2>&1") : NULL;
+		return (TMUX::hasSession($name)) ? shell_exec("/usr/bin/tmux capture-pane -t ".escapeshellarg($name)." 2>/dev/null;/usr/bin/tmux show-buffer 2>&1") : "";
 	}
 
 	/* Send a tmux command. */

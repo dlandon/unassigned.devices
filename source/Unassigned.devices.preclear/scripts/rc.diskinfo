@@ -241,10 +241,8 @@ class Disks
 			} else {
 				if ((isset($disk['PARTS'])) && (is_array($disk['PARTS']))) {
 					foreach ($disk['PARTS'] as $part) {
-						if ($part['FSTYPE']) {
-							$no_file_system	= false;
-							break;
-						}
+						$no_file_system	= false;
+						break;
 					}
 				}
 			}

@@ -19,6 +19,7 @@ if (!defined('DOCROOT')) {
 }
 
 /* Get the Unraid Wrappers and Helpers files. */
+require_once(DOCROOT."/webGui/include/Wrappers.php");
 require_once(DOCROOT."/webGui/include/Helpers.php");
 
 /* add translations */
