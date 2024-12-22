@@ -60,7 +60,7 @@ if (version_compare($version['version'], '6.12.0-beta5', '>')) {
 		$('input[value="Download"]').val('Downloading...').prop('disabled', true);
     
 		/* Send a POST request to trigger the download process */
-		$.post('/plugins/<?=UNASSIGNED_PRECLEAR_PLUGIN;?>/Preclear.php', { action: 'download', file: '<?=$zipFile;?>' }, function (zip) {
+		$.post('/plugins/<?php echo UNASSIGNED_PRECLEAR_PLUGIN;?>/Preclear.php', { action: 'download', file: '<?=$zipFile;?>' }, function (zip) {
 			/* Redirect to the downloaded file */
 			location = zip;
         
@@ -208,7 +208,7 @@ if (version_compare($version['version'], '6.12.0-beta5', '>')) {
 		$('head').append($('<link rel="stylesheet" />').attr('href', '<?autov("/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/assets/sweetalert2.css");?>'));
 
 		/* Load the SweetAlert2 script dynamically. */
-		$.getScript('/plugins/<?=UNASSIGNED_PRECLEAR_PLUGIN;?>/assets/sweetalert2.js');
+		$.getScript('/plugins/<?php echo UNASSIGNED_PRECLEAR_PLUGIN;?>/assets/sweetalert2.js');
 	}
 
 	/* Check for updated version and show banner if there is an update. */

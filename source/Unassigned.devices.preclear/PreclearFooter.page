@@ -25,7 +25,7 @@ $Preclear = new Preclear;
 
 	if (typeof swal2 === "undefined") {
 		$('head').append( $('<link rel="stylesheet" />').attr('href', '<?autov("/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/assets/sweetalert2.css");?>') );
-		$.getScript( '/plugins/<?=UNASSIGNED_PRECLEAR_PLUGIN;?>/assets/sweetalert2.js');
+		$.getScript( '/plugins/<?php echo UNASSIGNED_PRECLEAR_PLUGIN;?>/assets/sweetalert2.js');
 	}
 
 	$(function()
