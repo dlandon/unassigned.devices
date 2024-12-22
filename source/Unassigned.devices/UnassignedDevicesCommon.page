@@ -183,7 +183,7 @@ if ((! $parted) && ($UD_cfg['Config']['destructive_mode'] == "enabled")) {
 <?endif;?>
 
 _(Common Script)_:
-: <input type="text" name="common_cmd" style="width:43%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=UNASSIGNED_PLUGIN;?>', 'sh');" autocomplete="off" value="<?=$UD_cfg['Config']['common_cmd'];?>">
+: <input type="text" name="common_cmd" style="width:43%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?php echo UNASSIGNED_PLUGIN;?>', 'sh');" autocomplete="off" value="<?=$UD_cfg['Config']['common_cmd'];?>">
 
 :ud_settings_common_script_plug:
 > If set, this script will run before the device script when a device is first added - **$ACTION**='ADD'.  The device script setting 'Run Device Script File in the background?' will also apply to this script.

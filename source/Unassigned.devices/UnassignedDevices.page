@@ -689,7 +689,7 @@ $isUser0	= is_dir("/mnt/user0/");
 
 <div class='show-disks'>
 	<div class='title shift'>
-		<span class='left'><img src='/plugins/<?=UNASSIGNED_PLUGIN;?>/icons/disk.png' class='icon'><?=_('Unassigned Disk Devices')?></span>
+		<span class='left'><img src='/plugins/<?php echo UNASSIGNED_PLUGIN;?>/icons/disk.png' class='icon'><?=_('Unassigned Disk Devices')?></span>
 	</div>
 
 	<table id='usb_devices_list' class='usb_mounts'>
@@ -751,7 +751,7 @@ $isUser0	= is_dir("/mnt/user0/");
 
 <div class='show-shares'>
 	<div class='title shift'>
-		<span class='left'><img src='/plugins/<?=UNASSIGNED_PLUGIN;?>/icons/smbsettings.png' class='icon'><?=_('SMB Shares')?>&nbsp;|&nbsp;<img src='/plugins/<?=UNASSIGNED_PLUGIN?>/icons/nfssettings.png' class='icon'><?=_('NFS Shares')?>&nbsp;|&nbsp;<img src='/plugins/<?=UNASSIGNED_PLUGIN?>/icons/iso.png' class='icon' style='width:16px;'><?=_('ISO File Shares')?></span>
+		<span class='left'><img src='/plugins/<?php echo UNASSIGNED_PLUGIN;?>/icons/smbsettings.png' class='icon'><?=_('SMB Shares')?>&nbsp;|&nbsp;<img src='/plugins/<?php echo UNASSIGNED_PLUGIN?>/icons/nfssettings.png' class='icon'><?=_('NFS Shares')?>&nbsp;|&nbsp;<img src='/plugins/<?php echo UNASSIGNED_PLUGIN?>/icons/iso.png' class='icon' style='width:16px;'><?=_('ISO File Shares')?></span>
 	</div>
 
 	<table class='samba_mounts'>
@@ -787,7 +787,7 @@ $isUser0	= is_dir("/mnt/user0/");
 	<div class='show-historical'>
 		<br><br>
 		<div class='title shift'>
-			<span class='left'><img src='/plugins/<?=UNASSIGNED_PLUGIN;?>/icons/historical.png' class='icon'><?=_('Historical Unassigned Devices')?></span>
+			<span class='left'><img src='/plugins/<?php echo UNASSIGNED_PLUGIN;?>/icons/historical.png' class='icon'><?=_('Historical Unassigned Devices')?></span>
 		</div>
 
 		<table class='usb_absent'>
@@ -933,7 +933,7 @@ $isUser0	= is_dir("/mnt/user0/");
 		$('head').append($('<link rel="stylesheet" type="text/css" />').attr('href', '<?autov("/plugins/".UNASSIGNED_PLUGIN."/assets/sweetalert2.css");?>'));
 
 		/* Load the SweetAlert2 script dynamically. */
-		$.getScript('/plugins/<?=UNASSIGNED_PLUGIN;?>/assets/sweetalert2.js');
+		$.getScript('/plugins/<?php echo UNASSIGNED_PLUGIN;?>/assets/sweetalert2.js');
 	}
 
 	/* Bind Arrive events for dynamically added 'tr' elements in the '#usb_devices_list' table. */

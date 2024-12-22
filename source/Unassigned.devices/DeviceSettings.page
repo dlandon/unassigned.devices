@@ -530,7 +530,7 @@ _(User Script)_:
 		$('div.spinner.fixed').hide();
 	};
 
-	const UDURL		= '/plugins/<?=UNASSIGNED_PLUGIN;?>/include/UnassignedDevices.php';
+	const UDURL		= '/plugins/<?php echo UNASSIGNED_PLUGIN;?>/include/UnassignedDevices.php';
 
 	/* Clean up the file name before submitting it. */
 	function cleanUpFileInput() {
