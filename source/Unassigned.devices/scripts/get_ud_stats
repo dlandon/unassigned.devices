@@ -261,7 +261,7 @@ function getMountpointSpaceInfo($mountpoint, $zfs) {
 		}
 	}
 
-	/* If the mountpoint is not zfs, use df to the the stats. */
+	/* If the mountpoint is not zfs, use df to get the stats. */
 	if (! $result) {
 		/* If not a ZFS file system, use df to get the size, used, and free space */
 		$dfCommand	= '/usr/bin/df ' . escapeshellarg($mountpoint) . ' --output=size,used,avail | /bin/grep -v \'1K-blocks\' 2>/dev/null';
