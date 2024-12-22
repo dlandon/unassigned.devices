@@ -407,6 +407,13 @@ class MiscUD
 
 		return ($rc);
 	}
+
+	/* Check if the mount point is accessible */
+	public static function isMountAccessible($mount_point) {
+		$rc	= timed_exec(1, '/bin/mountpoint -q ' . escapeshellarg($mount_point));
+
+		return $rc != "command timed out";
+	}
 }
 
 /* Echo variable to GUI for debugging. */
@@ -2144,7 +2151,7 @@ function do_mount_root($info) {
 
 	$rc		= false;
 
-	/* A rootshare device is treated similar to a CIFS mount. */
+	/* A rootshare device is treated similar to a CIFS mount.  The rootshare won't work if disks are shared. */
 	if ($var['shareDisk'] != "yes") {
 		/* If the root server is not online, run the ping update and see if ping status needs to be refreshed. */
 		if (! $info['alive']) {
@@ -2938,8 +2945,8 @@ function get_samba_mounts() {
 				$mount['used']			= $stats[1]*1024;
 				$mount['avail']			= $stats[2]*1024;
 
-				/* If the device size is zero, the device is effectively off-line. */
-				$mount['available']		= ($mount['mounted'] && $mount['size'] == 0) ? false : $mount['alive'];
+				/* If the device size is zero, or the mount point is not accessible, the remote mount is effectively offline. */
+				$mount['available'] = $mount['mounted'] ? ($mount['size'] != 0 && MiscUD::isMountAccessible($mount['mountpoint'])) : $mount['alive'];
 
 				/* Target is set to the mount point when the device is mounted. */
 				$mount['target']		= $mount['mounted'] ? $mount['mountpoint'] : "";
