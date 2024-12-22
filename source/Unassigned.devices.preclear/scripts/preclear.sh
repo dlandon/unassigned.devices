@@ -13,7 +13,12 @@
 HEIGHT=15
 WIDTH=60
 
-gfjardim_script="/usr/local/emhttp/plugins/unassigned.devices.preclear/scripts/preclear_disk.sh"
+DOCROOT=`grep -Po '^chdir = \K.*' /etc/php-fpm.d/www.conf 2>/dev/null`
+if [ -z ${DOCROOT} ];then
+	DOCROOT="/usr/local/emhttp"
+fi
+
+gfjardim_script="$(DOCROOT}/plugins/unassigned.devices.preclear/scripts/preclear_disk.sh"
 
 exec 2> >(while read err; do echo "${err}"|logger; echo "${err}"; done >&2)
 

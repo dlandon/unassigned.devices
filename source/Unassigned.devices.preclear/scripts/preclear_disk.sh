@@ -64,6 +64,11 @@ version="1.0.31"
 ##													##
 ######################################################
 
+DOCROOT=`grep -Po '^chdir = \K.*' /etc/php-fpm.d/www.conf 2>/dev/null`
+if [ -z ${DOCROOT} ];then
+	DOCROOT="/usr/local/emhttp"
+fi
+
 # Send debug messages to log
 debug() {
 	local msg="$*"
@@ -202,7 +207,7 @@ send_notify() {
 		importance="normal"
 	fi
 
-	notify_script="/usr/local/emhttp/webGui/scripts/notify"
+	notify_script="${DOCROOT}/webGui/scripts/notify"
 	$notify_script -e "Preclear on ${disk_properties[serial]}" -s """${subject}""" -d """${description}""" -m """${message}""" -i "${importance}"
 }
 

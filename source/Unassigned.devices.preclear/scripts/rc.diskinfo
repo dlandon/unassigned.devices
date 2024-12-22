@@ -21,7 +21,7 @@ $debug = FALSE;
 $prog		= pathinfo(__FILE__, PATHINFO_BASENAME);
 $lockfile	= "/var/run/{$prog}.pid";
 $log_file	= "/var/log/diskinfo.log";
-$dev_file	= "/usr/local/emhttp/state/devs.ini";
+$dev_file	= DOCROOT."/state/devs.ini";
 
 
 ##############################

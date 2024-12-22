@@ -200,9 +200,9 @@ class Preclear
 
 	public function scriptFiles()
 	{
-		$scripts = ["gfjardim"	=> "/usr/local/emhttp/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/scripts/preclear_disk.sh",
+		$scripts = ["gfjardim"	=> DOCROOT."/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/scripts/preclear_disk.sh",
 					"joel"		=> "/usr/local/sbin/preclear_disk_ori.sh",
-					"docker"	=> "/usr/local/emhttp/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/scripts/preclear_disk_docker.sh"];
+					"docker"	=> DOCROOT."/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/scripts/preclear_disk_docker.sh"];
 
 		foreach ($scripts as $author => $file) {
 			if (! is_executable($file)) {

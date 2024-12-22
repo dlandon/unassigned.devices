@@ -11,8 +11,13 @@
 # all copies or substantial portions of the Software.
 #
 
+DOCROOT=`grep -Po '^chdir = \K.*' /etc/php-fpm.d/www.conf 2>/dev/null`
+if [ -z ${DOCROOT} ];then
+	DOCROOT="/usr/local/emhttp"
+fi
+
 # Path to the devs.ini file
-ini_file="/usr/local/emhttp/state/devs.ini"
+ini_file="${DOCROOT}/state/devs.ini"
 
 # Path to the /tmp/.preclear directory
 preclear_dir="/tmp/.preclear"

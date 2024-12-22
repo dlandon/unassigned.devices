@@ -266,7 +266,7 @@ if (isset($_POST['action'])) {
 							TMUX::NewSession("preclear_queue");
 						}
 						if (! $queue_running) {
-							TMUX::sendCommand("preclear_queue", "/usr/local/emhttp/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/scripts/preclear_queue.sh $queue");
+							TMUX::sendCommand("preclear_queue", DOCROOT."/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/scripts/preclear_queue.sh $queue");
 						}
 					}
 
@@ -490,7 +490,7 @@ if (isset($_POST['action'])) {
 					}
 				} else {
 					TMUX::NewSession( $queue_session );
-					TMUX::sendCommand( $queue_session, "/usr/local/emhttp/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/scripts/preclear_queue.sh $queue");
+					TMUX::sendCommand( $queue_session, DOCROOT."/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/scripts/preclear_queue.sh $queue");
 				}
 			} else {
 				@unlink($pid_file);
@@ -532,7 +532,7 @@ if (isset($_POST['action'])) {
 			break;;
 
 		case 'clear_all_preclear':
-			shell_exec("/usr/local/emhttp/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/scripts/clear_preclear.sh");
+			shell_exec(DOCROOT."/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/scripts/clear_preclear.sh");
 			echo json_encode(true);
 			break;;
 
@@ -570,10 +570,10 @@ if (isset($_GET['action'])) {
 				<?else:?>
 				<script src=<?autov('/webGui/javascript/dynamix.js')?>></script>
 				<?endif;?>
-				<script src=<?autov("/plugins/<?=UNASSIGNED_PRECLEAR_PLUGIN;?>/assets/clipboard.min.js")?>></script>
+				<script src=<?php autov("/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/assets/clipboard.min.js")?>></script>
 				<script>
 					var timers = {};
-					var URL = "/plugins/<?=UNASSIGNED_PRECLEAR_PLUGIN;?>/Preclear.php";
+					var URL = "/plugins/<?php echo UNASSIGNED_PRECLEAR_PLUGIN;?>/Preclear.php";
 					var serial = "<?=$serial;?>";
 
 					function get_preclear()
