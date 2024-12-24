@@ -410,7 +410,7 @@ class MiscUD
 
 	/* Check if the mount point is accessible */
 	public static function isMountAccessible($mount_point) {
-		$rc	= timed_exec(1, '/bin/mountpoint -q ' . escapeshellarg($mount_point));
+		$rc	= timed_exec(1, '/bin/mountpoint -q ' . escapeshellarg($mount_point), true);
 
 		return $rc != "command timed out";
 	}
