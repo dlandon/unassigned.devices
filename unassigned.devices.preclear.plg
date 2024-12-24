@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.12.17">
+<!ENTITY version	"2024.12.24">
 <!ENTITY launch		"Tools/Preclear">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/unassigned.devices/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"f3e4a3eac6681341c960b859f05bfa94">
+<!ENTITY MD5		"f3c6caa2d4d70d1b7bb6f83ff906190d">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
@@ -21,6 +21,9 @@
 <CHANGES>
 ###&name;
 ###&version;
+- Fix: Nginx errors from malformed GET.
+
+###2024.12.17
 - Fix: Cannot preclear a disk with an empty partition.
 
 ###2024.12.16
