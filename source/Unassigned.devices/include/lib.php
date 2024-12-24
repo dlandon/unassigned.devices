@@ -2939,14 +2939,17 @@ function get_samba_mounts() {
 				/* If this is a legacy samba mount or is misconfigured, indicate that it should be removed and added back. */
 				$mount['invalid']		= (($safe_device != $device) || ($safe_device != $check_device));
 
+				/* Is the mount point accessible? */
+				$is_accessible			= MiscUD::isMountAccessible($mount['mountpoint']);
+
 				/* Get the disk size, used, and free stats. */
-				$stats					= get_device_stats($mount['mountpoint'], $mount['mounted'], $mount['alive']);
+				$stats					= get_device_stats($mount['mountpoint'], $mount['mounted'], ($mount['alive'] && $is_accessible));
 				$mount['size']			= $stats[0]*1024;
 				$mount['used']			= $stats[1]*1024;
 				$mount['avail']			= $stats[2]*1024;
 
 				/* If the device size is zero, or the mount point is not accessible, the remote mount is effectively offline. */
-				$mount['available'] = $mount['mounted'] ? ($mount['size'] != 0 && MiscUD::isMountAccessible($mount['mountpoint'])) : $mount['alive'];
+				$mount['available'] = $mount['mounted'] ? ($mount['size'] != 0 && $is_accessible) : $mount['alive'];
 
 				/* Target is set to the mount point when the device is mounted. */
 				$mount['target']		= $mount['mounted'] ? $mount['mountpoint'] : "";
