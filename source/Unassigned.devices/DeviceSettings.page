@@ -288,6 +288,8 @@ EOT;
 <script src="<?autov('/webGui/javascript/jquery.filetree.js')?>"></script>
 <script src="<?autov('/plugins/'.UNASSIGNED_PLUGIN.'/assets/arrive.min.js')?>"></script>
 
+<div class='spinner'></div>
+
 <?if ($disk_setting):?>
 <p><strong>_(Disk Serial)_: </strong><?=$serial;?></p>
 <?else:?>
@@ -440,7 +442,7 @@ _(Encrypt CIFS Mount)_?
 <input type="button" value="_(Done)_" onclick="done()">
 </form>
 
-<form markdown="1" method="POST" action="/update.php" target="progressFrame" onsubmit="cleanUpFileInput()">
+<form markdown="1" method="POST" action="/update.php" target="progressFrame" onsubmit="return cleanUpFileInput()">
 <input type="hidden" name="#include" value="/webGui/include/update.file.php">
 <input type="hidden" name="#raw_file" value="true">
 
@@ -485,7 +487,7 @@ _(User Script)_:
 
 ###_(Device Script content)_:
 
-<textarea spellcheck="false" cols="80" rows="22" name="text" title='_(Enter and Edit the Device Script that runs when a udev or operator event occurs)_.' style="width:80%"><?=$text;?></textarea>
+<textarea spellcheck="false" cols="80" rows="22" name="text" id="textInput" title='_(Enter and Edit the Device Script that runs when a udev or operator event occurs)_.' style="width:80%"><?=$text;?></textarea>
 
 <?if ((! $device_script_running) && (! $user_script_running)):?>
 <?if (! is_file($file)):?>
@@ -497,7 +499,7 @@ _(User Script)_:
 <input type="submit" id='apply-button' title='_(Save your Device Script File changes)_.' value='_(Apply)_'/>
 <?endif;?>
 <?endif;?>
-<input type="button" value="_(Done)_" onclick="done()"/><span><strong>_(Private Browsing with Chrome can cause file creation and editing to fail due to security settings)_.</strong></span>
+<input type="button" value="_(Done)_" onclick="done()"/>
 
 :ud_edit_script_buttons_plug:
 > Click **Default** to initialize the edit box with a default Device Script. You still need to click **Save** in order to commit the change.
@@ -518,7 +520,7 @@ _(User Script)_:
 <script>
 	/* Start the Unraid spinner. */
 	unraidWaveTimer = setTimeout(function(){
-		$('div.spinner.fixed').show();
+		$('div.spinner').show();
 	}, 500);
 
 	/* Wait for the page to load. */
@@ -527,22 +529,24 @@ _(User Script)_:
 		clearTimeout(unraidWaveTimer);
 
 		/* Stop spinner after the page has loaded. */
-		$('div.spinner.fixed').hide();
+		$('div.spinner').hide();
 	};
 
 	const UDURL		= '/plugins/<?php echo UNASSIGNED_PLUGIN;?>/include/UnassignedDevices.php';
 
 	/* Clean up the file name before submitting it. */
 	function cleanUpFileInput() {
-		var fileInput = document.getElementById('fileInput');
-		fileInput.value = removeSpecialChars(fileInput.value);
-	}
+		/* Remove special characters from the file name */
+		const fileInput = document.getElementById('fileInput');
+		if (fileInput) {
+			/* Define special characters to be removed */
+			const specialChars = /['"?\#&!<>\|+@*]/g;
+			/* Replace special characters in the file name */
+			fileInput.value = fileInput.value.replace(specialChars, '');
+		}
 
-	/* Function to remove special characters to prevent php warnings in update.file.php. */
-	function removeSpecialChars(input) {
-		/* List of special characters not allowed in the file name. */
-		var specialChars = /['"?\#&!<>\|+@*]/g;
-		return input.replace(specialChars, '');
+		/* Allow form submission */
+		return true;
 	}
 
 <? if (($disk_device) && (! $mounted)):?>
@@ -679,6 +683,7 @@ _(User Script)_:
 		}, 'json');
 	});
 
+	/* Precess saving changes to the UD config files. */
 	$("form").submit(function(event) {
 		let requests = [];
 
@@ -844,12 +849,6 @@ _(User Script)_:
 			}));
 
 		<?php endif; ?>
-
-		/* Wait for all requests to complete. */
-		$.when.apply($, requests).done(function() {
-			/* All requests completed. */
-			location.reload();
-		});
 	});
 
 	/*
