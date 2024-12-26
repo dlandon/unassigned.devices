@@ -47,7 +47,7 @@ if ((! $parted) && ($UD_cfg['Config']['destructive_mode'] == "enabled")) {
 <script>
 	/* Start the Unraid spinner. */
 	unraidWaveTimer = setTimeout(function(){
-		$('div.spinner.fixed').show();
+		$('div.spinner').show();
 	}, 500);
 
 	/* Wait for the page to load. */
@@ -56,7 +56,7 @@ if ((! $parted) && ($UD_cfg['Config']['destructive_mode'] == "enabled")) {
 		clearTimeout(unraidWaveTimer);
 
 		/* Stop spinner after the page has loaded. */
-		$('div.spinner.fixed').hide();
+		$('div.spinner').hide();
 	};
 
 	/*
@@ -165,6 +165,8 @@ if ((! $parted) && ($UD_cfg['Config']['destructive_mode'] == "enabled")) {
 		});
 	}
 </script>
+
+<div class='spinner'></div>
 
 <table class="tablesorter shift ups">
 <thead><tr><th>_(Common Settings)_</th></tr></thead>
