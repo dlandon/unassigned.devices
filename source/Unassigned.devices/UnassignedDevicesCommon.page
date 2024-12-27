@@ -45,20 +45,6 @@ if ((! $parted) && ($UD_cfg['Config']['destructive_mode'] == "enabled")) {
 </style>
 
 <script>
-	/* Start the Unraid spinner. */
-	unraidWaveTimer = setTimeout(function(){
-		$('div.spinner').show();
-	}, 500);
-
-	/* Wait for the page to load. */
-	window.onload = function() {
-		/* Clear the spinner timer. */
-		clearTimeout(unraidWaveTimer);
-
-		/* Stop spinner after the page has loaded. */
-		$('div.spinner').hide();
-	};
-
 	/*
 		Function to open a file browser.
 		Parameters:
@@ -165,8 +151,6 @@ if ((! $parted) && ($UD_cfg['Config']['destructive_mode'] == "enabled")) {
 		});
 	}
 </script>
-
-<div class='spinner'></div>
 
 <table class="tablesorter shift ups">
 <thead><tr><th>_(Common Settings)_</th></tr></thead>
