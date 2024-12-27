@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.12.17">
+<!ENTITY version	"2024.12.27">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"d765bba7d4aa706d8ee8696282d47d89">
+<!ENTITY MD5		"">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,9 +22,14 @@
 <CHANGES>
 ##&name;
 ###&version;
-- Fix: Cannot preclear a disk with an empty partition.
+- Fix: Remote server online check when mounting a remote share could fail even if online before mounting.
+- Fix: The device script save and edit problems are fixed.
+- Add: Don't enable file browsing on remote shares if the mountpoint is not accessible.
 
-###2024.10.17
+###2024.12.17
+- Fix: Cannot preclear a disk with an empty partition.  All paritions need to be removed before preclearing.
+
+###2024.12.10
 - Fix: Additional help text on NFS Rules.
 - Fix: Adjust some NFS and CIFS mount options for robustness.
 - Add: Ability to use special characters in passwords.
