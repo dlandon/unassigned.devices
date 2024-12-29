@@ -39,186 +39,6 @@ if (version_compare($version['version'], '6.12.0-beta5', '>')) {
 <link rel="stylesheet" href="<?autov("/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/assets/style-$theme.css")?>">
 <link rel="stylesheet" href="<?autov("/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/assets/preclear.css")?>">
 
-<script>
-	/* Function to clean up after downloading */
-	function cleanUp() {
-		if (document.hasFocus()) {
-			/* If the document has focus, reset the button text and enable it */
-			$('input[value="Downloading..."]').val('Download').prop('disabled', false);
-        
-			/* Send a POST request to delete the downloaded file */
-			$.post('/webGui/include/Download.php', { cmd: 'delete', file: '<?=$zipFile;?>' });
-		} else {
-			/* If the document doesn't have focus, retry cleanup after 4000 milliseconds (4 seconds) */
-			setTimeout(cleanUp, 4000);
-		}
-	}
-
-	/* Function to initiate the download process */
-	function getlog() {
-		/* Set the button text to indicate downloading and disable it */
-		$('input[value="Download"]').val('Downloading...').prop('disabled', true);
-    
-		/* Send a POST request to trigger the download process */
-		$.post('/plugins/<?php echo UNASSIGNED_PRECLEAR_PLUGIN;?>/Preclear.php', { action: 'download', file: '<?=$zipFile;?>' }, function (zip) {
-			/* Redirect to the downloaded file */
-			location = zip;
-        
-			/* Initiate cleanup after 4000 milliseconds (4 seconds) */
-			setTimeout(cleanUp, 4000);
-		});
-	}
-
-	/* Function to add a tooltip using Tooltipster */
-	function addTooltip(target) {
-		$(target).tooltipster({
-			delay: 100,
-			trigger: 'custom',
-			triggerOpen: { mouseenter: true },
-			triggerClose: { click: false, scroll: true, mouseleave: true }
-		});
-	}
-
-	/* Function to modify the styling and behavior of preclear-related help elements */
-	function preclearFixHelp() {
-		$.each($("table.preclear"), function (i, v) {
-			/* Disable cursor and unbind events for the first row and last dt element */
-			$(this).find('tr:first, dt:last').css("cursor", "default").unbind();
-
-			/* Get the ID of the inline help element */
-			const help = $(this).next('.inline_help').attr("id");
-
-			/* Bind click event to toggle visibility of inline help when clicking on certain cells */
-			$.each($(this).find('tr:first > td, dt:last > dd').not(":first"), function (i, v) {
-				$(this).css("cursor", "help").bind("click", function () {
-					$("#" + help).toggle('slow');
-				});
-			});
-		});
-	}
-
-	/* Set the content of div.spinner on page load */
-	$(function() {
-		/* Start the Unraid spinner. */
-		unraidWaveTimer = setTimeout(function(){
-			$('div.spinner.fixed').show();
-		}, 500);
-
-		/* Wait for the page to load. */
-		window.onload = function() {
-			/* Clear the spinner timer. */
-			clearTimeout(unraidWaveTimer);
-
-			/* Stop spinner after the page has loaded. */
-			$('div.spinner.fixed').hide();
-		};
-	});
-
-	/* Function to get a tab or title element by name */
-	function get_tab_title_by_name(name) {
-		/* Find the tab element by filtering input names and labels */
-		const tab = $("input[name$=tabs] + label").filter(function() {
-			return $(this).text() === name;
-		}).prev();
-
-		/* Find the title element by filtering the specified title_div */
-		const title = $("<?=$title_div;?> > span.left").filter(function() {
-			return $(this).text() === name;
-		}).parent();
-
-		/* Determine and return the appropriate element or default to the document */
-		let result;
-
-		if (tab.length) {
-			result = tab;
-		} else if (title.length) {
-			result = title;
-		} else {
-			result = $(document);
-		}
-
-		return result;
-	}
-
-	/* Function to add a button to a tab */
-	function addButtonTab(Button, Name, autoHide = true, Append = true) {
-		/* Get the target tab or title element by name */
-		const Target = get_tab_title_by_name(Name);
-    
-		/* Generate a unique ID for the new element */
-		const elementId = 'event-' + new Date().getTime() * Math.floor(Math.random() * 100000);
-
-		/* Create the new element with the provided button and styling */
-		const element = $("<span id='" + elementId + "' class='status' style='padding-left:5px;'>" + Button + "</span>");
-
-		/* Adjust styling for buttons inside the element */
-		if (element.find("input[type='button']").length) {
-			element.addClass("vhshift");
-			element.find("input[type='button']").prop("style", "padding-top: 5px; padding-bottom: 5px; margin-top:-3px; margin-bottom:0;");
-		}
-
-		/* Check the type of the target element */
-		let shouldReturn = false;
-
-		if (Target.prop('nodeName') === "DIV") {
-			element.addClass("vhshift");
-			/* Append or prepend the new element based on the Append parameter */
-			if (Append) {
-				Target.append(element);
-			} else {
-				Target.prepend(element);
-			}
-		} else if (Target.prop('nodeName') === "INPUT") {
-			element.css("display", "none");
-
-			/* Append or prepend the new element based on the Append parameter */
-			if (Append) {
-				$('.tabs').append(element);
-			} else {
-				$('.tabs').prepend(element);
-			}
-
-			/* Bind click event to show the new element when the target is clicked */
-			Target.bind({ click: function () { $('#' + elementId).fadeIn('slow'); } });
-
-			/* Show the new element immediately if the target is checked or autoHide is disabled */
-			if (Target.is(':checked') || !autoHide) {
-				$('#' + elementId).fadeIn('slow');
-			}
-
-			/* Bind click events for hiding the new element when other tabs are clicked */
-			$("input[name$=tabs]").each(function () {
-				if (!$(this).is(Target) && autoHide) {
-					$(this).bind({ click: function () { $('#' + elementId).fadeOut('slow'); } });
-				}
-			});
-		} else {
-			shouldReturn = true;
-		}
-
-		return shouldReturn;
-	}
-
-	/*
-		Check if SweetAlert2 library (swal2) is undefined.
-		If undefined, dynamically load the required stylesheets and scripts.
-	*/
-	if (typeof swal2 === "undefined") {
-		/* Append the SweetAlert2 stylesheet to the head of the document. */
-		$('head').append($('<link rel="stylesheet" />').attr('href', '<?autov("/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/assets/sweetalert2.css");?>'));
-
-		/* Load the SweetAlert2 script dynamically. */
-		$.getScript('/plugins/<?php echo UNASSIGNED_PRECLEAR_PLUGIN;?>/assets/sweetalert2.js');
-	}
-
-	/* Check for updated version and show banner if there is an update. */
-	$(function() {
-		if ( typeof caPluginUpdateCheck === "function" ) {
-			caPluginUpdateCheck("unassigned.devices.preclear.plg");
-		}
-	});
-</script>
-
 <?=$Preclear->html();?>
 <table class='preclear'>
 	<thead>
@@ -266,6 +86,154 @@ if (version_compare($version['version'], '6.12.0-beta5', '>')) {
 :end
 
 <script>
+	/* Initialize PHP variables passed to JavaScript */
+	const zipFile = <?= json_encode($zipFile ?? ''); ?>;
+	const pluginPath = <?= json_encode(UNASSIGNED_PRECLEAR_PLUGIN ?? 'unassigned.devices.preclear'); ?>;
+
+	/* Self-Executing Function to Encapsulate the Code */
+	(function() {
+		/* Variables for cleanup retry mechanism */
+		let cleanupRetries = 0;
+		const maxRetries = 5;
+		let unraidWaveTimer;
+
+		/* Function to clean up after downloading */
+		function cleanUp() {
+			if (document.hasFocus()) {
+				/* Reset the button text and enable it */
+				$('input[value="Downloading..."]').val('Download').prop('disabled', false);
+
+				/* Send a POST request to delete the downloaded file */
+				$.post('/webGui/include/Download.php', { cmd: 'delete', file: zipFile })
+					.fail(function() {
+						console.error('Failed to delete the file.');
+					});
+			} else if (cleanupRetries < maxRetries) {
+				/* Retry cleanup after 4000 milliseconds (4 seconds) */
+				cleanupRetries++;
+				setTimeout(cleanUp, 4000);
+			}
+		}
+
+		/* Function to initiate the download process */
+		function getlog() {
+			/* Set the button text to indicate downloading and disable it */
+			$('input[value="Download"]').val('Downloading...').prop('disabled', true);
+
+			/* Send a POST request to trigger the download process */
+			$.post('/plugins/' + pluginPath + '/Preclear.php', { action: 'download', file: zipFile }, function(zip) {
+				/* Redirect to the downloaded file */
+				location = zip;
+
+				/* Initiate cleanup after 4000 milliseconds (4 seconds) */
+				setTimeout(cleanUp, 4000);
+			}).fail(function() {
+				console.error('Failed to initiate the download process.');
+			});
+		}
+
+		/* Function to add a tooltip using Tooltipster */
+		function addTooltip(target) {
+			if (typeof $.fn.tooltipster === 'undefined') {
+				$.getScript('path_to_tooltipster.js', function() {
+					initializeTooltip(target);
+				});
+			} else {
+				initializeTooltip(target);
+			}
+
+			function initializeTooltip(target) {
+				$(target).tooltipster({
+					delay: 100,
+					trigger: 'custom',
+					triggerOpen: { mouseenter: true },
+					triggerClose: { click: false, scroll: true, mouseleave: true }
+				});
+			}
+		}
+
+		/* DOMContentLoaded Event for Spinner Control */
+		document.addEventListener('DOMContentLoaded', function() {
+			/* Start the spinner with a delay */
+			unraidWaveTimer = setTimeout(function() {
+				$('div.spinner.fixed').show();
+			}, 500);
+
+			/* Clear the spinner once DOM is fully loaded */
+			clearTimeout(unraidWaveTimer);
+			$('div.spinner.fixed').hide();
+		});
+
+		/* Function to get a tab or title element by name */
+		function get_tab_title_by_name(name) {
+			const tab = $("input[name$=tabs] + label").filter(function() {
+				return $(this).text() === name;
+			}).prev();
+
+			const title = $("<?=$title_div;?> > span.left").filter(function() {
+				return $(this).text() === name;
+			}).parent();
+
+			return tab.length ? tab : (title.length ? title : $(document));
+		}
+
+		/* Function to add a button to a tab */
+		function addButtonTab(Button, Name, autoHide = true, Append = true) {
+			const Target = get_tab_title_by_name(Name);
+			const elementId = 'event-' + new Date().getTime() * Math.floor(Math.random() * 100000);
+			const element = $("<span id='" + elementId + "' class='status' style='padding-left:5px;'>" + Button + "</span>");
+
+			if (element.find("input[type='button']").length) {
+				element.addClass("vhshift");
+				element.find("input[type='button']").prop("style", "padding-top: 5px; padding-bottom: 5px; margin-top:-3px; margin-bottom:0;");
+			}
+
+			if (Target.prop('nodeName') === "DIV") {
+				element.addClass("vhshift");
+				Append ? Target.append(element) : Target.prepend(element);
+			} else if (Target.prop('nodeName') === "INPUT") {
+				element.css("display", "none");
+				Append ? $('.tabs').append(element) : $('.tabs').prepend(element);
+
+				Target.on({ click: function() { $('#' + elementId).fadeIn('slow'); } });
+
+				if (Target.is(':checked') || !autoHide) {
+					$('#' + elementId).fadeIn('slow');
+				}
+
+				$("input[name$=tabs]").each(function() {
+					if (!$(this).is(Target) && autoHide) {
+						$(this).on({ click: function() { $('#' + elementId).fadeOut('slow'); } });
+					}
+				});
+			} else {
+				return true;
+			}
+
+			return false;
+		}
+
+		/* Dynamically Load SweetAlert2 if Not Already Loaded */
+		if (typeof swal2 === "undefined") {
+			$('head').append($('<link rel="stylesheet" />').attr('href', '<?autov("/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/assets/sweetalert2.css");?>'));
+			$.getScript('/plugins/' + pluginPath + '/assets/sweetalert2.js', function() {
+				console.log('SweetAlert2 loaded successfully.');
+			});
+		}
+
+		/* Check for Plugin Updates */
+		$(function() {
+			if (typeof caPluginUpdateCheck === "function") {
+				caPluginUpdateCheck("unassigned.devices.preclear.plg");
+			}
+		});
+
+		/* Expose functions to global scope if needed */
+		window.getlog = getlog;
+		window.addTooltip = addTooltip;
+		window.addButtonTab = addButtonTab;
+	})();
+
 	<?if (isset($_GET['disk']) && ! $Preclear->isRunning($_GET['disk']) ) echo "startDisk = '{$_GET[disk]}';";?>
 
 	$(function(){
@@ -282,7 +250,5 @@ if (version_compare($version['version'], '6.12.0-beta5', '>')) {
 		addButtonTab('<a class="tooltip-toggle" style="cursor:pointer;" onclick="preclearStopAll()" title="_(Stop all Sessions)_"><i class="fa fa-stop red-text"></i></a>', "Preclear Disk");
 		addButtonTab(' | ', "Preclear Disk");
 		addButtonTab('<a class="tooltip-toggle" style="cursor:pointer" onclick="startPreclear(\'\', \'yes\');" title="_(Start Multiple Sessions)_"><i class="fa fa-toggle-right"></i></a>', "Preclear Disk");
-
-		setTimeout(preclearFixHelp,100);
 	});
 </script>

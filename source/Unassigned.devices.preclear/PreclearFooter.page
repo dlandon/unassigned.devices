@@ -21,11 +21,13 @@ $Preclear = new Preclear;
 
 <?=$Preclear->html();?>
 <script>
+	const pluginFooterPath = <?= json_encode(UNASSIGNED_PRECLEAR_PLUGIN ?? ''); ?>;
+
 	<?=$Preclear->Script();?>
 
 	if (typeof swal2 === "undefined") {
 		$('head').append( $('<link rel="stylesheet" />').attr('href', '<?autov("/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/assets/sweetalert2.css");?>') );
-		$.getScript( '/plugins/<?php echo UNASSIGNED_PRECLEAR_PLUGIN;?>/assets/sweetalert2.js');
+		$.getScript( '/plugins/' + pluginFooterPath + '/assets/sweetalert2.js');
 	}
 
 	$(function()
