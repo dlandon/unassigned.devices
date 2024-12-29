@@ -152,7 +152,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 			$mount_point	= basename($partition['mountpoint']);
 			$disk_label		= $partition['disk_label'];
 			if ((! $disk['array_disk']) && (! $mounted) && (! $is_mounting) && (! $is_unmounting)) {
-				$mpoint		.= "<i class='fa fa-pencil partition-hdd'></i><a title='"._("Change Disk Mount Point")."' class='exec' onclick='chg_mountpoint(\"{$partition['serial']}\",\"{$partition['part']}\",\"{$device}\",\"{$partition['fstype']}\",\"{$mount_point}\",\"{$disk_label}\");'>{$mount_point}</a>";
+				$mpoint		.= "<i class='fa fa-pencil partition-hdd'></i><a title='"._("Change Disk Mount Point")."' class='exec' onclick='chg_mountpoint(\"{$partition['serial']}\",\"{$partition['part']}\",\"{$device}\",\"{$partition['fstype']}\",\"{$mount_point}\",\"{$disk_label}\");'>".htmlspecialchars($mount_point)."</a>";
 			} else {
 				$mpoint		.= "<i class='fa fa-pencil partition-hdd'></i>".$mount_point;
 			}
@@ -658,10 +658,10 @@ switch ($_POST['action']) {
 					if (! $preclearing) {
 						if (! is_disk_spin($disk['ud_dev'], $disk['spinning'])) {
 							if ($disk['spinning']) {
-								$spin		= "spin_down_disk";
+								$spin		= "spinDownDisk";
 								$tool_tip	= _("Click to spin down device");
 							} else {
-								$spin		= "spin_up_disk";
+								$spin		= "spinUpDisk";
 								$tool_tip	= _("Click to spin up device");
 							}
 							$o_disks		.= "<a style='cursor:pointer' class='exec info' onclick='{$spin}(\"{$disk_dev}\")'><i id='disk_orb-{$disk_dev}' class='fa fa-circle {$orb}'></i><span>{$tool_tip}</span></a>";
@@ -682,6 +682,7 @@ switch ($_POST['action']) {
 
 				/* Mount button. */
 				$o_disks		.= "<td class='mount'>{$mbutton}</td>";
+
 
 				/* Disk temperature. */
 				$o_disks		.= "<td>{$temp}</td>";
@@ -812,7 +813,7 @@ switch ($_POST['action']) {
 					$o_remotes	.= "<i class='fa fa-external-link mount-share'></i><a title='"._("Browse Remote SMB")."/"._("NFS Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a>".$read_only;
 				} else if (($is_alive) && ($is_available) && (! $is_mounting) && (! $is_unmounting) && (! $mount['invalid'])) {
 					$o_remotes	.= "<i class='fa fa-pencil mount-share'></i>";
-					$o_remotes	.= "<a title='"._("Change Remote SMB")."/"._("NFS Mount Point")."' class='exec' onclick='chg_samba_mountpoint(\"{$mount['name']}\",\"{$mount_point}\");'>{$mount_point}</a>";
+					$o_remotes	.= "<a title='"._("Change Remote SMB")."/"._("NFS Mount Point")."' class='exec' onclick='chg_samba_mountpoint(\"{$mount['name']}\",\"{$mount_point}\");'>".htmlspecialchars($mount_point)."</a>";
 				} else {
 					$o_remotes	.= $mount_point;
 				}
@@ -824,7 +825,7 @@ switch ($_POST['action']) {
 				$disable	= (($mount['disable_mount']) || ($mount['invalid'])) ? true : $disable;
 				
 				/* Set up the mount button operation and text. */
-				$buttonFormat	= "<td><button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, '%s', '{$mount['device']}');\" %s><i class='%s'></i>%s</button></td>";
+				$buttonFormat	= "<td><button class='mount' device='{$mount['device']}' onclick=\"diskOperation(this, '%s', '{$mount['device']}');\" %s><i class='%s'></i>%s</button></td>";
 
 				/* Initilize variables. */
 				$operation		= "";
@@ -959,7 +960,7 @@ switch ($_POST['action']) {
 				} else {
 					$o_remotes	.= "<i class='fa fa-pencil mount-share'></i>";
 					if ((! $is_mounting) && (! $is_unmounting)) {
-						$o_remotes	.= "<a title='"._("Change ISO File Mount Point")."' class='exec' onclick='chg_iso_mountpoint(\"{$mount['device']}\",\"{$mount_point}\");'>{$mount_point}</a>";
+						$o_remotes	.= "<a title='"._("Change ISO File Mount Point")."' class='exec' onclick='chg_iso_mountpoint(\"{$mount['device']}\",\"{$mount_point}\");'>".htmlspecialchars($mount_point)."</a>";
 					} else {
 						$o_remotes	.= $mount_point;
 					}
@@ -970,7 +971,7 @@ switch ($_POST['action']) {
 				$disable = $is_alive ? "" : "disabled";
 
 				/* Set up the mount button operation and text. */
-				$buttonFormat	= "<td><button class='mount' device='{$mount['device']}' onclick=\"disk_op(this, '%s', '{$mount['device']}');\" %s><i class='%s'></i>%s</button></td>";
+				$buttonFormat	= "<td><button class='mount' device='{$mount['device']}' onclick=\"diskOperation(this, '%s', '{$mount['device']}');\" %s><i class='%s'></i>%s</button></td>";
 
 				/* Initilize variables. */
 				$operation		= "";
