@@ -291,14 +291,14 @@ EOT;
 <div class='spinner.fixed'></div>
 
 <?if ($disk_setting):?>
-<p><strong>_(Disk Serial)_: </strong><?=$serial;?></p>
+<p><strong>_(Disk Serial)_: </strong><?=htmlspecialchars($serial);?></p>
 <?else:?>
-<p><strong>_(Source)_: </strong><?=$source;?></p>
+<p><strong>_(Source)_: </strong><?=htmlspecialchars($source);?></p>
 <?endif;?>
 <?if (($disk_setting) && ($fstype == "zvol")):?>
-<p><strong>_(ZFS Volume)_: </strong><?=$zfs_volume;?></p>
+<p><strong>_(ZFS Volume)_: </strong><?=htmlspecialchars($zfs_volume);?></p>
 <?endif;?>
-<p><strong>_(Mount Point)_: </strong><?=$mount_pt;?></p>
+<p><strong>_(Mount Point)_: </strong><?=htmlspecialchars($mount_pt);?></p>
 
 <div style='width:<?=$width;?>;'>
 <?if ($show_device_switches):?>
@@ -365,7 +365,7 @@ EOT;
 
 <?if (($disk_setting) && ($fstype != "zvol")):?>
 _(Disk Name)_:
-: <input type="text" name="#name" class="narrow" style="width:8%" maxlength="8" value="<?=$name;?>">
+: <input type="text" name="#name" class="narrow" style="width:8%" maxlength="8" value="<?=htmlspecialchars($name);?>">
 <?endif;?>
 
 <?if (($disk_setting) && ($fstype != "zvol")):?>
@@ -380,7 +380,7 @@ _(Disk Name)_:
 
 <?if (($disk_setting) && ($fstype == "apfs") && (! $mounted)):?>
 _(APFS Volume)_:
-: <input type="text" name="#volume" class="narrow" style="width:2%" maxlength="1" value="<?=$volume;?>" placeholder="0">
+: <input type="text" name="#volume" class="narrow" style="width:2%" maxlength="1" value="<?=htmlspecialchars($volume);?>" placeholder="0">
 <?endif;?>
 
 <?if (($fstype == "apfs") && (! $mounted)):?>
@@ -518,6 +518,8 @@ _(User Script)_:
 </form>
 
 <script>
+	const pluginPath = <?= json_encode(UNASSIGNED_PLUGIN ?? ''); ?>;
+
 	/* Start the Unraid spinner. */
 	unraidWaveTimer = setTimeout(function(){
 		$('div.spinner.fixed').show();
@@ -532,7 +534,7 @@ _(User Script)_:
 		$('div.spinner.fixed').hide();
 	};
 
-	const UDURL		= '/plugins/<?php echo UNASSIGNED_PLUGIN;?>/include/UnassignedDevices.php';
+	const UDURL		= '/plugins/' + pluginPath + '/include/UnassignedDevices.php';
 
 	/* Clean up the file name before submitting it. */
 	function cleanUpFileInput() {
