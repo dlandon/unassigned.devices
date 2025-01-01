@@ -109,7 +109,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 		$fstype = ($partition['fstype'] == "crypto_LUKS") ? $crypto_fs_type : $partition['fstype'];
 		if (((! $disabled) && (! $mounted) && ($fstype != "apfs") && ($fstype != "btrfs") && ($fstype != "zfs")) || ((! $disabled) && ($mounted) && ($fstype == "btrfs" || $fstype == "zfs"))) {
 			$file_system_check = (($fstype != "btrfs") && ($fstype != "zfs")) ? _('File System Check') : _('File System Scrub');
-			$fscheck = "<a class='exec info' onclick='openWindow_fsck(\"/plugins/".UNASSIGNED_PLUGIN."/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&mountpoint={$partition['mountpoint']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i><span>".$file_system_check."</span></a>";
+			$fscheck = "<a class='exec info' onclick='openWindowFsck(\"/plugins/".UNASSIGNED_PLUGIN."/include/fsck.php?device={$partition['device']}&fs={$partition['fstype']}&luks={$partition['luks']}&serial={$partition['serial']}&mountpoint={$partition['mountpoint']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check partition-hdd'></i><span>".$file_system_check."</span></a>";
 		} else {
 			$fscheck = "<i class='fa fa-check partition-hdd'></i></a>";
 		}
@@ -117,7 +117,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 
 		if ($mounted && is_file($cmd)) {
 			if (! $disabled) {
-				$fscheck .= "<a class='exec info' onclick='openWindow_fsck(\"/plugins/".UNASSIGNED_PLUGIN."/include/script.php?device={$device}&type="._('Done')."\",\"Execute Script\",600,900);'><i class='fa fa-flash partition-script'></i><span>"._("Execute Script as udev simulating a device being installed")."</span></a>";
+				$fscheck .= "<a class='exec info' onclick='openWindowFsck(\"/plugins/".UNASSIGNED_PLUGIN."/include/script.php?device={$device}&type="._('Done')."\",\"Execute Script\",600,900);'><i class='fa fa-flash partition-script'></i><span>"._("Execute Script as udev simulating a device being installed")."</span></a>";
 			} else {
 				$fscheck .= "<i class='fa fa-flash partition-script'></i>";
 			}
@@ -267,7 +267,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 					/* Put together the file system check icon. */
 					if (((! $z['mounted']) && ($fstype) && ($fstype != "btrfs")) || (($z['mounted']) && ($fstype == "btrfs" || $fstype == "zfs"))) {
 						$file_system_check = (($fstype != "btrfs") && ($fstype != "zfs")) ? _('File System Check') : _('File System Scrub');
-						$fscheck	= "<a class='exec info' onclick='openWindow_fsck(\"/plugins/".UNASSIGNED_PLUGIN."/include/fsck.php?device={$z['device']}&fs={$fstype}&luks={$z['device']}&serial={$z['volume']}&mountpoint={$z['mountpoint']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check zfs-volume-hdd'></i><span>".$file_system_check."</span></a>";
+						$fscheck	= "<a class='exec info' onclick='openWindowFsck(\"/plugins/".UNASSIGNED_PLUGIN."/include/fsck.php?device={$z['device']}&fs={$fstype}&luks={$z['device']}&serial={$z['volume']}&mountpoint={$z['mountpoint']}&check_type=ro&type="._('Done')."\",\"Check filesystem\",600,900);'><i class='fa fa-check zfs-volume-hdd'></i><span>".$file_system_check."</span></a>";
 					} else {
 						$fscheck	= "<i class='fa fa-check zfs-volume-hdd'></i></a>";
 					}
@@ -870,11 +870,11 @@ switch ($_POST['action']) {
 
 				$o_remotes			.= $button;
 
-				$compressed_name	= MiscUD::compress_string($mount['name']);
+				$display_name		= $mount['name'];
 
 				/* Remove SMB/NFS remote share table element. */
 				$o_remotes			.= "<td>";
-				$o_remotes			.= ($mounted || $is_mounting || $is_unmounting) ? "<i class='fa fa-remove'></i>" : "<a class='exec info' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount['device']}\", \"{$compressed_name}\", \"{$protocol}\");'><i class='fa fa-remove'></i><span>"._("Remove Remote SMB")."/"._("NFS Share")."</span></a>";
+				$o_remotes			.= ($mounted || $is_mounting || $is_unmounting) ? "<i class='fa fa-remove'></i>" : "<a class='exec info' style='color:#CC0000;font-weight:bold;' onclick='remove_samba_config(\"{$mount['device']}\", \"{$display_name}\", \"{$protocol}\");'><i class='fa fa-remove'></i><span>"._("Remove Remote SMB")."/"._("NFS Share")."</span></a>";
 				$o_remotes			.= "</td>";
 
 				/* Empty table element. */
@@ -1016,8 +1016,8 @@ switch ($_POST['action']) {
 
 				$o_remotes			.= $button;
 
-				$compressed_device	= MiscUD::compress_string($mount['device']);
-				$o_remotes .= $mounted ? "<td><i class='fa fa-remove'></i></td>" : "<td><a class='exec info' style='color:#CC0000;font-weight:bold;' onclick='remove_iso_config(\"{$mount['device']}\", \"{$compressed_device}\");'> <i class='fa fa-remove'></i><span>"._("Remove ISO File Share")."</span></a></td>";
+				$display_device		= $mount['device'];
+				$o_remotes .= $mounted ? "<td><i class='fa fa-remove'></i></td>" : "<td><a class='exec info' style='color:#CC0000;font-weight:bold;' onclick='remove_iso_config(\"{$mount['device']}\", \"{$display_device}\");'> <i class='fa fa-remove'></i><span>"._("Remove ISO File Share")."</span></a></td>";
 
 				$title				= _("ISO File Settings and Script");
 				$title				.= "<br>"._("Automount").": ";
@@ -1125,8 +1125,8 @@ switch ($_POST['action']) {
 			/* Remove device table element. */
 			$o_historical	.= "<td>";
 			if (! $is_standby) {
-				$compressed_serial	= MiscUD::compress_string($historical[$disk_display]['serial']);
-				$o_historical .= "<a style='color:#CC0000;font-weight:bold;cursor:pointer;' class='exec info' onclick='remove_disk_config(\"{$historical[$disk_display]['serial']}\", \"{$compressed_serial}\")'><i class='fa fa-remove' disabled></i><span>"._("Remove Device Configuration")."</span></a>";
+				$display_serial	= $historical[$disk_display]['serial'];
+				$o_historical .= "<a style='color:#CC0000;font-weight:bold;cursor:pointer;' class='exec info' onclick='remove_disk_config(\"{$historical[$disk_display]['serial']}\", \"{$display_serial}\")'><i class='fa fa-remove' disabled></i><span>"._("Remove Device Configuration")."</span></a>";
 			} else {
 				$o_historical .= "<i class='fa fa-remove' disabled></i>";
 			}

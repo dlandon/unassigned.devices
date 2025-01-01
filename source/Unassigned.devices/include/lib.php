@@ -199,19 +199,6 @@ class MiscUD
 		return (strpos($dev, "nvme") !== false) ? preg_replace("#\d+p#i", "", $dev) : preg_replace("#\d+#i", "", $dev);
 	}
 
-	/* Shorten a string to $truncate size. */
-	public static function compress_string($str) {
-		$rc			= $str;
-
-		$truncate	= 32;
-		$trim		= 20;
-		if (strlen($str) > $truncate) {
-			$rc = substr($str, 0, $trim)."...".substr($str, strlen($str)-($truncate-$trim));
-		}
-
-		return $rc;
-	}
-	
 	/* Spin disk up or down using Unraid api. */
 	public static function spin_disk($down, $dev) {
 		if ($down) {
