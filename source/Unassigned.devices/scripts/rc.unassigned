@@ -890,6 +890,7 @@ function unassigned_abort($script, $user_script = false) {
 	if (! $user_script) {
 		/* This is where the script is actually running. */
 		$command_script = $paths['scripts'].basename($script);
+		$file	= "";
 	} else {
 		$command_script = "/tmp/user.scripts/tmpScripts/".basename($script)."/script";
 		$file	= "/tmp/user.scripts/running/".basename($script);
