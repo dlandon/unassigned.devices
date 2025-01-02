@@ -48,54 +48,86 @@ $isUser0	= is_dir("/mnt/user0/");
 </style>
 
 <script>
+	/* Initialize PHP variables passed to JavaScript */
+	const pluginPath = <?= json_encode(UNASSIGNED_PLUGIN ?? 'unassigned.devices'); ?>;
+
+	/* Display information from PHP on the client side. */
+	const display = <?=json_encode($display);?>;
+
+	/* Array to store network information. */
+	let network = [];
+
+	/* Number of tabs with names ending in 'usbdisks'. */
+	const tab_usbdisks = $('input[name$="tabs"]').length;
+
+	/* URL for Unassigned Devices PHP file. */
+	const UDURL = "<?=UD_URL;?>";
+
+	/* Page refresh timer. */
+	let refreshTimer;
+
+	/* Flag to track whether page is currently being refreshed. */
+	let isRefreshing = false;
+
+	/* Page refresh rate is 3 seconds. */
+	const REFRESH_INTERVAL = 3000;
+
+	/* Ping poll interval is 15 seconds. */
+	const PING_INTERVAL = 15000;
+
+	/*
+		Helper function to update UI elements.
+		@param selector: The element selector.
+		@param className: The class to apply.
+	*/
+	function updateClass(selector, className) {
+		document.getElementById(selector).className = className;
+	}
+
 	/*
 		Function to initiate spinning down a disk.
 		@param dev: The device identifier.
 	*/
-	function spin_down_disk(dev) {
-		document.getElementById('disk_orb-' + dev).className = "fa fa-refresh fa-spin green-orb orb";
-
-		/* Make an asynchronous POST request to UDURL to spin down the disk. */
-		$.post(UDURL, {
-			'action': 'spin_down_disk',
-			'device': dev
-		});
+	function spinDownDisk(dev) {
+		updateClass('disk_orb-' + dev, "fa fa-refresh fa-spin green-orb orb");
+		ajaxRequest(UDURL, { action: 'spin_down_disk', device: dev });
 	}
 
 	/*
 		Function to initiate spinning up a disk.
 		@param dev: The device identifier.
 	*/
-	function spin_up_disk(dev) {
-		document.getElementById('disk_orb-' + dev).className = "fa fa-refresh fa-spin grey-orb orb";
+	function spinUpDisk(dev) {
+		updateClass('disk_orb-' + dev, "fa fa-refresh fa-spin grey-orb orb");
+		ajaxRequest(UDURL, { action: 'spin_up_disk', device: dev });
+	}
 
-		/* Make an asynchronous POST request to UDURL to spin up the disk. */
-		$.post(UDURL, {
-			'action': 'spin_up_disk',
-			'device': dev
+	/*
+		Helper function to perform AJAX requests.
+		@param url: The target URL for the request.
+		@param data: The data to send in the request.
+		@param method: The HTTP method, default is POST.
+		@return: A promise for the AJAX request.
+	*/
+	function ajaxRequest(url, data, method = 'POST') {
+		return $.ajax({
+			url: url,
+			type: method,
+			data: data,
+			dataType: 'json'
 		});
 	}
 
-	/* Check if the "formatUnicorn" function is not already defined on String.prototype. */
-	if (typeof " ".formatUnicorn !== "function") {
-		/* Define the "formatUnicorn" function on String.prototype. */
-		String.prototype.formatUnicorn = String.prototype.formatUnicorn || function () {
-			"use strict";
-
-			let str = this.toString();
-			if (arguments.length) {
-				const t = typeof arguments[0];
-				let key;
-				const args = ("string" === t || "number" === t) ? Array.prototype.slice.call(arguments) : arguments[0];
-
-				/* Replace placeholders in the string with corresponding values. */
-				for (key in args) {
-					str = str.replace(new RegExp("\\{" + key + "\\}", "gi"), args[key]);
-				}
-			}
-
-			return str;
-		};
+	/*
+		Utility function to replace placeholders in a string with values from an object.
+		@param template: The template string containing placeholders like {key}.
+		@param values: An object containing key-value pairs for replacements.
+		@return: The formatted string.
+	*/
+	function formatString(template, values) {
+		return template.replace(/\{(\w+)\}/g, (match, key) => {
+			return key in values ? values[key] : match;
+		});
 	}
 
 	/*
@@ -105,16 +137,15 @@ $isUser0	= is_dir("/mnt/user0/");
 		@param height: The height of the window.
 		@param width: The width of the window.
 	*/
-	function openWindow_fsck(cmd, title, height, width) {
-		const run		= cmd;
-		const top		= (screen.height-height)/2;
-		const left		= (screen.width-width)/2;
+	function openWindowFsck(cmd, title, height, width) {
+		const top = (screen.height - height) / 2;
+		const left = (screen.width - width) / 2;
 
-		/* Set up window options. */
-		let options	= 'resizeable=yes,scrollbars=yes,height='+height+',width='+width+',top='+top+',left='+left;
+		/* Construct window options string */
+		const options = `resizable=yes,scrollbars=yes,height=${height},width=${width},top=${top},left=${left}`;
 
-		/* Open a new window for running the fsck command. */
-		window.open(run, 'log', options);
+		/* Open the window */
+		window.open(cmd, title || 'log', options);
 	}
 
 	/*
@@ -123,127 +154,133 @@ $isUser0	= is_dir("/mnt/user0/");
 		@param op: The disk operation (e.g., "mount" or "unmount").
 		@param device: The target device for the operation.
 	*/
-	async function disk_op(el, op, device) {
+	async function diskOperation(el, op, device) {
 		const mountButton = $(`button[device='${device}']`);
 
-		/* Clear the page refresh timer. */
-		window.clearInterval(refreshTimer);
+		/* Disable button and show loading spinner. */
+		updateMountButton(mountButton, op, true);
 
-		/* Add spinning icon to mount/unmount button and disable button. */
-		mountButton.prop("disabled", true).html("<i class='fa fa-spinner fa-spin orb'></i>" + (op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
-
-		/* Check if refreshPage is already in progress. */
+		/* Wait for any ongoing refresh to complete. */
 		if (isRefreshing) {
 			try {
-				/* Wait for the current refreshPage to complete before proceeding. */
 				await refreshPage();
 			} catch (error) {
-				/*
-					Ignore the error and initiate the post request anyway.
-					This will occur if refreshPage() has completed and just returns without a resolved promise.
-				*/
+				/* Ignore errors and proceed. */
 			}
 		}
 
-		/*
-			Once the refresh is completed, the mount button status needs to be refreshed in case the refreshPage() cleared it.
-			After the mount/unmount post is strted, the mount status flag files will be set nd the mount button status will be up to date.
-		*/
-
-		/* Refresh the mount/unmount button and disable button if the refreshPage() happened to change the status. */
-		mountButton.prop("disabled", true).html("<i class='fa fa-spinner fa-spin orb'></i>" + (op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
-
-		/* Initiate the post request immediately. */
+		/* Perform the mount/unmount operation. */
 		await mountPostRequest(op, device);
 
 		/* Restart the page refresh timer. */
 		refreshTimer = window.setInterval(refreshPage, REFRESH_INTERVAL);
 	}
 
-	/* Perform the disk opertion. */
+	/*
+		Helper function to update the mount/unmount button state.
+		@param button: The button element to update.
+		@param op: The operation being performed (e.g., "mount" or "unmount").
+		@param disable: Boolean indicating whether to disable the button.
+	*/
+	function updateMountButton(button, op, disable) {
+		const label = op === "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>";
+		const spinnerHTML = `<i class='fa fa-spinner fa-spin orb'></i>${label}`;
+		button.prop("disabled", disable).html(spinnerHTML);
+	}
+
+	/*
+		Perform the mount/unmount post request.
+		@param op: The operation to perform (e.g., "mount" or "unmount").
+		@param device: The target device for the operation.
+	*/
 	async function mountPostRequest(op, device) {
-		/* Start the refresh timer to refresh the page after the mount/unmount script starts. */
+		/* Start a delayed page refresh to reflect updates. */
 		window.setTimeout(refreshPage, 100);
 
-		$.post(UDURL, {
-			'action': op,
-			'device': device
-		})
-		.done(data => {
-			if (data === "false") {
+		try {
+			const response = await $.post(UDURL, {
+				'action': op,
+				'device': device
+			});
+
+			/* Handle failure response. */
+			if (response === "false") {
 				swalShowMountUnmount(device, op);
 			}
-		})
-		.fail(() => {
+		} catch (error) {
+			/* Handle request failure. */
 			swalShowResult(false);
-		})
-		.always(() => {
-			/* Start the refresh timer to refresh the page if it's not currently refreshing. */
+		} finally {
+			/* Ensure a page refresh starts regardless of the request outcome. */
 			window.setTimeout(refreshPage, 100);
-		});
+		}
 	}
 
 	/*
 		Refresh UD page showing any updated information.
 	*/
 	async function refreshPage() {
-		/* Exit if a refresh is already in progress. */
- 		if (isRefreshing) {
-			return;
-		}
+		/* Exit if refresh is already in progress. */
+ 		if (isRefreshing) return;
 
 		isRefreshing = true;
 
-		/* Define a timeout promise that rejects after 30 seconds. */
-		const timeoutPromise = new Promise((_, reject) => {
-			setTimeout(() => {
-				reject(new Error("<tr><td colspan='11' style='text-align:center;'><?=_('Timeout: Failed to get unassigned devices information - check the syslog');?>.</td></tr>"));
-			}, 30000);
-		});
+		const timeoutMessage = "<tr><td colspan='11' style='text-align:center;'><?=_('Timeout: Failed to get unassigned devices information - check the syslog');?>.</td></tr>";
+		const ajaxFailureMessage = "<tr><td colspan='11' style='text-align:center;'><?=_('Failed to get data to refresh page');?>.</td></tr>";
 
 		try {
-			/* Wait for either the data from the server or the timeout. */
-			const data = await Promise.race([
-				new Promise((resolve, reject) => {
-					$.post(UDURL, {
-						'action': 'get_content',
-						'display': display
-					},
-					function(data) {
-						/* Resolve with the fetched data. */
-						resolve(data);
-					},
-					'json').fail(function(xhr, status, error) {
-						/* Reject on AJAX failure. */
-						reject(new Error("<tr><td colspan='11' style='text-align:center;'><?=_('Failed to get data to refresh page');?>.</td></tr>"));
-					});
-				}),
-				timeoutPromise
-			]);
+			/* Fetch data with a timeout. */
+			const data = await Promise.race([fetchUDContent(), createTimeoutPromise(30000, timeoutMessage)]);
 
-			/* Process the data only if it is returned before the timeout. */
 			if (data) {
-				const toggled = $("tr.toggle-parts:visible").map(function() {
-					return $(this).attr("name");
-				}).get();
-
-				$('#disk-table-body').html(data.disks);
-				$('#remotes-table-body').html(data.remotes);
-				$('#historical-table-body').html(data.historical);
-
-				$.each(toggled, function(k, v) {
-					$("tr[name='" + v + "']").css("display", "table-row");
-				});
+				updatePageContent(data);
 			}
 		} catch (error) {
-			/* Handle errors and timeouts. */
-			$('#disk-table-body').html(error.message);
-			$('#remotes-table-body').html(error.message);
-			$('#historical-table-body').html(error.message);
+			/* Handle errors and update page with error messages. */
+			updatePageContent({ disks: error.message, remotes: error.message, historical: error.message });
 		} finally {
 			/* Reset the refreshing flag. */
  			isRefreshing = false;
 		}
+	}
+
+	/*
+		Helper function to fetch UD content via AJAX.
+		@return: A promise that resolves with the fetched data or rejects on failure.
+	*/
+	function fetchUDContent() {
+		return new Promise((resolve, reject) => {
+			$.post(UDURL, { action: 'get_content', display: display }, resolve, 'json')
+				.fail(() => reject(new Error("<tr><td colspan='11' style='text-align:center;'><?=_('Failed to get data to refresh page');?>.</td></tr>")));
+		});
+	}
+
+	/*
+		Helper function to create a timeout promise.
+		@param ms: Timeout duration in milliseconds.
+		@param message: The message for the timeout error.
+		@return: A promise that rejects after the specified timeout.
+	*/
+	function createTimeoutPromise(ms, message) {
+		return new Promise((_, reject) => setTimeout(() => reject(new Error(message)), ms));
+	}
+
+	/*
+		Helper function to update the UD page content.
+		@param data: The data object containing disks, remotes, and historical content.
+	*/
+	function updatePageContent(data) {
+		const toggled = $("tr.toggle-parts:visible").map(function () {
+			return $(this).attr("name");
+		}).get();
+
+		$('#disk-table-body').html(data.disks);
+		$('#remotes-table-body').html(data.remotes);
+		$('#historical-table-body').html(data.historical);
+
+		$.each(toggled, function (_, name) {
+			$("tr[name='" + name + "']").css("display", "table-row");
+		});
 	}
 
 	/*
@@ -259,48 +296,55 @@ $isUser0	= is_dir("/mnt/user0/");
 		Function to load hosts based on the specified parameters.
 		@param el: The element triggering the action.
 		@param action: The action to perform.
-	 */
-	function load_hosts(el, action) {
-		/* Find the target element named 'IP' within the parent div of the given element. */
+	*/
+	function loadHosts(el, action) {
 		const target = $(el).parents("div").find("*[name='IP']");
- 
-		/* Store the original content of the element for later restoration. */
 		const oldContent = $(el).html();
- 
-		/* Display a loading spinner while the request is being processed. */
-		$(el).html("<i class='fa fa-spinner fa-spin'></i> <?=_('Searching');?>");
 
-		/* AJAX Request: Load hosts asynchronously. */
-		$.post(UDURL, {
-			'action': action,
-			'network': network
-		})
-		.done(function(data) {
-			/* Restore the original content of the element. */
-			$(el).html(oldContent);
+		/* Show a loading spinner while processing the request. */
+		showLoadingSpinner(el, "<?=_('Searching');?>");
 
-			/* Process the data if it is not empty. */
-			if (data) {
-				/* Split the data into an array of hosts. */
-				const hosts = data.split('\n');
+		/* Make an asynchronous request to load hosts. */
+		$.post(UDURL, { action, network })
+			.done((data) => {
+				/* Restore the original content of the element. */
+				$(el).html(oldContent);
 
-				/* Check if there are any hosts. */
-				if (hosts.length) {
-					/* Build a select dropdown with the available hosts. */
-					let dropdownOptions = "<select name='IP' class='swal-content__input' required>";
-					for (let i = 0; i < hosts.length; i++) {
-						if (hosts[i].length) {
-							dropdownOptions += "<option value='" + hosts[i].trim() + "'>" + hosts[i].trim() + "</option>";
-						}
-					}
-					/* Replace the target element with the new dropdown. */
-					target.replaceWith(dropdownOptions + "</select>");
-				} else {
-					/* If no hosts are found, replace the target element with a text input. */
-					target.replaceWith("<input type='text' name='IP' class='swal-content__input' autocomplete='off'>");
-				}
+				/* Update the target element with the retrieved hosts or fallback input. */
+				updateHostsDropdown(target, data);
+			});
+	}
+
+	/*
+		Display a loading spinner with a message.
+		@param el: The element to display the spinner on.
+		@param message: The loading message.
+	*/
+	function showLoadingSpinner(el, message) {
+		$(el).html(`<i class='fa fa-spinner fa-spin'></i> ${message}`);
+	}
+
+	/*
+		Update the target element with a dropdown or input based on host data.
+		@param target: The target element to update.
+		@param data: The raw host data as a newline-separated string.
+	*/
+	function updateHostsDropdown(target, data) {
+		if (data) {
+			const hosts = data.split('\n').filter(host => host.trim().length > 0);
+
+			if (hosts.length > 0) {
+				/* Build a dropdown with the available hosts. */
+				const dropdownOptions = hosts.map(host => `<option value='${host.trim()}'>${host.trim()}</option>`).join('');
+				target.replaceWith(`<select name='IP' class='swal-content__input' required>${dropdownOptions}</select>`);
+			} else {
+				/* Fallback to a text input if no hosts are found. */
+				target.replaceWith("<input type='text' name='IP' class='swal-content__input' autocomplete='off'>");
 			}
-		});
+		} else {
+			/* Fallback to a text input if data is empty. */
+			target.replaceWith("<input type='text' name='IP' class='swal-content__input' autocomplete='off'>");
+		}
 	}
 
 	/*
@@ -311,55 +355,53 @@ $isUser0	= is_dir("/mnt/user0/");
 		@param pass: The password.
 		@param action: The action to perform.
 	*/
-	function load_shares(el, ip, user, pass, action) {
-		/* Store the original content of the element for later restoration. */
+	function loadShares(el, ip, user, pass, action) {
 		const oldContent = $(el).html();
- 
-		/* Find the target element named 'SHARE' within the parent div of the given element. */
 		const target = $(el).parents("div").find("*[name='SHARE']");
 
-		/* Display a loading spinner while the request is being processed. */
-		$(el).html("<i class='fa fa-spinner fa-spin'></i> <?=_('Loading');?>");
+		/* Show a loading spinner while processing the request. */
+		showLoadingSpinner(el, "<?=_('Loading');?>");
 
-		/* Set up options for the POST request. */
+		/* Prepare POST request options. */
 		const opts = {
-			"action": action,
-			"IP": ip,
-			"USER": user,
-			"PASS": pass
+			action,
+			IP: ip,
+			USER: user,
+			PASS: pass
 		};
 
-		/* Make an asynchronous POST request to UDURL with the specified options. */
+		/* Make an asynchronous POST request to load shares. */
 		$.post(UDURL, opts)
-			.done(function(data) {
+			.done((data) => {
 				/* Restore the original content of the element. */
 				$(el).html(oldContent);
 
-				/* Process the data if it is not empty. */
-				if (data) {
-					/* Split the data into an array of shares. */
-					const shares = data.split('\n');
-
-					/* Check if there are any shares. */
-					if (shares.length) {
-						/* Build a select dropdown with the available shares. */
-						let dropdownOptions = "<select name='SHARE' class='swal-content__input' required>";
-						for (let i = 0; i < shares.length; i++) {
-							if (shares[i].length) {
-								dropdownOptions += "<option value='" + shares[i] + "'>" + shares[i] + "</option>";
-							}
-						}
-						/* Replace the target element with the new dropdown. */
-						target.replaceWith(dropdownOptions + "</select>");
-					} else {
-						/* If no shares are found, replace the target element with a text input. */
-						target.replaceWith("<input type='text' name='SHARE' class='swal-content__input' autocomplete='off' required>");
-					}
-				} else {
-					/* If no data is received, replace the target element with a text input. */
-					target.replaceWith("<input type='text' name='SHARE' class='swal-content__input' autocomplete='off' required>");
-				}
+				/* Update the target element with the retrieved shares or fallback input. */
+				updateSharesDropdown(target, data);
 			});
+	}
+
+	/*
+		Update the target element with a dropdown or input based on share data.
+		@param target: The target element to update.
+		@param data: The raw share data as a newline-separated string.
+	*/
+	function updateSharesDropdown(target, data) {
+		if (data) {
+			const shares = data.split('\n').filter(share => share.trim().length > 0);
+
+			if (shares.length > 0) {
+				/* Build a dropdown with the available shares. */
+				const dropdownOptions = shares.map(share => `<option value='${share}'>${share}</option>`).join('');
+				target.replaceWith(`<select name='SHARE' class='swal-content__input' required>${dropdownOptions}</select>`);
+			} else {
+				/* Fallback to a text input if no shares are found. */
+				target.replaceWith("<input type='text' name='SHARE' class='swal-content__input' autocomplete='off' required>");
+			}
+		} else {
+			/* Fallback to a text input if data is empty. */
+			target.replaceWith("<input type='text' name='SHARE' class='swal-content__input' autocomplete='off' required>");
+		}
 	}
 
 	/*
@@ -367,37 +409,35 @@ $isUser0	= is_dir("/mnt/user0/");
 		@param success: A boolean indicating whether the operation was successful.
 	*/
 	function swalShowResult(success) {
-		/* Check if the operation was successful. */
-		if (success) {
-			/* Display a success notification. */
-			swal2({
-				title: "<?=_('Success')?>!",
-				icon: "success",
-				text: " ", /* Empty text as the message is not needed. */
-				buttons: {
-					confirm: { visible: false },
-					cancel: { visible: false }
-				},
-				timer: 2000
-			});
-		} else {
-			/* Display a failure notification. */
-			swal2({
-				title: "<?=_('Fail')?>!",
-				icon: "error",
-				content:{
-					element: "div",
-					attributes:{
-						innerHTML: "<p><?=_('Check the syslog for details');?>.</p>"
-					}
-				},
-				buttons: {
-					confirm: { visible: false },
-					cancel: { visible: false }
-				},
-				timer: 2000
-			});
-		}
+		const options = success
+			? createSwalOptions("<?=_('Success')?>!", "success", " ", 2000)
+			: createSwalOptions("<?=_('Fail')?>!", "error", "<p><?=_('Check the syslog for details');?>.</p>", 2000);
+
+		swal2(options);
+	}
+
+	/*
+		Helper function to create SweetAlert2 options.
+		@param title: The title of the alert.
+		@param icon: The icon type (e.g., "success" or "error").
+		@param content: The content (HTML or plain text) for the alert.
+		@param timer: The duration in milliseconds before the alert auto-closes.
+		@return: An object with the configured SweetAlert2 options.
+	*/
+	function createSwalOptions(title, icon, content, timer) {
+		return {
+			title,
+			icon,
+			content: {
+				element: "div",
+				attributes: { innerHTML: content }
+			},
+			buttons: {
+				confirm: { visible: false },
+				cancel: { visible: false }
+			},
+			timer
+		};
 	}
 
 	/*
@@ -406,22 +446,10 @@ $isUser0	= is_dir("/mnt/user0/");
 		@param op: The operation (mount/unmount) that failed.
 	*/
 	function swalShowMountUnmount(device, op) {
-		/* Display a failure notification for mount/unmount. */
-		swal2({
-			title: "<?=_('Fail')?>!",
-			icon: "error",
-			content:{
-				element: "div",
-				attributes:{
-					innerHTML: "<p><?=_('Device');?> '" + device + "' <?=('failed to');?> " + op + ". </p><p><?=_('Check the syslog for details');?>.</p>"
-				}
-			},
-			buttons: {
-				confirm: { visible: false },
-				cancel: { visible: false }
-			},
-			timer: 3000
-		});
+		const content = `<p><?=_('Device');?> '${device}' <?=('failed to');?> ${op}. </p><p><?=_('Check the syslog for details');?>.</p>`;
+		const options = createSwalOptions("<?=_('Fail')?>!", "error", content, 3000);
+
+		swal2(options);
 	}
 
 	/* Function to handle surveys for unassigned devices */
@@ -657,256 +685,39 @@ $isUser0	= is_dir("/mnt/user0/");
 		showSwal();
 	}
 
-	/* Function to handle surveys for unassigned devices */
-	function doUnassignedDevicesSurvey(surveyName, surveyOption) {
-		/* Get the survey element by name */
-		const survey = $("div[data-survey-name=" + surveyName + "]");
+	<?
+	/* Loop through network interfaces (eth0 to eth10). */
+	for ($i = 0; $i < 11; $i++) {
+		$interfaceVariable = "eth{$i}";
 
-		/* Initialize the number of questions */
-		let numQuestions = survey.find("div[data-question]").length;
+		/* Check if the network interface variable is set. */
+		if (isset($$interfaceVariable)) {
+			$iface = $$interfaceVariable;
 
-		/* Initialize an array to store survey data */
-		let surveyData = [];
+			/* Extract gateway, IP address, and netmask information from the network interface. */
+			$gateway = array_values(array_flip(preg_grep("/GATEWAY:/", array_flip($iface))));
+			$ipaddr	= array_values(array_flip(preg_grep("/IPADDR:/", array_flip($iface))));
+			$netmask = array_values(array_flip(preg_grep("/NETMASK/", array_flip($iface))));
 
-		/* Initialize the index for question tracking */
-		let index = 0;
-
-		/* Function to evaluate a condition based on selector */
-		const evalCondition = function (obj, selector) {
-			let rc = null;
-			if (obj.find(selector).length) {
-				const evaled = $.trim(obj.find(selector).eq(0).text());
-				if (evaled.length) {
-					rc = eval(evaled);
-				}
+			/* Loop through IP addresses and add them to the network array in JavaScript. */
+			for ($z = 0; $z < count($ipaddr); $z++) {
+				echo "network.push({gateway:'{$ipaddr[$z]}', ip:'{$ipaddr[$z]}', netmask:'{$netmask[$z]}'});\n";
 			}
-			return rc;
-		};
-
-		/* Function to get attribute with a default value */
-		const getAttr = function (obj, name, defaultValue) {
-			/* Check if the attribute exists in the object */
-			return (typeof obj.attr(name) !== "undefined") ? obj.attr(name) : defaultValue;
-		};
-
-		/* Function to display a Swal (SweetAlert) dialog for surveys */
-		function showSwal(direction = "=") {
-			switch (direction) {
-				case '>':
-					index++;
-					break;
-
-				case '<':
-					index--;
-					break;
-			}
-
-			if (index >= numQuestions) {
-				return false;
-			}
-
-			/* Retrieve the current question and its condition */
-			question = survey.find("div[data-question]").eq(index);
-			condition = question.find("div[data-question-condition]").eq(0);
-
-			/* Check if the condition is met, and recursively call showSwal if not */
-			if (condition.length && !eval($.trim(condition.text()))) {
-				showSwal(direction);
-			}
-
-			/* Get question content and format if necessary */
-			content = question.find("div[data-question-content]").html();
-			format = question.find("div[data-question-format]");
-
-			if (format.length) {
-				eval("formatOpts = " + $.trim(format.text()));
-				content = content.formatUnicorn(formatOpts);
-			}
-
-			/* Update checked inputs based on surveyData */
-			has_checked = ["checkbox", "radio", "option"];
-			restore_content = $("<div></div>").html(content);
-			restore_content.find(":input").each(function (i, v) {
-				name = $(this).prop("name");
-				if (name in surveyData) {
-					if ($.inArray($(this).prop("type"), has_checked) != -1) {
-						if ($(this).val() == surveyData[name]) {
-							$(this).attr("checked", true);
-						}
-					} else {
-						if ($(this).prop("type") == "select-one") {
-							$(this).find("option[value=" + surveyData[name] + "]").attr("selected", true);
-						} else {
-							$(this).attr("value", surveyData[name]);
-						}
-					}
-				}
-			});
-
-			content = restore_content[0].outerHTML;
-			button = {
-				back: getAttr(question, "data-question-button-back", "<?=_('Back')?>"),
-				next: getAttr(question, "data-question-button-next", "<?=_('Next')?>"),
-				done: getAttr(question, "data-question-button-done", "<?=_('Done')?>"),
-				cancel: getAttr(question, "data-question-button-cancel", "<?=_('Cancel')?>")
-			};
-
-			/* Define SweetAlert options */
-			swalOpts = new Object;
-			swalOpts.title = question.attr("data-question-title");
-			swalOpts.content = {element: "div", attributes: {innerHTML: content}};
-			swalOpts.icon = getAttr(question, "data-question-icon", "info");
-			swalOpts.closeOnClickOutside = false;
-			swalOpts.buttons = new Object;
-			swalOpts.buttons.next = (index == numQuestions - 1) ? {
-				text: button.done,
-				value: true,
-				visible: true,
-				className: "",
-				closeModal: false
-			} : {
-				text: button.next,
-				value: true,
-				visible: true,
-				className: "",
-				closeModal: false
-			};
-			swalOpts.buttons.cancel = (index > 0) ? {
-				text: button.back,
-				value: false,
-				visible: true,
-				className: "",
-				closeModal: false
-			} : {
-				text: button.cancel,
-				value: null,
-				visible: true,
-				className: "",
-				closeModal: true
-			};
-			swalOpts.buttons.confirm = (index > 0) ? {
-				text: button.cancel,
-				value: null,
-				visible: true,
-				className: "",
-				closeModal: true
-			} : {
-				text: "",
-				value: null,
-				visible: false,
-				className: "",
-				closeModal: true
-			};
-
-			/* Display SweetAlert and handle responses */
-			swal2(swalOpts).then((response) => {
-				emptyInputs = $.grep($(".swal-modal").find(":input"), function (e, v) {
-					e = $(e);
-					switch (e.prop('type')) {
-						case 'radio':
-							if (e.is(":checked")) {
-								surveyData[e.prop("name")] = e.val();
-							}
-							n = $(":input[name=" + e.prop("name") + "]");
-							return (n.is("[required]") && !n.is(":checked"));
-							break;
-
-						case 'option':
-						case 'checkbox':
-							if (e.is(":checked")) {
-								surveyData[e.prop("name")] = e.val()
-							}
-							return (e.is("[required]") && !e.is(":checked"));
-							break;
-
-						case 'select-one':
-							if (e.has(":checked")) {
-								surveyData[e.prop("name")] = e.find(":checked").val();
-							}
-							n = $(":input[name=" + e.prop("name") + "]");
-							return (n.is("[required]") && !n.has(":checked"));
-							break;
-
-						default:
-							if (e.val() || e.prop("name")) {
-								surveyData[e.prop("name")] = e.val()
-							}
-							return (e.is("[required]") && !e.val());
-							break;
-					}
-				});
-
-				if (response) {
-					if (emptyInputs.length) {
-						return "=";
-					} else if (!emptyInputs.length && index <= numQuestions - 1) {
-						evaled = evalCondition(question, "div[data-question-done]");
-						if (index < numQuestions - 1) {
-							if (evaled !== null && evaled === true) {
-								return ">";
-							}
-
-							if (evaled !== null && evaled === false) {
-								return "<";
-							} else {
-								return ">";
-							}
-						} else if (index == numQuestions - 1) {
-							if (evaled !== null && evaled === false) {
-								return "=";
-							} else {
-								$(".swal-button--cancel").prop("disabled", true);
-								$(".swal-button--confirm").prop("disabled", true);
-								evalCondition(survey, "div[data-survey-done]");
-								if (getAttr(survey.find("div[data-survey-done]").eq(0), "data-survey-done-wait", "true") == "false") {
-									setTimeout(() => {
-										swal2({buttons: {confirm: {visible: false}, cancel: {visible: false}}, timer: 100})
-									}, 1500)
-								}
-
-								return true;
-							}
-						}
-					} else {
-						return "=";
-					}
-				} else if (response === false && index <= numQuestions) {
-					return "<";
-				} else if (response === null) {
-					return true;
-				}
-
-				return "=";
-			}).then((response2) => {
-				if (typeof response2 !== "boolean") {
-					return showSwal(response2);
-				} else {
-					return false;
-				}
-			});
 		}
-
-		/* Start survey. */
-		showSwal();
 	}
+	?>
 
 	/*
-		Show banners.
+		Check if SweetAlert2 library (swal2) is undefined.
+		If undefined, dynamically load the required stylesheets and scripts.
 	*/
-	$(function() {
-		/* Check for a plugin update and show banner. */
-		if ( typeof caPluginUpdateCheck === "function" ) {
-			caPluginUpdateCheck("unassigned.devices.plg",{element:".pluginUpdate"});
-		}
+	if (typeof swal2 === "undefined") {
+		/* Append the SweetAlert2 stylesheet to the head of the document. */
+		$('head').append($('<link rel="stylesheet" type="text/css" />').attr('href', '<?autov("/plugins/".UNASSIGNED_PLUGIN."/assets/sweetalert2.css");?>'));
 
-		/* Check to see if a reboot is required to upodate UD. */
-		<?if (is_file("/var/state/".UNASSIGNED_PLUGIN."/reboot_required")):?>
-			if (typeof showUpgrade === 'function') {
-				showUpgrade('<b>Reboot is required</b> to apply Unassigned Devices update');
-			}
-		<?endif;?>
-	});
-
+		/* Load the SweetAlert2 script dynamically. */
+		$.getScript('/plugins/' + pluginPath + '/assets/sweetalert2.js');
+	}
 </script>
 
 <?=$Preclear ? $Preclear->html() : "";?>
@@ -924,7 +735,7 @@ $isUser0	= is_dir("/mnt/user0/");
 
 <div class='show-disks'>
 	<div class='title shift'>
-		<span class='left'><img src='/plugins/<?php echo UNASSIGNED_PLUGIN;?>/icons/disk.png' class='icon'><?=_('Unassigned Disk Devices')?></span>
+		<span class='left'><img src='/plugins/<?=UNASSIGNED_PLUGIN;?>/icons/disk.png' class='icon'><?=_('Unassigned Disk Devices')?></span>
 	</div>
 
 	<table id='usb_devices_list' class='usb_mounts'>
@@ -986,7 +797,7 @@ $isUser0	= is_dir("/mnt/user0/");
 
 <div class='show-shares'>
 	<div class='title shift'>
-		<span class='left'><img src='/plugins/<?php echo UNASSIGNED_PLUGIN;?>/icons/smbsettings.png' class='icon'><?=_('SMB Shares')?>&nbsp;|&nbsp;<img src='/plugins/<?php echo UNASSIGNED_PLUGIN?>/icons/nfssettings.png' class='icon'><?=_('NFS Shares')?>&nbsp;|&nbsp;<img src='/plugins/<?php echo UNASSIGNED_PLUGIN?>/icons/iso.png' class='icon' style='width:16px;'><?=_('ISO File Shares')?></span>
+		<span class='left'><img src='/plugins/<?=UNASSIGNED_PLUGIN;?>/icons/smbsettings.png' class='icon'><?=_('SMB Shares')?>&nbsp;|&nbsp;<img src='/plugins/<?=UNASSIGNED_PLUGIN?>/icons/nfssettings.png' class='icon'><?=_('NFS Shares')?>&nbsp;|&nbsp;<img src='/plugins/<?=UNASSIGNED_PLUGIN?>/icons/iso.png' class='icon' style='width:16px;'><?=_('ISO File Shares')?></span>
 	</div>
 
 	<table class='samba_mounts'>
@@ -1022,7 +833,7 @@ $isUser0	= is_dir("/mnt/user0/");
 	<div class='show-historical'>
 		<br><br>
 		<div class='title shift'>
-			<span class='left'><img src='/plugins/<?php echo UNASSIGNED_PLUGIN;?>/icons/historical.png' class='icon'><?=_('Historical Unassigned Devices')?></span>
+			<span class='left'><img src='/plugins/<?=UNASSIGNED_PLUGIN;?>/icons/historical.png' class='icon'><?=_('Historical Unassigned Devices')?></span>
 		</div>
 
 		<table class='usb_absent'>
@@ -1104,30 +915,6 @@ $isUser0	= is_dir("/mnt/user0/");
 :end
 
 <script>
-	/* Display information from PHP on the client side. */
-	const display = <?=json_encode($display);?>;
-
-	/* Array to store network information. */
-	let network = [];
-
-	/* Number of tabs with names ending in 'usbdisks'. */
-	const tab_usbdisks = $('input[name$="tabs"]').length;
-
-	/* URL for Unassigned Devices PHP file. */
-	const UDURL = "<?=UD_URL;?>";
-
-	/* Page refresh timer. */
-	let refreshTimer;
-
-	/* Flag to track whether page is currently being refreshed. */
-	let isRefreshing = false;
-
-	/* Page refresh rate is 3 seconds. */
-	const REFRESH_INTERVAL = 3000;
-
-	/* Ping poll interval is 15 seconds. */
-	const PING_INTERVAL = 15000;
-
 	/* Reload page if browser back button was used. */
 	window.addEventListener("pageshow", function (event) {
 		const historyTraversal = event.persisted || (typeof window.performance != "undefined" && window.performance.navigation.type === 2);
@@ -1137,61 +924,30 @@ $isUser0	= is_dir("/mnt/user0/");
 		}
 	});
 
-	<?
-	/* Loop through network interfaces (eth0 to eth10). */
-	for ($i = 0; $i < 11; $i++) {
-		$interfaceVariable = "eth{$i}";
-
-		/* Check if the network interface variable is set. */
-		if (isset($$interfaceVariable)) {
-			$iface = $$interfaceVariable;
-
-			/* Extract gateway, IP address, and netmask information from the network interface. */
-			$gateway = array_values(array_flip(preg_grep("/GATEWAY:/", array_flip($iface))));
-			$ipaddr	= array_values(array_flip(preg_grep("/IPADDR:/", array_flip($iface))));
-			$netmask = array_values(array_flip(preg_grep("/NETMASK/", array_flip($iface))));
-
-			/* Loop through IP addresses and add them to the network array in JavaScript. */
-			for ($z = 0; $z < count($ipaddr); $z++) {
-				echo "network.push({gateway:'{$ipaddr[$z]}', ip:'{$ipaddr[$z]}', netmask:'{$netmask[$z]}'});\n";
-			}
-		}
-	}
-	?>
-
-	/*
-		Check if SweetAlert2 library (swal2) is undefined.
-		If undefined, dynamically load the required stylesheets and scripts.
-	*/
-	if (typeof swal2 === "undefined") {
-		/* Append the SweetAlert2 stylesheet to the head of the document. */
-		$('head').append($('<link rel="stylesheet" type="text/css" />').attr('href', '<?autov("/plugins/".UNASSIGNED_PLUGIN."/assets/sweetalert2.css");?>'));
-
-		/* Load the SweetAlert2 script dynamically. */
-		$.getScript('/plugins/<?php echo UNASSIGNED_PLUGIN;?>/assets/sweetalert2.js');
-	}
-
 	/* Bind Arrive events for dynamically added 'tr' elements in the '#usb_devices_list' table. */
-	$("#usb_devices_list").arrive("tr",{onceOnly:false},function() {
-		tr = $(this);
+	$("#usb_devices_list").arrive("tr", { onceOnly: false }, function () {
+		const tr = $(this);
 
-		tr.find("span.toggle-hdd").click(function(e) {
+		/* Handle toggle-hdd spans. */
+		tr.find("span.toggle-hdd").off("click").on("click", function () {
 			const button = $(this);
+			const disk = button.attr("hdd");
 
-			button.disableSelection();
-			disk = button.attr("hdd");
-			el = button;
-			$(".toggle-"+disk).slideToggle(0);
+			/* Prevent text selection and toggle the corresponding elements. */
+			button.css("user-select", "none");
+			$(".toggle-" + disk).slideToggle(0);
 		});
 
-		tr.find("button[role$=mount]").on("click", function () {
+		/* Handle mount buttons. */
+		tr.find("button[role$='mount']").off("click").on("click", function () {
 			const button = $(this);
 
 			/* Perform the disk operation. */
-			disk_op(button.get(0), button.attr("role"), button.attr("device"));
+			diskOperation(button.get(0), button.attr("role"), button.attr("device"));
 		});
 
-		tr.find("button[role$=format]").on( "click", function() {
+		/* Handle format buttons. */
+		tr.find("button[role$='format']").off("click").on("click", function () {
 			const button = $(this);
 
 			/* Perform the format operation. */
@@ -1200,6 +956,19 @@ $isUser0	= is_dir("/mnt/user0/");
 	});
 
 	$(function() {
+		/* Show banners. */
+		/* Check for a plugin update and show banner. */
+		if ( typeof caPluginUpdateCheck === "function" ) {
+			caPluginUpdateCheck("unassigned.devices.plg",{element:".pluginUpdate"});
+		}
+
+		/* Check to see if a reboot is required to upodate UD. */
+		<?if (is_file("/var/state/".UNASSIGNED_PLUGIN."/reboot_required")):?>
+			if (typeof showUpgrade === 'function') {
+				showUpgrade('<b>Reboot is required</b> to apply Unassigned Devices update');
+			}
+		<?endif;?>
+
 		/* Set page refresh interval every 3 seconds. */
 		refreshTimer = window.setInterval(refreshPage, REFRESH_INTERVAL);
 
@@ -1780,7 +1549,7 @@ $isUser0	= is_dir("/mnt/user0/");
 		</div>
 		<div data-question-content>
 			<input type="text" class="swal-content__input" name="IP" autocomplete="off" required placeholder="<?=_('Enter or Select Server');?>"><br>
-			<button class="swal-button" onclick='load_hosts(this,"{0}")'><?=_('Search For Servers');?></button>
+			<button class="swal-button" onclick='loadHosts(this,"{0}")'><?=_('Search For Servers');?></button>
 			<?=$message;?>
 		</div>
 	</div>
@@ -1793,7 +1562,7 @@ $isUser0	= is_dir("/mnt/user0/");
 		</div>
 		<div data-question-content>
 			<input type="text" class="swal-content__input" name="IP" autocomplete="off" required placeholder="<?=_('Enter or Select Server');?>"><br>
-			<button class="swal-button" onclick='load_hosts(this,"{0}")'><?=_('Search For Servers');?></button>
+			<button class="swal-button" onclick='loadHosts(this,"{0}")'><?=_('Search For Servers');?></button>
 			<?=$message;?>
 		</div>
 	</div>
@@ -1838,7 +1607,7 @@ $isUser0	= is_dir("/mnt/user0/");
 		</div>
 		<div data-question-content>
 			<input type='text' class="swal-content__input" autocomplete="off" name='SHARE' required placeholder="<?=_('Enter or Select Share');?>"><br>
-			<button class="swal-button" onclick='load_shares(this, "{1}", "{2}", "{3}", "{5}")'><?=_('Load Shares');?></button>
+			<button class="swal-button" onclick='loadShares(this, "{1}", "{2}", "{3}", "{5}")'><?=_('Load Shares');?></button>
 			<p><?=_('Search for Shares or enter the Share name manually');?>.</p>
 			<p><?=_('If SMB shares do not show, check your credentials');?>.</p>
 		</div>
