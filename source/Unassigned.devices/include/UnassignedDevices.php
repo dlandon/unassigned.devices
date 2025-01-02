@@ -146,13 +146,13 @@ function render_partition($disk, $partition, $disk_line = false) {
 			/* If the partition is mounted read only, indicate that on the mount point. */
 			$read_only		= $partition['part_read_only'] ? "<font color='red'> (RO)<font>" : "";
 
-			$mpoint			.= "<i class='fa fa-external-link partition-hdd'></i>";
-			$mpoint			.= "<a title='"._("Browse Disk Share")."' href='/Main/Browse?dir={$partition['mountpoint']}'>".$mount_point."</a>".$read_only."</span>";
+			/* Add the icon inside the anchor tag */
+			$mpoint .= "<a class='exec underline-icon' title='"._("Browse Disk Share")."' href='/Main/Browse?dir={$partition['mountpoint']}'><i class='fa fa-external-link'></i> {$mount_point}</a>{$read_only}";
 		} else {
 			$mount_point	= basename($partition['mountpoint']);
 			$disk_label		= $partition['disk_label'];
 			if ((! $disk['array_disk']) && (! $mounted) && (! $is_mounting) && (! $is_unmounting)) {
-				$mpoint		.= "<i class='fa fa-pencil partition-hdd'></i><a title='"._("Change Disk Mount Point")."' class='exec' onclick='chg_mountpoint(\"{$partition['serial']}\",\"{$partition['part']}\",\"{$device}\",\"{$partition['fstype']}\",\"{$mount_point}\",\"{$disk_label}\");'>".htmlspecialchars($mount_point)."</a>";
+				$mpoint .= "<a class='exec underline-icon' title='"._("Change Disk Mount Point")."' onclick='chg_mountpoint(\"{$partition['serial']}\",\"{$partition['part']}\",\"{$device}\",\"{$partition['fstype']}\",\"{$mount_point}\",\"{$disk_label}\");'><i class='fa fa-pencil'></i> ".htmlspecialchars($mount_point)."</a>";
 			} else {
 				$mpoint		.= "<i class='fa fa-pencil partition-hdd'></i>".$mount_point;
 			}
@@ -276,7 +276,7 @@ function render_partition($disk, $partition, $disk_line = false) {
 						/* If the volume is mounted read only, indicate that on the mount point. */
 						$read_only	= $z['zfs_read_only'] ? "<font color='red'> (RO)<font>" : "";
 	
-						$out[]		= "<span>".$fscheck."<i class='fa fa-external-link partition-hdd'></i><a title='"._("Browse ZFS Volume")."' href='/Main/Browse?dir=".$z['mountpoint']."'>".basename($z['mountpoint'])."</a>".$read_only."</span>";
+						$out[]		= $fscheck."<a class='exec underline-icon' title='"._("Browse ZFS Volume")."' href='/Main/Browse?dir=".$z['mountpoint']."'><i class='fa fa-external-link'></i> ".basename($z['mountpoint'])."</a>".$read_only;
 					} elseif ($z['active']) {
 						$out[]		= "<span>".$fscheck.basename($z['mountpoint'])."</span>";
 					} else {
@@ -810,10 +810,9 @@ switch ($_POST['action']) {
 					/* If the partition is mounted read only, indicate that on the mount point. */
 					$read_only	= $mount['remote_read_only'] ? "<font color='red'> (RO)<font>" : "";
 
-					$o_remotes	.= "<i class='fa fa-external-link mount-share'></i><a title='"._("Browse Remote SMB")."/"._("NFS Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a>".$read_only;
+					$o_remotes	.= "<a class='exec underline-icon' title='"._("Browse Remote SMB")."/"._("NFS Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'><i class='fa fa-external-link'></i> {$mount_point}</a>".$read_only;
 				} else if (($is_alive) && ($is_available) && (! $is_mounting) && (! $is_unmounting) && (! $mount['invalid'])) {
-					$o_remotes	.= "<i class='fa fa-pencil mount-share'></i>";
-					$o_remotes	.= "<a title='"._("Change Remote SMB")."/"._("NFS Mount Point")."' class='exec' onclick='chg_samba_mountpoint(\"{$mount['name']}\",\"{$mount_point}\");'>".htmlspecialchars($mount_point)."</a>";
+					$o_remotes	.= "<a class='exec underline-icon' title='"._("Change Remote SMB")."/"._("NFS Mount Point")."' class='exec' onclick='chg_samba_mountpoint(\"{$mount['name']}\",\"{$mount_point}\");'><i class='fa fa-pencil'></i> ".htmlspecialchars($mount_point)."</a>";
 				} else {
 					$o_remotes	.= $mount_point;
 				}
@@ -956,11 +955,10 @@ switch ($_POST['action']) {
 				}
 
 				if ((! $is_mounting) && (! $is_unmounting) && ($mounted)) {
-					$o_remotes .= "<i class='fa fa-external-link mount-share'></i><a title='"._("Browse ISO File Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'>{$mount_point}</a>";
+					$o_remotes .= "<a class='exec underline-icon' title='"._("Browse ISO File Share")."' href='/Main/Browse?dir={$mount['mountpoint']}'><i class='fa fa-external-link'></i> {$mount_point}</a>";
 				} else {
-					$o_remotes	.= "<i class='fa fa-pencil mount-share'></i>";
 					if ((! $is_mounting) && (! $is_unmounting)) {
-						$o_remotes	.= "<a title='"._("Change ISO File Mount Point")."' class='exec' onclick='chg_iso_mountpoint(\"{$mount['device']}\",\"{$mount_point}\");'>".htmlspecialchars($mount_point)."</a>";
+						$o_remotes	.= "<a class='exec underline-icon' title='"._("Change ISO File Mount Point")."' class='exec' onclick='chg_iso_mountpoint(\"{$mount['device']}\",\"{$mount_point}\");'><i class='fa fa-pencil'></i> ".htmlspecialchars($mount_point)."</a>";
 					} else {
 						$o_remotes	.= $mount_point;
 					}
