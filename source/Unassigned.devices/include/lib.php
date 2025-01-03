@@ -1,6 +1,6 @@
 <?php
 /* Copyright 2015, Guilherme Jardim
- * Copyright 2016-2024, Dan Landon
+ * Copyright 2016-2025, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -12,6 +12,9 @@
 
 /* Define our plugin name. */
 define('UNASSIGNED_PLUGIN', 'unassigned.devices');
+
+/* Define plugin path for JavaScript. */
+define('UD_PLUGIN_PATH', json_encode(UNASSIGNED_PLUGIN ?? 'unassigned.devices'));
 
 /* Define the docroot path. */
 if (!defined('DOCROOT')) {
@@ -69,7 +72,6 @@ define('RPC_PORT', '111');
 /* Path links. */
 define('UD_SETTINGS_SCRIPT', '/plugins/unassigned.devices/scripts/rc.settings');
 define('UD_CONFIG_FILE', $paths['config_file']);
-define('UD_URL', '/plugins/'.UNASSIGNED_PLUGIN.'/include/UnassignedDevices.php');
 
 /* Get the Unraid users. */
 $users_ini			= @parse_ini_file(DOCROOT."/state/users.ini", true);
