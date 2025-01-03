@@ -4,7 +4,7 @@ Tag="icon-network"
 ---
 <?php
 /* Copyright 2015, Guilherme Jardim
- * Copyright 2016-2024, Dan Landon
+ * Copyright 2016-2025, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -73,7 +73,10 @@ _(Server)_:
 </form>
 
 <script>
-const RSURL = '/plugins/<?php echo UNASSIGNED_PLUGIN?>/include/server_test.php';
+/* Initialize PHP variables passed to JavaScript */
+const pluginPath = <?=UD_PLUGIN_PATH;?>;
+
+const RSURL = '/plugins/' + pluginPath + '/include/server_test.php';
 
 function handleFormSubmit() {
 	const server = document.forms['remote_test'].server_name.value;
