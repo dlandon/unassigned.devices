@@ -410,8 +410,8 @@ $isUser0	= is_dir("/mnt/user0/");
 	*/
 	function swalShowResult(success) {
 		const options = success
-			? createSwalOptions("<?=_('Success')?>!", "success", " ", 2000)
-			: createSwalOptions("<?=_('Fail')?>!", "error", "<p><?=_('Check the syslog for details');?>.</p>", 2000);
+			? createSwalOptions("<?=_('Success');?>!", "success", " ", 2000)
+			: createSwalOptions("<?=_('Fail');?>!", "error", "<p><?=_('Check the syslog for details');?>.</p>", 2000);
 
 		swal2(options);
 	}
@@ -446,7 +446,7 @@ $isUser0	= is_dir("/mnt/user0/");
 		@param op: The operation (mount/unmount) that failed.
 	*/
 	function swalShowMountUnmount(device, op) {
-		const content = `<p><?=_('Device');?> '${device}' <?=('failed to');?> ${op}. </p><p><?=_('Check the syslog for details');?>.</p>`;
+		const content = `<p><?=_('Device');?> '${device}' <?=_('failed to');?> ${op}. </p><p><?=_('Check the syslog for details');?>.</p>`;
 		const options = createSwalOptions("<?=_('Fail')?>!", "error", content, 3000);
 
 		swal2(options);
@@ -741,8 +741,8 @@ $isUser0	= is_dir("/mnt/user0/");
 	<table id='usb_devices_list' class='usb_mounts'>
 		<thead>
 			<tr>
-				<td><?=('Device')?></td>
-				<td><?=('Identification')?></td>
+				<td><?=_('Device')?></td>
+				<td><?=_('Identification')?></td>
 				<td></td>
 				<td><?=_('Temp')?>.</td>
 				<td><?=_('Reads')?></td>
