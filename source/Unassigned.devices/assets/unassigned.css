@@ -250,3 +250,15 @@ form.inline {
 	background-image: url(/plugins/unassigned.devices/icons/smb-radio.png);
 }
 
+/* Ensure underline applies to the entire link, including icon and text */
+.underline-icon {
+	text-decoration: none; /* Prevent default underlining */
+}
+
+.underline-icon:hover {
+	text-decoration: underline; /* Underline on hover */
+}
+
+.underline-icon i, .underline-icon span {
+	text-decoration: inherit; /* Ensure children inherit the underline */
+}
