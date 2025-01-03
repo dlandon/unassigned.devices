@@ -4,7 +4,7 @@ Tag="unlink"
 ---
 <?php
 /* Copyright 2015, Guilherme Jardim
- * Copyright 2016-2024, Dan Landon
+ * Copyright 2016-2025, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -49,7 +49,10 @@ $isUser0	= is_dir("/mnt/user0/");
 
 <script>
 	/* Initialize PHP variables passed to JavaScript */
-	const pluginPath = <?= json_encode(UNASSIGNED_PLUGIN ?? 'unassigned.devices'); ?>;
+	const pluginPath = <?=UD_PLUGIN_PATH;?>;
+
+	/* URL for Unassigned Devices PHP file. */
+	const UDURL	= '/plugins/' + pluginPath + '/include/UnassignedDevices.php';
 
 	/* Display information from PHP on the client side. */
 	const display = <?=json_encode($display);?>;
@@ -59,9 +62,6 @@ $isUser0	= is_dir("/mnt/user0/");
 
 	/* Number of tabs with names ending in 'usbdisks'. */
 	const tab_usbdisks = $('input[name$="tabs"]').length;
-
-	/* URL for Unassigned Devices PHP file. */
-	const UDURL = "<?=UD_URL;?>";
 
 	/* Page refresh timer. */
 	let refreshTimer;
