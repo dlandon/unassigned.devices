@@ -70,7 +70,7 @@ define('NFS_PORT', '2049');
 define('RPC_PORT', '111');
 
 /* Path links. */
-define('UD_SETTINGS_SCRIPT', '/plugins/unassigned.devices/scripts/rc.settings');
+define('UD_SETTINGS_SCRIPT', DOCROOT.'/plugins/unassigned.devices/scripts/rc.settings');
 define('UD_CONFIG_FILE', $paths['config_file']);
 
 /* Get the Unraid users. */
