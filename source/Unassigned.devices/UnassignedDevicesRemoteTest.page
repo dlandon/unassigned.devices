@@ -74,9 +74,9 @@ _(Server)_:
 
 <script>
 /* Initialize PHP variables passed to JavaScript */
-const pluginPath = <?=UD_PLUGIN_PATH;?>;
+const udPluginPath = <?=UD_PLUGIN_PATH;?>;
 
-const RSURL = '/plugins/' + pluginPath + '/include/server_test.php';
+const RSURL = '/plugins/' + udPluginPath + '/include/server_test.php';
 
 function handleFormSubmit() {
 	const server = document.forms['remote_test'].server_name.value;
