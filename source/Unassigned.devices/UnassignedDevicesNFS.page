@@ -68,7 +68,11 @@ _(Enable NFS export)_?
 
 > The default rules for every NFS Rule are - async and no_subtree_check.
 
-> **Note:** The Public and Private default Rule used is '*(rw,sec=sys,insecure,anongid=100,anonuid=99,no_root_squash)'.
+> **Note:**
+>
+> The Public default Rule used is '*(rw,sec=sys,insecure,anongid=100,anonuid=99,all_squash)'.
+>
+> The Private default Rule used is '*(rw,sec=sys,insecure,anongid=100,anonuid=99,no_root_squash)'.
 :end
 
 &nbsp;
