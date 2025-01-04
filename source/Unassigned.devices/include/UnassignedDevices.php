@@ -1376,7 +1376,7 @@ switch ($_POST['action']) {
 		/* Mount a disk device. */
 		$device	= htmlspecialchars($_POST['device']);
 
-		$return = trim(shell_exec("/usr/bin/nice plugins/".UNASSIGNED_PLUGIN."/scripts/rc.unassigned mount ".escapeshellarg($device)." 2>&1") ?? "");
+		$return = trim(shell_exec("/usr/bin/nice ".DOCROOT."/plugins/".UNASSIGNED_PLUGIN."/scripts/rc.unassigned mount ".escapeshellarg($device)." 2>&1") ?? "");
 		echo json_encode($return == "success");
 		break;
 
@@ -1384,7 +1384,7 @@ switch ($_POST['action']) {
 		/* Unmount a disk device. */
 		$device	= htmlspecialchars($_POST['device']);
 
-		$return = trim(shell_exec("/usr/bin/nice plugins/".UNASSIGNED_PLUGIN."/scripts/rc.unassigned umount ".escapeshellarg($device)." 2>&1") ?? "");
+		$return = trim(shell_exec("/usr/bin/nice ".DOCROOT."/plugins/".UNASSIGNED_PLUGIN."/scripts/rc.unassigned umount ".escapeshellarg($device)." 2>&1") ?? "");
 		echo json_encode($return == "success");
 		break;
 
@@ -1457,47 +1457,68 @@ switch ($_POST['action']) {
 		@unlink(sprintf($paths['formatting'], basename($device)));
 		break;
 
-	/*	SAMBA	*/
+	/* SAMBA */
 	case 'list_samba_hosts':
-		/* Get a list of samba hosts. */
-		$network	= $_POST['network'];
+		/* Ensure 'network' is provided and is an array. */
+		if (!isset($_POST['network']) || !is_array($_POST['network'])) {
+			unassigned_log("Warning: invalid network data when searching for SMB hosts!");
+			echo "";
+			return;
+		}
 
-		$names		= [];
+		$network = $_POST['network'];
+		$names = [];
+
 		foreach ($network as $iface) {
-			$ip			= $iface['ip'];
-			$netmask 	= $iface['netmask'];
-			if (MiscUD::is_ip($ip) && MiscUD::is_ip($netmask)) {
-				/* Check for SMB servers having their port open for SMB. */
-				exec(DOCROOT."/plugins/".UNASSIGNED_PLUGIN."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." ".SMB_PORT, $hosts);
+			/* Validate 'ip' and 'netmask' fields. */
+			if (!isset($iface['ip'], $iface['netmask']) || (!MiscUD::is_ip($iface['ip'])) || (!MiscUD::is_ip($iface['netmask']))) {
+				unassigned_log("Invalid network data received for iface: " . json_encode($iface));
+				continue;
+			}
 
-				/* Do a name lookup on each IP address found in hosts. */
-				foreach ($hosts as $host) {
-					if ($host == $_SERVER['SERVER_ADDR']) {
-						$name		= $var['NAME'];
-					} else {
-						/* Resolve name as a local server. */
-						$name	= trim(shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'") ?? "");
-						if ($name == "?") {
-							/* Look up the server name using nmblookup. */
-							$name		= trim(timed_exec(1, "/usr/bin/nmblookup -A ".escapeshellarg($host)." 2>/dev/null | grep -v 'GROUP' | grep -Po '[^<]*(?=<00>)' | head -n 1", true) ?? "");
-							/* If this is a local device and not found with nmblookup, look it up using avahi. */
-							if (! $name) {
-								/* Look up the server name using avahi-resolve-address. */
-								$name	= trim(shell_exec("avahi-resolve-address ".escapeshellarg($host)." | /bin/awk '{print \$2}'") ?? "");
-							} else {
-								/* Add the local tld. */
-								$name	.= ".".$local_tld;
-							}
+			$ip = $iface['ip'];
+			$netmask = $iface['netmask'];
+
+			/* Initialize and populate $hosts with SMB servers. */
+			$hosts = [];
+			$exitCode = 0;
+			exec(DOCROOT."/plugins/".UNASSIGNED_PLUGIN."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." ".SMB_PORT." 2>/dev/null", $hosts, $exitCode);
+
+			/* Skip if the script failed or no hosts were found. */
+			if ($exitCode !== 0 || empty($hosts)) {
+				unassigned_log("Warning: hosts_port_ping.sh failed or found no hosts for {$ip}/{$netmask}");
+				continue;
+			}
+
+			/* Resolve hostnames for each found IP. */
+			foreach ($hosts as $host) {
+				if ($host == ($_SERVER['SERVER_ADDR'] ?? 'UNKNOWN')) {
+					$name = $var['NAME'] ?? 'UNKNOWN';
+				} else {
+					/* Resolve name as a local server. */
+					$name = trim(shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'") ?? "");
+					if ($name == "?") {
+						/* Attempt name lookup using nmblookup. */
+						$name = trim(timed_exec(1, "/usr/bin/nmblookup -A ".escapeshellarg($host)." 2>/dev/null | grep -v 'GROUP' | grep -Po '[^<]*(?=<00>)' | head -n 1", true) ?? "");
+						if (!$name) {
+							/* Attempt name lookup using avahi. */
+							$name = trim(shell_exec("avahi-resolve-address ".escapeshellarg($host)." | /bin/awk '{print \$2}'") ?? "");
+						} else {
+							$name .= "." . $local_tld;
 						}
 					}
-
-					$name			= strtoupper($name);
-					$names[] 		= $name ? $name : $host;
 				}
+
+				/* Add the resolved name or fallback to IP. */
+				$names[] = strtoupper($name ?: $host);
 			}
 		}
-		$names	= array_unique($names);
+
+		/* Remove duplicate names and sort naturally. */
+		$names = array_unique($names);
 		natsort($names);
+
+		/* Return the resolved hostnames or an empty string. */
 		echo implode(PHP_EOL, $names);
 		break;
 
@@ -1530,43 +1551,65 @@ switch ($_POST['action']) {
 		echo $list;
 		break;
 
-	/*	NFS	*/
+	/* NFS */
 	case 'list_nfs_hosts':
-		/* Get a list of nfs hosts. */
-		$network	= $_POST['network'];
-		$names		= [];
+		/* Ensure 'network' is provided and is an array. */
+		if (!isset($_POST['network']) || !is_array($_POST['network'])) {
+			unassigned_log("Warning: invalid network data when searching for NFS hosts!");
+			echo "";
+			return;
+		}
+
+		$network = $_POST['network'];
+		$names = [];
 
 		foreach ($network as $iface) {
-			$ip			= $iface['ip'];
-			$netmask 	= $iface['netmask'];
-			if (MiscUD::is_ip($ip) && MiscUD::is_ip($netmask)) {
-				/* Check for NFS servers having their port open for NFS. */
-				exec(DOCROOT."/plugins/".UNASSIGNED_PLUGIN."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." ".NFS_PORT." 2>/dev/null", $hosts);
+			/* Validate 'ip' and 'netmask' fields. */
+			if (!isset($iface['ip'], $iface['netmask']) || (!MiscUD::is_ip($iface['ip'])) || (!MiscUD::is_ip($iface['netmask']))) {
+				unassigned_log("Invalid network data received for iface: ".json_encode($iface));
+				continue;
+			}
 
-				/* Do a name lookup on each IP address found in hosts. */
-				foreach ($hosts as $host) {
-					if ($host == $_SERVER['SERVER_ADDR']) {
-						$name		= $var['NAME'];
-					} else {
-						/* Resolve name as a local server. */
-						$name	= trim(shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'") ?? "");
-						if ($name == "?") {
-							/* Look up the server name using avahi-resolve-address. */
-							$name	= trim(shell_exec("avahi-resolve-address ".escapeshellarg($host)." | /bin/awk '{print \$2}'") ?? "");
-						}
-					}
+			$ip = $iface['ip'];
+			$netmask = $iface['netmask'];
 
-					/* If the remote server does not show any shares, it is not available. */
-					$result		= trim(shell_exec("/usr/sbin/showmount -e ".escapeshellarg($name)." 2>/dev/null") ?? "");
-					if ($result) {
-						$name			= strtoupper($name);
-						$names[] 		= $name ? $name : $host;
+			/* Initialize and populate $hosts with NFS servers. */
+			$hosts = [];
+			$exitCode = 0;
+			exec(DOCROOT."/plugins/".UNASSIGNED_PLUGIN."/scripts/hosts_port_ping.sh ".escapeshellarg($ip)." ".escapeshellarg($netmask)." ".NFS_PORT." 2>/dev/null", $hosts, $exitCode);
+
+			/* Skip if the script failed or no hosts were found. */
+			if ($exitCode !== 0 || empty($hosts)) {
+				unassigned_log("hosts_port_ping.sh failed or found no hosts for {$ip}/{$netmask}");
+				continue;
+			}
+
+			/* Resolve hostnames for each found IP. */
+			foreach ($hosts as $host) {
+				if ($host == ($_SERVER['SERVER_ADDR'] ?? 'UNKNOWN')) {
+					$name = $var['NAME'] ?? 'UNKNOWN';
+				} else {
+					/* Resolve name as a local server. */
+					$name = trim(shell_exec("/sbin/arp -a ".escapeshellarg($host)." 2>&1 | grep -v 'arp:' | /bin/awk '{print $1}'") ?? "");
+					if ($name == "?") {
+						/* Attempt name lookup using avahi. */
+						$name = trim(shell_exec("avahi-resolve-address ".escapeshellarg($host)." | /bin/awk '{print \$2}'") ?? "");
 					}
+				}
+
+				/* Verify if the server shares are available using `showmount`. */
+				$result = trim(shell_exec("/usr/sbin/showmount -e ".escapeshellarg($host)." 2>/dev/null") ?? "");
+				if ($result) {
+					$names[] = strtoupper($name ?: $host);
 				}
 			}
 		}
-		$names	= array_unique($names);
+
+		/* Remove duplicate names and sort naturally. */
+		$names = array_unique($names);
 		natsort($names);
+
+		/* Return the resolved hostnames or an empty string. */
 		echo implode(PHP_EOL, $names);
 		break;
 
