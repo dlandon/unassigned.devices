@@ -3,7 +3,7 @@ Tag="unlink"
 ---
 <?php
 /* Copyright 2015, Guilherme Jardim
- * Copyright 2016-2024, Dan Landon
+ * Copyright 2016-2025, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -304,18 +304,18 @@ EOT;
 <?if ($show_device_switches):?>
 <?if ($disk_device):?>
 <?if (! $mounted):?>
-<span class='span-switches' title='_(Mark this Device as passed through to a VM or Docker Container)_.'><a><input type='checkbox' class='passthrough-switch'></a></span>
+<span class='span-switches' title='_(Mark this Device as passed through to a VM or Docker Container)_.'><a><input name='pass-through' type='checkbox' class='passthrough-switch'></a></span>
 <?endif;?>
-<span class='span-switches' title='_(Disable Mount and Unmount Button)_.'><a><input type='checkbox' class='disable-mount-switch'></a></span>
-<span class='span-switches' title='_(Mount Device Read only)_.'><a><input type='checkbox' class='readonly-switch'></a></span>
+<span class='span-switches' title='_(Disable Mount and Unmount Button)_.'><a><input type='checkbox' name='disable-mount' class='disable-mount-switch'></a></span>
+<span class='span-switches' title='_(Mount Device Read only)_.'><a><input type='checkbox' name='readonly' class='readonly-switch'></a></span>
 <?if ($fstype != "zvol"):?>
-<span class='span-switches' title='_(Mount Device when Plugged in or Array is Started)_.'><a><input type='checkbox' class='automount-switch'></a></span>
+<span class='span-switches' title='_(Mount Device when Plugged in or Array is Started)_.'><a><input type='checkbox' name='automount' class='automount-switch'></a></span>
 <?endif;?>
 <?endif;?>
 <?endif;?>
 
 <?if ($samba_device):?>
-<span class='span-switches' title='_(Disable Mount and Unmount Button)_.'><a><input type='checkbox' class='disable-mount-switch'></a></span>
+<span class='span-switches' title='_(Disable Mount and Unmount Button)_.'><a><input type='checkbox' name='disable-mount' class='disable-mount-switch'></a></span>
 <span class='span-switches' title='_(Mount Remote Share Read only)_.'><a><input type='checkbox' class='readonly-switch'></a></span>
 <span class='span-switches' title='_(Mount Remote SMB or NFS Share when Array is Started)_.'><a><input type='checkbox' class='automount-switch'></a></span>
 <?endif;?>
@@ -323,11 +323,11 @@ EOT;
 <?if ($iso_device):?>
 <span class='span-switches' title='_(Mount ISO File when Array is Started)_.'><a><input type='checkbox' class='automount-switch'></a></span>
 <?elseif ($fstype != "zvol"):?>
-<span class='span-switches' title='_(Share Device with SMB and NFS)_.'><a><input type='checkbox' class='share-switch' info='<?=$info?>'></a></span>
+<span class='span-switches' title='_(Share Device with SMB and NFS)_.'><a><input type='checkbox' name='share-switch' class='share-switch' info='<?=$info?>'></a></span>
 <?endif;?>
 
 <?if (($disk_device) && ($show_device_switches) && ($fstype != "zvol")):?>
-<span class='span-switches' title='_(Show all partitions on this device by default)_.'><a><input type='checkbox' class='partitions-switch'></a></span>
+<span class='span-switches' title='_(Show all partitions on this device by default)_.'><a><input type='checkbox' name='partitions' class='partitions-switch'></a></span>
 <?endif;?>
 </div>
 
@@ -448,7 +448,7 @@ _(Encrypt CIFS Mount)_?
 
 <?if ($fstype != "zvol"):?>
 _(Device Script)_:
-: <input type="text" title='_(Enter Device Script File Name)_.' name="#file" id="fileInput" style="width:46%;"  <?=(!$script_disabled ? 'onclick="openFileBrowserDevice(this, \'/boot/config/plugins/'.UNASSIGNED_PLUGIN.'\', \'sh\');"' : 'readonly');?> autocomplete="off" value="<?=$file;?>" placeholder="_(Click here to select a Script File or 'Default' button for a Default Script)_">
+: <input type="text" title='_(Enter Device Script File Name)_.' name="#file" id="fileInput" style="width:46%;"  <?=(!$script_disabled ? 'onclick="openFileBrowserDevice(this, \'/boot/config/plugins/'.UNASSIGNED_PLUGIN.'\', \'sh\');"' : 'readonly');?> autocomplete="off" value="<?=htmlspecialchars($file);?>" placeholder="_(Click here to select a Script File or 'Default' button for a Default Script)_">
 
 :ud_edit_script_choose_name_plug:
 > This is the Script File that runs when the device is mounted. Choose your Script File name from the file selection dropdown, or enter your desired script.  This cannot be changed if the device is mounted.
@@ -476,7 +476,7 @@ _(Run Device Script File in the background)_?
 
 <? if (! $iso_device):?>
 _(User Script)_:
-: <input type="text" title='_(Enter the User Script File Name)_.' name="#user_file" style="width:46%;" onclick="openFileBrowserUser(this, '/boot/config/plugins/user.scripts/scripts', '', false);" autocomplete="off" placeholder="_(Enter the User Script that will be using this device)_" value="<?=$user_file;?>" <?echo $user_disabled;?>>
+: <input type="text" title='_(Enter the User Script File Name)_.' name="#user_file" style="width:46%;" onclick="openFileBrowserUser(this, '/boot/config/plugins/user.scripts/scripts', '', false);" autocomplete="off" placeholder="_(Enter the User Script that will be using this device)_" value="<?=htmlspecialchars($user_file);?>" <?=$user_disabled;?>>
 <?endif;?>
 
 <? if (! $iso_device):?>
@@ -518,7 +518,11 @@ _(User Script)_:
 </form>
 
 <script>
-	const pluginPath = <?= json_encode(UNASSIGNED_PLUGIN ?? ''); ?>;
+	/* Initialize PHP variables passed to JavaScript */
+	const udPluginPath = <?=UD_PLUGIN_PATH; ?>;
+
+	/* URL for Unassigned Devices PHP file. */
+	const UDURL		= '/plugins/' + udPluginPath + '/include/UnassignedDevices.php';
 
 	/* Start the Unraid spinner. */
 	unraidWaveTimer = setTimeout(function(){
@@ -533,8 +537,6 @@ _(User Script)_:
 		/* Stop spinner after the page has loaded. */
 		$('div.spinner.fixed').hide();
 	};
-
-	const UDURL		= '/plugins/' + pluginPath + '/include/UnassignedDevices.php';
 
 	/* Clean up the file name before submitting it. */
 	function cleanUpFileInput() {
