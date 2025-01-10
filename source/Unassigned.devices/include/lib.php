@@ -16,6 +16,12 @@ define('UNASSIGNED_PLUGIN', 'unassigned.devices');
 /* Define plugin path for JavaScript. */
 define('UD_PLUGIN_PATH', json_encode(UNASSIGNED_PLUGIN ?? 'unassigned.devices'));
 
+/* Define the UD configuration path on the flash device. */
+define('UD_FLASH_PATH', '/boot/config/plugins/'.UNASSIGNED_PLUGIN.'/');
+
+/* Define the User Scripts files path on the flash device. */
+define('USER_SCRIPTS_PATH', '/boot/config/plugins/user.scripts/scripts');
+
 /* Define the docroot path. */
 if (!defined('DOCROOT')) {
 	define('DOCROOT', $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
