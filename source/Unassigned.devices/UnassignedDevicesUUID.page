@@ -4,7 +4,7 @@ Tag="hdd-o"
 ---
 <?php
 /* Copyright 2015, Guilherme Jardim
- * Copyright 2016-2024, Dan Landon
+ * Copyright 2016-2025, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -57,7 +57,7 @@ foreach (get_all_disks_info() as $d) {
 _(Select Disk)_:
 : <select name="change_uuid" size="1">
 	<?foreach ($uuid_devices as $d) {?>
-		<?=mk_option($UD_cfg["Config"]["change_uuid"], ("(".$d['device'].") ".$d['serial']), ($d['serial']." (".basename($d['device']).")"));?>
+		<?=mk_option($UD_cfg["Config"]["change_uuid"], ("(".htmlspecialchars($d['device']).") ".htmlspecialchars($d['serial'])), (htmlspecialchars($d['serial'])." (".htmlspecialchars(basename($d['device'])).")"));?>
 	<?}?>
 </select>
 

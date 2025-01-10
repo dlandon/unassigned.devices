@@ -4,7 +4,7 @@ Tag="unlink"
 ---
 <?php
 /* Copyright 2015, Guilherme Jardim
- * Copyright 2016-2024, Dan Landon
+ * Copyright 2016-2025, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -169,7 +169,7 @@ if ((! $parted) && ($UD_cfg['Config']['destructive_mode'] == "enabled")) {
 <?endif;?>
 
 _(Common Script)_:
-: <input type="text" name="common_cmd" style="width:43%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=UNASSIGNED_PLUGIN;?>', 'sh');" autocomplete="off" value="<?=$UD_cfg['Config']['common_cmd'];?>">
+: <input type="text" name="common_cmd" style="width:43%;" onclick="openFileBrowser(this,'/boot/config/plugins/<?=UNASSIGNED_PLUGIN;?>', 'sh');" autocomplete="off" value="<?=htmlspecialchars($UD_cfg['Config']['common_cmd']);?>">
 
 :ud_settings_common_script_plug:
 > If set, this script will run before the device script when a device is first added - **$ACTION**='ADD'.  The device script setting 'Run Device Script File in the background?' will also apply to this script.
@@ -231,7 +231,7 @@ _(Show ZFS Volumes on Disks)_?
 :end
 
 _(Remote Share Mount Wait Time)_ :
-: <input type="text" name="remote_share_wait" class="narrow" maxlength="4" value="<?=$UD_cfg['Config']['remote_share_wait'];?>" placeholder="5">
+: <input type="text" name="remote_share_wait" class="narrow" maxlength="4" value="<?=htmlspecialchars($UD_cfg['Config']['remote_share_wait']);?>" placeholder="5">
 
 :ud_settings_remote_share_wait_plug:
 > This is the time in seconds to wait before mounting remote shares when the array is first started.

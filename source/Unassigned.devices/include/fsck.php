@@ -1,6 +1,6 @@
 <?php
 /* Copyright 2015, Guilherme Jardim
- * Copyright 2016-2024, Dan Landon
+ * Copyright 2016-2025, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -48,7 +48,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 		$mapper	= basename($device);
 		$cmd	= "luksOpen {$luks} ".escapeshellarg($mapper);
 		$pass	= decrypt_data(get_config($serial, "pass"));
-		write_log("Opening crypto_LUKS device '$luks'...<br>");
+		write_log("Opening crypto_LUKS device '".htmlspecialchars($luks)."'...<br>");
 		if (! $pass) {
 			$o		= shell_exec("/usr/local/sbin/emcmd 'cmdCryptsetup=$cmd' 2>&1");
 			$luks_pass_file	= "";
@@ -92,10 +92,10 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 			/* If the file system is btrfs or zfs, we will do a scrub. */
 			if (($file_system == "btrfs") || ($file_system == "zfs")) {
 				if ($mounted) {
-					write_log(_('Executing file system scrub').":&nbsp;");
+					write_log(_('Executing file system scrub'));
 				}
 			} else {
-				write_log(_('Executing file system check').":&nbsp;");
+				write_log(_('Executing file system check'));
 			}
 
 			/* Get the file system check command based on the file system. */
@@ -145,7 +145,7 @@ if ( isset($_GET['device']) && isset($_GET['fs']) ) {
 
 	/* Close the device if it is encrypted. */
 	if (($fs == "crypto_LUKS") && (! $mounted)) {
-		write_log("Closing crypto_LUKS device '$luks'...<br>");
+		write_log("Closing crypto_LUKS device '".htmlspecialchars($luks)."'...<br>");
 		$o = shell_exec("/sbin/cryptsetup luksClose ".escapeshellarg($mapper));
 		if ($o) {
 			write_log("luksClose error: ".$o."<br>");

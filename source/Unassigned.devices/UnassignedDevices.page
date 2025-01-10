@@ -1336,7 +1336,7 @@ $isUser0	= is_dir("/mnt/user0/");
 		targetSpan.html("<i class='fa fa-spinner fa-spin'></i> <?=_('Removing');?>");
 
 		$.post(UDURL, {
-			'action': 'rm_partition',
+			'action': 'remove_partition',
 			'serial': surveyOption.serial,
 			'device': surveyOption.device,
 			'partition': surveyOption.partition
@@ -1352,8 +1352,8 @@ $isUser0	= is_dir("/mnt/user0/");
 		<script>
 			/* Execute a function when the document is ready */
 			$(function() {
-				/* Define a function rm_partition and attach it to the window object */
-				window.rm_partition = function(bt, serial, device, partition) {
+				/* Define a function remove_partition and attach it to the window object */
+				window.remove_partition = function(bt, serial, device, partition) {
 					/* Call the doUnassignedDevicesSurvey function with the arguments "remove_partiton", {el:bt, serial:serial, device:device, partition:partition} */
 					doUnassignedDevicesSurvey("remove_partiton", {el: bt, serial: serial, device: device, partition: partition});
 				};
@@ -1387,7 +1387,7 @@ $isUser0	= is_dir("/mnt/user0/");
 		targetSpan.html("<i class='fa fa-spinner fa-spin'></i> <?=_('Removing');?>");
 
 		$.post(UDURL, {
-			'action': 'clr_disk',
+			'action': 'clear_disk',
 			'serial': surveyOption.serial,
 			'device': surveyOption.device
 		})
@@ -1402,8 +1402,8 @@ $isUser0	= is_dir("/mnt/user0/");
 		<script>
 			/* Execute a function when the document is ready */
 			$(function() {
-				/* Define a function clr_disk and attach it to the window object */
-				window.clr_disk = function(bt, serial, device) {
+				/* Define a function clear_disk and attach it to the window object */
+				window.clear_disk = function(bt, serial, device) {
 					/* Call the doUnassignedDevicesSurvey function with the arguments "clear_disk", {el:bt, serial:serial, device:device} */
 					doUnassignedDevicesSurvey("clear_disk", {el: bt, serial: serial, device: device});
 				};
@@ -1684,7 +1684,7 @@ $isUser0	= is_dir("/mnt/user0/");
 	</div>
 	<div data-survey-done data-survey-done-wait="true">
 		$.post(UDURL, {
-			'action': 'chg_mountpoint',
+			'action': 'change_mountpoint',
 			'serial': surveyOption.serial,
 			'partition': surveyOption.partition,
 			'device': surveyOption.device,
@@ -1702,8 +1702,8 @@ $isUser0	= is_dir("/mnt/user0/");
 		<script>
 			/* Execute a function when the document is ready */
 			$(function() {
-				/* Define a function chg_mountpoint and attach it to the window object */
-				window.chg_mountpoint = function(serial, partition, device, fstype, mountpoint, disklabel) {
+				/* Define a function change_mountpoint and attach it to the window object */
+				window.change_mountpoint = function(serial, partition, device, fstype, mountpoint, disklabel) {
 					/* Call the doUnassignedDevicesSurvey function with the arguments "change_mountpoint" and an object containing the specified parameters */
 					doUnassignedDevicesSurvey("change_mountpoint", {
 						serial: serial,
@@ -1732,7 +1732,7 @@ $isUser0	= is_dir("/mnt/user0/");
 	</div>
 	<div data-survey-done data-survey-done-wait="true">
 		$.post(UDURL, {
-			'action': 'chg_samba_mountpoint',
+			'action': 'change_samba_mountpoint',
 			'device': surveyOption.device,
 			'mountpoint': surveyData['MOUNTPOINT']
 		})
@@ -1747,8 +1747,8 @@ $isUser0	= is_dir("/mnt/user0/");
 		<script>
 			/* Execute a function when the document is ready */
 			$(function() {
-				/* Define a function chg_samba_mountpoint and attach it to the window object */
-				window.chg_samba_mountpoint = function(device, mountpoint) {
+				/* Define a function change_samba_mountpoint and attach it to the window object */
+				window.change_samba_mountpoint = function(device, mountpoint) {
 					/* Call the doUnassignedDevicesSurvey function with the arguments "change_samba_mountpoint" and an object containing the specified parameters */
 					doUnassignedDevicesSurvey("change_samba_mountpoint", {
 						device: device,
@@ -1773,7 +1773,7 @@ $isUser0	= is_dir("/mnt/user0/");
 	</div>
 	<div data-survey-done data-survey-done-wait="true">
 		$.post(UDURL, {
-			'action': 'chg_iso_mountpoint',
+			'action': 'change_iso_mountpoint',
 			'device': surveyOption.device,
 			'mountpoint': surveyData['MOUNTPOINT']
 		})
@@ -1788,8 +1788,8 @@ $isUser0	= is_dir("/mnt/user0/");
 		<script>
 			/* Execute a function when the document is ready */
 			$(function() {
-				/* Define a function chg_iso_mountpoint and attach it to the window object */
-				window.chg_iso_mountpoint = function(device, mountpoint) {
+				/* Define a function change_iso_mountpoint and attach it to the window object */
+				window.change_iso_mountpoint = function(device, mountpoint) {
 					/* Call the doUnassignedDevicesSurvey function with the arguments "change_iso_mountpoint" and an object containing the specified parameters */
 					doUnassignedDevicesSurvey("change_iso_mountpoint", {
 						device: device,

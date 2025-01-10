@@ -3,7 +3,7 @@ Title="SMB Settings"
 ---
 <?php
 /* Copyright 2015, Guilherme Jardim
- * Copyright 2016-2024, Dan Landon
+ * Copyright 2016-2025, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -105,7 +105,7 @@ _(Enable Time Machine)_?
 
 <? if ($var['enableFruit'] == "yes"):?>
 _(Time Machine volume size limit)_:
-: <input type="text" name="time_mach_vol_size" class="narrow" style="width:8%" maxlength="8" value="<?=$UD_cfg['Config']['time_mach_vol_size'];?>" <?if ($UD_cfg['Config']['time_machine'] != "yes"):?>disabled<?endif;?>>MB
+: <input type="text" name="time_mach_vol_size" class="narrow" style="width:8%" maxlength="8" value="<?=htmlspecialchars($UD_cfg['Config']['time_mach_vol_size']);?>" <?if ($UD_cfg['Config']['time_machine'] != "yes"):?>disabled<?endif;?>>MB
 <?endif;?>
 
 <? if ($var['enableFruit'] == "yes"):?>
