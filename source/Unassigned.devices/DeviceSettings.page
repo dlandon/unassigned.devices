@@ -22,7 +22,6 @@ $disk_setting			= true;
 $show_device_switches	= true;
 $script_disabled		= "";
 $user_disabled			= "";
-$default_file			= safe_name("/boot/config/plugins/".UNASSIGNED_PLUGIN."/".($_GET['l'] ? basename($_GET['l']).".sh" : ""), true, true);
 $fstype					= "";
 $volume					= "";
 $id_bus					= "";
@@ -45,6 +44,15 @@ $compress_option		= "";
 $disk_device			= false;
 $samba_device			= false;
 $iso_device				= false;
+
+/* Validate the default file location. */
+/* Construct the full default file path. */
+$default_file = safe_name(UD_FLASH_PATH . ($_GET['l'] ? basename($_GET['l']) : "default_script") . ".sh", true, true);
+
+/* Validate that the default file resides in the correct directory. */
+if (strpos($default_file, UD_FLASH_PATH) !== 0) {
+	$default_file = UD_FLASH_PATH . "default_script" . ".sh";
+}
 
 /* Main entry point. */
 if (isset($_GET['s'])) {
@@ -448,7 +456,7 @@ _(Encrypt CIFS Mount)_?
 
 <?if ($fstype != "zvol"):?>
 _(Device Script)_:
-: <input type="text" title='_(Enter Device Script File Name)_.' name="#file" id="fileInput" style="width:46%;"  <?=(!$script_disabled ? 'onclick="openFileBrowserDevice(this, \'/boot/config/plugins/'.UNASSIGNED_PLUGIN.'\', \'sh\');"' : 'readonly');?> autocomplete="off" value="<?=htmlspecialchars($file);?>" placeholder="_(Click here to select a Script File or 'Default' button for a Default Script)_">
+: <input type="text" title='_(Enter Device Script File Name)_.' name="#file" id="fileInput" style="width:46%;"  <?=(!$script_disabled ? 'onclick="openFileBrowserDevice(this, \''.UD_FLASH_PATH.'\', \'sh\');"' : 'readonly');?> autocomplete="off" value="<?=htmlspecialchars($file);?>" placeholder="_(Click here to select a Script File or 'Default' button for a Default Script)_">
 
 :ud_edit_script_choose_name_plug:
 > This is the Script File that runs when the device is mounted. Choose your Script File name from the file selection dropdown, or enter your desired script.  This cannot be changed if the device is mounted.
@@ -476,7 +484,7 @@ _(Run Device Script File in the background)_?
 
 <? if (! $iso_device):?>
 _(User Script)_:
-: <input type="text" title='_(Enter the User Script File Name)_.' name="#user_file" style="width:46%;" onclick="openFileBrowserUser(this, '/boot/config/plugins/user.scripts/scripts', '', false);" autocomplete="off" placeholder="_(Enter the User Script that will be using this device)_" value="<?=htmlspecialchars($user_file);?>" <?=$user_disabled;?>>
+: <input type="text" title='_(Enter the User Script File Name)_.' name="#user_file" style="width:46%;" onclick="openFileBrowserUser(this, '<?=USER_SCRIPTS_PATH;?>', '', false);" autocomplete="off" placeholder="_(Enter the User Script that will be using this device)_" value="<?=htmlspecialchars($user_file);?>" <?=$user_disabled;?>>
 <?endif;?>
 
 <? if (! $iso_device):?>
