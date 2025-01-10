@@ -116,15 +116,29 @@ $isUser0	= is_dir("/mnt/user0/");
 	}
 
 	/*
-		Utility function to replace placeholders in a string with values from an object.
+		Utility function to replace placeholders in a string with corresponding values from an object or arguments list.
 		@param template: The template string containing placeholders like {key}.
-		@param values: An object containing key-value pairs for replacements.
+		@param values: An object with key-value pairs or multiple arguments.
 		@return: The formatted string.
 	*/
 	function formatString(template, values) {
-		return template.replace(/\{(\w+)\}/g, (match, key) => {
-			return key in values ? values[key] : match;
-		});
+		"use strict";
+
+		/* Ensure the input is a string */
+		let str = template.toString();
+
+		/* Determine the type of the values parameter */
+		const args = typeof values === "object" ? values : Array.from(arguments).slice(1);
+
+		/* Replace placeholders with corresponding values */
+		for (const key in args) {
+			if (Object.prototype.hasOwnProperty.call(args, key)) {
+				const pattern = new RegExp(`\\{${key}\\}`, "gi");
+				str = str.replace(pattern, args[key]);
+			}
+		}
+
+		return str;
 	}
 
 	/*
