@@ -532,7 +532,7 @@ function make_mount_button($device) {
 }
 
 switch ($_POST['action']) {
-	case 'get_content':
+	case 'get_ud_content':
 		/* Update the UD webpage content. */
 
 		/* Start time for disk ops. Used for debugging. */
