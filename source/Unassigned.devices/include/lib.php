@@ -1664,13 +1664,13 @@ function is_sd_device($dev) {
 function is_mounted($dev, $dir = "", $update = true) {
 	global $mounts;
 
-	/* Create a global array of device, mount point, and read only status from /-proc/mounts. */
+	/* Create a global array of device, mount point, and read only status from /proc/mounts. */
 	$rc_dev		= ($dir) ? (! $dev) : false;
 	$rc_dir		= ($dev) ? (! $dir) : false;
 
 	/* See if we need to load the /proc/mounts file to memory. */
 	if ((! isset($mounts)) || ($update)) {
-		$mount				= timed_exec(1, "/bin/awk -F'[, ]' '{print $1 \",\" $2 \",\" $4}' /proc/mounts 2>/dev/null");
+		$mount				= timed_exec(1, "/bin/awk -F'[, ]' '{print $1 \",\" $2 \",\" $4}' /proc/mounts 2>/dev/null", true);
 		$escapeSequences	= array("\\040");
 		$replacementChars	= array(" ");
 		$mount				= str_replace($escapeSequences, $replacementChars, $mount);
@@ -2216,6 +2216,17 @@ function do_unmount($info, $force = false) {
 	$unmount_mode		= ($force ? "-f " : "-l ");
 
 	switch ($info['fstype']) {
+		case ("crypto_LUKS"):
+			if ($info['file_system'] == "zfs") {
+				$zfs		= true;
+				$pool_name	= $info['pool_name'];
+			} else {
+				$pool_name	= "";
+			}
+			$dev			= "";
+			$timeout		= 90;
+			break;
+
 		case ("cifs"):
 			$smb			= true;
 			$dev			= $info['mount_dev'];
@@ -3880,7 +3891,7 @@ function get_partition_info($dev) {
 		/* crypto_LUKS file system. */
 		/* The device is /dev/mapper/... for all luks devices. */
 		if ($partition['fstype'] == "crypto_LUKS") {
-			$partition['luks']			= $partition['device'];
+		$partition['luks']			= $partition['device'];
 			$partition['device']		= "/dev/mapper/".safe_name(basename($partition['mountpoint']));
 			$dev						= $partition['luks'];
 		} else {
@@ -3937,6 +3948,8 @@ function get_partition_info($dev) {
 			/* The idea is to catch the situation where a disk is removed before being unmounted. */
 			if ($zfs) {
 				$partition['not_unmounted']	= $partition['pool_name'] ? (! is_mounted($partition['pool_name'], "", false)) : false;
+			} else if ($partition['fstype'] == "crypto_LUKS") {
+				$partition['not_unmounted']	= (! is_mounted("", $partition['mountpoint'], false));
 			} else {
 				$partition['not_unmounted']	= (! is_mounted($partition['device'], "", false));
 			}
