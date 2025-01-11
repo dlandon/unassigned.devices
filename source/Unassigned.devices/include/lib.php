@@ -94,7 +94,7 @@ foreach ($array_disks as $d) {
 }
 
 /* Get the version of Unraid we are running. */
-$version = @parse_ini_file("/etc/unraid-version");
+$version		= @parse_ini_file("/etc/unraid-version");
 
 /* Set the log level for debugging. */
 /* 0 - normal logging, */
@@ -461,7 +461,7 @@ function save_ini_file($file, $config, $save_config = true) {
 				$res[] = $skey."=".(is_numeric($sval) ? $sval : '"'.$sval.'"');
 			}
 		} else {
-			$res[] = "$key = ".(is_numeric($val) ? $val : '"'.$val.'"');
+			$res[] = $key."=".(is_numeric($val) ? $val : '"'.$val.'"');
 		}
 	}
 
@@ -493,8 +493,8 @@ function unassigned_log($m, $debug_level = 0) {
 function listFile($root) {
 	/* Check if $root is a valid directory. */
 	if (is_dir($root)) {
-		$filePaths = glob($root . '/*', GLOB_MARK);
-		$filesOnly = [];
+		$filePaths	= glob($root . '/*', GLOB_MARK);
+		$filesOnly	= [];
 
 		foreach ($filePaths as $path) {
 			if (! is_dir($path)) {
@@ -837,7 +837,7 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 
 	if ($rc) {
 		/* Get the disk blocks and set either gpt or mbr partition schema based on disk size. */
-		$max_mbr_blocks = hexdec("0xFFFFFFFF");
+		$max_mbr_blocks	= hexdec("0xFFFFFFFF");
 		$disk_blocks	= intval(trim(shell_exec("/sbin/blockdev --getsz ".escapeshellarg($dev)." 2>/dev/null | /bin/awk '{ print $1 }'")));
 		$disk_schema	= ( $disk_blocks >= $max_mbr_blocks ) ? "gpt" : "msdos";
 		$parted_fs		= ($fs == "exfat") ? "fat32" : $fs;
@@ -940,7 +940,7 @@ function format_disk($dev, $fs, $pass, $pool_name) {
 				unassigned_log("luksFormat error: ".$o);
 				$rc = false;
 			} else {
-				$mapper = "format_".basename($dev);
+				$mapper	= "format_".basename($dev);
 				$cmd	= "luksOpen ".escapeshellarg($device)." ".escapeshellarg($mapper);
 
 				/* Use a disk password, or Unraid's. */
