@@ -168,63 +168,61 @@ $isUser0	= is_dir("/mnt/user0/");
 	async function diskOperation(el, op, device) {
 		const mountButton = $(`button[device='${device}']`);
 
-		/* Disable button and show loading spinner. */
-		updateMountButton(mountButton, op, true);
+		/* Clear the page refresh timer. */
+		window.clearInterval(refreshTimer);
 
-		/* Wait for any ongoing refresh to complete. */
+		/* Add spinning icon to mount/unmount button and disable button. */
+		mountButton.prop("disabled", true).html("<i class='fa fa-spinner fa-spin orb'></i>" + (op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
+
+		/* Check if refreshPage is already in progress. */
 		if (isRefreshing) {
 			try {
+				/* Wait for the current refreshPage to complete before proceeding. */
 				await refreshPage();
 			} catch (error) {
-				/* Ignore errors and proceed. */
+				/*
+					Ignore the error and initiate the post request anyway.
+					This will occur if refreshPage() has completed and just returns without a resolved promise.
+				*/
 			}
 		}
 
-		/* Perform the mount/unmount operation. */
+		/*
+			Once the refresh is completed, the mount button status needs to be refreshed in case the refreshPage() cleared it.
+			After the mount/unmount post is strted, the mount status flag files will be set nd the mount button status will be up to date.
+		*/
+
+		/* Refresh the mount/unmount button and disable button if the refreshPage() happened to change the status. */
+		mountButton.prop("disabled", true).html("<i class='fa fa-spinner fa-spin orb'></i>" + (op == "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>"));
+
+		/* Initiate the post request immediately. */
 		await mountPostRequest(op, device);
 
 		/* Restart the page refresh timer. */
 		refreshTimer = window.setInterval(refreshPage, REFRESH_INTERVAL);
 	}
 
-	/*
-		Helper function to update the mount/unmount button state.
-		@param button: The button element to update.
-		@param op: The operation being performed (e.g., "mount" or "unmount").
-		@param disable: Boolean indicating whether to disable the button.
-	*/
-	function updateMountButton(button, op, disable) {
-		const label = op === "mount" ? "<?=_('Mounting');?>" : "<?=_('Unmounting');?>";
-		const spinnerHTML = `<i class='fa fa-spinner fa-spin orb'></i>${label}`;
-		button.prop("disabled", disable).html(spinnerHTML);
-	}
-
-	/*
-		Perform the mount/unmount post request.
-		@param op: The operation to perform (e.g., "mount" or "unmount").
-		@param device: The target device for the operation.
-	*/
+	/* Perform the disk opertion. */
 	async function mountPostRequest(op, device) {
-		/* Start a delayed page refresh to reflect updates. */
+		/* Start the refresh timer to refresh the page after the mount/unmount script starts. */
 		window.setTimeout(refreshPage, 100);
 
-		try {
-			const response = await $.post(UDURL, {
-				'action': op,
-				'device': device
-			});
-
-			/* Handle failure response. */
-			if (response === "false") {
+		$.post(UDURL, {
+			'action': op,
+			'device': device
+		})
+		.done(data => {
+			if (data === "false") {
 				swalShowMountUnmount(device, op);
 			}
-		} catch (error) {
-			/* Handle request failure. */
+		})
+		.fail(() => {
 			swalShowResult(false);
-		} finally {
-			/* Ensure a page refresh starts regardless of the request outcome. */
+		})
+		.always(() => {
+			/* Start the refresh timer to refresh the page if it's not currently refreshing. */
 			window.setTimeout(refreshPage, 100);
-		}
+		});
 	}
 
 	/*
@@ -261,7 +259,7 @@ $isUser0	= is_dir("/mnt/user0/");
 	*/
 	function fetchUDContent() {
 		return new Promise((resolve, reject) => {
-			$.post(UDURL, { action: 'get_content', display: display }, resolve, 'json')
+			$.post(UDURL, { action: 'get_ud_content', display: display }, resolve, 'json')
 				.fail(() => reject(new Error("<tr><td colspan='11' style='text-align:center;'><?=_('Failed to get data to refresh page');?>.</td></tr>")));
 		});
 	}
