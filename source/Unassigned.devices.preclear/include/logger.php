@@ -1,6 +1,6 @@
 <?php
 /* Copyright 2015-2020, Guilherme Jardim
- * Copyright 2022-2024, Dan Landon
+ * Copyright 2022-2025, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -343,99 +343,112 @@ if ( $task == "command_run" ) {
 	<link type="text/css" rel="stylesheet" href=<?autov("/webGui/styles/default-fonts.css?v=1607102280")?>>
 	<script src=<?autov("/webGui/javascript/dynamix.js")?>></script>
 	<script>
-		var lastLine = 0;
-		var cursor;
-		var file_position = "<?=$file_position;?>";
-		var timers = {};
-		var log_file =	 "<?=$file;?>";
-		var log_search = "<?=$search;?>";
-		var csrf_token = "<?=$var['csrf_token'];?>";
+		let lastLine = 0;
+		let cursor;
+		let timers = {};
+		let file_position = "<?=$file_position;?>";
+		const log_file = "<?=$file;?>";
+		const log_search = "<?=$search;?>";
+		const csrf_token = "<?=$var['csrf_token'];?>";
+
 		<?if(isset($command)):?>
-		var command		 = "<?=$command;?>"; 
-		var socket_name = "<?=$socket_name;?>";
+		const command = "<?=$command;?>"; 
+		const socket_name = "<?=$socket_name;?>";
 		<?endif;?>
 
 		function addLog(logLine) {
-			var scrollTop = (window.pageYOffset !== undefined) ? window.pageYOffset : (document.documentElement || document.body.parentNode).scrollTop;
-			var clientHeight = (document.documentElement || document.body.parentNode).clientHeight;
-			var scrollHeight = (document.documentElement || document.body.parentNode).scrollHeight;
-			var isScrolledToBottom = scrollHeight - clientHeight <= scrollTop + 1;
-			var receiver = window.document.getElementById( 'log_receiver');
-			if (lastLine == 0) {
-				lastLine = receiver.innerHTML.length;
+			const scrollTop = window.pageYOffset !== undefined 
+				? window.pageYOffset 
+				: (document.documentElement || document.body.parentNode).scrollTop;
+			const clientHeight = (document.documentElement || document.body.parentNode).clientHeight;
+			const scrollHeight = (document.documentElement || document.body.parentNode).scrollHeight;
+			const isScrolledToBottom = scrollHeight - clientHeight <= scrollTop + 1;
 
+			const receiver = document.getElementById('log_receiver');
+			if (lastLine === 0) {
+				lastLine = receiver.innerHTML.length;
 				cursor = lastLine;
 			}
-			if (logLine.slice(-1) == "\n") {
-				receiver.innerHTML = receiver.innerHTML.slice(0,cursor) + logLine.slice(0,-1) + "<br>";
+
+			if (logLine.endsWith("\n")) {
+				receiver.innerHTML = receiver.innerHTML.slice(0, cursor) + logLine.slice(0, -1) + "<br>";
 				lastLine = receiver.innerHTML.length;
 				cursor = lastLine;
 				console.log("new line");
-			}
-			else if (logLine.slice(-1) == "\r" || logLine.slice(-2) == "\r\n") {
-				receiver.innerHTML = receiver.innerHTML.slice(0,cursor) + logLine.slice(0,-1);
+			} else if (logLine.endsWith("\r") || logLine.endsWith("\r\n")) {
+				receiver.innerHTML = receiver.innerHTML.slice(0, cursor) + logLine.slice(0, -1);
 				cursor = lastLine;
 				console.log("carriage return");
-			}
-			else if (logLine.slice(-1) == "\b") {
-				if (logLine.length > 1)
-					receiver.innerHTML = receiver.innerHTML.slice(0,cursor) + logLine.slice(0,-1);
-					cursor += logLine.length-2;
-			}
-			else {
+			} else if (logLine.endsWith("\b")) {
+				if (logLine.length > 1) {
+					receiver.innerHTML = receiver.innerHTML.slice(0, cursor) + logLine.slice(0, -1);
+					cursor += logLine.length - 2;
+				}
+			} else {
 				receiver.innerHTML += logLine;
 				cursor += logLine.length;
 			}
+
 			if (isScrolledToBottom) {
-				window.scrollTo(0,receiver.scrollHeight);
+				window.scrollTo(0, receiver.scrollHeight);
 			}
 		}
+
 		function addCloseButton() {
-			var done = location.search.split('&').pop().split('=')[1];
-			window.document.getElementById( 'button_receiver').innerHTML += "<button class='logLine' type='button' onclick='" + (inIframe() ? "top.Shadowbox" : "window") + ".close()'><?=$done_button;?></button>";
+			const done = location.search.split('&').pop().split('=')[1];
+			document.getElementById('button_receiver').innerHTML += 
+				`<button class='logLine' type='button' onclick='${inIframe() ? "top.Shadowbox" : "window"}.close()'><?=$done_button;?></button>`;
 		}
 
-		function getLogContent()
-		{
+		function getLogContent() {
+			const requestData = {
+				csrf_token,
+				search: log_search
+			};
+
 			<?if(isset($command)):?>
-			$.post("<?=$relative_path;?>",{action:'get_command', command:command, csrf_token:csrf_token, socket_name:socket_name, search:log_search},function(data)
+			Object.assign(requestData, { action: 'get_command', command, socket_name });
 			<?else:?>
-			$.post("<?=$relative_path;?>",{action:'get_log', file:log_file, csrf_token:csrf_token, file_position:file_position, search:log_search},function(data)
+			Object.assign(requestData, { action: 'get_log', file: log_file, file_position });
 			<?endif;?>
-			{
+
+			$.post("<?=$relative_path;?>", requestData, function (data) {
 				if (data.error) {
-					if (data.error_code !== "2" ) {
+					if (data.error_code !== "2") {
 						addLog("Error: " + data.error);
 					}
 					addCloseButton();
 				} else {
 					file_position = data.file_position;
-					$.each(data, function(k,v) { 
-						if(v.length) {
+					$.each(data, (k, v) => {
+						if (v.length) {
 							addLog(v);
 						}
 					});
 					timers.getLogContent = setTimeout(getLogContent, 100);
 				}
-			},'json');
+			}, 'json');
 		}
 
-		function inIframe () {
-			try { return window.self !== window.top; } 
-			catch (e) { return true; }
-		 }
+		function inIframe() {
+			try { 
+				return window.self !== window.top; 
+			} catch (e) { 
+				return true; 
+			}
+		}
 
-		 function download() {
-			var form = $("<form />", { action: "<?=$relative_path;?>", method:"POST" });
+		function download() {
+			const form = $("<form />", { action: "<?=$relative_path;?>", method:"POST" });
 			form.append('<input type="hidden" name="file" value="'+log_file+'" />');
 			form.append('<input type="hidden" name="action" value="download" />');
 			form.append('<input type="hidden" name="search" value="'+log_search+'" />');
 			form.append('<input type="hidden" name="csrf_token" value="'+csrf_token+'" />');
 			form.appendTo( document.body ).submit();
 			form.remove();			 
-		 }
+		}
 
-		$(function() { 
+		$(function () { 
 			getLogContent();
 		});
 	</script>

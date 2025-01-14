@@ -1,6 +1,6 @@
 <?php
 /* Copyright 2015-2020, Guilherme Jardim
- * Copyright 2022-2024, Dan Landon
+ * Copyright 2022-2025, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -149,11 +149,10 @@ if (isset($_POST['action'])) {
 						/* Disk log in 6.9. */
 						$output .= "<td><a class='info' href=\"#\" onclick=\"openBox('/webGui/scripts/disk_log&amp;arg1={$disk_device}','Disk Log Information',600,900,false);return false\"><i class='".$disk_icon." icon'></i><span>"._("Disk Log Information")."</span></a>";
 					}
-					$output .= $title."</td><td>".$temp."</td><td><span>".$disk['SIZE_H']."</span></td><td>".$status."</td>
-					</tr>";
+					$output .= $title."</td><td>".$temp."</td><td><span>".$disk['SIZE_H']."</span></td><td>".$status."</td></tr>";
 
 					if (!empty($report_files)) {
-						$output .= "<tr class='report-row'><td></td><td colspan='4'><div class='toggle-{$disk_name}' style='display:none;'>".$report_files."</div></td></tr>";
+						$output .= "<tr class='report-row' style='display:none;'><td></td><td colspan='4'><div class='toggle-{$disk_name}'>".$report_files."</div></td></tr>";
 					}
 
 					$pos = array_key_exists($disk_name, $sort) ? $sort[$disk_name] : $counter;
@@ -174,8 +173,8 @@ if (isset($_POST['action'])) {
 			break;
 
 		case 'get_status':
-			$disk_name = urldecode($_POST['device']);
-			$serial		= urldecode($_POST['serial']);
+			$disk_name = htmlspecialchars(urldecode($_POST['device']));
+			$serial		= htmlspecialchars(urldecode($_POST['serial']));
 			$status		= $Preclear->Status($disk_name, $serial);
 			echo json_encode(true);
 			break;
@@ -188,9 +187,9 @@ if (isset($_POST['action'])) {
 				foreach ($devices as $device) {
 					$serial		= $Preclear->diskSerial($device);
 					$session	= "preclear_disk_{$serial}";
-					$op			= (isset($_POST['op']) && $_POST['op'] != "0") ? urldecode($_POST['op']) : "";
-					$file		= (isset($_POST['file'])) ? urldecode($_POST['file']) : "";
-					$scope		= $_POST['scope'];
+					$op			= (isset($_POST['op']) && $_POST['op'] != "0") ? htmlspecialchars(urldecode($_POST['op'])) : "";
+					$file		= (isset($_POST['file'])) ? htmlspecialchars(urldecode($_POST['file'])) : "";
+					$scope		= htmlspecialchars(urldecode($_POST['scope']));
 					$script		= $script_files[$scope];
 					$devname	= basename($device);
 
@@ -208,9 +207,9 @@ if (isset($_POST['action'])) {
 					} else if($op == "resume" && ! is_file($file)) {
 						break;
 					} else if ($scope == "gfjardim") {
-						$notify		= (isset($_POST['--notify']) && $_POST['--notify'] > 0) ? " --notify ".urldecode($_POST['--notify']) : "";
-						$frequency 	= (isset($_POST['--frequency']) && $_POST['--frequency'] > 0 && intval($_POST['--notify']) > 0) ? " --frequency ".urldecode($_POST['--frequency']) : "";
-						$cycles		= (isset($_POST['--cycles'])) ? " --cycles ".urldecode($_POST['--cycles']) : "";
+						$notify		= (isset($_POST['--notify']) && $_POST['--notify'] > 0) ? " --notify ".htmlspecialchars(urldecode($_POST['--notify'])) : "";
+						$frequency 	= (isset($_POST['--frequency']) && $_POST['--frequency'] > 0 && intval($_POST['--notify']) > 0) ? " --frequency ".htmlspecialchars(urldecode($_POST['--frequency'])) : "";
+						$cycles		= (isset($_POST['--cycles'])) ? " --cycles ".htmlspecialchars(urldecode($_POST['--cycles'])) : "";
 						$pre_read	= (isset($_POST['--skip-preread']) && $_POST['--skip-preread'] == "on") ? " --skip-preread" : "";
 						$post_read	= (isset($_POST['--skip-postread']) && $_POST['--skip-postread'] == "on") ? " --skip-postread" : "";
 						$test		= (isset($_POST['--test']) && $_POST['--test'] == "on") ? " --test" : "";
@@ -222,15 +221,15 @@ if (isset($_POST['action'])) {
 						$capable	= array_key_exists($scope, $script_files) ? $Preclear->scriptCapabilities($script_files[$scope]) : [];
 						$notification = (array_key_exists("notifications", $capable) && $capable["notifications"]);
 						if ($notification) {
-							$notify	= (isset($_POST['-o']) && $_POST['-o'] > 0) ? " -o ".urldecode($_POST['-o']) : "";
-							$mail	= (isset($_POST['-M']) && $_POST['-M'] > 0 && intval($_POST['-o']) > 0) ? " -M ".urldecode($_POST['-M']) : "";
+							$notify	= (isset($_POST['-o']) && $_POST['-o'] > 0) ? " -o ".htmlspecialchars(urldecode($_POST['-o'])) : "";
+							$mail	= (isset($_POST['-M']) && $_POST['-M'] > 0 && intval($_POST['-o']) > 0) ? " -M ".htmlspecialchars(urldecode($_POST['-M'])) : "";
 						} else {
 							$notify	= "";
-							$mail	= (isset($_POST['-M']) && $_POST['-M'] > 0) ? " -M ".urldecode($_POST['-M']) : "";
+							$mail	= (isset($_POST['-M']) && $_POST['-M'] > 0) ? " -M ".htmlspecialchars(urldecode($_POST['-M'])) : "";
 						}
-						$passes		= isset($_POST['-c']) ? " -c".urldecode($_POST['-c']) : "";
-						$read_sz	= (isset($_POST['-r']) && $_POST['-r'] != 0) ? " -r ".urldecode($_POST['-r']) : "";
-						$write_sz	= (isset($_POST['-w']) && $_POST['-w'] != 0) ? " -w ".urldecode($_POST['-w']) : "";
+						$passes		= isset($_POST['-c']) ? " -c".htmlspecialchars(urldecode($_POST['-c'])) : "";
+						$read_sz	= (isset($_POST['-r']) && $_POST['-r'] != 0) ? " -r ".htmlspecialchars(urldecode($_POST['-r'])) : "";
+						$write_sz	= (isset($_POST['-w']) && $_POST['-w'] != 0) ? " -w ".htmlspecialchars(urldecode($_POST['-w'])) : "";
 						$pre_read	= (isset($_POST['-W']) && $_POST['-W'] == "on") ? " -W" : "";
 						$post_read	= (isset($_POST['-X']) && $_POST['-X'] == "on") ? " -X" : "";
 						$fast_read	= (isset($_POST['-f']) && $_POST['-f'] == "on") ? " -f" : "";
@@ -392,7 +391,7 @@ if (isset($_POST['action'])) {
 			break;
 
 		case 'clear_preclear':
-			$serial = urldecode($_POST['serial']);
+			$serial = htmlspecialchars(urldecode($_POST['serial']));
 			$device = basename($Preclear->serialDisk($serial));
 			TMUX::killSession("preclear_disk_{$serial}");
 			@unlink($GLOBALS['preclear_status'].$device);
@@ -401,7 +400,7 @@ if (isset($_POST['action'])) {
 			break;
 
 		case 'get_preclear':
-			$serial	= urldecode($_POST['serial']);
+			$serial	= htmlspecialchars(urldecode($_POST['serial']));
 			$session = "preclear_disk_{$serial}";
 			if ( ! TMUX::hasSession($session)) {
 				$output = "<script>window.close();</script>";
@@ -417,13 +416,13 @@ if (isset($_POST['action'])) {
 			break;
 
 		case 'hit_yes':
-			$serial	= urldecode($_POST['serial']);
+			$serial	= htmlspecialchars(urldecode($_POST['serial']));
 			$session = "preclear_disk_{$serial}";
 			TMUX::sendCommand($session, "Yes");
 			break;
 
 		case 'remove_report':
-			$file = $_POST['file'];
+			$file = htmlspecialchars(urldecode($_POST['file']));
 			if (! is_bool( strpos($file, $GLOBALS['preclear_reports']))) {
 				@unlink($file);
 				echo "true";
@@ -435,7 +434,7 @@ if (isset($_POST['action'])) {
 
 		case 'download':
 			$dir	= "/preclear";
-			$file = $_POST["file"];
+			$file = htmlspecialchars(urldecode($_POST["file"]));
 			@mkdir($dir);
 			exec("cat $log_file 2>/dev/null | todos >".escapeshellarg("$dir/preclear_disk_log.txt"));
 			exec("cat /var/log/diskinfo.log 2>/dev/null | todos >".escapeshellarg("$dir/diskinfo_log.txt"));
@@ -445,7 +444,7 @@ if (isset($_POST['action'])) {
 			break;
 
 		case 'get_resumable':
-			$serial	= urldecode($_POST['serial']);
+			$serial	= htmlspecialchars(urldecode($_POST['serial']));
 			if (is_file($GLOBALS['tmp_preclear'].$serial.".resume")) {
 				echo json_encode(["resume" => $GLOBALS['tmp_preclear'].$serial.".resume"]);
 			} else if (is_file($GLOBALS['preclear_reports'].$serial.".resume")) {
@@ -456,7 +455,7 @@ if (isset($_POST['action'])) {
 			break;
 
 		case 'resume_preclear':
-			$disk = $_POST['disk'];
+			$disk =htmlspecialchars(urldecode( $_POST['disk']));
 			$file = $GLOBALS['tmp_preclear'].$disk."/pause";
 			if (file_exists($file)) {
 				@unlink($file);
@@ -467,7 +466,7 @@ if (isset($_POST['action'])) {
 
 		case 'set_queue':
 			$queue_session = "preclear_queue";
-			$queue = $_POST["queue"];
+			$queue = htmlspecialchars(urldecode($_POST["queue"]));
 			$session = TMUX::hasSession($queue_session);
 			$pid_file = "/var/run/preclear_queue.pid";
 			$pid = is_file($pid_file) ? file_get_contents($pid_file) : 0;
@@ -547,7 +546,7 @@ if (isset($_POST['action'])) {
 if (isset($_GET['action'])) {
 	switch ($_GET['action']) {
 		case 'show_preclear':
-			$serial = urldecode($_GET['serial']);
+			$serial = htmlspecialchars(urldecode($_GET['serial']));
 			?>
 			<html>
 				<body>
@@ -573,13 +572,13 @@ if (isset($_GET['action'])) {
 				<script src=<?php autov("/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/assets/clipboard.min.js")?>></script>
 				<script>
 					var timers = {};
-					var URL = "/plugins/<?php echo UNASSIGNED_PRECLEAR_PLUGIN;?>/Preclear.php";
-					var serial = "<?=$serial;?>";
+					let serial = "<?=$serial;?>";
+					const PreclearURL = "/plugins/<?=UNASSIGNED_PRECLEAR_PLUGIN;?>/include/Preclear.php";
 
 					function get_preclear()
 					{
 					clearTimeout(timers.preclear);
-					$.post(URL,{action:"get_preclear",serial:serial,csrf_token:"<?=$var['csrf_token'];?>"},function(data) {
+					$.post(PreclearURL,{action:"get_preclear",serial:serial,csrf_token:"<?=$var['csrf_token'];?>"},function(data) {
 						if (data.content)
 						{
 						$("#data_content").html(data.content);
@@ -596,7 +595,7 @@ if (isset($_GET['action'])) {
 					}
 					function hit_yes(serial)
 					{
-					$.post(URL,{action:"hit_yes",serial:serial,csrf_token:"<?=$var['csrf_token'];?>"});
+					$.post(PreclearURL,{action:"hit_yes",serial:serial,csrf_token:"<?=$var['csrf_token'];?>"});
 					}
 					$(function() {
 					document.title='Preclear for disk <?=$serial;?> ';
@@ -609,12 +608,8 @@ if (isset($_GET['action'])) {
 			<?
 			break;
 
-		case 'get_csrf_token':
-			echo json_encode(["csrf_token" => $var['csrf_token']]);
-			break;
-
 		case 'get_log':
-			$session = urldecode($_GET['session']);
+			$session = htmlspecialchars(urldecode($_GET['session']));
 			$file = file("/var/log/".UNASSIGNED_PRECLEAR_PLUGIN.".log", FILE_IGNORE_NEW_LINES);
 			$output = preg_grep("/{$session}/i",$file);
 			$tmpfile = "/tmp/preclear/{$session}.txt";
