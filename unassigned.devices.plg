@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2024.12.27">
+<!ENTITY version	"2025.01.14">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"46882a236a910c42b98c6dfe6fbe3a31">
+<!ENTITY MD5		"842187b3410f8b25913dc9ad4e88ade5">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,13 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Cleanup and rewrite Java Script and some php code for readability and robustness.
+- Fix: Code changes in html code for robustness.
+- Fix: Don't show devices in dialogs in a compressed fashion.  The dialogs are now large enough the full device can be shown.
+- Fix: Add edit (pencil) and browse (link) icons to the clickable area for changing mount points and browsing files.
+- Fix: A btrfs encrypted disk would show as an 'Array' disk on the mount button when mounted.
+
+###2024.12.27
 - Fix: Remote server online check when mounting a remote share could fail even if online before mounting.
 - Fix: The device script save and edit problems are fixed.
 - Add: Don't enable file browsing on remote shares if the mountpoint is not accessible.
@@ -2355,7 +2362,7 @@ Fix: Duplicate UD disk serial number check not working properly.
 </CHANGES>
 
 <!--
-Copyright 2016-2024, Dan Landon
+Copyright 2016-2025, Dan Landon
 This plugin lets you manage disks and remote shares outside of the array.
 -->
 
@@ -2590,7 +2597,7 @@ echo ""
 echo "-----------------------------------------------------------"
 echo " &name; has been installed."
 echo " Copyright 2015, gfjardim"
-echo " Copyright 2016-2024, &author;"
+echo " Copyright 2016-2025, &author;"
 echo " Version: &version;"
 echo ""
 echo " Note:"
