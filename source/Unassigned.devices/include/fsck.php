@@ -30,12 +30,12 @@ function write_log($string) {
 
 /* Main entry point. */
 if ( isset($_GET['device']) && isset($_GET['fs']) ) {
-	$device		= $_GET['device'];
-	$fs			= $_GET['fs'];
-	$check_type	= $_GET['check_type'] ?? 'ro';
-	$luks		= $_GET['luks'];
-	$serial		= $_GET['serial'];
-	$mountpoint	= $_GET['mountpoint'] ?? "";
+	$device		= htmlspecialchars(urldecode($_GET['device']));
+	$fs			= htmlspecialchars(urldecode($_GET['fs']));
+	$check_type	= htmlspecialchars(urldecode($_GET['check_type'] ?? 'ro'));
+	$luks		= htmlspecialchars(urldecode($_GET['luks']));
+	$serial		= htmlspecialchars(urldecode($_GET['serial']));
+	$mountpoint	= htmlspecialchars(urldecode($_GET['mountpoint'] ?? ""));
 	$mounted	= is_mounted("", $mountpoint);
 	$rc_check	= 0;
 	$rc			= true;

@@ -27,7 +27,7 @@ function write_log($string) {
 }
 
 if ( isset($_GET['device']) && isset($_GET['type']) ) {
-	$device = trim(urldecode($_GET['device']));
+	$device = htmlspecialchars(urldecode($_GET['device']));
 	$info = get_partition_info($device, true);
 	$command = execute_script($info, 'ADD', true);
 	if ($command != "") {

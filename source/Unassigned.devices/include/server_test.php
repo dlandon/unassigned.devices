@@ -8,7 +8,7 @@ if (!defined('DOCROOT')) {
 	define('DOCROOT', $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
 }
 
-$server = strtoupper($_POST['server']);
+$server = strtoupper(htmlspecialchars(urldecode($_POST['server'])));
 
 /* Execute the get_ud_stats command to check SMB and NFS on a remote server. */
 $command = DOCROOT."/plugins/unassigned.devices/scripts/get_ud_stats remote_test ".$server;

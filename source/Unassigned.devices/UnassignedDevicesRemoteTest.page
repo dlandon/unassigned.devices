@@ -26,6 +26,7 @@ require_once("plugins/unassigned.devices/include/lib.php");
 <p>_(Enter the Remote Server name or IP address and the results from the Unassigned Devices Remote Server Test will show in the **Result** text area)_.</p>
 
 <form markdown="1" name="remote_test" method="POST" action="/update.php" target="progressFrame">
+
 :ud_remote_server_test_plug:
 > Remote Servers need to have SMB and/or NFS enabled.  This will check that the SMB and/or NFS ports are open.  The 'showmount -e <server>' command on Unraid must also show NFS mounts available.
 
@@ -84,7 +85,10 @@ function handleFormSubmit() {
 	if (server) {
 		$("button[id='test-button']").prop("disabled", true);
 		$("button[id='test-button']").html("<i class='fa fa-spinner fa-spin'></i> <?=_('Testing');?>");
-		opts["server"] = server;
+
+		/* Encode the input for safe transmission. */
+ 		opts["server"] = encodeURIComponent(server);
+
 		$("textarea[name=Status]").val("<?=_('Working').'...';?>");
 		$.post(RSURL, opts).done(function(data){
 			if (data) {

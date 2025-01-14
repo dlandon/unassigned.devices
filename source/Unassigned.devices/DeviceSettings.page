@@ -708,8 +708,8 @@ _(User Script)_:
 					action: 'set_command',
 					serial: '<?=$ud_device;?>',
 					part: '<?=$partition;?>',
-					command: $("input[name='#file']").val(),
-					user_command: $("input[name='#user_file']").val()
+					command: encodeURIComponent($("input[name='#file']").val()),
+					user_command: encodeURIComponent($("input[name='#user_file']").val())
 				}
 			}));
 
@@ -722,7 +722,7 @@ _(User Script)_:
 					action: "set_name",
 					serial: "<?=$ud_device;?>",
 					device: "<?=$device;?>",
-					name: $("input[name='#name']").val()
+					name: encodeURIComponent($("input[name='#name']").val())
 				}
 			}));
 			<?php endif; ?>
@@ -760,7 +760,7 @@ _(User Script)_:
 					action: "set_volume",
 					serial: "<?=$ud_device;?>",
 					part: "<?=$partition;?>",
-					volume: $("input[name='#volume']").val()
+					volume: encodeURIComponent($("input[name='#volume']").val())
 				}
 			}));
 			<?php endif; ?>
@@ -803,8 +803,8 @@ _(User Script)_:
 					data: {
 						action: 'set_samba_command',
 						device: '<?= $device; ?>',
-						command: $("input[name='#file']").val(),
-						user_command: $("input[name='#user_file']").val()
+						command: encodeURIComponent($("input[name='#file']").val()),
+						user_command: encodeURIComponent($("input[name='#user_file']").val())
 					}
 				}));
 
@@ -831,7 +831,7 @@ _(User Script)_:
 					data: {
 						action: 'set_iso_command',
 						device: '<?= $device; ?>',
-						command: $("input[name='#file']").val()
+						command: encodeURIComponent($("input[name='#file']").val())
 					}
 				}));
 
@@ -1015,7 +1015,7 @@ _(User Script)_:
 									/* Get the script from the file. */
 									$.post(UDURL, {
 										action: "get_device_script",
-										file: inputElement.val(),
+										file: encodeURIComponent(inputElement.val()),
 									}, function(data) {
 										el.form.elements['text'].value = JSON.parse(data);
 									});

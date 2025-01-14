@@ -189,7 +189,7 @@ $isUser0	= is_dir("/mnt/user0/");
 
 		/*
 			Once the refresh is completed, the mount button status needs to be refreshed in case the refreshPage() cleared it.
-			After the mount/unmount post is strted, the mount status flag files will be set nd the mount button status will be up to date.
+			After the mount/unmount post is started, the mount status flag files will be set and the mount button status will be up to date.
 		*/
 
 		/* Refresh the mount/unmount button and disable button if the refreshPage() happened to change the status. */
@@ -235,7 +235,6 @@ $isUser0	= is_dir("/mnt/user0/");
 		isRefreshing = true;
 
 		const timeoutMessage = "<tr><td colspan='11' style='text-align:center;'><?=_('Timeout: Failed to get unassigned devices information - check the syslog');?>.</td></tr>";
-		const ajaxFailureMessage = "<tr><td colspan='11' style='text-align:center;'><?=_('Failed to get data to refresh page');?>.</td></tr>";
 
 		try {
 			/* Fetch data with a timeout. */
@@ -258,9 +257,11 @@ $isUser0	= is_dir("/mnt/user0/");
 		@return: A promise that resolves with the fetched data or rejects on failure.
 	*/
 	function fetchUDContent() {
+		const ajaxFailureMessage = "<tr><td colspan='11' style='text-align:center;'><?=_('Failed to get data to refresh page');?>.</td></tr>";
+
 		return new Promise((resolve, reject) => {
 			$.post(UDURL, { action: 'get_ud_content', display: display }, resolve, 'json')
-				.fail(() => reject(new Error("<tr><td colspan='11' style='text-align:center;'><?=_('Failed to get data to refresh page');?>.</td></tr>")));
+				.fail(() => reject(new Error(ajaxFailureMessage)));
 		});
 	}
 
@@ -1687,7 +1688,7 @@ $isUser0	= is_dir("/mnt/user0/");
 			'partition': surveyOption.partition,
 			'device': surveyOption.device,
 			'fstype': surveyOption.fstype,
-			'mountpoint': surveyData['MOUNTPOINT']
+			'mountpoint': encodeURIComponent(surveyData['MOUNTPOINT'])
 		})
 		.done(function(data) {
 			swalShowResult(data === "true");
@@ -1732,7 +1733,7 @@ $isUser0	= is_dir("/mnt/user0/");
 		$.post(UDURL, {
 			'action': 'change_samba_mountpoint',
 			'device': surveyOption.device,
-			'mountpoint': surveyData['MOUNTPOINT']
+			'mountpoint': encodeURIComponent(surveyData['MOUNTPOINT'])
 		})
 		.done(function(data) {
 			swalShowResult(data === "true");
@@ -1773,7 +1774,7 @@ $isUser0	= is_dir("/mnt/user0/");
 		$.post(UDURL, {
 			'action': 'change_iso_mountpoint',
 			'device': surveyOption.device,
-			'mountpoint': surveyData['MOUNTPOINT']
+			'mountpoint': encodeURIComponent(surveyData['MOUNTPOINT'])
 		})
 		.done(function(data) {
 			swalShowResult(data === "true");
