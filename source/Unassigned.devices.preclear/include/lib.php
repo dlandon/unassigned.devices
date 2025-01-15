@@ -1,6 +1,6 @@
 <?php
 /* Copyright 2015-2020, Guilherme Jardim
- * Copyright 2022-2024, Dan Landon
+ * Copyright 2022-2025, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -12,6 +12,8 @@
 
 /* Define our plugin name. */
 define('UNASSIGNED_PRECLEAR_PLUGIN', 'unassigned.devices.preclear');
+
+define('PRECLEAR_PLUGIN_PATH', json_encode(UNASSIGNED_PRECLEAR_PLUGIN ?? 'unassigned.devices.preclear'));
 
 /* Define the docroot path. */
 if (!defined('DOCROOT')) {
@@ -144,7 +146,7 @@ class Misc
 
 class Preclear
 {
-	public $preclear_plugin = "unassigned.devices.preclear";
+	public $preclear_plugin = UNASSIGNED_PRECLEAR_PLUGIN;
 	public $allDisks, $log_file;
 
 	function __construct()
@@ -367,7 +369,7 @@ class Preclear
 		$capabilities = array_key_exists("joel", $scripts) ? $this->scriptCapabilities($scripts["joel"]) : [];
 		$capabilities = array_key_exists("docker", $scripts) ? $this->scriptCapabilities($scripts["docker"]) : [];
 ?>
-<style type="text/css">
+<style>
 	.dl-dialog{margin-bottom: 8px; line-height: 16px; text-align: left;}
 	.sweet-alert input[type="checkbox"] {display: initial; width: auto; height: auto; margin: auto 3px auto auto; vertical-align: top;}
 </style>
@@ -381,12 +383,11 @@ class Preclear
 </div>
 <div id="dialog-multiple-defaults" style="display:none;">
 	<dl class="dl-dialog">
-		<dt><?=_('Select Disks')?>: </dt>
-		<br>
-		<dd style='margin-bottom:0px;'>
-				<select id="multiple_preclear" name="disks" multiple class='chosen swal' data-placeholder="<?=_('Preclear Disks')?>">
-					{0}
-				</select>
+		<dt><?= _('Select Disks') ?>: </dt>
+		<dd style="margin-bottom:0px;">
+			<select id="multiple_preclear" name="disks" multiple class="chosen" data-placeholder="<?= _('Preclear Disks') ?>">
+				{0}
+			</select>
 		</dd>
 	</dl>
 </div>
