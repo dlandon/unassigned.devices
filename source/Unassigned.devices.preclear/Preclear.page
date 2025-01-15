@@ -5,7 +5,7 @@ Tag="icon-preclear"
 ---
 <?
 /* Copyright 2015-2020, Guilherme Jardim
- * Copyright 2022-2024, Dan Landon
+ * Copyright 2022-2025, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -87,8 +87,8 @@ if (version_compare($version['version'], '6.12.0-beta5', '>')) {
 
 <script>
 	/* Initialize PHP variables passed to JavaScript */
-	const zipFile = <?= json_encode($zipFile ?? ''); ?>;
-	const pluginPath = <?= json_encode(UNASSIGNED_PRECLEAR_PLUGIN ?? 'unassigned.devices.preclear'); ?>;
+	const zipFile = <?=json_encode($zipFile);?>;
+	const preclearPluginPath = <?=PRECLEAR_PLUGIN_PATH;?>;
 
 	/* Self-Executing Function to Encapsulate the Code */
 	(function() {
@@ -121,7 +121,7 @@ if (version_compare($version['version'], '6.12.0-beta5', '>')) {
 			$('input[value="Download"]').val('Downloading...').prop('disabled', true);
 
 			/* Send a POST request to trigger the download process */
-			$.post('/plugins/' + pluginPath + '/Preclear.php', { action: 'download', file: zipFile }, function(zip) {
+			$.post('/plugins/' + preclearPluginPath + '/include/Preclear.php', { action: 'download', file: zipFile }, function(zip) {
 				/* Redirect to the downloaded file */
 				location = zip;
 
@@ -216,7 +216,7 @@ if (version_compare($version['version'], '6.12.0-beta5', '>')) {
 		/* Dynamically Load SweetAlert2 if Not Already Loaded */
 		if (typeof swal2 === "undefined") {
 			$('head').append($('<link rel="stylesheet" />').attr('href', '<?autov("/plugins/".UNASSIGNED_PRECLEAR_PLUGIN."/assets/sweetalert2.css");?>'));
-			$.getScript('/plugins/' + pluginPath + '/assets/sweetalert2.js', function() {
+			$.getScript('/plugins/' + preclearPluginPath + '/assets/sweetalert2.js', function() {
 				console.log('SweetAlert2 loaded successfully.');
 			});
 		}
@@ -234,7 +234,7 @@ if (version_compare($version['version'], '6.12.0-beta5', '>')) {
 		window.addButtonTab = addButtonTab;
 	})();
 
-	<?if (isset($_GET['disk']) && ! $Preclear->isRunning($_GET['disk']) ) echo "startDisk = '{$_GET[disk]}';";?>
+	<?if (isset($_GET['disk']) && ! $Preclear->isRunning($_GET['disk']) ) echo "startDisk = '".htmhspecialchars($_GET[disk])."';";?>
 
 	$(function(){
 		addButtonTab('<a class="tooltip-toggle" style="cursor:pointer" onclick="getlog(this)" title="_(Download Logs)_"><i class="fa fa-download"></i></a>', "Preclear Disk");
