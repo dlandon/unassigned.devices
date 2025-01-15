@@ -1,5 +1,5 @@
 /* Copyright 2015-2020, Guilherme Jardim
- * Copyright 2022-2024, Dan Landon
+ * Copyright 2022-2025, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -9,519 +9,679 @@
  * all copies or substantial portions of the Software.
  */
 
-var PreclearURL		= '/plugins/'+preclear_plugin+'/Preclear.php'
+const PreclearURL		= '/plugins/' + preclear_plugin + '/include/Preclear.php'
+const PreclearLoggerURL	= '/plugins/' + preclear_plugin + '/include/logger.php'
+
 var PreclearData	= {};
 
-if (typeof " ".formatUnicorn !== "function")
-{
-	String.prototype.formatUnicorn = String.prototype.formatUnicorn ||
-	function () {
-		"use strict";
-		var str = this.toString();
-		if (arguments.length) {
-				var t = typeof arguments[0];
-				var key;
-				var args = ("string" === t || "number" === t) ?
-						Array.prototype.slice.call(arguments)
-						: arguments[0];
+/*
+	Utility function to replace placeholders in a string with corresponding values from an object or arguments list.
+	@param template: The template string containing placeholders like {key}.
+	@param values: An object with key-value pairs or multiple arguments.
+	@return: The formatted string.
+*/
+function formatString(template, values) {
+	"use strict";
 
-				for (key in args) {
-						str = str.replace(new RegExp("\\{" + key + "\\}", "gi"), args[key]);
-				}
+	/* Ensure the input is a string */
+	let str = template.toString();
+
+	/* Determine the type of the values parameter */
+	const args = typeof values === "object" ? values : Array.from(arguments).slice(1);
+
+	/* Replace placeholders with corresponding values */
+	for (const key in args) {
+		if (Object.prototype.hasOwnProperty.call(args, key)) {
+			const pattern = new RegExp(`\\{${key}\\}`, "gi");
+			str = str.replace(pattern, args[key]);
 		}
+	}
 
-		return str;
-	};
+	return str;
 }
 
-$('body').on('mouseenter', '.tooltip, .tooltip-toggle', function()
-{
-	onClose = {click:true, scroll:true, mouseleave:true, tap:true};
-	if ( $(this).hasClass("tooltip-toggle") )
-	{
-		onClose.click = false;
-	}
+/*
+	Event handler for tooltips to initialize and display them on mouseenter.
+*/
+$('body').on('mouseenter', '.tooltip, .tooltip-toggle', function () {
+	/* Configure tooltip close triggers. */
+	const onClose = {
+		click: !$(this).hasClass("tooltip-toggle"),
+		scroll: true,
+		mouseleave: true,
+		tap: true
+	};
+
+	/* Initialize tooltip if not already initialized. */
 	if (!$(this).hasClass("tooltipstered")) {
-		$(this).tooltipster(
-		{
-			delay:100,
-			zIndex:999,
-			trigger:'custom',
-			triggerOpen:{mouseenter:true, touchstart:true},
-			triggerClose:onClose,
+		$(this).tooltipster({
+			delay: 100,
+			zIndex: 999,
+			trigger: 'custom',
+			triggerOpen: { mouseenter: true, touchstart: true },
+			triggerClose: onClose
 		}).tooltipster('open');
 	}
 });
 
-
-function getPreclearContent()
-{
+/*
+	Function to fetch and update the preclear content dynamically.
+*/
+function getPreclearContent() {
+	/* Clear any existing timeout for the periodic content fetch */
 	clearTimeout(timers.getPreclearContent);
-	$.post(PreclearURL, { action: 'get_content', display: preclear_display }, function(data) {
-		PreclearData = data;
-		var hovered = $(".tooltip:hover").map(function() { return this.id; }).get();
-		if ($('#preclear-table-body').length) {
-			var target = $('#preclear-table-body');
-			currentScroll = $(window).scrollTop();
-			/* Retrieve the toggled reports state from localStorage */
-			currentToggled = getToggledReports();
-			target.empty();
-			$.each(data.sort, function(i, v) {
-				target.append(data.disks[v]);
-			});
-			/* Apply the toggled state after new content is loaded */
-			toggleReports(currentToggled);
-			$(window).scrollTop(currentScroll);
-		}
 
-		leftover_icons = $("[id^=preclear_footer_]");
+	/* Fetch preclear data via AJAX POST */
+	$.post(
+		PreclearURL,
+		{ action: 'get_preclear_content', display: preclear_display },
+		function (data) {
+			PreclearData = data;
 
-		$.each(data.status, function(i,v)
-		{
-			var target = $("#preclear_"+i);
-			var icon = "preclear_footer_" + i;
+			/* Get the IDs of currently hovered tooltips */
+			const hovered = $(".tooltip:hover")
+				.map(function () {
+					return this.id;
+				})
+				.get();
 
-			leftover_icons = $.grep(leftover_icons, function (el, i) { return $(el).attr('id') != icon });
+			/* Update the preclear table if it exists */
+			if ($('#preclear-table-body').length) {
+				const target = $('#preclear-table-body');
+				const currentScroll = $(window).scrollTop();
 
-			$("#preclear_"+i).html("<i style='margin-left: -10px;' class='icon-preclear'></i><span style='margin-left: 4px;'></span>"+v.status);
+				/* Retrieve the toggled reports state from localStorage */
+				const currentToggled = getToggledReports();
 
-			if (! $("#"+icon).length) {
-				el	= "<span class='exec' title='' id='"+icon+"'>"+preclear_footer_icon+"</span> &nbsp;";
-				el	= $(el).prependTo("#preclear-footer").css("margin-right", "6px");
-				el.tooltipster(
-				{
-					delay:100,
-					zIndex:100,
-					trigger:'custom',
-					triggerOpen:{mouseenter:true, touchstart:true},
-					triggerClose:{click:false, scroll:true, mouseleave:true, tap:true},
-					contentAsHTML: true,
-					interactive: true,
-					updateAnimation: false,
-					functionBefore: function(instance, helper)
-					{
-						instance.content($(helper.origin).attr("data"));
-					}
+				/* Clear existing table content and repopulate with sorted data */
+				target.empty();
+				$.each(data.sort, function (i, v) {
+					target.append(data.disks[v]);
 				});
+
+				/* Reapply the toggled state after loading new content */
+				toggleReports(currentToggled);
+
+				/* Restore the previous scroll position */
+				$(window).scrollTop(currentScroll);
 			}
-			content = $("<div>").append(v.footer);
-			content.find("a[id^='preclear_rm_']").attr("id", "preclear_footer_rm_" + i);
-			content.find("a[id^='preclear_open_']").attr("id", "preclear_footer_open_" + i);
-			$("#"+icon).tooltipster('content', content.html());
-		});
 
-		$.each(leftover_icons, function(i,v){ $(v).remove(); });
+			/* Manage leftover icons in the footer */
+			let leftoverIcons = $("[id^=preclear_footer_]");
+			$.each(data.status, function (id, statusData) {
+				const target = $(`#preclear_${id}`);
+				const iconId = `preclear_footer_${id}`;
 
-		$("a[id^='preclear_footer_']").each(function(i,v)
-		{
-			id = $(v).attr("id").split("_").pop();
-			if (! (id in data.status)) {
-				$(v).remove();
+				/* Filter out the current icon from leftover icons */
+				leftoverIcons = $.grep(leftoverIcons, function (el) {
+					return $(el).attr('id') !== iconId;
+				});
+
+				/* Update the status icon and tooltip content */
+				target.html(
+					`<i style='margin-left: -10px;' class='icon-preclear'></i><span style='margin-left: 4px;'></span>${statusData.status}`
+				);
+
+				/* Add and initialize a tooltip for the icon if it doesn't already exist */
+				if (!$(`#${iconId}`).length) {
+					const iconElement = $(
+						`<span class='exec' title='' id='${iconId}'>${preclear_footer_icon}</span> &nbsp;`
+					)
+						.prependTo('#preclear-footer')
+						.css('margin-right', '6px')
+						.tooltipster({
+							delay: 100,
+							zIndex: 100,
+							trigger: 'custom',
+							triggerOpen: { mouseenter: true, touchstart: true },
+							triggerClose: {
+								click: false,
+								scroll: true,
+								mouseleave: true,
+								tap: true,
+							},
+							contentAsHTML: true,
+							interactive: true,
+							updateAnimation: false,
+							functionBefore: function (instance, helper) {
+								instance.content($(helper.origin).attr('data'));
+							},
+						});
+				}
+
+				/* Update the tooltip content for the current icon */
+				const content = $('<div>').append(statusData.footer);
+				content.find("a[id^='preclear_rm_']").attr('id', `preclear_footer_rm_${id}`);
+				content.find("a[id^='preclear_open_']").attr('id', `preclear_footer_open_${id}`);
+				$(`#${iconId}`).tooltipster('content', content.html());
+			});
+
+			/* Remove leftover icons that are no longer relevant */
+			$.each(leftoverIcons, function (_, icon) {
+				$(icon).remove();
+			});
+
+			/* Remove footer icons for disks no longer in the status list */
+			$("a[id^='preclear_footer_']").each(function () {
+				const id = $(this).attr('id').split('_').pop();
+				if (!(id in data.status)) {
+					$(this).remove();
+				}
+			});
+
+			/* Re-trigger mouseenter for hovered tooltips */
+			$.each(hovered, function (_, id) {
+				if (id.length) {
+					$(`#${id}`).trigger('mouseenter');
+				}
+			});
+
+			/* Update the queue color based on its status */
+			$('.preclear-queue').css('color', data.queue ? '#00BE37' : '');
+
+			/* Update the global disksInfo object */
+			window.disksInfo = JSON.parse(data.info);
+
+			/* Automatically start preclear for a disk if specified */
+			if (typeof startDisk !== 'undefined') {
+				startPreclear(startDisk);
+				delete window.startDisk;
 			}
-		});
-
-		$.each(hovered, function(k,v){ if(v.length) { $("#"+v).trigger("mouseenter");} });
-
-		$(".preclear-queue").css("color",(data.queue) ? "#00BE37" : "");
-
-		window.disksInfo = JSON.parse(data.info);
-
-		if (typeof(startDisk) !== 'undefined') {
-			startPreclear(startDisk);
-			delete window.startDisk;
-		}
-	},'json').always(function(jqXHR, textStatus, error){
-		if (jqXHR.status == 200) {
+		},
+		'json'
+	).always(function (jqXHR) {
+		/* Handle periodic retry logic for errors or failures */
+		if (jqXHR.status === 200) {
 			clearTimeout(timers.getPreclearContent);
-		} else if (jqXHR.status == 404) {	
-			setTimeout( clearTimeout, 300, timers.getPreclearContent);
+		} else if (jqXHR.status === 404) {
+			setTimeout(clearTimeout, 300, timers.getPreclearContent);
 		} else {
-			timers.getPreclearContent = setTimeout(getPreclearContent, ($(jqXHR.status).length > 0) ? 5000 : 15000);
+			const retryDelay = jqXHR.status ? 5000 : 15000;
+			timers.getPreclearContent = setTimeout(getPreclearContent, retryDelay);
 		}
 	});
 }
 
-function openPreclear(serial)
-{
-	var width	= 1000;
-	var height	= 730;
-	var top		= (screen.height-height)/2;
-	var left	= (screen.width-width)/2;
-	var options	= 'resizeable=yes,scrollbars=yes,height='+height+',width='+width+',top='+top+',left='+left;
-	window.open('/plugins/'+preclear_plugin+'/Preclear.php?action=show_preclear&serial='+serial, '_blank', options);
+/*
+	Function to open the preclear window for a given serial.
+	@param serial: The serial number of the drive to preclear.
+*/
+function openPreclear(serial) {
+	const width = 1000;
+	const height = 730;
+	const top = (screen.height - height) / 2;
+	const left = (screen.width - width) / 2;
+	const options = [
+		'resizeable=yes',
+		'scrollbars=yes',
+		`height=${height}`,
+		`width=${width}`,
+		`top=${top}`,
+		`left=${left}`
+	].join(',');
+
+	const url = `${PreclearURL}?action=show_preclear&serial=${serial}`;
+	window.open(url, '_blank', options);
 }
 
-function openPreclearLog(search)
-{
-	var title = _("Preclear Log");
-	var form = $("<form />", { action: "/plugins/"+preclear_plugin+"/logger.php", target:"_blank", method:"POST" });
+/*
+	Function to open the preclear log in a new window.
+	@param search: Optional. A search string to filter the log entries.
+*/
+function openPreclearLog(search) {
+	/* Set the default title for the log */
+	let title = _("Preclear Log");
+
+	/* Create a hidden form to submit the request */
+	const form = $("<form />", {
+		action: PreclearLoggerURL,
+		target: "_blank",
+		method: "POST"
+	});
+
+	/* Add required hidden fields to the form */
 	form.append('<input type="hidden" name="file" value="/var/log/preclear/preclear.log" />');
-	form.append('<input type="hidden" name="csrf_token" value="'+preclear_vars.csrf_token+'" />');
-	if (typeof(search) !== 'undefined') {
-		form.append('<input type="hidden" name="search" value="'+search+'" />');
-		title = title + " of disk " + search.split("_")[2];
+	form.append('<input type="hidden" name="csrf_token" value="' + preclear_vars.csrf_token + '" />');
+
+	/* If a search parameter is provided, include it and update the title */
+	if (typeof search !== "undefined") {
+		form.append('<input type="hidden" name="search" value="' + search + '" />');
+		title += " of disk " + search.split("_")[2];
 	}
-	form.append('<input type="hidden" name="title" value="'+title+'" />');
-	form.appendTo( document.body ).submit();
+
+	/* Add the updated title to the form */
+	form.append('<input type="hidden" name="title" value="' + title + '" />');
+
+	/* Append the form to the document, submit it, and then remove it */
+	form.appendTo(document.body).submit();
 	form.remove();
 }
 
-function toggleScript(el, serial, multiple)
-{
+/*
+	Function to toggle the preclear script scope and start the preclear process.
+	@param el: The HTML element that triggered the event (e.g., a dropdown or button).
+	@param serial: The serial number of the disk.
+	@param multiple: Indicates if multiple disks are selected ("yes" or "no").
+*/
+function toggleScript(el, serial, multiple) {
+	/* Update the global preclear scope based on the selected value */
 	window.preclear_scope = $(el).val();
 
-	startPreclear( serial, multiple );
+	/* Initiate the preclear process with the provided serial and multiple status */
+	startPreclear(serial, multiple);
 }
 
-function startPreclear(serial, multiple = "no")
-{
-	if (typeof(serial) === 'undefined') {
+/*
+	Function to initiate the preclear process for a given disk or multiple disks.
+	@param serial: The serial number of the disk.
+	@param multiple: Indicates if multiple disks are selected ("yes" or "no").
+*/
+function startPreclear(serial, multiple = "no") {
+	if (typeof serial === "undefined") {
 		return false;
 	}
 
-	preclear_dialog = $( "#preclear-dialog" );
+	const preclear_dialog = $("#preclear-dialog");
 
-	if (multiple == "no") {
-		var opts = {
-			model:			getDiskInfo(serial, 'MODEL'),
-			serial_short:	getDiskInfo(serial, 'SERIAL_SHORT'),
-			firmware:		getDiskInfo(serial, 'FIRMWARE'),
-			size_h:			getDiskInfo(serial, 'SIZE_H'),
-			device:			getDiskInfo(serial, 'NAME_H')
+	if (multiple === "no") {
+		const opts = {
+			model: getDiskInfo(serial, "MODEL"),
+			serial_short: getDiskInfo(serial, "SERIAL_SHORT"),
+			firmware: getDiskInfo(serial, "FIRMWARE"),
+			size_h: getDiskInfo(serial, "SIZE_H"),
+			device: getDiskInfo(serial, "NAME_H"),
 		};
 
-		var header = $("#dialog-header-defaults").html();
-
-		preclear_dialog.html( header.formatUnicorn(opts) );
+		const header = $("#dialog-header-defaults").html();
+		preclear_dialog.html(formatString(header, opts));
 		preclear_dialog.append("<hr style='margin-left:12px;'>");
 	} else {
-		var header = $("#dialog-multiple-defaults").html();
-		var options = "";
+		const header = $("#dialog-multiple-defaults").html();
+		let options = "";
 
-		for (key in disksInfo) {
-			disk = disksInfo[key];
-			if (disk.hasOwnProperty('SERIAL_SHORT')) {
-				var disk_serial = disk['SERIAL_SHORT'];
-				var opts = {
-					device:			getDiskInfo(disk_serial, 'DEVICE'),
-					model:			getDiskInfo(disk_serial, 'MODEL'),
-					name:			getDiskInfo(disk_serial, 'NAME'),
-					serial_short:	disk_serial,
-					size_h:			getDiskInfo(disk_serial, 'SIZE_H'),
-					disabled:		(disk['PRECLEARING']) ? "disabled" : ""
+		for (const key in disksInfo) {
+			const disk = disksInfo[key];
+			if (disk.hasOwnProperty("SERIAL_SHORT")) {
+				const disk_serial = disk["SERIAL_SHORT"];
+				const opts = {
+					device: getDiskInfo(disk_serial, "DEVICE"),
+					model: getDiskInfo(disk_serial, "MODEL"),
+					name: getDiskInfo(disk_serial, "NAME"),
+					serial_short: disk_serial,
+					size_h: getDiskInfo(disk_serial, "SIZE_H"),
+					disabled: disk["PRECLEARING"] ? "disabled" : "",
 				};
-				option	= "<option value='{serial_short}' {disabled}>{name} - {serial_short} ({size_h})</option>";
-				options	+= option.formatUnicorn(opts);
+				const option = "<option value='{serial_short}' {disabled}>{name} - {serial_short} ({size_h})</option>";
+				options += formatString(option, opts);
 			}
 		}
 
-		preclear_dialog.html( header.formatUnicorn(options) );
+		preclear_dialog.html(formatString(header, { 0: options }));
 		preclear_dialog.append("<hr style='margin-left:12px;'>");
 	}
 
-	if (typeof(preclear_scripts) !== 'undefined') {
-		size = Object.keys(preclear_scripts).length;
+	if (typeof preclear_scripts !== "undefined") {
+		const size = Object.keys(preclear_scripts).length;
 
 		if (size) {
-			var options = "<dl class='dl-dialog'><dt>Script:<st><dd><select onchange='toggleScript(this,\""+serial+"\",\""+multiple+"\");'>";
-			$.each( preclear_scripts, function( key, value )
-			{
-				var sel = ( key == preclear_scope ) ? "selected" : "";
-				options += "<option value='"+key+"' "+sel+">"+preclear_authors[key]+"</option>";
-			}
-			);
-			preclear_dialog.append(options+"</select></dd></dl>");
+			let scriptOptions = "<dl class='dl-dialog'><dt>Script:<st><dd><select onchange='toggleScript(this,\"" + serial + "\",\"" + multiple + "\");'>";
+			$.each(preclear_scripts, (key, value) => {
+				const sel = key === preclear_scope ? "selected" : "";
+				scriptOptions += `<option value='${key}' ${sel}>${preclear_authors[key]}</option>`;
+			});
+			preclear_dialog.append(scriptOptions + "</select></dd></dl>");
 		}
 	}
 
-	preclear_dialog.append($("#"+preclear_scope+"-start-defaults").html());
+	preclear_dialog.append($("#" + preclear_scope + "-start-defaults").html());
 
 	swal2({
 		title: _("Start Preclear"),
-		content:{ element: "div", attributes:{ innerHTML: preclear_dialog.html()}},
+		content: { element: "div", attributes: { innerHTML: preclear_dialog.html() } },
 		icon: "info",
-		buttons:{
-			confirm:{text: _("Start"), value: true, visible: true, className: "", closeModal: false},
-			cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
-		}
+		buttons: {
+			confirm: { text: _("Start"), value: true, visible: true, className: "", closeModal: false },
+			cancel: { text: _("Cancel"), value: null, visible: true, className: "", closeModal: true },
+		},
 	}).then((answer) => {
 		if (answer) {
-			var opts		= new Object();
-			opts["device"]	= [];
-			if(serial) {
-				opts["device"].push(getDiskInfo(serial, 'DEVICE'));
-			}
-			popup			= $(".swal-content");
-			opts["action"]	= "start_preclear";
-			opts["op"]		= getVal(popup, "op");
-			opts["scope"]	= preclear_scope;
+			const opts = {};
+			opts["device"] = [];
 
-			if (popup.find('#multiple_preclear :selected').length) {
+			if (serial) {
+				opts["device"].push(getDiskInfo(serial, "DEVICE"));
+			}
+
+			const popup = $(".swal-content");
+			opts["action"] = "start_preclear";
+			opts["op"] = getVal(popup, "op");
+			opts["scope"] = preclear_scope;
+
+			if (popup.find("#multiple_preclear :selected").length) {
 				opts["device"] = [];
-				popup.find('#multiple_preclear :selected').each( function(){
-					opts["device"].push(getDiskInfo(this.value, 'DEVICE'));
+				popup.find("#multiple_preclear :selected").each(function () {
+					opts["device"].push(getDiskInfo(this.value, "DEVICE"));
 				});
 			}
 
-			if (preclear_scope == "gfjardim") {
-				opts["--cycles"]		= getVal(popup, "--cycles");
-				opts["--notify"]		= getVal(popup, "preclear_notify") == "on" ? 4 : 0;
-				opts["--frequency"]		= getVal(popup, "--frequency");
-				opts["--skip-preread"]	= getVal(popup, "--skip-preread");
-				opts["--skip-postread"]	= getVal(popup, "--skip-postread");			
-				opts["--test"]			= getVal(popup, "--test");			
+			if (preclear_scope === "gfjardim") {
+				opts["--cycles"] = getVal(popup, "--cycles");
+				opts["--notify"] = getVal(popup, "preclear_notify") === "on" ? 4 : 0;
+				opts["--frequency"] = getVal(popup, "--frequency");
+				opts["--skip-preread"] = getVal(popup, "--skip-preread");
+				opts["--skip-postread"] = getVal(popup, "--skip-postread");
+				opts["--test"] = getVal(popup, "--test");
 			} else {
-				opts["-c"]	= getVal(popup, "-c");
-				opts["-o"]	= getVal(popup, "preclear_notify") == "on" ? 1 : 0;
-				opts["-M"]	= getVal(popup, "-M");
-				opts["-r"]	= getVal(popup, "-r");
-				opts["-w"]	= getVal(popup, "-w");
-				opts["-W"]	= getVal(popup, "-W");
-				opts["-f"]	= getVal(popup, "-f");
-				opts["-s"]	= getVal(popup, "-s");
+				opts["-c"] = getVal(popup, "-c");
+				opts["-o"] = getVal(popup, "preclear_notify") === "on" ? 1 : 0;
+				opts["-M"] = getVal(popup, "-M");
+				opts["-r"] = getVal(popup, "-r");
+				opts["-w"] = getVal(popup, "-w");
+				opts["-W"] = getVal(popup, "-W");
+				opts["-f"] = getVal(popup, "-f");
+				opts["-s"] = getVal(popup, "-s");
 			}
 
-
-			$.post(PreclearURL, opts, function(data)
-			{
+			$.post(PreclearURL, opts, function (data) {
 				preclearShowResult(data);
-			},'json').always(function(data)	{
+			}, "json").always(() => {
 				preclearUpdateContent();
-			},'json').fail(function() {preclearShowResult(false);});
+			}).fail(() => {
+				preclearShowResult(false);
+			});
 		}
 	});
-
-	/* Allow dropdown overflow. */
-	$('.swal-modal').css('overflow', 'visible');
-	$("#multiple_preclear_chosen > .chosen-choices").css("min-height", "27px");
 }
 
-function stopPreclear(serial, ask, multiple = 'no')
-{
-	var title = _("Stop Preclear");
+/*
+	Function to stop the preclear process for a given disk or multiple disks.
+	@param serial: The serial number of the disk to stop.
+	@param ask: If "ask", displays a confirmation dialog before stopping.
+	@param multiple: Indicates if multiple disks are selected ("yes" or "no").
+*/
+function stopPreclear(serial, ask, multiple = "no") {
+	const title = _("Stop Preclear");
 
-	if (ask != "ask")
-	{
-		$.post(PreclearURL,{action:"stop_preclear",'serial':serial}, function(data){
+	/* If confirmation is not required, directly stop the preclear process */
+	if (ask !== "ask") {
+		$.post(PreclearURL, { action: "stop_preclear", serial: serial }, function (data) {
 			preclearShowResult(data);
 			preclearUpdateContent();
-		},'json').fail(function() {preclearShowResult(false);});
-
+		}, 'json').fail(() => {
+			preclearShowResult(false);
+		});
 		return true;
 	}
 
-	preclear_dialog = $( "#preclear-dialog" );
+	/* Initialize the preclear dialog */
+	const preclearDialog = $("#preclear-dialog");
 
-	if (multiple == "no")
-	{
-		var opts = {
-			model:			getDiskInfo(serial, 'MODEL'),
-			serial_short:	getDiskInfo(serial, 'SERIAL_SHORT'),
-			firmware:		getDiskInfo(serial, 'FIRMWARE'),
-			size_h:			getDiskInfo(serial, 'SIZE_H'),
-			device:			getDiskInfo(serial, 'NAME_H')
+	/* Handle single disk stop */
+	if (multiple === "no") {
+		const opts = {
+			model: getDiskInfo(serial, 'MODEL'),
+			serial_short: getDiskInfo(serial, 'SERIAL_SHORT'),
+			firmware: getDiskInfo(serial, 'FIRMWARE'),
+			size_h: getDiskInfo(serial, 'SIZE_H'),
+			device: getDiskInfo(serial, 'NAME_H')
 		};
-	
-		var header = $("#dialog-header-defaults").html();
-	
-		preclear_dialog.html( header.formatUnicorn(opts) );
-		preclear_dialog.append("<hr style='margin-left:12px;'>");
-	} else {
-		var header = $("#dialog-multiple-defaults").html();
-		var options = "";
 
-		for(key in disksInfo) {
-			disk = disksInfo[key];
-			if(disk.hasOwnProperty('SERIAL_SHORT')) {
-				var disk_serial = disk['SERIAL_SHORT'];
-				var opts = {
-					device:			getDiskInfo(disk_serial, 'DEVICE'),
-					model:			getDiskInfo(disk_serial, 'MODEL'),
-					name:			getDiskInfo(disk_serial, 'NAME'),
-					serial_short:	disk_serial,
-					size_h:			getDiskInfo(disk_serial, 'SIZE_H'),
-					disabled:		( ! disk['PRECLEARING']) ? "disabled" : ""
+		/* Populate dialog with header and details for single disk */
+		const header = $("#dialog-header-defaults").html();
+		preclearDialog.html(formatString(header, opts));
+		preclearDialog.append("<hr style='margin-left:12px;'>");
+
+	/* Handle multiple disks stop */
+	} else {
+		const header = $("#dialog-multiple-defaults").html();
+		let options = "";
+
+		/* Generate dropdown options for each disk */
+		for (const key in disksInfo) {
+			const disk = disksInfo[key];
+			if (disk.hasOwnProperty('SERIAL_SHORT')) {
+				const diskSerial = disk['SERIAL_SHORT'];
+				const opts = {
+					device: getDiskInfo(diskSerial, 'DEVICE'),
+					model: getDiskInfo(diskSerial, 'MODEL'),
+					name: getDiskInfo(diskSerial, 'NAME'),
+					serial_short: diskSerial,
+					size_h: getDiskInfo(diskSerial, 'SIZE_H'),
+					disabled: !disk['PRECLEARING'] ? "disabled" : ""
 				};
-			option = "<option value='{serial_short}' {disabled}>{name} - {serial_short} ({size_h})</option>";
-			options += option.formatUnicorn(opts);
+				const optionTemplate = "<option value='{serial_short}' {disabled}>{name} - {serial_short} ({size_h})</option>";
+				options += formatString(optionTemplate, opts);
 			}
 		}
 
-		preclear_dialog.html( header.formatUnicorn(options) );
-		preclear_dialog.append("<hr style='margin-left:12px;'>");
+		/* Populate dialog with header and options for multiple disks */
+		preclearDialog.html(formatString(header, { 0: options }));
+		preclearDialog.append("<hr style='margin-left:12px;'>");
 	}
 
+	/* Display the confirmation dialog using SweetAlert2 */
 	swal2({
 		title: _("Stop Preclear"),
-		content:{ element: "div", attributes:{ innerHTML: preclear_dialog.html()}},
+		content: { element: "div", attributes: { innerHTML: preclearDialog.html() } },
 		icon: "warning",
-		buttons:{
-			confirm:{text: _("Stop"), value: true, visible: true, className: "", closeModal: false},
-			cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
+		buttons: {
+			confirm: { text: _("Stop"), value: true, visible: true, closeModal: false },
+			cancel: { text: _("Cancel"), value: null, visible: true, closeModal: true }
 		}
 	}).then((answer) => {
 		if (answer) {
-			var opts		= new Object();
-			opts["serial"]	= [];
-			if (serial) {
-				opts["serial"].push(serial, 'DEVICE');
-			}
-			popup = $(".swal-content");
-			opts["action"] = "stop_preclear";
+			/* Prepare options for the AJAX request */
+			const opts = { serial: [], action: "stop_preclear" };
+			const popup = $(".swal-content");
 
+			/* Add serial if provided */
+			if (serial) {
+				opts.serial.push(serial, 'DEVICE');
+			}
+
+			/* Handle multiple device selection */
 			if (popup.find('#multiple_preclear :selected').length) {
-				opts["serial"] = [];
-				popup.find('#multiple_preclear :selected').each( function(){
-					opts["serial"].push(this.value);
+				opts.serial = [];
+				popup.find('#multiple_preclear :selected').each(function () {
+					opts.serial.push(this.value);
 				});
 			}
 
+			/* Send the stop request if there are valid serials */
 			if (opts.serial.length > 0) {
-				$.post(PreclearURL, opts, function(data)
-				{
+				$.post(PreclearURL, opts, function (data) {
 					preclearShowResult(data);
 					preclearUpdateContent();
-				},'json').fail(function() {preclearShowResult(false);});
+				}, 'json').fail(() => {
+					preclearShowResult(false);
+				});
 			}
 		}
 	});
 }
 
-
-function preclearClear()
-{
+/*
+	Function to clear all running preclear sessions, halt all processes, and remove related files.
+	Displays a confirmation dialog before performing the action.
+*/
+function preclearClear() {
 	swal2({
 		title: _("Fix Preclear"),
-		content:{
+		content: {
 			element: "div",
-			attributes:{
-				innerHTML: "<p>"+_("This will stop all running sessions, halt all processes and remove all related files")+".</p><p><span class='red-text'><b>"+_("Do you want to proceed")+"?</b></span></p>"
+			attributes: {
+				innerHTML: `
+					<p>${_("This will stop all running sessions, halt all processes and remove all related files")}</p>
+					<p><span class='red-text'><b>${_("Do you want to proceed")}?</b></span></p>
+				`
 			}
 		},
 		icon: "warning",
-		buttons:{
-			confirm:{text: _("Fix"), value: true, visible: true, className: "", closeModal: false},
-			cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
+		buttons: {
+			confirm: { text: _("Fix"), value: true, visible: true, closeModal: false },
+			cancel: { text: _("Cancel"), value: null, visible: true, closeModal: true }
 		}
 	}).then((answer) => {
-		if (answer)
-		{
-			$.post(PreclearURL, {'action':'clear_all_preclear'}, function(data)
-			{
-				preclearShowResult(data);
-				getPreclearContent();
-			},'json').fail(function() {preclearShowResult(false);});
+		/* If the user confirms, send the request to clear all preclear processes */
+		if (answer) {
+			$.post(
+				PreclearURL,
+				{ action: "clear_all_preclear" },
+				function (data) {
+					preclearShowResult(data);
+					getPreclearContent();
+				},
+				'json'
+			).fail(function () {
+				preclearShowResult(false);
+			});
 		}
 	});
 }
 
+/*
+	Function to retrieve the value of a form element by its name.
+	@param el: The parent element containing the target input field.
+	@param name: The name attribute of the input field to retrieve.
+	@return: The value of the input field, or "on"/"off" for checkboxes.
+*/
+function getVal(el, name) {
+	/* Locate the input field by name within the provided element */
+	const target = $(el).find(`*[name=${name}]`);
 
-function getVal(el, name)
-{
-	el = $(el).find("*[name="+name+"]");
-	return value = ( $(el).attr('type') == 'checkbox' ) ? ($(el).is(':checked') ? "on" : "off") : $(el).val();
+	/* Handle checkbox inputs separately; otherwise, return the value */
+	if (target.attr('type') === 'checkbox') {
+		return target.is(':checked') ? "on" : "off";
+	} else {
+		return target.val();
+	}
 }
 
-
+/*
+	Function to toggle the visibility of options based on the selected value.
+	@param el: The HTML element (e.g., a dropdown or input) triggering the change.
+*/
 function toggleSettings(el) {
-	var value = $(el).val();
-	switch(value)
-	{
+	const value = $(el).val();
+	const parent = $(el).parent();
+	const siblings = {
+		read: parent.siblings('.read_options'),
+		write: parent.siblings('.write_options'),
+		postread: parent.siblings('.postread_options'),
+		notify: parent.siblings('.notify_options'),
+		cycles: parent.siblings('.cycles_options')
+	};
+
+	/* Helper to show or hide specific options */
+	const showOptions = (options) => {
+		Object.keys(siblings).forEach((key) => {
+			siblings[key].css('display', options.includes(key) ? 'block' : 'none');
+		});
+	};
+
+	/* Determine which options to show based on the value */
+	switch (value) {
 		case '0':
 		case '--erase-clear':
-			$(el).parent().siblings('.read_options').css('display', 'block');
-			$(el).parent().siblings('.write_options').css('display', 'block');
-			$(el).parent().siblings('.postread_options').css('display', 'block');
-			$(el).parent().siblings('.notify_options').css('display', 'block');
+			showOptions(['read', 'write', 'postread', 'notify']);
 			break;
 
 		case '--verify':
 		case '--signature':
 		case '-V':
-			$(el).parent().siblings('.write_options').css('display', 'none');
-			$(el).parent().siblings('.read_options').css('display', 'block');
-			$(el).parent().siblings('.postread_options').css('display', 'block');
-			$(el).parent().siblings('.notify_options').css('display', 'block');
+			showOptions(['read', 'postread', 'notify']);
 			break;
 
 		case '--erase':
-			$(el).parent().siblings('.write_options').css('display', 'none');
-			$(el).parent().siblings('.read_options').css('display', 'block');
-			$(el).parent().siblings('.postread_options').css('display', 'block');
-			$(el).parent().siblings('.notify_options').css('display', 'block');
-			$(el).parent().siblings('.cycles_options').css('display', 'block');
+			showOptions(['read', 'postread', 'notify', 'cycles']);
 			break;
 
 		case '-t':
 		case '-z':
-			$(el).parent().siblings('.read_options').css('display', 'none');
-			$(el).parent().siblings('.write_options').css('display', 'none');
-			$(el).parent().siblings('.postread_options').css('display', 'none');
-			$(el).parent().siblings('.notify_options').css('display', 'none');
+			showOptions([]);
 			break;
 
 		default:
-			$(el).parent().siblings('.read_options').css('display', 'block');
-			$(el).parent().siblings('.write_options').css('display', 'block');
-			$(el).parent().siblings('.postread_options').css('display', 'block');
-			$(el).parent().siblings('.notify_options').css('display', 'block');
+			showOptions(['read', 'write', 'postread', 'notify']);
 			break;
 	}
 }
 
+/*
+	Function to toggle the enabled state of a select element based on checkbox states.
+	@param el: The triggering element (e.g., a checkbox or its parent).
+	@param name: The name attribute of the select element to toggle.
+*/
 function toggleFrequency(el, name) {
-	var disabled = true;
-	var sel			= $(el).parent().parent().find("select[name='"+name+"']");
-	$(el).siblings("*[type='checkbox']").addBack().each(function(v, e)
-		{
-			if ($(e).is(':checked'))
-			{
-				disabled = false;
-			}
-		}
-	);
+	/* Find the target select element based on the given name */
+	const selectElement = $(el).parent().parent().find(`select[name='${name}']`);
 
-	if (disabled) {
-		sel.attr('disabled', 'disabled');
+	/* Check if any sibling checkboxes or the triggering element itself are checked */
+	const anyChecked = $(el)
+		.siblings("*[type='checkbox']")
+		.addBack()
+		.is(':checked');
+
+	/* Enable or disable the select element based on the checkbox state */
+	if (anyChecked) {
+		selectElement.removeAttr('disabled');
 	} else {
-		sel.removeAttr('disabled');
+		selectElement.attr('disabled', 'disabled');
 	}
 }
 
+/*
+	Function to toggle the visibility of notification options based on the selected index of an element.
+	@param el: The HTML select element whose selected index determines the toggle state.
+*/
 function toggleNotification(el) {
-	if (el.selectedIndex > 0 ) {
-		$(el).parent().siblings('.notification_options').css('display','block');
-	} else 	{
-		$(el).parent().siblings('.notification_options').css('display','none');
-	}
+	const notificationOptions = $(el).parent().siblings('.notification_options');
+	const isVisible = el.selectedIndex > 0;
+
+	/* Toggle visibility of notification options */
+	notificationOptions.css('display', isVisible ? 'block' : 'none');
 }
 
-function getDiskInfo(serial, info){
-	for(key in disksInfo)
-	{
-		disk = disksInfo[key];
-		if (disk.hasOwnProperty('SERIAL_SHORT') && disk['SERIAL_SHORT'] == serial)
-		{
+/*
+	Function to retrieve specific information about a disk based on its serial number.
+	@param serial: The serial number of the disk to search for.
+	@param info: The specific information key to retrieve from the disk object.
+	@return: The value corresponding to the requested info key, or undefined if not found.
+*/
+function getDiskInfo(serial, info) {
+	for (const key in disksInfo) {
+		const disk = disksInfo[key];
+
+		/* Check if the disk has the matching serial number */
+		if (disk?.SERIAL_SHORT === serial) {
 			return disk[info];
 		}
 	}
 }
 
+
+/*
+	Function to handle toggling of report rows and their icons.
+	@param opened: An optional array of disk IDs that should be initially expanded.
+*/
 function toggleReports(opened) {
-	$(".toggle-reports").each(function() {
+	$(".toggle-reports").each(function () {
 		const elem = $(this);
 		const disk = elem.attr("hdd");
+
+		/* Disable text selection for this element */
 		elem.disableSelection();
 
-		elem.off("click").on("click", function() {
+		/* Remove any existing click handlers and attach a new one */
+		elem.off("click").on("click", function () {
 			const icon = $(this).find(".fa-append");
 			const disk = $(this).attr("hdd");
 
-			/* Toggle the inner div instead of the entire row */
-			$(".toggle-" + disk).slideToggle(150, function() {
+			/* Toggle the corresponding row's visibility */
+			$(`.toggle-${disk}`).closest("tr.report-row").slideToggle(150, function () {
 				const isVisible = $(this).css("display") !== "none";
 
-				/* Toggle icon state */
+				/* Update the icon and toggled state */
 				if (isVisible) {
 					icon.removeClass("fa-plus-square").addClass("fa-minus-square");
 					addToggledReport(disk);
@@ -532,273 +692,395 @@ function toggleReports(opened) {
 			});
 		});
 
-		/* Set initial state based on provided opened list or localStorage */
-		if (typeof(opened) !== 'undefined' && opened.includes(disk)) {
-			$(".toggle-" + disk).css("display", "block");
+		/* Initialize state for rows in the opened list */
+		if (Array.isArray(opened) && opened.includes(disk)) {
+			$(`.toggle-${disk}`).closest("tr.report-row").css("display", "table-row");
 			elem.find(".fa-append").removeClass("fa-plus-square").addClass("fa-minus-square");
 		}
 	});
 }
 
+/*
+	Function to retrieve the list of toggled reports from localStorage.
+	@return: An array of toggled report disk identifiers.
+*/
 function getToggledReports() {
-	/* Retrieve the opened state from localStorage */
 	return JSON.parse(localStorage.getItem("toggledReports") || "[]");
 }
 
+/*
+	Function to add a disk to the toggled reports list in localStorage.
+	@param disk: The identifier of the disk to add.
+*/
 function addToggledReport(disk) {
-	let opened = getToggledReports();
+	const opened = getToggledReports();
 	if (!opened.includes(disk)) {
 		opened.push(disk);
 		localStorage.setItem("toggledReports", JSON.stringify(opened));
 	}
 }
 
+/*
+	Function to remove a disk from the toggled reports list in localStorage.
+	@param disk: The identifier of the disk to remove.
+*/
 function removeToggledReport(disk) {
-	let opened = getToggledReports();
-	opened = opened.filter(item => item !== disk);
+	const opened = getToggledReports().filter(item => item !== disk);
 	localStorage.setItem("toggledReports", JSON.stringify(opened));
 }
 
-function rmReport(file, el)
-{
-	$.post(PreclearURL, {action:"remove_report", file:file}, function(data)
-	{
-		if (data)
-		{
-			var remain = $(el).closest("div").siblings().length;
-			if ( remain == "0")
-			{
+/*
+	Function to remove a report and update the UI accordingly.
+	@param file: The file identifier for the report to be removed.
+	@param el: The DOM element associated with the report.
+*/
+function rmReport(file, el) {
+	$.post(PreclearURL, { action: "remove_report", file: file }, function (data) {
+		if (data) {
+			/* Check if there are remaining siblings */
+			const remainingSiblings = $(el).closest("div").siblings().length;
+
+			/* If no siblings remain, update the icon opacity */
+			if (remainingSiblings === 0) {
 				$(el).closest("td").find(".fa-minus-circle, .fa-plus-circle").css("opacity", "0.0");
 			}
+
+			/* Remove the report's parent element */
 			$(el).parent().remove();
-			preclearShowResult(data)
+
+			/* Show the result of the removal */
+			preclearShowResult(data);
 		}
-	}).fail(function() {preclearShowResult(false);});
+	}).fail(function () {
+		preclearShowResult(false);
+	});
 }
 
-function getResumablePreclear(serial)
-{
-	$.post(PreclearURL,{action:'get_resumable', serial:serial}, function(data)
-	{
-		if (data.resume)
-		{
+/*
+	Function to check for a resumable preclear session for a given disk serial.
+	@param serial: The serial number of the disk.
+*/
+function getResumablePreclear(serial) {
+	$.post(PreclearURL, { action: "get_resumable", serial: serial }, function (data) {
+		if (data.resume) {
+			/* Display a prompt to resume or start a new preclear session */
 			swal2({
 				title: _("Resume Preclear"),
 				content: {
 					element: "div",
-					attributes: { innerHTML: "<p>"+_("There is a previous preclear session available for this drive")+".</p><p>"+_("Do you want to resume it instead of starting a new one")+"?</p>"}
+					attributes: {
+						innerHTML: `
+							<p>${_("There is a previous preclear session available for this drive.")}</p>
+							<p>${_("Do you want to resume it instead of starting a new one?")}</p>
+						`
+					}
 				},
 				icon: "info",
-				buttons:{
-					confirm:{text: _("Resume"), value: 1, visible: true, className: "", closeModal: false},
-					new:{text: _("Start New"), value: 2, visible: true, className: "", closeModal: false},
-					cancel:{text: _("Cancel"), value: null, visible: true, className: "swal-button .swal-button-left", closeModal: true},
+				buttons: {
+					confirm: { text: _("Resume"), value: 1, visible: true, closeModal: false },
+					new: { text: _("Start New"), value: 2, visible: true, closeModal: false },
+					cancel: { text: _("Cancel"), value: null, visible: true, closeModal: true }
 				}
 			}).then((answer) => {
 				if (answer == 1) {
-					var opts		= new Object();
-					opts["action"]	= "start_preclear";
-					opts["serial"]	= serial;
-					opts["device"]	= [];
-					opts["device"].push(getDiskInfo(serial, 'DEVICE'));
-					opts["op"]		= "resume";
-					opts["file"]	= data.resume;
-					opts["scope"]	= "gfjardim";
+					/* Resume preclear with saved session details */
+					const opts = {
+						action: "start_preclear",
+						serial: serial,
+						device: [getDiskInfo(serial, "DEVICE")],
+						op: "resume",
+						file: data.resume,
+						scope: "gfjardim"
+					};
 
-					$.post(PreclearURL, opts).done(function(data) {
-						preclearShowResult(data);
-						preclearUpdateContent();
-					}).fail(function() {preclearShowResult(false);});
+					$.post(PreclearURL, opts)
+						.done(function (response) {
+							preclearShowResult(response);
+							preclearUpdateContent();
+						})
+						.fail(function () {
+							preclearShowResult(false);
+						});
 				} else if (answer == 2) {
+					/* Start a new preclear session */
 					swal2.stopLoading();
 					startPreclear(serial);
 				}
 			});
 		} else {
+			/* No resumable session; start a new preclear session */
 			startPreclear(serial);
 		}
-	},'json').fail(function() {preclearShowResult(false);});
+	}, "json").fail(function () {
+		preclearShowResult(false);
+	});
 }
 
-function setPreclearQueue()
-{
-	$.post(PreclearURL,{action:'get_queue'}, function(data)
-	{
-		preclear_dialog = $( "#preclear-dialog" );
-		preclear_dialog.html("");
-		newSelect = $("#preclear-set-queue-defaults").clone();
-		newSelect.find("option[value='" + data + "']").attr('selected','selected');
-		preclear_dialog.append(newSelect.html());
+/*
+	Function to set the queue limit for preclear sessions.
+*/
+function setPreclearQueue() {
+	$.post(PreclearURL, { action: "get_queue" }, function (data) {
+		const preclearDialog = $("#preclear-dialog");
+		preclearDialog.html("");
+
+		const newSelect = $("#preclear-set-queue-defaults").clone();
+		newSelect.find(`option[value='${data}']`).attr("selected", "selected");
+		preclearDialog.append(newSelect.html());
 
 		swal2({
 			title: _("Set Queue Limit"),
-			content:{ element: "div", attributes:{ innerHTML: preclear_dialog.html()}},
+			content: { element: "div", attributes: { innerHTML: preclearDialog.html() } },
 			icon: "info",
-			buttons:{
-				confirm:{text: _("Set"), value: true, visible: true, className: "", closeModal: false},
-				cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
+			buttons: {
+				confirm: { text: _("Set"), value: true, visible: true, closeModal: false },
+				cancel: { text: _("Cancel"), value: null, visible: true, closeModal: true }
 			}
 		}).then((answer) => {
-			if (answer)
-			{
+			if (answer) {
+				const popup = $(".swal-modal");
+				const opts = {
+					action: "set_queue",
+					queue: getVal(popup, "queue")
+				};
 
-				var opts = new Object();
-				popup = $(".swal-modal");
-				opts["action"] = "set_queue";
-				opts["queue"] = getVal(popup, "queue");
-				console.log(opts["queue"])
+				console.log(opts.queue);
 
-				$.post(PreclearURL, opts).always(function(data)
-				{
+				$.post(PreclearURL, opts, function (data) {
 					preclearShowResult(data);
 					getPreclearContent();
-				},'json');
+				}, "json");
 			}
 		});
 	});
 }
 
-function resumePreclear(disk)
-{
-  $.post(PreclearURL,{action:'resume_preclear', disk:disk}, function(data)
-  {
-	preclearShowResult(data)
-    getPreclearContent();
-}).fail(function() {preclearShowResult(false);});
+/*
+	Function to resume a preclear session for a specific disk.
+	@param disk: The identifier of the disk to resume preclear.
+*/
+function resumePreclear(disk) {
+	$.post(PreclearURL, { action: "resume_preclear", disk: disk }, function (data) {
+		preclearShowResult(data);
+		getPreclearContent();
+	}).fail(function () {
+		preclearShowResult(false);
+	});
 }
 
-
-function preclearPauseAll()
-{
+/*
+	Function to pause all running preclear sessions.
+*/
+function preclearPauseAll() {
 	swal2({
 		title: _("Pause All Preclear Sessions"),
 		content: {
 			element: "div",
-			attributes: { innerHTML: "<p>"+_("Do you want to pause all running preclear sessions")+"?</p>"}
+			attributes: { innerHTML: `<p>${_("Do you want to pause all running preclear sessions?")}</p>` }
 		},
 		icon: "warning",
-		buttons:{
-			confirm:{text: _("Pause"), value: true, visible: true, className: "", closeModal: false},
-			cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
+		buttons: {
+			confirm: { text: _("Pause"), value: true, visible: true, closeModal: false },
+			cancel: { text: _("Cancel"), value: null, visible: true, closeModal: true }
 		}
 	}).then((answer) => {
 		if (answer) {
-			$.post(PreclearURL,{action:'pause_all'}, function(data)
-			{
+			$.post(PreclearURL, { action: "pause_all" }, function (data) {
 				preclearShowResult(data);
 				getPreclearContent();
-			},'json').fail(function() {preclearShowResult(false);});
+			}, "json").fail(function () {
+				preclearShowResult(false);
+			});
 		}
 	});
 }
 
-
-function preclearResumeAll()
-{
+/*
+	Function to resume all paused preclear sessions.
+*/
+function preclearResumeAll() {
 	swal2({
 		title: _("Resume All Preclear Sessions"),
 		content: {
 			element: "div",
-			attributes: { innerHTML: "<p>"+_("Do you want to resume all running preclear sessions")+"?</p>"}
+			attributes: { innerHTML: `<p>${_("Do you want to resume all running preclear sessions?")}</p>` }
 		},
 		icon: "warning",
-		buttons:{
-			confirm:{text: _("Resume"), value: true, visible: true, className: "", closeModal: false},
-			cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
+		buttons: {
+			confirm: { text: _("Resume"), value: true, visible: true, closeModal: false },
+			cancel: { text: _("Cancel"), value: null, visible: true, closeModal: true }
 		}
 	}).then((answer) => {
 		if (answer) {
-			$.post(PreclearURL,{action:'resume_all'}, function(data)
-			{
+			$.post(PreclearURL, { action: "resume_all" }, function (data) {
 				preclearShowResult(data);
 				getPreclearContent();
-			},'json').fail(function() {preclearShowResult(false);});
+			}, "json").fail(function () {
+				preclearShowResult(false);
+			});
 		}
 	});
 }
 
-function preclearStopAll()
-{
+/*
+	Function to display a SweetAlert2 notification based on the result of an operation.
+	@param success: A boolean indicating whether the operation was successful.
+*/
+function preclearShowResult(success) {
+	const options = success
+		? createSwalOptions(_('Success') + "!", "success", " ", 2000)
+		: createSwalOptions(_('Fail') + "!", "error", " ", 2000);
+
+	swal2(options);
+}
+
+/*
+	Helper function to create SweetAlert2 options.
+	@param title: The title of the alert.
+	@param icon: The icon type (e.g., "success" or "error").
+	@param content: The content (HTML or plain text) for the alert.
+	@param timer: The duration in milliseconds before the alert auto-closes.
+	@return: An object with the configured SweetAlert2 options.
+*/
+function createSwalOptions(title, icon, content, timer) {
+	return {
+		title,
+		icon,
+		content: {
+			element: "div",
+			attributes: { innerHTML: content }
+		},
+		buttons: {
+			confirm: { visible: false },
+			cancel: { visible: false }
+		},
+		timer
+	};
+}
+
+/*
+	Function to stop all running preclear sessions with user confirmation.
+*/
+function preclearStopAll() {
 	swal2({
 		title: _("Stop All Preclear Sessions"),
 		content: {
 			element: "div",
-			attributes: { innerHTML: "<p>"+_("Do you want to stop all running preclear sessions")+"?</p>"}
+			attributes: {
+				innerHTML: `<p>${_("Do you want to stop all running preclear sessions?")}</p>`
+			}
 		},
 		icon: "warning",
-		buttons:{
-			confirm:{text: _("Stop"), value: true, visible: true, className: "", closeModal: false},
-			cancel:{text: _("Cancel"), value: null, visible: true, className: "", closeModal: true},
+		buttons: {
+			confirm: { text: _("Stop"), value: true, visible: true, closeModal: false },
+			cancel: { text: _("Cancel"), value: null, visible: true, closeModal: true }
 		}
 	}).then((answer) => {
 		if (answer) {
-			$.post(PreclearURL,{action:'stop_all_preclear'}, function(data)
-			{
+			/* Send request to stop all preclear sessions */
+			$.post(PreclearURL, { action: "stop_all_preclear" }, function (data) {
 				preclearShowResult(data);
 				getPreclearContent();
-			},'json').fail(function() {preclearShowResult(false);});
+			}, "json").fail(function () {
+				preclearShowResult(false);
+			});
 		}
 	});
 }
 
-function preclearShowResult(success)
-{
-	if (success) {
-		swal2({title:_("Success")+"!",text:" ",icon:"success",buttons:{confirm:{visible:false},cancel:{visible:false}},timer:1200});
-	} else {
-		swal2({title:_("Fail")+"!",text:" ",icon:"error",buttons:{confirm:{visible:false},cancel:{visible:false}},timer:1200});
-	}
-}
-
-var preclearSortableHelper = function(e,i)
-{
+/*
+	Helper function for sortable rows to toggle CSS classes and set child element widths.
+	@param e: The event object.
+	@param i: The item being sorted.
+	@return: The modified item.
+*/
+const preclearSortableHelper = function (e, i) {
 	i.toggleClass("even odd");
-	i.children().each(function(){
+	i.children().each(function () {
 		$(this).width($(this).width());
 	});
 	return i;
 };
 
-var preclearStartSorting = function(e,i)
-{
+/*
+	Function to handle actions when sorting starts.
+	@param e: The event object.
+	@param i: The item being sorted.
+*/
+const preclearStartSorting = function (e, i) {
 	clearTimeout(timers.getPreclearContent);
+
+	/* Mark visible toggles as sortable and trigger click */
 	$(i.item).find("div[class*=toggle-]:visible").prev().addClass("sortable_toggled");
 	$(i.item).find("div[class*=toggle-]:visible").prev().trigger("click");
 };
 
-var preclearStopSorting = function(e,i)
-{
-	timers.getPreclearContent = setTimeout('getPreclearContent()', 1500);
+/*
+	Function to handle actions when sorting stops.
+	@param e: The event object.
+	@param i: The item being sorted.
+*/
+const preclearStopSorting = function (e, i) {
+	timers.getPreclearContent = setTimeout(() => getPreclearContent(), 1500);
+
+	/* Remove the sortable toggled class and trigger click */
 	$(i.item).find(".sortable_toggled").trigger("click").removeClass("sortable_toggled");
 };
 
-var preclearUpdateSorting = function(e,i)
-{
-	var devices = [];
-	$('#preclear-table-body').find("tr").each(function()
-	{
+/*
+	Function to update the sorting order and save it on the server.
+	@param e: The event object.
+	@param i: The item being sorted.
+*/
+const preclearUpdateSorting = function (e, i) {
+	const devices = [];
+
+	/* Collect the device attributes for each sortable row */
+	$("#preclear-table-body").find("tr").each(function () {
 		devices.push($(this).attr("device"));
 	});
-	$.post(PreclearURL ,{'action':'save_sort', 'devices':devices}, function(data)
-	{
+
+	/* Send the updated sort order to the server */
+	$.post(PreclearURL, { action: "save_sort", devices: devices }, function (data) {
 		clearTimeout(timers.getPreclearContent);
-		timers.preclear = setTimeout('getPreclearContent()', 1500);
+		timers.preclear = setTimeout(() => getPreclearContent(), 1500);
 	});
 };
 
-function preclearResetSorting()
-{
-	$.post(PreclearURL ,{'action':'reset_sort'}, function(data){getPreclearContent();});
+/*
+	Function to reset the sorting order.
+*/
+function preclearResetSorting() {
+	$.post(PreclearURL, { action: "reset_sort" }, function (data) {
+		getPreclearContent();
+	});
 }
 
-function preclearSetSorting()
-{
-	$('#preclear-table-body').sortable({tolerance: "pointer",helper:preclearSortableHelper,items:'tr.sortable',cursor:'move',axis:'y',containment:'parent',cancel:'span.docker_readmore,input',delay:100,opacity:0.5,zIndex:9999,
-	  update:preclearUpdateSorting,start:preclearStartSorting,stop:preclearStopSorting});
+/*
+	Function to initialize sortable functionality on the table body.
+*/
+function preclearSetSorting() {
+	$("#preclear-table-body").sortable({
+		tolerance: "pointer",
+		helper: preclearSortableHelper,
+		items: "tr.sortable",
+		cursor: "move",
+		axis: "y",
+		containment: "parent",
+		cancel: "span.docker_readmore,input",
+		delay: 100,
+		opacity: 0.5,
+		zIndex: 9999,
+		update: preclearUpdateSorting,
+		start: preclearStartSorting,
+		stop: preclearStopSorting
+	});
 }
 
-function preclearUpdateContent()
-{
+/*
+	Function to update preclear content and refresh data.
+*/
+function preclearUpdateContent() {
 	if (typeof usb_disks === "function") {
 		usb_disks();
 	}
