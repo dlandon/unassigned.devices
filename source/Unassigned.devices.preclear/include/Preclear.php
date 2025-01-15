@@ -73,7 +73,8 @@ function listDir($root)
 $start_time = time();
 if (isset($_POST['action'])) {
 	switch ($_POST['action']) {
-		case 'get_content':
+		case 'get_content':		/* THIS CAN EVENTUALLY BE REMOVED.  LEFT FOR COMPATIBLITIY. */
+		case 'get_preclear_content':
 			preclear_log("Starting get_content: ".(time() - $start_time),'DEBUG');
 
 			/* See if we had a hot plug event. */
