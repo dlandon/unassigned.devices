@@ -3,7 +3,7 @@ Link="nav-user"
 ---
 <?php
 /* Copyright 2015-2020, Guilherme Jardim
- * Copyright 2022-2024, Dan Landon
+ * Copyright 2022-2025, Dan Landon
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -21,7 +21,7 @@ $Preclear = new Preclear;
 
 <?=$Preclear->html();?>
 <script>
-	const pluginFooterPath = <?= json_encode(UNASSIGNED_PRECLEAR_PLUGIN ?? ''); ?>;
+	const pluginFooterPath = <?=PRECLEAR_PLUGIN_PATH;?>;
 
 	<?=$Preclear->Script();?>
 
