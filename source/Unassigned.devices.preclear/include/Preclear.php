@@ -22,10 +22,7 @@ require_once("plugins/unassigned.devices.preclear/include/lib.php");
 $Preclear			= new Preclear;
 $script_files		= $Preclear->scriptFiles();
 
-if (isset($_POST['display']))
-{
-	$display = $_POST['display'];
-}
+$display = $_POST['display'] ?? [];
 
 if (! is_dir(dirname($state_file)) )
 {
@@ -174,22 +171,23 @@ if (isset($_POST['action'])) {
 			break;
 
 		case 'get_status':
-			$disk_name = htmlspecialchars(urldecode($_POST['device']));
+			$disk_name	= htmlspecialchars(urldecode($_POST['device']));
 			$serial		= htmlspecialchars(urldecode($_POST['serial']));
 			$status		= $Preclear->Status($disk_name, $serial);
 			echo json_encode(true);
 			break;
 
 		case 'start_preclear':
-			$devices = (isset($_POST['device']) && is_array($_POST['device'])) ? $_POST['device'] : [];
+			$devices = $_POST['device'] ?? [];
 			$success = true;
 
 			if (count($devices)) {
 				foreach ($devices as $device) {
 					$serial		= $Preclear->diskSerial($device);
 					$session	= "preclear_disk_{$serial}";
-					$op			= (isset($_POST['op']) && $_POST['op'] != "0") ? htmlspecialchars(urldecode($_POST['op'])) : "";
-					$file		= (isset($_POST['file'])) ? htmlspecialchars(urldecode($_POST['file'])) : "";
+					$op			= htmlspecialchars(urldecode($_POST['op']));
+					$op			= ($op != "0") ?: "";
+					$file		= htmlspecialchars(urldecode($_POST['file'] ?? ""));
 					$scope		= htmlspecialchars(urldecode($_POST['scope']));
 					$script		= $script_files[$scope];
 					$devname	= basename($device);
