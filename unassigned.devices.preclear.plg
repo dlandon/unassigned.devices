@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2025.01.20">
+<!ENTITY version	"2025.01.29">
 <!ENTITY launch		"Tools/Preclear">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/unassigned.devices/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
-<!ENTITY MD5		"208a6cf1b5341ecacc279747a9a59c30">
+<!ENTITY MD5		"1c938ce05a5380356b985dead55f0936">
 ]>
 <PLUGIN name="&name;"
 		author="&author;"
@@ -21,6 +21,9 @@
 <CHANGES>
 ###&name;
 ###&version;
+- Fix: Erase disk gets stuck at "Starting".
+
+###2025.01.20
 - Fix: Reports showing a blank line when no reports are displayed.
 - Fix: Rewrite Java Script code for reliability and robustness.
 - Fix: Some UI cleanup.
