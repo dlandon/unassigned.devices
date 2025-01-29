@@ -185,10 +185,9 @@ if (isset($_POST['action'])) {
 				foreach ($devices as $device) {
 					$serial		= $Preclear->diskSerial($device);
 					$session	= "preclear_disk_{$serial}";
-					$op			= htmlspecialchars(urldecode($_POST['op']));
-					$op			= ($op != "0") ?: "";
-					$file		= htmlspecialchars(urldecode($_POST['file'] ?? ""));
-					$scope		= htmlspecialchars(urldecode($_POST['scope']));
+					$op			= (isset($_POST['op']) && $_POST['op'] != "0") ? htmlspecialchars(urldecode($_POST['op'])) : "";
+					$file		= (isset($_POST['file'])) ? htmlspecialchars(urldecode($_POST['file'])) : "";
+					$scope		= $_POST['scope'];
 					$script		= $script_files[$scope];
 					$devname	= basename($device);
 
