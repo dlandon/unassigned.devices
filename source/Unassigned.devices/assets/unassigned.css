@@ -262,3 +262,9 @@ form.inline {
 .underline-icon i, .underline-icon span {
 	text-decoration: inherit; /* Ensure children inherit the underline */
 }
+
+textarea {
+	outline: 1px solid; /* Solid border. */
+	border-radius: 5px; /* Slightly rounded corners. */
+	padding: 5px 15px; /* 5px top/bottom, 15px left/right */
+}
