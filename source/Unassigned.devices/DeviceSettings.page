@@ -495,7 +495,7 @@ _(User Script)_:
 
 ###_(Device Script content)_:
 
-<textarea spellcheck="false" cols="80" rows="22" name="text" id="textInput" title='_(Enter and Edit the Device Script that runs when a udev or operator event occurs)_.' style="width:80%"><?=$text;?></textarea>
+<textarea spellcheck="false" cols="80" rows="22" name="text" id="textInput" title='_(Enter and Edit the Device Script that runs when a udev or operator event occurs)_.' style="width:80%;"><?=$text;?></textarea>
 
 <?if ((! $device_script_running) && (! $user_script_running)):?>
 <?if (! is_file($file)):?>
@@ -527,7 +527,7 @@ _(User Script)_:
 
 <script>
 	/* Initialize PHP variables passed to JavaScript */
-	const udPluginPath = <?=UD_PLUGIN_PATH; ?>;
+	const udPluginPath = <?=UD_PLUGIN_PATH;?>;
 
 	/* URL for Unassigned Devices PHP file. */
 	const UDURL		= '/plugins/' + udPluginPath + '/include/UnassignedDevices.php';
@@ -553,6 +553,7 @@ _(User Script)_:
 		if (fileInput) {
 			/* Define special characters to be removed */
 			const specialChars = /['"?\#&!<>\|+@*]/g;
+
 			/* Replace special characters in the file name */
 			fileInput.value = fileInput.value.replace(specialChars, '');
 		}
