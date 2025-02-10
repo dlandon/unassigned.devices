@@ -2213,7 +2213,7 @@ function do_unmount($info, $force = false) {
 	$nfs				= false;
 	$zfs				= false;
 	$unmount_type		= "";
-	$unmount_mode		= ($force ? "-f " : "-l ");
+	$unmount_mode		= ($force ? "-fl " : "-l ");
 
 	switch ($info['fstype']) {
 		case ("crypto_LUKS"):
@@ -2445,10 +2445,15 @@ function add_smb_share($dir, $recycle_bin = false, $fat_fruit = false) {
 
 				/* Apply the fruit settings. */
 				$vfs_objects	= "";
-				foreach ($fruit_file_settings as $f) {
+				foreach ($fruit_file_settings as $line) {
 					/* Remove comment lines. */
-					if (($f) && (strpos($f, "#") === false)) {
-						$vfs_objects .= "\n\t".$f;
+					if (($line) && (strpos($line, "#") === false)) {
+						if (strpos($line, "vfs objects =") === 0) {
+							/* Add 'dirsort' to vfs objects. */
+							$line = preg_replace('/(vfs objects = )/', '$1dirsort ', $line, 1);
+						}
+
+						$vfs_objects .= "\n\t".$line;
 					}
 				}
 			} else {
@@ -3117,7 +3122,6 @@ function do_mount_samba($info) {
 				if ($return_code !== 0) {
 					unassigned_log("Failed to securely shred the password file '".$credentials_file."'.");
 				}
-				unset($pass);
 			} else {
 				unassigned_log("SMB must be enabled in 'Settings->SMB' to mount SMB remote shares.");
 			}
