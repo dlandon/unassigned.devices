@@ -69,7 +69,7 @@ _(Server)_:
 
 <div style="width:65%; float:left">
 <strong><?=_('Result')?>:</strong>
-<textarea readonly name="Status" rows="10" cols="140" title='_(Result of Remote Server Test)_' style="font-family:bitstream;width:100%"></textarea>
+<textarea readonly name="Status" rows="10" cols="140" title='_(Result of Remote Server Test)_' style="font-family:bitstream;width:100%;"></textarea>
 </div>
 </form>
 
