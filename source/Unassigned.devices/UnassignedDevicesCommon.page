@@ -30,19 +30,7 @@ if ((! $parted) && ($UD_cfg['Config']['destructive_mode'] == "enabled")) {
 <link rel="stylesheet" href="<?autov('/webGui/styles/jquery.filetree.css')?>" >
 
 <script src="<?autov('/webGui/javascript/jquery.filetree.js')?>"></script>
-
-<style>
-	.fileTree {
-		border: solid 1px #BBB;
-		background: #FFF;
-		overflow: scroll;
-		padding: 5px;
-		position:absolute;
-		z-index:100;
-		display:none;
-		color:initial;
-	}
-</style>
+<link rel="stylesheet" href="<?autov("/plugins/".UNASSIGNED_PLUGIN."/assets/unassigned.css")?>">
 
 <script>
 	/*
