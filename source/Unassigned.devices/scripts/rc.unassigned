@@ -621,6 +621,7 @@ function unassigned_umount() {
 
 				/* Unmount the remote share if it is mounted. */
 				$dev	= $info['fstype'] == "root" ? $info['mountpoint'] : $info['device'];
+
 				if ( $info['mounted'] ) {
 					/* If forced shutdown, abort device script. */
 					if ($force) {
@@ -929,7 +930,7 @@ function areProcessesRunning($mountpoint) {
 	$output = [];
 	$exitCode = 0;
 
-	exec("/usr/bin/fuser -s ".escapeshellarg($mountpoint), $output, $exitCode);
+	exec("/usr/bin/timeout 1 /usr/bin/fuser -s ".escapeshellarg($mountpoint), $output, $exitCode);
 
 	return $exitCode === 0;
 }
@@ -938,13 +939,15 @@ function areProcessesRunning($mountpoint) {
 function kill_processes_on_mountpoint($mountpoint) {
 
 	/* Kill all processes on the mountpoint. */
-	exec("/usr/bin/fuser -mk ".escapeshellarg($mountpoint)." 2>/dev/null");
+	$output	= timed_exec(2, "/usr/bin/fuser -kvm ".escapeshellarg($mountpoint)." 2>/dev/null", true);
 
-	/* Wait until processes are no longer running.  Time out after 10 seconds. */
-	$i	= 0;
-	while ((areProcessesRunning($mountpoint)) && ($i < 10)) {
-		sleep(1);
-		$i++;
+	if ($output != "command timed out") {
+		/* Wait until processes are no longer running.  Time out after 10 seconds. */
+		$i	= 0;
+		while ((areProcessesRunning($mountpoint)) && ($i < 10)) {
+			sleep(1);
+			$i++;
+		}
 	}
 }
 
