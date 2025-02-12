@@ -39,6 +39,20 @@ function apply() {
 	unassigned_log("Share settings updated.");
 }
 
+
+/* Save settings and update shares based on any changes to settings. */
+function shares() {
+	unassigned_log("Updating share settings...");
+
+	/* Remove the old shares based on the old settings. */
+	remove_shares();
+
+	/* Reload the shares based on the new settings. */
+	reload_shares();
+
+	unassigned_log("Share settings updated.");
+}
+
 /* Change the UUID of a device. */
 function uuid_change() {
 	global $ud_config;
@@ -173,6 +187,10 @@ switch ($argv[1]) {
 
 	case 'apply':
 		apply();
+		break;
+
+	case 'shares':
+		shares();
 		break;
 
 	case 'uuid_change':
