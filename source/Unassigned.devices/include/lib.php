@@ -2213,7 +2213,7 @@ function do_unmount($info, $force = false) {
 	$nfs				= false;
 	$zfs				= false;
 	$unmount_type		= "";
-	$unmount_mode		= ($force ? "-fl " : "-l ");
+	$unmount_mode		= "-l ";
 
 	switch ($info['fstype']) {
 		case ("crypto_LUKS"):
@@ -2242,7 +2242,6 @@ function do_unmount($info, $force = false) {
 			break;
 
 		case ("root"):
-			$unmount_mode	= "-l ";
 		case ("loop"):
 			$dev			= "";
 			$timeout		= 10;
@@ -2291,8 +2290,7 @@ function do_unmount($info, $force = false) {
 			/* Unmount zfs file system. */
 			$cmd = ("/usr/sbin/zfs unmount ".escapeshellarg($dir)." 2>&1");
 		} else {
-			/* The umount flags are set depending on the unmount conditions.  When the array is being stopped force will
-			   be set.  This helps to keep unmounts from hanging. */
+			/* The umount flags are set depending on the unmount conditions. */
 			$cmd = "/sbin/umount ".$unmount_type.$unmount_mode.escapeshellarg($dir)." 2>&1";
 		}
 
@@ -2597,29 +2595,49 @@ function add_nfs_share($dir) {
 	if ($var['shareNFSEnabled'] == "yes") {
 		if (get_config("Config", "nfs_export") == "yes") {
 			$reload = false;
-			foreach (array("/etc/exports","/etc/exports-") as $file) {
-				if (! MiscUD::exist_in_file($file, $dir)) {
-					$c			= (is_file($file)) ? @file($file, FILE_IGNORE_NEW_LINES) : [];
-					$fsid		= 200 + count(preg_grep("@^\"@", $c));
-					$nfs_sec	= get_config("Config", "nfs_security");
-					if ( $nfs_sec == "private" ) {
-						$nfs_rule	= get_config("Config", "nfs_rule");
-						if ($nfs_rule) {
-							$sec	= explode(";", $nfs_rule);
-						} else {
-							$sec[]	= "*(rw,sec=sys,insecure,anongid=100,anonuid=99,no_root_squash)";
-						}
-					} else {
-						$sec[]	= "*(rw,sec=sys,insecure,anongid=100,anonuid=99,all_squash)";
+			foreach (array("/etc/exports", "/etc/exports-") as $file) {
+				$c = (is_file($file)) ? @file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) : [];
+
+				/* Extract all fsid values already in the file */
+				$existing_fsid = [];
+				foreach ($c as $line) {
+					if (preg_match('/-fsid=(\d+)/', $line, $matches)) {
+						$existing_fsid[] = (int)$matches[1];
 					}
-					foreach ($sec as $security) {
-						if ($security) {
-							$c[]		= "\"{$dir}\" -fsid={$fsid},async,no_subtree_check {$security}";
+				}
+
+				/* Generate a unique fsid */
+				$fsid = 200;
+				while (in_array($fsid, $existing_fsid)) {
+					$fsid++;
+				}
+
+				$nfs_sec = get_config("Config", "nfs_security");
+				if ($nfs_sec == "private") {
+					$nfs_rule = get_config("Config", "nfs_rule");
+					$sec = ($nfs_rule) ? explode(";", $nfs_rule) : ["*(rw,sec=sys,insecure,anongid=100,anonuid=99,no_root_squash)"];
+				} else {
+					$sec = ["*(rw,sec=sys,insecure,anongid=100,anonuid=99,all_squash)"];
+				}
+
+				/* Ensure fsid does not already exist in the file */
+				$new_entries = [];
+				foreach ($sec as $security) {
+					if ($security) {
+						$new_entry = "\"{$dir}\" -fsid={$fsid},async,no_subtree_check {$security}";
+
+						/* Only add if the fsid is not already in the file */
+						if (!preg_grep("/-fsid={$fsid}\b/", $c)) {
+							$new_entries[] = $new_entry;
 						}
 					}
-					$c[]		= "";
+				}
+
+				if (!empty($new_entries)) {
+					$c = array_merge($c, $new_entries);
+					$c[] = ""; /* Ensure a newline at the end */
 					@file_put_contents($file, implode(PHP_EOL, $c));
-					$reload		= true;
+					$reload = true;
 				}
 			}
 			if ($reload) {
