@@ -21,9 +21,6 @@ require_once("plugins/unassigned.devices.preclear/include/lib.php");
 $Preclear			= new Preclear;
 $zipFile			= sprintf("log/%s-%s-%s.zip", str_replace(' ','_',strtoupper($var['NAME'])), UNASSIGNED_PRECLEAR_PLUGIN, date('Ymd-Hi') );
 
-/* read translations */
-parse_plugin('Preclear');
-
 /* Get the version of Unraid we are running. */
 $version = parse_ini_file("/etc/unraid-version");
 
