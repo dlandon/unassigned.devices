@@ -2,12 +2,12 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2025.01.14">
+<!ENTITY version	"2025.02.12">
 <!ENTITY launch		"Main/UnassignedDevices">
 <!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/&name;/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/92462-unassigned-devices-managing-disk-drives-and-remote-shares-outside-of-the-unraid-array/">
-<!ENTITY MD5		"842187b3410f8b25913dc9ad4e88ade5">
+<!ENTITY MD5		"6e71bbfc2f15b1948b9f14c2ccb88424">
 ]>
 
 <PLUGIN name="&name;"
@@ -22,6 +22,13 @@
 <CHANGES>
 ##&name;
 ###&version;
+- Fix: Issue when setting up "vfs objects" - "dirsort" not always added.
+- Fix: NFS export entries for UD Devices were removed when a share was edited.
+- Fix: Hang when shutting down Unraid and a remote share server is offline.
+- Add: Border to text boxes in Device Settings and some UD Settings pages.
+- Add: Lazy unmount instead of force to all unmounts when the server is shutting down.
+
+###2025.01.14
 - Fix: Cleanup and rewrite Java Script and some php code for readability and robustness.
 - Fix: Code changes in html code for robustness.
 - Fix: Don't show devices in dialogs in a compressed fashion.  The dialogs are now large enough the full device can be shown.
