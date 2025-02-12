@@ -946,6 +946,13 @@ $isUser0	= is_dir("/mnt/user0/");
 		}
 	});
 
+	/* Add diskio icon. */
+	$('#tab4').bind({
+		click:function() {
+			$('i.toggle').show('slow');
+		}
+	});
+
 	/* Bind Arrive events for dynamically added 'tr' elements in the '#usb_devices_list' table. */
 	$("#usb_devices_list").arrive("tr", { onceOnly: false }, function () {
 		const tr = $(this);
