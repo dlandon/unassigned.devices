@@ -2,9 +2,9 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name		"unassigned.devices.preclear">
 <!ENTITY author		"dlandon">
-<!ENTITY version	"2025.02.12">
+<!ENTITY version	"2025.02.14">
 <!ENTITY launch		"Tools/Preclear">
-<!ENTITY gitURL		"https://raw.githubusercontent.com/&author;/unassigned.devices/master">
+<!ENTITY gitURL		"https://raw.githubusercontent.com/unraid/unassigned.devices/master">
 <!ENTITY pluginURL	"&gitURL;/&name;.plg">
 <!ENTITY supportURL	"https://forums.unraid.net/topic/120567-unassigned-devices-preclear-a-utility-to-preclear-disks-before-adding-them-to-the-array/">
 <!ENTITY MD5		"8a7900d869ca2d9c10dbfee750e74c77">
@@ -21,6 +21,9 @@
 <CHANGES>
 ###&name;
 ###&version;
+- Add: Change to Unraid repository.
+
+###2025.02.12
 - Fix: Language translation updates.
 - Fix: Update tmux to 3.5a.
 
